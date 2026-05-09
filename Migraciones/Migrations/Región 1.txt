@@ -1,0 +1,787 @@
+﻿
+            migrationBuilder.EnsureSchema(
+                name: "TAREA");
+
+            #region region a incluir 1
+            migrationBuilder.Sql
+            (
+@"
+CREATE FUNCTION [CALLEJERO].[CC_CALLE_EXPRESION] (@NOMBRE VarChar(250), @ID_MUNICIPIO int, @ID_TIPO_DE_VIA int)
+RETURNS VarChar(2000)
+AS
+begin
+  declare @municipio varchar(250)
+  declare @tipoVia varchar(250)
+  declare @resultado VARCHAR(250)
+  
+  select @municipio = NOMBRE from callejero.MUNICIPIO where id = @ID_MUNICIPIO
+  select @tipoVia = NOMBRE from callejero.TIPO_VIA id where id = @ID_TIPO_DE_VIA
+  
+  select @resultado = @tipoVia + ' ' + @NOMBRE + ' (' + @municipio + ')'
+  
+  return @resultado
+END
+
+GO
+
+
+/****** Object:  UserDefinedFunction [CALLEJERO].[CC_CODIGO_POSTAL_MUNICIPIOS]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [CALLEJERO].[CC_CODIGO_POSTAL_MUNICIPIOS] (@ID int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @municipio VARCHAR(250)
+  declare @resultado VARCHAR(250)
+
+   DECLARE c CURSOR FOR SELECT t1.NOMBRE
+   from CALLEJERO.MUNICIPIO t1
+   inner join CALLEJERO.MUNICIPIO_CP t2 on t2.ID_MUNICIPIO = t1.ID
+	where t2.ID_CP = @ID
+   
+   set @resultado = ''
+   OPEN c
+   FETCH NEXT FROM c INTO @municipio
+   WHILE @@fetch_status = 0
+   BEGIN
+      if @resultado = ''  
+         set  @resultado = @municipio 
+   	  else 
+         set  @resultado = @resultado + char(13) + @municipio 
+      FETCH NEXT FROM c INTO @municipio
+   END
+   CLOSE c
+   DEALLOCATE c
+   return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [CALLEJERO].[CC_CODIGO_POSTAL_PROVINCIA]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION [CALLEJERO].[CC_CODIGO_POSTAL_PROVINCIA] (@CP CHAR(5))
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  select @resultado = NOMBRE FROM CALLEJERO.PROVINCIA WHERE CODIGO = SUBSTRING(@CP,1,2)
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [ENTORNO].[ARBOL_MENU_POR_USUARIO]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [ENTORNO].[ARBOL_MENU_POR_USUARIO] (@IDUSUARIO INT)
+RETURNS 
+  @MenusAccedidos TABLE 
+   (ID			int 
+   ,NOMBRE		varchar(250)
+   ,DESCRIPCION	varchar(2000)
+   ,ICONO		varchar(250)
+   ,ACTIVO		bit
+   ,IDPADRE		int
+   ,IDVISTA_MVC int
+   ,ORDEN		int
+   ,PARAMETROS  varchar(2000))
+AS
+BEGIN
+  declare @idpadre int
+  declare @administrador bit
+
+  select @administrador = ADMINISTRADOR from entorno.USUARIO where id = @IDUSUARIO 
+                
+  if 1 = @administrador  
+  begin		                  
+     insert @MenusAccedidos  select * from entorno.arbol_menu()
+  end
+  else	
+  begin                  
+    insert @MenusAccedidos
+    SELECT T1.ID, T1.NOMBRE, T1.DESCRIPCION, T1.ICONO, T1.ACTIVO, T1.IDPADRE,  T1.IDVISTA_MVC, T1.ORDEN, t1.PARAMETROS  
+    from ENTORNO.MENU t1 with(nolock)
+    inner join ENTORNO.VISTA_MVC t2  with(nolock) on t2.id = t1.IDVISTA_MVC
+    where t1.IDVISTA_MVC is not null
+      and t1.ACTIVO = 1
+      and exists (select 1 from ENTORNO.USUARIO_PERMISO with(nolock) where IDUSUA = @IDUSUARIO and IDPERMISO = t2.IDPERMISO)                        
+  
+    declare menus  CURSOR for select IDPADRE from @MenusAccedidos 
+       
+    open menus
+    FETCH menus INTO @idpadre
+    WHILE (@@fetch_status = 0) 
+    BEGIN
+     insert into @MenusAccedidos  
+     select T1.ID, T1.NOMBRE, T1.DESCRIPCION, T1.ICONO, T1.ACTIVO, T1.IDPADRE,  T1.IDVISTA_MVC, T1.ORDEN, t1.PARAMETROS  
+     from ENTORNO.MENU t1 with(nolock)
+     where id = @idpadre
+       and id not in (select id from @MenusAccedidos)
+       
+     FETCH menus INTO @idpadre
+    end
+    
+    CLOSE menus
+    DEALLOCATE menus    
+  end
+                   
+ RETURN 
+END
+
+GO
+/****** Object:  UserDefinedFunction [ENTORNO].[CC_ACCION_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION [ENTORNO].[CC_ACCION_NOMBRE](@ID_ACCION INT)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  SELECT @resultado = NOMBRE FROM ENTORNO.ACCION WHERE ID = @ID_ACCION
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [ENTORNO].[CC_USUARIO_EXPRESION]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [ENTORNO].[CC_USUARIO_EXPRESION] (@id_creador int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ LOGIN +') ' + APELLIDO +' ' + NOMBRE from ENTORNO.USUARIO where id = @id_creador
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [EXPEDIENTE].[CC_EXPEDIENTE_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [EXPEDIENTE].[CC_EXPEDIENTE_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from EXPEDIENTE.EXPEDIENTE where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [EXPEDIENTE].[CC_VALORADO_EN]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+                CREATE FUNCTION [EXPEDIENTE].[CC_VALORADO_EN] (@ID_EXPEDIENTE INT)
+                RETURNS DECIMAL(18,6)
+                AS
+                begin
+                  declare @resultado DECIMAL(18,6)
+                  
+                  SELECT @resultado = ISNULL(SUM(IMPORTE_PPT),0)
+				  FROM 
+				  (
+					SELECT ID_EXPEDIENTE, ID_PPT, IMPORTE_PPT
+					FROM
+					(
+					   SELECT ID_PPT, IMPORTE_PPT
+					   FROM (					   
+					          SELECT  LINEAS.ID_PPT, SUM(IMPORTE_LINEA) AS IMPORTE_PPT
+						      FROM (						
+						            SELECT 
+						            LINEA.ID_ELEMENTO AS ID_PPT
+						            , ISNULL(LINEA.precio_sin_dto - LINEA.importe_dto,0) AS IMPORTE_LINEA
+                                    FROM (
+                                          select 
+                                            ID_ELEMENTO
+						 	              , (CANTIDAD * PRECIO) as precio_sin_dto
+                                          , ISNULL((CANTIDAD * PRECIO * DESCUENTO / 100),0) as importe_dto
+                                          , (((CANTIDAD * PRECIO) - ISNUll((CANTIDAD * PRECIO * DESCUENTO / 100),0)) * IVA / 100) as importe_iva
+                                          from PRESUPUESTO.PRESUPUESTO_LINEA TL
+										  INNER JOIN PRESUPUESTO.PRESUPUESTO TP ON TP.ID = TL.ID_ELEMENTO
+										  inner join PRESUPUESTO.PRESUPUESTO_ESTADO pe on pe.ID = tp.ID_ESTADO
+										  WHERE TP.ID_EXPEDIENTE = @ID_EXPEDIENTE
+										  and pe.CANCELADO <> 1
+                                    ) LINEA
+						       ) LINEAS
+						       GROUP BY LINEAS.ID_PPT 
+						) PPTS 
+						) T1
+						INNER JOIN PRESUPUESTO.PRESUPUESTO T2 ON T2.ID = T1.ID_PPT
+						WHERE ID_EXPEDIENTE = @ID_EXPEDIENTE
+				  ) PPTS_DE_UN_EXPEDIENTE
+                  
+                  return @resultado
+                END
+
+GO
+/****** Object:  UserDefinedFunction [GASTO].[CC_FACTURA_REC_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [GASTO].[CC_FACTURA_REC_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from GASTO.FACTURA_REC where id = @ID_ELEMENTO
+              return @resultado
+            END
+GO
+/****** Object:  UserDefinedFunction [GASTO].[CC_PAGO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [GASTO].[CC_PAGO_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from GASTO.PAGO where id = @ID_ELEMENTO
+              return @resultado
+            END
+GO
+/****** Object:  UserDefinedFunction [GASTO].[CC_REMESA_PAG_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [GASTO].[CC_REMESA_PAG_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from GASTO.REMESA_PAG where id = @ID_ELEMENTO
+              return @resultado
+            END
+GO
+
+/****** Object:  UserDefinedFunction [GUARDERIA].[CC_INFANTE_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [GUARDERIA].[CC_INFANTE_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from GUARDERIA.INFANTE where id = @id_elemento
+  return @resultado
+END
+
+GO
+
+/****** Object:  UserDefinedFunction [GUARDERIA].[CC_CURSO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [GUARDERIA].[CC_CURSO_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from GUARDERIA.CURSO where id = @id_elemento
+  return @resultado
+END
+
+GO
+
+/****** Object:  UserDefinedFunction [JURIDICO].[CC_CONTRATO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [JURIDICO].[CC_CONTRATO_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from JURIDICO.CONTRATO where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [JURIDICO].[CC_PLEITO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [JURIDICO].[CC_PLEITO_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from JURIDICO.PLEITO where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [PRESUPUESTO].[CC_PRESUPUESTO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [PRESUPUESTO].[CC_PRESUPUESTO_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from PRESUPUESTO.PRESUPUESTO where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [PRESUPUESTO].[CC_TOTAL_PPT]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [PRESUPUESTO].[CC_TOTAL_PPT] (@ID INT)
+RETURNS DECIMAL(18,6)
+AS
+begin
+  declare @resultado DECIMAL(18,6)
+  
+  SELECT @resultado = ISNULL(SUM(IMPORTE_LINEA),0)
+  FROM (
+        SELECT precio_sin_dto - importe_dto + importe_iva AS IMPORTE_LINEA
+        FROM (
+              select 
+                (CANTIDAD * PRECIO) as precio_sin_dto
+              , ISNULL((CANTIDAD * PRECIO * DESCUENTO / 100),0) as importe_dto
+              , IVA
+              , (((CANTIDAD * PRECIO) - ISNUll((CANTIDAD * PRECIO * DESCUENTO / 100),0)) * IVA / 100) as importe_iva
+              from PRESUPUESTO.PRESUPUESTO_LINEA
+        	  WHERE ID_ELEMENTO = @ID
+        ) LINEA
+  ) LINEAS
+  
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [REGISTRO].[CC_REGISTRO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [REGISTRO].[CC_REGISTRO_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from REGISTRO.REGISTRO where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [SEGURIDAD].[OBTENER_ORIGEN]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+/****** Object:  UserDefinedFunction [SISDOC].[CC_ARCHIVADOR_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION [SISDOC].[CC_ARCHIVADOR_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from SISDOC.ARCHIVADOR where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [SISDOC].[CC_CIRCUITO_DOC_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [SISDOC].[CC_CIRCUITO_DOC_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from SISDOC.CIRCUITO_DOC where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [TAREA].[CC_TAREA_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TAREA].[CC_TAREA_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from TAREA.TAREA where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_ABOGADO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_ABOGADO_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from TERCEROS.ABOGADO where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_CLIENTE_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_CLIENTE_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from TERCEROS.CLIENTE where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_INTERLOCUTOR_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_INTERLOCUTOR_NOMBRE] (@ID int)
+                RETURNS VarChar(600)
+                AS
+                begin
+                  declare @resultado VARCHAR(600)
+
+                  select @resultado = '('+ T1.NIF +') ' + T1.APELLIDOS +', ' + T1.NOMBRE 
+                  from TERCEROS.INTERLOCUTOR T0
+                  INNER JOIN TERCEROS.PERSONA T1 ON T1.ID = T0.ID_PERSONA where t0.ID = @ID
+
+                  return @resultado
+                END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_PERSONA_ES_INTERLOCUTOR]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_PERSONA_ES_INTERLOCUTOR] (@ID int)
+                RETURNS BIT
+                AS
+                begin
+                  declare @resultado BIT
+
+                  set @resultado = (select count(*)
+                  from TERCEROS.INTERLOCUTOR 
+                  where ID_PERSONA = @ID AND BAJA = 0)
+
+                  return @resultado
+                END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_PERSONA_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_PERSONA_NOMBRE] (@ID int)
+                RETURNS VarChar(600)
+                AS
+                begin
+                  declare @resultado VARCHAR(600)
+
+                  select @resultado = '('+ NIF +') ' + APELLIDOS +', ' + NOMBRE from TERCEROS.PERSONA where id = @ID
+                  return @resultado
+                END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_PROCURADOR_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_PROCURADOR_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from TERCEROS.PROCURADOR where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_PROVEEDOR_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_PROVEEDOR_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from TERCEROS.PROVEEDOR where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_SOCIEDAD_CONTACTO_ES_INTERLOCUTOR]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_SOCIEDAD_CONTACTO_ES_INTERLOCUTOR] (@ID int)
+                RETURNS BIT
+                AS
+                begin
+                  declare @resultado BIT
+
+                  set @resultado = (select count(*)
+                  from TERCEROS.INTERLOCUTOR 
+                  where ID_CONTACTO = @ID AND BAJA = 0)
+
+                  return @resultado
+                END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_SOCIEDAD_ES_INTERLOCUTOR]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_SOCIEDAD_ES_INTERLOCUTOR] (@ID int)
+                RETURNS BIT
+                AS
+                begin
+                  declare @resultado BIT
+
+                  set @resultado = (select count(*)
+                  from TERCEROS.INTERLOCUTOR 
+                  where ID_SOCIEDAD = @ID and ID_CONTACTO IS NULL AND BAJA = 0)
+
+                  return @resultado
+                END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_SOCIEDAD_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_SOCIEDAD_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from TERCEROS.SOCIEDAD where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [TERCEROS].[CC_TRABAJADOR_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [TERCEROS].[CC_TRABAJADOR_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from TERCEROS.TRABAJADOR where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [VENTA].[CC_FACTURA_EMT_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [VENTA].[CC_FACTURA_EMT_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from VENTA.FACTURA_EMT where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [VENTA].[CC_PARTE_TR_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [VENTA].[CC_PARTE_TR_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from VENTA.PARTE_TR where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [VENTA].[CC_PLANIFICACION_VENTA_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [VENTA].[CC_PLANIFICACION_VENTA_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from VENTA.PLANIFICACION_VENTA where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [VENTA].[CC_REMESA_FAE_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [VENTA].[CC_REMESA_FAE_NOMBRE] (@ID_ELEMENTO int)
+            RETURNS VarChar(250)
+            AS
+            begin
+              declare @resultado VARCHAR(250)
+              
+              select @resultado = '('+ REFERENCIA +') ' + NOMBRE from VENTA.REMESA_FAE where id = @ID_ELEMENTO
+              return @resultado
+            END
+
+GO
+/****** Object:  UserDefinedFunction [CONTABILIDAD].[CC_PREASIENTO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [CONTABILIDAD].[CC_PREASIENTO_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from CONTABILIDAD.PREASIENTO where id = @id_elemento
+  return @resultado
+END
+
+GO
+/****** Object:  UserDefinedFunction [LOGISTICA].[CC_PEDIDO_NOMBRE]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [LOGISTICA].[CC_PEDIDO_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  
+  select @resultado = NOMBRE from LOGISTICA.PEDIDO where id = @id_elemento
+  return @resultado
+END
+
+GO
+
+"
+            );
+
+            migrationBuilder.Sql(@"
+               Create FUNCTION [SEGURIDAD].[OBTENER_ROLES_DE_UN_PUESTO] (
+               	@idPuesto int
+               )
+               RETURNS VarChar(max)
+               AS
+               begin
+               Declare @rol varchar(max)
+               Declare @resultado varchar(max)
+               DECLARE c CURSOR FOR select NOMBRE from SEGURIDAD.ROL_PUESTO t1
+                                    inner join SEGURIDAD.ROL t2 on t2.ID = t1.IDROL
+                                    where t1.IDPUESTO = @idPuesto
+               
+		       set @resultado = ''
+               OPEN c
+               FETCH NEXT FROM c INTO @rol
+               WHILE @@fetch_status = 0
+               BEGIN
+			       if @resultado = ''  
+                      set  @resultado = @rol 
+			   	else 
+                      set  @resultado = @resultado + ' - ' + @rol 
+                   FETCH NEXT FROM c INTO @rol
+               END
+               CLOSE c
+               DEALLOCATE c
+               
+               return @resultado
+               
+               END             
+            
+GO
+");
+
+            #endregion
+

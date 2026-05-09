@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Lista en árbol</title>
+    <style>
+        .contenedor-arbol, .contenedor-arbol ul, .contenedor-arbol li {
+            position: relative;
+        }
+
+            .contenedor-arbol ul {
+                list-style: none;
+            }
+
+            .contenedor-arbol li::before, .contenedor-arbol li::after {
+                content: "";
+                position: absolute;
+                left: -12px;
+            }
+
+            .contenedor-arbol li::before {
+                border-top: 2px solid green;
+                top: 9px;
+                width: 8px;
+                height: 0;
+            }
+
+            .contenedor-arbol li::after {
+                border-left: 2px solid brown;
+                height: 100%;
+                width: 0px;
+                top: 2px;
+            }
+
+            .contenedor-arbol ul > li:last-child::after {
+                height: 8px;
+            }
+
+        .ulMenu {
+            list-style: none;
+            list-style-type: none;
+            list-style-position: outside;
+        }
+
+        .liMenu {
+            line-height: 30px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .divMenu {
+            width: 250px;
+            position: absolute;
+            border: 1px solid black;
+            -moz-box-shadow: 0 0 5px #888;
+            -webkit-box-shadow: 0 0 5px#888;
+            box-shadow: 0 0 5px #888;
+        }
+
+        .menu-flotante {
+            display: none;
+            z-index: 1000;
+            position: absolute;
+            overflow: hidden;
+            border: 1px solid #595959;
+            white-space: nowrap;
+            font-family: sans-serif;
+            font-size: 12px;
+            border-radius: 2px;
+            padding: 0;
+            opacity: 0;
+            -webkit-transition: opacity 200ms;
+            -moz-transition: opacity 200ms;
+            -o-transition: opacity 200ms;
+            -ms-transition: opacity 200ms;
+        }
+
+        .menu-flotante-black {
+            background: black;
+            color: white;
+        }
+
+        .menu-flotante-white {
+            background: white;
+            color: black;
+        }
+
+        .menu-flotante-white-shadow {
+            box-shadow: 0 0 15px grey;
+        }
+
+        .menu-flotante-black-shadow {
+            box-shadow: 0 0 15px black;
+        }
+
+        .menu-flotante li {
+            padding: 5px 8px;
+            cursor: pointer;
+        }
+
+            .menu-flotante li.disabled {
+                color: darkgrey;
+                cursor: default;
+            }
+
+        .menu-flotante-black li:hover {
+            background-color: #284160;
+        }
+
+        .menu-flotante-white li:hover {
+            background-color: #81B2D6;
+        }
+
+        .menu-flotante-black li.disabled:hover {
+            background-color: #202020;
+        }
+
+        .menu-flotante-white li.disabled:hover {
+            background-color: lightgrey;
+        }
+
+        .menu-flotante i {
+            padding-right: 6px
+        }
+
+        .menu-flotante hr {
+            background-color: grey;
+            height: 1px;
+            border: 0;
+            margin: 2px 0px;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor-arbol">
+        <ul>
+            <li>
+                static
+                <ul>
+                    <li>
+                        css
+                        <ul>
+                            <li>style.css</li>
+                        </ul>
+                    </li>
+                    <li>
+                        genericons
+                        <ul>
+                            <li>COPYING.txt</li>
+                            <li>genericons.css</li>
+                            <li>Genericons.eot</li>
+                            <li>Genericons.svg</li>
+                            <li>Genericons.ttf</li>
+                            <li>Genericons.woff</li>
+                            <li>LICENSE.txt</li>
+                            <li>README.md</li>
+                        </ul>
+                    </li>
+                    <li>
+                        images
+                        <ul>
+                            <li>creativecommons_public-domain_80x15.png</li>
+                            <li>gnu-head-mini.png</li>
+                            <li>questioncopyright-favicon.png</li>
+                        </ul>
+                    </li>
+                    <li>
+                        js
+                        <ul>
+                            <li>functions.js</li>
+                            <li>jquery-3.1.1.js</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                templates
+                <ul>
+                    <li><a id="elemento1" href="javascript: nodoSeleccionado('archivos')" class="elemento-con-menu" menu-flotante="menuTipo">archives.html</a></li>
+                    <li><a id="elemento2" href="javascript: nodoSeleccionado('article')" class="elemento-con-menu" menu-flotante="menuTipo">article.html</a></li>
+                    <li>article_info.html</li>
+                    <li>author.html</li>
+                    <li>authors.html</li>
+                    <li>base.html</li>
+                    <li>category.html</li>
+                    <li>index.html</li>
+                    <li>page.html</li>
+                    <li>pagination.html</li>
+                    <li>period_archives.html</li>
+                    <li>tag.html</li>
+                    <li>taglist.html</li>
+                    <li>tags.html</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <ul id="menuTipo" class="menu-flotante menu-flotante-black menu-flotante-black-shadow">
+        <li accion-menu="cut">Cut</li>
+        <li accion-menu="copy">Copy</li>
+        <li accion-menu="paste">Paste</li>
+        <hr>
+        <li accion-menu="new_pkg">New package</li>
+        <li accion-menu="new_cls">New class</li>
+        <li accion-menu="new_intf" class="disabled">New interface (a disabled entry)</li>
+    </ul>
+
+
+    <script>
+
+        window.onload = function () {
+            OcultarMenusFlotante();
+            if (document.readyState.indexOf('in') >= 0)
+                setTimeout(arguments.callee.name + '(' + inicializarMenusFlotantes + ')', 9);
+            else
+                inicializarMenusFlotantes();
+        };
+
+        function nodoSeleccionado(nodo) {
+            alert('Se ha seleccionado: ' + nodo);
+        }
+
+        function ejecutarOpcionDeMenu(opcion) {
+            alert("ejecutando la opción: " + opcion);
+        }
+
+        function esOpcionDeMenu(elemento, nombreClase) {
+            for (; elemento && elemento !== document; elemento = elemento.parentNode) {
+                if (elemento.classList.contains(nombreClase.substr(1))) {
+                    return 1;
+                }
+            }
+        }
+
+        function mostrarOcultarMenu(menu, mostrar) {
+            if (mostrar === false) {
+                menu.style.opacity = setTimeout(function () {
+                    menu.style.display = 'none';
+
+                }, 200) * 0;
+            }
+            else {
+                menu.style.display = 'block';
+                setTimeout(function () {
+                    menu.style.opacity = 1;
+                }, 30);
+            }
+        }
+
+        function asociarEvento(objeto, evento, funcion) {
+            if (typeof objeto == "string")
+                objeto = document.querySelector(objeto);
+
+            objeto.addEventListener(evento, funcion);
+        }
+
+        function mostrarMenuFlotante(evento, elemento) {
+            evento.preventDefault();
+            var idMenu = elemento.getAttribute('menu-flotante');
+            var menu = document.getElementById(idMenu);
+            var maxLeft = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth) - 10 - menu.getBoundingClientRect().width;
+            var maxTop = (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 10 - menu.getBoundingClientRect().height;
+            menu.style.left = (evento.pageX > maxLeft ? maxLeft : evento.pageX) + "px";
+            menu.style.top = (evento.pageY > maxTop ? maxTop : evento.pageY) + "px";
+
+            mostrarOcultarMenu(menu, true);
+        }
+
+        function OcultarMenusFlotante() {
+            var menus = Array.from(document.querySelectorAll(".menu-flotante"));
+            for (let i = 0; i < menus.length; i++)
+                mostrarOcultarMenu(menus[i], false);
+        }
+
+        function opcionDeMenuSeleccionada(opcion) {
+            if (eval("typeof(ejecutarOpcionDeMenu)==typeof(Function)") && !opcion.classList.contains("disabled"))
+                ejecutarOpcionDeMenu(opcion.getAttribute("accion-menu"));
+            let menu = opcion.parentElement;
+            mostrarOcultarMenu(menu, false);
+        }
+
+        function botonDeRatonPulsado(evento) {
+            if (!esOpcionDeMenu(evento.target, ".elemento-con-menu"))
+                OcultarMenusFlotante();
+        }
+
+        function inicializarMenusFlotantes() {
+            var elementos = Array.from(document.querySelectorAll(".elemento-con-menu"));
+            for (let i = 0; i < elementos.length; i++) {
+                asociarEvento(elementos[i], "contextmenu", () => mostrarMenuFlotante(event, elementos[i]));
+            }
+
+            var opciones = Array.from(document.querySelectorAll(".menu-flotante li"));
+            for (let i = 0; i < opciones.length; i++) {
+                asociarEvento(opciones[i], "click", () => opcionDeMenuSeleccionada(opciones[i]));
+            }
+
+            asociarEvento(document, "mousedown", () => botonDeRatonPulsado(event));
+        }
+
+    </script>
+
+</body>
+</html>

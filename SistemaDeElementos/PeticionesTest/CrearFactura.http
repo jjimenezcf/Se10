@@ -1,0 +1,83 @@
+//POST https://biwe.femdek.com/Facturador/epCrearFactura    
+
+//POST https://localhost:44396/Facturador/epCrearFactura
+
+
+### 1. Obtener el GUID del Facturador
+// @name obtenerFacturador
+GET https://localhost:44396/Facturador/epSolicitarFacturador?nifEmisor=00811725D&apiKey=[xxxx]&peticion=CrearFactura
+Content-Type: application/json
+
+{
+  "NifDelCliente": "27485405Z",  
+  "TotalAPagar": 1060.00
+}
+
+### 
+@facturadorGuid = {{obtenerFacturador.response.body.datos}}
+
+### 2. Crear Factura Usando el GUID Capturado
+POST https://biwe.femdek.com/Facturador/epCrearFactura?nif=00811725D&guid={{facturadorGuid}}
+Content-Type: application/json
+
+{
+  "NifDelCliente": "27485405Z",  
+  "Nombre": "Prueba del facturador",
+  "Descripcion": "Factura por servicios de consultoría y licencia.",
+  "Contacto": "Juan",
+  "Telefono": "915551234",
+  "eMail": "juan@ejemplo.com",
+  "Lineas": [
+    {
+      "Orden": 1,
+      "TipoDeLinea": "Alzada",
+      "Concepto": "Licencia anual de software de gestión (QLIK)",
+      "Cantidad": 1.00,
+      "Precio": 1250.00,
+      "Anotacion": "Licencia del 01/01 al 31/12",
+      "Descuento": 0.00,
+      "Iva": "21",
+      "Unidad": "Unidad",
+      "Naturaleza": "Servicios",
+      "Clase": "Servicio"
+    },
+    {
+      "Orden": 2,
+      "TipoDeLinea": "Alzada",
+      "Concepto": "Servicio de consultoría e implementación",
+      "Cantidad": 20.00,
+      "Precio": 85.00,
+      "Anotacion": "20 horas a 85€/hora",
+      "Descuento": 0.00,
+      "Iva": "21",
+      "Unidad": "Hora",
+      "Naturaleza": "Servicios",
+      "Clase": "Servicio"
+    },
+    {
+      "Orden": 3,
+      "TipoDeLinea": "Comentario",
+      "Concepto": "NOTA: Todos los precios son sin IVA.",
+      "Cantidad": null,
+      "Precio": null,
+      "Anotacion": null,
+      "Descuento": null,
+      "Iva": null,
+      "Unidad": null,
+      "Naturaleza": null,
+      "Clase": null
+    }
+  ]
+}
+
+
+///*,
+//"IrpfEmt": 
+//  { 
+//    "BiSujeta": 2950.00,
+//    "Irpf": "15"
+//  }
+//  */
+//}
+
+###

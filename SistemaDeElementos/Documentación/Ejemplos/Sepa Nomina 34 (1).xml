@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>NOMINAS JUNIO Y EXTRA 2023</MsgId>
+      <CreDtTm>2023-06-20T11:33:11Z</CreDtTm>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>8070.27</CtrlSum>
+      <InitgPty>
+        <Nm>COLEGIO TERRITORIAL ADMINISTRADORES</Nm>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>Q3067006A </Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>SEPA SALA NOMINAS JUNIO Y EXTRA 202</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <BtchBookg>true</BtchBookg>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>8070.27</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+        <CtgyPurp>
+          <Cd>SALA</Cd>
+        </CtgyPurp>
+      </PmtTpInf>
+      <ReqdExctnDt>2023-06-20</ReqdExctnDt>
+      <Dbtr>
+        <Nm>COLEGIO TERRITORIAL ADMINISTRADORES</Nm>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <IBAN>ES6220383052836000355684</IBAN>
+        </Id>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <BIC>CAHMESMM</BIC>
+        </FinInstnId>
+      </DbtrAgt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>NOTPROVIDED</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="EUR">4847.10</InstdAmt>
+        </Amt>
+        <ChrgBr>SLEV</ChrgBr>
+        <Cdtr>
+          <Nm>NEREA FERNANDEZ SUSO</Nm>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>ES0201827611510208545689</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>NOMINA JUNIO Y EXTRA 2023</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>NOTPROVIDED</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="EUR">3223.17</InstdAmt>
+        </Amt>
+        <ChrgBr>SLEV</ChrgBr>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>CAIXESBB</BIC>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>MARIA ELVIRA FUSTER MARQUINA</Nm>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>ES3021004861022100024654</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>NOMINA JUNIO Y EXTRA 2023</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

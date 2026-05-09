@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Facturae xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml">
+  <FileHeader xmlns="">
+    <SchemaVersion>3.2.2</SchemaVersion>
+    <Modality>I</Modality>
+    <InvoiceIssuerType>EM</InvoiceIssuerType>
+    <Batch>
+      <BatchIdentifier>25</BatchIdentifier>
+      <InvoicesCount>1</InvoicesCount>
+      <TotalInvoicesAmount>
+        <TotalAmount>4443.12</TotalAmount>
+      </TotalInvoicesAmount>
+      <TotalOutstandingAmount>
+        <TotalAmount>4443.12</TotalAmount>
+      </TotalOutstandingAmount>
+      <TotalExecutableAmount>
+        <TotalAmount>4443.12</TotalAmount>
+      </TotalExecutableAmount>
+      <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+    </Batch>
+  </FileHeader>
+  <Parties xmlns="">
+    <SellerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <ResidenceTypeCode>R</ResidenceTypeCode>
+        <TaxIdentificationNumber>B73961450</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>SECIFY IBERICA, S.L.</CorporateName>
+        <TradeName>SECIFY IBERICA, S.L.</TradeName>
+        <RegistrationData>
+          <Book>171</Book>
+          <RegisterOfCompaniesLocation>Murcia</RegisterOfCompaniesLocation>
+          <Sheet>0</Sheet>
+          <Folio>1</Folio>
+          <Section>3ª</Section>
+          <Volume>0</Volume>
+          <AdditionalRegistrationData>ref.3657,Inscip.1ª</AdditionalRegistrationData>
+        </RegistrationData>
+        <AddressInSpain>
+          <Address>Avenida Ciclista Mariano Rojas, 22, 30009-Murcia, España</Address>
+          <PostCode>30009</PostCode>
+          <Town>Murcia</Town>
+          <Province>Murcia</Province>
+          <CountryCode>ESP</CountryCode>
+        </AddressInSpain>
+      </LegalEntity>
+    </SellerParty>
+    <BuyerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <ResidenceTypeCode>R</ResidenceTypeCode>
+        <TaxIdentificationNumber>A30054209</TaxIdentificationNumber>
+      </TaxIdentification>
+      <AdministrativeCentres>
+        <AdministrativeCentre>
+          <CentreCode>ESA7346849</CentreCode>
+          <Name>EMUASA</Name>
+          <FirstSurname>SSII</FirstSurname>
+          <SecondSurname>ECO</SecondSurname>
+          <AddressInSpain>
+            <Address>Plaza Circular, 9, 30008-Murcia, España</Address>
+            <PostCode>30008</PostCode>
+            <Town>Murcia</Town>
+            <Province>Murcia</Province>
+            <CountryCode>ESP</CountryCode>
+          </AddressInSpain>
+          <ContactDetails>
+            <Telephone>660935884</Telephone>
+            <ElectronicMail>pcasas@emuasa.es</ElectronicMail>
+            <ContactPersons>Pablo Casas</ContactPersons>
+          </ContactDetails>
+        </AdministrativeCentre>
+      </AdministrativeCentres>
+      <LegalEntity>
+        <CorporateName>(A30054209) EMUASA, S.A.</CorporateName>
+        <AddressInSpain>
+          <Address>Plaza Circular, 9, 30008-Murcia, España</Address>
+          <PostCode>30008</PostCode>
+          <Town>Murcia</Town>
+          <Province>Murcia</Province>
+          <CountryCode>ESP</CountryCode>
+        </AddressInSpain>
+      </LegalEntity>
+    </BuyerParty>
+  </Parties>
+  <Invoices xmlns="">
+    <Invoice>
+      <InvoiceHeader>
+        <InvoiceNumber>2024-D-8</InvoiceNumber>
+        <InvoiceSeriesCode>D</InvoiceSeriesCode>
+        <InvoiceDocumentType>FC</InvoiceDocumentType>
+        <InvoiceClass>OO</InvoiceClass>
+      </InvoiceHeader>
+      <InvoiceIssueData>
+        <IssueDate>2024-03-29</IssueDate>
+        <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+        <TaxCurrencyCode>EUR</TaxCurrencyCode>
+        <LanguageName>es</LanguageName>
+        <InvoiceDescription>MANTENIMIENTO - C197/2023 - ASISTENCIA TÉCNICA DE ANÁLISIS Y PROGRAMACIÓN AL MANTENIMIENTO Y SOPORTE DE LOS MÓDULOS DEL ERP ESTATUM</InvoiceDescription>
+      </InvoiceIssueData>
+      <TaxesOutputs>
+        <Tax>
+          <TaxTypeCode>01</TaxTypeCode>
+          <TaxRate>21</TaxRate>
+          <TaxableBase>
+            <TotalAmount>4443.12</TotalAmount>
+          </TaxableBase>
+          <TaxAmount>
+            <TotalAmount>933.06</TotalAmount>
+          </TaxAmount>
+        </Tax>
+      </TaxesOutputs>
+      <InvoiceTotals>
+        <TotalGrossAmount>4443.12</TotalGrossAmount>
+        <TotalGrossAmountBeforeTaxes>4443.12</TotalGrossAmountBeforeTaxes>
+        <TotalTaxOutputs>933.06</TotalTaxOutputs>
+        <TotalTaxesWithheld>0</TotalTaxesWithheld>
+        <InvoiceTotal>5376.18</InvoiceTotal>
+        <TotalOutstandingAmount>0</TotalOutstandingAmount>
+        <TotalExecutableAmount>0</TotalExecutableAmount>
+      </InvoiceTotals>
+      <Items>
+        <InvoiceLine>
+          <ReceiverContractReference />
+          <ReceiverTransactionReference />
+          <ItemDescription>tareas realizadas</ItemDescription>
+          <Quantity>132</Quantity>
+          <UnitPriceWithoutTax>33.66</UnitPriceWithoutTax>
+          <TotalCost>4443.12</TotalCost>
+          <GrossAmount>4443.12</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21</TaxRate>
+              <TaxableBase>
+                <TotalAmount>4443.12</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>933.06</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+      </Items>
+      <PaymentDetails>
+        <Installment>
+          <InstallmentDueDate>2024-04-28</InstallmentDueDate>
+          <InstallmentAmount>5376.18</InstallmentAmount>
+          <PaymentMeans>03</PaymentMeans>
+          <AccountToBeCredited>
+            <IBAN>ES92-0049-4374-85-2910054829</IBAN>
+            <BankCode>0049</BankCode>
+            <BranchCode>4374</BranchCode>
+            <BIC>BSCHESMMXXX</BIC>
+          </AccountToBeCredited>
+        </Installment>
+      </PaymentDetails>
+      <AdditionalData>
+        <RelatedInvoice>2024-D-8</RelatedInvoice>
+        <InvoiceAdditionalInformation>Mes de marzo
+C197/2023 - ASISTENCIA TÉCNICA DE ANÁLISIS Y PROGRAMACIÓN AL MANTENIMIENTO Y SOPORTE DE LOS MÓDULOS DEL ERP ESTATUM
+</InvoiceAdditionalInformation>
+      </AdditionalData>
+    </Invoice>
+  </Invoices>
+</Facturae>

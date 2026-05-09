@@ -1,0 +1,8 @@
+﻿@model MVCSistemaDeElementos.Descriptores.DescriptorDeEstimacionesDirectas
+
+@{
+    ViewData["Title"] = $"{Model.Etiqueta}";
+}
+
+
+@Html.Raw(Model.RenderControl())

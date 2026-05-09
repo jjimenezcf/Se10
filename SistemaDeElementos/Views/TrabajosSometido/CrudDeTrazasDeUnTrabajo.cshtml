@@ -1,0 +1,8 @@
+﻿@model MVCSistemaDeElementos.Descriptores.DescriptorDeTrazasDeUnTrabajo
+
+@{
+    ViewData["Title"] = $"{Model.Etiqueta}";
+}
+
+
+@Html.Raw(Model.RenderControl())

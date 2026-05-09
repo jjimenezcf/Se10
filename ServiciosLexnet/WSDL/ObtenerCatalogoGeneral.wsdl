@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="https://obtenercatalogogeneral.servicio.wslexnet.webservices.lexnet" xmlns:intf="https://obtenercatalogogeneral.servicio.wslexnet.webservices.lexnet" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="https://obtenercatalogogeneral.servicio.wslexnet.webservices.lexnet">
+ <wsdl:types>
+  <schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="https://obtenercatalogogeneral.servicio.wslexnet.webservices.lexnet">
+   <element name="ObtenerCatalogoGeneralIn" type="xsd:string"/>
+   <element name="ObtenerCatalogoGeneralOut" type="xsd:string"/>
+  </schema>
+ </wsdl:types>
+
+   <wsdl:message name="ObtenerCatalogoGeneralResponse">
+
+      <wsdl:part element="impl:ObtenerCatalogoGeneralOut" name="ObtenerCatalogoGeneralOut"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="ObtenerCatalogoGeneralRequest">
+
+      <wsdl:part element="impl:ObtenerCatalogoGeneralIn" name="ObtenerCatalogoGeneralIn"/>
+
+   </wsdl:message>
+
+   <wsdl:portType name="ObtenerCatalogoGeneralPortType">
+
+      <wsdl:operation name="ObtenerCatalogoGeneral" parameterOrder="ObtenerCatalogoGeneralIn">
+
+         <wsdl:input message="impl:ObtenerCatalogoGeneralRequest" name="ObtenerCatalogoGeneralRequest"/>
+
+         <wsdl:output message="impl:ObtenerCatalogoGeneralResponse" name="ObtenerCatalogoGeneralResponse"/>
+
+      </wsdl:operation>
+
+   </wsdl:portType>
+
+   <wsdl:binding name="ObtenerCatalogoGeneralSoapBinding" type="impl:ObtenerCatalogoGeneralPortType">
+
+      <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <wsdl:operation name="ObtenerCatalogoGeneral">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="ObtenerCatalogoGeneralRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="ObtenerCatalogoGeneralResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:binding>
+
+   <wsdl:service name="ObtenerCatalogoGeneralService">
+
+      <wsdl:port binding="impl:ObtenerCatalogoGeneralSoapBinding" name="ObtenerCatalogoGeneral">
+
+         <wsdlsoap:address location="http://localhost:9080/services/ObtenerCatalogoGeneral"/>
+
+      </wsdl:port>
+
+   </wsdl:service>
+
+</wsdl:definitions>

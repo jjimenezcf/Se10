@@ -1,0 +1,42 @@
+﻿[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;Tarea;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Tarea.TipoDeTareaDto",
+    "VistaDondeNavegar": "TiposDeTarea",
+    "RestrictorFijo": "Negocio;Tarea;Gestor",
+    "Negocio": "Tarea"
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 3
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 4,
+    "EtiquetaGrid": "Tarea",
+    "Ayuda":  "descripción breve ...",
+    "PorAnchoMnt": 30
+
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 5
+
+  },
+  {
+    "propiedad": "Presentador",
+    "PosicionEnGrid": 6,
+    "EtiquetaGrid": "Solicitante"
+  }
+]

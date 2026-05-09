@@ -1,0 +1,50 @@
+[
+  {
+    "propiedad": "Expediente",
+    "PosicionEnGrid": 3,
+    "EtiquetaGrid": "Expediente"
+  },
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;Presupuesto;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Presupuesto.TipoDePresupuestoDto",
+    "VistaDondeNavegar": "TiposDePresupuesto",
+    "RestrictorFijo": "Negocio;Presupuesto;Gestor",
+    "Negocio": "Presupuesto"
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid":4
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 5,
+    "EtiquetaGrid": "Presupuesto",
+    "PorAnchoMnt": 30
+
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 6
+
+  },
+  {
+    "propiedad": "Presentador",
+    "PosicionEnGrid": 7,
+    "EtiquetaGrid": "Solicitante"
+  },
+  {
+    "propiedad": "OrdenacionInicial",
+    "ordenarGridPor": "CG:Cg.Codigo:ascendente;Tipo:Tipo.Nombre:ascendente;Referencia:Referencia:ascendente"
+  }
+]

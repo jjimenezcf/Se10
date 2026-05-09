@@ -1,0 +1,10 @@
+<div class="flex h-screen overflow-hidden">
+  <app-sidebar [hideable]="sidebarHideable" (changeHideable)="onChangeSidebarHideable()"></app-sidebar>
+  <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+    <app-topbar (changeSidebarHideable)="onChangeSidebarHideable()"></app-topbar>
+    <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+      <app-global-alert-container></app-global-alert-container>
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

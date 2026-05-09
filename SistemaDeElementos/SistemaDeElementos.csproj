@@ -1,0 +1,353 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+		<StartupObject>MVCSistemaDeElementos.Program</StartupObject>
+		<UserSecretsId>df73ce11-7cdf-41e2-bd6e-987d14805199</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Controllers\SisDoc\**" />
+		<Compile Remove="Descriptores\_Componentes\NewFolder\**" />
+		<Compile Remove="Descriptores\_Componentes\Plantillas - Copia\**" />
+		<Compile Remove="Descriptores\_Componentes\Plantillas\**" />
+		<Content Remove="Controllers\SisDoc\**" />
+		<Content Remove="Descriptores\_Componentes\NewFolder\**" />
+		<Content Remove="Descriptores\_Componentes\Plantillas - Copia\**" />
+		<Content Remove="Descriptores\_Componentes\Plantillas\**" />
+		<EmbeddedResource Remove="Controllers\SisDoc\**" />
+		<EmbeddedResource Remove="Descriptores\_Componentes\NewFolder\**" />
+		<EmbeddedResource Remove="Descriptores\_Componentes\Plantillas - Copia\**" />
+		<EmbeddedResource Remove="Descriptores\_Componentes\Plantillas\**" />
+		<None Remove="Controllers\SisDoc\**" />
+		<None Remove="Descriptores\_Componentes\NewFolder\**" />
+		<None Remove="Descriptores\_Componentes\Plantillas - Copia\**" />
+		<None Remove="Descriptores\_Componentes\Plantillas\**" />
+		<TypeScriptCompile Remove="Controllers\SisDoc\**" />
+		<TypeScriptCompile Remove="Descriptores\_Componentes\NewFolder\**" />
+		<TypeScriptCompile Remove="Descriptores\_Componentes\Plantillas - Copia\**" />
+		<TypeScriptCompile Remove="Descriptores\_Componentes\Plantillas\**" />
+		<TypeScriptCompile Remove="node_modules\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Remove="wwwroot\AccesoDenegado.html" />
+		<Content Remove="wwwroot\css\Agenda.css" />
+		<Content Remove="wwwroot\Extensiones\HtmlRender.cs" />
+		<Content Remove="wwwroot\Extensiones\Selectores.cs" />
+		<Content Remove="wwwroot\js\selectores.js" />
+		<Content Remove="wwwroot\SelectorDeFechaII.html" />
+		<Content Remove="wwwroot\tsSelectores.ts" />
+		<Content Remove="wwwroot\ts\Diccionario.ts" />
+		<Content Remove="wwwroot\ts\Entorno\Variables.ts" />
+		<Content Remove="wwwroot\ts\Entorno\VistaMvc.ts" />
+		<Content Remove="wwwroot\ts\Grid.ts" />
+		<Content Remove="wwwroot\ts\HistorialDeNavegacion.ts" />
+		<Content Remove="wwwroot\ts\InfoSelector.ts" />
+		<Content Remove="wwwroot\ts\_Literales\literales.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\ClaseDePermiso.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\Menu.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\Permisos.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\PermisosDeUnRol.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\PuestoDeTrabajo.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\PuestosDeUnUsuario.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\Rol.ts" />
+		<Content Remove="wwwroot\ts\Seguridad\RolesDeUnPuesto.ts" />
+		<Content Remove="wwwroot\ts\tsSelectores.js" />
+		<Content Remove="wwwroot\ts\tsSelectores.js.map" />
+		<Content Remove="wwwroot\ts\tsSelectores.ts" />
+		<Content Remove="wwwroot\ts\Utilidades.ts" />
+		<Content Remove="wwwroot\ts\_Api\ApiDeAjax.ts" />
+		<Content Remove="wwwroot\ts\_Api\ApiDeArchivos.ts" />
+		<Content Remove="wwwroot\ts\_Crud\CrudBase.ts" />
+		<Content Remove="wwwroot\ts\_Crud\CrudCreacion.ts" />
+		<Content Remove="wwwroot\ts\_Crud\CrudEdicion.ts" />
+		<Content Remove="wwwroot\ts\_Crud\CrudMantenimiento.ts" />
+		<Content Remove="wwwroot\ts\_Crud\GestorDeEventos.ts" />
+		<Content Remove="wwwroot\ts\_Crud\Grid.js" />
+		<Content Remove="wwwroot\ts\_Crud\Grid.js.map" />
+		<Content Remove="wwwroot\ts\_Crud\Grid.ts" />
+		<Content Remove="wwwroot\ts\_Crud\GridDeDatos.ts" />
+		<Content Remove="wwwroot\ts\_Crud\ModalConGrid.ts" />
+		<Content Remove="wwwroot\ts\_Crud\ModalDeSeleccion.ts" />
+		<Content Remove="wwwroot\ts\_Crud\ModalParaRelacionar.ts" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Views\Shared\_Layout.ts" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<TypeScriptCompile Remove="wwwroot\ts\tsSelectores.ts" />
+		<TypeScriptCompile Remove="wwwroot\ts\_Crud\Grid.ts" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="UtilidadesIu\Componentes\ColumnaDelGrid.cs" />
+		<Content Include="UtilidadesIu\Componentes\FilaDelGrid.cs" />
+		<Content Include="UtilidadesIu\Componentes\Grid.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include=".github\upgrades\scenarios\dotnet-version-upgrade\tasks\01-prerequisites-environment-setup\task.md" />
+		<None Include="Ayudas\Extensiones\Utilidades.csproj" />
+		<None Include="GestoresDeNegocio\GestoresDeNegocio.csproj" />
+		<None Include="Inicializador\Inicializador.csproj" />
+		<None Include="Migraciones\Migraciones.csproj" />
+		<None Include="ModeloDeDto\ModeloDeDto.csproj" />
+		<None Include="ModeloXml\ModeloXml.csproj" />
+		<None Include="ProcesadorOcr\ProcesadorOcr.csproj" />
+		<None Include="ServicioDeDatos\ServicioDeDatos.csproj" />
+		<None Include="ServicioDeReportes\ServicioDeReportes.csproj" />
+		<None Include="ServicioSepa\ServicioXml.csproj" />
+		<None Include="ServiciosLexnet\ServiciosLexnet.csproj" />
+		<None Include="Servicios\GestorDeCorreo\ServicioDeCorreos.csproj" />
+		<None Include="Servicios\GestorDeElementos\GestorDeElementos.csproj" />
+		<None Include="Servicios\GestorDeErrores\GestorDeErrores.csproj" />
+		<None Include="wwwroot\css\Agenda.css" />
+		<None Include="wwwroot\css\ControlesDto.css" />
+		<None Include="wwwroot\Acceso\Denegado.html" />
+		<None Include="wwwroot\Acceso\Login.html" />
+		<None Include="Z_EmpaquetarCola\Z_EmpaquetarCola.csproj" />
+		<None Include="Z_EmpaquetarPublicacion\Z_EmpaquetarSitioWeb.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="16.1.1" />
+		<!-- <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />-->
+		<PackageReference Include="Google.Apis.Auth" Version="1.74.0" />
+		<PackageReference Include="Google.Apis.Gmail.v1" Version="1.73.0.4120" />
+		<PackageReference Include="LigerShark.WebOptimizer.Core" Version="3.0.477" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.7" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.7">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="6.0.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+		<PackageReference Include="NuGet.Packaging" Version="7.3.1" />
+		<PackageReference Include="NuGet.Protocol" Version="7.3.1" />
+		<PackageReference Include="RtfPipe" Version="2.0.7677.4303" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Ayudas\Extensiones\Utilidades.csproj" />
+		<ProjectReference Include="..\GestoresDeNegocio\GestoresDeNegocio.csproj" />
+		<ProjectReference Include="..\Inicializador\Inicializador.csproj" />
+		<ProjectReference Include="..\Migraciones\Migraciones.csproj" />
+		<ProjectReference Include="..\ModeloDeDto\ModeloDeDto.csproj" />
+		<ProjectReference Include="..\ProcesadorOcr\ProcesadorOcr.csproj" />
+		<ProjectReference Include="..\ServicioDeReportes\ServicioDeReportes.csproj" />
+		<ProjectReference Include="..\Servicios\GestorDeCorreo\ServicioDeCorreos.csproj" />
+		<ProjectReference Include="..\Servicios\GestorDeErrores\GestorDeErrores.csproj" />
+		<ProjectReference Include="..\Servicios\GestorDeElementos\GestorDeElementos.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\CallesDeUnaZona.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\CallesDeUnBarrio.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\CodigosPostales.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\CpsDeUnaProvincia.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\CpsDeUnMunicipio.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\ImportarCallejero.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\Paises.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Callejero\TiposDeVia.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Entorno\Agendas.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Entorno\Certificados.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Entorno\MiCalendario.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Entorno\PermisosDeUnUsuario.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Entorno\Usuario.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Entorno\Variables.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Gasto\PagosDeUnaRemesa.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Guarderias\InfantesDeUnCurso.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Negocio\AccionesDeRelacion.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Negocio\Auditoria.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Negocio\Estados.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Negocio\Negocio.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Negocio\ParametrosDeNegocio.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Negocio\PlantillasDeExportacion.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Negocio\Transiciones.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Seguridad\PermisosDeUnPuesto.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Seguridad\PuestosDeUnRol.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Seguridad\PuestosDeUnUsuario.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Seguridad\Rol.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Seguridad\RolesDeUnPermiso.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Seguridad\RolesDeUnPuesto.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Seguridad\UsuariosDeUnPuesto.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\TrabajosSometido\Correos.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\TrabajosSometido\ErroresDeUnTrabajo.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\TrabajosSometido\TrabajosDeUsuario.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\TrabajosSometido\TrabajosSometido.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\TrabajosSometido\TrazasDeUnTrabajo.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\Venta\FacturasEmtDeUnaRemesa.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\_Api\ApiDePeticiones.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\_Crud\ApiDelCrud.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\_Crud\ModalParaConsultarRelaciones.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\_Crud\ModalParaSeleccionar.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\ts\_Formulario\FormularioBase.ts">
+			<SubType>Code</SubType>
+		</TypeScriptCompile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="wwwroot\js\" />
+		<Folder Include="wwwroot\js\_Api\" />
+		<Folder Include="wwwroot\Plantillas\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="Movil/**" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="tessdata\FacturadorHttpClient.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="wwwroot\css\ApiDeArchivos.css">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\Json\PreasientoDto.json">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<Content Update="wwwroot\Json\TipoDeFacturaEmtDto.json">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="Properties\Resources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ProjectExtensions>
+		<VisualStudio>
+			<UserProperties properties_4launchsettings_1json__JsonSchema="" />
+		</VisualStudio>
+	</ProjectExtensions>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<TypeScriptTarget>ES2020</TypeScriptTarget>
+		<TypeScriptJSXEmit>React</TypeScriptJSXEmit>
+		<!-- Eliminar o dejar vacío TypeScriptModuleKind -->
+		<!-- <TypeScriptModuleKind>None</TypeScriptModuleKind>-->
+		<TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+		<TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+		<TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+		<TypeScriptOutFile />
+		<TypeScriptOutDir>$(ProjectDir)wwwroot\js</TypeScriptOutDir>
+		<TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+		<TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+		<TypeScriptSourceMap>True</TypeScriptSourceMap>
+		<TypeScriptMapRoot />
+		<TypeScriptSourceRoot />
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<TypeScriptTarget>ES2020</TypeScriptTarget>
+		<TypeScriptJSXEmit>React</TypeScriptJSXEmit>
+		<!-- Eliminar o dejar vacío TypeScriptModuleKind -->
+		<!-- <TypeScriptModuleKind>None</TypeScriptModuleKind>-->
+		<TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+		<TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+		<TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+		<TypeScriptOutFile />
+		<TypeScriptOutDir>$(ProjectDir)wwwroot\js</TypeScriptOutDir>
+		<TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+		<TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+		<TypeScriptSourceMap>False</TypeScriptSourceMap>
+		<TypeScriptMapRoot />
+		<TypeScriptSourceRoot />
+	</PropertyGroup>
+
+</Project>

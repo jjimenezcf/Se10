@@ -1,0 +1,10 @@
+﻿
+CREATE FUNCTION [CALLEJERO].[CC_CODIGO_POSTAL_PROVINCIA] (@CP CHAR(5))
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+  select @resultado = NOMBRE FROM CALLEJERO.PROVINCIA WHERE CODIGO = SUBSTRING(@CP,1,2)
+  return @resultado
+END
+

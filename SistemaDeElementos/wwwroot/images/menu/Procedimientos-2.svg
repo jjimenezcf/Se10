@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+ "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100" height="100">
+  <path fill="#1A5276" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+  
+  <circle cx="12" cy="14" r="3" fill="#FADBD8" />
+  
+  <path fill="#fff" d="M12 12.5l.5 1h1l-.7.5.3 1-.8-.6-.8.6.3-1-.7-.5h1z"/>
+</svg>

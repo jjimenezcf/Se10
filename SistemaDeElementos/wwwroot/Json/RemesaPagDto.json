@@ -1,0 +1,101 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;RemesaPag;Gestor",
+    "trasSeleccionar": "javascript:Gasto.Rem_Mapear_Datos_Deudor()",
+    "trasBlanquear": "javascript:Gasto.Rem_Blanquear_Datos_Deudor()"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Gastos.TipoDeRemesaPagDto",
+    "VistaDondeNavegar": "TiposDeRemesaPag",
+    "RestrictorFijo": "Negocio;RemesaPag;Gestor",
+    "Negocio": "RemesaPag",
+    "ColSpan": 1
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "VisibleEnGrid": "True",
+    "PosicionEnGrid": 40
+  },
+  {
+    "propiedad": "IdEstado",
+    "PosicionEnGrid": 40,
+    "VisibleEnGrid": "false",
+    "VisibleAlCrear": "false",
+    "VisibleAlEditar": "true",
+    "EditableAlCrear": "false",
+    "EditableAlEditar": "false",
+    "posicion": {
+      "Fila": 0,
+      "Columna": 2
+    }
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "AutoSpan": "true",
+    "PosicionEnGrid": 6,
+    "Etiqueta": "Remesa",
+    "EtiquetaGrid": "Remesa",
+    "PorAnchoMnt": 20,
+    "posicion": {
+      "Fila": 1,
+      "Columna": 0
+    }
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "VisibleAlCrear": "false",
+    "EditableAlCrear": "false",
+    "posicion": {
+      "Fila": 1,
+      "Columna": 2
+    }
+  },
+  {
+    "propiedad": "CuentaDePago",
+    "PorAnchoMnt": 15,
+    "TamanoFijo": "15em",
+    "PosicionEnGrid": 7
+  },
+  {
+    "propiedad": "Clase",
+    "EtiquetaGrid": "Clase",
+    "TamanoFijo": "7em",
+    "PosicionEnGrid": 8
+  },
+  {
+    "propiedad": "Incluidos",
+    "EtiquetaGrid": "Incl.",
+    "TamanoFijo": "7em",
+    "PosicionEnGrid": 9
+  },
+  {
+    "propiedad": "ImporteRemesa",
+    "PosicionEnGrid": 20,
+    "PorAnchoMnt": 9
+  },
+  {
+    "propiedad": "Pagado",
+    "PosicionEnGrid": 21,
+    "PorAnchoMnt": 9
+  },
+  {
+    "propiedad": "GeneradaEl",
+    "PorAnchoMnt": 9,
+    "PosicionEnGrid": 25
+  },
+  {
+    "propiedad": "PagarEl",
+    "PorAnchoMnt": 9,
+    "PosicionEnGrid": 26
+  }
+]

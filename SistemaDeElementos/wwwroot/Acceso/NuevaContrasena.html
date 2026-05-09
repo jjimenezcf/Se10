@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Nueva Contraseña</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/Conectar.css">
+
+    <script src="/js/_Literales/literales.js"></script>
+    <script src="/js/Mensajes.js"></script>
+    <script src="/js/Diccionario.js"></script>
+    <script src="/js/_TiposDeDatos/TiposDeDatos.js"></script>
+    <script src="/js/Utilidades.js"></script>
+    <script src="/js/_Api/ApiDeAjax.js"></script>
+    <script src="/js/Registro.js"></script>
+    <script src="/js/Acceso/Conectar.js"></script>
+</head>
+<body>
+    <div id="NuevaContrasena">
+
+        <div style="text-align: center; ">
+            <div class="mb-5">
+                <h2 style="font-weight: bold; color: cornflowerblue; font-size: 2.5rem;">Indique la nueva contraseña</h2>
+            </div>
+            <input type="hidden" id="guid_cambio">
+
+            <div class="input-group input-group-lg">
+                <span class="label-icono"><i class="fas fa-key"></i></span>
+                <input id="password_nueva" type="password" class="form-control" placeholder="Nueva contraseña">
+            </div>
+            <br>
+            <div class="input-group input-group-lg">
+                <span class="label-icono"><i class="fas fa-check-double"></i></span>
+                <input id="password_confirmar" type="password" class="form-control" placeholder="Repetir contraseña">
+            </div>
+            <br>
+            <br>
+            <button class="btn btn-lg btn-primary btn-block" onclick="Acceso.AlPulsarNuevaContrasena()">Aceptar</button>
+        </div>
+
+        <div class="input-group input-group-lg" id="div-info-conexion" style="display: none; margin-top: 10px;">
+            <span class="label-icono"><i class="fas fa-info"></i></span>
+            <input id="info-conexion" type="text" class="form-control" readonly>
+        </div>
+    </div>
+
+</body>
+</html>

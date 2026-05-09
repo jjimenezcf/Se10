@@ -1,0 +1,104 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;FacturaEmitida;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Ventas.TipoDeFacturaEmtDto",
+    "VistaDondeNavegar": "TiposDeFacturaEmt",
+    "RestrictorFijo": "Negocio;FacturaEmitida;Gestor",
+    "Negocio": "FacturaEmitida",
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4
+  },
+  {
+    "propiedad": "Cliente",
+    "PosicionEnGrid": 8,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 0
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "NumeroFactura",
+    "PosicionEnGrid": 5
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 6,
+    "EtiquetaGrid": "Factura",
+    "PorAnchoMnt": 30,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 2
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 7,
+    "Posicion": {
+      "Fila": 1,
+      "Columna": 1
+    },
+    "PosicionEnElDiv": 0,
+    "colspan": 3
+  },
+  {
+    "propiedad": "ClaseDeEmision",
+    "ordenarGridPor": "ClaseDeEmision",
+    "PosicionEnGrid": 7,
+    "Posicion": {
+      "Fila": 1,
+      "Columna": 1
+    },
+    "PosicionEnElDiv": 0,
+    "colspan": 3
+  },
+  {
+    "propiedad": "TotalSinIva",
+    "PosicionEnGrid": 9
+  },
+  {
+    "propiedad": "TotalConIva",
+    "PosicionEnGrid": 10
+  },
+  {
+    "propiedad": "Cobrado",
+    "PosicionEnGrid": 11
+  },
+  {
+    "propiedad": "Pendiente",
+    "PosicionEnGrid": 12
+  },
+  {
+    "propiedad": "FacturadaEl",
+    "PosicionEnGrid": 13,
+    "TamanoFijo": "11em",
+    "Posicion": {
+      "Fila": 1,
+      "Columna": 4
+    }
+  },
+  {
+    "propiedad": "VenceEl",
+    "PosicionEnGrid": 14,
+    "TamanoFijo": "9em",
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 4
+    }
+  }
+]

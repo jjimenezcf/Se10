@@ -1,0 +1,17 @@
+[
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2
+  },
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1
+  },
+  {
+    "propiedad": "OrdenacionInicial",
+    "ordenarGridPor": "CreadoEl:FechaCreacion:descendente"
+  }
+]
+

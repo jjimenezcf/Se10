@@ -1,0 +1,6 @@
+{
+  "development": {
+    "host": "https://localhost:44396",
+    "facturadorGuid": "00000000-0000-0000-0000-000000000000" 
+  }
+}

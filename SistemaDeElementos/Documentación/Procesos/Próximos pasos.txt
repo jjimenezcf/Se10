@@ -1,0 +1,3261 @@
+﻿﻿Instalar
+-------------------------------------------------------------------------------------
+ghostscript-8.64
+
+https://console.cloud.google.com/welcome?project=sistema-de-elementos
+
+
+Caifantasia: presentación
+--------------------------------------------------------------------------------
+- Observación de parámetros no obligatoria
+- Ver por qu no muestra el detalle de las cosas 
+- Fecha de compartición en el mensaje una hora de más
+- al archivar, no lo ha colocado en la carpeta seleccionada
+
+- Relacionar múltiples niños con un curs
+- al crear un archivador crear con plantillas
+- AL seleccionar un niñio en una matricula, si tiene curso asignado cogerlo, y si su contacto es cliente, cogerlo
+- Generar las planifdicaciones de un contrato no lo ha hecho, he tenido que editarla para que la genere la de ese contrato
+
+
+Pagos
+-------------------------------------------------------------------------------------
+En los pagos, poder cambiar la forma de pago de un pago pendiente:
+- Validar que está pendiente
+- Validar que es un pago y no una devolución
+- Que el modo de pago y forma son coherentes con lo que hay
+
+
+Modificaciones y ampliaciones en la instalación de Alberto Martinez
+-------------------------------------------------------------------------------------
+- Añadir las ampliaciones de juzgados a los expedientes (*) 24-12-2025
+- Añadir el encolumnado de la ampliación al grid del expediente
+- resumir en totales la información judicial
+
+Definir tipo de expediente: JUR: General, LAB: Laboral, CON: Contencioso, CIV: Civil, PEN: Penal
+Definir flujo para cada uno de ellos, por ejemplo
+      JUR: Abierto, JUR: En trámite, JUR: Suspendido, JUR: Archivado, JUR: Cerrado
+      LAB: Abierto, LAB: En trámite, LAB: Suspendido, LAB: Archivado, LAB: Cerrado
+      CIV: Abierto, CIV: En trámite, CIV: Suspendido, CIV: Archivado, CIV: Cerrado
+      CON: Abierto, CON: En trámite, CON: Suspendido, CON: Archivado, CON: Cerrado
+      PEN: Abierto, PEN: En trámite, PEN: Suspendido, PEN: Archivado, PEN: Cerrado
+
+Definir que datos he de almacenar en cada uno de estos tipos de expedientes:
+
+   Información comun a cualquier expediente que actualmente podemos almacenar )
+       fecha de inicio, fecha de fin: la fecha de creación y la fecha de transición al último estado)
+       estado del procedimiento: estodo del expediente según se transita
+       tipo de procedimiento: el tipo seleccionado al crear 
+       importe cobrado: facturas recibidas, 
+	   provisión de fondos: presupuesto y su facturación
+	   gastos judiciales: facturas recibidas
+	   gastos de gestión: facturas recibidas
+	   Actuaciones: tareas vinculadas al expediente
+       observaciones
+
+   Información jurídica común a los expedientes judiciales que ya se puede almacenar en BD:
+       Abogado contrario, 
+       procurador, 
+       juzgado, 
+
+   Información que se me ocurre que no tengo aun enla BD pero que me debe de decirse si se necesita y en que tipo de expediente se necesita
+       nº de procedimiento, 
+       importe reclamado, 
+       importe concedido, 
+	   Datos de las partes implicadas (demandante, demandado, tercero interesado) (todas estas figuras se implementa como interlocutores vinculados al expediente)
+
+	   Información específica por tipo de expediente
+	   Laboral:
+		  tipo de despido, (en el programa sería una clase del tipo de expediente) 
+		  fecha de notificación del despido, 
+		  fecha de conciliación, (anotación en el calendario, o una tarea con fecha de planificación y archivo resultante
+		  resultado de la conciliación (si el archivo se pone a la tarea no es necesario, si se hace una anotación en calendario se asocia al expediente
+	   Contencioso:
+		  tipo de recurso,  (en el programa sería una clase del tipo de expediente) 
+		  fecha de interposición del recurso, 
+		  fecha de resolución del recurso, 
+		  resultado del recurso
+	   Civil:
+		  tipo de demanda,  (en el programa sería una clase del tipo de expediente) 
+		  fecha de presentación de la demanda, 
+		  fecha de sentencia, 
+		  resultado de la sentencia
+	   Penal:
+		  tipo de delito,  (en el programa sería una clase del tipo de expediente) 
+		  fecha de juicio, 
+		  fecha de sentencia, 
+		  resultado de la sentencia
+	   fechas de vistas y señalamientos
+	   resultado de vistas y señalamientos
+	   documentos judiciales vinculados al expediente
+
+
+Modificaciones y ampliaciones en la instalación de CEOM
+-------------------------------------------------------------------------------------
+- Crear detalle de una actividad formativa con voluntarios, e inscritos (*) 18-01-2026
+- crear expedientes de tipo Formativos (*) 18-01-2026
+- Al dar la dirección de la calle de una sociedad elegir el tipo de vía, y si al poner el nombre de la calle no existe que la cree
+- al buscar una clase de permiso si no existe la cree automáticamente
+
+
+
+Crear Terceros Externos para el api de verifactu de Hermandad de regantes
+------------------------------------------------------------------------------------
+Crear PeticionTerceroDtm 
+Crear GestorDePeticionesDeTerceros
+Crear controlador PeticionesDeTercerosController
+CrearTercero:
+  - crea una sosiedad, persona
+  - crea un interlocutor
+  - crea un proveedor
+  - crea un cliente
+  
+  
+
+
+
+
+Correcciones
+-------------------------------------------------------------------------------------
+tras crear una tarea y pegar en el un fichero, el sistema a pasado a edción, y en ese momento he maximizado la pantalla, (al renderizar un fichero ajustar tamaño del div visor al contenedor)
+y la ventyana del visor no se ha redimensionado correctamente, seguramente es porque el div contenedor del historial y el visor no se ha ajustado
+Al añadir en un dbgrid, mirar si la línea a añadir ya lo está si lo está no añadirla, para ello guardarla en una lista de ids añadidos
+Al salir del campo nif de una sociedad en modo creación validar si existe en bd
+
+Apuntes de gastos
+-------------------------------------------------------------------------------------
+- cg
+- tipo
+- auditoría
+- modo de pago
+- tarjeta
+- cuenta bancaria	
+- naturaleza del gasto
+- importe
+- expediente
+
+
+Modelo de tickets
+-------------------------------------------------------------------------------------
+- cg, tipo, fecha de pago, importe, descripción, id naturaleza, id expediente, id archivo, modo pago, id tarjeta, id cuenta bancaria
+
+al persistir el pago, si no hay factura y no es un abono, validar que el id de la naturaleza es válido y permitir que no hay interlocutor
+Al preasentar un pago no deducible, modificar la posición del debe, ya que en ella sólo puede ir una cuenta del grupo 6 y cta de las naturalezas no deducibles
+modificar lotecontableconncs para que en el pago escriba la posición del gasto si no lleva solicitante
+modificar en contabilizacionDeEd la generación de los pagos, y que controle que el máximo desgrabable es 26,8 para pagos de manutención o ticket restaurantes
+
+
+Si la sociedad no está dado de alta en el ROI no se puede desgrabar los gastos intracomunitarios
+Al crear el preasiento marcar si el proveedor es intracomunitario, nacional, extracomunitario
+Arreglar modificación de IRPF
+Crear objeto LoteContableDto para los CircuitosDocumentales
+Crear opción de eliminar lotecontable, lote de estimación directa
+las transiciones no activas no se cargan
+
+emisión de facturas rectificativas 
+-------------------------------------------------------------------------------------
+parametrizar si permite rectificatativas parciales
+no transitar si es una rectificativa parcial
+si el importe de la rectificativa parcial es positivo, es cobrable si no es abonable
+si es una factura se rectifica totalmente y no se ha cobrado finalizarla y la rectificada darla por abonada
+si es una factura se rectifica totalmente y se ha cobrado parte finalizarla y la rectificada dejarla pendiente de abono
+Al abonar una rectificativa total sobre un factura cobrada percialmente no dejar devolver más de lo cobrado
+
+
+iva repercutido
+---------------------------------------------------------------------------------------------------
+Añadir campo de pais
+añadir a la sociedad emisora de facturas si está en el oss
+al crear la factura si está en el oss sólo mostrar los tipos de iva del pais del cliente facturado
+
+
+Ampliaciones sujeridas por Acromur
+-------------------------------------------------------------------------------------
+- al seleccionar el tipo de documento para crear no mostrar los del sistema (*) 1-04-2025
+- cambiar proveedor de una factura si está sin preasiento y no cancelada ni devuelta (*) 2-04-2025
+- poder subir un zip con múltiples archivos y crear con ellos una prefactura (*) 4-04-2025
+- poner filtro de archivos dentro del selector  (*) 08-04-2025
+- un archivador de baja o bloqueado no puede procesar sus documentos
+- indicar en el tipo de documento si puede tener nombres repetidos
+- mostrar una previsualización de los archivos de una carpeta
+- al subir un archivo si es factura cambiar el nombre al archivo, poner el cif y numero de factura
+
+Ampliaciones sujeridas por Galileo
+-------------------------------------------------------------------------------------
+- al crear una factura y su pago, si este es al contado o domiciliado asociarle la factura para que transte solo  (*) 08-04-2025
+- al pinchar en un enlace, mostrar el archivo en lugar del panel (*) 09-04-2025
+- no mostrar proveedores de baja (*) 09-04-2025
+- al ir a cree un proveeedor si existe uno con el mismo nombre indicarlo (*) 09-04-2025
+- Al crear la posición  de proveedor o cliente no poner el nif (*) 09-04-2025
+- al eliminar una factura, cancelar el pago si lo tiene y desasociarla del expediente y contrato (*) 09-04-2025
+- al crear una factura maper los campos del proveedor a la zona del pago con mayor prioridad a la ia (*) 15-04-2025
+- añadir iva e irpf por defecto al proveedor
+- al crear una factura si no hay  iva defindo pero el tp - ib = iva que coincide con un % aplicado a la bi de la BD entonces crear las dos líneas 
+- al resometer un trabajo si hay un semaforo con más de 5 minutos, quitarlo
+- al ejecutar un trabajo, añadir a la conexión la lista de semaforos que se colocan para cuando los mira si hay si están en la conexión obviar el error
+- al solicitar crear un documento por la ia, indicarlo en la tabla de permitidos, y volver a poner en el archivo controles que mire si el id a descarghar es el creado por el usiuario y el objeto negocio
+- al someter contabilizar si hay un cg en la pantalla poner la sociedad en elcuadro de diálogo
+- ver qué ha pasado al intentar hacer un pago por transferencia asociando el fichero diferente de la factura debería haberlo aceptado y no dar error, me obliga a crearlo sin fichero y luego a asociarlo
+
+Archivo
+------------------------------------------------------------------------------------
+Validar en el método de subidas de archivos, sin negocio ni elemento que haya permisos
+Validar despues de subir los chunk que la suma de byte sea inferior al límite
+
+transiciones
+------------------------------------------------------------------------------------
+mostrar la flecha de transición en la columna estado (*) 08-04-2025
+si solo hay una transición mapearla al selector (*) 08-04-2025
+poner colores en los mensajes de notificación y error  (*) 09-04-2025
+añadir transición por defecto
+darle funcionalidad al boton de transitar seleccionados a por defecto
+Añadir campo de estado no filtrable y que no me lo muestre en el filtro
+
+
+Verifactu
+-------------------------------------------------------------------------------------
+- arreglo varios en lacomunicación a hacienda (14-03-2025)
+- Almacenar los ficheros de de blockchain tras emitir (16-03-2025)
+- Almacenar el CSV (16-03-2025)
+- Cambiar el nombre del archivo de una factura emitida para posicionarla en primer lugar (16-03-2025)
+- Quitar la comunicación a hacienda de la transacción de emisión
+- Cada vez que se ejecute la cola, se mira si hay facturas pendientes de enviar a la AEAT, si las hay las envía
+- Si hay pendiente de subsanación envía un correo de subsanación 
+
+- Al hacer una rectificativa, comunicarlo a hacienda
+- Tras emitir comunicar a hacienda fuera del commit
+- Opción de menú para poder comunicar a hacienda facturas no cmunicadas
+- En pantalla mostrar de manera llamativa si una factura está mal comunicada
+- Generar un nuevo registro de alta de subsanación
+
+Contabilidad
+----------------------------------------------------------------------------
+Generar preasiento contable para NCS de remesas de pago  
+Generar preasiento contable para NCS de cobros 
+Generar preasiento contable para NCS de remesas de recibos
+Generar preasiento contable para NCS de rectificativas
+
+Generar verifactur de las facturas rectificativas
+
+
+Mensajes de pantalla
+------------------------------------------------------------------------------
+modificar las plantillas de creación, sin necesidad de borrar  (*) 23-01-2025
+poner scroll al menú de plantillas  (*) 23-01-2025
+Arreglar el filtro cuando busca por nombre de estado en los filtros del proceso
+en los grid de detalle poner una clase que marque el borde vertical en la primera columna
+al editar una obs ponerla en consulta si baja/cancelada/bloqueada
+
+pedidos
+-------------------------------------------------------------------------------
+Modelo de datos sin imputación (cabecera y línea) (*) 09-12-2024
+Interface de pantalla (*) 09-12-2024
+Al persisti una linea recalcular el importe
+Al persistir una fila recalcular saldos contrato
+Incluir una partida en el MT y en la tarifa
+Ficha de pedidos
+Trabajo sometido de pedidos vencidos
+Importar de un excel
+Conciliar pedido con factura
+- Desde el pedido creo la factura
+- A la factura le incluyo pedidos
+
+
+Peticiones interiorismo
+--------------------------------------------------------------------------------
+Añadir al crear la factura el pago por transferencia
+Al aceptar un pago, si es por transferencia, de una factura, hay fecha de pago, es anterior al día de hoy, darla por pagada
+Poder meter un documento en una factura cerrada si el usuario tiene permisos documentales
+
+
+correciones pndientes
+-------------------------------------------------------------------------------
+Si es cliente web y sube archivos si no están bloqueados debe poder borrarlos y no firmarlos y cambiar nombre mientras no bloqueados
+Al cambiar modificar un flag del tipo de factura, no ha blanqueado caches ya que me ha seguido diciendo que para el tipo no había ampliaciones
+Al meter una sociedad o una persona validar que el nif lleve por delante el ES para no duplicar
+
+
+correctivos
+--------------------------------------------------------------------------------
+Poner en la versión 3.2.1 con 6 decimales
+Ocultar la ampliación de datos por defecto de un ppt
+modificar el portarit y el landscape del css del movil
+simplificar el epDeCrearRelacion y BorrarRelacion
+
+
+Ampliaciones tras visita a talleres bartolo
+---------------------------------------------------------------------------------
+poner colores a los eventos de una agenda
+poder ver en una agenda todos los eventos
+Añadir una opciónde menú en favoritos que muestre las agendas a las que tengo acceso
+Mostrar las agendas dentro de un frame y que pueda cambiarlas tras seleccionar de un combo cual quiero ver
+
+Facturas emitidas, recibida, Historial
+---------------------------------------------------------------------------------
+Importar una eFactura y crearla como recibida
+Poner filtros en las contratos de compra por facturas recibidas
+
+Tareas
+---------------------------------------------------------------------------------
+crear interlocutor (persona o sociedad)
+Mantenimiento de mis tareas
+
+eFactura, acciones, agendas y archivos
+---------------------------------------------------------------------------------
+Crear el xml de  la eFactura (*) 18-11-2023
+Poder indicar al transitar si se quiere la emisión o el xml (*) 18-11-2023
+Crear agenda Ics (*) 20-11-2023
+Crear en la eFactura el apartado de rectificativa
+Crear en la eFactura el apartado de modos de pago
+Modificar el cuadro de mover/copiar para que saque un combo con los archivadores
+Modificar el cuadro de mover/copiar para que saque un combo con las carpetas
+Modificar el cuadro de mover/copiar para que saque un combo con las archivadores relacionados
+
+presentación a limpiezas Marisol
+---------------------------------------------------------------------------------
+AL levantar varias veces la ventana de transitar una factura no ha blanqueado la lista de transiciones
+AL intentar pagar una factura en una remesa ha mostrado un error donde me ha enseñado la clase
+
+
+Seguridad en archivos para clientes WEB
+---------------------------------------------------------------------------------
+ Mostrar una ventana con los archivos de un cliente, poder filtrar por vivos o referencia
+ Permite marcar múltipleas archivos
+ Dos opciones de menu: otorgar permisos a usuarios, otorgar permisos usuarios
+ 
+Proveedores
+------------------------------------------------------------------------------------
+Detalle de decisiones judicales de embargos de pago (fecha de inicio, fecha de fin, documento, %embargo, beneficiario del pago)
+Al crear el pago de una factura, recalcular los pagos si hay retenciones judiciales
+
+Ampliaciones en remesas de pago y remesas de cobro y ctas de sociedad
+-------------------------------------------------------------------------------------
+indicar en la cuenta bancaría de la sociedad el coste de transferencia para pagos a cuentas de misma entidad
+indicar en la cuenta bancaría de la sociedad el coste de transferencia para pagos a cuentas de diferente entidad
+indicar en la cuenta bancaría de la sociedad el coste de transferencia para cargos a cuentas de misma entidad
+indicar en la cuenta bancaría de la sociedad el coste de transferencia para cargos a cuentas de diferente entidad
+
+Añadir campos a la remesa de pago: Agrupar por acreedor, Coste de la remesa
+Al crear el Sepa14 agrupar por cuenta si así lo indica la remesa
+Al generar la remesa calcular el coste, y al retroceder blanquear
+
+--------------------------------------------------------------------------------------
+- hacer plantilla para imprimir pdf de pagos y pdf de cobro
+- Test de pagos y remesas
+
+HTMLToPdf, cread un Bundle con microsoft o con parcel
+--------------------------------------------------------------------------------------
+https://www.codexworld.com/convert-html-to-pdf-using-javascript-jspdf/
+https://www.perplexity.ai/search/ebee2aff-4781-498e-ae3f-3d94bfe7723a?s=u
+https://www.perplexity.ai/search/b1f83517-cb51-446f-a14a-b47ee88a8b77?s=c
+
+Correccciones en agenda
+--------------------------------------------------------------------------------------
+- Al abrir la agenda desde el detalle, posicionarme en el día del evento (*) 22-05-2024
+- Mejorar la velocidad tras abrir la agenda (*) 22-05-2024
+- ver un usuario a que agendas tiene acceso y a qué certificados (mstrar un span en edición de usuario)
+
+Callejero
+---------------------------------------------------------------------------------------
+- conevertir las zonas, barrios, y cps en listas desplegables
+- al seleccionar una calle cargar los barrios, calle y cps
+- si solo hay un barrio, calle o cp posicionarse
+- En el panel de dirección, al salir de calle, si esta ha variado ha que recargar las listas desplegables de zona barrio y cp
+- al crear validar que la calle pertenece al cp, barrio y zona indicado
+
+Contactos: Al abrir la modal de contactos
+-------------------------------------------------------------------------------------------
+- mapear el teléfono de la sociedad (como en el trabajador tras seleccionar el CG)
+
+Maestros necesarios para cobros de facturas por domiciliación
+--------------------------------------------------------------------------------------------
+- Cuentas de un cliente (IdCliente, IdCuentaBancaria)
+- Cuentas de un proveedor (IdProveedor, IdCuentaBancaria)
+- Tipo de factura: añadir tipo de cobro
+- Factura emt: añadir extensión de detalle con datos del cobro: Fp, Fecha del apunte, importe del cobro, importe cobrado, pendiente, anotación
+    - Datos de si contado: fecha cobro
+	- si transferencia: fecha de aviso para conciliar, fecha cobro, IdArchivoBancario
+	- si domiciliación: cuenta bancaria, IdArchivoQ19, fecha cobro
+	- si carta de pago: IdDeCartaDePago
+
+Ampliaciones en tareas
+---------------------------------------------------------------------------------------------
+obtener los objetos vinculados a una tarea y mostrar un gridview con ellos 
+añadir opción de navegar a cada uno de los vínculos
+Consulta de asignaciones de tareas
+
+Parametrizar relaciones entre tipos de elemento
+---------------------------------------------------------------------------------------------
+- Definir el MD donde para un tipo de elemento que otros tipo de elementos son relacionables
+- Definir el descriptor de relación entre tipos
+- Aplicarlo en los selectores de elementos con el que se quiere relacionar un elemento
+  Para poder hacer esto he de pasar el negocio y el elemnto al que se quiere relacionar el seleccionado
+  Por ejemplo, a un Preupuesto un expediente (como buscar = AsociarExpediente)
+
+
+Modelo de emisión de facturas
+--------------------------------------------------------------------------
+Serie de factura
+Clase de factura (Abono, Parcial, entrega a cuenta, factura definitiva, Rectificativa total, Rectificativa Parcial)
+Flujo: Estados y transiciones
+Tipo de factura (Cuenta de cartera, Cuenta de ingresos, iva por defecto, literal de firma)
+Cabecera
+líneas de detalle
+Crear una factura a partir de un presupuesto
+Crear y vincular una tarea para un registro
+
+
+Elementos de agenta
+--------------------------------------------------------------------------
+- Agenda: Nombre y permisos de consulta y permisos de gestión
+- Evento: Agenda, Fecha, duración, Notación, Avisar a(Usuario/Pt)
+- Descriptor de evento: Agenda Desde, duración, Notación, Avisar a, periódico, repetir cada (cantidad/metrica)
+- Señalamientos
+- Anotaciones
+- Tareas de agenda (duración)
+
+Ajustes pendientes
+--------------------------------------------------------------------------
+Si el objeto a modificar es un archivo, buscar a que se vincula y validar permisos de gestión sobre el objeto padre
+Cachear PermisosDelElementoDtm.LeerPorIdElemento
+No ocultar los spanes en permisos ni de rol ni de pt aun que no se tengan, esto permite añadir un rol o un pt directo (*) 13/05/2022
+Validar permisos de nuevo registro en tipo (ver que se tiene acceso al estado inicial del tipo)
+Al cambiar el nombre de un CG vaciar la caché de permisos, ya que ha cambiado el nombre de los permisos
+Ver por que no selecciona en la liusta desplegable de permisos el id seleccionado
+
+Definir etapas de un negocio
+--------------------------------------------------------------------
+- Crud de negocio.negocio_etapa Etapa: (id,Nombre) EstadosDeUnaEtapa (id, idEtapa, IdEstado)
+- Al vincular un registro con una tarea, validar que está en ini la tarea y el registro está en la tapa inicial
+
+RegistroES: 
+--------------------------------------------------------------------
+Añadir campo al tipo de "editar tras crear un registro", Si marco el padre marcar los hijo
+Añadir campo al tipo de "puede llevar tareas de resolución" 
+Añadir span de tareas de un registro, si al editar un registro el tipo está marcado que las lleva mostrar span
+Contemplar el permiso de intervención en el registro tras aplicar el modo de acceso
+
+RN:
+Al actualizar en el tipo de elemento un libro, actualizar el de los hijos si era el mismo
+Al borrar un registro en el antes persistir borrar los permisos por elementos si los hay y si no están asociados a un rol o a un usuario
+al crear una dirección el nº de policía no puede ser nulo
+definir en el mantenimientos de sociedades el MF de contactos
+
+
+Definición para parametrizar un flujo
+----------------------------------------------------------------------
+Definir Flujo de una entidad (id, nombre)
+
+
+Reglas de negocio pendientes en la interface
+----------------------------------------------------------------------
+- Al filtrar por contenido contemplar el | como símbolo comodín 
+- En el CrudCallesDeUnBarrio al ir a seleccionar las calles me las muestra todas, solo ha de mostrar calles fijadas en el restrictor de municipio
+
+Interface
+---------------------------------------------------
+- Aplicar formato de fecha a los grid de los expanes
+- Al navegar a un crud con un ID, además de editar, mostrar en el filtro.
+- Modificar AbrirModalDeRelacionParaCrear para que antes de abrir la modal valide que hay permisos
+- Poder añadir observaciones si el modo es consulta desde el link del expansor, al igual que se hace desde el Mf
+- Al quitar un archivo, dejar traza de que archivo se ha quitado, y que ruta tenía 
+- Tras modificar una observación, dirección o quitar un archivo, ha de recargar el span de las trazas
+- Al desplegar un filtro, plegar el abierto
+- Cuando pulso en "quitar los seleccionados" quitar el de todas las páginas
+
+Correctivo
+----------------------------------------------------
+- corregir que cuando los navegadores de los filtros no tienen valor naveguen al crud, cómo si fuesen desde el menú
+
+Refactorizar
+-----------------------------------------------------
+- Reorganizar proyecto de utilidades
+- Quitar el Metodo y sus hijos de CrudBase.MapearElementoLeido
+- Inicializar menús, definir menús de accesos para cuando se cree una nueva BD
+- Añadir clase para el contenedor del dto de un formulario: style=¨height: 90%; grid-area: contenedor-dto; padding-left: 10px;¨
+
+
+Seguridad de datos y funcional
+--------------------------------------------
+- Montar tablas para cachear la seguridad por vista SEGURIDAD.PERMISO_POR_VISTA
+- Ampliar el trabajo de generar seguridad para que la genere
+- Modificar como se lee el árbol de menú para obtener los permisos de una vista
+
+- Montar tablas para cachear la seguridad por vista SEGURIDAD.PERMISO_POR_ESTADO
+- Ampliar el trabajo de generar seguridad para que la genere
+- Modificar los métodos de ApiPermisos que validan la seguridad por estado
+
+- Montar tablas para cachear la seguridad por vista SEGURIDAD.PERMISO_POR_TRANSICION
+- Ampliar el trabajo de generar seguridad para que la genere
+- Modificar los métodos de ApiPermisos que validan la seguridad por transicion
+
+- montar excepciones para la relación entre cgs y tipos
+
+Gestor de la seguridad
+---------------------------------------------
+
+Gestor documental
+---------------------------------------------
+  - Al sincronizar una carpeta si hay algún archivo de esa carpeta que fue sincronizado y no existe la carpeta
+      - Eliminar el archivo y el registro de sincronización (*)
+      - Al sincronizar  un archivo, si este ha sido ya sincronizado y no está en el directorio, entonces borrarlo.
+      - Si un archivador tiene carpetas, y estas no tienen ningun archivo directo ni en carpetasdes cendentes, 
+        si en el directorio de windows no existe dicha carpeta borrar los registros de carpetas y sus descendentes
+
+- mostrar los ficheros en línea vs grid
+- Mostrar iconos de carpetas además de los archivos
+
+  https://webdesign.tutsplus.com/es/tutorials/how-to-build-a-filterable-thumbnail-layout-with-css-grid-flexbox-and-javascript--cms-33242
+
+
+Próximas tareas
+---------------------------------------------
+- Al navegar a trás, si hay información de selección en el filtro, filtrar antes de intentar posicionar
+- Poner títulos correctos
+- exportar las seleccionadas
+- Al mostrar las trazas de un trabajo, es en solo consulta
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Realizado
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1. Que el grid modal pase por el nuevo ep
+2. Que al navegar, se almacene el estado del grid para reposicionarse a la vuelta
+3. Pasar la CacheDeVariables a la CacheDeRegistro
+4. Implementar seguridad
+4.1 añadir el id permiso al menú y a las vistas
+4.2 corregir el error de que tras modificar hay que limpiar el info selector
+4.2.1 corregir error de al navegar para relacionar guardar el id seleccionado y no el id de la propiedad restrictora
+4.3 crear el crud de rol-permiso
+4.4 en el mantenimiento de roles poder navegar para incluir los permisos de un rol
+
+
+4.5 Añadir muchos permisos a un rol
+arreglar la modal de selección
+desde el mantenimieto de permisos de un rol añadir una opción de menú: Añadir permisos
+si se pulsa dicha opción se ha de abrir un panel con un grid que muestre los pedidos del sistema excepto los que ya tiene (modalSeleccion)
+para hacer esto hay que pasar un parámetro (idrol) no visible en el crud de permisos pero que en la carga de grid excluye
+dicho panel tiene dos opciones: cerrar y seleccionar
+si se pulsa seleccionar llamará a un ep que añadirá todos los registros seleccionados que están en el info selector
+
+- Poder relacionar un usario con múltiples puestos
+- Poder relacionar un Puesto con múltiples roles
+- Poder relacionar un rol con múltiples permisos
+- Obtener el árbol de menú de un usuario
+
+- Montar sistema de caches
+- Montar ventana de login
+- Crear usuario administrador
+	- permiso de administrador asociado a variable 
+	- se lee al entrar (de BD o cache) en el controlador base
+- Poder comprimir la zona de filtrado y cada uno de sus bloques de manera independiente
+- ver error de al navegar, no pasa el restrictor, y es por que he quitado html elementos
+
+
+- Añadir filtros a usuarios (selector de puesto) y órdenes
+- Añadir filtro a puestos (selector de rol) y órdenes
+- Añadir filtro a roles (selector de permiso) y órdenes
+- Añadir ordenación a los grid de roles-permisos, roles-puestos y usuarios-puestos 
+- Al grabar un usuario que asigne a la clave el valor actual
+- Ocultar o mostrar el filtro en modal
+
+- Definición de Trabajos sometidos
+- Trabajos sometidos de un usuario
+- Proceso de envío de mensajes
+- Proceso de exportación a excel
+- Proceso de importación de callejero
+- Cola de trabajos sometidos
+
+- Crud de Paises
+- Crud de provincia
+- Crud de municipio
+- Crud de tipos de vías
+- Gestor de C.Postales (*)
+- Gestor de relación con provincias (*)
+- Gestor de relación con municipios (*)
+
+- proceso de importación de csv (*)
+- proceso de borrado de trazas de sql (*)
+- Añadir al filtro lista de valores
+
+- crud de cp
+- crud de relación con municipios
+- crud de relación con provincias
+- Crear vistas
+- Añadir navegavilidad al crud de prvincias
+- Añadir navegavilidad al crud de municipio
+
+- Mostrar el filtro abierto general, el resto cerrado
+- Filtros totalmente genéricos
+
+- Expanes de relaciones
+- Modales para crear relaciones de detalle
+
+- Añadir el actualizar opciones de menu
+
+Cosas de la interface de usuarios
+------------------------------------------------------------------------------
+permitir ordenar los errores de manera descendente (por defecto así lo muestra) (*)
+al pulsar en cantidad, recargar grid(*)
+
+- Añadir al menus del grid  (*)
+	- Anular selección (*)
+	- Anular ordenación (*)
+	- Mostrar las seleccionadas (*)
+	- Navegar a página (*)
+
+
+
+Cosas del Layout
+------------------------------------------------------------------------------
+- modificar el layout
+- presentar los datos en el grid de manera correcta
+- ajustar el cuerpo de datos del grid al tamaño del layout y del filtro
+- si se oculta el filtro ajustar el tamaño del grid
+- al modificar el tamaño del browser, ajustar el tamaño del grid
+- Ajustar controles de input en los filtros y en las modales de edición y selección
+- ajustar edición y creación sin ser modal
+
+Negocio del gestor de elementos
+------------------------------------------------------------------------------
+    Al modificar o borrar un elemento, vaciar la cache LeerCacheadoPorPropiedad asociaa a la clase de ese elemento (*)
+
+
+Callejero
+------------------------------------------------------------------------------
+Modales de edición de detalle (*)
+Renderizar modal para municipios y provincias (*)
+Definir el evento que la abre (*)
+
+Cerrar el crud de calles, para ellos definir
+- Gestor de Cps de una calle (*)
+- Añadir restrictores a la hora de seleccionar un cp para una calle (*)
+- Gestor de Barrios (id,idmunicipio, nombre, datos de auditoría) (*)
+- Gestor de Barrios de una calle (*)
+- Navegar de un municipio a las calles (*)
+- Filtrar en calles por barrio(*)
+- Gestor de Calles de un barrio(*)
+- mostrar en la edición de un barrio las calles(*)
+- Navegar de un barrio a las calles(*)
+- Quitar código de calle y código de municipio(*)
+- Gestor de Zonas de un municipio (*)
+    Ficheros creados Dto, Dtm, Gestor, Controlador, Vista, TS, Svg
+	Ficheros modificados: StatrUP y Persistencia de negocio, de vistas y de menú o el descriptor de navegación
+- Gestor de Barrios de un municipio (*)
+- Mostrar en edición de municipio, los barrios y las zonas (*)
+- Gestor de Zonas de una calle y añadir span a la edición de calles (*)
+- Filtrar en calles por zona (*)
+- Añadir navegación de zona a ver sus calles (*)
+- Al relacionar un CP con una calle relacionarlo con el municipio si no lo está (*)
+- Al relacionar un CP con una calle relacionarlo con la provincia si no lo está (*)
+- Los spanes de cps de pedania, municipio y provincia, no permiten modificar ni borrar (*)
+
+- Al crear una calle poder indicar un CP (mano, Desde, Hasta) un Barrio (mano, Desde, Hasta) o una Pedanía/Zona
+
+  interface
+    La lista dinámica debe permitir escribir un valor no existente en la BD (*)
+	Permitir borrados Múltiples (*)
+
+  Negocio
+
+	Si el código postal no existe, sus dos primeros dígitos corresponden con la provincia --> lo crea (*)
+	Si existe --> lo relaciona (*)
+	Lo mismo para el barrio (*)
+	Lo mismo para pedanía (*)
+	Para ello añadir al crudDeCreacion una lista dinámica que seleccione el elemento si está, y si no lo esta que mande la información escrita (*)
+
+	Al borrar una calle, antes de eso borrar su relación con barrios, zonas y Cps (*)
+
+	Al borrar un CP o Un Barrio validar que no está relacionado con una calle y ascendentes  (*)
+	Al borrar una zona validar que no está relacionado con una calle (*)
+    Al modificar o borrar un Municipio, borrar la cache LeerMunicipioCacheadoPorNombre (*)
+
+
+- Mostrar una calle en un mapa
+
+Gestor documental
+---------------------------------------------
+crear la interface para la gestión de tipo (*)
+- descriptor de tipos basado en el de formularios (*)
+- js (api de jerarquía y menús flotantes) (*)
+- Crear Controlador de TiposDeElemento y vistas (*)
+
+crear TipoDeElementoDtm y TipoDeElementoDto e interface (*)
+crear TiposDeArchivadorDtm y TipoDeArchivadorDto (*)
+crear GestorDeTiposDeElemento hereda de GestorDeElementos (*)
+crear GestorDeSeriesDocumentales (*)
+
+- añadir filtro por Nombre (*)
+- añadir si mostrar jerarquía o plano (*)
+- añadir una modal para poder filtrar la jerarquía de un formulario
+    - añadir filtro para saber que tipos accede un usuario (*)
+    - añadir filtro para saber que tipos accede un puesto (*)
+    - añadir filtro para saber que tipos accede un rol (*)
+	- añadir una lista de elementos que me indique el modo de acceso del permisos(*)
+	- añadir un check que me indique si solo muestra los activos (*)
+- Iluminar el icono de cuando hay filtros en la modal (*)
+- Si un tipo no está activo mostrarlo en otro color (gris blanquecino y con otra font) (*)
+- Al eliminar validar que no hay subtipos (*)
+- Al dar de baja --> propagar la baja(*)
+- Al dar de alta --> ascender el alta (*)
+-  añadir los navegadores desde un restrictor a una url en una nueva pestaña (*)
+- añadir navegar en el permiso de administrador para ver los puestos que incluyen el permiso de administrador (*)
+- añadir navegar en el permiso de administrador para ver los puestos que incluyen el permiso de consultor (*)
+- añadir navegar en el permiso de administrador para ver los puestos que incluyen el permiso de gestor (*)
+
+- Al inicializar un formulario, si en el estado hay filtros guardados
+  Mapear a los controles (*)
+  Eliminar del estado (*)
+  Aplicar el filtro  (*)
+
+- Al navegar al crud de permisos, no se puede editar ningún objeto de permisos generado por el sistema 
+  - sobre cargar los métodos que bloquean las opciones de menú de la interface 
+  - bloquear en el controlador de permisos al intentar modificar o borrar
+
+- Al inicializar un crud
+  Mapear a los controles de filtrados (*)
+  Eliminar del estado (*)
+  Aplicar el filtro (*)  - Hacer el campo referencia obligatorio en el archivador (*) 03/01/2022
+  - Generar los libros de registro y crear referencias externas (*) 01/01/2022
+  - incluir el código del cg en la referencia, meter guiones, alinear a la derecha (*) 03/01/2022
+  - Añadir opción que genera el trabajo de sincronización, ponerla en el dto y al editar el registro se instancia al archivador (*) 23/01/2022
+  - Aplicar el modo consultor y gestor a la edición del espan de archivos (*) (20/01/2022)
+  - Al cambiar el nombre de archivo validar seguridad según vínculación del archivo (*) 23/03/2022
+  - llamar desde la jerarquía de carpetas al metodo que aplica la seguridad al contenedor (*) 23/03/01
+  - El endpoint de anexar o quitar anexado han de validar la seguridad según el archivo (*) 23/03/01
+
+- Declarar el negocio de Archivos como que no es de parametrización ni usa seguridad y quitar código metido en los métodos (*) 23/03/01
+
+- Aplicar seguridad de gestor tipo a los archivadores y carpetas de un archivador para que no permita subir archivos ni sincronizar (*) (23/01/2022)
+
+
+
+Retoques de lo hecho
+-----------------------------------------------
+Crear opciones de menú, vistas y negocio (*)
+
+- al ir a crear una relación entre un municipio y un cp, ha de cargar en el combo del cp (*)
+    - los cps que comiencen por el patron pasado (*)
+	- los cps cuyos dos primeros dígitos correpondan con el código de la provincia del municipio restrictor (*)
+	- que el cp no esté ya relacionado con el municipio (*)
+
+- al crear una calle, después de persistir, crear cp, barrio o zona si vienen informados (*)
+- Antes de crear una calle validar que el código postal del CP corresponda con el de la provincia (*)
+
+- Quitar la carga de lista dinámica usando método antiguo (*)
+- Aplicar el IRelacionDto a las relaciones (*)
+
+- Si hay un restrictor, al crear una nueva relación indicar en el restrictor que ha de ser diferente para que excluya los relacionados (*)
+   - PuestosDeUnUsuario (*)
+   - UsuariosDeUnPuesto (*)
+   - RolesDeUnPuesto (*)
+   - RolesDeUnPermiso (*)
+   - PermisosDeUnRol (*)
+   
+- Poner los includes en los gestores de relación del módulo de seguridad (puesto en PermisosDeUnRol) (*)
+
+- Colocar menú flotante en la base del grid o aplicar css diferente al menu de opciones de una modal (*)
+
+- Poner navegador a las listas dinámicas para que me abra otra ventana (*)
+
+Correctivo
+--------------------------------------------
+En trabajos sometidos indicar quién es el ejecutor falla (*)
+
+Refactorizar
+-----------------------------------------------------
+ProcedimientoAlmacenadoDtm pasarlo a la clase ModeloSql(*)
+Crear una clase ModeloBb y pasar la clase ModeloSql(*)
+
+
+Terceros
+---------------------------------------------
+- Implementar sociedades
+- Implementar CGs (servicios, dto e interface con jerarquía) (*)
+- Ajustar el css de la interface de CG usando el descriptor (*)
+- Generalizar el formulario de tipos y de cgs en un formulario de jerarquías (*)
+- Crear los ep básicos para las llamadas a los CG (crear, modificar, copiar, eliminar) (*)
+ 
+ Elementos de un CG
+ -------------------------------------------
+  crear un NegociosDeUnCgDtm (id,idCG, id de negocio, permiso de consultor, permiso de gestor) (*)
+  Al crear o modificar ver si existe el permiso para todos los negocios con seguridad por CG (*)
+  Si no existe crear, si existe modificar el nombre si ha variado el nombre o codigo del cg (*)
+  Al eliminar un CG ver si del CG hay dependencias (*)
+  si no las hay:
+	  eliminar la relación con los negocios (*)
+      eliminar los permisos si no están asociados a un rol (*)
+  Al crear o modificar un CG validar que el código y el nombre es único (*)
+	  
+
+- Aplicar filtros por:
+	Sociedad (*)
+	Nombre o código (*)
+	Usuarios, pts, o roles con acceso (*)
+	Poder matizar el filtro anterior con los objetos accedidos y el modo (gestor/consultor) (*)
+
+	Gestor documental
+---------------------------------------------
+- Quitar menu flotante (*)
+- Crear archivadoresDtm y ArchivadorDto (*)
+- Crear GestorDocumental (*)
+- Crear Controlador y vista Documental (*)
+- Crear DescriptorDocumental (*)
+- Crear typescript (*)
+- Crear negocio-vista y menú (*)
+
+Correctivo
+----------------------------------------------------
+Corregir el trabajo de borrar trazas
+  - Debugar el método BorrarTrazas(EntornoDeTrabajo entorno) para ver que significa (*)
+    Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+    Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled.
+	If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. 
+	Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. 
+	See https://go.microsoft.com/fwlink/?linkid=2149338 for more information. 
+	To identify the code which triggers this warning, call 'ConfigureWarnings(w => w.Throw(RelationalEventId.SavepointsDisabledBecauseOfMARS))'.
+
+  - No property or field 'Nombre' exists in type 'ErrorDeUnTrabajoDtm' (*)
+  - Error al borrar el fichero Borrar_trazas_22_11_2021_15_51_14_000.txt
+Corregir el que se pueda modificar la fecha de planificación (*)
+  - No se puede modificar la fecha de entrada de un trabajo en la cola
+
+
+jerarquías de menús
+-----------------------------------------------------
+- Crear un JerarqiaMenusController (*)
+- Añadir filtros por Padre, por nombre y por activo (*)
+- Añadir filtro por seguridad de acceso de Usuarios, Pts, y roles (*)
+- Añadir filtro por vista mostrada (*)
+
+Correctivo
+----------------------------------------------------
+Al cargar el arbol de menú, excluir las opciones no activas (*)
+
+
+Refactorizar (27-11-2021)
+-----------------------------------------------------
+- Poner navegadores en las listas dinámicas de formularios y filtros (*)
+- En el crud de edición hay que usar el método MapearAlPanel.ElObjeto, demontar lo que hay (*)
+- Inicializar menús, definir menús de funcionalidad para cuando se cree una nueva BD (*)
+
+Carpetas documentales  (27-12-2021)
+--------------------------------------------
+crear el negocio de carpetas documentales (id, nombre, padre) (*)
+asociar archivos a una carpeta documental (*)
+Añadir opción de menú al crud de archivadores para ver sus carpetas (*)
+Mostrar las carpetas documentales de un archivador en una jerarquía (*)
+ampliar el modelo de archivadores para indicar con que ruta se sincroniza (*)
+trabajo sometido de sincronización (*)
+
+Gestor documental
+---------------------------------------------
+- Añadir CG a archivadores (*) 28/11/2021
+- Crear ApiDeArchivos y meter en ella la descarga de Thumbnail (*)
+- Implementar el borrado de un archivo (*) 
+    - el registro
+    - el archivo
+	- la cache y thumbnail
+- Crear el control de para seleccionar archivos (*)
+- Después de seleccionar, mostrar en el contenedor de los seleccionados los ficheros seleccionados (*)
+	- Poner un input con el nombre del fichero
+	- poner una papelera para poder quitarlo antes de subir
+- preparar el anexar archivo y pasarlo al contenedor donde se muestran los anexados tras subirlo (*)
+- Programar las papeleras de borrado, tamto n seleccionados como en mostrados (*)
+- Convertir el selector en multiarchivo (*)
+- Crear la relación entre archivos y archivadores (*)
+- Subir el archivo (*)
+- Crear registro archivo (*)
+- relacionarlo con el archivador (*)
+- Sincronizar con carpeta windows (*)
+- Crear una tabla de sincronización de archivo con (ruta, nombre, fecha creación, modificación, usuario y fecha de sincronización, longitud) (*)
+- Al anexar que se sincronice (*)
+- Al eliminar que se sincronice (*)
+- Implementar el proceso sometido que cuando modifica una carpeta crea el TS para esa carpeta (*)
+- Implementar un TS que recorre todos los documentos que se han de sincronizar, y mira si hay algo por sincronizar. (*)
+  Actualizar en el visor el nombre de un fichero tras modificar (usar una función de callback) (*)
+  Al abrir las carpetas de un archivador el espan de archivos mostrarlo abierto (*)
+
+  Seguridad de datos y funcional
+--------------------------------------------
+- cachear el acceso a TipoDeElementoSql y a CgSql por id (*) 03/01/2021
+- Montar los métodos que validan la seguridad por elemento al leer y persistir (*) 06/01/2022
+- Montar tablas para cachear la seguridad por tipo (*) 09/01/2022
+- Aplicar seguridad al leer registros (*) 09/01/2022
+- Crear trabajo sometido que genera la seguridad por tipo (*) 09/01/22
+- Ver porqué el trabajo sometido de borrar traza no se ha autoplanificado (*) 10/01/22
+- Modificar la consulta LeerTrabajoPendiente para qe sea no lock (*) 10/01/22
+- Hacer acción que permita crear el trabajo de seguridad de aplicar la seguridad  (*) 10/01/22
+- Montar tablas para cachear la seguridad de negocios por CG  (*) 10/01/22
+- Aplicar la seguridad de negocios por CG al definir una consulta (*) 11/01/2022
+- Al seleccionar un CG o un Tipo aplicar seguridad según se parametrice (*) 12/01/22
+- Poder navegar al permiso de una vista (*) 15/01/22- Usar la seguridad generada al leer un registro con tipo y CG (*) (16/01/2022)
+
+- Montar tablas para cachear la seguridad por Negocio SEGURIDAD.PERMISO_POR_NEGOCIO (*) (17/01/2022)
+- Ampliar el trabajo de generar seguridad para que la genere (*) (17/01/2022)
+- Aplicar la seguridad de Negocio al definir la consulta (*) (18/01/2022)
+- Actualizar la interface typescript tras editar el elemento según su modo de acceso (18/01/2022)
+
+Gestor de la seguridad
+---------------------------------------------
+- Añadir a los puestos de trabajo el CG y poner una mayor descripción (*) (13/01/2022)
+- Poder filtrar por el CG en el crud (*) (13/01/2022)
+- Modificar la edición de los Pts para que muestre el span con los roles (*) (13/01/2022)
+- Permitir añadir un rol a un Pt (*) (13/01/2022)
+- Modificar la edición de los Pts para que muestre el span con los usuarios (*) (13/01/2022)
+- Permitir añadir un usuario a un Pt (*) (13/01/2022)
+
+- Modificar la edición de los roles para que muestre el span con los permisos (*) (13/01/2022)
+- Permitir añadir un permiso a un rol (*) (13/01/2022)
+- Modificar la edición de los roles para que muestre el span con los PTs (*) (13/01/2022)
+- Permitir añadir un PT a un rol (*) (13/01/2022)
+
+- Añadir a los grid relacionables la opción de navegar a la edición (*) (14/01/2022)
+- Mostrar en el dto de CGs un espan con los Pts relacionados (*)  (14/01/2022)
+- Buscar en PT por CG (código y nombre) (*) (14/01/2022)
+- Ordenar en PuestosDeUnRol y PuestosDeUnUsuario por CG (*) (15/01/2022)
+
+- Añadir la tabla de relación entre permisos y PTs (*) (15/01/2022)
+- Modificar la edición de los Pts para que muestre el span con los permisos (*) (15/01/2022)
+- Permitir añadir un permiso a un Pt (*) (15/01/2022)
+
+- Modificar la vista que devuelve los permisos de un PT para que incluya a demás de los heredado los directos (*) (16/01/2022)
+
+- Filtrar en usuarios por: Permisos, Permiso, rol y puesto (*) 17/01/2021
+- Al editar un usuario mostrar los puestos de trabajo donde se encuentra (*) 18/01/2022
+- Filtrar en Puestos por usuario (*) 18/01/2022
+
+
+Parametrización
+----------------------------------------------------
+- Parametrizar un ayto (*) 23/01/22
+- Parametrizar roles de (*) (27/01/2022)
+  - Gestor de área
+  - Jefe de servicio
+  - Secretaría
+  - Administrativo
+- Crear Puestos de trabajo (*) (27/01/2022)
+  - Concejal de ...
+  - Jefe de servicio de ...
+  - Secretaria de ...
+  - Administrativa de ...
+- Asignar PTs a usuarios (*) (27/01/2022)
+
+
+Correctivo
+----------------------------------------------------
+Al editar una vista, el flag de mostrar en modal siempre aparece marcado, y en BD el valor almacenado es false (*) (23/03/2022)
+Mostrar formateadas las fechas del grid (*)
+
+
+Refactorizar
+-----------------------------------------------------
+- Quitar proyecto de Enumerados e incluir sus 4 clases en utilidades (16/01/2022)
+- Cuando se somete regenerar la seguridad ir directamente a la ventana de trabajos sometidos (27/01/2022)
+
+
+Reglas de negocio pendientes
+---------------------------------------------
+- Al aplicar la seguridad de CG expandiar a nodos hijos (*) 24/01/2022
+- Al aplicar seguridad de tipos expandir a hijos (*) 24/01/2022
+- Al filtrar por contenido contemplar el % como símbolo comodín (*) 15/01/2022
+
+Gestor de la seguridad
+---------------------------------------------
+- La interface de usuarios de un puesto ha de mostrar el CG del puesto en el restrictor en el filtro (*) (27/01/2022)
+- Filtrar en puesto por: Usuario, rol y permiso (28/01/2022)
+- Filtrar en rol por: Usuario, puesto y permiso (28/01/2022)
+- Filtrar en permisos por: Usuario, puesto, cg, y rol (28/01/2022)
+- Poder ver los permisos de un usuario (28/01/2022)
+- Al editar un permiso mostrar el span de los usuarios, puestos, roles donde se hereda (29/01/2022)
+
+Refactorizar
+-----------------------------------------------------
+- Quitar las tablas de los filtros y montar Divs (28-01-2022)
+- Cambiar el nombre de la variable Registros por Consulta en todo el código (28-01-2022)
+- Poder poner un punto de menú que muestre los cg de una sociedad (30-01-2022)
+
+
+Interface
+---------------------------------------------------
+Al pulsar modificar si estoy editando un infoselector con más de un registro avanzar al siguiente, si es el último avanzar al primero (*) 30-01-2022
+
+Crear descriptor para el menú contextual de la vista (*) 30-01-2022
+Crear descriptor para el menú contextual de edición (*) 30-01-2022
+Posicionar el menú contextual y el individual de la vista en la cabecera del grid  (*) 30-01-2022
+Posicionar el menú individual en la edición  (*) 31-01-2022
+Añadir al gestor de eventos la gestión de procesar el menú contextual de mantenimiento y el de edición(*) 31-01-2022
+Modificar el método de inicalización para inicialice el menú contextual e individual de mantenimiento en base a los permisos (*) 01/02/2022
+Modificar los eventos de seleccionar o desseleccionar fila del grid para que actualice las opciones del menú individual de mantenimiento (*) 02/02/2022
+Modificar la opción de inicalizar edición para que inicialice el menú individual de edición (*) 02/02/2022
+Crear las opciones de los menús en los descriptores, según las interfaces que tenga el dtm (*) 03/02/2022
+
+Definir el end point en el controlador que procesas las opciones del menú contextual (*) 05/02/2022
+
+
+ejemplo: Menú contextual de edición mantenimiento de trabajos de usuario (*) 05/02/2022
+Generales ---------------------------------
+- Observaciones 
+- Direcciones 
+- Imprimir 
+- Cear/Editar permiso
+Específicos -------------------------------
+- Crear/editar datos contables de la sociedad
+- Datos bancarios de la sociedad
+- Personas de contacto de la sociedad
+- Interlocutores de la sociedad
+
+Correctivo
+----------------------------------------------------
+- Tras intentar crear en un formulario, s da error por falta de campos, si luego edito, al de inicializar el dto de edición he de quitar la clase invalida (*) 06/02/2022
+- Controlar en los eventos del spaner si existe un crud o viene de un formulario (*) 06/02/2022
+- Eliminar ITipoDeElementoDtm y modificar para que al leer un registro aplique los join si así lo dice el controlador (*) 06/02/2022
+
+Núcleo
+----------------------------------------------------
+Añadir modelo de observaciones para cualquier Negocio, con solo declarar la tabla (*) 05/06/2022
+Crear métodos para añadir, modificar y borrar observaciones de cualquier entidad (*) 06/06/2022
+Añadir observaciones en un espan del elemento (*) 06/06/2022
+Crear la interface de añadir una Observación (*) 06/06/2022
+Crear la interface para poder editar (*) 08/06/2022
+Al llamar desde el menu flotante a observaciones abrir el diálogo de creación  (*) 08/06/2022
+Aplicar a Sociedades y archivadores (*) 08/06/2022
+
+Seguridad de datos y funcional
+--------------------------------------------
+- automatizar como crear la seguridad de un elemento [ESQUEMA].[TABLA]_PERMISO (*) 09/02/2022
+- Aplicar a las sociedades (*) 09/02/2022
+- Crear una modal para mostrar los permisos generados (*) 09/02/2022
+- Crear método de crear permisos y leer permisos de un elemento (*) 09/02/2022
+- Al pulsar la opción de PermisosMf, si no están los crea, y muestra la modal de permisos (*) 10/02/2022
+- Poder navegar desde los permisos a la edición de permisos y asignar el permiso a un Pt (*) 10/02/2022
+- Definir la tabla para cachear la seguridad por elementos SEGURIDAD.PERMISO_POR_ELEMENTO (*) 10/02/2022 
+  (id, idNegocio, idElemento, idPermiso, idUsuario, Calculado)
+
+- Ampliar el trabajo de generar seguridad para que la genere (*) 12/02/2022
+- Modificar los métodos de ApiPermisos que validan la seguridad por elemento (*) 12/02/2022
+- Restructurar LeerModoDeAccesoAlElemento (*) 14/02/2022
+- Aplicar seguridad por elemento al archivador (*) 14/02/2022
+- Modificar el método de consulta para añadir la seguridad por elemento (*) 14/02/2022
+
+- Ampliar el descriptor de usuarios para que muestre los expanes de, 
+  (indicando el permiso y si es calculad) 
+  (solo los calculados se pueden borrar) (*) 16/02/2022
+  permisos por elemento (*) 15/02/2022
+   
+- permisos por tipo (lo mismo para permisos por negocio) (*) 16/02/2022
+    Modificar PermisosPorTipoDtm: añadir campo calculado, añadir fk a negocio, usuario, permiso
+    Modificar trabajo de sincronización de permisos para indicar que es calculado
+    Añadir a la clase de ltrDeUnPermisoDtm la constante de PermisosDeTipos
+    Añadir en GestorDePermisos el filtro por ltrDeunPermisoDtm.PermisosPorTipo
+    Crear PermisosPorTipoDto y tener en cuenta ltrDeunPermisoDtm.PermisosPorTipo
+    Crear GestorDePermisosPorTipo
+    Crear PermisosPorTipoController
+      - Leer los permisos de tipos no calculados de un usuario
+      - relacionar un permiso con un usuario
+      - Borrar una relación entre el usuario y el permiso por tipo
+    Ampliar el descriptor de usuarios para meter el espan de PermisosPorTipos
+
+- Validar añadir observaciones con permisos de consultor y gestor sobre el elemento (*) 16/02/2022
+
+- Al navegar a las carpetas controlar que el permiso aplicado sea el correcto (*) 17/02/2022
+- Controlar permisos de borrado, modificación, copia y nuevo en las carpetas (*) 17/02/2022
+- Al abrir el panel de modificar nombre de un archivo, si no soy gestor, todo bloqueado (*) 17/02/2022
+- Al modificar el nombre de un archivo, controlar permisos en el Gestor (*) 17/02/2022
+  Me dice que no puedo acceder al CG del archivador, pero tengo permisos por el elemento de gestor (*) 17/02/2022
+  Inhabilitar el permiso de modificar si soy consultor  (*) 17/02/2022
+  Si me ha dejado subir archivos (*) 17/02/2022
+- Al editar hay que reaplicar los permisos al panelDto (*) 17/02/2022
+- al navegar a ver la auditoría, si soy administrador del elemento si la puedo ver (*) 17/02/2022
+
+- Poder indicarle a un control que está habilitado si tiene permisos de administrador sobre el elemento o es el creador (*) 17/02/2022
+  Atributo: PermisosNecesarios: Administrador|Creador (*) 17/02/2022
+- Al editar una Obs, si no soy gestor todo bloqueado y botón modificar deshabilitado (*) 17/02/2022
+
+Reglas de negocio pendientes
+---------------------------------------------
+- Al seleccionar un barrio o zona para una calle sólo ha de mostrar los barrios relacionados con el municipio de la calle (*) 18/02/2022
+  modificar los dto de relación entre calle/zona, calle/barrio y calle/cp (*) 18/02/2022
+- Hay que controlar que al grabar una relación del callejero calle/zona, calle/barrio o calle/cp sea coherente (*) 18/02/2022
+
+Seguridad de datos y funcional en Sociedades, CGs y Carpetas
+---------------------------------------------------------------  
+- Poder navegar desde la sociedad a los CGs de la sociedad (*) 18/02/2022
+- Si es administrador de la sociedad al entrar poner en modo edición, si no en consulta (*) 18/02/2022
+- En el mantenimiento de todos los cgs se ha de ser admnistrador del sistema (*) 18/02/2022
+
+Terceros
+----------------------------------------------------------------
+- Navegar desde la edición de una sociedada ver su estructura (*) 18/02/2022
+- Validar CIF de sociedad (*) 19/02/2022
+- Al dar de baja una sociedad, si tiene CGs, dar de baja sus CGs (*) 19/02/2022
+- No poder modificar un CG si su sociedad esté de baja (aplicar a negocio e interface) (*) 19/02/2022
+
+Reglas de negocio pendientes de socied y CG y ajustes en la interface
+----------------------------------------------------------------------
+- No poder modificar una elemento que está de baja (*) 20/02/2022
+- Modificar el CrudDeEdicion para que si el modo es consulta, el control de check esté deshabilitado (caso el flag de sociedad) (*) 20/02/2022
+- Desactivar en el Mf las opciones individuales de no compatibles con una baja (*) 20/02/2022
+- Añadir opción en el menú flotante para dar el alta/baja de un elemento y cambiar el literal según el caso (*) 20/02/2022
+
+Terceros
+-----------------------------------------------------------------------
+Al modificar, crear o suprimir un negocio ha de crearse los NegociosDeUnCg para todos los Cgs (*) 23/02/2022
+
+Direcciones de elemento
+-------------------------------------------------------------------
+Definir DireccionDtm de un elemento Genérico heredar en sociedad (*) 23/02/2022
+Añadir campos de auditoría de quién y cuándo se creo (*) 24/02/2022
+Definir DireccionDto de un elemento Genérico (*) 24/02/2022
+Definir el Gestor de direcciones como está el de observaciones (*) 24/02/2022
+Definir el controlador de direcciones, igual que el de observaciones (*) 26/02/2022
+En el descriptor del crud, si el negocio usa direcciónes, añadir span que las muestre (*) 26/02/2022
+Al blanquear la calle Blanquear controles dependientes (*) 26/02/2022
+
+Trazas de elemento
+-------------------------------------------------------------------
+Definir TrazasDtm de un elemento Genérico heredar en sociedad y archivadores (*) 23/02/2022
+Definir TrazaDto de un elemento Genérico (*) 24/02/2022
+Definir el Gestor de trazas como está el de observaciones (*) 24/02/2022
+Definir el controlador de trazas, igual que el de observaciones (*) 26/02/2022
+En el descriptor del crud, si el negocio usa trazas, añadir span que las muestre (*) 26/02/2022
+Al modificar una dirección o observación que se inserte una traza (*) 26/02/2022
+
+
+Terceros
+-----------------------------------------------------------------------------
+Mantenimiento básico de personas (*) 27/02/2022
+  - dto y dtm
+  - gestor
+  - controlador y vista de crud
+  - descriptor
+  - Inicializadores de vista, menu, negocio
+
+Añadir ak por NIF y CIF (*) 27/02/2022
+Que al navegar a la auditoría de un elemento (persona) pase la expresión del nombre (*) 28/02/2022
+Que en personas ordene por exprexión (*) 28/02/2022
+Que el descriptor permita filtrar por dni, nombre, apellido, mail o teléfono (*) 28/02/2022
+  
+  Terceros
+---------------------------------------------
+Mantenimiento básico de interlocutores (*) 02-03-2022
+  - dto y dtm (id, nombre, activo) con auditoria, observaciones y direcciones (sólo una fiscal)
+  - gestor
+  - controlador y vista de crud
+  - descriptor
+  - Inicializadores de vista, menu, negocio
+
+Al dar de baja o alta un elemento que se anote en la traza (*) 03-03-2022 
+Añadir un mf en mantenimiento que al pulsar cree y edite el interlocutor (*) 04-03-2022 
+Añadir al dto de personas un flag que al crear me cree el interlocutor (*) 04-03-2022 
+
+Definir contactos de una sociedad (dto y dtm) (*) 04-03-2022 
+Añadir a la sociedad un extensor de dependencia con los contactos (*) 05-03-2022 
+Añadir la opción de dar de alta a un contacto (*)  06-03-2022 
+Añadir opción de crear un interlocutor de una sociedad y de un contacto (*)  06-03-2022 
+Añadir campos calculados y funcionalidad a edición a personas, sociedades y contactos que indique si hay interlocutor (*)  07-03-2022 
+Añadir filtros a sociedad y personas (*) 07-03-20222
+Añadir RN, si se da de baja una sociedad se dan de baja todos sus contactos e interlocutores, además de los cgs (*) 08-03-2022 
+Al pulsar interlocutor en un tercero comprobar si existe un inter sin tener en cuenta la baja, ya que puede existir y estar debaja (*) 08-03-2022 
+Crear bien las AK ya que permite una sociedad múltiples veces (*) 09-03-2022 
+Ajustar como mostrar altas y bajas y estandarizar el paso por parámetros (*) 09-03-2022
+poder dar de alta un contacto que esté de baja desde el grid (*) 10-03-2022
+añadir rn, al crear un elemento si el cg está de baja no permitir (*) 10-03-2022
+añadir rn, al crear un elemento si el tipo está de baja no permitir (*) 10-03-2022
+No poder seleccionar un cg de baja si es para crear un elemento (*) 10-03-2022
+No poder seleccionar un tipo de baja si es para crear un elemento (*) 10-03-2022
+Poder desde el mf añadir un contacto  (*) 11-03-2022
+Poder desde el mf navegar a los interlocutores de una sociedad (*) 11-03-2022
+
+Módulo para parametrizar un flujo (Estados, transiciones y acciones)
+----------------------------------------------------
+Definir Estados de un flujo (id, nombre, id_flujo, id_permiso) (*) 12/03/2022
+Definir Transiciones (id, idOrigen, idDestino, DelSistema, idPermiso, Avanza, Visible) (*) 13/03/2022
+Poner span de transiciones en la edición del estado para poder añadir (*) 13/03/2022
+Hacer un crud para las transiciones (*) 13/03/2022
+Al modificar un estado o transición modificar el nombre del permiso (*) 14/03/2022
+Definir el modelo de acciones del entorno (nombre, tipo: dll, Pa, consulta, espacioDeNombre/esquema, clase/procedimiento, método) (*) 14/03/2022
+Implementar RN de acciones (exista dll exista PA y SQl válida) (*) 15/03/2022
+Definir el modelo de acciones de una transición(id, idAccion, activa, momento, parámetros, descripción) (*) 15/03/2022
+Definir accciones: SQLs, PAs, C# para ejecutar, C# para evaluar (*) 15/03/2022
+Poner expan de acciones en el descriptpor de transiciones (*) 15/03/2022
+En las acciones añadir orden de ejecución, al leer se lee por el momento (A-P) y orden ascendente (*) 15/03/2022
+En el estado añadir orden, por defecto se lee por orden/nombre (*) 15/03/2022
+Añadir campo activo a acciones de una transición  (*) 16/03/2022
+Añadir índice por momento y orden (*) 16/03/2022
+Poner span de acciones en la edición del estado, este span se carga al pulsar en la transición (*) 16/03/2022
+
+Registro de ES de una empresa
+--------------------------------------------------------------------
+Tipo de registro Dto y Dtm(*) 16-03-2022
+Servicio, controlador, vista y descriptor(*) 16-03-2022
+Pruebas y ajuste de interface(*) 16-03-2022
+
+Modelo de datos y funcionalída básica
+- tabla de estados (*) y funcionalidad 12-03-2022
+- tabla de transiciones (*) y funcionalidad 13-03-2022
+- tabla de acciones (*) y funcionalidad 13-03-2022
+- tabla de tipo (*) y funcionalidad 16-03-2022
+- tabla de registro (*) 18-03-2022
+- tabla de auditorías y funcionalidad (*) 18-03-2022
+- tabla de archivos y funcionalidad (*) 18-03-2022
+- tabla de observaciones y funcionalidad (*) 18-03-2022
+- tabla de permisos y funcionalidad (*) 18-03-2022
+- tabla de trazas y funcionalidad (*) 18-03-2022
+- tabla de direcciones (*) 18-03-2022
+- Tabla de archivadores (*) 20-03-2022
+
+Interfaces.Crud del registro: expanes de: observación, archivos, direcciones, trazas y auditoría (*) 19-03-2022RN:
+RN: Al actualizar un tipo, si tiene elementos no se puede cambiar el libro ni la clase de Registro  (*) 20-03-2022
+
+Registro de ES de una empresa
+--------------------------------------------------------------------
+Al abrir una modal de un expansor poder lanzar un Js (*) 11-03-2022
+Al crear un regsitro crearle los archivadores si lo indica el tipo (*) 20/03/2022
+Al crear un permiso cambiar el id por la referencia (si la hay) (*) 20/03/2022
+expanes de archivadores --> navegar a los vínculos en lugar de editar (*) 21/03/2020
+Órdenes genéricos (*) 23/03/2022
+tabla de historia (*) 24/03/2022
+semáforo operacional (*) 24/03/2022
+Al crear crear la historia (*) 24/03/2022
+Gestor de flujo (*) 24/03/2022
+Modal de transición: la renderizan todos los crud que tengan estado (*) 27/03/2022
+Después de transitar, recargar el grid o la edición para que refresque el estado (*) 28/03/2022
+Ocultar por defecto los registros terminados y cancelados (añadir un filtro) (*) 28/03/2022
+Añadir filtros por estado y situación (terminados, finalizados e inicial) (*) 28/03/2022
+En leer modo de acceso, si es cancelado o terminado es solo consultor (*) 28/03/2022
+Cambiar el modo de acceso si no hay permiso al estado o es hitórico y no permitir grabar (*) 29/03/2022
+El botón de auditoría, si es adm está siempre habilitado (*) 29/03/2022
+Cuando se navega a un archivador, si está vinculado a un objeto terminado, entonces es sólo en consulta (*) 29/03/2022
+Al transitar dejar anotación de transición y envío de correo (*) 29/03/2022
+Filtrar por estado (*) 29/03/2022
+Mostrar espan con los hitos del proceso (*) 31/03/2022
+Filtrar por estado en un periodo (*) 31/03/2022
+Filtrar por transición en un periodo (*) 01/04/2022
+Tabla de interlocutores (*) 01/04/2022
+Expan de interlocutores (al editar se navega al vínculo) (*) 01/04/2022
+Crear un Dto para poder Añadir otros contacto (*) 01/04/2022
+Mostrar en el grid el teléfono y el mail (*) 01/04/2022
+
+Poner en la opción de editar relación/consultar, independientemente de la seguridad (*) 02/04/2022
+Poner en el descriptor que se valide que existe el método epCrearRelacion y el epBorrarRelacion (*) 02/04/2022
+añadir campos (correo, teléfono y dirección)(*) 02/04/2022
+Al crear copiar los datos del presentador como datos de contactos, y su dirección fiscal (*) 02/04/2022
+Maquetear bien la pantalla de archivadores y registros (*) 02/04/2022
+Quitar el valor por defectos a los datos de contacto del registro (*) 03/04/2022
+Al crear un registro pasar a editarlo (*) 03/04/2022
+
+Tareas
+--------------------------------------------------------------------
+Crear el negocio de tareas y modelo de datos (*) 04-04-2022
+Crear y probar el módulo de configuración de tareas (*) 04-04-2022
+Crear el DTO, gestor, controlador e interface (*) 05-04-2022
+
+Hacer registros de pruebas (*) 07-04-2022
+- Crear métodos para crear estados, transiciones y acciones genéricas
+- Crear un tipo para ese estado
+- Crear una tarea de ese estado
+- Transitarla y validar la acción
+
+Crear acción que cree una tarea basada en un registro (idRegistro, idTipoDeTarea, idResponsable) (*) 07-04-2022
+
+Genérico
+---------------------------------------------------------------------
+Crear Inicializador de acciones en BD y colocar la generación de las tres declaradas (*) 10/04/2022
+Poder navegar a la transición desde el estado, añadir menús de línea (Estado y Transición) (*) 10/04/2022
+Poder navegar desde la edición de transiciones a la acción definida en el entorno (*) 11/04/2022
+Colocar en el anexado de archivadores el nº de archivo si lleva carpetas y la acción de sincronizar (*) 11/04/2022
+Colocar en el span de direcciones, que la abra en google maps (*) 12/04/2022
+Quitar la ak de transición por nombre, ya que va por nombre, origen y destino (*) 12/04/2022
+
+MDBD
+--------------------------------------------------------------------
+Definir un seed (*) 16-04-2022
+Modificar la tabla entorno.variable (nombre único)(*) 17-04-2022
+Hacer un trim al guardar el nombre de una variable (*) 16-04-2022
+En la inicialización crear una ruta documental (*) 16-04-2022
+Definir cómo crear un flujo (*) 17-04-2022
+Definir el flujo de REE en desarrollo2 y en LocalHost y en el Seed (*) 20-04-2022
+Definir TSs para la carga de el callejero y probarlos (*) 20-04-2022
+
+Jeraquías
+-------------------------------------------------------------------
+Que el id no sea editable (*) 20-04-2022
+En la de tipo de archivador, al comenzar el modo nuevo que inicialece el check de visible (*) 20-04-2022
+
+Tareas
+--------------------------------------------------------------------
+- Añadir un span de tareas en el registro y viceversa (*) 13-04-2022
+- Que al crear una tarea para un registro no bloquee el cg (*) 21-04-2022
+- Que el espan se muestre sólo si tiene tareas o registros, si no que se oculte (*) 21-04-2022
+- Que al crear una tarea mapee los datos de contacto a la cabecera de la tarea (*) 22-04-2022 
+- Poder vincular un objeto existente a un espan (*) 22-04-2022 
+  Levantar una modal en el registro que me permita añadir una tarea (por referencia y de la misma empresa) (*) 22-04-2022 
+  Levantar una modal en el registro que me permita añadir un archivador (por referencia y de la misma empresa) (*) 22-04-2022 
+  Levantar una modal en las tareas que me permita añadir un registro (por referencia y de la misma empresa) (*) 22-04-2022 
+  Levantar una modal en las tareas que me permita añadir un archivador (por referencia y de la misma empresa) (*) 22-04-2022 
+- Al vincular una tarea al registro vincular todos los archivos del registro (*) 23/04/2022
+- Poder añadir archivadores a objetos vinculables (tareas/registros)  (*) 23/04/2022
+
+Acciones de Relación
+-------------------------------------------------------------------
+Crear el crud básico para inventariar acciones de relación entre dos negocios (*) 24/04/2020
+Crear el seed de ejemplo (*) 24/04/2020
+Modificar el gestor de relación para que use las acciones parametrizadas (*) 25/04/2020
+Añadir al descriptor los filtros por negocio y por acción (*) 25/04/2020
+
+Pruebas de sincronización de archivos
+--------------------------------------------------------------------
+Bloquear el archivador en el crud de carpetas.ts (*) (23-05-2022)
+
+Crear un archivador en el dpto fiscal (*) (18-05-2022)
+Crear un archivador en el dpto contable (*) (18-05-2022)
+Crear un archivo al dpto contable, sincronizar, renombrarlo, y otorgar permiso al fiscal (*) (18-05-2022)
+Renombrar con el usuario fiscal (*) (19-05-2022)
+Crear un archivo al dpto contable con el mismo nombre y que falle por duplicado (*) (19-05-2022)
+Otorgamos permisos al tipo fiscal al pt contable (*) (21-05-2022)
+Renombramos sin permisos y debe fallar (*) (21-05-2022)
+Damos permisos de gestor sobre el cg de consultor (*) (21-05-2022)
+Renombremos y debe fallar (*) (21-05-2022)
+Damos ahora de gestor  (*) (21-05-2022)
+Renombremos y va bien (*) (21-05-2022)
+Cambiamos la carpeta de windows de un archivador y sincronizamos y cambia los ficheros en windows  (*) (21-05-2022)
+
+eliminar un archivo en el dpto contable (*) (19-05-2022)
+
+Al salir de el campo de una lista desplegable si el  idseleccionado = 0 blanquear el texto escrito si no se va a crear un registro (*) 23-05-2022
+
+Tareas
+--------------------------------------------------------------------
+- Al cancelar una tarea ver si se ha de cancelar el registros de ES (*) 26/04/2022
+- Al iniciar una tarea, transitar los registros vinculados (*) 26/04/2022
+- Al cerrar todal las tareas del Registro, transitar los registros vinculados (*) 26/04/2022
+- Hacer un test como adm con un proceso de registro completo, desde apertura hasta cierre que valide todas las acciones (*) 27/04/2022
+
+- No permitir modificar las siglas de un cg con elementos y que usen referencias (*) 26/05/2022
+- Al realizar una acción poder indicar que no use seguridad (*) 27/05/2022
+- Al desvincular un registro de una tarea, validar que está en ini o can (*) 28/05/2022
+
+
+Seguridad
+--------------------------------------------------------------------
+Implementar la seguridad por estado de elemento y por transición
+- Crear la tabla Permisos_por_estado (*) 2022-06-02
+- Crear la tabla Permiso_por_Transicion(*) 2022-06-02
+- Ampliar el proceso de sincronizar la seguridad (recorre los roles y permisos directos)(*) 2022-06-03
+- Test de prueba de seguridad en el flujo(*) 2022-06-05
+- Mostrar los estados a los que tiene acceso un usuario (*) 2022-06-06
+- Mostrar las transiciones con acceso de un usuario (*) 2022-06-06
+- Mostrar los Cgs con acceso de un usuario (*) 2022-06-07
+
+
+EXPEDIENTES
+--------------------------------------------------------------------------
+- Modelo básico de expedientes (*) 2022-06-09
+- Modelo del DTO: Tipo de Expediente (negocio, descriptoresJson, dto) (*) 2022-06-09
+- Modelo del DTO: Expediente (descriptoresJson, dto) (*) 2022-06-09
+- Gestor de tipo de expedientes, ApiDeTipos, descriptor, controlador (TiposDeElementoController) y clienteWeb (*) 2022-06-09
+- ExpedienteDto, Icono, y menú de acceso al tipo (*) 2022-06-09
+- Gestor, descriptor, controlador y clienteWeb (*) 2022-06-09
+  enumVistasNegocio.CrudDeTipos(*) 2022-06-10
+
+- Expediente jurídico permite:(*) 2022-06-10
+- Señalamientos (fecha, dias de aviso, periocidad, excluir festivos, asunto y descripción del señalamiento, cuando se crea, cuando se cierra o cancela y quién lo hace)(*) 2022-06-10
+- Anotaciones (fecha, asunto y descripción del señalamiento, cuando se crea, cuando se cierra o cancela y quién lo hace) (*) 2022-06-10
+
+
+Retoquea en los eventos del calendario
+--------------------------------------------------------------------------
+- Navegar a la agenda desde la edición del expediente, colocando como fecha la del evento (*) 25-06-2022
+- Aplicar modo de acceso al evento (*) 25-06-2022
+- Validar la coherencia de las fechas (*) 25-06-2022
+- Insertar un href en la descripción para poder navegar al elemento (*) 27-06-2022
+- Al cambiar el tamaño ajustar el div de la agenda para que se vea las 23.00 (*) 26-06-2022
+- Verificar que sólo puedo seleccionar para crear las agendas de las que soy editor (*) 26-06-2022
+- Al editar un evento de agenda si no soy editor de ella dejarla en solo lectura (*) 27-06-2022
+- Leer los eventos de una agenda según se navega a las página (*) 29-06-2022
+
+Expedientes judiciales
+-------------------------------------------------------------------------
+Crear maestro de procuradores 01-07-2022
+Crear extensión de para expedientes de la clase judicial 01-07-2022
+Al editar crear los datos de la extensión 03-07-2022
+Crear acción en el controlador para expedientes judiciales 04-07-2022
+Crear descriptor para expedientes judiciales 04-07-2022
+Crear opción de menú para crear expedientes judiciales 05-07-2022
+
+Reglas de negocio de un pleito y funcionalidad
+--------------------------------------------------------------------------
+- al editar un pleito ver que ampliaciones a de mostrar en función de la clase del tipo de pleito, el resto permanecen ocultas (14/07/2022)
+- Poder meter la edición en un bloque de datos extensible y abierto por defecto (15/07/2022)
+- validar que la fecha del recobro es anterior al día de creación del pleito (18/07/2022)
+- Poner máscara para poder mostrar decimales (18/07/2022)
+- Tras crear pasar a edición (19/07/2022)
+
+Detalles de una instancia
+--------------------------------------------------------------------------
+- crear la interfaz de IDetalle (21/07/2022)
+- Definir en el descriptor un bloque de IDetalle que muestre un grid y la modal de añadir (21/07/2022)
+- Instanciar a PLEITO_MINUTA (21/07/2022)
+
+
+pruebas de sincronización
+--------------------------------------------------------------------------
+subir un archivo (*) 09-08-2022
+cambiarle el nombre  en la web (*) 09-08-2022
+borrar archivo en la web (*) 09-08-2022
+copiar una archivo al directorio (*) 09-08-2022
+cambiarle el nombre en el directorio (*) 09-08-2022
+borrar en el directorio (*) 09-08-2022
+Hacer lo mismo con las carpetas (*) 09-08-2022
+Borrar el directorio de sincronización(*) 09-08-2022
+
+firma de Archivos
+--------------------------------------------------------------------------
+- enumerado de certificados digitales (*) 30-07-2022
+- Crear la tabla entorno_certificados  (*) 30-07-2022
+- Añadir al usuario un certificado y permisos sobre otros certificados (*) 30-07-2022
+- certificar una archivo (*) 30-07-2022
+- Crear la tabla donde almacenar los archivos firmados (id,id_original, id_firmado, id_usuario,firmadoEl, id_certificado, motivo) (*) 30-07-2022
+- Modificar el contenedor para que muestre sólo el último firmado (*) 30-07-2022
+- tras firmar hay que recargar el contenedor de archivos (*) 30-07-2022
+- si al mostrar un archivo en el contenedor, es firmado, añadir la clase de firmado (*) 30-07-2022
+- Aplicar permisos a la opción de firmar un documento, sólo se puede firmar si se es gestor, si no es hitórico el elemento anexo o no está firmado (*) 31-07-2022
+- al pulsar el botón de firmar, si ya está firmado entonces mostrar info del archivo firmado (*) 31-07-2022
+- Poder anular la firma (*) 01-08-2022
+- crear una vista para introducir certificados (*) 06-08-2022
+- permitir al usuario conectado cargar su certificado (*) 07-08-2022
+- almacenar la contraseña de los certificados usando el decript para procesos batch (*) 07-08-2022
+- Cuando se lanza el proceso de sincronización excluir los firmados y los originales de los firmados (*) 09-08-2022
+
+Bases de precios
+---------------------------------------------------------------------------
+- clase de unitario (*) 10-08-2022
+- Naturalezas de unitarios (*) 11-08-2022
+- Unitarios de un MT  (*) 14-08-2022
+- Tablas de precios de presupuestación (*) 29-08-2022
+- Tablas de precios de proveedor (*) 29-08-2022
+
+Presupuestación
+---------------------------------------------------------------------------
+- Cabecera de presupuesto (*) 01-09-2022
+- Detalle de presupuesto (*) 02-09-2022
+- Al abrir la modal de añadir línea mapear valores propuestos (*) 03-09-2022
+- Al seleccionar el tipo de línea ajustar controles (*) 04-09-2022
+- Al seleccionar un unitario mapear los valores (*) 04-09-2022
+- Al editar una línea ajusta controles según el tipo de línea (*) 04-09-2022
+
+- Crear tabla de iva repercutido (Nombre, cta. contable, %, activo) (*) 08-09-2022
+- Crear tabla de iva soportado (Nombre, cta. contable, %, activo) (*) 08-09-2022
+- Modificar la cabecera del ppt para que use el iva repercutido  (*) 08-09-2022
+- Modificar la linea para que se pueda seleccionar el iva (diferente al propuesto) (*) 08-09-2022
+- Añadir la naturaleza contable y unidad de medida a la línea del ppt (*) 12-09-2022
+
+Modales para pedir los datos
+--------------------------------------------------------------------------
+- Quitar lo de cerrar tras crear (*) 13-10-2022
+- Quitar el parámetro controlador(*) NO, está bien puesto
+- Añadir en el gestor de eventos los eventos de las modales para pedir datos (*) 13-10-2022
+- Implementar el caso de asociar expediente a presupuesto (*) 20-10-2022
+- Implementar el caso de copiar presupuesto (*) 20-10-2022
+
+Funcionalidad de expedientes y presupuestos
+--------------------------------------------------------------------------
+- Ampliar librería de TS para añadir dependencia de un elemento con otro (*) 02-10-2022
+- Indicar en el tipo de expediente que usa presupuestos(*) 03-10-2022
+  Añadir campo de Usa presupuesto (*) 03-10-2022
+  Añadir campo de Usa tareas (*) 03-10-2022
+  Modificar el dto del tipo de expediente para añadir los campos (*) 03-10-2022
+  Validar que al modificar los campos de usaTareas o UsaPpts los datos en la BD son coherentes (*) 03-10-2022
+  Modificar el gestor de tipos para que al modificar un tipo, si los marco marque a sus hijos si así lo indico (*) 04-10-2022
+  Modificar el gestor de tipos para que al modificar un tipo, si los desmarco desmarque a sus hijos si así lo indico (*) 04-10-2022
+
+  Añadir filtro a expediente por solicitante (alguno) y responsable (*) 04-10-2022
+  Añadir filtro en expediente que muestre expedientes con tareas, o sin ellas o todos (*) 06-10-2022
+  Añadir filtro en expediente que muestre expedientes con presupuestos, o sin ellas o todos (*) 06-10-2022
+  Añadir filtro a expediente por tarea y por ppts (*) 06-10-2022
+  Si se marca expedientes con valoración que muestre la suma de sus ppts (*) 06-10-2022
+  Al crear una tarea desde un expediente mapearle el cg y la sociedad del expediente para que al seleccionar un cg solo deje de esa sociedad (*) 06-10-2022
+
+  Al crear un ppt desde un expediente mapearle el cg y la sociedad del expediente para que al seleccionar un cg solo deje de esa sociedad (*) 07-10-2022
+  Antes de persistir, si el ppt si tiene un expediente validar misma sociedad (*) 08-10-2022
+  No permitir modificar el cg de un expediente, tarea o ppt una vez creado (*) 08-10-2022
+
+- Ocultar la opción de vincular una tarea en un expediente si el tipo no usa  (*) 09-10-2022
+- Ocultar la opción de vincular un ppt en un expediente si el tipo no usa  (*) 09-10-2022
+- Añadir en el grid de ppts que muestre la referencia del expediente  (*) 09-10-2022
+
+- Copiar un presupuesto  (*) 20-10-2022
+
+
+Modelo de contratos (*) 25-10-2022
+-----------------------------------------------------------------------------------
+c.g
+nombre
+descripción
+tipo
+estado 
+clase (Contrato de prestación de servicios)
+referencia (Año-nº)
+Cliente
+Contacto
+
+Importe del contrato
+importe contrato
+importe de aval
+% de aviso
+% de bloqueo
+
+Avance del contrato
+- Planificado
+- Realizado
+- Facturado
+- Cobrado
+
+Naturalezas del los servicios del contrato (detalle de las naturalezas servidas)
+
+
+Servicios del contrato (detalle de algún servicio contratado)
+
+Datos del contrato de prestación de servicios
+Fecha inicio
+Fecha fin
+Enviar aviso de fin de contrato (la de fin - x meses)
+Envio de fin de contrato relizado
+
+Datos de prórroga
+Tipo de prórroga: Tácita/explícita
+Incremento tras prorrogar: (en meses)
+Fecha máxima de prorrogación
+
+Información de aval solicitado
+Importe del aval
+Plazo de devolución (en meses)
+Aviso de devolución (en meses)
+Aviso enviado
+
+
+Contratos de venta y compra del (*) 25-10 al 07/11
+----------------------------------------------------------------------------------
+- Al arrancar el sistema (*) 25-10-2022
+  Definir variables de porcentajes
+  Definir variables de cuentas
+- Añadir a la agenda permisos del sistema y modificar la vista de permisos de usuario (*) 25-10-2022
+- Modificar el mantenimiento de tipo para crear un campo que indique el tipo de archivador de contrato (*) 26-10-2022
+
+- Modificar datos de contrato: quitar contacto y pasarlo a datos jurídicos (*) 26-10-2022
+- Reglas de negocio antes y despues de crar un contrato  (*) 26-10-2022
+  Crearle el archivador donde debe estar el contrato
+  registrar los porcentajes de las variables
+  Si es de venta debe haber datos de venta
+  Crearle agenda al contrato
+- Asociar al responsable del contrato el permiso de interventor de la agenda (*) 26-10-2022
+- Modificar el controlador de ContratosController para que el crud de contrato reciva la clase de contrato (venta, compra, etc...) (*) 27-10-2022
+
+- Modificar datosJuridicos por DatosDeVenta y añadir DatosDeCompra (ICliente, IProveedor) (*) 28-10-2022
+
+- Añadir GastosDelContrato (planificado, pedido, albaranado, facturado)
+- Crear ContratosDeCompra
+  Hacer el controlador, la vista, el descriptor y el typeScript
+  Al persistir fijar la clase de compra
+
+- Añadir filtros de contratos por los campos de proveeedores, clientes, saldos, etc...
+- En la interface, deshabilitar los check de aviso enviado del aval y del fin de contrato
+- Controlar en el negocio que el cambio de los flags sólo lo puede hacer el sistema
+- Al Modificar, 
+  si lleva renovación debe llevar meses y fecha
+  Que si modifica los datos de cliente o proveedor es que está en inicial
+  Que si se modifica los datos de contacto es que está en curso
+  Que si se modifica el importe es que está en inicial
+  Que si se modifican los % es que está en curso
+  Los datos de prórroga sólo se pueden modificar en inicial
+  La fecha de fin y el aviso sólo se puede añadir si se está vivo y modificar si es inicial
+  La información de recordatorio de aval, sólo se puede modificar o añadir en inicial
+- Al Salir de incial validar
+  Que hay importe
+  Si no hay fecha de fin incluir una anotación con alerta en la genda del contrato
+  Que si son de compra llevan los datos del proveedor
+  Que si son de venta llevan los datos del cliente
+- TypeScript: 
+  Si no es Inicial en consulta siempre
+  Modal que permite modificar los datos de contacto
+  Modal que permite adendar
+- Trabajos sometidos que inician los contratos, los prorrogan y los finalizan
+- modificar los eventos para indicar si han de alertar
+- trabajo sometido de envío de alertas
+- Crear alertas en el calendario del contrato
+  Para fin
+  Para no fecha de fin
+  Para prórroga
+  Para devolución del aval  
+
+  Interface de contratos (*) 08-11-2021
+-----------------------------------------------------------------------------------
+Un contrato editable, si está en la etapa vigente / pdt de prorrogar sólo puede modificarse si se tiene permisos de gestor:
+Datos de venta: Datos de contacto  y meses habilitado, resto bloqueado 
+Saldos del contratos: porcentajes de aviso y bloqueo, resto en consulta
+Prorroga: todo en lectura
+Aval: importe bloqueado, meses habilitado
+
+Interface de contratos -->  modal de filtros de contratos  (*) 13-11-2022
+------------------------------------------------------------------------------------
+flitrar por clase
+filtrar por cliente y proveedor
+filtrar por importes desde hasta
+filtrar por clase de prorrogación
+filtrar con avales, pendientes de avisar avisados
+filtrar por avance
+Mostrar columnas de: clase de contrato, importe, cliente/proveedor, clase de prórroga, Importe de aval, grado de avance
+
+Lotes de un contrato (16/11/2022)
+-----------------------------------------------------------------------------------
+Definir el Lote de un contrato: Nombre, idContrato, inicio, fin
+Definir la relación entre la Lotes y Unitario (Precio de coste, Precio de venta)
+Añadir la relación entre lote y unitario 
+precio de venta
+precio de coste
+añadir span en el mantenimiento de lotes para añadir precios
+añadir span en contratos para añadir lotes
+
+
+funcionalida en con los lotes en la capa de cliente y reglas de negocio
+-----------------------------------------------------------------------------------
+Al crear un lote proponer las fechas del contrato (*) 17-11-2022
+Al crear un ppt desde un expediente proponer el solicitante del expediente (*) 17-11-2022
+Al modificar las fechas del contrato si se puede se ajustan las fechas del lote (*) 19-11-2022
+Al crear o modificar las fechas de un lote validarlas contra el contrato (*) 19-11-2022
+Campo calculado de lote activo (*) 19-11-2022
+Un lote se puede crear si el contrato está en la etapa de elaboración o pdte. de prórroga (*) 20-11-2022
+Añadir flag al expediente de usa contrato (*) 20-11-2022
+El tipo de expediente ha de indicar que clase de contrato ha de pasar al crear un contrato (*) 21-11-2022
+AL navegar a crear un contrato, si hay un expediente validar la etapa del expediente en el controlador (*) 21-11-2022
+Al entrar en modo nuevo a crear un contrato si no hay expediente se posicione en el CG (*) 21-11-2022
+Al entrar en modo nuevo a crear un ppt si no hay expediente que se posicione en el CG (*) 21-11-2022
+Crear las etapas de un expediente (*) 21-11-2022
+renderizar la etiqueta Crear tarea, ppt y contrato en función de la etapa del expediente, igual que se hace con los lotes (*) 21-11-2022
+
+Al entrar en modo nuevo en contratos si hay expediente, mapear el cg y posicionarse en tipo (*) 22-11-2022
+AL entrar en la modal de crear tarea si se propone cg posicionar en tipo, si hay expediente mapear solicitante (*) 24-11-2022
+
+Mi calendario
+----------------------------------------------------------------------------------------
+Mostrar los próximos eventos del usuario (*) 25-11-2022
+Indicar : agenda, nombre de evento, fecha de inicio, fecha de fin (*) 26-11-2022
+Anadir en el dto la refrencia y la url para que la muestre en el grid y en la edición (*) 26-11-2022
+Ordenar por fecha descendente como primera columna (*) 26-11-2022
+Añadir filtros de agenda (lista de valores) y fecha y hora de inicio y fin (*) 27-11-2022
+Ultima columna la agenda y permitir ocultar (*) 27-11-2022
+Al entrar fijar el día de hoy en fecha de inicio (*) 27-11-2022
+
+Entidades tipos y estados de elementos necesarios para crear los descriptores 
+--------------------------------------------------------------------------------------
+- entidad de negocio parte de trabajo (estados, transiciones, acciones y tipo) (*) 28/11/2022
+- entidad de negocio factura emitida (estados, transiciones, acciones y tipo) (*) 28/11/2022
+- Crear menús y vistas en el módulo de ventas  (*) 28/11/2022
+- Tipo PT: PLG: Parte de trabajo (pendiente, terminado, cancelado) (*) 29/11/2022
+- Tipo FAE: PLG: Factura periódica (pendiente de emitir, emitida, cobrada, cancelada) (*) 29/11/2022
+
+planificaciones de venta
+--------------------------------------------------------------------------------------------
+- Definir entidad de planificaciones de venta (con CG, tipo y estado) (*) 01/12/2022
+   Fecha de ejecución
+   tipo de fae a generar
+   tipo de pt a generar
+   cliente
+   
+- Flujo del tipo PLV: General  (*) 02/12/2022
+  Pendiente --> Generada (manual)
+  Pendiente --> Generada (por el sistema: motor de flijo)
+  Pendiente --> Cancelada (manual)
+
+Planificadores de contratos 
+--------------------------------------------------------------------------------------
+- Crear Dtm PlanificadorDeVentaDtm igual que LoteDeUnContratoDtm (*) 02/12/2022
+	- Generada
+	- Fecha de inicio, fin (por defecto las del contrato)
+	- Tipo de planficación de venta
+	- CG de la planificación (misma sociedad que el contrato, por defecto el cg del contrato)
+	- Periodicida: anual, mensual, semanal, diaria
+	- Número de repeticiones
+	- tipo de parte
+	- tipo de factura
+	- lote
+- Añadir span al descriptor de contratos que permita asociar un planificador según la clase (*) 04/12/2022
+- Añadir filtro que muestre los contratos con planificadores de venta/compra o con lotes (*) 05/12/2022
+
+Definir líneas del planificador de contratos y de las planificaciones
+----------------------------------------------------------------------------------------------
+- Indicar en el planificador una lista de elementos con los lotes del contrato (*) 06/12/2022
+- LineaDeUnPlanificadorDtm similar a LineasDePptDtm (sólo datos maestros, no permite alzadas) (*) 07/12/2022
+- Añadir detalle al planificador (*) 07/12/2022
+- En el Then de EditarRegistro meter método InicializarFiltroPorIdPasado que busca los restrictor-filtro y con los datos devueltos los inicializa
+- Ver porqué al navegar de zonas a las calles de una zona cuando vuelve no resstablece el restrictor municipio (*) 12/12/2022
+- RN
+  Al modificar la fechas de fin de contrato, si tiene un planificador pendiente y este tiene fecha de fin, validar que es menor (*) 9/12/2022
+  Al seleccionar un unitario si la cabecera tiene planificador filtrar por los unitarios del lote (*) 10/12/2022
+  Al quitar una linea de un lote, si el unitario está en un planificador no generado, no permitirlo (*) 13/12/2022
+  Si un planificador tiene líneas no se puede modificar su cabecera (*) 13/12/2022
+  Ni El planificador ni la edición de líneas de un planificador es  editable si:(*) 13/12/2022
+       el contrato no es editable (fin o can)
+	   la planificación ha sido generada
+  Ni el lote ni los unitarios de un lote son ediatble si el contrato no es editable (fin o can) (*) 13/12/2022
+
+  Varios
+---------------------------------------------------------------------------------------
+Antes de añadir una linea, si estoy creando el ppt y hay información propuesta grabarla
+Cargar el callejero (*) 19-12-2022
+Test de SC y contratos (*) 17-12-2022
+Test de planificadores y lote (*) 25-12-2022
+
+Proceso de generar un planificador
+--------------------------------------------------------------------------------------------
+Crear el modelo en ventas de las planificaciones (*) 25-12-2022
+Crear el proceso generador (*) 25-12-2022
+Añadir a la interface la opción de menú de generar un planificador (*) 25-12-2022
+
+Mantenimientos de planificaciones de venta (con o sin contrato)
+--------------------------------------------------------------------------------------------
+- Nivelar dto con dtm (*) 28-12-2022
+- definir descriptor, vista y menú (*) 28-12-2022
+- probar el visor de agenda para el contrato (*) 28-12-2022
+- definir TS (*) 28-12-2022
+- Calcular lo planificado de un contrato al generar planificaciones (*) 02-01-2023
+- Si el importe de la planificación, mas lo realizado, mas lo facturado, y lo cobrado sobrepasan el bloqueo, no permitir. (*) 03-01-2023
+
+
+Filtros en contratos
+---------------------------------------------------------------------------------------
+- Filtrar los contratos con planificaciones, o sin planificaciones o por una planificación (*) 03-01-2023
+- Filtrar por unitario (*) 03-01-2023
+- Filtrar con partes de trabajo, sin partes de trabajo o por un parte (añadir span) (*) 04-01-2023
+- Filtrar con factuas emitidas, sin facturas o por una factura (*) 04-01-2023
+
+Filtros en planificaciones
+--------------------------------------------------------------------------------------
+- Filtrar por contrato (con sin o uno concreto) (*) 04-01-2023
+- Filtrar por unitario (*) 04-01-2023
+- Filtrar por factura emitida (con sin o uno concreto) (*) 04-01-2023
+- Filtrar por PT (con sin o uno concreto) (*) 04-01-2023
+
+Planificación de tareas
+---------------------------------------------------------------------------------------------
+- Lineas de facturas y partes (*) 08-01-2023
+- Poder poner fechas de planificación de tarea y fechas de ejecución real de tareas (*) 09-01-2023
+- Añadir campo de evento del sistema y no dejar modificar (*) 09-01-2023
+- Crear las etapas al crear los maestros (*) 12-01-2023
+- Crear las validaciones y acciones al transitar y asignar o quitar responsable(eventos de agenda y mensajes) (*) 15-01-2023
+- Al persistir validar los datos de planificación en función de la etapa (*) 15-01-2023
+- Al editar una tarea bloquear los controles de planificación en función de la etapa (planificación, solicitante y responsable) (*) 15-01-2023
+
+- una tarea planificada y asignada no se le ha de bloquear al responsable en la iu y el negocio no dejar cambiar (*) 15-01-2023
+- no bloquear el responsable en la etapa inicial (*) 15-01-2023
+- ver la desasignación para que limpie el ejecutor (*) 15-01-2023
+
+Filtros
+-----------------------------------------------------------------------------------------------
+En planificaciones, al fijar un contrato, un parte o una factura excluir el filtro de estado (*) 16-01-2023
+En partesDeTr, al fijar una factura, contrato, tarea, o planificación excluir el filtro de estado (*) 16-01-2023
+Al navegar del filtro del parteTr a contrato, pasar la clase de contrato (*) 16-01-2023
+Al navegar del filtro del planificaciones a contrato, pasar la clase de contrato (*) 16-01-2023
+
+
+Interface de navegar desde contratos a ventas
+-------------------------------------------------------------------------------------
+- Menú para navegar a los objetos relacionados p.ejemplo Contrato a sus planificaciones (*) 05-01-2023
+- Menú para navegar a los objetos relacionados p.ejemplo Contrato a sus facturasEmt  (*) 16-01-2023
+- Menú para navegar a los objetos relacionados p.ejemplo Contrato a sus partesTr  (*) 16-01-2023
+  
+Partes de trabajo
+-------------------------------------------------------------------------------------------------
+- Filtrar por tareas vinculadas (*) 16-01-2023
+- totalizar el importe del parte de trabajo y factura (sin iva) (*) 16-01-2023
+- proceso de crear un parte a partir de una planificación (*) 17-01-2023
+- asignar trabajadores a un parte (detalle planificado igual que el de la tarea) (*) 18-01-2023
+
+- Al planificar un parte las fechas
+--> fecha de planificación inicial < fecha de planificación final (*) 19-01-2023
+--> Si se inidica inicial a de haber final (*) 19-01-2023
+--> fecha real de inicio < fecha real de fin (*) 19-01-2023
+--> si indica calcular duración calcularla antes de grabar y bloquear controles (*) 19-01-2023
+--> al perder el foco en la hora inicial plf, si es > 00:00 --> proponer fecha final (*) 19-01-2023
+--> al perder el foco en la hora inicial real plf, si es > 00:00 --> proponer fecha final (*) 19-01-2023
+--> hacer lo mismo en tareas con las fechas de planificación (*) 19-01-2023
+--> Convertir el enumerado de MedidoEn En literales (*) 20-01-2023
+--> Añadir eventos de planificación a la agenda del trabajador (si la hay) (*) 20-01-2023
+
+Definir flujo de un Parte:  (*) 23-01-2023
+--> Realizar: Pendiente -> Realizado (tareas y asignaciones terminadas)
+--> Prefacturar: Realizado -> Prefacturado (emitir a prefactura)
+--> Al facturar: Prefacturado -> Facturado (auto: al facturar una prefactura)
+--> Al anular prefactura: Prefacturado -> Realizado (auto: al cancelar una prefactura)
+--> Devolver: Realizado -> Pendiente
+--> Cancelar: Pendiente -> Cancelado (Quitar eventos de planificación si existen y son posteriores)
+--> Etapas: Inicial, Ejecutado, Prefacturado, Facturado, Cancelado
+
+- Crear el TS que ejecuta las planificaciones sobre PartesTr (*) 23-01-2023
+
+Test de planificaciones de venta (*) 25-01-2023
+------------------------------------------------------------------------------------------------------
+--> crear un contrato
+--> crearle un planificador
+--> generarlo
+--> crear dos planificación sin contrato
+--> Cancelar una de las planificaciones libres
+--> Ejecutar el trabajo sometido de generación de partes
+
+Trabajadores: Ampliaciones del modelo y funcionalidad
+-------------------------------------------------------------------------------------------- 
+- Un trabajador ha de pertenecer a una sociedad con centros de gestión (*) 31-01-2023
+- Un trabajador se asigna a un centro de gestión (*) 31-01-2023
+- Modificar la IU para crear y editar trabajadores y anular la opción en interlocutores (*) 31-01-2023
+- Habilitar el botón de nuevo trabajador (sociedad, cg, interlocutor) (*) 31-01-2023
+- Un trabajador solo puede ser interlocutor persona (*) 31-01-2023
+- Al seleccionar un usuario, proponer email (*) 31-01-2023
+- Al crear o modificar trabajador validar que no está en la sociedad (*) 31-01-2023
+- al asignar un parte validar que la sociedad del cg es la misma que la del trabajador (*) 31-01-2023
+- Al crear un trabajador se pasa a edición (no es editable ni la sociedad ni el cg) (*) 31-01-2023
+- modificar la IU de asignación para que filtre por la sociedad del parte al seleccionar un trabajador (*) 31-01-2023
+- al seleccionar un cg en la ventana de nuevo trabajador validar permisos de gestor de trabajadores en dicha selección (*) 1-02-2023
+- al crear nuevo: si no hay cuenta definir la de por defecto, añadir el cif de la sociedad al nombre (*) 2-02-2023
+- En la IU, tras seleccionar un cg para crear un trabajador mapear el telefono de la sociedad (*) 2-02-2023
+- En la IU, tras cargar las cuentas contables fijar la de sueldos y salarios 2-02-2023
+
+Emisión de facturas y ampliaciones relacionadas
+-----------------------------------------------------------------------------------------------
+- Someter el trabajo de generar planificaciones de venta (*) 25-01-2023
+- probar navegar de contratos a las planificaciones y a los partes (*) 25-01-2023
+- Exportar contratos de venta (*) 25-01-2023
+- Ampliar modelo de facturas (*) 25-01-2023
+- Ver las asignaciones de partes de trabajos (*) 26-01-2023
+- Consulta de asignaciones de partes de trabajo  (*) 28-01-2023
+- añadir filtros por: Contrato, cliente, trabajador, parte, entre fechas planificadas y real, por servicios (*) 30-01-2023
+- proceso de crear una prefactura a partir de un parte de trabajo (*) 03-02-2023
+- Cancelar una prefactura (*) 06-02-2023
+- añadir auditoría a las líneas de un parte: (*) 06-02-2023
+- añadir auditoría a las líneas de una factura: (*) 07-02-2023
+- proceso de crear una prefactura a partir de una planificación: (*) 07-02-2023
+- Añadir partes a una prefactura (esto hace avanzar el parte a prefacturado): (*) 10-02-2023
+
+Arreglos en la IU
+-----------------------------------------------------------------------------------------
+- tras transitar, desmarcar: (*) 10-02-2023 
+- Anular selección: anula incluso los ocultos: (*) 10-02-2023 
+
+Filtros en facturas y navegaciones
+-----------------------------------------------------------------------------------------
+Poder ir a los partes facturados de una factura: (*) 11-02-2023
+Filtrar por ppts: (*) 15-02-2023
+Poder navegar a los ppts de una factura: (*) 15-02-2023
+Poder navegar al contrato de una factura: (*) 15-02-2023
+filtrar en ppts por una factura: (*) 15-02-2023
+Filtrar en partes por ppt: (*) 15-02-2023
+Filtrar por partes: (*) 15-02-2023
+Filtrar por contratos: (*) 15-02-2023
+Filtros por importe: (*) 16-02-2023
+Filtros por fecha de emisión: (*) 16-02-2023 
+Al transiatar el ppt validar que hay iva: (*) 16-02-2023 
+al transitar la factura validar que hay iva: (*) 16-02-2023 
+
+
+Actualizar avance del contrato
+-----------------------------------------------------------------------------------------
+Obtener en un parte su planificación (*) 16-02-2023
+Obtener de una factura sus planificaciones (*) 16-02-2023
+No permitir incluir partes en facturas de diferentes contratos (*) 16-02-2023
+Al dar por realizado un parte de una planificación recalcular avance (*) 16-02-2023
+Al emitir la factura recalcular avance (*) 16-02-2023
+
+Filtros en ppts navegaciones de ambos
+-----------------------------------------------------------------------------------------
+Actualizar el saldo de cabecera de un ppt: (*) 15-02-2023
+Filtrar ppts con factura, sin ella o por factura: (*) 14-02-2023
+Poder navegar a las facturas de un ppt: (*) 15-02-2023
+Poder navegar a los partes de un ppt: (*) 15-02-2023
+
+
+Presupuestos y facturas
+-----------------------------------------------------------------------------------------
+- Si es un ppt de venta, mostrar el expansor de facturas (Abrir, crear, editar): (*) 12-02-2023
+- En Facturas sobrecargar el método comenzarCreacion y copiar datos a la cabecera: (*) 13-02-2023
+- Tras abrir en modo nuevo y dar a crear, si estamos vinculado un ppt crear las líneas automáticamente y pasar a editar: (*) 13-02-2023
+- solo editable en la etapa de elaboración: (*) 14-02-2023
+- visualizar crear factura en la etapa de aceptación de factura y si se es interventor : (*) 14-02-2023
+
+
+Presupuestos de ventas
+-----------------------------------------------------------------------------------------
+- si devuelvo el presupuesto desde aceptado a rechazado o a abierto, validar que no hay factura no cancelada (*) 17-02-2023
+- Al modificar una linea recargar Cabecera y expan de trazas (*) 17-02-2023
+- No permitir navegar si el ppt no está aceptado (*) 17-02-2023
+
+- Si es un ppt de venta, mostrar el expansor de partes (Abrir, crear, editar) (*) 19-02-2023
+- PartesTr.Ts sobrecargar el método comenzarCreacion y copiar datos a la cabecera (*) 19-02-2023
+- visualizar crear parte en la etapa de aceptación de parte (*) 19-02-2023
+- si devuelvo el presupuesto desde aceptado a rechazado o a abierto, validar que no hay parte activo (*) 19-02-2023
+
+
+Partes de trabajo
+-----------------------------------------------------------------------------------------
+- si un parte de trabajo está realizado ponerlo en modo lectura (*) 19-02-2023
+- en la edión de un parte, mostrar el importe con y sin iva (*) 19-02-2023
+- Al cambiar el importe de una línea recargar la cabecera y recargar la traza (*) 19-02-2023
+
+
+Planificador: Ampliaciones de los descriptores de planificación
+-----------------------------------------------------------------------------------------
+- navegar a las planificaciones de un planificador (*) 19-02-2023
+- Al crear una planificación con un planificador copiarle las líneas (*) 20-02-2023
+- Añadir las cuentas de gasto e ingresos de una naturaleza contable (*) 21-02-2023
+- filtrar por contratos con planificaciones pendientes de generar (*) 21-02-2023
+- en el mantenimiento no se ha mapeado el nombre del lote que usa el planificador (*) 21-02-2023
+- en el filtro, se fija el contrato como restrictor y no se muestra el navegador (*) 21-02-2023
+- Calcular el total de venta de un planificador y mostralo en cabecera (*) 21-02-2023
+
+
+planificaciones
+-----------------------------------------------------------------------------------------
+- navegar al parte o a la factura de una planificación (*) 20-02-2023
+- en la edión de una planificación, mostrar el importe con y sin iva (*) 20-02-2023
+- Al cambiar el importe de una línea recargar la cabecera y recargar la traza (*) 20-02-2023
+- Al grabar una planificación si tiene contrato y validar fecha de ejecución (*) 20-02-2023
+- Al grabar una planificación si tiene planificador y validar fecha de ejecución (*) 20-02-2023
+_ Al modificar una planificación validar que no está generada (*) 20-02-2023
+
+facturas emitidas
+-----------------------------------------------------------------------------------------
+- Al cambiar el importe de una línea recargar la cabecera y recargar la traza (*) 26-02-2023
+- lo mismo en el planificador (*) 26-02-2023
+- En la etapa de prefactura y cancelada mostrar la serie al lado del tipo  (*) 27-02-2023
+- En el resto de etapas mostrar el nº de factura (*) 27-02-2023
+- Mostrar la fecha de emisión al lado del estado (*) 27-02-2023
+- al emitir calcular el nº de factura y fecha de emisión (*) 01-03-2023
+- Emitir factura y anexar (*) 01-03-2023
+- firmar la factura y anexarla (*) 01-03-2023
+
+Impresión
+------------------------------------------------------------------------------------
+- analizar como montar un generador de ficheros html usando definidor de plantillaspresup (*) 01-03-2023
+
+contratos
+-----------------------------------------------------------------------------------------
+- Generar desde el contrato los planificadores pendientes (*) 23-02-2023
+- Poder facturar los partes de un contrato entre fechas (*) 25-02-2023
+- poder generar las planificaciones entre fechas (*) 25-02-2023
+- En el span de avnce de un contrato mostrar el saldo del contrato (*) 26-02-2023
+
+Facturas emitidas 
+------------------------------------------------------------------------------------------
+- Añadir campo fecha de vencimiento (*) 06-03-2023
+- Indicar en el tipo de factura cómo calcular el vencimiento (*) 06-03-2023
+- Al Emitir: Calcular fecha de vencimiento (*) 06-03-2023
+- Al Corregir: Validar que se puede (*) 07-03-2023
+- Filtros (por número de factura, mostrar número ) (*) 07-03-2023
+- Agenda de vencimientos de facturas por sociedad (*) 08-03-2023
+- Anotar vencimiento de facturas (*) 08-03-2023
+
+Impresión de factura
+---------------------------------------------------------------------------------------
+- crear un objeto FacturaEmtInf: IInformacion (cabecera, detalle, dirección sociedad y cliente) (*) 10-03-2023
+- crear servicio ServicioFacturasEmtInf: IServicioDatosInf e implementa ObtenerInformacion (*) 10-03-2023
+- Implementar el metodo ObtenerInformacion (*) 10-03-2023
+- Pasar el IInformacion a GenerarRpt (*) 11-03-2023
+- Cambiar literal del menú en edición (*) 11-03-2023
+- Cambiar literal al seleccionar en el grid o bloquear dependiendo de la etapa (*) 11-03-2023
+- Permitir añadir eventos en una factura no terminada (*) 11-03-2023
+- Antes y despues de relacionar, se han de buscar si para los negocios a relacionar hay un método con la firma
+  ddl, IGestor, metodo: AntesDeRelacionar  (*) 12-03-2023
+
+  
+MD de terceros: Bancos (*) 20/03/2023
+---------------------------------------------------------------------------------------
+- Banco (Nombre, BIC/SWIFT(11), CODIGO)
+  Auditada
+- Cuenta Bancarias(ISO_PAIS DC_IBAN, ENTIDAD, OFICINA, DC_CCC, NUMERO, ID_ARCHIVADOR)
+  Auditada
+- Cuentas de cliente
+- Cuentas de proveedores
+- Cuentas de sociedad
+
+
+MD de Cobro de factura (FACTURA_COBRO) (*) 23-03-2023
+----------------------------------------------------------------------------------------
+  Campos:
+   Id de factura (IdElemento)
+   Forma de cobro (contado, transferencia, domiciliación, carta de pago)
+   Fecha de cobro
+   importe cobrado
+   Cuenta bancaria de ingreso (sociedad)
+   Auditoría (fecha de creación)
+
+   
+MD de semafor de facturas (FACTURA_SEMAFORO) (*) 24/03/2023
+----------------------------------------------------------------------------------------- 
+Campos:
+   Id de factura 
+   Id de usuario
+   Fecha
+   Motivo (añadir cobro, modificar cobro, eliminar cobro)
+
+RN de cobros (*) 25/03/2023
+------------------------------------------------------------------------------------------
+- No se puede cobrar una factura que esté en la etapa prefacturada, cobrada, no cobrable o anulada (*) 23-03-2023
+- No se puede transitar una factura a cobrada si no está saldada (*) 23-03-2023
+- Al persistir un cobro, poner un semáforo indicando quién está cobrando  (*) 23-03-2023
+
+Cobro contado: (*) 23-03-2023
+- fecha de cobro la de hoy, 
+- Importe del cobro <= saldo pendiente
+
+Cobro por transferencia:  (*) 23-03-2023
+- Fecha de cobro <= hoy
+- cuenta de ingresos alguna de la sociedad
+- importe cobrado
+
+- Transitar a cobrada o parcialmente cobrada (*) 23-03-2023
+- Si es parcial actualizar fecha de vencimiento de factura (*) 23-03-2023
+- reclacular importes de contrato (*) 23-03-2023
+
+
+IU de cobros y facturas
+-----------------------------------------------------------------------------------------
+- Ocultar la posibilidad de añadir un cobro en las etapas no cobrables (*) 23-03-2023
+- Al abrir la modal de líneas de facturas si no está en la etapa de prefactura poner en modo consulta (*) 25-03-2023
+- Añadir en la edición, en la cabecera lo cobrado y lo pendiente (*) 25-03-2023
+- Añadir flag para que en el grid muestre lo cobrado (*) 26-03-2023 
+- Añadir filtro para que muestre facturas con cobros parciales (*) 28-03-2023
+
+Utilidades de facturas emitidas
+-----------------------------------------------------------------------------------------
+- Trabajo sometido que vence las facturas desde los estados: Emitida, Prcl. Cobrada (*) 28-03-2023
+- Modal para cambiar la fecha de factura si se es interventor (*) 29-03-2023
+- Modal para copiar factura (como la del ppt) (*) 29-03-2023
+
+
+definir flujo de expediente de obra (*) 19-14-2023
+-----------------------------------------------------------------------------------------
+OBR: Abierto --> OBR: Iniciado
+- Al abrir copiar dirección de contacto del solicitante
+- Validar que hay ppts aceptados
+- Validar que hay dirección de contacto
+- Se pueden asociar tareas
+- Se pueden asociar ppts
+
+OBR: Iniciado --> OBR: Abierto
+- Validar que no hay ppts terminados
+
+OBR: Abierto --> OBR: Cancelado
+- Validar que si hay ppts están cancelados
+- Validar que si hay tareas están cancelados
+
+OBR: Iniciado --> OBR: Terminado
+- Validar que todos los ppts están terminados
+- validar que todas las tareas están terminadas
+- Se pueden asociar tareas
+- Se pueden asociar ppts
+
+
+definir un test (*) 19-14-2023
+------------------------------------------------------------------------------------------
+Expediente de obra: (*) 05-04-2023
+- Iniciar flujo de expediente de obra
+- Iniciar flujo de ppts de venta
+- crear solicitante
+- añadir al solicitante dirección de contacto
+- crear un expediente de obra
+- validar que le ha copiado la direción de contacto
+
+- Intentar: Transitar: expediente a iniciado (no se puede por no tener ppts)
+- Añadir dirección de obra al ppt
+- crear y asociar un ppt por 1000e
+- Validar que se le ha copiado la dirección de contacto y la de obra del expediente
+- Validar que si el ppt no tiene solicitante al crear se le asocia el del expediente
+- Intentar: Transitar: expediente a iniciado (no se puede por no tener un ppt aceptado)
+- Transitar el ppt a aceptado
+- Transitar el expediente a iniciado
+
+- Intentar: cerrar expediente (no se puede por no tener ppts 'vivos')
+- crear y asociar una tarea al expediente
+- crear un ppt complementario por 2000e al solicitante del expediente
+- validar que se le ha asociado la dirección de contacto del solicitante
+- Asociar  segundo ppt
+- validar que solo se le ha asociado la dirección de ejecución del expediente
+- validar la valoración del expediente es de 3000e y la de ejecución de 1000e
+
+- Intentar: transitar el expediente a cerrado (no se puede por tener ppts vivos y tareas vivas)
+- cerrar la tarea
+- Intentar: transitar el expediente a cerrado (no se puede por tener ppts vivos)
+
+- Cancelar el segundo ppt
+- validar la valoración del expediente es de 1000e y la de ejecución de 1000e
+- Intentar: Cerrar el primer ppt (no se puede por no tener ningún parte  ni niguna factura)
+
+
+Presupuestos de ventas, facturas y partes
+------------------------------------------------------------------------------------------ 
+- Modificar el flujo del ppt de ventas (*) 31-03-2023
+- Añadir reglas para evitar asociar partes o facturas a un ppt que no esté en la etapa de ejecución (*) 31-03-2023
+- No permitir cancelar un ppt con partes o facturas no canceladas (*) 31-03-2023
+- En la ventana de facturas, ha de ocultar el botón modificar si la factua no se está en la etapa de prefactura (*) 31-03-2023
+- Mostrar el avance de un ppt (*) 02-04-2023
+- en el descriptor de partes, las asignaciones formatear fechas (*) 02-04-2023
+- En la edición de partes poner formato para los importe (*) 02-04-2023
+- En la ventana de ppt, la ampliación de valores propuestos no es editable si no se está en la etapa de elaboración (*) 31-03-2023
+- Al dar de baja un trabajador validar que no tiene partes activos (*) 02-04-2023
+- Ordenar facturas por numero, mostrar fecha de emisión y vencimiento y filtrar por ellas (*) 19-04-2023
+
+
+Presupuestos de ventas, facturas y partes
+------------------------------------------------------------------------------------------ 
+- Hacer impreso de parte (*) 20-04-2023
+- Mostrar presupuestos con partes/sin partes/con partes pendientes/con partes pdt de facturar/ con partes facturados (*) 24-04-2023
+- Hacer impreso de ppt (*) 25-04-2023
+- Ocultar o mostrar las fechas plan o de jecución, por defecto se ven ambas (*) 26-04-2023
+- Desde la ventana de asignaciones poder marcar varias, levantar una modal y darlas por realizadas (*) 26-04-2023
+- Implementar métodos de dar por realizada una asignación (*) 26-04-2023
+- Aplicar seguridad (*) 28-04-2023
+- Implementar los filtros en las asignaciones por contrato y unitario (*) 28-04-2023
+- filtrar por asignaciones realizadas, o no realizadas o iniciadas (*) 28-04-2023
+- filtrar en facturas por contrato (*) 02-05-2023
+- añadir en la edición de una factura quién la rectifica (*) 02-05-2023
+- ver importes negativos en los saldos (*) 03-05-2023
+
+Correccciones
+--------------------------------------------------------------------------------------
+- Qitar en los lotes de contrato el nombre como AK - poner un índice para poder modificar (*) 22-05-2023
+- Qitar en los planificadores de contrato el nombre como AK - poner un índice para poder modificar (*) 22-05-2023
+- Al definir un unitario, al iniciar el crud de creación, bloquear el control de referencia (*) 22-05-2023
+- Cuando desde contratos se navega a editar un lote, ocultar el botón de nueo y borrar (*) 22-05-2023
+- Al definir un planificador, tras seleccionar un lote, actualizar las fechas de inicio y fin (como en remesas al sel. una cuenta) (*) 22-05-2023
+- Al crear un planificador, si lleva lote, las fechas del planificador deben estar entre las de vigencia del lote (*) 22-05-2023
+- Del detalles de lotes de un contrato, poder borrarlo si no usa planificaciones y el contrato esta en cumplimentación (*) 22-05-2023
+- quitar del menú de edición de contratos lo de gestionar interlocutores (*) 22-05-2023
+
+
+Remesas bancarias
+--------------------------------------------------------------------------------------
+- Crear el negocio de remesas de facturas emitidas
+  al seleccionar un cg mapear acreedor presentador y nif (*) 08-05-2023
+  al seleccionar una cuenta mapear entidad y oficina (*) 08-05-2023
+  No se pueden modificar las cuentas bancarias (se activan o desactivan) (*) 08-05-2023
+  Incluir evento de cargo en la agenda de la sociedad (*) 09-05-2023
+    
+- Flujo En elaboración (*) 10-05-2023
+- Crear etapas (*) 10-05-2023
+- solo modificable en elaboración (*) 10-05-2023
+
+- Crear el detalle de facturas emitidas de una remesa (*) 11-05-2023
+  Id Fae, Auditoría, Abonado (si/no/pdt), Fecha de abono, Motivo de no abono (*) 11-05-2023
+  FacturasDeUnaRemesa --> como CallesDeUnaZona (*) 11-05-2023
+  Incluir en el descriptor de remesa el botón de relación y el descriptor de detalle (*) 11-05-2023
+  RN:
+  - No mostrar las ya relacionadas (*) 11-05-2023
+  - no permitir modificar si no está presentada (*) 11-05-2023
+  - no permitir incluir o excluir si no está en cump`limentación (*) 11-05-2023
+  - Al relacionar Añadir campos de defecto
+  IU:
+  - si está en elboración, generada o conciliada: entra en consulta (*) 12-05-2023
+  - si está en presentada: entra en edición habilitar: cargada el, devuelta y motivo (*) 12-05-2023
+  - Borrar, añadir y incluir facturas: solo se puede si está en cumplimentación (*) 12-05-2023
+  - Si es una modal del selección, ocultar los accesos a los paneles de filtrado (*) 12-05-2023
+  - Al remesar o desremesar cambiar el estado de la factura remesada (*) 13-05-2023
+
+- Genero una remesa con x Facturas (*) 13-05-2023
+- Los clientes de las facturas han de tener una sóla cuenta activa y con documento sepa  (*) 14-05-2023
+- La selección de facturas a incluir filtra por las que no se tienen y el cliente tiene una cuenta activa (*) 14-05-2023
+- Cuando se incluye una factura en una remesa, se pasa remesada  (*) 15-05-2023
+  
+- Proceso de generación de XML (q19) (*) 17-05-2023
+- Al generar enganchar el XML a la cabecera (*) 17-05-2023
+- Al devolver desde cerrada quitar archivo (*) 17-05-2023
+- Al transitar a cerrada validar la fecha máxima de devolución (*) 17-05-2023
+
+- En remesa añadir la clase de remesa (*) 18-05-2023
+- En cobro id de la remesa y idCuentaCargo (*) 18-05-2023
+- Crear estado de una factura 'devuelta' (*) 19-05-2023
+- Crear transiciones: Devolver, pasar a emitida, pasar a reclamada (*) 19-05-2023
+- Crear la etapa de 'FAE_ETAPA_DEVUELTA'  (*) 19-05-2023
+- Al crear la remesa, marcar si es primera o segunda presentación  (*) 19-05-2023
+- Al seleccionar las facturas de una remesa si es 1º son Emitidas si es 2º son Devueltas  (*) 19-05-2023
+- Poder marcar/desmarcar una factura como devuelta si la etapa de la remesa es presentada y la factura devuelta  (*) 19-05-2023
+- Al marcarla como devuelta transita la factura a devuelta  (*) 19-05-2023
+- Al desmarcar como devuelta transitar la factura a cobrada (*) 21-05-2023
+- Crear un span que muestre las remesas en las que está una factura (*) 22-05-2023
+- Mostrar las fechas de la remesa en la interface bien formateadas (*) 22-05-2023
+- filtro en facturas por remesas (*) 22-05-2023
+- filtro en remesas por facturas (*) 23-05-2023
+- filtro en remesas por fechas (*) 23-05-2023
+- En la IU, si no se es interventor, en consulta si no se ha cargado (*) 23-05-2023
+- Añadir columnas de importe devuelto, cobrado (*) 23-05-2023
+
+- No permitir incluir una factura en una remesa si ya lo está en otra viva y no devuelta (*) 26-05-2023
+- Solo son seleccionables facturas devueltas para remesas devueltas (*) 26-05-2023
+- solo son seleccionables facturas emitidas para facturas emitidas (*) 26-05-2023
+- Cargar los valores informativos al hacer el cargo o abono (*) 27-05-2023
+- modificar el evento de cargo si se modifica la fecha (*) 27-05-2023
+
+- Trabajo sometido que las da por cerrda a fecha máxima de devolución (*) 27-05-2023
+- Trabajo sometido que da las facturas presentadas por cobradas (*) 27-05-2023
+- pintar la transicion de devuelta a cobrada (*) 27-05-2023
+
+- Hacer test de remesas para probar el flujo de facturas (*) 01-06-2023
+
+Pagos
+--------------------------------------------------------------------------------------
+Md y funcionalidad básica (+) 05-06-2023
+Montar filtros:
+- acreedor (+) 06-06-2023
+- clase de acreedor (proveedor, trabajador, acreedor) (+) 06-06-2023
+- cuenta deudora (+) 06-06-2023
+- filtro por fechas de pagos (+) 06-06-2023
+- filtro por importe (+) 06-06-2023
+- filtro por remesa de pago (+) 06-06-2023
+
+IU Modo nuevo: 
+-clase de pago: excluir Remesa bancaria (+) 06-06-2023
+-si selecciono contado, blanquear y poner en gris, pagar de, cuenta acreedora alias (+) 06-06-2023
+-si selecciono transferencia, si hay cg, cargar las cuentas deudoras, si no hay blanquear (+) 06-06-2023
+-si selecciono transferencia, si hay acreedor, cargar la cuenta acreedora, si no blanqueear (+) 12-06-2023
+-si selecciono acreedor si hay clase de pago por transferencia, cargar la cuenta acreedora, si no blanqueear (+) 12-06-2023
+
+- al modificar un pago por transferencia, si está pendiente actualizar en la agenda el evento de pago (+) 14-06-2023
+
+- Al transitar desde pendiente a pagado -->
+  si hay feha de pagar el y pagado, la primera menor o igual que la segunda (+) 15-06-2023
+  si tiene fecha de pagar el, validar que hoy es mayor o igual (+) 15-06-2023
+  si no tiene fecha de pagar el, poner la del día de hoy (+) 15-06-2023
+  si no tiene fecha de pago la que haya en pagar el (+) 15-06-2023
+
+- Al cancelar : Blanquear fecha de pago (+) 18-06-2023
+- Al modificar si la fecha de pago es menor que hoy y mayor que pagar el, intentar transitar (+) 18-06-2023
+
+
+Remesas de Pagos
+--------------------------------------------------------------------------------------
+Md y funcionalidad básica (+) 05-06-2023
+- filtro por pago no incluidos en remesas (+) 21-06-2023
+- al incluir u pago solo puede ser por remesa (+) 21-06-2023
+- procesos para actualizar fecha de pago en los pagos de una remesa (+) 21-06-2023
+- Probar todos los filtros de pagos (+) 21-06-2023
+- Filtrar en remesas por 
+  por acreedor del pago (+) 22-06-2023
+  rangos de fechas de generación  (+) 22-06-2023
+  rangos de fechas de cuando pagar  (+) 22-06-2023
+  por importe pago  (+) 22-06-2023
+- Al transitar a generada, crear fichero de pago sepa y anotar fecha de generación  (+) 22-06-2023
+- al retroceder desde generada eliminar fichero sepa y blanquear fecha de genearación (+) 22-06-2023
+- Validar que no se puede suprimir el fichero sepa (+) 22-06-2023
+- Al transitar a presentada, calcular fecha de pago (+) 22-06-2023
+- Al retroceder, si la fecha de pago no está cumplida, anularla, si no no dejar (+) 22-06-2023
+
+Archivadores y carpetas y cutas bancarias
+-----------------------------------------------------------------------------------------------------------------
+Si al asociar un certificado facta una cuenta ya existe cambiar el nombre (+) 15-06-2023
+Si un archivador está vinculado a un objeto, antes de quitarle un archivo, hay que validar si el objeto lo permite  (+) 15-06-2023
+lo mismo al anexar  (+) 17-06-2023
+Aplicar las dos reglas a las carpetas  (+) 17-06-2023
+
+
+RN al grabar o transitar pagos
+------------------------------------------------------------------------------------------
+- Al grabar un pago
+	1.- si está pendiente y tiene fecha de pagado (*) 24/06/2023
+		validar que pagarel <= pagadoel
+		transitar a pagado 
+	2. si no está enla etapa de pendiente y no está transitando --> error
+
+- Al transitar a pagado (*) 24/06/2023
+     si pagadoEl es nulo, emitir error
+	 si pagarEl es nulo, asignar pagadoEl
+
+- Al cancelar un pago, validar: (*) 24/06/2023
+		No está remesado
+		No tiene fechas de PagarEl y PagadoEl
+
+-Al incluir el pago en una remesa: (*) 24/06/2023
+	   validar que el pago está en la etapa pendiente
+	   validar que el pago no está en otra remesa
+	   validar que la remesa está en la etapa de cumplimentación
+	   Pago.PagarEl = Remesa.PagarEl
+
+- Al modificar un pago remesado:
+       la remesa ha de estar en la etapa de presentada
+       no se puede modificar la fecha de pago ni la de pagado
+	   validar que no se puede anular lo ya anulado
+	   que el motivo de anulación o cancelación de anulación no coincida con el anterior
+	   Si estoy anulando, debe ser interventor, mayor a la fecha de presentada y motivo distinto de nulo
+       si estoy anulando la anulación, la remesa debe estar en presentada, y motivo distinto de nulo
+
+-Al sacar el pago en una remesa: (*) 24/06/2023
+	   validar que está en la etapa remesado
+	   Pago.PagarEl = null
+
+-Al anular el pago: (*) 24/06/2023
+	   validar que la remesa está presentada
+	   pagado.PagadoEl = null
+
+Al anular la anulación del pago (*) 24/06/2023
+	   validar que la remesa está presentada
+	   pagado.PagadoEl = remesa.PagadoEl
+
+
+
+Test de pagos y remesas
+--------------------------------------------------------------------------------------
+crear un pago por transferencia y ponerle fecha de pago mañana (*) 25/06/2023
+pagar una transferencia con fecha de pago posterior y falla (*) 25/06/2023
+pagar un pago incluido en una remesa, y falla (*) 25/06/2023
+para un pago de clase remesa aun no incluido, y falla (*) 25/06/2023
+
+crear un pago contado y ponerle fecha de pago anterior a hoy, lo transita a pagado (*) 25/06/2023
+reabrir el pago, y blanquea la fecha de pago (*) 25/06/2023
+lo mismo pero con fecha posterior a hoy, lo deja en pendiente (*) 25/06/2023
+transitarlo a pagado, falla (*) 25/06/2023
+modificar la fecha de pago a hoy, lo paga (*) 25/06/2023
+reabrirlo (*) 25/06/2023
+poner fecha de pago mayor a la de hoy, no deja (*) 25/06/2023
+quitar la fecha de pago, poner como fecha de pagar hoy, transitar y ver que puede (*) 25/06/2023
+
+crear un pago a remesar (*) 26/06/2023
+verificar que no se puede incluir en una remesa generada o posterior (*) 26/06/2023
+crear una remesa e incluirlo en ella, ver que las fechas del pago son los de la remesa (*) 26/06/2023
+sacarlo de la remesa y verificar que las fechas de pago y pagar el son nulas (*) 26/06/2023
+
+Crear tres pagos remesable (*) 26/06/2023
+Crear una remesa (*) 26/06/2023
+Añadir los tres pagos a la remesa (*) 26/06/2023
+transitar la remesa a presentada (*) 26/06/2023
+ver que ha cambiado generado el xml, el evento y ha calculado la fecha de pago si estaba en blanco (*) 26/06/2023
+
+intentar borrar el xml generado (*) 26/06/2023
+devolver la remesa a pendiente (*) 26/06/2023
+verificar que borra el xml (*) 26/06/2023
+blanquea la fecha de pago (*) 26/06/2023
+
+Indicar en la remesa una fecha de pago, y ver que ha la propaga a los pagos y crea evento (*) 26/06/2023
+transitar a generada, respeta la que hay y mantiene el evento (*) 26/06/2023
+
+Presentar la remesa (*) 27/06/2023
+la iu permite anular, procesar pago, retroceder pago (*) 27/06/2023
+Probar el proceso de pago, permite pagar la remesa con fecha anterior a la fijada (*) 27/06/2023
+Probar el proceso de retroceder pago, pone el pago como remesado y cambia la fecha de pago (*) 27/06/2023
+anular un pago, añade un motivo y pasa el pago a anulado (*) 27/06/2023
+retroceder la remesa y ver que no afecta al pago anulado (*) 27/06/2023
+volver a pagar la remesa y el anulado sigue igual (*) 27/06/2023
+anular anulación, pone un motivo y lo devuelve el pago a pagado (*) 27/06/2023
+
+cerrar remesa, elimina evento,pone fecha de pago a la remesa, paga todos los pagos y la transita (*) 28/06/2023
+trabajo sometido (*) 29/06/2023
+
+Terminar Remesas de pagos
+-------------------------------------------------------------------------------------------
+poner en el grid de los pagos si hay alguno anulado  (*) 28/06/2023
+eliminar la propiedad ModificoParaTransitar solo se usa para cambiar el vencimiento (*) 29/06/2023
+ampliar parámetros de negocio a 2000 caracteres (*) 29/06/2023
+ocultar el flag de cerrar tras crear si sobre carga el paso a edición tras la creación (*) 30/06/2023
+al crear un pago por transferencia o contado, abrir los campos pagar el y pagado (*) 30/06/2023
+a un pago ya cerrado no se le pueden crear archivadores (*) 30/06/2023
+en la iu de pagosdeunaremesa.ts, si la remesa no está presentada y pagada se editan en consulta los pagos (*) 30/06/2023
+lo mismo para el grid de pagos de una remesa de edición (*) 30/06/2023
+poner el importe pagado en la cabecera de la remesa (*) 30/06/2023
+al pasar de presentada a generada ha de validar que no tiene fecha de pago ningún pago (*) 30/06/2023
+cachear los crud (*) 30/06/2023
+volver a montar la variable de ModificarParaTransitar (*) 30/06/2023
+
+implementar los test (*) 07/07/2023
+
+Modelo de facturas recibidas
+-------------------------------------------------------------------------------------
+Definir el modelo de parametrización (*) 11-08-2022
+Definir el modelo de la factura (tipo de fact) (*) 11-08-2022
+Definir el *.json (*) 12-08-2022
+Definir el typescript básico (*) 12-08-2022
+Definir negocio, menú y vistas (*) 12-08-2022
+Definir el PWD el flujo base (*) 12-08-2022
+
+
+Modelo de facturas recibidas (*) 18-07-2023
+-------------------------------------------------------------------------------------
+definir campo fecha recibida (*)
+añadir lineas (*)
+definir acciones en el flujo básico (*)
+
+
+Modelo de facturas recibidas 
+-------------------------------------------------------------------------------------
+No permitir reactivar nunca una factura cancelada ni devuelta (*) 20/07/2023
+Crear campo de fecha de contabilización (*) 20/07/2023
+Crear campo de naturaleza por defecto (*) 20/07/2023
+Eliminar campo de pago en la factura (*) 20/07/2023
+Si la línea es de IVA o de IRP bloquear la naturaleza (*) 20/07/2023
+
+Añadir al pagoDtm un id de factura (*) 20/07/2023
+Mostrar el control de la factura tras la referencia del pago (*) 20/07/2023
+Crear un detalle de pagos de factura con opcion de: (añadir pago, pagar) (*) 20/07/2023
+Al añadir un pago, se navega en modo creación a nuevo pago, se vincula la factura (*) 20/07/2023
+Añadir en el crud del pago el fitro de idfacturarec (*) 21/07/2023
+
+Al entrar en modo creación: (*) 21/07/2023
+- mapear el cg, y asignar la sociedad para restringir el cambio de cg
+- Nombre = Pago de la factura {referencia
+- fecha de cuando pagar, la del vencimiento de la factura
+- Acreedor del pago, el proveedor de la factura
+- descripción, la dada en la factura
+- Importe a pagar (si no hay retenciones judiciales el indicado en la factuar)
+
+RN:
+Modificar el pwd y añadir estado pagado y transiciones (*) 21/07/2023
+Antes de persistir el pago de una factura:
+- validar que son de la misma sociedad (*) 22/07/2023
+- que no es mayor que el pendiente (*) 22/07/2023
+- que si hay embargo no supera el importe judicial
+
+Después de transitar el pago de una factura a pagada:
+- si está saldada transitar a pagada (*) 22/07/2023
+Una factura contabilizada con pagos relacionados (no cancelados) no se puede devolver (*) 21/07/2023
+Al retroceder el pago de una factura retroceder la factura de pagada a pendiente de pago (*) 21/07/2023
+Crear un índice en los pagos e una factura por id del pago (*) 22/07/2023
+No permitir pagar más de la deuda (*) 22/07/2023
+
+** probar ErrorAlTransitar en far y fae creo que el nombre del fichero está mal dado (*) 22/07/2023
+
+Interface y rn de facturas recibidas
+---------------------------------------------------------------------------------------
+no permitir crear pagos hasta que no esté contabilizada (*) 24-07-2023
+indicar fecha contrable al transitar a pendiente de pago (*) 24-07-2023
+si devuelvo de pdt de pago, validar que no hay pago (*) 24-07-2023
+
+
+Cuentas bancarias (*) 26-07-2023
+----------------------------------------------------------------------------------------
+Al copiar una cta. banc. validar que es válida antes de mapear
+Indicar un hint que explique que se puede copiar
+
+Al relacionar una cb con un cliente ha de ser de pago o ingresos y pagos
+Al relacionar una cb con un proveedor, trabajador o interlocutor ha de ser de ingreso o ingresos y pagos
+Al relacionar una cb con mi sociedad puede ser de cualquier tipo
+En función de estas reglas debe haber sólo una activa para pagos o para ingresos
+
+En el selector de cuentas de trabajador ingreso o ambos
+En el selector de cuentas de proveedor ingreso o ambos
+En el selector de cuentas de interlocutor ingreso o ambos
+En el selector de cuentas de clientes pagos o ambos
+En el selector de cuentas de sociedad ingresos, pagos o ambos
+
+Despligues
+---------------------------------------------------------------------------------------
+- Crear sitio web para test desarrollo (*) 09-08-2022
+- Crear sitio web para test productivo (*) 08-05-2023
+- Crear sitio web para femdek  (*) 09-09-2023
+- Crear bat de publicación (*) 09-09-2023
+
+Contratos de compra y facturas
+------------------------------------------------------------------------------------
+Redefinir cómo leer los estados y parámetros de contratos de venta (*) 26-07-2023
+Transitar un pago de factura a pagada y ver que la factura la da por pagada (*) 31-07-2023
+Retroceder de pagada a pdte. de pago y ver que la retrocede (*) 31-07-2023
+crear un contrato de compra (*) 17-08-2023
+Desde contratos de compra poder imputar facturas (*) 21-08-2023
+Montar las opciones de menu de imputar y facturas como Mfs (*) 22-08-2023
+Desde edición de una factura, quitar contrato imputado (*) 22-08-2023
+Que me permita imputar a contratos y facturas retiradas (*) 22-08-2023
+Que al modificar el saldo del contrato valide que es superior a lo imputado (*) 22-08-2023
+Que no permita imputar a un contrato en elaboración o cancelado (*) 22-08-2023
+no se puede transitar a cancelado un contrato con facturas imputadas (*) 22-08-2023
+no se puede transitar una factura a devuelta o cancelada con un contrato (*) 22-08-2023
+Modificar literal de cobrado por pagado en contratos de compra (*) 22-08-2023
+Al pagar una factura de un contrato, incrementar lo pagado, al anular, decrementar (*) 24-08-2023
+
+IU y Utilidades
+---------------------------------------------------------------------------------------
+Crear plantillas de creación de datos (*) 09-09-2023
+Salvar la disposición de espanes de edicion al guardar (*) 09-09-2023
+Plantillas de Filtros por usuario (*) 15-09-2023
+- Crear md (id, idnegocio, idusuario, nombre, valor)
+- En el menú de contextual se muestran las plantillas, se ha de cargar al iniciar el crud y al meter una plantilla o eliminar
+- La opción de 'guardar filtros' pide el nombre de plantilla
+- La opción de 'eliminar filtros' permite eliminar una plantilla
+
+
+IU y Utilidades (*) 27-09-2023
+-----------------------------------------------------------------------------------
+modificar el método de leer entre fechas para que lea una new Date(controlDeFecha.value).toISOString();
+
+Plantillas de exportación a excel
+- Crear md (id, idnegocio, nombre, procedimiento, idPermiso)
+- Crear IU, gestores dto y controlador
+- Modificar la modal de exportación, (solo en sometido, nombre del archivador)
+- Modificar el epExportar
+** cachear la select 
+Contexto.SeleccionarDtos<PlantillaDeFiltradoDto, PlantillaDeFiltradoDtm>(...)
+Contexto.SeleccionarDtos<PlantillaDeCreacionDto, PlantillaDeCreacionDtm>(...)
+
+
+Correcciones en la puesta en marcha de acromur (*) 01-10-2023
+-----------------------------------------------------------------------------------
+Al modificar el CG no blanquea ni la sociedad ni el responsable
+Al decirle de gestionar los pt, me ha pasado esta url: https://acromur.femdek.com/PuestoDeTrabajo/CrudPuestoDeTrabajo?restrictor=[IdCg=[Id]=[Expresion]]
+no ha mapeado los restrictores a la url
+modificar la etiqueta de la vista de 'PermisosDeUnRol' y ver que pasa en la ventana de selección de permisos, se desajustan las columnas tras buscar
+poder asociar a un rol un permiso desde el espan de edición
+activar en intro cómo botón por defecto para conectar 
+una empresa con cg no se puede dar de baja, sale este motivo: Error: El usuario vicente.fernandez no tiene permisos de parametrización sobre el negocio Centros gestores
+Al proponer el responsable a de poner su email
+al terminar de ejecutarse el trabajo de dar permisos se ha de autosometer con fecha de +1 día
+
+
+
+Correcciones en la puesta en marcha de acromur del callejero (*) 03-10-2023
+-----------------------------------------------------------------------------------
+desde la ventana de códigos postales de una provincia, poder navegar a los códigos postales
+sustituir el literal 'CpsDeUnMunicipio' por 'cps de un municipio'
+
+En el street view no se ha situado correctamente en la edición de la calle
+al dar de alta una dirección, al seleccionar la calle me ha de fijar el pais la provincia y el municipio, y si sólo tiene un cp un barrio y una pedania, también
+
+Circuito FCT
+-----------------------------------------------------------------------------------
+Parametrizar y testear (*) 09-10-2023
+Añadir al tipo de elemento el flag de Gestionado por el sistema (*) 10-10-2023
+Definir como se comporta en un Archivador con dicho flag marcado (*) 10-10-2023
+Crear la tabla Cliente_Usuario (cliente, usuario) (*) 12-10-2023
+Añadir un span que permita añadir usuarios a un cliente, no modificar (*) 12-10-2023
+Lo mismo para puestos de trabajo (*) 12-10-2023
+Un expediente de cliente, el solicitante ha de ser cliente (*) 12-10-2023
+Un elemento no es editable si usa solicitante y este está de baja (*) 14-10-2023
+un elemento no es transitable, si usa solicitante y este está de baja (*) 14-10-2023
+Mismas reglas para un expediente de cliente cuyo cliente esté de baja (*) 14-10-2023
+Mostrar mensaje informativo de la no edición (implementado para archivos y cuando el solicitante o expediente está de baja) (*) 14-10-2023
+
+Implantación a Acromur (*) 06-11-2023
+-----------------------------------------------------------------------------------
+- Crear circuito de Contabilización de ingresos y gastos (Ingresos, gastos, contabilizado)
+- Crear circuito de impuestos (impuestos 2022 y 2023)
+- Crear documeto del datos de contitución
+- Poder marcar todos los archivos y desmarcarlos
+- Poder descargar múltipleas archivos en un ZIP
+- Bloquear todos los seleccionados con el mimo motivo
+- Al abrir un archivador fct otorgar seguridad, al cerrar, quitarla
+
+
+Mejoras tras la puesta en marcha en acromur
+--------------------------------------------------------------------------------
+El selector de usuarios por defecto excluye a los usuarios cliente (*) 09-11-2023
+El selector de usuarios en la edición de cliente solo muestra clientes (*) 09-11-2023
+Al crear un usuario cliente hacer trabajo sometido que calcule la seguridad (*) 10-11-2023
+Al crear un correo poder marcar si quiero que me avise y cuanto tiempo antes (*) 10-11-2023
+Enviar correos según las agendas (*) 10-11-2023
+modificar CREATE OR ALTER VIEW[ENTORNO].[USUARIO_PERMISO] para que permisos por elemento sea calculado = 0 (*) 10-11-2023
+
+Correcciones:
+Cambiar los css del visor de archivos  (*) 10-11-2023
+Que deje marcado que el evento ha sido enviado (*) 10-11-2023
+No bloquear el nombre si no está bloqueado (*) 10-11-2023
+Que pueda hacer el pago de lo restante de una fae (*) 12-11-2023
+dto de fae, no se ve el estado (*) 12-11-2023
+Al descargar abrir en otra pestaña (*) 13-11-2023
+Anotar quien lo ha descargado (*) 14-11-2023
+
+Plantillas
+---------------------------------------------------------------------------------
+Ver como se hacen las plantillas y como se les mapea los dato (*) 22-11-2023
+definir cómo llamar a un PA y mapear los diccionarios de parseo de plantillas (*) 22-11-2023
+Vaciar las cache sin necesidad de reiniciar sitio web
+Definir un modelo de plantillas por tipo (*) 25-11-2023
+Definir el gestor (como el de observaciones) (*) 25-11-2023
+Añadir espan de relación al mnt de tipos como el de observaciones (*) 26-11-2023
+Modificar Usuario_Permiso para añadir las plantillas (*) 26-11-2023
+Al mostrar el diálogo de imprimir cargar plantillas de tipos si hay permisos (*) 27-11-2023
+Definir una acción con un PA (*) 27-11-2023
+
+Plantillas
+---------------------------------------------------------------------------------
+Imprimir las tablas en la lista de etiquetas para trasladarlas fácilmete a la plantilla (*) 18-12-2023
+Quitar campos de las tablas (elemento, negocio, datos de auditoría, etapas, ...) (*) 18-12-2023
+
+Ampliaciones tras visita a talleres bartolo
+---------------------------------------------------------------------------------
+Hacer valoraciones (*) 15-12-2023
+Añadir al tipo un campo que defina una expresión regular que ha de validar el campo nombre (*) 16-12-2023
+Al crear o modificar validar que elos campos cumplen con la expresión regular (*) 16-12-2023
+Indicar si el nombre de un tipo de elemento es modificable una vez creado  (*) 16-12-2023
+En los gestores de negocio validar las expresiones regulares (nombre de elemento) (*) 16-12-2023
+Añadir un expan que muestra los expedientes consultables de un cliente para poder navegar a ellos (*) 19-12-2023
+Crear una acción que permita enviar un correo al cliente de un expediente al transitar (*) 19-12-2023
+
+
+
+Correcciones de la puesta en Marcha de Femdek
+---------------------------------------------------------------------------------
+Que use parámetros de expedientes y tareas en lugar de variables (*) 19-12-2023
+Que blanquee los selectores de fecha hora (*) 19-12-2023
+Que transite y modifique el registro y las ampliaciones simultaneamente (*) 19-12-2023
+xml de la eFactura (*) 20-12-2023
+tiempo medido de una planificación (*) 01-01-2024
+al modificar los datos de un contacto, da de baja el interlocutor (*) 01-01-2024
+al crear un contacto lo muestra como interlocutor pero no le concatena la sociedad (*) 01-01-2024
+
+correctivos
+--------------------------------------------------------------------------------
+petición de crear y modificar con body (*) 23-01-2024
+css de la zona e filreado están mal declaradas el nombres de las áreas (*) 29-01-2024
+en un expediente hay que propagar en la tabla de relación de contratos, el sufijo de la clase(venta/compra)
+no dejar modificar el nº de registros a recuperar en el historial (*) 30-01-2024
+modificar como marcar los registros de un grid (*) 11-01-2024
+Mostrar el historial de un proceso (*) 02-02-2024
+
+
+Facturas emitidas, Historial
+---------------------------------------------------------------------------------
+Añadir los correos enviados por una instancia (*) 09-02-2024
+Generar la efactura con clases (*) 09-02-2024
+
+Tareas
+---------------------------------------------------------------------------------
+Filtrar por quién tiene una tarea asignada (*) 14-01-2024
+Filtrar por tareas de un ppt (*) 13-01-2024
+Filtrar por tareas de un expediente (*) 13-01-2024
+Navegar a las tareas de un expediente (*) 15-01-2024
+filtro por responsable (*) 18-01-2024
+Mostrar el expediente de una tarea (*) 20-01-2024
+Navegar a las tareas de un ppt (*) 21-01-2024
+Filtro por etapas (*) 22-01-2024
+Filtro por nombre de estados (*) 22-01-2024
+Listado de las tareas de un expediente (*) 08-02-2024
+
+Facturas XML
+------------------------------------------------------------------------------
+obligatorio indicar la clase al terminar (*) 5-03-2024
+Coger los datos del pago si es transferencia (modo y nº de cuenta) (*) 6-03-2024
+Poner en el resumen de iva que sea agrupado (*) 6-03-2024
+Poder subir archivos a facturas emitidas (*) 6-03-2024
+
+Facturar Tareas
+-------------------------------------------------------------------------------
+Crear campo en Tarea del id de la factura (*) 23-02-2024
+Crear modal que solicite las facturas a facturar (*) 24-02-2024
+Crear el proceso que factura un conjunto de tareas (*) 26-02-2024
+Crear el proceso que suprime una tarea facturada (*) 26-02-2024
+Al anular una factura excluir tareas (*) 26-02-2024
+Impedir que emitir una factura con tareas no terminadas (*) 26-02-2024
+Impedir que una factura terminada y facturada se le pueda cambiar el estado (*) 26-02-2024
+
+Filtro en tareas por factura(*) 27-02-2024
+No poder hacer una rectificativa en prefactura (*) 26-02-2024
+no poder cambiar el vencimiento en prefactura (*) 26-02-2024
+
+Clases de negocio por tipo
+-------------------------------------------------------------------------------
+Crear ClaseDeNegocioDtm y Dto, el gestor y controlador (*) 29-02-2024
+Ampliar el descriptor del negocio para poder meter clases (*) 29-02-2024
+Ampliar el descriptor de tipo para poder asociarle a un tipo una clase (*) 01-03-2024
+
+
+Rectificativas
+------------------------------------------------------------------------------
+RN: Una factura rectificativa no admite cobros (*) 10-03-2024
+RN: El vencimiento de una rectificativa es el mimos de emisión (*) 10-03-2024
+RN: Las rectificativas son siempre serie R (*) 10-03-2024
+RN: No permitir abonar una factura no rectificativa (*) 10-03-2024
+IU: ocultar o mostrar span de cobros en rectificativas o en función de la etapa (*) 10-03-2024
+IU: quitar la opción de añadir facturas a rectificar, solo se puede una (*) 10-03-2024
+IU: no se puede borrar el enlace a una rectificada, eso se hace al cancelar la rectificativa (*) 10-03-2024
+IU: no se puede crear una rectificativa a una prefactura (*) 10-03-2024
+IU: poder navegar de una rectificada a la que la rectifica y de una retificativa a la rectificada (*) 10-03-2024
+RN: Tras emitir una rectificativa, además de cerrar la rectificada,  (*) 10-03-2024
+RN: Mostrar la descripción en el pie de factura  (*) 11-03-2024
+RN: si se rectifica una con periodo, a la rectificativa se le indica el periodo de la original (no es modificable) (*) 11-03-2024
+RN: los datos del contacto son los mismos que la original y no son modificables (*) 11-03-2024
+
+IU: una factura cobrada no admite rectificativa ni cambiar el vencimiento (*) 13-03-2024
+IU: una rectificativa no admite otra rectificativa ni cambiar el vencimiento (*) 13-03-2024
+RN: No permitir retroceder una rectificada (*) 13-03-2024
+
+
+Funcionalidad de de interface
+-------------------------------------------------------------------------------
+Al pulsar en una columna, anular el orden existente y poner la nueva (*) 07-03-2024
+Si se pulsa con el ctrl entonces añadir la columna a la ordenación (*) 07-03-2024
+
+facturas 
+--------------------------------------------------------------------------------
+Añadir un campo a la tabla de pais si es intracomunitario o extracomunitario (*) 16-02-2024
+Añadir a la tabla de clientes un campo VAT Number (*) 16-02-2024
+El campo Vat estará visible si el cliente es intracomunitario (*) 16-02-2024
+Modificar la emisión del xml para que en el código de la taxa ponga 05 y escriba la coletilla  (*) 20-02-2024
+del iva del sujeto pasivo
+modificar la impresión para que quite descuentos y ponga ivas exentos (*) 20-02-2024
+Añadir periodo al factura (*) 21-02-2024
+Añadir el modelo de plantillas por tipo (*) 21-02-2024
+
+
+correcciones en el xml
+------------------------------------------------------------------------------
+Habilitar serie de factura para tres (*) 2024-02-12
+Validar el cif de brasil (*) 2024-02-12
+Permitir CIF UE (*) 19-03-2024
+
+Tareas y archivos carpetas
+-------------------------------------------------------------------------------
+En modo nuevo quitar factura y expediente (*) 19-03-2024
+Navegar al historial desde la edición (*) 19-03-2024
+poner en el combo de destino de una carpeta el valor de la ruta del nodo, no solo el nombre (*) 22.03.2024
+Poder navegar a las carpetas desde el mantenimiento (*) 22.03.2024
+Cambiar los colores al bloqueo/desbloqueo de un archivo (*) 22.03.2024
+
+Exportación standard
+-------------------------------------------------------------------------------
+Quitar los Ids del encolumnado (*) 21-03-2024
+Usar el patron builder para la construcción del listado (*) 22-03-2024
+Poner columnas de totales para los decimales (*) 22-03-2024
+
+
+facturas 
+--------------------------------------------------------------------------------
+Emitir listado de apéndices de tareas (*) 18-03-2024
+Poder imprimir plantillas o copias de facturas aun estando emitida (*) 17-03-2024
+Poner en el xml generado las líneas de comentario (*) 18-03-2024
+Copiar (*) 18-03-2024
+
+
+MiCorreo (*) 22/04/2024
+--------------------------------------------------------------------------------
+Poder conectarme a gmail usando Auth2.0
+Mostrar los correos de diferentes carpetas
+Icorporar correos a elemntos del sistema
+Crear elementos del sistema con los correos recibidos
+
+
+eFactura (*) 01/04/2024
+------------------------------------------------------------------------------
+Añadir al cliente la información de centro administrativo de facturación 
+Poner en el xml generado el centro administrativo
+
+
+Importar facturas xml 01/04/2024 al 12/05/2024
+------------------------------------------------------------------------------
+(*) Definir al proveedor, el tipo de factura por defecto y el cg
+(*) Realizar ficha de la factura recibida
+(*) Al importar, mapear dichos tipos a la modal de pantalla
+
+Correctivos en facturas emitidas y clientes 01/04/2024 al 12/05/2024
+------------------------------------------------------------------------------
+(*) añadir campo Alias al centro administrativo y modificar el XML
+(*) Al guardar una línea de factura o tareas emitida ha de guardar previamente la factura
+(*) al facturar tareas hay que calcular el iva
+
+Correctivos 12/05/2024 al 16/05/2024
+------------------------------------------------------------------------------
+* al crear una sociedad validar si lleva el 'es' por delante para evitar duplicados
+* al abrir la modal de contacto de una sociedad, si el contacto ya es un interlocutor, desactivar el flag Crear interlocutor
+* las facturas rectificativas no llevan vencimiento
+* en el selector de expedientes, ordenar por referencia
+* asociar un ppt a un expediente
+* al modificar un nombre blaquear cache de anexados
+* al modificar desde una modal, que grave siempre y no mire si hay cambios
+
+Tarjetas de ua sociedad
+----------------------------------------------------------------------------
+crud de tarjetas de una sociedad (*) 8/6/2024
+al crear una tarjeta, en el selector de cuentas de cargo, solo las activas (*) 9/6/2024
+índice en tarjeta por cuenta de cargo y sociedad (*) 9/6/2024
+añadir campo numero de tarjeta (*) 9/6/2024
+al crear una tarjeta validar que la cuenta está activa (*) 9/6/2024
+al activar una tarjeta, validar que la cuenta está activa (*) 9/6/2024
+al desactivar una cuenta desactivar todas sus tarjetas (*) 9/6/2024
+al desactivar una cuenta recargar el expansor de tarjetas (*) 10/6/2024
+al modificar una tarjeta, si no está activa solo se puede dar de alta, el resto de campos no son modificables  (*) 10/6/2024
+al editar una tarjeta, si no está activa bloquear controles (*) 10/6/2024
+
+
+Peticiones de interiorismo
+-----------------------------------------------------------------------------
+numerar las líneas de un ppt de 1 en 1 (*) 21/05/2024
+mostrar los comentarios en la impresión (*) 20/05/2024
+al modificar que interprete la , como . decimal (*) 21/05/2024
+búqueda por callejero en ppt (*) 24/05/2024
+Añadir check de mostrar dirección (*) 24/05/2024
+cargar un callejero de murcia (*) (*) 24/05/2024
+al crear poder indicar la dirección (*) 26/05/2024
+parametrizar acciones de pagos y far (*) 27/05/2024
+dar la posibilidad de asociar con un expediente, un ppt de un expediente o con un ppt (al crear o modificar) (*) 27/05/2024
+en el maestro de naturalezas: materiales, telefonía, combustible (*) 27/05/2024
+Crear transición de pdt de cumplimentar a en contabilidad (*) 28/05/2024
+poder crear una factura "al vuelo" (*) 01/06/2024
+Informe para contabilizar y transitar (*) 03/06/2024
+Modificar informe del ppt (*) 03/06/2024
+
+Peticiones de interiorismo
+-----------------------------------------------------------------------------
+pruebas de crear pagos al vuelo (*) 11-06-2024
+ver por qué me ha propuesto 1000e para el pago (*) 12-06-2024
+Al pasar de en contabilidad a pendiente de pago si está pagada pasarla a pagada (*) 12-06-2024
+ocultar el check de las mostradas en pantalla en alguna exportaciones (*) 12-06-2024
+mostrar de una factura cuanto queda por pagar (*) 12-06-2024
+
+Cosas de IU
+-----------------------------------------------------------------------------
+Mostrar columnas y almacenar dicha visión por usuario y negocio  (*) 24-06-2024
+Almacenar la disposición de columnas (*) 24-06-2024
+Aumentar y disminuir tamaño de columnas (*) 01-07-2024
+Hacerlo arrastrando el ratón (*) 03-07-2024
+Guardar cuantos registros obtener o mostrar (*) 05-07-2024
+Quitar los check de mostrar columnas (*) 05-07-2024
+Quitar los desplazadores en el historial (*) 05-07-2024
+Al guardar los filtros, guardar disposición, orden y tamaño (*) 05-07-2024
+
+Cosas de entorno
+-----------------------------------------------------------------------------
+Poder enviar correos con un distribuidor (*) 01-07-2024
+Grabar la disposición de espanes y posición de columnas al variarlos (*) 01-07-2024
+
+
+Peticiones de interiorismo
+-----------------------------------------------------------------------------
+En el pago, si es al contado, almacenar el id de la tarjeta o el id de cuenta domiciliada (*) 13/6/2024
+En la ventana de crear pago, si es contado mostrar la posibilidad de indicar si es con tarjeta o domiciliada (*) 13/6/2024
+Al crear el pago, si no hay fecha de vencimiento de factura, proponer la de emisión como fecha del pago (*) 14/6/2024
+En el listado de facturas a contabilizar mostrar si están pagadas y el medio (*) 14/6/2024
+Al dar a una referencia Post he de guardar cambios (*) 15/6/2024
+Imprimir la factura como el ppt (*) 15/6/2024
+
+
+Facturas emitidas: IRPF
+------------------------------------------------------------------------------
+Añadir ampliación de IRPF (*) 20-07-2024
+Al crear una rectificativa si la rectificada tiene IRPF solo puede ser total  (*) 20-07-2024
+El irpf de una rectificativa va en negativo  (*) 20-07-2024
+la bi sujeta del irpf no puede ser mayor que bi de la factura ni cero  (*) 20-07-2024
+el % del irpf y la Bi Sujeta debe ser > 0  (*) 20-07-2024
+Al crear un irpf la factura debe ser una prefactura  (*) 20-07-2024
+si hay base sujeta pero no tipo o al contrario emitir error  (*) 20-07-2024
+Imprimir la factura con Irpf  (*) 22-07-2024
+Generar el XML con la retención (*) 22-07-2024
+Al copiar una factura, si lleva la retención, copiarla
+No mostrar el espan de retenciones si el que factura no es un nif y el facturado es un cif
+
+En la IU
+Si hay Irpf, poner en consulta si no es prefactura o es rectificativa  (*) 20-07-2024
+mostrar el irpf es una prefactura no rectificativa  (*) 20-07-2024
+mostrar el irpf si hay (*) 20-07-2024
+poner en consulta el irpf si no es prefactura (*) 20-07-2024
+al entrar en la bisujeto si está a nulo se propone la bi (*) 20-07-2024
+
+Pruebas
+Emitir un xml con Irpf y validar en hacienda  (*) 23-07-2024
+Pasar text  (*) 23-07-2024
+
+
+Importar facturas xml 01/04/2024 al 12/05/2024
+------------------------------------------------------------------------------
+Añadir campos para indicar si es una rectificativa y el tipo
+Al meter una factura recibida  poder identificar a la que rectifica (si no existe dar error)
+
+
+Facturas recibidas, emitidas y tareas
+------------------------------------------------------------------------------
+Arreglar los totales en la exportación estandard (*) 11-07-2024
+Mostrar totales de la selección (*) 25-07-2024
+Aplicar el mostrar totales a Tareas (*) 26-07-2024
+Aplicar el mostrar totales a emitidas (*) 28-07-2024
+Arreglar el sistema de impresión de plantillas (*) 29-07-2024
+Al crear una factura no permitir el pago si no está el detalle (*) 30-07-2024
+Cuando se imprime si existe en nombre que renumere (*) 30-07-2024
+Indicar si se ha de imprimir la palabra copia (*) 30-07-2024
+
+
+Pasos para Caifantasia
+-----------------------------------------------------------------------------
+Modificar árbol de menú para sacar CG y Trabajadores/profesores de terceros (*) 2-8-2024
+Crear maestro de aulas de guardería (CG, Nombre, usa archivadores, observaciones y archivos) (*) 3-8-2024
+Crear maestros de Curso de Guardería (Nombre, inicio, fin, impartido en aula, profesor responsable, agenda ) (*) 4-8-2024
+Crear negocio de Niños (nombre, padre, madre, tutor, nacido el, archivadores, foto) (*) 5-8-2024
+
+Crear agenda de los cursos y niños  (*) 6-8-2024
+ 
+crear relación de Niños de un Curso (*) 8-8-2024
+Crear módulo de guarderías para acceder a las aulas, niños y curso (*) 8-8-2024
+
+Modificar antes de publicar  Procuradors por Procuradores, Proveedors Por Proveedores (*) 11-8-2024
+Borrar las vistas y menús después (*) 11-8-2024
+No permitir a los crud de abogado, procuradores y juzgados  (*) 11-8-2024
+
+
+reglas de negocio de caifantasia
+----------------------------------------------------------------------------
+añadir campos de  puesto de trabajo al crear un curso (gestor y consultor) (*) 6-8-2024
+al crear un curso: crear dos puesto de trabajo (consultor, gestor) (*) 6-8-2024
+al crear un curso: incluir al usuario del responsable asociado al trabajador del curso en el de gestor (*) 6-8-2024
+al modificar un curso: si modifico el nombre, modificar los nombres de los pts y agenda (*) 6-8-2024
+
+- al anadir otros profesores -> añadir al usuario del trabajador al pt de consultor (*) 11-8-2024
+- al quitar otros profesores -> quitar al usuario del trabajador del puesto de consultor (*) 12-8-2024
+
+al crear un curso: añadirle permisos sobre la agenda del curso a cada puesto (*) 12-8-2024
+al modificar un pt, mirar si es de un curso si lo es no permitir tocar el nombre (*) 12-8-2024
+en el dto de un pt pasar un flag para que el ts bloquee el nombre (*) 12-8-2024
+
+al modificar un curso
+- si modifico el trabajador responsable, sacar del pt al usuario anterior y meter al nuevo en el pt de gestión (*) 12-8-2024
+
+al añadir/cambiar un usuario a un trabajador (*) 12-8-2024
+- ver si es responsable de algún curso, para el que sea responsable quitarlo o añadirlo al pt de gestor
+- ver si está como asociado a un curso, si lo está añadir o quitar del pt consultor
+
+meterle agenda a los infantes (*) 12-8-2024
+al añadir un niño a un curso -> añadir los permisos de agenda al puesto de trabajo del curso (*) 12-8-2024
+al quitar un niño de un curso -> quitar los permisos de la agenda del niño del puesto de trabajo asociado al curso (*) 12-8-2024
+
+Al crear o modificar un curso validar que en el aula no haya un curso vigente (*) 13-8-2024
+si la fecha del curso no esta en Hoy desactivar  (*) 13-8-2024
+
+poner seguridad a un cg (consultor y gestor) y script que actualiza las BD (*) 13-8-2024
+poner los campos de permisos de un cg como obligatorios tras actualir en BD (*) 13-8-2024
+al modificar un permiso de un cg no permitirlo (en consulta) (*) 13-8-2024
+
+al seleccionar un aula validar permisos al cg de consulta (*) 13-8-2024
+al crear un aula validar permisos de gestión sobre el cg (*) 13-8-2024
+Al eliminar un aula validar que no haya curso (*) 13-8-2024
+al seleccionar los cursos visible, solo aquellos con permiso de consulta al aula o es responsable (*) 13-8-2024
+Cuando se registra una observación sobre un niño, enviar mensaje al responsable del curso donde esté matriculado con la notificación (*) 01-9-2024
+Trabajo que si la fecha del día es mayor que la del fin de un curso sacar las agendas de los niños del puesto de trabajo del curso (*) 01-9-2024
+al obtener las aulas, solo obtener aquellas a las que se tiene permisos de consulta sobre el cg del aula (*) 01-9-2024
+
+Correcciones de BD
+---------------------------------------------------------------------------------
+Hacer escript que se recorra las BD y borre para la entidad de negocio PPT todos los parámetros que empicen por FAR (*) 05-11-2024
+
+
+Matrículas de guardería
+-------------------------------------------------------------------------------
+Crear un tipo de contrato de venta vinculado a un infante (tipo Matricula) (*) 03-09-2024
+Al crear el contrato indicar el infante (*) 03-09-2024
+en el infante indicar a quién se le factura (*) 03-09-2024
+en la edición del contrato, si es a un infante ocultar el cliente en modo nuevo (*) 03-09-2024
+Modificar elmotor de contratos (*) 03-09-2024
+al crear indicar alumno y curso  (*) 03-09-2024
+probar los lotes (*) 03-09-2024
+probar generar una planificación de una matrícula  (*) 05-09-2024
+Probar anular una planificación (*) 05-09-2024
+Tras generar un planificador recargar la pantalla, además en el negocio validar que no está generado (*) 05-09-2024
+Preparar iU para copiar un planificador de un contrato (*) 05-09-2024
+
+
+probar la generación de planificaciones de muchas matríaculas (*) 11-09-2024
+probar la prefacturación de un contrato (*) 11-09-2024
+Hacer un trabajo sometido que me genere las previsiones pendientes de los ctrs vigentes (*) 11-09-2024
+Hacer un trabajo sometido que active las matrículas pendientes de activa (*) 17-09-2024
+Hacer un trabajo sometido que me genere las prefacturas a una semana vista (*) 20-09-2024
+
+
+Modificaciones de pruebas en entornos
+-----------------------------------------------------------------------------------------------------
+Acromur: Modificar el control de archivos para que lea bloques de anexados de 10 e 10, los vaya renderizando, no bloquee, y si hay más vuelva a solicitar (*) 21-09-2024
+Interiorismo: Al exportar ejecutar un trabajo asignar usuario ejecutor y poder trazar exportaciones a excel estandard (*) 25-09-2024
+Interiorismo: Al imprimir un ppt o una factura coger el correo de la cabecera del presupuesto o de la factura no del maestro (*) 27-09-2024
+Secify: Al seleccionar un expediente para filtrar si no hay nombre de filtrado ordenar por fecha de creación descendente (*) 27-09-2024
+interiorismo: crear constante para ".png, .jpg, .jpeg" (*) 27-09-2024
+interiorismo: al modificar el nombre de una sociedad propagar a interlocutor y resto (*) 27-09-2024
+interiorismo: en cumplimentación liberar la bi y el total a pagar (*) 27-09-2024
+
+Secify: Mejoras en tareas
+-----------------------------------------------------------------------------------------------------
+(*) 03-10-2024
+Si vuelvo la tarea para atrás mirar en configuración si se ha de blanquear las fechas de ejecución/finalización
+Si no hay valor de ejecución y según parametrización no está indicado que se automatice el cálculo del valor, no permitir transitar
+
+Correcciones en Caifantasia
+------------------------------------------------------------------------------------------------
+Seguridad: (*) 29-09-2024
+Al añadir o quitar un rol a un puesto de trabajo, someter el recálculo de la seguridad para los usuarios del PT
+Al acceder a interlocutores y sociedades me ha mostrado datos y no le he dado permisos
+Gestor de correo: Si el usuario no es administrador, mostrar solo sus correos (*) 01-10-2024
+ 
+ (*) 09-10-2024
+Añadir una opción de menú que me permita cambiar de curso un alumno en la edicion de infante (si es interventor de cursos)
+Cambiar el curso de la matrícula
+Controlar la baja
+
+ (*) 09-10-2024
+Añadir una opción de menú que me permita asignar a un curso a los alumnos en el mantenimiento de infante (si es interventor de cursos)
+mostrar como direcciones del niño la de los tutores
+Mostrar los eventos indicados en los parámetros del sistema
+
+(*) 10-10-2024
+Al crear un evento, proponer la agenda del niño o del curso
+La agenda a la que se subcribe un padre debe ser en el formato : 
+https://biwe.femdek.com/Agendas/Subcribirme?id=500&guid=ef64abab-8b6a-403f-9724-4c929f2f01eb
+En persona si usa módulo de guardería y hay permisos sobre niños y el interlocutor o la persona tiene niños, mostrarlos
+
+Parametrizar caifantasia
+----------------------------------------------------------------------------------------------------
+BD: Copiar bancos, callejero, cuentas contables (*) 29-09-2024
+Correo: Definir sistema de correo (*) 29-09-2024
+Puestos: Responsable de Maestros, Gestores de administración (*) 30-09-2024
+Roles: AFB: Módulo de guarderías (*) 30-09-2024
+
+
+Mantenimiento de tipos de elementos
+------------------------------------------------------------------------------------------------
+No permitir modificar los tipos si no se es parametrizador (*) 22-09-2024
+No permitir crear un tipo de baja (*) 22-09-2024
+Al eliminar un tipo desactivar si tiene elementos (*) 22-09-2024
+Al editar un tipo, cambiar4 el nombre a la opcionde menu de eliminar a reactivar  (*) 22-09-2024
+
+
+Gestión de enviós y recepción de correos 20-10-2024  al 25-10-2024
+---------------------------------------------------------------------------------------------
+Implementación de incorporación de IMAP 
+Parametrizar appseting y crear cuentas
+Parametrizar MailJet
+
+Correcciones y mejoras
+----------------------------------------------------------------------------------------------
+Importación de zip en archivadores (*) 12-10-2024
+Copiar, mover y enlazar desde cualquier origen a cualquier destino (*) 18-10-2024
+Si hay operación en curso, no permitir seleccionar (*) 18-10-2024
+Al iniciar una operación desabilitar botonería (*) 18-10-2024
+Al terminar o cancelar la operación habilitar botonería (*) 18-10-2024
+Habilitar pagos negativos (*) 20-10-2024
+Si es una devolución el importe a devolver no puede ser menor que el de la factura(*) 20-10-2024
+Satinizar si subo e un html(*) 24-10-2024
+Copiar facturas recibidas: datos de nº, fecha emisión, fichero, imp base e importe con iva (*) 26-10-2024
+totalizar pagos (*) 27-10-2024
+añadir un campo a todos los tipos  indicando si el tipo es creable (*) 28-10-2024
+Pintar el nombre del ppt  (*) 28-10-2024
+Al montar los filtros en el ts si en la lista dinámica tengo un cero, blanquear input  (*) 29-10-2024
+En el filtro, filtrar por hijos con permisos  (*) 29-10-2024
+al meter un archivo a una factura, si no tiene asociársela  (*) 29-10-2024
+AL SELECCIONAR EL CONTRATO DE COMPRA DE UNA FACTURA RECIBIDA SÓLO PUEDE IR SER UN CONTRATO DEL MISMO PROVEEDOR (*) 31-10-2024
+si cancelo un elemento indicarlo a sus documentos con un (*) por si está enlazado y mostrarlo en color rojo (*) 31-10-2024
+almacenar cómo se dispusieron los ficheros para cuando se edite volver a mostrar como estaban (*) 3-10-2024
+Poner curserpointeral posicionarme sobre el menú (*) 3-10-2024
+Quitar las barras de la ruta de un fichero (*) 3-10-2024
+si muestro datos grabados, si los borro permitir elegir cg (*) 3-10-2024
+Al asociar un documento de pago (*) 4-10-2024
+Al devolver una factura he de anular el pago, y si está ya pagada he de impedirlo hasta que no me devuelvan el importe (*) 6-10-2024
+No permitir meter un pago con fecha anterior al ejercicio actual, si puede ser anterior a la fecha (*) 6-10-2024
+Trabajos sometidos: corregir errores por falta de datos(*) 6-10-2024
+Generar planificaciones de venta: incrementar un día, no una hora (como este repasar el resto)(*) 6-10-2024
+poner la naturaleza y las unidades como salvables (prevalecen sobre lo parametrizado) (*) 6-10-2024
+Control de validación de pagos (*) 6-10-2024
+
+Correciones seguridad (*) 7-11-2024
+------------------------------------------------------------------------------------------------
+Vista edición permisos: 
+- Si no se es parametrizador quitar las opciones de los espanes de gestionar Pt y roles
+- si no se es adm ocultar botón de roles
+- por qué no se activa al marcar un registro
+GestroDeUsuarios: Antes de persistir, verificar que si es una petición, el usuario es parametrizador
+
+blanquear la cache tras dar el codigo sociedad y cuado he navegado desde trabajado no cierra al grabar (*) 12-10-2024
+
+
+Correctivos en el espan de archivos del crud de edición
+------------------------------------------------------------------------------
+si el elemnto editado está de baja, cancelado o terminado, solo se pueden descargar los archivos (*) 12-11-2024
+
+Presentación Arkenos
+--------------------------------------------------------------------------------
+Al incorporar un correo en una carpeta de un documento, dejar el pf del correo impreso ebn la carpta
+Imprimir organo gesto
+Cambiar el placeholder del bacoDto (*) 20-11-2024
+Al posicionarme en nº de cuenta que se vea la ayuda de pegar y formato (*) 20-11-2024
+Cuando copio una factura copiar el total a pagar como importe del pago (*) 21-11-2024
+no dejar transitar un pago si la factura está en cumplimentación y no cuadra (*) 21-11-2024
+Aliniar en FacturaRecDto el NºDe factura a la izquierda (*) 21-11-2023
+Permitir modificar el concepto de una línea de factura y la anotación además del importe (*) 21-11-2024
+poner un icono en el selector que me permitan enlazar/copiar/mover (*) 24-11-2023
+Poder mover un archivode una carpeta a otra arrastrando (*) 24-11-20232024
+Poner en el label de la carpeta del árbol el número de archivos que hay en cada una de ellas (*) 24-11-2024
+poner renombrar concepto en la factura recibida y expander a las líneas llamadas iguales (*) 26-11-2024
+Poder exportar un archivador con todas sus carpetas y ficheros (*) 27-11-2023
+Evitar darle a f5 para que me vuelva a mostrar la etiqueta de Mostrar Carpetas y quitar la itiqueta en acción si no hay carpetas y es de solo lectura (*) 28-11-2024
+no proponer fecha de recepción si hay una diferencia entre hoy y emitida de más de (parámetro) días (*) 28-11-2024
+en la bi al crear una factura admitir suma (*) 28-11-2024
+
+al cancelar un pago, desengancharlo de la factura asociada (*) 29-11-2024
+si el archivo de la factura es el mismo que tiene el pago quitarle dicho archivo al pago (*) 29-11-2024
+Al hacer la factura Declara. Riesgo: 17306182 no me ha dejado hacer el pago por no tener BI (*) 29-11-2024
+
+al crear una factura, si hay fecha de emisión y la fecha de recepción está vacia, aplicarle el indocador de como calcular la fecha de recepción (*) 30-11-2024
+si hago un cambiar nombre desde el menu, no validamos el flag del tipo(*) 02-12-2024
+
+Factura emitida
+------------------------------------------------------------------------------
+Calcular Hash (*) 02-01-2025
+Almacenar en la BD (*) 02-01-2025
+Almacenar llamada SOAP de envío de registro (*) 02-01-2025
+Script que firma el registro y lo guarda en BD (*) 02-01-2025
+
+Correcciones
+-------------------------------------------------------------------------------
+AsociarCertificado (obtener el certificado anterior y poner bien el nombre en la traza) (*) 02-01-2025
+al copiar una factura desde el mantenimiento hacer como en las recibidas si hay marcadas (*) 03-01-2025
+Antes deeditar una línea grabar los datos de la ampliación del periodo, si los hay (*) 04-01-2025
+
+no permitir que roberto borre ficheros con auditoría de bloqueos (*) 02-01-2025
+poner el flag de bloqueo a un archivado (*) 07-01-2025
+al editar un archivador si está bloqueado poner panel en solo lectura no se puede modificar (*) 07-01-2025
+poner opción de desbloqueo (*) 07-01-2025
+en el grid de archivadores, añadir acción de navegar a carpetas (*) 06-01-2025
+Que el número de archivos leido se cachee por petición de pantalla (*) 06-01-2025
+degradar permisos a las carpetas de un archivador del sistema (*) 07-01-2025
+ver que pasa con los correos de ingesmo (*) 07-01-2025
+modificar la accion de: AbrirArchivadoresDeCGI (*) 10-01-2025
+
+
+Nuevas utilidades
+------------------------------------------------------------------------------
+emitir coreos por imap-smtp (*) 14-01-2025
+Bloqueos de documentos (*) 17-01-2025
+Fichadas: parametrizar y trabajos sometidos (*) 19-01-2025
+crear modelo de preasientos (*) 21-01-2025
+crear iU y funcionalidad de preasientos (*) 22-01-2025
+parametrizar en interiorismos con las facturas recibidas (*) 23-01-2025
+Crear arquitectura para someter la contabilización de un lote (*) 24-01-2025
+Pruebas y parametrización de arquitectura (*) 24-01-2025
+Generar preasiento contable para NCS de facturas recibidas (*) 28-01-2025
+Generar preasiento contable para NCS de pagos (*) 29-01-2025
+
+Meter IA -20-02-2025
+---------------------------------------------------------------------------
+Añadir OCR
+Añadir IA
+Modificar interfaces
+Añadir análisis de factura
+
+
+Contabilidad (*) 25-02-2025
+----------------------------------------------------------------------------
+Añadir cuenta contable a Proveedor, cliente, cuenta bancaria, tarjeta
+Modificar cómo se obtiene el valor
+Generar preasiento contable para NCS de facturas emitidas
+Generar preasiento contable para NCS de facturas rectificativas
+Generar preasiento contable para NCS de pagos
+
+
+Varios (*) 10-03-2025
+----------------------------------------------------------------------------
+Repartir jornadas en excel de tareas
+Renderizar imágenes en ficheros de correos
+Ampliar el borrado de ficheros del sistema
+Mapear los datos de la IA a la factura
+Renderizar excel, doc, rtf, zip, 7zp
+
+
+Pendiente preasientos / estimación directa / factura emitida /facturas recibidas(*) 03-07-2025
+-------------------------------------------------------------------------------------
+Al rectificar una factura, falta indicar la naturaleza del gasto
+Al transitar una factura a contabilidad si alguna de sus líneas tiene bi, esta deben tener naturaleza
+Regenerar preasiento de la factura enviada acontabilidad y ver que va bien
+
+
+Varios
+-------------------------------------------------------------------------------------
+comitear tras registrar en verifactu, independizar la impresion (*) 03-07-2025
+Registrar bien las rectificativas sustitutivas (*) 18-07-2025
+Dar funcionalidad a interface para activar verifactu en las sociedaes gestionadas (*) 18-07-2025
+emitir la 3.2 y 3.2.2 (*) 25-07-2025
+Poner accesos recientes (*) 31-07-2025
+Poner opción de descarga responsable del SII (*) 31-07-2025
+Poder reconstruir ficheros de blockChain si se ha registrado (*) 23-08-2025
+
+Abonos de facturas
+-------------------------------------------------------------------------------------
+Modificar métodos de crear cobro y transitar tras cobrar para que contemplen las rectificativas (*) 18-08-2025
+quitar la transición abonar de la lista de transiciones en aquellas facturas que o tengan sentido (*) 18-08-2025
+quitar la transición corregir si se usa verifactu (*) 18-08-2025
+repasar el cobro contado (total y parcial) y su preasiento 19-08-2025
+
+crear el objeto de abono (id_facturaEmt, id_pago) (*) 26-08-2025
+Si es una rectificativa ocultar espan de cobros y mostrar el de abonos (*) 26-08-2025
+al crear un cobro validar que no sea una rectificativa e importe > 0 (*) 26-08-2025
+al crear un abono, validar que sea una rectificativa e importe < 0 (*) 26-08-2025
+al crear un cobro mostrar como pendiente lo que falta por cobrar menos lo rectificado no abonado (*) 26-08-2025
+antes de crear un cobro validar que este no sobrepasa al total a pagar - lo rectificado + lo abonado (*) 26-08-2025al 
+crear un abono, si no queda nada por abonar, transitar la factura rectificativa a abonada y recargar datos generales (*) 28-08-2025
+al cancelar un pago de abono, retroceder la factura al estado anterior (*) 28-08-2025
+cambiar etiqueta de Abonado El por Abonar El (*) 28-08-2025
+en importe cobrado cambiar etiqueta (*) 28-08-2025
+colocar por defecto que una rectificativa es total (*) 28-08-2025
+en los pagos, si es una abono cambiar la etiqueta de acreedor por cliente
+
+Al cobrar una factura emitida, con una rectificativa si el valor rectificado + los cobros realizados - total a pagar es < tolerancia transitar a cobrada
+F - 44.77
+A - 14.52
+c - 30.25
+14.52 + 30.25 - 44.77 < Tolerancia --> transitar a cobrada  y transitar a abonada
+
+(*) 18-09-2025
+- Parametrizar el hint de "crear y asociar factura" con IA en un archivador
+- Hacer IA con modelos de google IA y probar
+
+(*) 23-09-2025
+Hacer un trabajo sometido que para ajustar estados de facturas
+- si una factura esta rectificada totalmente y saldada pasar a rectificada
+- si una rectificativa está sin pendiente pasa a abonada
+
+
+quitar: (*) 30-10-2025
+-------------------------------------------------------------------------------------
+El elemento '2025-DES-SPC-172' esta 'Terminado' no se le pueden 'añadir' observaciones
+
+RRHH
+-------------------------------------------------------------------------------------
+- crear menú de fichadas y circuitos documentales (*) 30-10-2025
+- pasar los trabajadores al nuevo menu (*) 30-10-2025
+
+interfaz de usuario (*) 20-10-2025
+-------------------------------------------------------------------------------------
+meter visor de historial en edición
+meter visor de la instancia pulsada en el crud
+meter totalizador de las instancias en el crud
+
+Facturas emitidas: Poder cambiar datos de una prefactura (10-11-2025)
+-------------------------------------------------------------------------------------
+Poder seleccionar un cliente
+Poder cambiar los datos de contacto
+Poder cambiar el ppt
+poder cambiar el contrato
+Si hay parte de trabajo y este es de un contrato no permitir cambiar el contrato
+Si el presupuesto es de un expediente y el expediente está en un contrato no permitir cambiar el contrato
+
+Contratos de venta/compra/matrículas poder ver facturas emt y recibidas (22-11-2025)
+--------------------------------------------------------------------------------
+En un contrato poder ver las facturas imputadas en un grid de detalle
+Si un contrato es de un expediente entonces las facturas de ese contrato las muestro en el expediente
+El presupuesto es de la misma sociedad que la factura
+El contrato es de la misma sociedad que la factura
+Al blanquear el cliente blanquear datos de contacto y contratos
+Al seleccionar un cliente mapear datos de contacto y blanquear contrato
+
+Correcciones almeter el tercer trimestre de carlos (*) 05-12-2025
+-------------------------------------------------------------------------------------------------------------------------------------
+En el mnt de proveedores no selecciona bien el cg / tipo (*) 26-11-2025
+Proponer BI (tiene preferencia lo que diga la ia)
+proponer el vencimiento
+poder crear una factura desde el proveedor
+al copiar la factura quitar el nº de factura yal navegar a la factura tras crearla no la a podido editar por no estar aun marcada y 
+ademas una vez marcada y editada me ha mostrado dos pagos
+si la sociedad usa estimación directa, ocultar la opción de generar preasiento contable
+si al copiar una factura se pone fecha de pago, heredar la forma y modo de pago de la original
+al copiar una factura no se le copia el id preasiento al pago (*) 25-11-2025
+poder copiar una fecha del porta papeles en un control de fecha
+al crear una factura con iva exento en la cabecera me ha creado la línea como bi
+
+Poder registrar facturas enviadas por sistemas externos 7-12-2025
+------------------------------------------------------------------------------------
+Crear un facturador societario donde se definen los mapeos
+Crear el log de peticiones a facturar
+Crear el facturador externo (FacturadorController)
+
+Ampliaciones para todos
+-------------------------------------------------------------------------------------
+- Flujo de cambio de la contraseña (*) 23-12-2025
+- Validar el formato de la contraseña (*) 23-12-2025
+- En el detalle de una instancia si se pulsa al visor por segunda vez mostrar el total  (*) 03-01-2026
+- Bloquear al 3º intento fallido de login  (*) 03-01-2026
+- Modificar pantalla de loguin para mostrar mensajes de error  (*) 20-01-2026
+- Si al conectarse, la pasword es la de por defecto, mandarlo a la pantalla de cambio  (*) 20-01-2026
+- enviar correo al usuario cuando se da de alta  (*) 20-01-2026
+- validar que el mail de un usuario es válido  (*) 20-01-2026

@@ -1,0 +1,67 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;Contrato;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Juridico.TipoDeContratoDto",
+    "VistaDondeNavegar": "TiposDeContrato",
+    "RestrictorFijo": "Negocio;Contrato;Gestor",
+    "Negocio": "Contrato",
+    "autospan": "True"
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 3
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 4,
+    "EtiquetaGrid": "Contrato",
+    "PorAnchoMnt": 30
+
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 5
+
+  },
+  {
+    "propiedad": "Cliente",
+    "PosicionEnGrid": 6,
+    "PorAnchoMnt": 20,
+    "EtiquetaGrid": "Cliente"
+  },
+  {
+    "propiedad": "Proveedor",
+    "PosicionEnGrid": 7,
+    "PorAnchoMnt": 20,
+    "EtiquetaGrid": "Proveedor"
+  },
+  {
+    "propiedad": "Responsable",
+    "PosicionEnGrid": 8,
+    "PorAnchoMnt": 20,
+    "EtiquetaGrid": "Responsable"
+  },
+  {
+    "propiedad": "Importe",
+    "PosicionEnGrid": 9,
+    "PorAnchoMnt": 10,
+    "EtiquetaGrid": "Importe"
+  },
+  {
+    "propiedad": "ImporteAval",
+    "PosicionEnGrid": 10,
+    "PorAnchoMnt": 10,
+    "EtiquetaGrid": "Aval"
+  }
+]

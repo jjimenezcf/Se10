@@ -1,0 +1,70 @@
+﻿SISTEMA DE ELEMENTOS
+
+Funcionalidad implementada:
+Gestor de entorno
+- Usuarios
+- Vistas
+- permisos
+- roles
+- puestos de trabajos
+- entidades de negocio
+- variables de entorno
+- seguridad funcial
+- seguridad de datos
+
+Gestores básicos
+- Callejero
+- Personas
+- Sociedades
+- Contactos de una sociedad
+- Interlocutor
+- Centros gestores o departamentos
+
+Gestores de maestros técnicos
+- Cuentas contables
+- Iva repercutido y soportado
+- Naturalezas contables
+- Unitarios (materiales y servicios)
+- Clientes
+- Proveedores
+- Trabajadores
+
+Herramentas administrativas
+- Archivos
+- Archivadores
+- Firma digital
+- Sincronización de archivadores
+- Definición de procesos
+- Registros de E/S
+- Tareas
+- Expedientes
+
+Herramientas jurídicas
+- Procuradores
+- Abogados
+- Juzgados
+- Solicitudes de contratos
+- Contratos de venta
+- Contratos de compra
+* Pleitos judiciales
+- Planificadores
+- Lotes de un contrato
+
+Herramientas de venta
+- Presupuestos
+- Planificaciones de venta
+- Partes de trabajo
+* Facturas emitidas 
+
+PROXIMOS PASOS
+- Formas de cobro/pagos
+- Bancos
+- Cartas de pago
+- Gestion de Cobros
+- Pagos a trabajadores
+- Preasiento de ingreso
+- Preasiento de previsión
+- Preasiento de pago
+- Modulo de impresión
+
+

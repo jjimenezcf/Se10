@@ -1,0 +1,68 @@
+AFB: Entorno
+- Usuario
+- Correo de usuario
+- Trabajos de usuario
+
+AFB: Callejero
+- tipo de vía
+- Pais
+- Provinccia
+- Municipio
+- Calle
+- C.P
+- Barrio
+- Zona
+- Pedanía
+
+AFB: Térceros básicos
+- Personas
+- Sociedades
+- Contactos
+- Interlocutores
+- Centros Gestores
+
+AFB: Sistema documental
+- Archivadores
+
+AFB: Registro de E/S
+- Registro
+
+AFB: Tareas
+- Tareas
+
+Registro: (Gestor) Ree
+- Gestor del tipo de registro Ree 
+- Gestor del tipo de archivadores de entrada
+- Gestor del tipo de archivadores de salida
+- Consultor del tipo de archivadores de salida
+- Gestor de personas, sociedades e interlocutores
+- Gestor de Pais, Provincia, Municipios, CP, Calles, Barrios, y Zona
+- Estado pendiente de asignar
+- Estado pendiente de comunicar
+- Transitar a Asignado a ATC
+- Transitar a Asignado a URB
+- Transitar a Cancelado
+- Transitar a Resuelto
+
+Registro: (Consultor) Ree
+- Consultor del tipo de registro Ree 
+- Consultor del tipo de archivadores de entrada
+- Consultor del tipo de archivadores de salida
+- Consultor del tipo de archivadores de salida
+- Consultor de personas, sociedades e interlocutores
+- Consultor de Pais, Provincia, Municipios, CP, Calles, Barrios, y Zona
+
+Tarea: (Gestor) Trr
+- Gestor del tipo de tarea trr 
+- Gestor del tipo de archivadores del tipo de la tarea trr
+- Estado en resolución
+- Transitar a trr: cancelada
+- transitar a trr: en resolución
+- transitar a trr: en resuelta
+
+Tarea: (Consultor) Trr
+- Gestor del tipo de tarea trr 
+- Gestor del tipo de archivadores del tipo de la tarea trr
+
+
+

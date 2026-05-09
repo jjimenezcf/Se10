@@ -1,0 +1,118 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;FacturaRecibida;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Gastos.TipoDeFacturaRecDto",
+    "VistaDondeNavegar": "TiposDeFacturaRec",
+    "RestrictorFijo": "Negocio;FacturaRecibida;Gestor",
+    "Negocio": "FacturaRecibida",
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "TamanoFijo" : "10em",
+    "colspan": 2
+  },
+  {
+    "propiedad": "Numero",
+    "PosicionEnGrid": 5
+  },
+  {
+    "propiedad": "Proveedor",
+    "PosicionEnGrid": 8,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 0
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 4,
+    "EtiquetaGrid": "Asunto",
+    "Etiqueta": "Asunto",
+    "Ayuda": "descripción breve de la factura",
+    "PorAnchoMnt": 30,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 2
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 20,
+    "Posicion": {
+      "Fila": 1,
+      "Columna": 1
+    }
+  },
+  {
+    "propiedad": "RecibidaEl",
+    "PosicionEnGrid": 13,
+    "TamanoFijo": "9em",
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 4
+    },
+    "PosicionEnElDiv": 1
+  },
+  {
+    "propiedad": "FacturadaEl",
+    "PosicionEnGrid": 14,
+    "TamanoFijo": "11em",
+    "Posicion": {
+      "Fila": 0,
+      "Columna": 4
+    },
+    "PosicionEnElDiv": 0
+  },
+  {
+    "propiedad": "VenceEl",
+    "PosicionEnGrid": 15,
+    "TamanoFijo": "9em",
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 4
+    },
+    "PosicionEnElDiv": 1
+  },
+  {
+    "propiedad": "ContabilizadaEl",
+    "PosicionEnGrid": 16,
+    "TamanoFijo": "9em",
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 4
+    },
+    "PosicionEnElDiv": 2
+  },
+  {
+    "propiedad": "BaseImponible",
+    "PosicionEnGrid": 9
+  },
+  {
+    "propiedad": "TotalDelPago",
+    "PosicionEnGrid": 10
+  },
+  {
+    "propiedad": "Iva",
+    "PosicionEnGrid": 11
+  },
+  {
+    "propiedad": "Irpf",
+    "PosicionEnGrid": 12
+  }
+
+]

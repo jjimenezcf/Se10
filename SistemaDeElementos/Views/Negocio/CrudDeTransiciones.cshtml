@@ -1,0 +1,7 @@
+﻿@model MVCSistemaDeElementos.Descriptores.DescriptorDeTransiciones
+@{
+    ViewData["Title"] = $"{Model.Etiqueta}";
+}
+
+
+@Html.Raw(Model.RenderControl())

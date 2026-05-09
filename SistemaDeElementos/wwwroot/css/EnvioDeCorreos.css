@@ -1,0 +1,57 @@
+﻿
+.enviar-correo-contenedor {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "enviar-correo-cabecera" "enviar-correo-cuerpo" "enviar-correo-adjuntos";
+    overflow-y: hidden;
+    overflow-x: hidden;
+    /*border: solid;*/
+    padding: 0.5em;
+}
+    .enviar-correo-contenedor label {
+        padding-top: 10px !important;
+    }
+
+
+.enviar-correo-cabecera {
+    display: grid;
+    grid-area: enviar-correo-cabecera;
+}
+
+.enviar-correo-cuerpo {
+    display: grid;
+    grid-area: enviar-correo-cuerpo;
+    margin-bottom: 10px;
+}
+
+.enviar-correo-adjuntos {
+    display: grid;
+    height: calc(1.5em * 3 + .75rem + 2px);
+    grid-area: enviar-correo-adjuntos;
+    overflow-y: scroll;
+}
+
+
+.transitar-cuerpo {
+    height: 22em;
+    /*border: solid;*/
+    padding-left: 0.5em;
+    padding-top: 0.5em;
+}
+    .transitar-cuerpo select {
+        margin-top: 0.5em;
+    }
+
+.transitar-contenedor-anotacion {
+    padding-right: 0.7em;
+    height: fit-content;
+    margin-top: 0.5em;
+}
+
+.imprimir-cuerpo {
+    height: 5em;
+    /*border: solid;*/
+    padding-left: 0.5em;
+    padding-top: 0.5em;
+}

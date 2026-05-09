@@ -1,0 +1,69 @@
+﻿.contenedor-arbol {
+    display: block;
+    padding-left: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    resize: horizontal;
+    border: 5px ridge #d1cfcf
+}
+
+
+    .contenedor-arbol > a {
+        font-weight: bold;
+    }
+    .contenedor-arbol > div> a {
+        font-weight: bold;
+    }
+    .contenedor-arbol ul, .contenedor-arbol li {
+        position: relative;
+    }
+
+    .contenedor-arbol ul {
+        list-style: none;
+    }
+
+    .contenedor-arbol li::before, .contenedor-arbol li::after {
+        content: "";
+        position: absolute;
+        left: -12px;
+    }
+
+    .contenedor-arbol li::before {
+        border-top: 2px solid green;
+        top: 9px;
+        width: 8px;
+        height: 0;
+    }
+
+    .contenedor-arbol li::after {
+        border-left: 2px solid brown;
+        height: 100%;
+        width: 0px;
+        top: 2px;
+    }
+
+    .contenedor-arbol ul > li:last-child::after {
+        height: 8px;
+    }
+
+.nodo-de-jerarquia {
+    /*overflow: hidden;*/
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.nodo-de-jerarquia-de-baja > a {
+    color: red !important;
+}
+
+.nodo-seleccionado > a {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+.archivo-sobre-li {
+}
+
+.archivo-sobre-li > a {
+    color: brown !important;
+}

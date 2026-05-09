@@ -1,0 +1,62 @@
+<div class="flex flex-col">
+  <div class="sm:-mx-6 lg:-mx-8">
+    <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
+      <div class="overflow-x-auto">
+        <app-table [items]="items" [pagination]="false" [sorting]="false" [loading]="loading">
+          <ng-template appTableTemplate="header">
+            <tr>
+              <th scope="col">
+                CG
+              </th>
+              <th scope="col">
+                Tipo
+              </th>
+              <th scope="col">
+                Expresión
+              </th>
+              <th scope="col">
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template appTableTemplate="body" let-item let-index="index">
+            <tr class="border-b">
+              <td xs-label="CG">
+                {{item.cg}}
+              </td>
+              <td xs-label="Tipo">
+                {{item.tipo}}
+              </td>
+              <td xs-label="Expresión">
+                {{item.expresion}}
+              </td>
+              <td class="text-end whitespace-nowrap">
+                <button class="btn btn-secondary btn-sm" (click)="viewFiles.emit(item)">
+                  Ver ficheros
+                </button>
+                <button class="btn btn-primary btn-sm lg:ms-2 lg:mt-0 mt-1" (click)="navigate.emit(item)"
+                  *ngIf="allowNavigate">
+                  Ver
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template appTableTemplate="loading">
+            <tr>
+              <td colspan="4" class="text-center">
+                <fa-icon class="text-gray-700" [icon]="spinnerIcon" [spin]="true" size="3x"></fa-icon>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template appTableTemplate="noItemsFound">
+            <div class="p-4 text-black">
+              No se han encontrado elementos
+            </div>
+          </ng-template>
+        </app-table>
+      </div>
+    </div>
+  </div>
+</div>

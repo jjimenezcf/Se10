@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>Q3067006A00020230620202306206382286</MsgId>
+      <CreDtTm>2023-06-20T13:35:04</CreDtTm>
+      <NbOfTxs>000000000000004</NbOfTxs>
+      <CtrlSum>9891.61</CtrlSum>
+      <InitgPty>
+        <Nm>nombre del pagador</Nm>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>cif del pagador</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>Q3067006A00020230620202306206382286</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <NbOfTxs>000000000000004</NbOfTxs>
+      <CtrlSum>9891.61</CtrlSum>
+      <ReqdExctnDt>2023-06-20</ReqdExctnDt>
+      <Dbtr>
+        <Nm>nombre del pagador</Nm>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>cif del pagador</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <IBAN>cuenta de pago</IBAN>
+        </Id>
+        <Ccy>EUR</Ccy>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <Othr>
+            <Id>NOTPROVIDED</Id>
+          </Othr>
+        </FinInstnId>
+      </DbtrAgt>
+      <!--cada uno de los pagos a realizar-->
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>cif acreedor y acreedor</EndToEndId>
+        </PmtId>
+        <PmtTpInf>
+          <SvcLvl>
+            <Cd>SEPA</Cd>
+          </SvcLvl>
+        </PmtTpInf>
+        <Amt>
+          <InstdAmt Ccy="EUR">726.00</InstdAmt>
+        </Amt>
+        <CdtrAgt>
+          <FinInstnId />
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>acreedor (ancho fijo)                                                .</Nm>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>cuenta acreedora</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>descripción del pago (ancho fijpo)                                                                                                          </Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

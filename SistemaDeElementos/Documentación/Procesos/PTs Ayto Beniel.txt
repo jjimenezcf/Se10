@@ -1,0 +1,88 @@
+Ventanilla de registro de E/S
+   Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+   AFB: Registro de E/S
+   AFB: Tareas
+   Registro: (Gestor) Ree
+   Tarea: (consultor) Trr
+   Cg de beniel gestor de registro
+   Cg de beniel.atc consultor de tareas
+   cg de beniel.urb consultor de tareas
+
+Responsable del registro de E/S
+   Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+   AFB: Registro de E/S
+   AFB: Tareas
+   Registro: (Gestor) Ree
+   Tarea: (consultor) Trr
+   Cg de beniel gestor
+   Cg de beniel.atc consultor de tareas
+   cg de beniel.urb consultor de tareas
+
+
+Jefe de Servicio de Atc
+   Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+   AFB: Registro de E/S
+   AFB: Tareas
+   Registro: (Consultor) Ree
+   Tarea: (Gestor) Trr
+   Cg de beniel consultor de registros
+   Cg de beniel.atc gestor de tareas
+
+Jefe de Servicio de Urb
+   Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+   AFB: Registro de E/S
+   AFB: Tareas
+   Registro: (Consultor) Ree
+   Tarea: (Gestor) Trr
+   Cg de beniel consultor de registros
+   Cg de beniel.urb gestor de tareas
+
+Técnico
+   Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+   AFB: Registro de E/S
+   AFB: Tareas
+   Tarea.Urb: (Gestor) trr
+   Cg de beniel.urb gestor de tareas
+      
+Administrativo
+   Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+   AFB: Registro de E/S
+   AFB: Tareas
+   Tarea.Atc: (Gestor) Atc
+   Cg de beniel.atc gestor de tareas
+
+
+Usuarios:
+Ventanilla_1: 
+ResponsableDelRegistro
+JefeDeAtc
+JefeDeUrb
+TecnicoDeUrb
+AdministrativoDeAtc
+
+
+

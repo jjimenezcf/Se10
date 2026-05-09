@@ -1,0 +1,60 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;PlanificacionDeVenta;Gestor",
+    "PorAnchoMnt": 10
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Ventas.TipoDePlanificacionDeVentaDto",
+    "VistaDondeNavegar": "TiposDePlanificaciondeVenta",
+    "RestrictorFijo": "Negocio;PlanificacionDeVenta;Gestor",
+    "Negocio": "PlanificacionDeVenta",
+    "PorAnchoMnt": 10
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 5,
+    "EtiquetaGrid": "Planificacion",
+    "PorAnchoMnt": 40
+
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 6
+
+  },
+  {
+    "propiedad": "Presentador",
+    "PosicionEnGrid": 7,
+    "EtiquetaGrid": "Solicitante"
+  },
+  {
+    "propiedad": "EjecutarEl",
+    "PosicionEnGrid": 8,
+    "PorAnchoMnt": 5
+  },
+  {
+    "propiedad": "OrdenacionInicial",
+    "ordenarGridPor": "CG:Cg.Codigo:ascendente;Tipo:Tipo.Nombre:ascendente;Referencia:Referencia:ascendente"
+  },
+  {
+    "propiedad": "TotalConIva",
+    "VisibleEnGrid": "False"
+  },
+  {
+    "propiedad": "TotalSinIva",
+    "VisibleEnGrid": "False"
+  }
+]

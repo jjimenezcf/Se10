@@ -1,0 +1,82 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;Pedido;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Logistica.TipoDePedidoDto",
+    "VistaDondeNavegar": "TiposDePedido",
+    "RestrictorFijo": "Negocio;Pedido;Gestor",
+    "Negocio": "Pedido",
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "TamanoFijo" : "10em",
+    "colspan": 2
+  },
+  {
+    "propiedad": "Proveedor",
+    "PosicionEnGrid": 8,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 0
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 4,
+    "EtiquetaGrid": "Asunto",
+    "Etiqueta": "Asunto",
+    "Ayuda": "descripción breve del pedido",
+    "PorAnchoMnt": 30,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 2
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 20,
+    "Posicion": {
+      "Fila": 1,
+      "Columna": 1
+    }
+  },
+  {
+    "propiedad": "PedidoEl",
+    "PosicionEnGrid": 13,
+    "TamanoFijo": "9em"
+  },
+  {
+    "propiedad": "EntregarEl",
+    "PosicionEnGrid": 14,
+    "TamanoFijo": "9em"
+  },
+  {
+    "propiedad": "RecibidoEl",
+    "PosicionEnGrid": 15,
+    "TamanoFijo": "9em"
+  },
+  {
+    "propiedad": "CerradoEl",
+    "PosicionEnGrid": 16,
+    "TamanoFijo": "9em"
+  },
+  {
+    "propiedad": "Importe",
+    "PosicionEnGrid": 9
+  }
+
+]

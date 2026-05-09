@@ -1,0 +1,87 @@
+﻿.grid-span
+{
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+    grid-row-gap: 2px
+}
+
+.grid-span-cabecera {
+    /*display:grid;*/
+    display: flex;
+    align-items: center;
+    text-align: left;
+    grid-column-start: 1;
+    grid-column-end: 5;
+    margin-top: 10px;
+    background-color: gainsboro;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+}
+
+    .grid-span-cabecera > a {
+        /* El enlace mantiene su tamaño natural */
+        margin-right: 16px; /* Espacio opcional entre el enlace y el div */
+        white-space: nowrap; /* Opcional: evita que el texto del enlace se parta */
+    }
+
+    .grid-span-cabecera > div {
+        margin-left: auto; /* Empuja el div a la derecha */
+        flex: 1 1 auto; /* Ocupa todo el espacio disponible */
+        text-align: right; /* Opcional: alinea el texto a la derecha dentro del div */
+    }
+
+.grid-span-cuerpo-simple {
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.cuerpo.cuerpo-solo-consulta .grid-span-cuerpo-simple {
+    max-height: 500px;
+}
+
+.grid-span-cuerpo-compuesto {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-gap: 2px;
+}
+
+.grid-span-cuerpo-detalle {
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-gap: 2px;
+    overflow-x: auto;
+}
+
+.grid-span-cuerpo-controles {
+    display: grid;
+    grid-template-columns: 0.5fr 1fr 0.5fr 1fr;
+    grid-gap: 2px;
+}
+.grid-span-cuerpo-control {
+    text-align: left;
+}
+
+.grid-span-pie {
+    text-align: left;
+    grid-column-start: 1;
+    grid-column-end: 5;
+}
+
+.span-expansor {
+    margin-left: 10px;
+    font-weight: bold;
+    color:darkgray;
+}
+
+.grid-de-relacion {
+    margin-top: 5px;
+    margin-right: 10px;
+    margin-left: 10px;
+    display: flex;
+    min-width: 700px;
+}
+

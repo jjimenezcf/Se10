@@ -1,0 +1,36 @@
+﻿El documento adjunto es una factura. Dame únicamente un JSON con los siguientes campos, solo si puedes identificarlos con certeza.
+
+Instrucciones de identificación del proveedor:
+
+Prioriza la información del emisor que aparece en la parte superior o en un lugar destacado del documento.
+
+Si la factura menciona alguna de estas empresas empresa con NIF (B56801855, B73322032) o razón social (FUSTER INTERIORISMO SL, GALILEO CYC SL)
+deben ser ignorada como proveedor, si también aparece otra persona o empresa con sus datos de contacto completos (nombre, dirección, NIF), utiliza la información de esta última como el proveedor.
+
+Campos del JSON:
+
+Proveedor: el nombre del emisor.
+- Nif: el nif o cif del emisor, sin puntos, guiones o espacios.
+- eMail: el mail del emisor.
+- Telefono: el teléfono del emisor.
+- NumeroFactura: el número de la factura, con la serie y el año si están incluidos.
+- Concepto: el concepto de lo facturado.
+- fecha: la fecha de emisión en formato YYYY-MM-DD.
+- FechaVencimiento: la fecha límite de pago en formato YYYY-MM-DD (si no hay, devuelve nulo).
+- total: el importe total en formato numérico.
+- bi: la base imponible en formato numérico.
+- totalIva: el total de IVA en formato numérico.
+- totalIrpf: el total de IRPF en formato numérico.
+- ClaseDePago: 'Contado', 'Transferencia' o 'Remesa bancaria'.
+- FormaDePago: 'Contado', 'Tarjeta' o 'Domiciliación bancaria' si la ClaseDePago es 'Contado'.
+- CuentaBancaria: la cuenta bancaria completa donde se debe realizar el pago.
+- CodigoPostal: el código postal del emisor.
+- Pais: el país del emisor.
+- Provincia: la provincia del emisor.
+- Municipio: el municipio o ciudad del emisor.
+- TipoDeVia: 'Calle', 'Plaza', 'Avenida', etc.
+- Calle: la calle del emisor.
+- NumeroPolicia: el número de la portería, incluyendo letras o 's/n' si aplica.
+- RestoDireccion: piso, escalera o cualquier aclaración adicional sobre la dirección.
+
+No incluyas ningún texto adicional ni explicaciones, solo devuelve un JSON con los campos identificados. Los campos que no puedas identificar deben tener un valor nulo.

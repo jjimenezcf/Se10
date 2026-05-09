@@ -1,0 +1,23 @@
+﻿@{
+    ViewBag.Title = "Validador de facturas del S.E.";
+}
+<style>
+    .firma-wrap {
+        word-break: break-all;
+        overflow-wrap: anywhere;
+        /* Opcional: asegúrate de que el strong no tenga ancho fijo */
+        display: block;
+        max-width: 100%;
+    }
+</style>
+<h2>Factura Validada</h2>
+<p>
+    Factura validada para el NIF: <strong>@ViewBag.Nif</strong><br />
+    Número de serie: <strong>@ViewBag.NumSerie</strong><br />
+    Fecha: <strong>@ViewBag.Fecha</strong><br />
+    Importe: <strong>@ViewBag.Importe</strong><br /><br />
+
+    Firma: <strong class="firma-wrap">@ViewBag.Mensaje</strong>
+
+</p>
+

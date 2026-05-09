@@ -1,0 +1,44 @@
+<section class="bg-gray-50 h-full overflow-y-auto absolute w-screen">
+  <div class="flex flex-col items-center justify-center px-6 2xl:py-56 mx-auto py-8">
+    <div class="flex items-center mb-6 text-2xl">
+      <h2 class="font-bold antialiased">SISTEMA DE ELEMENTOS</h2>
+    </div>
+    <div class="w-full  md:mt-0 sm:max-w-lg xl:p-0 ">
+      <div class="rounded-sm shadow-sm border border-gray-200 bg-white">
+        <div class="p-6 space-y-4 md:space-y-6 sm:p-10">
+          <app-alert type="danger" *ngIf="errorMessage">
+            <span desc><strong>{{errorMessage}}</strong></span>
+          </app-alert>
+          <form class="space-y-4 md:space-y-6" [formGroup]="loginForm" (submit)="onSubmit()"
+            (keydown.enter)="onSubmit()">
+            <div class="h-22">
+              <label for="email" class="block mb-2 text-sm font-medium text-gray-500">Usuario</label>
+              <input
+                class="bg-white drop-shadow-sm border border-gray-300 text-gray-900 text-sm rounded-sm focus:outline-none focus:border-sky-200 focus:ring-2 focus:ring-sky-300 block w-full p-3.5"
+                name="email" id="email" autocomplete="email" type="email" placeholder="name@company.com"
+                formControlName="user" />
+            </div>
+            <div class="h-22">
+              <div class="flex justify-between">
+                <label for="password" class="block mb-2 text-sm font-medium text-gray-500">Contraseña</label>
+              </div>
+              <input
+                class="bg-white drop-shadow-sm border border-gray-300 text-gray-900 text-sm rounded-sm focus:outline-none focus:border-sky-200 focus:ring-2 focus:ring-sky-300 block w-full p-3.5"
+                type="password" name="password" id="password" placeholder="••••••••" autocomplete="current-password"
+                formControlName="password" />
+            </div>
+            <div>
+              <button [disabled]="loading"
+                class="shadow-sm focus:outline-none focus:ring-2 rounded-sm text-sm px-5 py-3.5 text-center disabled:opacity-75 transition-all duration-100 font-mediumbtn-primary w-full bg-sky-600 hover:bg-sky-500 focus:ring-sky-400 text-white disabled:hover:bg-sky-600">
+                <span *ngIf="!loading; else loadingTemplate">Entrar</span>
+                <ng-template #loadingTemplate>
+                  <fa-icon [icon]="spinnerIcon" [spin]="true" size="lg"></fa-icon>
+                </ng-template>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

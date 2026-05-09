@@ -1,0 +1,59 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;CircuitoDoc;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.SistemaDocumental.TipoDeCircuitoDocDto",
+    "VistaDondeNavegar": "TiposDeCircuitoDoc",
+    "RestrictorFijo": "Negocio;CircuitoDoc;Gestor",
+    "Negocio": "CircuitoDoc",
+    "ColSpan": 2
+  },
+  {
+    "propiedad": "IdEstado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 7,
+    "VisibleAlCrear": "false",
+    "VisibleAlEditar": "true",
+    "EditableAlCrear": "false",
+    "EditableAlEditar": "false",
+    "posicion": {
+      "Fila": 0,
+      "Columna": 2
+    }
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "AutoSpan": "true",
+    "PosicionEnGrid": 6,
+    "Etiqueta": "Nombre",
+    "EtiquetaGrid": "Nombre",
+    "PorAnchoMnt": 30,
+    "posicion": {
+      "Fila": 1,
+      "Columna": 0
+    }
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "VisibleAlCrear": "false",
+    "EditableAlCrear": "false",
+    "posicion": {
+      "Fila": 1,
+      "Columna": 2
+    }
+  },
+  {
+    "propiedad": "Descripción",
+    "PosicionEnGrid": 14
+  }
+]

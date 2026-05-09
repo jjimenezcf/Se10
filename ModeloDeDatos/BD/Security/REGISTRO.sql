@@ -1,0 +1,5 @@
+﻿CREATE SCHEMA [REGISTRO]
+    AUTHORIZATION [dbo];
+
+
+

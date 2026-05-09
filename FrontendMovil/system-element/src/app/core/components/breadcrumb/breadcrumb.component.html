@@ -1,0 +1,14 @@
+<nav class="breadcrumb" aria-label="breadcrumb">
+  <ol class="crumb-container">
+    <li class="crumb" *ngFor="let crumb of crumbs; first as first; last as last">
+      <a *ngIf="!last; else title" [routerLink]="crumb.routeLink">
+        <span [ngClass]="{'hideable': !first && !last}" class="crumb-full">{{crumb.label}}</span>
+        <span *ngIf="!first && !last" class="crumb-minimized">...</span>
+      </a>
+      <fa-icon *ngIf="!last" class="crumb-separator" [icon]="chevronRightIcon" size="xs"></fa-icon>
+      <ng-template #title>
+        <label #label>{{crumb.label}}</label>
+      </ng-template>
+    </li>
+  </ol>
+</nav>

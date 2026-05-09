@@ -1,0 +1,4 @@
+  "AllowedHosts": "*",
+  "App": {
+    "CorsOrigins": "https://*.flow0.secify.support,http://localhost:4205,http://10.70.0.55:3035,https://10.70.0.55"
+  },

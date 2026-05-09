@@ -1,0 +1,19 @@
+.btn {
+  @apply shadow-sm focus:outline-none focus:ring-2 rounded-sm text-sm px-5 py-3.5 text-center disabled:opacity-75 transition-all duration-100 font-medium lg:w-28 block lg:inline;
+
+  &.btn-sm {
+    @apply px-2.5 py-1.5;
+  }
+
+  &.btn-primary {
+    @apply bg-sky-600 hover:bg-sky-500 focus:ring-sky-400 text-white disabled:hover:bg-sky-600;
+  }
+
+  &.btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-500 focus:ring-gray-400 text-white disabled:hover:bg-gray-600;
+  }
+
+  & .btn-content {
+    @apply transition-opacity duration-200;
+  }
+}

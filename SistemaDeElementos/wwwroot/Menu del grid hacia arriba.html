@@ -1,0 +1,132 @@
+﻿<html>
+<head>
+    <title>Menu Desplegable</title>
+    <style type='text/css'>
+
+        .menu-del-grid * {
+            padding: 0;
+            margin: 0;
+            font: 12px georgia;
+            list-style-type: none;
+        }
+
+        .menu-del-grid {
+            margin-top: 100px;
+            float: left;
+            line-height: 10px;
+            left: 200px;
+        }
+
+            .menu-del-grid:hover ul li:hover ul {
+                position: absolute;
+                margin-top: 1px;
+                font: 10px;
+                bottom: 100%; 
+            }
+
+            .menu-del-grid a {
+                display: block;
+                text-decoration: none;
+                color: #3B5330;
+            }
+
+                .menu-del-grid a:hover {
+                    background: #B0BD97;
+                }
+
+            .menu-del-grid ul li ul li a:hover {
+                background: #ECF1E7;
+                padding-left: 9px;
+                border-left: solid 1px #000;
+            }
+
+            .menu-del-grid ul li ul li {
+                width: 140px;
+                border: none;
+                color: #B0BD97;
+                padding-top: 3px;
+                padding-bottom: 3px;
+                padding-left: 3px;
+                padding-right: 3px;
+                background: #B0BD97;
+            }
+
+                .menu-del-grid ul li ul li a {
+                    font: 11px arial;
+                    font-weight: normal;
+                    font-variant: small-caps;
+                    padding-top: 3px;
+                    padding-bottom: 3px;
+                }
+
+            .menu-del-grid ul li {
+                float: left;
+                width: 146px;
+                font-weight: bold;
+                border-top: solid 1px #283923;
+                border-bottom: solid 1px #283923;
+                background: #979E71;
+            }
+
+                .menu-del-grid ul li a {
+                    font-weight: bold;
+                    padding: 15px 10px;
+                }
+
+            .menu-del-grid li {
+                position: relative;
+                float: left;
+            }
+
+            .menu-del-grid ul li ul, .menu-del-grid:hover ul li ul, .menu-del-grid:hover ul li:hover ul li ul {
+                display: none;
+                list-style-type: none;
+                width: 140px;
+            }
+
+            .menu-del-grid:hover ul, .menu-del-grid:hover ul li:hover ul, .menu-del-grid:hover ul li:hover ul li:hover ul {
+                display: block;
+            }
+
+                .menu-del-grid:hover ul li:hover ul li:hover ul {
+                    position: absolute;
+                    margin-left: 145px;
+                    margin-top: -22px;
+                    font: 10px;
+                }
+
+                .menu-del-grid:hover ul li:hover ul {
+                    position: absolute;
+                    margin-top: 1px;
+                    font: 10px;
+                }
+    </style>
+</head>
+<body>
+    <div id='menu' class='menu-del-grid'>
+        <ul>
+            <li>
+                <center><a href='#'>Opciones</a></center>
+                <ul>
+                    <li><a href='#'>Buscar</a></li>
+                    <li>
+                        <a href='#'>Seleccionar &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &rsaquo;</a>
+                        <ul>
+                            <li><a href='#'>seleccionar todo</a></li>
+                            <li><a href='#'>anular selección</a></li>
+                            <li><a href='#'>sólo los seleccionados</a></li>
+                            <li><a href='#'>mostrar todos</a></li>
+                        </ul>
+                    <li>
+                        <a href='#'>Ordenación &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&rsaquo;</a>
+                        <ul>
+                            <li><a href='#'>anular orden</a></li>
+                            <li><a href='#'>orden inicial</a></li>
+                        </ul>
+                    <li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

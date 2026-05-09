@@ -1,0 +1,28 @@
+﻿Crear modelo de entorno con nuevos nombres
+
+Crear registros del menú inicial
+Entorno
+	Variables
+	Usuarios
+	Funcionalidad
+
+Seguridad
+	Puestos
+	Roles
+
+Crud de Variables
+Crud de Usuarios
+Crud de Funciones
+
+Crud de Puestos de trabajo
+Crud de Roles
+Selector de Permisos
+
+Funcionalidad de un usuario
+Usuarios con una funcionalidad
+
+Al crear una función crear un permiso
+Al modificar una función modificar el nombre del permiso
+
+
+

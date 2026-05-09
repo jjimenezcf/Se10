@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>sistema de login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="/fontawesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/css/Conectar.css">
+
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script src="/js/_Literales/literales.js"></script>
+    <script src="/js/Mensajes.js"></script>
+    <script src="/js/Diccionario.js"></script>
+    <script src="/js/_TiposDeDatos/TiposDeDatos.js"></script>
+    <script src="/js/Utilidades.js"></script>
+    <script src="/js/_Api/ApiDeAjax.js"></script>
+    <script src="/js/Registro.js"></script>
+    <script src="/js/Acceso/Conectar.js"></script>
+</head>
+<body>
+    <div id="Contenedor">
+        <div id="div-icono-usuario" style="display: block;" class="div-Icono">
+            <i class="fas fa-user"></i>
+        </div>
+        <div id="div-canvas-usuario" style="display: none;" class="div-Canvas">
+            <canvas id="canvas-usuario"></canvas>
+        </div>
+        <div style="display: none;">
+            <img id="img-usuario" src="">
+        </div>
+        <div style="text-align: center;">
+            <div class="input-group input-group-lg">
+                <span class="label-icono"><i class="fas fa-address-card"></i></span>
+                <input id="login" type="text" class="form-control" name="login" placeholder="usuario" aria-describedby="sizing-addon1" autofocus onblur="Acceso.AlSalirDeLogin()">
+            </div>
+            <br>
+            <div class="input-group input-group-lg">
+                <span class="label-icono"><i class="fas fa-key"></i></span>
+                <input id="password" type="password" name="password" class="form-control" placeholder="******" aria-describedby="sizing-addon1" required>
+            </div>
+            <br>
+            <button class="btn btn-lg btn-primary btn-block btn-signin" id="IngresoLog" autofocus onclick="Acceso.AlPulsarConectar()">Conectar</button>
+            <div class="opcioncontra"><a href="javascript:void(0)" onclick="Acceso.AlPulsarOlvideContrasena()">Olvidaste tu contraseña?</a></div>
+        </div>
+
+        <!--<div class="input-group input-group-lg" id="div-info-conexion" style="display: none; margin-top: 10px;">
+        <span class="label-icono"><i class="fas fa-info"></i></span>
+        <input id="info-conexion" type="text" class="form-control" aria-describedby="sizing-addon1">
+    </div>-->
+
+        <!--<div id="div-info-conexion" class="alert alert-info d-flex align-items-center" role="alert" style="display: none !important; margin-top: 15px; padding: 10px;">
+            <i class="fas fa-info-circle me-3" style="font-size: 1.5rem;"></i>
+            <div id="info-conexion-text" style="text-align: left; font-size: 0.9rem; line-height: 1.2;">
+            </div>
+        </div>-->
+
+        <div id="div-info-conexion" class="alert alert-danger d-flex flex-column align-items-center justify-content-center"
+             style="display: none; margin-top: 25px; min-height: 80px; text-align: center;">
+
+            <i class="fas fa-info-circle mb-2" style="font-size: 1.5rem;"></i>
+
+            <div id="info-conexion-text" style="font-size: 0.9rem; width: 100%;">
+            </div>
+        </div>
+
+    </div>
+
+    <form id="FormDeConexion" action="/Acceso/Conectar" method="post">
+        <input id="l" name="login" type="text" style="visibility:hidden">
+        <input id="p" name="password" type="text" style="visibility:hidden">
+    </form>
+
+</body>
+</html>

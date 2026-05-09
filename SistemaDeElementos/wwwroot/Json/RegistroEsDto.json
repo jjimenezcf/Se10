@@ -1,0 +1,44 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.RegistroEs.TipoDeRegistroEsDto",
+    "VistaDondeNavegar": "TiposDeRegistroEs",
+    "RestrictorFijo": "Negocio;Registro;Gestor",
+    "Negocio": "Registro"
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 3
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 4,
+    "EtiquetaGrid": "Registro",
+    "PorAnchoMnt": 30
+
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 5
+
+  },
+  {
+    "propiedad": "Presentador",
+    "PosicionEnGrid": 6
+
+  },
+  {
+    "propiedad": "OrdenacionInicial",
+    "ordenarGridPor": "CG:Cg.Codigo:ascendente;Tipo:Tipo.Nombre:ascendente;Referencia:Referencia:ascendente"
+  }
+]

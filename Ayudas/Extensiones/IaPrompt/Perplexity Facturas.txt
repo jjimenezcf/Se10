@@ -1,0 +1,80 @@
+﻿sonar-pro
+IaPerplexity
+
+El documento adjunto es una factura. Dame únicamente un JSON con los siguientes campos, solo si puedes identificarlos con certeza:
+- 'Proveedor': el nombre del emisor.
+- 'Nif': el nif o cif del del emisor
+- 'eMail': el mail del emisor
+- 'Telefono':  el telefono del emisor
+- 'NumeroFactura': el número de la factura, con la serie y el año si lo tiene incluido
+- 'Concepto': el concepto de lo facturado, el cual puede estar en la cabecera o ser un resumen de las líneas facturadas
+- 'fecha': la fecha de emisión.
+- 'FechaVencimiento': es la fecha límite en la que hay que pagar la factura presentada (si no hay devolver nulo)
+- 'total': el importe total.
+- 'bi': la base imponible.
+- 'totalIva': el total de IVA.
+- 'totalIrpf': el total de IRPF
+- 'ClaseDePago': la clase de pago, puede ser Contado, Transferencia o Remesa bancaria (del caso contado será cuando la forma de pago es una domicilición bancaria, un pago con tarjeta o un pago con dinero, es decir efectivo o contado)
+- 'FormaDePago': forma de pago cómo se ha de hacer o se ha hecho el pago de la factura, si fuese al contado tengo tres posibles valores (Contado, Tarjeta o Domiciliación bancaria si indica efectivo sustituyelo por Contado), asóciamelo con alguno de ellos si la Clase de pago es Contado
+- 'CuentaBancaria': cuenta bancaria donde se ha de ingresar el pago o se ha ingresado al estar domiciliada
+- 'CodigoPostal':  el código postal de la dirección del emisor
+- 'Pais':  el pais del emisor
+- 'Provincia':  la provincia del emisor
+- 'Municipio': el municipioo ciudad de la dirección del emisor 
+  'TipoDeVia': el tipo de vía, calle, plaza, rotonda, vereda, avenida etc... puede venir indicada con una abreviatura,
+- 'Calle':  la calle del emisor.
+- 'NumeroPolicia': el numero de la portería, puede ser sin número, con un número y una letra con las siglas sn o s/n  
+- 'RestoDireccion': el resto de la dirección, piso, escalera, barrio, zona, o cualquier aclaración sobre la ubicación dentro o cerca de la calle
+
+El proveedor nunca puede tener el CIF:
+- B56801855
+- B73322032,
+
+Ni el nombre o razón social:
+- FUSTER INTERIORISMO SL
+- GALILEO CYC SL,
+
+Si coincide con alguno de estos valores indicados arriba, busca los datos del proveedor cerca de la información registral, donde indica el tomo o libro
+ 
+Provedores que usamos Intalfrica, costrumat, ObraMat, LeroyMerlin, etc..
+
+Si aun así no encuentras los datos , asígnale a las propiedades del json proveedor y nif  el valor nulo ya que otros datos si pudieran ser válidos
+
+No incluyas ningún texto adicional ni explicaciones, solo devuelve un JSON en este formato y con aquellos campos que logres identificar, los que no logres devuelve nulo:
+
+Cuando me devuelvas el Json, no le añadas comentarios del estilo 
+...
+ "Proveedor": "MATERIALES DE CONSTRUCCIÓN PUJANTE, S.L.",
+  "Nif": "B56801855", // Este NIF pertenece a FUSTER INTERIORISMO SL, no a PUJANTE, S.L. Revisar.
+  "eMail": null,
+...
+ya que si no al hacer el parse, el sistema me da error
+
+{
+  "Proveedor": "Nombre del Emisor",
+  "Nif": "Nif o Cif del Emisor, si lleva (., -, o espacios en blanco), quítalos",
+  "eMail": "nombre@gmail.es",
+  "Telefono": "+34 968.23.12.18",
+  "NumeroFactura": "serie-numero",
+  "Concepto": "lo que se está facturando",
+  "fecha": "YYYY-MM-DD",
+  "FechaVencimiento": "YYYY-MM-DD",
+  "total": 1234.56,
+  "bi": 1000.00,
+  "totalIva": 210.00,
+  "totalIrpf": 24.56,
+  "FormaDePago": "Tarjeta",
+  "ClaseDePago": "Contado",
+  "CuentaBancaria": "ES70 0081 1492 6100 01107019",
+  "CodigoPostal": "30150",
+  "Pais": "España",
+  "Provincia": "Murcia",
+  "Municipio": "La Alberca",
+  "TipoDeVia": "Calle",
+  "Calle": "Fuensanta",
+  "NumeroPolicia": "17B (también puede venir como nº17 o 17 b)",
+  "RestoDireccion": "1º y 2º A B esquina juancarlos i juanto a ..."
+}
+
+Aquí está el contenido OCR de la factura: 
+[CONTENIDO_FACTURA]

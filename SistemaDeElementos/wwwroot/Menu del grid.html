@@ -1,0 +1,87 @@
+﻿<html>
+<head>
+    <title>Menu Desplegable</title>
+    <style type="text/css">
+
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        #header {
+            margin: auto;
+            width: 500px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        ul, ol {
+            list-style:none;
+        }
+
+        .menuDelGrid {
+            width: 500px; /*Le establecemos un ancho*/
+            margin: 0 auto; /*Centramos automaticamente*/
+            text-align: left;
+        }
+
+            .menuDelGrid li {
+                float:left;
+            }
+
+            .menuDelGrid li a {
+                background-color: #fff;
+                color: #000;
+                text-decoration: none;
+                padding: 10px 12px;
+                display: block;
+                width: 200px;
+            }
+
+                .menuDelGrid li a:hover {
+                    background-color: ActiveCaption;
+                }
+
+            .menuDelGrid li ul {
+                display:none;
+                position:absolute;
+                width: 200px;
+            }
+
+            .menuDelGrid li:hover > ul {
+                display: block;
+            }
+
+            .menuDelGrid li ul li {
+                position:center;
+            }
+
+                .menuDelGrid li ul li ul {
+                    right: -140px;
+                    top: 0px;
+                }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <nav>
+            <ul class="menuDelGrid">
+                <li>
+                    <a href="">Opciones</a>
+                    <ul>
+                        <li>
+                            <a href="">Selección</a>
+                            <ul>
+                                <li><a href="">marcar todas</a></li>
+                                <li><a href="">quitar todas</a></li>
+                                <li><a href="">solo las seleccionadas</a></li>
+                                <li><a href="">mostrar todo</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="">Buscar</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+Gerencia
+ Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+consultor del callejero
+Consultor de terceros (personas, sociedades e interlocutores)
+Consultor de los tipos de documentos (financieros, contables, laboral)
+Consultor de los CGs de Acromur
+
+Responsable Fiscal
+Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+consultor del callejero
+Consultor de terceros (personas, sociedades e interlocutores)
+Gestor de los tipos de documentos (fiscal)
+gestor de CG de Acromur fiscal
+
+Responsable Laboral
+Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+consultor del callejero
+Consultor de terceros (personas, sociedades e interlocutores)
+Gestor de los tipos de documentos (laboral)
+gestor de CG de Acromur laboral
+
+Responsable Contable
+Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+consultor del callejero
+Consultor de terceros (personas, sociedades e interlocutores)
+Gestor de los tipos de documentos (contable)
+gestor de CG de Acromur contable
+
+Secretaría
+ Roles de AFB: 
+   AFB: Entorno
+   AFB: Callejero
+   AFB: Térceros básicos
+   AFB: Sistema documental
+gestor del callejero
+gestor de terceros
+Consultor de los tipos de documentos (financieros, contables, laboral)
+Consultor de los CGs de Acromur
+
+      
+Usuarios:
+gerente.acromur: 
+financiero.acromur
+laboral.acromur
+contable.acromur
+secretaria.acromur
+
+
+

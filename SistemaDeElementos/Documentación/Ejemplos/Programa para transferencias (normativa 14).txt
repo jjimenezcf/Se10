@@ -1,0 +1,79 @@
+/*
+nombre_beneficiario
+iban_beneficiario
+bic_beneficiario
+importe
+referencia_pago
+nif
+fecha de pago
+
+
+remesa de pagos
+PmtInfId --> referencia de pago (35 carácteres)
+BtchBookg --> pago individual o cómo lote de transacciones
+PmtMtd --> forma de pago: transacción (TRF), Domiciliación (DD) y cheques (CHK)
+ReqdExctnDt --> cuándo se ha de pagar
+
+*/
+
+
+using System;
+using System.IO;
+
+class Program {
+    static void Main(string[] args) {
+        string nombre_beneficiario = "Proveedor XYZ";
+        string iban_beneficiario = "ES9121000418450200051332";
+        string bic_beneficiario = "BBVAESMMXXX";
+        float importe = 1000.50f;
+        string referencia_pago = "Pago de factura 1234";
+
+        // Generar archivo de pago SEPA
+        StreamWriter archivo_pago = new StreamWriter("pago_sepa.xml");
+        archivo_pago.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        archivo_pago.WriteLine("<PmtInf>");
+        archivo_pago.WriteLine("<PmtInfId>123456789</PmtInfId>");
+        archivo_pago.WriteLine("<PmtMtd>TRF</PmtMtd>");
+        archivo_pago.WriteLine("<BtchBookg>true</BtchBookg>");
+        archivo_pago.WriteLine("<ReqdExctnDt>" + DateTime.Now.ToString("yyyy-MM-dd") + "</ReqdExctnDt>");
+        archivo_pago.WriteLine("<Dbtr>");
+        archivo_pago.WriteLine("<Nm>Empresa XYZ</Nm>");
+        archivo_pago.WriteLine("</Dbtr>");
+        archivo_pago.WriteLine("<DbtrAcct>");
+        archivo_pago.WriteLine("<Id>");
+        archivo_pago.WriteLine("<IBAN>ES1234567890123456789012</IBAN>");
+        archivo_pago.WriteLine("</Id>");
+        archivo_pago.WriteLine("</DbtrAcct>");
+        archivo_pago.WriteLine("<DbtrAgt>");
+        archivo_pago.WriteLine("<FinInstnId>");
+        archivo_pago.WriteLine("<BIC>BBVAESMMXXX</BIC>");
+        archivo_pago.WriteLine("</FinInstnId>");
+        archivo_pago.WriteLine("</DbtrAgt>");
+        archivo_pago.WriteLine("<CdtTrfTxInf>");
+        archivo_pago.WriteLine("<PmtId>");
+        archivo_pago.WriteLine("<EndToEndId>00001</EndToEndId>");
+        archivo_pago.WriteLine("</PmtId>");
+        archivo_pago.WriteLine("<Amt>");
+        archivo_pago.WriteLine("<InstdAmt Ccy=\"EUR\">" + importe.ToString("0.00") + "</InstdAmt>");
+        archivo_pago.WriteLine("</Amt>");
+        archivo_pago.WriteLine("<CdtrAgt>");
+        archivo_pago.WriteLine("<FinInstnId>");
+        archivo_pago.WriteLine("<BIC>" + bic_beneficiario + "</BIC>");
+        archivo_pago.WriteLine("</FinInstnId>");
+        archivo_pago.WriteLine("</CdtrAgt>");
+        archivo_pago.WriteLine("<Cdtr>");
+        archivo_pago.WriteLine("<Nm>" + nombre_beneficiario + "</Nm>");
+        archivo_pago.WriteLine("</Cdtr>");
+        archivo_pago.WriteLine("<CdtrAcct>");
+        archivo_pago.WriteLine("<Id>");
+        archivo_pago.WriteLine("<IBAN>" + iban_beneficiario + "</IBAN>");
+        archivo_pago.WriteLine("</Id>");
+        archivo_pago.WriteLine("</CdtrAcct>");
+        archivo_pago.WriteLine("<RmtInf>");
+        archivo_pago.WriteLine("<Ustrd>" + referencia_pago + "</Ustrd>");
+        archivo_pago.WriteLine("</RmtInf>");
+        archivo_pago.WriteLine("</CdtTrfTxInf>");
+        archivo_pago.WriteLine("</PmtInf>");
+        archivo_pago.Close();
+    }
+}

@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>BD</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{fccbf483-7b49-42b4-a891-0119f3e878a4}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>BD</RootNamespace>
+    <AssemblyName>BD</AssemblyName>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="ENTORNO\" />
+    <Folder Include="ENTORNO\Tables\" />
+    <Folder Include="NEGOCIO\" />
+    <Folder Include="NEGOCIO\Tables\" />
+    <Folder Include="SEGURIDAD\" />
+    <Folder Include="SEGURIDAD\Tables\" />
+    <Folder Include="CALLEJERO\" />
+    <Folder Include="CALLEJERO\Tables\" />
+    <Folder Include="REGISTRO\" />
+    <Folder Include="REGISTRO\Tables\" />
+    <Folder Include="TERCEROS\" />
+    <Folder Include="TERCEROS\Tables\" />
+    <Folder Include="SISDOC\" />
+    <Folder Include="SISDOC\Tables\" />
+    <Folder Include="TRABAJO\" />
+    <Folder Include="TRABAJO\Tables\" />
+    <Folder Include="SEGURIDAD\Views\" />
+    <Folder Include="ENTORNO\Views\" />
+    <Folder Include="Security\" />
+    <Folder Include="TERCEROS\Functions\" />
+    <Folder Include="SEGURIDAD\Functions\" />
+    <Folder Include="CALLEJERO\Functions\" />
+    <Folder Include="ENTORNO\Functions\" />
+    <Folder Include="REGISTRO\Functions\" />
+    <Folder Include="SISDOC\Functions\" />
+    <Folder Include="NEGOCIO\Functions\" />
+    <Folder Include="CALLEJERO\Stored Procedures\" />
+    <Folder Include="TAREA\" />
+    <Folder Include="TAREA\Tables\" />
+    <Folder Include="TAREA\Functions\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="ENTORNO\Tables\USUARIO.sql" />
+    <Build Include="NEGOCIO\Tables\NEGOCIO.sql" />
+    <Build Include="SEGURIDAD\Tables\PERMISO_DIRECTOS.sql" />
+    <Build Include="SEGURIDAD\Tables\PERMISO.sql" />
+    <Build Include="CALLEJERO\Tables\TIPO_VIA.sql" />
+    <Build Include="CALLEJERO\Tables\CALLE_BARRIO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_ESTADO.sql" />
+    <Build Include="SEGURIDAD\Tables\ROL.sql" />
+    <Build Include="CALLEJERO\Tables\CODIGO_POSTAL.sql" />
+    <Build Include="SEGURIDAD\Tables\ROL_PERMISO.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD_PERMISO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_TRANSICION.sql" />
+    <Build Include="CALLEJERO\Tables\PROVINCIA_CP.sql" />
+    <Build Include="TERCEROS\Tables\CENTRO_GESTOR_NEGOCIO.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD_DIRECCION.sql" />
+    <Build Include="CALLEJERO\Tables\MUNICIPIO_CP.sql" />
+    <Build Include="ENTORNO\Tables\ACCION.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVADOR_AUDITORIA.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVADOR_TIPO.sql" />
+    <Build Include="CALLEJERO\Tables\PROVINCIA.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_ACCION.sql" />
+    <Build Include="CALLEJERO\Tables\ZONA.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVADOR.sql" />
+    <Build Include="SEGURIDAD\Tables\PERMISO_POR_ELEMENTO.sql" />
+    <Build Include="TERCEROS\Tables\INTERLOCUTOR.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_ARCHIVADOR.sql" />
+    <Build Include="ENTORNO\Tables\__Migraciones.sql" />
+    <Build Include="CALLEJERO\Tables\ZONA_AUDITORIA.sql" />
+    <Build Include="CALLEJERO\Tables\PAIS_AUDITORIA.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD_TRAZA.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVADOR_ARCHIVO.sql" />
+    <Build Include="CALLEJERO\Tables\CALLE_ZONA.sql" />
+    <Build Include="TERCEROS\Tables\INTERLOCUTOR_AUDITORIA.sql" />
+    <Build Include="ENTORNO\Tables\VARIABLE.sql" />
+    <Build Include="CALLEJERO\Tables\PROVINCIA_AUDITORIA.sql" />
+    <Build Include="TERCEROS\Tables\INTERLOCUTOR_ARCHIVO.sql" />
+    <Build Include="TERCEROS\Tables\INTERLOCUTOR_DIRECCION.sql" />
+    <Build Include="CALLEJERO\Tables\PAIS.sql" />
+    <Build Include="SEGURIDAD\Tables\PERMISO_POR_NEGOCIO.sql" />
+    <Build Include="ENTORNO\Tables\VISTA_MVC.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVO_SINCRONIZADO.sql" />
+    <Build Include="ENTORNO\Tables\MENU.sql" />
+    <Build Include="TRABAJO\Tables\SEMAFORO.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVADOR_PERMISO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_HISTORIA.sql" />
+    <Build Include="TERCEROS\Tables\INTERLOCUTOR_OBSERVACION.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVADOR_TRAZA.sql" />
+    <Build Include="NEGOCIO\Tables\LIBRO.sql" />
+    <Build Include="TERCEROS\Tables\INTERLOCUTOR_TRAZA.sql" />
+    <Build Include="NEGOCIO\Tables\LIBRO_SEMAFORO.sql" />
+    <Build Include="TRABAJO\Tables\TRABAJO.sql" />
+    <Build Include="NEGOCIO\Tables\SEMAFORO_PROCESO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_TIPO.sql" />
+    <Build Include="TRABAJO\Tables\CORREO.sql" />
+    <Build Include="SEGURIDAD\Tables\PERMISO_POR_TIPO.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD_ARCHIVO.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD_CONTACTO.sql" />
+    <Build Include="SEGURIDAD\Tables\PUESTO.sql" />
+    <Build Include="CALLEJERO\Tables\CALLE.sql" />
+    <Build Include="TRABAJO\Tables\USUARIO.sql" />
+    <Build Include="SISDOC\Tables\CARPETA.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD_OBSERVACION.sql" />
+    <Build Include="SEGURIDAD\Tables\ROL_PUESTO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO.sql" />
+    <Build Include="SISDOC\Tables\CARPETA_ARCHIVO.sql" />
+    <Build Include="CALLEJERO\Tables\CALLE_AUDITORIA.sql" />
+    <Build Include="NEGOCIO\Tables\PARAMETRO.sql" />
+    <Build Include="SEGURIDAD\Tables\PERMISO_POR_NEGOCIOS_CG.sql" />
+    <Build Include="TERCEROS\Tables\PERSONA.sql" />
+    <Build Include="SEGURIDAD\Tables\USU_PUESTO.sql" />
+    <Build Include="TRABAJO\Tables\TRAZA.sql" />
+    <Build Include="TERCEROS\Tables\PERSONA_AUDITORIA.sql" />
+    <Build Include="TERCEROS\Tables\PERSONA_ARCHIVO.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_TRAZA.sql" />
+    <Build Include="CALLEJERO\Tables\CALLE_CP.sql" />
+    <Build Include="SEGURIDAD\Tables\CLASE_PERMISO.sql" />
+    <Build Include="TERCEROS\Tables\PERSONA_DIRECCION.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_AUDITORIA.sql" />
+    <Build Include="TERCEROS\Tables\SOCIEDAD_AUDITORIA.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_ARCHIVO.sql" />
+    <Build Include="TERCEROS\Tables\CENTRO_GESTOR.sql" />
+    <Build Include="CALLEJERO\Tables\BARRIO.sql" />
+    <Build Include="CALLEJERO\Tables\MUNICIPIO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_OBSERVACION.sql" />
+    <Build Include="CALLEJERO\Tables\BARRIO_AUDITORIA.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_PERMISO.sql" />
+    <Build Include="TERCEROS\Tables\PERSONA_OBSERVACION.sql" />
+    <Build Include="TERCEROS\Tables\CENTRO_GESTOR_AUDITORIA.sql" />
+    <Build Include="CALLEJERO\Tables\MUNICIPIO_AUDITORIA.sql" />
+    <Build Include="TRABAJO\Tables\ERROR.sql" />
+    <Build Include="SISDOC\Tables\ARCHIVADOR_OBSERVACION.sql" />
+    <Build Include="SEGURIDAD\Tables\TIPO_PERMISO.sql" />
+    <Build Include="TERCEROS\Tables\PERSONA_TRAZA.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_DIRECCION.sql" />
+    <Build Include="SEGURIDAD\Views\PERMISO_ROL.sql" />
+    <Build Include="ENTORNO\Views\USUARIO_PERMISO.sql" />
+    <Build Include="ENTORNO\Views\MENU_SE.sql" />
+    <Build Include="SEGURIDAD\Views\V_USUARIO.sql" />
+    <Build Include="SEGURIDAD\Views\PERMISOS_HEREDADOS.sql" />
+    <Build Include="TERCEROS\Functions\CC_PERSONA_ES_INTERLOCUTOR.sql" />
+    <Build Include="TERCEROS\Functions\CC_SOCIEDAD_ES_INTERLOCUTOR.sql" />
+    <Build Include="TERCEROS\Functions\CC_SOCIEDAD_CONTACTO_ES_INTERLOCUTOR.sql" />
+    <Build Include="SEGURIDAD\Functions\OBTENER_ORIGEN.sql" />
+    <Build Include="TERCEROS\Functions\CC_INTERLOCUTOR_NOMBRE.sql" />
+    <Build Include="CALLEJERO\Functions\CC_CODIGO_POSTAL_PROVINCIA.sql" />
+    <Build Include="CALLEJERO\Functions\CC_CODIGO_POSTAL_MUNICIPIOS.sql" />
+    <Build Include="CALLEJERO\Functions\ZZ_CC_CODIGO_POSTAL_MUNICIPIOS.sql" />
+    <Build Include="CALLEJERO\Functions\CC_CALLE_EXPRESION.sql" />
+    <Build Include="TERCEROS\Functions\CC_SOCIEDAD_NOMBRE.sql" />
+    <Build Include="SEGURIDAD\Functions\OBTENER_ROLES_DE_UN_PUESTO.sql" />
+    <Build Include="TERCEROS\Functions\CC_PERSONA_NOMBRE.sql" />
+    <Build Include="ENTORNO\Functions\CC_USUARIO_EXPRESION.sql" />
+    <Build Include="REGISTRO\Functions\CC_REGISTRO_NOMBRE.sql" />
+    <Build Include="SEGURIDAD\Functions\OBTENER_ORIGEN_PUESTO_PERMISO.sql" />
+    <Build Include="SISDOC\Functions\CC_ARCHIVADOR_NOMBRE.sql" />
+    <Build Include="ENTORNO\Functions\ARBOL_MENU_POR_USUARIO.sql" />
+    <Build Include="NEGOCIO\Functions\MODO_ACCESO_AL_NEGOCIO_POR_USUARIO.sql" />
+    <Build Include="ENTORNO\Functions\ARBOL_MENU.sql" />
+    <Build Include="CALLEJERO\Stored Procedures\IMPORTAR.sql" />
+    <Build Include="Security\CALLEJERO.sql" />
+    <Build Include="Security\ENTORNO.sql" />
+    <Build Include="Security\NEGOCIO.sql" />
+    <Build Include="Security\PERMISO.sql" />
+    <Build Include="Security\REGISTRO.sql" />
+    <Build Include="Security\SEGURIDAD.sql" />
+    <Build Include="Security\SISDOC.sql" />
+    <Build Include="Security\TERCEROS.sql" />
+    <Build Include="Security\TRABAJO.sql" />
+    <Build Include="Security\UNIVERSIDAD.sql" />
+    <Build Include="Security\USUARIO.sql" />
+    <Build Include="REGISTRO\Tables\REGISTRO_INTERLOCUTOR.sql" />
+    <Build Include="TAREA\Tables\TAREA_AUDITORIA.sql" />
+    <Build Include="TAREA\Tables\TAREA_HISTORIA.sql" />
+    <Build Include="TAREA\Tables\TAREA_TRAZA.sql" />
+    <Build Include="TAREA\Tables\TAREA_PERMISO.sql" />
+    <Build Include="TAREA\Tables\TAREA_OBSERVACION.sql" />
+    <Build Include="TAREA\Tables\TAREA_INTERLOCUTOR.sql" />
+    <Build Include="TAREA\Tables\TAREA_DIRECCION.sql" />
+    <Build Include="TAREA\Tables\TAREA_ARCHIVO.sql" />
+    <Build Include="TAREA\Tables\TAREA_ARCHIVADOR.sql" />
+    <Build Include="TAREA\Tables\TAREA_ACCION.sql" />
+    <Build Include="TAREA\Tables\TAREA.sql" />
+    <Build Include="TAREA\Tables\TAREA_TRANSICION.sql" />
+    <Build Include="TAREA\Tables\TAREA_TIPO.sql" />
+    <Build Include="TAREA\Tables\TAREA_ESTADO.sql" />
+    <Build Include="TAREA\Functions\CC_TAREA_NOMBRE.sql" />
+    <Build Include="Security\TAREA.sql" />
+  </ItemGroup>
+</Project>

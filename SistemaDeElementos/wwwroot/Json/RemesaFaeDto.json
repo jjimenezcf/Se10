@@ -1,0 +1,105 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;RemesaFae;Gestor",
+    "trasSeleccionar": "javascript:Venta.Rem_Mapear_Datos_Acreedor()",
+    "trasBlanquear": "javascript:Venta.Rem_Blanquear_Datos_Acreedor()"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Ventas.TipoDeRemesaFaeDto",
+    "VistaDondeNavegar": "TiposDeRemesaFae",
+    "RestrictorFijo": "Negocio;RemesaFae;Gestor",
+    "Negocio": "RemesaFae",
+    "ColSpan": 1
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "VisibleEnGrid": "True",
+    "PosicionEnGrid": 40
+  },
+  {
+    "propiedad": "IdEstado",
+    "PosicionEnGrid": 40,
+    "VisibleEnGrid": "false",
+    "VisibleAlCrear": "false",
+    "VisibleAlEditar": "true",
+    "EditableAlCrear": "false",
+    "EditableAlEditar": "false",
+    "posicion": {
+      "Fila": 0,
+      "Columna": 2
+    }
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "AutoSpan": "true",
+    "PosicionEnGrid": 6,
+    "Etiqueta": "Remesa",
+    "EtiquetaGrid": "Remesa",
+    "PorAnchoMnt": 20,
+    "posicion": {
+      "Fila": 1,
+      "Columna": 0
+    }
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "VisibleAlCrear": "false",
+    "EditableAlCrear": "false",
+    "posicion": {
+      "Fila": 1,
+      "Columna": 2
+    }
+  },
+  {
+    "propiedad": "CuentaDeAbono",
+    "PorAnchoMnt": 15,
+    "PosicionEnGrid": 7
+  },
+  {
+    "propiedad": "Clase",
+    "EtiquetaGrid": "Clase",
+    "TamanoFijo": "7em",
+    "PosicionEnGrid": 8
+  },
+  {
+    "propiedad": "Incluidos",
+    "EtiquetaGrid": "Incl.",
+    "TamanoFijo": "7em",
+    "PosicionEnGrid": 9
+  },
+  {
+    "propiedad": "Importe",
+    "PosicionEnGrid": 20,
+    "PorAnchoMnt": 9
+  },
+  {
+    "propiedad": "Cobrado",
+    "PosicionEnGrid": 21,
+    "PorAnchoMnt": 9
+  },
+  {
+    "propiedad": "Pendiente",
+    "PosicionEnGrid": 22,
+    "PorAnchoMnt": 10
+  },
+  {
+    "propiedad": "GeneradaEl",
+    "PorAnchoMnt": 7,
+    "PosicionEnGrid": 25
+  },
+  {
+    "propiedad": "CargarEl",
+    "PorAnchoMnt": 7,
+    "PosicionEnGrid": 26
+  }
+]

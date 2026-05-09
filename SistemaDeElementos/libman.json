@@ -1,0 +1,14 @@
+{
+  "defaultProvider": "unpkg",
+  "version": "1.0",
+  "libraries": [
+    {
+      "provider": "unpkg",
+      "library": "@types/google.maps@3.55.0",
+      "destination": "wwwroot/lib/types/googlemaps/",
+      "files": [
+        "index.d.ts"
+      ]
+    }
+  ]
+}

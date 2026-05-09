@@ -1,0 +1,134 @@
+﻿/*
+Al cuerpo de la
+pagina se aplica el tamaño de fuente
+ */
+body {
+    font-size: 12px;
+}
+/**
+ * se aplica el ancho, margen centrado
+ * borde de un pixel con redondeado, y rellenado
+ * a la izquierda y derecha
+ */
+
+#Contenedor {
+    width: 400px;
+    margin: 50px auto;
+    background-color: #F3EDED;
+    border: 1px solid #ECE8E8;
+    border-radius: 8px;
+    padding: 0px 9px 20px 9px;
+    /* CAMBIOS CRÍTICOS */
+    height: auto; /* Permite que crezca */
+    min-height: 400px; /* Mantiene el tamaño estético base */
+    overflow: hidden; /* Evita fugas visuales */
+    display: block;
+}
+
+#NuevaContrasena {
+    width: 500px;
+    margin: 50px auto;
+    background-color: #F3EDED;
+    border: 1px solid #ECE8E8;
+    height: 450px;
+    border-radius: 8px;
+    padding: 0px 9px 0px 9px;
+}
+
+/**
+ * Aplicando al icono de usuario el color de fondo,
+ * rellenado de 20px y un redondeado de 120px en forma
+ * de un circulo
+ */
+.div-Icono i {
+    background: #A8A6A6;
+    padding: 20px;
+    border-radius: 120px;
+    height: 90px;
+    width: 90px
+}
+
+
+.label-icono {
+    color: #A8A6A6;
+    font-size: 30px;
+    width: 35px;
+}
+
+
+.div-Canvas canvas {
+    background: #A8A6A6;
+    border-radius: 120px;
+}
+
+/**
+ * Se aplica al contenedor madre un margen de tamaño 10px hacia la cabecera y pie,
+ * color de fuente blanco,un tamaño de fuente 50px y texto centrado.
+ */
+.div-Icono {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #FFF;
+    font-size: 50px;
+    text-align: center;
+}
+
+.div-Canvas {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 90px;
+    color: #FFF;
+    font-size: 50px;
+    text-align: center;
+}
+
+/**
+ * Se aplica al contenedor donde muestra en el pie
+ * la opción de olvidaste tu contraseña?
+ */
+.opcioncontra {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+#info-conexion {
+    text-align: center; /* Centrado horizontal */
+    display: flex;
+    align-items: center; /* Centrado vertical (si es flex) */
+    justify-content: center;
+    padding: 10px; /* Espaciado para que no toque los bordes */
+    line-height: 1.5; /* Mejora la legibilidad en varias líneas */
+    resize: none;
+    border: none;
+    background: transparent; /* Para que se integre con el Alert */
+}
+
+#div-info-conexion i {
+    margin-right: 10px;
+}
+
+/*#info-conexion-text {
+    word-break: break-word;*/ /* Para que palabras muy largas no rompan el diseño */
+/*}*/
+/**
+ * En las siguientes lineas
+ * se define el diseño adaptable, para que
+ * se muestre en los dispositivos móviles
+ */
+
+/******************************************/
+/***    DISEÑO PARA MOVILES 320        ****/
+/******************************************/
+@media only screen and (max-width:401px) {
+    #Contenedor {
+        width: 90%;
+        height: auto;
+        margin: 10px;
+    }
+
+    /******************************************/
+    /***    DISEÑO PARA MOVILES 240        ****/
+    /******************************************/
+    /*@media only screen and (max-width:240px) {
+    }*/

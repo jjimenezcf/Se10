@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "strict": false,
+    "strictPropertyInitialization": false,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "rootDir": "./wwwroot/ts",
+    "outDir": "./wwwroot/js",
+    "sourceMap": true,
+    "removeComments": false,
+    "noEmitOnError": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "wwwroot/lib/types/googlemaps/index.d.ts",
+    "wwwroot/ts/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "wwwroot/js"
+  ]
+}

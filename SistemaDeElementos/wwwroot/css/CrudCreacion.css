@@ -1,0 +1,131 @@
+﻿
+.cuerpo-creacion {
+    overflow-x: hidden;
+    overflow-y: hidden;
+    width: 100%;
+    /*padding: 10px;*/
+    grid-area: cuerpo-creacion;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 3em auto 1.5em;
+    grid-template-areas:
+        "contenedor-edicion-cabecera"
+        "contenedor-edicion-cuerpo"
+        "contenedor-edicion-pie";
+}
+
+
+
+.contenedor-creacion-cuerpo-datos-visor {
+    grid-area: contenedor-edicion-cuerpo;
+    display: grid;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    grid-template-columns: 1fr 10px 0.25fr;
+    grid-template-rows: auto;
+    grid-template-areas: "contenedor-edicion-editor-cuerpo splitter contenedor-edicion-editor-visor";
+}
+
+    .contenedor-creacion-cuerpo-datos-visor.visor-oculto {
+        grid-template-columns: 1fr 0fr 0fr !important;
+    }
+
+        .contenedor-creacion-cuerpo-datos-visor.visor-oculto .contenedor-edicion-editor-visor {
+            display: none !important;
+            width: auto !important;
+        }
+
+        .contenedor-creacion-cuerpo-datos-visor.visor-oculto .splitter {
+            display: none !important;
+            width: auto !important;
+        }
+
+        .contenedor-creacion-cuerpo-datos-visor.visor-oculto .contenedor-edicion-editor-datos {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            resize: none !important;
+        }
+
+            .contenedor-creacion-cuerpo-datos-visor.visor-oculto .contenedor-edicion-editor-datos::after {
+                display: none !important;
+            }
+
+@media (max-width: 700px) {
+    .contenedor-creacion-cuerpo-datos-visor {
+        grid-template-columns: 1fr 0fr 0fr !important;
+    }
+
+        .contenedor-creacion-cuerpo-datos-visor .contenedor-edicion-editor-visor {
+            display: none !important;
+            width: auto !important;
+        }
+        .contenedor-creacion-cuerpo-datos-visor .splitter {
+            display: none !important;
+            width: auto !important;
+        }
+
+        .contenedor-creacion-cuerpo-datos-visor .contenedor-edicion-editor-datos {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            resize: none !important;
+        }
+
+            .contenedor-creacion-cuerpo-datos-visor .contenedor-edicion-editor-datos::after {
+                display: none !important;
+            }
+}
+
+
+.editar-tras-crear {
+    /* grid-template-rows: 0.02fr 1fr 0em;*/
+    padding-top: 0.2em;
+    grid-template-rows: 42px auto 30px;
+}
+
+.contenedor-pie-opciones {
+    width: 50%;
+    min-width: 210px;
+}
+
+.contenedor-pie-modal-opciones {
+    float: right;
+    padding-right: 10px;
+    text-align: right;
+    width: 50%;
+    min-width: 210px;
+}
+
+.tabla-creacion {
+    width: 100%;
+    /*height: 100%;*/
+}
+
+
+    .tabla-creacion > tbody {
+        width: 100%;
+        /*min-width: 1000px;*/
+    }
+
+@media (max-width: 47.94em) {
+    .contenedor-pie-modal-opciones {
+        display: none !important;
+    }
+
+    .cuerpo-creacion .div-tabla.tabla-creacion > .dto-tbody {
+        overflow-x: auto !important;
+        /*min-width: 1000px !important;*/
+    }
+
+    /*.lista-de-elementos-dto {*/
+        /* 'none' es el valor correcto para anular un max-width */
+        /*max-width: none !important;*/
+        /* Aseguramos que ocupe el ancho disponible en el móvil */
+        /*width: 100% !important;*/
+        /* Evita que el control se vea gigante en pantallas un poco más anchas */
+        /*box-sizing: border-box;
+    }*/
+}
+

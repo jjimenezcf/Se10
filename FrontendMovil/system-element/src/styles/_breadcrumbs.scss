@@ -1,0 +1,35 @@
+.breadcrumb {
+  @apply flex;
+
+  & ol.crumb-container {
+    @apply items-center inline-flex h-4;
+
+    & li.crumb {
+      @apply inline-flex items-center;
+
+      & a {
+        @apply text-sm text-sky-500 hover:text-gray-900;
+
+        & span.crumb-minimized {
+          @apply block lg:hidden;
+        }
+
+        & span.crumb-full {
+          @apply lg:w-max w-20 truncate;
+
+          &.hideable {
+            @apply hidden lg:block;
+          }
+        }
+      }
+
+      & label {
+        @apply text-sm text-gray-600 font-medium lg:w-max w-40 truncate;
+      }
+
+      & .crumb-separator {
+        @apply mx-2 text-gray-400;
+      }
+    }
+  }
+}

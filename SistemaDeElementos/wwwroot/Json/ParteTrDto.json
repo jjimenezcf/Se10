@@ -1,0 +1,36 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;ParteDeTrabajo;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Ventas.TipoDeParteTrDto",
+    "VistaDondeNavegar": "TiposDeParteTr",
+    "RestrictorFijo": "Negocio;ParteDeTrabajo;Gestor",
+    "Negocio": "ParteDeTrabajo"
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid":4
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 5,
+    "EtiquetaGrid": "Parte",
+    "PorAnchoMnt": 30
+
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 6
+
+  }
+]

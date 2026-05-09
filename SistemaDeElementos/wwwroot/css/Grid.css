@@ -1,0 +1,714 @@
+﻿
+.cuerpo-datos-filtro-bloque {
+    grid-area: cuerpo-datos-filtro-bloque;
+    /*padding-bottom: 10px;*/
+    border: ridge;
+}
+
+.cuerpo-datos-filtro-referencias {
+    display: grid;
+    grid-area: cuerpo-datos-filtro-referencias;
+    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-rows: 1fr;
+    border: ridge;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contenedor-tabla-con-graficos {
+    display: flex; /* Habilita Flexbox */
+    flex-direction: row; /* Los elementos se alinearán horizontalmente */
+    height: 100%; /* Asume que su contenedor padre tiene una altura definida */
+    width: 100%;
+}
+
+.div-grid-tabla {
+    /* Desactiva Flexbox para que 'width' en JS tome control */
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto; /* Opcional, pero anula el 60% inicial */
+    /* El ancho inicial lo debes establecer ahora vía JavaScript o con un ancho 'width: 60%;' estándar */
+    width: 60%; /* Establece el ancho inicial si eliminas flex-basis */
+    /* ... resto de propiedades ... */
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.div-graficos {
+    /* Desactiva Flexbox para que 'width' en JS tome control */
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto; /* Anula el flex-basis: 0 */
+    /* El ancho inicial lo establecerá el JS */
+    /* ... resto de propiedades ... */
+    height: 100%;
+    overflow: hidden;
+}
+
+.splitter-tabla {
+    width: 6px;
+    height: 100%;
+    background-color: #f0f0f0;
+    cursor: col-resize;
+    transition: background-color 0.3s ease;
+}
+
+    .splitter-tabla::after {
+        content: '';
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 30px;
+        background-color: #c0c0c0;
+        border-radius: 1px;
+    }
+
+    .splitter-tabla:hover {
+        background-color: #e0e0e0;
+    }
+
+    .splitter-tabla:active::after {
+        background-color: #a0a0a0;
+    }
+
+
+.contenedor-tabla {
+}
+
+
+/* Anulación de altura: Solo aplica cuando .cuerpo-datos-tabla está dentro de .div-grid-tabla */
+.div-grid-tabla .cuerpo-datos-tabla {
+    height: auto !important; /* Fuerza la altura a ser determinada por el contenido */
+    /*min-height: 100%;*/ /* Opcional: Asegura que al menos ocupe el 100% del alto disponible si hay poco contenido, pero sigue permitiendo que el scroll-y de .div-grid-tabla funcione. */
+}
+
+
+.cuerpo-datos-tabla {
+    height: 100%;
+}
+
+.div-de-columna {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 72px;
+    min-height: 24px;
+    line-height: 24px;
+    display: inline-table;
+}
+
+    .div-de-columna > .img-menu-chksel {
+        content: url("/images/menu/bars-solid.svg");
+    }
+
+
+
+.div-de-columna-resaltado {
+    position: relative; /* Necesario para posicionar el pseudo-elemento */
+}
+
+    .div-de-columna-resaltado::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0; /* Coloca el borde en la parte inferior */
+        height: 1px; /* Altura del borde */
+        background-color: red; /* Color del borde */
+        border-bottom: 1px dashed red; /* Estilo del borde */
+    }
+
+.cuerpo-datos-tbody {
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block;
+    min-height: 10em;
+    min-width: 100em !important;
+    width: fit-content;
+}
+
+.contenido-modal-cabecera tbody.cuerpo-datos-tbody {
+    /*height: 100%;*/
+}
+
+.cuerpo-datos-grid-tbody {
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block;
+    min-height: 0.5em;
+    min-width: 100em !important;
+}
+
+.cuerpo-datos-tbody-tr {
+    width: 100%;
+    display: inline-table;
+}
+
+.fila-seleccionada {
+    background-color: #bebdbdba !important;
+    color: #fff !important;
+}
+
+.fila-cancelada {
+}
+
+    .fila-cancelada input[type="text"] {
+        color: red !important;
+    }
+
+.fila-terminada {
+}
+
+    .fila-terminada input[type="text"] {
+        color: blue !important;
+    }
+
+/* Estilos base para las filas (puedes ajustar esto) */
+.fila-estado-1 input[type="text"] {
+    color: #2e7d32 !important; /* Verde oscuro */
+}
+
+.fila-estado-2 input[type="text"] {
+    color: #827717 !important; /* Oliva */
+}
+
+.fila-estado-3 input[type="text"] {
+    color: #006064 !important; /* Cian oscuro */
+}
+
+.fila-estado-4 input[type="text"] {
+    color: #1a237e !important; /* Indigo oscuro */
+}
+
+.fila-estado-5 input[type="text"] {
+    color: #6a1b9a !important; /* Morado oscuro */
+}
+
+.fila-estado-6 input[type="text"] {
+    color: #795548 !important; /* Marrón */
+}
+
+.fila-estado-7 input[type="text"] {
+    color: #3e2723 !important; /* Marrón oscuro */
+}
+
+.fila-estado-8 input[type="text"] {
+    color: #263238 !important; /* Gris azulado oscuro */
+}
+
+.fila-estado-9 input[type="text"] {
+    color: #00796b !important; /* Teal */
+}
+
+.fila-estado-10 input[type="text"] {
+    color: #303f9f !important; /* Indigo */
+}
+
+.fila-estado-11 input[type="text"] {
+    color: #7b1fa2 !important; /* Púrpura */
+}
+
+.fila-estado-12 input[type="text"] {
+    color: #0288d1 !important; /* Azul claro */
+}
+
+.fila-estado-13 input[type="text"] {
+    color: #e65100 !important; /* Naranja oscuro */
+}
+
+.fila-estado-14 input[type="text"] {
+    color: #4527a0 !important; /* Violeta oscuro */
+}
+
+.fila-estado-15 input[type="text"] {
+    color: #bf360c !important; /* Naranja rojizo oscuro */
+}
+
+.fila-estado-16 input[type="text"] {
+    color: #01579b !important; /* Azul oscuro */
+}
+
+.fila-estado-17 input[type="text"] {
+    color: #004d40 !important; /* Verde azulado oscuro */
+}
+
+.fila-estado-18 input[type="text"] {
+    color: #1b5e20 !important; /* Verde muy oscuro */
+}
+
+.fila-estado-19 input[type="text"] {
+    color: #33691e !important; /* Verde oliva oscuro */
+}
+
+.fila-estado-20 input[type="text"] {
+    color: #880e4f !important; /* Rojo purpura oscuro */
+}
+
+/* Puedes agregar más clases si necesitas más de 20 estados */
+
+
+.cuerpo-datos-thead {
+    width: 100%;
+    display: inline-table;
+    white-space: nowrap;
+    min-width: 100em !important;
+}
+
+
+cuerpo-datos > tr:after {
+    content: ' ';
+    display: block;
+    visibility: hidden;
+    clear: both;
+}
+
+.columna-cabecera {
+    font-weight: bold;
+    word-break: break-word;
+    color: darkslategrey;
+}
+
+    .columna-cabecera > a {
+        font-weight: bold;
+        display: block;
+    }
+
+.columna-chkSel {
+    width: 0.2em;
+}
+
+.auto-ajustable {
+    padding-right: 0em !important
+}
+
+td > a {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: underline;
+    cursor: grab;
+    color: blue;
+    text-align: right;
+}
+
+.desplazar-derecha {
+    content: url("../images/flechaAzulDerecha.png");
+    min-width: 1em;
+    max-height: 0.55em;
+    margin-bottom: 0.1em;
+    margin-left: 0.2em;
+    cursor: pointer;
+}
+
+.desplazar-izquierda {
+    content: url("../images/flechaVerdeIzquierda.png");
+    min-width: 1em;
+    max-height: 0.6em;
+    margin-left: 0.2em;
+    cursor: pointer;
+}
+
+.ocultar-columna {
+    content: url("../images/ocultar-columna.png");
+    min-width: 8px;
+    max-height: 8px;
+    cursor: pointer;
+    position: absolute;
+    top: 2px;
+    font-size: 12px;
+    left: 8px;
+}
+
+.ocultar-columna-izquierda {
+    left: 8px;
+}
+
+.ocultar-columna-derecha {
+    right: 8px;
+}
+
+.ocultar-columna-centrado {
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.mostrar-columnas {
+    content: url("../images/mostrarColumnas.png");
+    min-width: 20px;
+    max-height: 24px;
+    margin-right: 0.2em;
+    cursor: pointer;
+}
+
+.modificar-tamano-columna {
+    content: url("../images/mostrarColumnas.png");
+    min-width: 0.5em;
+    max-height: 0.8em;
+    cursor: grab;
+    display: none;
+}
+
+.reducir-tamano-columnas {
+    content: url("../images/reducirTamano.png");
+    min-width: 0.5em;
+    max-height: 0.6em;
+    margin-left: 0.2em;
+    cursor: pointer;
+}
+
+
+.contenedor-desplazador {
+    display: inline-grid;
+    vertical-align: text-bottom;
+}
+
+.contenedor-tamano {
+    position: relative;
+    display: inline-grid;
+}
+
+
+.barra-de-desplazamiento {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 10px;
+    width: 100px;
+    background-image: linear-gradient(to right, transparent 50%, black 50%);
+    background-size: 10px 10px;
+    cursor: grab;
+}
+
+.vertical-bar {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background-color: #000;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+}
+
+.contenedor-visualizador-columnas {
+    display: inline-grid;
+    vertical-align: text-bottom;
+}
+
+.columna-accion {
+    text-align-last: initial;
+    width: 100px
+}
+
+
+.columna-oculta {
+    width: 0px;
+    display: none !important;
+    visibility: hidden;
+    padding: unset;
+}
+
+.columna-alineacion-derecha {
+    padding-right: 10px;
+}
+
+.ordenar-columna {
+    content: url("../images/ordenar-columna.png");
+    min-width: 8px;
+    max-height: 8px;
+    cursor: pointer;
+    position: absolute;
+    top: 2px;
+    font-size: 12px;
+    right: 8px;
+}
+
+.transitar-elementos {
+    content: url("../images/flechaAzulDerecha.png");
+    min-width: 15px;
+    max-height: 15px;
+    cursor: pointer;
+    position: absolute;
+    top: 20px;
+    font-size: 12px;
+    right: 5px;
+    display: none;
+}
+
+.ordenar-no-permitido {
+    cursor: not-allowed !important;
+}
+
+.ordenada-sin-orden {
+    color: #a5a1a1
+}
+
+.ordenada-ascendente {
+    color: #00b9ff
+}
+
+.ordenada-descendente {
+    color: #f58eb1
+}
+
+.pie-grid {
+    /*    align-content: center;
+    margin-top: 10px;*/
+    /*grid-area: cuerpo-pie;*/
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: 100%;
+    grid-template-areas: "pie-grid-navegador pie-grid-opciones pie-grid-mensaje pie-grid-info";
+    /* align-self: center; */
+    margin: 0px;
+    overflow-x: auto
+}
+
+.pie-grid-info {
+    grid-area: pie-grid-info;
+    text-align: end;
+    margin-right: 20px;
+    align-self: center;
+    min-width: 8em;
+}
+
+.pie-grid-mensaje {
+    grid-area: pie-grid-mensaje;
+    text-align: end;
+    margin-right: 20px;
+    margin-left: 20px;
+    align-self: center;
+    min-width: 10em;
+}
+
+.pie-grid-navegador {
+    grid-area: pie-grid-navegador;
+    align-self: center;
+    margin-left: 15px;
+    min-width: 15em;
+    /*float: left;*/
+}
+
+    .pie-grid-navegador > div {
+        display: inline-block;
+    }
+
+        .pie-grid-navegador > div > img {
+            width: 22px;
+            height: 22px;
+        }
+
+.navegador-cantidad-grid {
+    width: 3.5em;
+    /*margin-top: 5px;*/
+    align-content: center;
+    border-radius: 10px
+}
+
+    .navegador-cantidad-grid > input[readonly] {
+        background-color: #e9ecef;
+    }
+
+.solo-lectura {
+    background: #e9ecef;
+}
+
+ul, ol {
+    list-style: none;
+}
+
+
+.pie-grid-opciones {
+    grid-area: pie-grid-opciones;
+    /*    text-align: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    align-self: center;*/
+    min-width: 8em;
+    max-width: 8em;
+    height: 35px;
+    align-self: center;
+}
+
+/*
+ * ESTILOS COMPLETOS Y FINALES PARA EL MENÚ '.menu-del-grid'
+ * (Despliegue hacia arriba, disparador como texto y con retardo al ocultar)
+ */
+
+/* 1. Contenedores principales para el posicionamiento (sin cambios) */
+.menu-del-grid,
+.menu-del-grid > ul,
+.menu-del-grid > ul > li.menu-del-grid-raiz {
+    position: relative;
+}
+
+
+/* 2. El disparador "Opciones" como texto normal (sin cambios) */
+.menu-del-grid-raiz > a {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+    /* 2.1. Efecto hover para el disparador "Opciones" (sin cambios) */
+    .menu-del-grid-raiz > a:hover {
+        text-decoration: underline;
+    }
+
+/* 3. El menú desplegable (el <ul> anidado) - El "cuadrado bonito" */
+/* --- MODIFICADO --- */
+.menu-del-grid-raiz ul {
+    /* --- Estilos visuales (sin cambios) --- */
+    list-style-type: none;
+    margin: 0;
+    padding: 8px 0;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    min-width: 200px;
+    /* --- Posicionamiento y visibilidad HACIA ARRIBA (sin cambios) --- */
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    /*margin-bottom: 5px;*/
+    /* --- ¡AQUÍ ESTÁ LA MAGIA! --- */
+    /* ANTES: display: none; */
+    /* AHORA: Usamos opacity y visibility para poder animarlas */
+    opacity: 0; /* Empieza totalmente transparente */
+    visibility: hidden; /* Empieza oculto y no interactuable */
+    pointer-events: none; /* Asegura que no interfiera cuando está oculto */
+    /* Definimos la transición. Se desvanecerá en 0.2s. */
+    /* IMPORTANTE: Cuando se oculta, la visibilidad cambiará DESPUÉS de 0.3s */
+    transition: opacity 0.2s ease, visibility 0s linear 0.3s;
+}
+
+/* 4. Muestra el menú al pasar el ratón por el <li> padre */
+/* --- MODIFICADO --- */
+.menu-del-grid-raiz:hover > ul {
+    /* ANTES: display: block; */
+    /* AHORA: Lo hacemos visible y opaco */
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* Hacemos que sea interactuable */
+    /* Al mostrarse, queremos que la transición sea inmediata, sin retardo. */
+    /* Por eso sobreescribimos el 'transition-delay' a 0s. */
+    transition-delay: 0s;
+}
+
+/* 5. Cada opción del menú (el <li> y su enlace <a>) (sin cambios) */
+.menu-del-grid-opcion a {
+    display: block;
+    padding: 10px 20px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+    /* 6. Efecto hover para las opciones (sin cambios) */
+    .menu-del-grid-opcion a:hover {
+        background-color: #f0f0f0;
+        color: #000;
+    }
+
+    /* 7. Efecto de pulsación para las opciones (sin cambios) */
+    .menu-del-grid-opcion a:active {
+        background-color: #e0e0e0;
+        transform: scale(0.98);
+    }
+
+
+.barra-de-carga {
+    position: relative;
+    width: 200px;
+    height: 5px; /* Altura de la barra, ajusta según tu diseño */
+    background: gainsboro;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+/* La bola animada */
+.bola-de-carga {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: blue;
+    transform: translateY(-50%);
+    animation: movimiento-bola 1.5s cubic-bezier(.7,0,.3,1) infinite alternate;
+}
+
+:root {
+    --color-inicial: #a0a0a0;
+    --color-final: #808080;
+}
+
+.barra-animada {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100px; /* Largo de la barra animada */
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(to right, var(--color-inicial), var(--color-final));
+    animation: mover-barra 10s cubic-bezier(.7,0,.3,1) infinite alternate;
+}
+
+@keyframes mover-barra {
+    0% {
+        left: 0;
+        background: linear-gradient(to right, var(--color-inicial), var(--color-final));
+    }
+
+    49% {
+        background: linear-gradient(to right, var(--color-inicial), var(--color-final));
+    }
+
+    50% {
+        left: calc(100% - 100px);
+        background: linear-gradient(to left, var(--color-final), var(--color-inicial));
+    }
+
+    100% {
+        left: 0;
+        background: linear-gradient(to left, var(--color-final), var(--color-inicial));
+    }
+}
+
+
+/* Animación de movimiento y color */
+@keyframes movimiento-bola {
+    0% {
+        left: 0;
+        background: blue;
+    }
+
+    49% {
+        background: #ff0000;
+    }
+
+    50% {
+        left: calc(100% - 16px); /* 16px es el ancho de la bola */
+        background: #ff0000;
+    }
+
+    100% {
+        left: 0;
+        background: blue;
+    }
+}

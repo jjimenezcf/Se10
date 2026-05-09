@@ -1,0 +1,14 @@
+[
+  {
+    "propiedad": "Elemento",
+    "EtiquetaGrid": "Parte",
+    "VisibleEnGrid": true
+  },
+  {
+    "propiedad": "IdElemento",
+    "etiqueta": "Parte de trabajo",
+    "Controlador": "PartesTr",
+    "VistaDondeNavegar": "CrudPartesDeTrabajo",
+    "Negocio": "ParteDeTrabajo"
+  }
+]

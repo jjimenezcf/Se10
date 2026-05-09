@@ -1,0 +1,7 @@
+﻿@model MVCSistemaDeElementos.Descriptores.DescriptorDeCorreos
+@{
+    ViewData["Title"] = $"{Model.Etiqueta}";
+}
+
+
+@Html.Raw(Model.RenderControl())

@@ -1,0 +1,277 @@
+﻿Buscar esto
+--------------------------------------------------------------------
+
+                    table.ForeignKey(
+                        name: "FK_PLANIFICACION_VENTA_HISTORIA_ID_USUARIO",
+                        column: x => x.ID_USUARIO,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+--------------------------------------------------------------------
+Añadir esto después de esto
+
+
+
+            #region region a incluir 2
+
+            migrationBuilder.Sql(@"
+CREATE   FUNCTION [SEGURIDAD].[OBTENER_ORIGEN] (
+        	@idUsuario int,
+        	@idPermiso int
+        )
+        RETURNS VarChar(max)
+        AS
+        begin
+        Declare @origen varchar(max)
+        Declare @resultado varchar(max)
+        DECLARE c CURSOR FOR select top(1) ORIGEN
+                from 
+                (
+                SELECT t4.NOMBRE + ' (Rol: ' + t6.NOMBRE + ')' as ORIGEN
+                from SEGURIDAD.USU_PUESTO t2
+                inner join SEGURIDAD.ROL_PUESTO T3 ON T3.IDPUESTO = T2.IDPUESTO
+                inner join SEGURIDAD.PUESTO t4 on t4.id = t3.IDPUESTO
+                INNER JOIN SEGURIDAD.ROL_PERMISO T5 ON T5.IDROL = T3.IDROL
+                inner join SEGURIDAD.ROL t6 on t6.ID = t5.IDROL
+                where t2.IDUSUA = @idUsuario and t5.IDPERMISO = @idPermiso
+                union
+                SELECT t4.NOMBRE + ' (Directo)' as ORIGEN
+                from SEGURIDAD.USU_PUESTO t2
+                inner join SEGURIDAD.PERMISO_DIRECTOS T3 ON T3.IDPUESTO = T2.IDPUESTO
+                inner join SEGURIDAD.PUESTO t4 on t4.id = t3.IDPUESTO
+                where t2.IDUSUA = @idUsuario and t3.IDPERMISO = @idPermiso
+                union
+                SELECT t1.NOMBRE + ' (Agenda: ' + iif(t1.ID_GESTOR = @idPermiso,'Gestor','Consultor') + ' )' as ORIGEN
+                from ENTORNO.AGENDA t1
+                inner join ENTORNO.USUARIO T2 ON T2.ID_AGENDA = T1.ID
+                where t2.ID = @idUsuario and (t1.ID_CONSULTOR = @idPermiso or t1.ID_GESTOR = @idPermiso )
+                union
+                SELECT t1.NOMBRE + ' (Certificado)' as ORIGEN
+                from ENTORNO.CERTIFICADO t1
+                inner join ENTORNO.USUARIO T2 ON T2.ID_CERTIFICADO = T1.ID
+                where t2.ID = @idUsuario and t1.ID_GESTOR = @idPermiso
+                ) t1
+        
+        set @resultado = ''
+        OPEN c
+        FETCH NEXT FROM c INTO @origen
+        WHILE @@fetch_status = 0
+        BEGIN
+        if @resultado = ''  
+               set  @resultado = @origen 
+        else 
+               set  @resultado = @resultado + ' - ' + @origen 
+        FETCH NEXT FROM c INTO @origen
+        END
+        CLOSE c
+        DEALLOCATE c
+        
+        return @resultado
+        
+        END
+
+GO
+/****** Object:  UserDefinedFunction [SEGURIDAD].[OBTENER_ORIGEN_PUESTO_PERMISO]    Script Date: 07/09/2023 18:28:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+            CREATE FUNCTION [SEGURIDAD].[OBTENER_ORIGEN_PUESTO_PERMISO] (
+            	@idPuesto int,
+            	@idPermiso int
+            )
+            RETURNS VarChar(max)
+            AS
+            begin
+            Declare @origen varchar(max)
+            Declare @resultado varchar(max)
+            DECLARE c CURSOR FOR SELECT t2.NOMBRE
+                      from SEGURIDAD.ROL_PUESTO T1
+                      inner join seguridad.rol t2 on t2.id = t1.IDROL 
+                      INNER JOIN SEGURIDAD.ROL_PERMISO T3 ON T3.IDROL = T2.ID
+                      where t1.IDPUESTO = @idPuesto and t3.IDPERMISO = @idPermiso
+             set @resultado = ''
+            OPEN c
+            FETCH NEXT FROM c INTO @origen
+            WHILE @@fetch_status = 0
+            BEGIN
+			    if @resultado = ''  
+                   set  @resultado = @origen 
+				else 
+                   set  @resultado = @resultado + ' - ' + @origen 
+                FETCH NEXT FROM c INTO @origen
+            END
+            CLOSE c
+            DEALLOCATE c
+            
+            return @resultado
+            
+            END
+
+GO
+
+
+CREATE     VIEW[ENTORNO].[USUARIO_PERMISO]
+                 AS  
+                 select CAST(ROW_NUMBER() OVER(ORDER BY IDUSUA ASC) as int) AS ID, IDUSUA, IDPERMISO, SEGURIDAD.OBTENER_ORIGEN (IDUSUA, IDPERMISO) as ORIGEN
+                 from (
+                     select  t2.IDUSUA as IDUSUA, t4.IDPERMISO as IDPERMISO 
+                     from SEGURIDAD.USU_PUESTO t2
+                     inner join SEGURIDAD.ROL_PUESTO T3 ON T3.IDPUESTO = T2.IDPUESTO
+                     INNER JOIN SEGURIDAD.ROL_PERMISO T4 ON T4.IDROL = T3.IDROL
+                  
+                  union all
+                  
+                   select t2.IDUSUA as IDUSUA, t1.IDPERMISO as IDPERMISO
+                   from SEGURIDAD.USU_PUESTO t2
+                   inner join SEGURIDAD.PERMISO_DIRECTOS t1 on t1.IDPUESTO = t2.IDPUESTO
+               
+                   union all
+                 
+                   select t2.ID, t1.ID_GESTOR
+                   from entorno.AGENDA t1
+                   inner join ENTORNO.USUARIO t2 on t2.ID_AGENDA = t1.ID
+                   
+                   union all
+                 
+                   select T2.ID_RESPONSABLE, t1.ID_INTERVENTOR
+                   from entorno.AGENDA t1
+                   inner join JURIDICO.CONTRATO T2 ON T2.ID_AGENDA = T1.ID
+                   
+                   union all
+                   
+                   select t2.ID, t1.ID_CONSULTOR
+                   from entorno.AGENDA t1
+                   inner join ENTORNO.USUARIO t2 on t2.ID_AGENDA = t1.ID
+               
+                   union all
+                 
+                   select t2.ID, t1.ID_GESTOR
+                   from entorno.CERTIFICADO t1
+                   inner join ENTORNO.USUARIO t2 on t2.ID_CERTIFICADO = t1.ID
+                   
+                 
+                  ) Permisos
+                  group by IDUSUA, IDPERMISO
+
+GO
+
+CREATE FUNCTION [NEGOCIO].[MODO_ACCESO_AL_NEGOCIO_POR_USUARIO] 
+ (
+  @IDNEGOCIO INT,
+  @IDUSUARIO INT
+ )
+ RETURNS TABLE 
+ AS
+ RETURN 
+ (
+      select t1.ID, t1.ADMINISTRADOR, t1.GESTOR, t1.CONSULTOR, t2.IDUSUA, t2.IDPERMISO, t2.ORIGEN
+      from (
+             SELECT t1.ID, cast(1 as bit) as Administrador,  cast(0 as bit) as Gestor, cast(0 as bit) as Consultor
+             FROM ENTORNO.USUARIO_PERMISO t1 with(noLock)
+             inner join NEGOCIO.NEGOCIO t2 with(noLock) on t2.ID_ADM = t1.IDPERMISO 
+             where t1.IDUSUA =  @IDUSUARIO
+               and t2.ID = @IDNEGOCIO
+             UNION 
+             SELECT t1.ID, cast(0 as bit) as Administrador,  cast(1 as bit) as Gestor, cast(0 as bit) as Consultor
+             FROM ENTORNO.USUARIO_PERMISO t1  with(noLock)
+             inner join NEGOCIO.NEGOCIO t2 with(noLock) on t2.ID_GESTOR = t1.IDPERMISO 
+             where t1.IDUSUA =  @IDUSUARIO
+               and t2.ID = @IDNEGOCIO
+             UNION 
+             SELECT  t1.ID,  cast(0 as bit) as Administrador, cast(0 as bit) as Gestor,  cast(1 as bit) as Consultor
+             FROM ENTORNO.USUARIO_PERMISO t1  with(noLock)
+             inner join NEGOCIO.NEGOCIO t2  with(noLock) on t2.ID_CONSULTOR = t1.IDPERMISO 
+             where t1.IDUSUA =  @IDUSUARIO
+               and t2.ID = @IDNEGOCIO
+        ) t1
+      inner join ENTORNO.USUARIO_PERMISO t2 on t2.ID = t1.ID
+ )
+
+GO
+
+CREATE FUNCTION [ENTORNO].[ARBOL_MENU] 
+(
+)
+RETURNS TABLE 
+AS
+RETURN 
+(
+     WITH menuPadre 
+     AS
+     (
+      SELECT T1.ID, T1.NOMBRE, T1.DESCRIPCION, T1.ICONO, T1.ACTIVO, T1.IDPADRE,  T1.IDVISTA_MVC, T1.ORDEN, t1.PARAMETROS
+      FROM entorno.MENU T1
+      UNION ALL
+       --RECURSIVIDAD
+      SELECT S1.ID, S1.NOMBRE, S1.DESCRIPCION, S1.ICONO, S1.ACTIVO, S1.IDPADRE,  S1.IDVISTA_MVC, S1.ORDEN, t1.PARAMETROS
+      FROM ENTORNO.MENU AS S1 
+      INNER JOIN menuPadre AS T1 ON S1.IDPADRE = T1.id
+     )
+     SELECT DISTINCT P1.ID, P1.NOMBRE, P1.DESCRIPCION, P1.ICONO, P1.ACTIVO, P1.IDPADRE, P1.IDVISTA_MVC, P1.ORDEN, P1.PARAMETROS
+     FROM menuPadre AS P1
+)
+
+GO
+
+CREATE VIEW [ENTORNO].[MENU_SE]
+AS
+     SELECT T1.ID, 
+            T1.NOMBRE, 
+            T1.DESCRIPCION, 
+            T1.ICONO, 
+            T1.ACTIVO, 
+            T1.IDPADRE, 
+            T1.IDVISTA_MVC, 
+            T1.ORDEN, 
+            T2.NOMBRE AS PADRE, 
+            T3.NOMBRE AS VISTA, 
+            T3.CONTROLADOR, 
+            T3.ACCION, 
+            T1.PARAMETROS
+     FROM ENTORNO.ARBOL_MENU() AS T1
+     LEFT JOIN ENTORNO.MENU T2 ON T2.ID = T1.IDPADRE
+     LEFT JOIN ENTORNO.VISTA_MVC T3 ON T3.ID = T1.IDVISTA_MVC
+
+GO
+
+create view [SEGURIDAD].[PERMISO_ROL] AS SELECT * FROM SEGURIDAD.ROL_PERMISO                    
+GO
+
+CREATE VIEW[SEGURIDAD].[PERMISOS_HEREDADOS]
+            AS
+            select CAST(ROW_NUMBER() OVER(ORDER BY t1.IDPUESTO ASC) as int) AS ID
+            , t1.IDPUESTO as IDPUESTO
+            , t2.IDPERMISO as IDPERMISO
+            , SEGURIDAD.OBTENER_ORIGEN_PUESTO_PERMISO(IDPUESTO, IDPERMISO) as ROLES
+            from SEGURIDAD.ROL_PUESTO T1 
+            INNER JOIN SEGURIDAD.ROL_PERMISO T2 ON T2.IDROL = T1.IDROL
+            group by T1.IDPUESTO, T2.IDPERMISO
+            
+GO
+
+ create view [SEGURIDAD].[V_USUARIO] as
+                                    select
+                                       ID,
+                                       LOGIN,
+                                       APELLIDO,
+                                       NOMBRE
+                                    from
+                                       ENTORNO.USUARIO
+                                  
+GO
+");
+
+            #endregion
+
+---------------------------------------------------------------------------------------------------------------------
+            migrationBuilder.CreateIndex(
+                name: "I_ABOGADO_ID_CREADOR",
+                schema: "TERCEROS",
+                table: "ABOGADO",
+                column: "ID_CREADOR");

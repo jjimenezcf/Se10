@@ -1,0 +1,11 @@
+
+POST https://localhost:44396/tareas/epLeerDatosPost?modo=Lectura&accion=buscar&posicion=0&cantidad=50
+Content-Type: application/json
+
+{
+  "parametros": {
+    "filtro": "tareas del tipo soporte",
+    "orden": "Fecha DESC"
+  },
+  "parametrosJson": "{ \"filtrarConIa\": true, \"Seleccionadas\": \"\" }"
+}

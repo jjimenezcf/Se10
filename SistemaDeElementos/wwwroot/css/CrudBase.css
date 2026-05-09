@@ -1,0 +1,593 @@
+﻿
+.div-visible {
+    display: block;
+}
+
+.div-no-visible {
+    display: none !important;
+}
+
+.fila-visible {
+    display: block;
+}
+
+.fila-no-visible {
+    display: none !important;
+}
+
+.celda-visible {
+    display: block;
+}
+
+.celda-no-visible {
+    display: none !important;
+}
+
+.div-tabla {
+    display: table;
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.div-tr {
+    display: table-row;
+    width: 100% !important;
+    table-layout: fixed;
+}
+
+    .div-tr:nth-child(odd) {
+        background-color: transparent; /* Gris clarito para filas impares */
+    }
+
+    .div-tr:nth-child(even) {
+        background-color: #f2f2f2; /* Sin fondo para filas pares */
+    }
+
+.div-td, .div-th {
+    display: table-cell;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.div-th {
+    font-weight: bold;
+    background-color: #f2f2f2 !important;
+    border-right: 1px solid #ccc;
+    position: relative;
+    box-sizing: border-box; /* Asegura que el borde no afecte el tamaño total */
+}
+
+    .div-th::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 5px;
+        cursor: col-resize;
+    }
+
+    .div-th::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 10px;
+        height: 10px;
+        cursor: col-resize;
+    }
+
+
+    .div-th.arrastrando {
+        cursor: col-resize;
+    }
+
+
+/*.div-tr > .div-th:first-child,*/
+.div-tr > .div-th:last-child {
+    border-right: 1px solid #f2f2f2 !important;
+}
+
+    .div-tr > .div-th:first-child::after,
+    .div-tr > .div-th:last-child::after {
+        cursor: default;
+    }
+
+.div-td > a {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: underline;
+    cursor: grab;
+    color: blue;
+    text-align: right;
+}
+
+
+    /* Estilos específicos para el enlace con el href que contiene "eliminar-relacion" */
+    .div-td > a[href*="eliminar-relacion"] {
+        font-size: 0;
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background-image: url('/images/menu/Papelera_azul.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
+        vertical-align: middle;
+    }
+
+
+.div-tbody {
+    display: table-row-group;
+}
+
+.div-thead {
+    display: table-header-group;
+}
+
+
+.div-tr-resaltado {
+    border: 1px dashed red !important; /* Usar outline en lugar de border */
+}
+
+.div-mnt-menu-contenedor-clienteWeb {
+    grid-template-columns: auto 0.3fr 0.3fr 0em 0em 0em 0em 0em !important;
+}
+
+.div-mnt-menu-contenedor {
+    width: 100%;
+    padding: 0.2em;
+    display: grid;
+    grid-template-columns: auto 35% auto 1.5em 1.5em 1.5em 1.5em 1.5em 0em;
+    grid-template-rows: 1fr;
+    column-gap: 0.5em;
+}
+
+@media (max-width: 47.94em) {
+    .div-mnt-menu-contenedor {
+        grid-template-columns: auto 8em !important;
+        column-gap: 0em;
+    }
+
+        .div-mnt-menu-contenedor .botones-de-menu > *:not([value="Editar"]) {
+            display: none !important;
+        }
+
+        .div-mnt-menu-contenedor .contenedor-titulo {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+
+        .div-mnt-menu-contenedor .div-mnt-filtro-expansor {
+            min-width: 8em !important;
+            max-width: 8em !important;
+            padding-right: 0px;
+        }
+
+        .div-mnt-menu-contenedor .menu-de-filtro {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+
+        .div-mnt-menu-contenedor .menu-de-detalle {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+
+        .div-mnt-menu-contenedor .menu-contextual {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+
+        .div-mnt-menu-contenedor .menu-individual {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+
+        .div-mnt-menu-contenedor .menu-de-relaciones {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+
+        .div-mnt-menu-contenedor .div-vacio-derecha {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+}
+
+.botones-de-menu {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: hidden; /* Permite el desplazamiento horizontal */
+    white-space: nowrap; /* Evita que los elementos se desplacen hacia abajo */
+    gap: 4px;
+    align-items: center;
+    padding-left: 0.2em;
+    min-width: fit-content;
+}
+
+    .botones-de-menu input[type="button"] {
+        width: 80px !important;
+        max-width: 80px !important;
+        min-width: 80px !important;
+        height: 30px !important;
+        align-items: center;
+    }
+
+    .botones-de-menu form input[type="button"] {
+        display: flex !important; /* Hace que el formulario actúe como un contenedor flexible */
+        align-items: center !important; /* Alinea verticalmente el botón dentro del formulario */
+        margin: 0 !important; /* Elimina márgenes adicionales */
+    }
+
+.div-mnt-menu-zona {
+    width: 90%;
+    width: 90%;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-gap: 10px;
+}
+
+    .div-mnt-menu-zona > div > input {
+        vertical-align: -webkit-baseline-middle;
+    }
+
+    .div-mnt-menu-zona > div > form > input {
+        vertical-align: -webkit-baseline-middle;
+    }
+
+.div-mnt-filtro-expansor {
+    width: 100%;
+    text-align: right;
+    align-content: end;
+    padding-right: 1.5em;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    align-self: center;
+}
+
+.menu-del-proceso {
+    width: 100%;
+}
+
+.acciones-del-panel-edicion {
+    text-align-last: right;
+    width: 100%;
+    padding-top: 0.2em;
+    /* Esto es fundamental: asegura que los elementos fluyan en una sola línea */
+    white-space: nowrap;
+    /* Permite el desplazamiento horizontal si el contenido es más ancho */
+    overflow-x: auto;
+}
+
+.menu-individual {
+    width: 100%;
+    content: url(../images/Menu/MenuIndividual.png);
+    min-height: 1.5em;
+    min-width: 1.5em;
+    max-height: 1.5em;
+    max-width: 1.5em;
+    align-self: center;
+    cursor: grabbing;
+    padding-right: 0.2em;
+}
+
+.menu-individual-ClienteWeb {
+    width: 0 !Important;
+    content: url() !Important;
+    min-height: 0em !Important;
+    min-width: 0em !Important;
+}
+
+.menu-contextual {
+    width: 100%;
+    content: url(../images/Menu/MenuContextual.png);
+    min-height: 1.5em;
+    min-width: 1.5em;
+    max-height: 1.5em;
+    max-width: 1.5em;
+    align-self: center;
+    cursor: grabbing;
+}
+
+.menu-de-relaciones {
+    width: 100%;
+    content: url(../images/Menu/MenuDeRelaciones.png);
+    min-height: 1.5em;
+    min-width: 1.5em;
+    max-height: 1.5em;
+    max-width: 1.5em;
+    align-self: center;
+    cursor: grabbing;
+}
+
+.menu-de-filtro {
+    width: 100%;
+    content: url(../images/Menu/MenuDeFiltro.png);
+    min-height: 1.5em;
+    min-width: 1.5em;
+    max-height: 1.5em;
+    max-width: 1.5em;
+    align-self: center;
+    cursor: grabbing;
+}
+
+.menu-de-detalle {
+    width: 100%;
+    min-height: 1.5em;
+    min-width: 1.5em;
+    max-height: 1.5em;
+    max-width: 1.5em;
+    align-self: center;
+    cursor: grabbing;
+}
+
+.menu-de-detalle-oculto {
+    content: url(../images/Menu/MostrarDetalle.png);
+}
+
+.menu-de-detalle-visible {
+    content: url(../images/Menu/OcultarDetalle.png);
+}
+
+.menu-de-totales-visible {
+    content: url(../images/Menu/MostrarTotales.png) !important;
+}
+
+.div-vacio-derecha {
+    width: 100%;
+    min-height: 1.5em;
+    min-width: 1.5em;
+    max-height: 1.5em;
+    max-width: 1.5em;
+}
+
+.sin-mfs {
+    grid-template-columns: 15em auto 0.4fr 0em 0em 0em 0em 0em !important;
+    column-gap: 0em;
+}
+
+.div-nulo {
+    display: none !important;
+    min-width: 0em !important;
+    max-width: 0em !important;
+}
+
+
+.div-mnt-filtro-zona {
+    width: 100%;
+}
+
+.div-mnt-bloque-contenedor {
+    width: 100%;
+    text-align: left;
+    align-content: start;
+}
+
+.div-mnt-bloque-vacio {
+    height: 0px;
+}
+
+.tabla-filtro {
+    border-collapse: collapse;
+    width: 100%;
+    border-spacing: 0px;
+    border-top-width: 1px;
+    margin-left: 10px
+}
+
+@media (min-width: 47.95em) {
+    .fila-filtro-sin-span {
+        padding-top: 0.4em;
+        display: grid;
+    }
+}
+
+@media (max-width: 47.94em) {
+    .fila-filtro-sin-span {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.fila-filtro {
+    padding-bottom: 0.4em;
+    display: grid;
+}
+
+/*.fila-filtro-sin-span {
+    padding-top: 0.4em;
+    display: grid;
+}*/
+
+.columna-filtro {
+    padding-bottom: 0.4em;
+    display: grid;
+    grid-template-columns: minmax(1em,10em) minmax(10em,1fr);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.separador-top-10px {
+    padding-top: 10px;
+}
+
+.separador-top-50px-left-30px {
+    padding-top: 50px;
+    padding-left: 30px;
+}
+
+.ia-mapeado {
+    border: 2px solid blue !important;
+}
+
+.resalto-verde {
+    border: 2px solid green !important;
+}
+
+.resalto-violeta {
+    border: 2px solid purple !important;
+}
+
+.btn-pegar-icono {
+    /* Estilo básico para que se vea como un botón */
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    /* Hacer el botón pequeño */
+    width: 30px; /* Ancho fijo para el icono */
+    height: 30px; /* Alto fijo */
+    padding: 0; /* Quitar padding interno */
+    line-height: 1; /* Ajustar el icono */
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Separación del input */
+    /*margin-right: 5px;*/
+}
+
+    /* Opcional: Efecto al pasar el ratón */
+    .btn-pegar-icono:hover {
+        background-color: #e0e0e0;
+        border-color: #bbb;
+    }
+
+
+@media (max-width: 47.94em) {
+    /* Corregimos el contenedor que causaba el desborde */
+    .contenedor-datos-principales {
+        min-width: 0 !important; /* Anula el valor anterior */
+        width: 100%;
+    }
+
+    /* Oculta el div si todos sus hijos "div-propiedad" están vacíos */
+    div[name="tr_lbl_propiedad"]:not(:has(input, select, textarea, button, label)) {
+        display: none !important;
+    }
+
+    .grid-span-cuerpo-controles {
+        grid-template-columns: 1fr !important;
+    }
+
+        .grid-span-cuerpo-controles .div-en-blanco {
+            display: none;
+        }
+
+        .grid-span-cuerpo-controles .contenedor-etiqueta:has(label:not([for])),
+        .grid-span-cuerpo-controles .contenedor-etiqueta:has(label[title=""]),
+        .grid-span-cuerpo-controles .contenedor-etiqueta:has(label:empty) {
+            display: none !important;
+        }
+
+    /* 1. Tus clases originales y el name que ya tenías */
+    .div-tr, .dto-tr, .tr-propiedad, div[name="tr_lbl_propiedad"] {
+        grid-template-columns: 1fr !important;
+    }
+
+        /* 2. Divs específicos que son "nietos" de tr_lbl_propiedad */
+        /* Usamos el selector de espacio para indicar que están dentro */
+        div[name="tr_lbl_propiedad"] .div-propiedad,
+        div[name="tr_lbl_propiedad"] .div-con-mas-propiedades {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* 3. Anular el alineado a la derecha de los labels */
+        /* Al poner text-align: left, sobreescribimos el comportamiento anterior */
+        div[name="tr_lbl_propiedad"] .etiqueta-derecha-dto {
+            text-align: left !important;
+            padding-right: 0 !important; /* Opcional: quita el padding si ya no tiene sentido a la izquierda */
+        }
+
+    .div-td.dto-td.td-propiedad select,
+    .div-td.dto-td.td-propiedad input,
+    .div-td.dto-td.td-propiedad .lista-de-elementos-dto {
+        max-width: none !important;
+        width: 100% !important;
+        min-width: 100% !important; /* Evita que el inline-style lo encoja */
+        box-sizing: border-box !important;
+    }
+}
+
+@media (max-width: 47.94em) {
+    /* 1. El contenedor: Forzamos fila horizontal */
+    .grid-span-cuerpo-controles .contenedor-check {
+        display: flex !important;
+        flex-direction: row !important; /* Asegura que estén uno al lado del otro */
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        flex-wrap: nowrap !important; /* Evita que el label salte abajo */
+    }
+
+    /* 2. EL TRUCO CLAVE: Anular el width 100% que pusimos antes */
+    /* Usamos el ID o una combinación de clases para que tenga más peso */
+    .contenedor-check input[type="checkbox"].control-apilado-dto {
+        width: 20px !important; /* Tamaño fijo para el check */
+        min-width: 20px !important; /* Obligatorio para anular el 100% */
+        /*height: 20px !important;*/
+        margin: 0 10px 0 0 !important; /* Margen a la derecha para separar del label */
+        flex-shrink: 0 !important; /* Evita que el check se encoja */
+    }
+
+    /* 3. El label: Que tome el espacio restante */
+    .contenedor-check label {
+        width: auto !important;
+        min-width: 0 !important;
+        text-align: left !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline-block !important;
+        white-space: nowrap; /* Evita que el texto se rompa si es corto */
+    }
+}
+
+@media (max-width: 47.94em) {
+    /* 1. Liberamos el contenedor de fecha */
+    .contenedor-fecha {
+        display: flex !important;
+        height: auto !important; /* Quitamos el height fijo */
+        flex-wrap: wrap !important; /* Permite que si no caben, bajen */
+        gap: 10px !important; /* Espacio real entre fecha y hora */
+        align-items: center !important;
+        margin-top: 10px !important;
+    }
+
+        /* 2. Ajustamos los inputs internos para que compartan la fila */
+        .contenedor-fecha input.fecha-dto {
+            flex: 2 1 150px !important; /* Crece más que la hora */
+            width: auto !important;
+            min-width: 0 !important; /* Importante para que no rompa el flex */
+        }
+
+        .contenedor-fecha input.hora-dto {
+            flex: 1 1 80px !important; /* Un poco más pequeño que la fecha */
+            width: auto !important;
+            min-width: 0 !important;
+        }
+}
+
+@media (max-width: 47.94em) {
+    /* Aplicamos la misma lógica que al check anterior */
+    .contenedor-check-right {
+        width: 20px !important;
+        min-width: 20px !important;
+        overflow: visible;
+    }
+}

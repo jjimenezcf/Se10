@@ -1,0 +1,26 @@
+﻿Crear Proyecto Migración
+Referenciar en el los proyectos donde hay un dbContext 
+Referenciar en la solución el proyecto migración
+
+Añadir método al ContextoDeElementos
+protected override void OnConfiguring(DbContextOptionsBuilder options)
+{
+            var conexion = "Server=(localdb)\\MSSQLLocalDB;Database=SistemaDeElementos;Trusted_Connection=True;MultipleActiveResultSets=true";
+            options.UseSqlServer(conexion, x => x.MigrationsHistoryTable("__Migraciones", "ENTORNO"));
+}
+Add-migration -context contextoentorno inicialEntorno
+
+
+Mover la carpeta de Migraciones del GestorDeEntorno
+Modificar en ContextoDeElementos
+protected override void OnConfiguring(DbContextOptionsBuilder options)
+{
+     var conexion = "Server=(localdb)\\MSSQLLocalDB;Database=SistemaDeElementos;Trusted_Connection=True;MultipleActiveResultSets=true";
+     options.UseSqlServer(conexion, x => x.MigrationsHistoryTable("__Migraciones", "ENTORNO"))
+            .UseSqlServer(conexion, x => x.MigrationsAssembly("Migraciones"));
+}
+update-database -context contextoentorno
+
+add-migration -context contextouniversitario inicialUniversitario
+update-database -context contextouniversitario
+Script-Migration -context contextouniversitario

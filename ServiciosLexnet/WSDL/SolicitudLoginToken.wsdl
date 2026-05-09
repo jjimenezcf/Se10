@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:apachesoap="http://xml.apache.org/xml-soap"
+	xmlns:impl="https://solicitudlogintoken.servicio.wslexnet.webservices.lexnet"
+	xmlns:intf="https://solicitudlogintoken.servicio.wslexnet.webservices.lexnet"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="https://solicitudlogintoken.servicio.wslexnet.webservices.lexnet">
+	<wsdl:types>
+		<schema xmlns="http://www.w3.org/2001/XMLSchema"
+			elementFormDefault="qualified"
+			targetNamespace="https://solicitudlogintoken.servicio.wslexnet.webservices.lexnet">
+			<element name="SolicitudLoginTokenIn" type="xsd:string" />
+			<element name="SolicitudLoginTokenOut" type="xsd:string" />
+		</schema>
+	</wsdl:types>
+
+	<wsdl:message name="SolicitudLoginTokenResponse">
+		<wsdl:part element="impl:SolicitudLoginTokenOut" name="SolicitudLoginTokenOut" />
+	</wsdl:message>
+
+	<wsdl:message name="SolicitudLoginTokenRequest">
+		<wsdl:part element="impl:SolicitudLoginTokenIn" name="SolicitudLoginTokenIn" />
+	</wsdl:message>
+
+	<wsdl:portType name="SolicitudLoginTokenPortType">
+		<wsdl:operation name="SolicitudLoginToken" parameterOrder="SolicitudLoginTokenIn">
+			<wsdl:input message="impl:SolicitudLoginTokenRequest" name="SolicitudLoginTokenRequest" />
+			<wsdl:output message="impl:SolicitudLoginTokenResponse" name="SolicitudLoginTokenResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<wsdl:binding name="SolicitudLoginTokenSoapBinding" type="impl:SolicitudLoginTokenPortType">
+		<wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="SolicitudLoginToken">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="SolicitudLoginTokenRequest">
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="SolicitudLoginTokenResponse">
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<wsdl:service name="SolicitudLoginTokenService">
+		<wsdl:port binding="impl:SolicitudLoginTokenSoapBinding" name="SolicitudLoginToken">
+			<wsdlsoap:address location="https://localhost:9080/lexnetWeb/services/SolicitudLoginToken" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

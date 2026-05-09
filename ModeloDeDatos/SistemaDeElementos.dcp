@@ -1,0 +1,12 @@
+[ConnectionProfile]
+ConnectionType=Native
+Database=SistemaDeElementos
+Dbms=SNC SQL Native Client
+DelimitIdentifier=Yes
+Description=AccesoBD
+DisableBind=0
+LogId=admin
+Provider=SQLNCLI11
+ProviderString=OLE DB Services=-4
+ServerName=Desarrollo2
+TrimSpaces=0

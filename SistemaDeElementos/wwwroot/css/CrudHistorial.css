@@ -1,0 +1,283 @@
+﻿
+.cuerpo-historial {
+    overflow-x: hidden;
+    overflow-y: hidden;
+    width: 100%;
+    display: grid;
+    grid-template-rows: 0.02fr calc(100vh - 208px) 0.02fr;
+    grid-template-areas:
+        "contenedor-historial-cabecera"
+        "contenedor-historial-cuerpo"
+        "contenedor-historial-pie";
+    height: max-content;
+}
+
+.contenedor-historial-cabecera {
+    grid-area: contenedor-historial-cabecera;
+    border: groove;
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: 1fr;
+    column-gap: 0.5em;
+    grid-row: 1 / 2;
+    height: 48px;
+}
+
+.contenedor-historial-cuerpo {
+    grid-area: contenedor-historial-cuerpo;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas:
+        "cuerpo-datos-filtro"
+        "cuerpo-datos-grid";
+    width: 100%;
+    /* height: calc(100vh - 208px); */
+    height: 100%;
+    grid-row: 2 / 3;
+    /* overflow-y: scroll; */
+}
+
+.contenedor-historial-pie {
+    grid-area: contenedor-historial-pie;
+    border: groove;
+    display: grid;
+    grid-template-columns: 0fr 1fr 1fr 0fr;
+    grid-template-rows: 100%;
+    grid-template-areas: "cuerpo-pie-navegador cuerpo-pie-opciones cuerpo-pie-mensaje cuerpo-pie-info";
+    height: 3em;
+    width: 100%;
+    /* position: fixed;
+    bottom: 64px;
+    width: 100%;*/
+    grid-row: 3 / 4;
+}
+
+    .contenedor-historial-pie .cuerpo-pie-navegador {
+        display: none !important;
+    }
+
+    .contenedor-historial-pie .cuerpo-pie-info {
+        display: none !important;
+    }
+
+.contenedor-historial-menu {
+    width: 100%;
+    padding: 0.2em;
+    display: grid;
+    grid-template-columns: 10em auto 0.3fr 1.5em 0em;
+    grid-template-rows: 1fr;
+    column-gap: 0.5em;
+}
+
+.zona-historial-menu {
+    width: 90%;
+}
+
+    .zona-historial-menu > div > div > input {
+        vertical-align: -webkit-baseline-middle;
+    }
+
+    .zona-historial-menu > div > div > form > input {
+        vertical-align: -webkit-baseline-middle;
+    }
+
+.titulo-historial {
+    width: 100%;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: center;
+    align-self: center;
+    justify-content: center;
+    font-size: large;
+    color: darkred;
+    font-weight: bold;
+}
+
+.proceso-historial {
+    width: 100%;
+}
+
+.div-historial-filtro-expansor {
+    width: 100%;
+    text-align: right;
+    align-content: end;
+    padding-right: 1.5em;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    align-self: center;
+}
+
+.menu-historial {
+    width: 100%;
+    content: url(../images/Menu/MenuIndividual.png);
+    min-height: 1.5em;
+    min-width: 1.5em;
+    max-height: 1.5em;
+    max-width: 1.5em;
+    align-self: center;
+    cursor: grabbing;
+}
+
+.contenedor-filtro-bloque-historial {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+    .contenedor-filtro-bloque-historial label {
+        width: 100px; /* Ancho deseado para las etiquetas */
+    }
+
+    .contenedor-filtro-bloque-historial input, .contenedor-filtro-bloque-historial select {
+        flex: 1; /* El campo de entrada ocupará el espacio restante */
+        height: 30px; /* Altura deseada para los elementos */
+        width: 80%;
+    }
+
+.suceso {
+    width: 1em;
+    height: 1em;
+    align-content: center;
+    display: flex;
+    border-radius: 50%;
+}
+
+.suceso-hito {
+    /*background-color: #ff0000;*/
+    background-image: url(../images/transicion.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+
+.suceso-evento {
+    /*background-color: #ff0000;*/
+    background-image: url(../images/menu/Agenda.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+.suceso-observacion {
+    /*    height: 0.8em !important;
+    background-color: #B0BD97;*/
+    background-image: url(../images/comentario.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+.suceso-tarea {
+    /*    background-color: powderblue;
+    border-radius: 0% !important;*/
+    background-image: url(../images/tarea.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+.suceso-archivador {
+    /*background-color: springgreen;*/
+    background-image: url(../images/archivador.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+.suceso-archivo {
+    /*    width: 0 !important;
+    height: 0 !important;
+    border-left: 0.5em solid transparent;
+    border-right: 0.5em solid transparent;
+    border-bottom: 0.866em solid aqua;
+    border-radius: 0% !important;*/
+    background-image: url(../images/archivo.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+.suceso-presupuesto {
+    /*    background-color: brown;
+    border-radius: 0% !important;
+    transform: rotate(45deg);*/
+    background-image: url(../images/presupuesto.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+.suceso-correo {
+    /*    background-color: brown;
+    border-radius: 0% !important;
+    transform: rotate(45deg);*/
+    background-image: url(../images/correo.png);
+    background-size: 1em 1em;
+    border-radius: 0% !important;
+}
+
+.color-suceso-hito {
+    color: #FF0000; /* Rojo puro */
+}
+    .color-suceso-hito input[type="text"] {
+        color: firebrick !important;
+    }
+
+.color-suceso-observacion {
+    color: #800080; /* Magenta puro, aunque 'magneta' puede referirse a varios tonos */
+}
+    .color-suceso-observacion input[type="text"] {
+        color: #800080 !important;
+    }
+
+.color-suceso-evento {
+    color: #ffd800;
+}
+
+    .color-suceso-evento input[type="text"] {
+        color: #ffd800 !important;
+    }
+
+
+.color-suceso-tarea  {
+    color: #00008B; /* Azul Oscuro (DarkBlue), un azul fuerte */
+}
+    .color-suceso-tarea input[type="text"] {
+        color: #00008B !important;
+    }
+
+
+.color-suceso-archivador {
+    color: #006400; /* Verde Oscuro (DarkGreen) */
+    /* También podrías usar: color: darkgreen; */
+}
+    .color-suceso-archivador input[type="text"] {
+        color: #006400 !important;
+    }
+
+
+.color-suceso-archivo {
+    color: #FFC0CB; /* Rosa claro (Pink) */
+    /* Sugerencia: Para un rosa más intenso: color: #FF00FF; (Fuchsia) */
+}
+    .color-suceso-archivo input[type="text"] {
+        color: #FFC0CB !important;
+    }
+
+
+.color-suceso-presupuesto  {
+    color: #EE82EE; /* Violeta (Violet) */
+    /* También podrías usar: color: #8A2BE2; (BlueViolet) */
+}
+    .color-suceso-presupuesto input[type="text"] {
+        color: #EE82EE !important;
+    }
+
+
+.color-suceso-correo {
+    color: #800080; /* Morado (Purple) */
+    /* También podrías usar: color: purple; */
+}
+    .color-suceso-correo input[type="text"] {
+        color: #800080 !important;
+    }

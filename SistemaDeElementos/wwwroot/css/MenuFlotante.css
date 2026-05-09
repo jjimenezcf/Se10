@@ -1,0 +1,149 @@
+﻿/*.menu-flotante {
+    display: none;
+    z-index: 1000;
+    position: absolute;
+    overflow: hidden;
+    border: 1px solid #595959;
+    white-space: nowrap;
+    font-family: sans-serif;
+    font-size: 12px;
+    border-radius: 2px;
+    padding: 0;
+    opacity: 0;
+    -webkit-transition: opacity 200ms;
+    -moz-transition: opacity 200ms;
+    -o-transition: opacity 200ms;
+    -ms-transition: opacity 200ms;
+}
+
+.menu-flotante-black {
+    background: black;
+    color: white;
+}
+
+.menu-flotante-white {
+    background: white;
+    color: black;
+}
+
+.menu-flotante-white-shadow {
+    box-shadow: 0 0 15px grey;
+}*/
+
+.menu-flotante-con-scroll {
+    max-height: 300px;
+    overflow-y: auto !important;
+}
+
+/*.menu-flotante-black-shadow {
+    box-shadow: 0 0 15px black;
+}
+
+.menu-flotante li {
+    padding: 5px 8px;
+    cursor: pointer;
+}
+
+    .menu-flotante li.disabled {
+        color: darkgrey;
+        cursor: default;
+    }
+
+.menu-flotante-black li:hover {
+    background-color: #284160;
+}
+
+.menu-flotante-white li:hover {
+    background-color: #81B2D6;
+}
+
+.menu-flotante-black li.disabled:hover {
+    background-color: #202020;
+}
+
+.menu-flotante-white li.disabled:hover {
+    background-color: lightgrey;
+}
+
+.menu-flotante i {
+    padding-right: 6px
+}
+
+.menu-flotante hr {
+    background-color: grey;
+    height: 2px;
+    border: 0;
+    margin: 2px 0px;
+}
+*/
+
+/*
+ * ESTILOS PARA EL MENÚ CONTEXTUAL (.menu-flotante)
+ * Adaptado para seguir el modelo de los menús desplegables de la cabecera.
+ */
+
+/* 1. Contenedor principal del menú (.menu-flotante - el <ul>) */
+.menu-flotante {
+    /* Mantener propiedades de posicionamiento y visibilidad del menu-flotante existente */
+    display: none; /* Controlado por JS */
+    z-index: 1000;
+    position: absolute;
+    white-space: nowrap;
+    opacity: 0; /* Controlado por JS para transiciones */
+    -webkit-transition: opacity 200ms;
+    -moz-transition: opacity 200ms;
+    -o-transition: opacity 200ms;
+    -ms-transition: opacity 200ms;
+    /*overflow: hidden*/; /* Asegura que todo el contenido respete los bordes redondeados */
+    /* **Nuevos estilos para el "cuadrado bonito"** (Anulan los de .menu-flotante y .menu-flotante-white-shadow) */
+    list-style-type: none; /* Quita los puntos de la lista */
+    margin: 0;
+    padding: 8px 0; /* Añade un poco de espacio vertical interior */
+    background-color: #ffffff; /* Fondo blanco para que resalte (ya lo da .menu-flotante-white, pero lo reiteramos para claridad) */
+    border: 1px solid #ddd; /* Borde sutil (anula el borde #595959) */
+    border-radius: 8px; /* Bordes redondeados para un look moderno (anula el border-radius: 2px) */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra para darle profundidad y sensación de "flotar" (anula el box-shadow existente) */
+    /* --- NUEVAS PROPIEDADES PARA EL SCROLL --- */
+    max-height: 80vh; /* Altura máxima: 80% del alto de la ventana */
+    overflow-y: auto; /* Muestra el scroll solo si es necesario */
+    overflow-x: hidden; /* Evita scroll horizontal si no es necesario */
+}
+
+    /* Opcional: Para que el scroll sea más estético en navegadores modernos */
+    .menu-flotante::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .menu-flotante::-webkit-scrollbar-thumb {
+        background: #808080;
+        border-radius: 10px;
+    }
+
+    /* 2. Cada opción del menú (el <li>) */
+    .menu-flotante li {
+        list-style-type: none; /* Asegura que no haya viñetas en los items */
+        margin: 0; /* Elimina cualquier margen de lista por defecto */
+        /* background: transparent; /* Asegura que el color de fondo lo maneje el hover/active */
+        /* **Nuevos estilos para la apariencia de las opciones** (Anulan los de .menu-flotante li) */
+        display: block; /* Hace que el elemento ocupe todo el espacio y permita padding */
+        padding: 10px 20px; /* Espaciado interno para que no esté pegado al texto (anula padding: 5px 8px) */
+        color: #333; /* Color de texto oscuro (anula el color negro de .menu-flotante-white) */
+        text-decoration: none; /* Aunque no es un <a>, mantiene la intención */
+        font-size: 14px; /* Tamaño de fuente consistente (anula font-size: 12px) */
+        cursor: pointer; /* Muestra el cursor de puntero al pasar por encima */
+        /* La magia de la transición suave */
+        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    }
+
+        /* 3. Efecto al pasar el ratón por encima (HOVER) en los LI */
+        .menu-flotante li:hover {
+            background-color: #f0f0f0; /* Color de fondo gris claro para resaltar */
+            color: #000; /* Texto un poco más oscuro */
+        }
+
+        /* 4. Efecto al hacer clic (ACTIVE) - La transición de pulsación en los LI */
+        .menu-flotante li:active {
+            background-color: #e0e0e0; /* Un fondo ligeramente más oscuro que el hover */
+            transform: scale(0.98); /* Reduce ligeramente el tamaño para simular que se presiona */
+        }
+

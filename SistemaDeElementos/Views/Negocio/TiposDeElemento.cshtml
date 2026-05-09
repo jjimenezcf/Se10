@@ -1,0 +1,8 @@
+﻿@model MVCSistemaDeElementos.Descriptores.DescriptorDeTiposDeElemento
+
+@{
+    ViewData["Title"] = $"{Model.Titulo}";
+}
+
+
+@Html.Raw(Model.RenderTiposDeElemento())

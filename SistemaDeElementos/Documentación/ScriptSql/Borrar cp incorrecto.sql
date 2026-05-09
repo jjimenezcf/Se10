@@ -1,0 +1,22 @@
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP (1000) [ID]
+      ,[CP]
+      ,[PROVINCIA]
+      ,[MUNICIPIOS]
+  FROM [SE_ARKENOS].[CALLEJERO].[CODIGO_POSTAL] where  cp like '1700%' -- 3048
+
+
+  delete CALLEJERO.CODIGO_POSTAL where id = 11057
+
+  delete CALLEJERO.MUNICIPIO_CP where ID_CP = 11057
+
+  delete CALLEJERO.PROVINCIA_CP where ID_CP = 11057
+
+  delete CALLEJERO.CALLE_CP where ID_CP = 11057
+
+
+  select * from TERCEROS.CLIENTE_DIRECCION where ID_CP = 11057 --2
+
+  update TERCEROS.CLIENTE_DIRECCION set id_cp = 3048 where ID_CP = 11057 --2 VENTA.FACTURA_EMT_DIRECCION
+  
+  update VENTA.FACTURA_EMT_DIRECCION set id_cp = 3048 where ID_CP = 11057 --2 VENTA.FACTURA_EMT_DIRECCION

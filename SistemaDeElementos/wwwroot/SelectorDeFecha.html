@@ -1,0 +1,75 @@
+﻿
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <!-- jQuery -->
+        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>-->
+
+        <!-- Bootstrap -->
+        <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+
+        <!-- Datepicker -->
+        <!--<link href='bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' rel='stylesheet' type='text/css'>
+        <script src='bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' type='text/javascript'></script>-->
+    </head>
+    <body>
+
+
+
+        <div class="container">
+            <div class="form-group">
+                <div class='input-group date' id='datetimepicker1'>
+                    <input type="date" name="fecha">
+                    <input type="time" name="fecha">
+                </div>
+            </div>
+
+            <!-- Año y mes -->
+            <time>2015-07</time>
+
+            <!-- Fecha -->
+            <time>2015-07-26</time>
+
+            <!-- Hora -->
+            <time>23:54</time>
+            <time>23:54:39</time>
+
+            <!-- Fecha y hora -->
+            <time>2015-07-26T23:44</time>
+            <time>2015-07-26T11:44:17</time>
+            <time>2015-07-26 23:44</time>
+            <time>2015-07-26 23:44:17</time>
+
+            <!-- Zona horaria -->
+            <time>Z</time>
+            <time>+0100</time>
+            <time>+01:00</time>
+            <time>-0800</time>
+            <time>-08:00</time>
+
+
+        </div>
+
+
+
+
+        <div id="id-modal-historial" class="contenedor-modal" >
+            <div id="id-contenedor-historial" class="contenido-modal">
+                <div id="id-historial-cabecera" class="contenido-cabecera">
+                    Historial de mensaje
+                </div>
+                <div id="id-historial-cuerpo" class="contenido-cuerpo">
+                    <textarea id="mensaje-historial">
+
+                    </textarea>
+                </div>
+                <div id="{IdHtml}_pie" class="contenido-pie">
+                    <input type="text" id="{IdHtml}-cerrar" class="boton-modal" value="Cerrar" readonly />
+                </div>
+            </div>
+        </div>       
+    </body>
+</html>
+

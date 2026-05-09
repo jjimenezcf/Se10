@@ -1,0 +1,213 @@
+﻿<!DOCTYPE html>
+<html lang="es-es">
+@{
+        // Evalúa si el acceso es anónimo (true) o no (false)
+        var accesoAnonimo = (ViewData["AccesoAnonimo"] is bool anon) && anon;
+}
+<head>
+    <meta http-equiv="Expires" content="-1">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @* <link href="manifest.json" rel="manifest" /> *@
+    <title>@ViewData["Title"]</title>
+
+    @if (!accesoAnonimo)
+    {
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css">
+
+        <link rel="stylesheet" href="~/css/PanelDeControl.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/PanelDeControlCabecera.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/PanelDeControlCuerpo.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/PanelDeControlPie.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/Formulario.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/ControlesDto.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/SelectorEnModal.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/Exportacion.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/EnvioDeCorreos.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/Grid.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/ApiDeArchivos.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/Expansores.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/CrudHistorial.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/CrudCreacion.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/CrudEdicion.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/CrudBase.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/CrudModal.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/seMenu.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/Jerarquia.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/MenuFlotante.css" type="text/css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/Agenda.css" type="text/css" asp-append-version="true">
+        @*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">*@
+
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
+        @*<script src="~/js/popper.min.js"></script>*@
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
+
+        @*<script type="text/javascript" src="https://maps.google.com/maps/api/js"></script>*@
+        @if ((ViewData["DatosDeConexion"] as DatosDeConexion).UsarBundle)
+        {
+            <script src="/js/bundle.js" asp-append-version="true"></script>
+        }
+        else
+        {
+            <script src="~/js/_Literales/Literales.js" asp-append-version="true"></script>
+            <script src="~/js/Mensajes.js" asp-append-version="true"></script>
+            <script src="~/js/Diccionario.js" asp-append-version="true"></script>
+            <script src="~/js/_TiposDeDatos/TiposDeDatos.js" asp-append-version="true"></script>
+            <script src="~/js/_TiposDeDatos/ModoAcceso.js" asp-append-version="true"></script>
+            <script src="~/js/Utilidades.js" asp-append-version="true"></script>
+            <script src="~/js/InfoSelector.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiLocalStorage.js" asp-append-version="true"></script>
+            <script src="~/js/Registro.js" asp-append-version="true"></script>
+            <script src="~/js/Cookies.js" asp-append-version="true"></script>
+            <script src="~/js/HistorialDeNavegacion.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeAjax.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeAgenda.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeCertificados.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDePassword.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeInicializacion.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeArchivos.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDragAndDrop.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeListasDinamicas.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDePeticiones.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeMapeos.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeExpansor.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeGrid.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeControles.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiPanel.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeMenuFlotante.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeJerarquia.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/MapearAlPanel.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/MapearAlControl.js" asp-append-version="true"></script>
+            <script src="~/js/_Api/ApiDeDireccion.js" asp-append-version="true"></script>
+            <script src="~/js/ArbolDeMenu.js" asp-append-version="true"></script>
+            <script src="~/js/EntornoSe.js" asp-append-version="true"></script>
+            <script src="~/js/_Formulario/FormularioBase.js" asp-append-version="true"></script>
+            <script src="~/js/_Formulario/Jerarquia.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/ApiDelCrud.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/CrudBase.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/GridDeDatos.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/CrudCreacion.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/CrudEdicion.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/CrudHistorial.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/ModalConGrid.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/ModalParaRelacionar.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/ModalParaImputar.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/ModalParaConsultarRelaciones.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/ModalParaSeleccionar.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/ModalDeSeleccion.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/CrudMantenimiento.js" asp-append-version="true"></script>
+            <script src="~/js/_Crud/GestorDeEventos.js" asp-append-version="true"></script>
+        }
+    }
+
+    <script>
+        @if (!accesoAnonimo)
+        {
+                @:EntornoSe.InicializarHistorial();
+        }
+    </script>
+</head>
+
+@using ServicioDeDatos
+
+<body class="body-pagina">
+    <div class="background-image"></div>
+    @RenderBody()
+
+    @if (!accesoAnonimo)
+    {
+        <script>
+            document.documentElement.style.setProperty('--background-opacity', '@CacheDeVariable.LYT_Opacidad.ToString().Replace(",", ".")');
+            document.documentElement.style.setProperty('--background-image-url', 'url("@CacheDeVariable.LYT_Imagen_De_Fondo")');
+        </script>
+
+        <div id="id-modal-menu" class="modal-menu">
+            <div id="id-contenedor-menu" class="menu-contenedor">
+            </div>
+        </div>
+
+        <div id="id-modal-historial" class="contenedor-modal-de-mensajes">
+            <div id="id-contenedor-historial" class="contenido-modal">
+                <div id="id-historial-cabecera" class="contenido-cabecera">
+                    Historial de mensajes
+                </div>
+                <div id="id-historial-cuerpo" class="contenido-cuerpo" style="max-height: 30em;">
+                    <div id="id-historial-cuerpo.tabla" class="div-tabla cuerpo-datos-tabla table table-striped" style="margin-bottom: 0px;">
+                        <div id="id-historial-cuerpo.cabecera" class="div-thead thead-historial-mensajes">
+                            <div id="id-historial-tabla.cabecera.fila" class="div-tr">
+                                <div class="div-th columna-cabecera" propiedad="_mensaje" style="text-align: left; width: auto">
+                                    Mensaje
+                                </div>
+                                <div class="div-th columna-cabecera" propiedad="_fecha" style="text-align: right; width: 5em">
+                                    Fecha
+                                </div>
+                                <div class="div-th columna-cabecera" propiedad="_tipo" style="text-align: center; width: 5em">
+                                    Tipo
+                                </div>
+                                <div class="div-th columna-cabecera" propiedad="_origen" style="text-align: left; width: 40em">
+                                    Origen
+                                </div>
+                            </div>
+                        </div>
+                        <div id="id-historial-tabla.body" class="div-tbody cuerpo-datos-tbody">
+                            <!-- lineas de la clase: cuerpo-datos-tbody-tr-->
+                        </div>
+                    </div>
+                </div>
+                <div id="{IdHtml}_pie" class="contenido-pie">
+                    <input type="text" id="id-historial-cuerpo-cerrar" class="boton-modal" value="Cerrar" onclick="MensajesSe.CerrarHistorial()" readonly />
+                    <input type="text" id="id-historial-cuerpo-borrar" class="boton-modal" value="Borrar" onclick="MensajesSe.BorrarHistorial()" readonly />
+                </div>
+            </div>
+        </div>
+
+        <div id="contenedor-subir-certificado">
+        </div>
+
+        <div id="contenedor-cambiar-password">
+        </div>
+
+        <div id="contenedor-modal-ia">
+        </div>
+    }
+    @RenderSection("Scripts", required: false)
+
+    @if (!accesoAnonimo)
+    {
+        <script>
+            function Ajustar() {
+            EntornoSe.AjustarDivs();
+            }
+
+            function Inicializar() {
+            EntornoSe.IniciarEntorno();
+            }
+
+            function Navegar() {
+            console.log("location: " + document.location + ", state: " + JSON.stringify(event.state));
+            }
+
+            window.onresize = Ajustar;
+            window.onhashchange = Navegar;
+
+            // document.addEventListener('DOMContentLoaded', function() {
+            //     EntornoSe.IniciarEntorno();
+            // });
+
+            document.addEventListener('DOMContentLoaded', function() {
+            @if (!accesoAnonimo)
+            {
+                    @:EntornoSe.IniciarEntorno();
+            }
+            });
+
+        </script>
+    }
+
+</body>
+</html>
+
+
+
+

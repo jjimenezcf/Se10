@@ -1,0 +1,18 @@
+﻿CREATE VIEW [ENTORNO].[MENU_SE]
+AS
+     SELECT T1.ID, 
+            T1.NOMBRE, 
+            T1.DESCRIPCION, 
+            T1.ICONO, 
+            T1.ACTIVO, 
+            T1.IDPADRE, 
+            T1.IDVISTA_MVC, 
+            T1.ORDEN, 
+            T2.NOMBRE AS PADRE, 
+            T3.NOMBRE AS VISTA, 
+            T3.CONTROLADOR, 
+            T3.ACCION, 
+            T1.PARAMETROS
+     FROM ENTORNO.ARBOL_MENU() AS T1
+     LEFT JOIN ENTORNO.MENU T2 ON T2.ID = T1.IDPADRE
+     LEFT JOIN ENTORNO.VISTA_MVC T3 ON T3.ID = T1.IDVISTA_MVC

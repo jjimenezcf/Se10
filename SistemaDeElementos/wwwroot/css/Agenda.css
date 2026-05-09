@@ -1,0 +1,57 @@
+﻿
+
+.evento-ajustado-al-contenedor {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-right: 0;
+    overflow-x: hidden;
+    overflow-y: auto
+}
+
+/* enumerado del negocio en minúscula indica el color de la agenda */
+
+.tarea {
+    background-color: aquamarine;
+}
+.expediente {
+    background-color: aqua;
+}
+.pleito {
+    background-color: cornflowerblue;
+}
+.registro {
+    background-color:violet;
+}
+.presupuesto {
+    background-color:antiquewhite;
+}
+.contrato {
+    background-color: azure;
+}
+.planificaciondeventa {
+    background-color: green;
+}
+.partedetrabajo {
+    background-color:chocolate;
+}
+.facturaemitida {
+    background-color: coral;
+}
+.remesafae {
+    background-color: gold;
+}
+.pago {
+    background-color:aliceblue;
+}
+.remesapag {
+    background-color: silver;
+}
+.infante {
+    background-color: burlywood;
+}
+.cursodeguarderia {
+    background-color: cadetblue;
+}

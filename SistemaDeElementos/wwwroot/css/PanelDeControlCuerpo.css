@@ -1,0 +1,153 @@
+﻿
+
+.cuerpo-cabecera {
+    align-self: start;
+    grid-area: cuerpo-cabecera;
+    /*background-color: red;*/
+    height: 3em;
+    width: 100%;
+    /*grid-row: 2/1;*/
+    border: ridge
+}
+
+    .cuerpo-cabecera > h2 {
+        margin-left: 10px;
+    }
+
+.cuerpo.cuerpo-solo-con-grid .cuerpo-cabecera {
+    display: none;
+}
+
+
+.cuerpo-datos {
+    display: grid;
+    grid-area: cuerpo-datos;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas:
+        "cuerpo-datos-filtro"
+        "cuerpo-datos-grid";
+    /*background-color: blue;*/
+    width: 100%;
+    /*grid-row: 2/2;*/
+}
+
+.cuerpo-datos-filtro {
+    grid-area: cuerpo-datos-filtro;
+    display:grid;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    align-self: start;
+    /*height: 5em;*/
+    /*background-color: violet;*/
+}
+
+.cuerpo-datos-grid {
+    grid-area: cuerpo-datos-grid;
+    /*background-color: palegoldenrod;*/
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+    border: 4px  ridge;
+    /*grid-row: 2/2/2;*/
+}
+    /* Esto selecciona .cuerpo-datos-grid SI contiene un descendiente .contenedor-tabla-con-graficos */
+    .cuerpo-datos-grid:has(.contenedor-tabla-con-graficos) {
+        overflow-x: hidden;
+    }
+
+/*.cuerpo-datos-filtro {
+    grid-area: cuerpo-datos-filtro;
+    display: grid;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    align-self: start;
+}
+
+.cuerpo-datos-grid {
+    grid-area: cuerpo-datos-grid;
+    height: 100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    display: grid;
+    grid-template-rows: auto auto;
+    grid-template-areas: "contenedor-tabla"
+        "pie-grid";
+}*/
+
+.cuerpo-pie {
+    display: grid;
+    grid-area: cuerpo-pie;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 100%;
+    grid-template-areas: "cuerpo-pie-navegador cuerpo-pie-opciones cuerpo-pie-mensaje cuerpo-pie-info";
+    /*background-color: green;*/
+    height: 3em;
+    width: 100%
+    /*grid-row: 2/3;*/
+}
+
+
+.cuerpo-pie-navegador {
+    grid-area: cuerpo-pie-navegador;
+    display: flex;
+    padding-left: 0.4em;
+    padding-top: 0.4em;
+}
+
+    .cuerpo-pie-navegador > div {
+        display: inline-flex;
+        align-self: center;
+    }
+
+        .cuerpo-pie-navegador > div > img {
+            width: 22px;
+            height: 22px;
+        }
+
+.cuerpo-pie-opciones {
+    grid-area: cuerpo-pie-opciones;
+    text-align: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    align-self: center;
+    padding-top: 1em;
+}
+
+.cuerpo-pie-mensaje {
+    grid-area: cuerpo-pie-mensaje;
+    text-align: end;
+    margin-right: 2em;
+    align-self: center;
+    padding-top: 0.4em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cuerpo-pie-info {
+    grid-area: cuerpo-pie-info;
+    text-align: end;
+    margin-right: 2em;
+    align-self: center;
+    padding-top: 0.4em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+@media (max-width: 700px) {
+    .cuerpo-pie-mensaje  {
+        display: none !important;
+    }
+    .cuerpo-pie-info {
+        display: none !important;
+    }
+}
+
+

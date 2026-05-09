@@ -1,0 +1,76 @@
+<div class="flex flex-col">
+  <div class="sm:-mx-6 lg:-mx-8">
+    <div class="inline-block min-w-full sm:px-6 lg:px-8">
+      <div class="mb-3">
+        <input type="file" class="h-0 w-0" hidden #fileInput (change)="fileChangeListener($event)" />
+        <button class="btn btn-primary btn-sm w-full" (click)="fileInput.click()" [disabled]="file">
+          Cargar fichero
+        </button>
+        <ng-container *ngIf="isPhone">
+          <input type="file" class="h-0 w-0" accept="image/*" capture="camera" hidden #mobileFileInput
+            (change)="fileChangeListener($event)" />
+          <button class="btn btn-secondary btn-sm lg:ms-1 mt-1 lg:mt-0 w-full" (click)="mobileFileInput.click()"
+            [disabled]="file">
+            Usar cámara
+          </button>
+        </ng-container>
+        <div *ngIf="file" class="border p-3 mt-3 lg:flex items-center justify-between">
+          <div class="text-sm align-middle block">
+            <span class="font-bold">{{file.name}}</span>
+          </div>
+          <div class="mt-2">
+            <button class="btn btn-primary btn-sm w-full" (click)="uploadFile()" [disabled]="uploadingFiles">
+              <span *ngIf="!uploadingFiles; else buttonLoading">Subir</span>
+            </button>
+            <button class="btn btn-secondary btn-sm mt-1 lg:mt-0 lg:ms-1 w-full"
+              (click)="removeFile()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+      <div class="overflow-auto">
+        <app-table [items]="items" [pagination]="false" [sorting]="false" [loading]="loadingFiles">
+          <ng-template appTableTemplate="header">
+            <tr>
+              <th scope="col">
+                Fichero
+              </th>
+              <td></td>
+            </tr>
+          </ng-template>
+
+          <ng-template appTableTemplate="body" let-item let-index="index">
+            <tr class="border-b">
+              <td xs-label="Fichero">
+                {{item.nombre}}
+              </td>
+              <td class="text-end whitespace-nowrap">
+                <button class="btn btn-primary btn-sm" (click)="downloadFile(item.id)"
+                  [disabled]="downloadinFiles[item.id]">
+                  <span *ngIf="!downloadinFiles[item.id]; else buttonLoading">Descargar</span>
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template appTableTemplate="loading">
+            <tr>
+              <td colspan="4" class="text-center">
+                <fa-icon class="text-gray-700" [icon]="spinnerIcon" [spin]="true" size="3x"></fa-icon>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template appTableTemplate="noItemsFound">
+            <div class="p-4 text-black">
+              No se han encontrado elementos
+            </div>
+          </ng-template>
+        </app-table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #buttonLoading>
+  <fa-icon [icon]="spinnerIcon" [spin]="true"></fa-icon>
+</ng-template>

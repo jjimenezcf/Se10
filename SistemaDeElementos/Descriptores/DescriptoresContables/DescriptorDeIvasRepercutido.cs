@@ -1,0 +1,46 @@
+﻿using ServicioDeDatos;
+using MVCSistemaDeElementos.Controllers;
+using UtilidadesParaIu;
+using Utilidades;
+using ServicioDeDatos.Seguridad;
+using ModeloDeDto.Contabilidad;
+
+namespace MVCSistemaDeElementos.Descriptores
+{
+    public class DescriptorDeIvasRepercutido : DescriptorDeCrud<IvaRepercutidoDto>
+    {
+        public DescriptorDeIvasRepercutido(ContextoSe contexto, ModoDescriptor modo)
+        : base(contexto
+               , nameof(IvasRepercutidoController)
+               , nameof(IvasRepercutidoController.CrudIvasRepercutido)
+               , modo
+               , rutaBase: enumNameSpaceTs.Contabilidad)
+        {
+            Mnt.Filtro.FiltroDeNombre.CambiarAtributos(ltrIvaRep.IvaRepercutido, nameof(IvaRepercutidoDto.Expresion), "Buscar por código o descripción de cuenta");
+        }
+
+
+        public override string RenderControl()
+        {
+            var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{Modo}-{GetType().FullName}";
+            if (ServicioDeCaches.Obtener(CacheDe.RenderCrud).ContainsKey(indice))
+				 return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
+            var render = base.RenderControl();
+
+            render = render +
+                   $@"<script src=¨../../js/{RutaBase}/IvasRepercutido.js?v={System.DateTime.Now.Ticks}¨></script>
+                      <script>
+                         try {{      
+                           {RutaBase}.CrearCrudDeIvasRepercutido('{Mnt.IdHtml}', '{Creador.IdHtml}', '{Editor.IdHtml}', '{Borrado.IdHtml}') 
+                         }}
+                         catch(error) {{                           
+                            MensajesSe.Error('Creando el crud', error.message);
+                         }}
+                      </script>
+                    ";
+            ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice] = render.Render();
+			return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
+        }
+
+    }
+}

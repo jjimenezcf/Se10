@@ -1,0 +1,7 @@
+﻿create PROCEDURE CALLEJERO.IMPORTAR
+AS
+     BEGIN
+
+	 SELECT 'PENDIENTE'
+
+     end

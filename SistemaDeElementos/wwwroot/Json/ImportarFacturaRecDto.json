@@ -1,0 +1,69 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "RestrictorFijo": "Negocio;FacturaRecibida;Gestor",
+    "Posicion": {
+      "Fila": 0,
+      "Columna": 0
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "SeleccionarDe": "ModeloDeDto.Gastos.TipoDeFacturaRecDto",
+    "VistaDondeNavegar": "TiposDeFacturaRec",
+    "RestrictorFijo": "Negocio;FacturaRecibida;Gestor",
+    "Negocio": "FacturaRecibida",
+    "Posicion": {
+      "Fila": 0,
+      "Columna": 2,
+      "Posicion": 0
+    },
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "ClaseDeElemento",
+    "Posicion": {
+      "Fila": 0,
+      "Columna": 2,
+      "Posicion": 1
+    },
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "Numero",
+    "PosicionEnGrid": 5
+  },
+  {
+    "propiedad": "Proveedor",
+    "PosicionEnGrid": 8,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 0
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 4,
+    "EtiquetaGrid": "Asunto",
+    "Etiqueta": "Asunto",
+    "PorAnchoMnt": 30,
+    "Posicion": {
+      "Fila": 2,
+      "Columna": 2
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "BaseImponible",
+    "PosicionEnGrid": 9
+  },
+  {
+    "propiedad": "TotalDelPago",
+    "PosicionEnGrid": 10
+  }
+]

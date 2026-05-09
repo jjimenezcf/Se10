@@ -1,0 +1,400 @@
+﻿.cabecera-menu,
+.cabecera-consultas,
+.cabecera-favoritos,
+.cabecera-opciones {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.cabecera-menu {
+    grid-area: cabecera-menu;
+    justify-self: start;
+    text-align: left;
+    min-width: 100px;
+    cursor: pointer;
+}
+
+    .cabecera-menu > input,
+    .cabecera-consultas > input,
+    .cabecera-favoritos > input,
+    .cabecera-opciones > form > button {
+        background: #00b9ff;
+        text-align: left;
+        border: none;
+        padding-left: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .cabecera-menu > img {
+        margin-left: 10px;
+        /* margin-top: 1px;*/
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-right: 0px;
+        width: 20px;
+        height: 20px;
+    }
+
+.cabecera-separador {
+    justify-self: center;
+    align-self: stretch;
+    grid-area: cabecera-separador;
+    align-items: center;
+}
+
+.cabecera-consultas {
+    grid-area: cabecera-consultas;
+    justify-self: start;
+}
+
+.cabecera-opciones {
+    grid-area: cabecera-opciones;
+    text-align: right;
+    cursor: pointer;
+}
+
+.cabecera-favoritos {
+    grid-area: cabecera-favoritos;
+    justify-self: start;
+    cursor: pointer;
+    position: relative;
+}
+
+.cabecera-opciones > form > button {
+    text-align: right;
+    background: #00b9ff;
+}
+
+.cabecera-consultas:hover,
+.cabecera-favoritos:hover,
+.cabecera-menu:hover,
+.cabecera-consultas:hover > input,
+.cabecera-favoritos:hover > input,
+.cabecera-menu:hover > input {
+    background-color: #0095cc;
+}
+
+.menu-de-cabecera {
+    text-align: left;
+}
+
+    .menu-de-cabecera > input {
+        text-align: left;
+        border: hidden;
+        background: #00b9ff;
+        padding-left: 1em;
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu-de-cabecera > div {
+        display: block;
+        background-color: white;
+        z-index: 10;
+        position: fixed;
+        border: ridge;
+        padding-left: 0.1em;
+        max-width: inherit
+    }
+
+        .menu-de-cabecera > div > ul {
+            /*list-style: initial;*/
+            padding-left: 0.3em;
+        }
+
+            .menu-de-cabecera > div > ul > li {
+                text-align: left;
+                border: hidden;
+                margin-top: 0.6em;
+                overflow-x: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                list-style: inside;
+            }
+
+                .menu-de-cabecera > div > ul > li > a {
+                    text-align: left;
+                    font-weight: bolder;
+                    /*position: relative;*/
+                    /*z-index: 3;*/
+                }
+
+.menu-pnlctr-oculto {
+    display: none;
+}
+
+.contenedor-menu-about {
+    position: absolute;
+    right: 10px;
+    top: 50px;
+    z-index: 1000;
+}
+
+.contenedor-menu-favoritos {
+    position: absolute;
+    right: 10px;
+    top: 50px;
+    z-index: 1000;
+    width: 200px
+}
+
+.contenedor-menu-ultimos-accesos {
+    position: absolute;
+    right: 10px;
+    top: 50px;
+    z-index: 1000;
+    width: 200px
+}
+
+.contenedor-menu-ultimos-registros {
+    position: absolute;
+    right: 10px;
+    top: 50px;
+    z-index: 1000;
+    width: 200px
+}
+
+/*
+ * ESTILOS PARA LOS MENÚS DESPLEGABLES DE LA CABECERA
+ */
+
+
+.opc-menu-prc-ia a,
+.opc-menu-prc-verfactu a,
+.opc-menu-prc-logout a {
+    background-repeat: no-repeat;
+    background-position: 5px center; /* Posicionar el icono a la izquierda */
+    padding-left: 30px;
+}
+
+/* Icono de Configuración/Rosca para IA */
+.opc-menu-prc-ia > a {
+    background-image: url('../images/menu/setting.png');
+    background-size: 18px 18px; /* Tamaño del icono */
+}
+
+/* Icono de Descarga para Veri*fatu */
+.opc-menu-prc-verfactu a {
+    background-image: url('../images/menu/DescargarDocumento.png');
+    background-size: 18px 18px;
+}
+
+/* Icono de Salida/Logout */
+.opc-menu-prc-logout a {
+    background-image: url('../images/menu/logout.png');
+    background-size: 18px 18px;
+}
+
+
+/* 1. Contenedor principal del menú (el <ul>) - El "cuadrado bonito" */
+.contenedor-menu-ultimos-registros ul,
+.contenedor-menu-ultimos-accesos ul,
+.contenedor-menu-favoritos ul, 
+.contenedor-menu-about ul {
+    list-style-type: none; /* Quita los puntos de la lista */
+    margin: 0;
+    padding: 8px 0; /* Añade un poco de espacio vertical interior */
+    background-color: #ffffff; /* Fondo blanco para que resalte */
+    border: 1px solid #ddd; /* Borde sutil */
+    border-radius: 8px; /* Bordes redondeados para un look moderno */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra para darle profundidad y sensación de "flotar" */
+    /* overflow: hidden;  Asegura que todo el contenido respete los bordes redondeados */
+}
+
+
+    /* 2. Cada opción del menú (el <li> y su enlace <a>) */
+    .contenedor-menu-ultimos-registros ul li a,
+    .contenedor-menu-ultimos-accesos ul li a,
+    .contenedor-menu-favoritos ul li a,
+    .contenedor-menu-about ul li a {
+        display: flex !important; /* Hace que el enlace ocupe todo el espacio del <li> */
+        padding: 10px 28px; /* Espaciado interno para que no esté pegado al texto */
+        color: #333; /* Color de texto oscuro */
+        text-decoration: none; /* Quita el subrayado de los enlaces */
+        font-size: 14px;
+        /* La magia de la transición suave */
+        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    }
+
+        /* 3. Efecto al pasar el ratón por encima (HOVER) */
+        .contenedor-menu-ultimos-registros ul li a:hover,
+        .contenedor-menu-ultimos-accesos ul li a:hover,
+        .contenedor-menu-favoritos ul li a:hover,
+        .contenedor-menu-about ul li a:hover {
+            background-color: #f0f0f0; /* Color de fondo gris claro para resaltar */
+            color: #000; /* Texto un poco más oscuro */
+        }
+
+        /* 4. Efecto al hacer clic (ACTIVE) - La transición de pulsación */
+        .contenedor-menu-ultimos-registros ul li a:active,
+        .contenedor-menu-ultimos-accesos ul li a:active,
+        .contenedor-menu-favoritos ul li a:active,
+        .contenedor-menu-about ul li a:active {
+            background-color: #e0e0e0; /* Un fondo ligeramente más oscuro que el hover */
+            transform: scale(0.98); /* Reduce ligeramente el tamaño para simular que se presiona */
+        }
+
+
+        /*
+
+            */
+
+        .contenedor-menu-ultimos-registros ul li a input,
+        .contenedor-menu-ultimos-accesos ul li a input {
+            margin-left: 5px;
+        }
+
+    /* Opcional: Para el li que no es un enlace (si lo tuvieras) */
+    .contenedor-menu-ultimos-registros ul li,
+    .contenedor-menu-ultimos-accesos ul li,
+    .contenedor-menu-favoritos ul li,
+    .contenedor-menu-about ul li {
+        margin: 0;
+        padding: 0;
+    }
+
+.contenedor-menu-derecho-cabecera {
+    display: inline-flex;
+    position: absolute;
+    right: 0px;
+    z-index: 1000;
+    padding: 0;
+    margin: 0;
+}
+
+    .contenedor-menu-derecho-cabecera li {
+        /*padding: 10px;*/
+    }
+
+        .contenedor-menu-derecho-cabecera li a {
+            text-decoration: none;
+            color: black; /* O el color que prefieras */
+        }
+
+        .contenedor-menu-derecho-cabecera li:hover {
+            background-color: #f0f0f0; /* Color de fondo al pasar el mouse */
+        }
+
+/* Estilo base para los ítems del menú principal (Necesario para el 'position: relative') */
+#about-menu-1 li {
+    position: relative;
+    list-style: none;
+}
+
+/* Ocultar el submenú por defecto */
+.submenu-ia {
+    display: none;
+    position: absolute;
+    /* AJUSTE CLAVE: REPOSICIONAMIENTO A LA IZQUIERDA */
+    /* top: 0; mantiene la alineación vertical */
+    top: 0;
+    /* right: 100%; desplaza el submenú completamente a la izquierda del menú principal */
+    right: 100%;
+    /* left: auto; (o simplemente eliminar la propiedad 'left') */
+    left: auto;
+    z-index: 20;
+    /* Propiedades de caja (mantener las anulaciones y estilos) */
+    padding: 0;
+    margin: 0;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    min-width: 150px;
+}
+
+/* Mostrar el submenú al pasar el ratón sobre la opción principal 'IA' */
+.opc-menu-prc-ia:hover > .submenu-ia {
+    display: block;
+}
+
+/* Estilos de los ítems internos del submenú para que se vean bien */
+.submenu-ia li {
+    padding: 0; /* Quitar padding si lo hereda */
+    margin: 0; /* Quitar margen si lo hereda */
+    min-width: 100%; /* Que el ítem ocupe todo el ancho del submenú */
+    white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+/* Estilos de los enlaces internos del submenú para que tengan padding de clic */
+.submenu-ia a {
+    display: block; /* Para que ocupe todo el ancho del li */
+    padding: 6px 15px; /* Padding de un enlace de menú normal */
+    text-decoration: none;
+    color: #333;
+}
+
+    .submenu-ia a:hover {
+        background-color: #f0f0f0; /* Color al pasar el ratón */
+    }
+
+.btn-favoritos {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 30px;
+    padding-left: 30px;
+}
+
+.btn-ultimos-accesos {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-ultimos-registros {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 5px
+}
+
+.btn-about {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 20px;
+}
+
+.ia-disponible {
+}
+
+.ia-seleccionada {
+    position: relative;
+    padding-left: 25px; /* Aumentar el padding para dejar espacio para la marca de selección */
+}
+
+    /* El pseudo-elemento que crea la marca de selección */
+    .ia-seleccionada::before {
+        content: "✓"; /* El caracter de marca de selección */
+        position: absolute;
+        left: 5px; /* Posicionar la marca de selección */
+        color: #4CAF50; /* Color verde para la marca */
+        font-size: 1.2em;
+        font-weight: bold;
+    }

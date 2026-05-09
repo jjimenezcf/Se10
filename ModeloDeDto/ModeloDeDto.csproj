@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7" />
+		<PackageReference Include="Newtonsoft.Json.Schema" Version="4.0.1" />
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Ayudas\Extensiones\Utilidades.csproj" />
+		<ProjectReference Include="..\ServicioDeDatos\ServicioDeDatos.csproj" />
+		<ProjectReference Include="..\Servicios\GestorDeErrores\GestorDeErrores.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NuGet.Packaging" Version="7.3.1" />
+		<PackageReference Include="NuGet.Protocol" Version="7.3.1" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,27 @@
+﻿.selector-en-modal-contenedor {
+    display: grid;
+    grid-template-columns: 1fr 0fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "selector-en-modal-editor selector-en-modal-boton-selector";
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+
+@media (max-width: 47.94em) {
+    .selector-en-modal-editor .contenedor-editor-etiqueta-izquierda {
+        grid-template-columns: 0fr 1fr !important;
+    }
+    .contenedor-editor-etiqueta-izquierda > div > label {
+        display: none !important;
+    }
+}
+.selector-en-modal-editor {
+    display: grid;
+    grid-area: selector-en-modal-editor;
+}
+
+.selector-en-modal-boton-selector {
+    display: grid;
+    grid-area: selector-en-modal-boton-selector;
+}

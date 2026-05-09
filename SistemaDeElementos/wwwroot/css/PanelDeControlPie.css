@@ -1,0 +1,113 @@
+﻿
+.pie-mensaje {
+    align-self: start;
+    grid-area: pie-mensaje;
+    display: grid;
+    background: #00b9ff;
+    grid-template-columns: 32px auto 32px;
+    grid-template-rows: 100%;
+    grid-template-areas: "pie-mensaje-contenedor-hitorial pie-mensaje-contenedor pie-mensaje-contenedor-borrado";
+    /*display: -webkit-inline-box;*/
+}
+
+.pie-mensaje-contenedor-hitorial {
+    /*width: 32px;*/
+    border: ridge;
+    text-align-last: center;
+    background-color: white;
+}
+
+    .pie-mensaje-contenedor-hitorial > img {
+        background-color: white;
+        /*padding-bottom: 2px;*/
+        vertical-align: baseline;
+    }
+
+.pie-mensaje-contenedor {
+    /*width: 100%;*/
+    /*text-align-last: center;*/
+    background-color: white;
+    border: ridge;
+}
+
+    .pie-mensaje-contenedor > input {
+        height: 100%;
+        padding-right: 5px;
+        /*text-align: left;*/
+        border: hidden;
+        /*        margin: 2px;*/
+        width: 100%;
+    }
+
+
+.pie-mensaje-contenedor-borrado {
+    /*width: 32px;*/
+    border: ridge;
+    text-align-last: center;
+    background-color: white;
+}
+
+    .pie-mensaje-contenedor-Borrado > img {
+        background-color: white;
+        padding-bottom: 2px;
+        vertical-align: baseline;
+    }
+
+.pie-conexion {
+    /*align-self: end;*/
+    display: grid;
+    border-top: ridge;
+    grid-area: pie-conexion;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 100%;
+    grid-template-areas: "pie-conexion-datos pie-conexion-usuario";
+    min-height: 30px;
+}
+
+.pie-conexion-datos {
+    grid-area: pie-conexion-datos;
+}
+
+    .pie-conexion-datos > input {
+        width: 100%; /*-webkit-fill-available;*/
+        background: #00b9ff;
+        text-align: left;
+        border: hidden;
+        padding-left: 10px;
+    }
+
+.pie-conexion-usuario {
+    grid-area: pie-conexion-usuario;
+}
+
+    .pie-conexion-usuario > input {
+        width: 100%; /*-webkit-fill-available;*/
+        text-align: right;
+        background: #00b9ff;
+        border: hidden;
+        padding-right: 10px;
+    }
+
+.modal-historial {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    margin-top: 0px; /* Location of the box */
+    margin-left: 3px;
+    top: 52px;
+    width: 300px;
+    height: 90%;
+    overflow: auto; /* Enable scroll if needed */
+    border: double;
+    background-color: #ffff;
+}
+
+.historial-contenedor {
+    width: 95%;
+    display: inline-block;
+    line-height: 18px;
+}
+
+.thead-historial-mensajes {
+    white-space: nowrap;
+}

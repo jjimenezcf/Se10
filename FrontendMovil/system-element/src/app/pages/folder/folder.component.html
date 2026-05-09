@@ -1,0 +1,28 @@
+<div *ngIf="hierarchy?.datos?.ramas">
+  <div *ngFor="let branch of hierarchy.datos.ramas">
+    <ng-template #node let-item let-key="key">
+      <div class="space-y-4">
+        <div class="flex justify-start">
+          <div class="flex justify-start" [ngClass]="{'cursor-pointer': item?.hijos?.length}"
+            (click)="collapsed.toggle(key); $event.stopPropagation(); $event.preventDefault()">
+            <div class="hidden lg:w-8 lg:block">
+              <fa-icon *ngIf="item.hijos?.length" class="ps-0.5"
+                [icon]="!collapsed.get(key) ? arrowDownIcon : arrowRightIcon" [fixedWidth]="true"></fa-icon>
+            </div>
+            <fa-icon [icon]="!collapsed.get(key) && item.hijos?.length ? folderOpenIcon : folderIcon"
+              class="me-2 text-sky-950" size="lg" [fixedWidth]="true"></fa-icon>
+          </div>
+          <span class="text-sm hover:text-sky-600 cursor-pointer hover:underline font-medium"
+            (click)="goToFiles(item.dto.id, item.dto.negocio)">{{item.dto.nombre}}</span>
+        </div>
+        <ng-template [ngIf]="!collapsed.get(key)">
+          <div class="ms-8" *ngFor="let child of item.hijos">
+            <ng-container
+              *ngTemplateOutlet="node; context: { $implicit: child, key: getItemKey(child) }"></ng-container>
+          </div>
+        </ng-template>
+      </div>
+    </ng-template>
+    <ng-container *ngTemplateOutlet="node; context:{ $implicit: branch, key: getItemKey(branch) }"></ng-container>
+  </div>
+</div>

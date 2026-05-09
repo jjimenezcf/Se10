@@ -1,0 +1,53 @@
+<div [ngStyle]="style" [ngClass]="class">
+  <table class="table" [ngStyle]="tableStyle" [ngClass]="tableClass">
+    <thead class="table-head">
+      <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
+    </thead>
+    <tbody>
+      <!-- Body without pagination -->
+      <ng-template *ngIf="pagination && !loading" ngFor let-item let-i="index" [ngForOf]="tableItems | appPagination: {
+        itemsPerPage: itemsPerPage,
+        currentPage: currentPage,
+        totalItems: totalCount,
+        id: tableId
+      }" [ngForTrackBy]="trackBy">
+        <ng-container *ngTemplateOutlet="bodyTemplate; context: { $implicit: item.item, index: i }"></ng-container>
+      </ng-template>
+      <!-- End -->
+
+      <!-- Body with pagination -->
+      <ng-template *ngIf="!pagination && !loading" ngFor let-item let-i="index" [ngForOf]="tableItems"
+        [ngForTrackBy]="trackBy">
+        <ng-container *ngTemplateOutlet="bodyTemplate; context: { $implicit: item.item, index: i }"></ng-container>
+      </ng-template>
+      <!-- End -->
+
+      <!-- Body loading with items per page iteration -->
+      <ng-template [ngIf]="loading && loadingTemplate">
+        <ng-container *ngTemplateOutlet="loadingTemplate;"></ng-container>
+      </ng-template>
+      <!-- End -->
+
+      <!-- Body loading without items per page iteration -->
+      <ng-template *ngIf="loading && loadingTemplate && iterateLoading" ngFor let-item let-i="index"
+        [ngForOf]="itemsPerPageLoadingIterate">
+        <ng-container *ngTemplateOutlet="loadingTemplate; context: { $implicit: i }"></ng-container>
+      </ng-template>
+      <!-- End -->
+
+
+      <ng-container *ngIf="!tableItems?.length && !loading && noItemsFoundTemplate"
+        [ngTemplateOutlet]="noItemsFoundTemplate"></ng-container>
+    </tbody>
+
+    <tfoot *ngIf="footerTemplate">
+      <ng-container *ngTemplateOutlet="footerTemplate"></ng-container>
+    </tfoot>
+  </table>
+
+  <div *ngIf="pagination" [ngClass]="pagerContainerClass" [ngStyle]="pagerContainerStyle">
+    <ng-container *ngTemplateOutlet="pagerTemplate"></ng-container>
+    <app-table-pager *ngIf="!pagerTemplate" [id]="tableId" (pageChange)="onPageChange($event)"
+      [autoHide]="pagerAutoHide" [maxSize]="pagerMaxSize"></app-table-pager>
+  </div>
+</div>

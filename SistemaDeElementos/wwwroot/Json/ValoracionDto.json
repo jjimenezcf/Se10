@@ -1,0 +1,18 @@
+[
+  {
+    "propiedad": "CG",
+    "RestrictorFijo": "Negocio;Presupuesto;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "SeleccionarDe": "ModeloDeDto.Presupuesto.TipoDePresupuestoDto",
+    "VistaDondeNavegar": "TiposDePresupuesto",
+    "RestrictorFijo": "Negocio;Presupuesto;Gestor",
+    "Negocio": "Presupuesto"
+  },
+  {
+    "propiedad": "Nombre",
+    "VisibleAlCrear": false
+
+  }
+]

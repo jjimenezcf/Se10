@@ -1,0 +1,142 @@
+﻿using GestorDeElementos;
+using GestoresDeNegocio.Callejero;
+using Inicializador.Expedientes;
+using NUnit.Framework;
+using ServicioDeDatos;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Expediente;
+using ServicioDeDatos.Terceros;
+using SistemaDeElementos.Inicializador.Acromur;
+using GestorDeElementos.Extensores;
+using System.Collections.Generic;
+using Utilidades;
+using ValidacionesBase;
+using ServicioDeDatos.SistemaDocumental;
+using GestoresDeNegocio.Expediente;
+using System.Linq;
+using Gestor.Errores;
+using GestoresDeNegocio.SistemaDocumental;
+
+namespace ValidacionesDeRn
+{
+    class TestProcesoCGI
+    {
+
+        //----------------------------------------------------------------------------------------------------------------------------------
+        [Test]
+        public void DefinirProcesoCGI()
+        {
+            var contexto = Inicializaciones.CrearContextoParaUsuario(ContextoSe.Login_Admin);
+            void prueba()
+            {
+                InzProcesoCGI.ProcesoCGI(contexto);
+            }
+            //ApiDeValidaciones.EjecutarConCommit(contexto, prueba);
+            ApiDeValidaciones.EjecutarConRollback(contexto, prueba);
+        }
+
+
+        //----------------------------------------------------------------------------------------------------------------------------------
+        [Test]
+        public void ProbarProcesoCGI()
+        {
+            var contexto = Inicializaciones.CrearContextoParaUsuario(ContextoSe.Login_Admin);
+            void prueba()
+            {
+                InzProcesoCGI.ProcesoCGI(contexto);
+                var expediente = CrearExpedienteDeCGI(contexto);
+                var archivadores = expediente.Vinculados<ArchivadorDtm>(contexto).Where(x => x.Nombre.Contains(AccionesDeCGI.PrefijoArchivadorCGI(expediente, AccionesDeCGI.enumClaseDeCGI.Gatos)));
+                if (archivadores.Count() != 1)
+                    GestorDeErrores.Emitir("Deberían haber un archivador de gastos CGI");
+
+
+                //Cancelar expediente
+                var archivador = archivadores.First();
+                expediente = expediente.Cancelar(contexto);
+                //intentar aportar documentación
+                ApiDeValidaciones.IntentarEjecutar(() => archivador.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI.txt")), "no es modificable");
+                ApiDeValidaciones.IntentarEjecutar(() => expediente.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI.txt")), "no es modificable");
+
+                //abrir otro expediente, aportar documentación
+                expediente = CrearExpedienteDeCGI(contexto);
+                archivadores = expediente.Vinculados<ArchivadorDtm>(contexto).Where(x => x.Nombre.Contains(AccionesDeCGI.PrefijoArchivadorCGI(expediente, AccionesDeCGI.enumClaseDeCGI.Gatos)));
+                archivador = archivadores.First();
+                archivador.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI_2.txt"));
+
+                //cerrar archivador e intentar aportar documentación
+                archivador.Baja = true;
+                archivador = archivador.Modificar(contexto);
+                ApiDeValidaciones.IntentarEjecutar(() => archivador.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI_3.txt")), "no es modificable");
+
+                //abrir el archivador aportar documentación
+                archivador.Baja = false;
+                archivador = archivador.Modificar(contexto);
+                archivador.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI_3.txt"));
+
+                //transitar a cerrado, devolver a elaborar
+                expediente = expediente.Transitar(contexto, InzProcesoCGI.n_tran_cgi_cerrar);
+                expediente = expediente.Transitar(contexto, InzProcesoCGI.n_tran_cgi_reabrir, parametros: new Dictionary<string, object> {
+                    {ltrParametrosEp.detalleAsunto, "falta info" }
+                });
+                archivador.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI_4.txt"));
+
+                //aportar renta y terminar
+                expediente.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("RENTA.txt"));
+                expediente = expediente.Transitar(contexto, InzProcesoCGI.n_tran_cgi_cerrar);
+
+                //intentar aportar documentación
+                ApiDeValidaciones.IntentarEjecutar(() => archivador.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI_5.txt")), "no es modificable");
+                ApiDeValidaciones.IntentarEjecutar(() => expediente.AnexarArchivo(contexto, ServidorDocumental.NuevoArchivo("CGI_6.txt")), "no es modificable");
+
+            }
+            //ApiDeValidaciones.EjecutarConCommit(contexto, prueba);
+            ApiDeValidaciones.EjecutarConRollback(contexto, prueba);
+        }
+
+
+
+        //-----------------------------------------------------------------------------------------------------------------------------------
+        private static ExpedienteDtm CrearExpedienteDeCGI(ContextoSe contexto)
+        {
+            var sociedad = TestConTerceros.CrearSociedadConInterlocutorYCalleDto(contexto, enumCalificadorDireccion.correspondencia);
+            var solicitante = ((SociedadDtm)sociedad.MapearDtm(contexto)).Interlocutor(contexto);
+
+            if (solicitante.Baja)
+            {
+                solicitante.Baja = false;
+                solicitante = solicitante.Modificar(contexto);
+            }
+
+            var cliente = solicitante.Cliente(contexto, crearCliente: true);
+            if (cliente.Baja)
+            {
+                cliente.Baja = false;
+                cliente.Modificar(contexto);
+            }
+
+            DireccionDtm d = new DireccionDtm();
+            var calles = GestorDeCalles.Gestor(contexto, contexto.Mapeador).LeerRegistros(0, 1, new List<ClausulaDeFiltrado>(), parametros: new ParametrosDeNegocio(enumTipoOperacion.LeerSinBloqueo, true));
+            if (calles.Count > 0)
+            {
+                var c = calles[0];
+                d.IdElemento = solicitante.Id;
+                d.IdPais = c.Municipio.Provincia.IdPais;
+                d.IdProvincia = c.Municipio.IdProvincia;
+                d.IdMunicipio = c.IdMunicipio;
+                d.IdCalle = c.Id;
+                d.Calificador = enumCalificadorDireccion.contacto;
+
+                GestorDeDirecciones.Gestor(contexto, enumNegocio.Interlocutor).PersistirRegistro(d, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
+            }
+
+            var expediente = TestConObras.CrearExpediente(contexto,
+                codigCg: contexto.Set<CentroGestorDtm>().First(x => true).Codigo,
+                nombreTipo: InzProcesoCGI.n_exp_tipo_expediente_cgi,
+                enumClaseDeExpediente.DeCliente,
+                solicitante.NIF(contexto),
+                "mi primer expediente de CGI");
+
+            return expediente;
+        }
+    }
+}

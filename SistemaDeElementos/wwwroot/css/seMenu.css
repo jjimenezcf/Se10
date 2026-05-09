@@ -1,0 +1,298 @@
+﻿/*.modal-menu {
+    display: none;*/ /* Hidden by default */
+/*position: fixed;*/ /* Stay in place */
+/*z-index: 5;*/ /* Sit on top */
+/*margin-top: 0px;*/ /* Location of the box */
+/*margin-left: 3px;*/
+/*top:49px;
+    width: 300px;
+    height: 90%;
+    overflow: auto;*/ /* Enable scroll if needed */
+/*border: double;
+    background-color: #ffff;
+}
+
+.menu-contenedor {
+    width: 95%;
+    display: inline-block;
+    line-height: 18px;
+}
+
+.menu-contenido {
+    background-color: #ffffff;
+    padding: 1px;
+    width: 100%;
+    height: -webkit-fill-available;
+}
+
+.modal-menu .menu-contenido {
+    list-style: none;
+}
+
+    .modal-menu .menu-contenido ul {
+        display: none;
+    }
+
+        .modal-menu .menu-contenido ul li {
+            list-style: none;
+        }
+
+            .modal-menu .menu-contenido ul li a {
+                background: #ffffff;
+            }
+
+.menu-contenido .icono {
+    width: 20px;
+    height: 20px;
+    line-height: 18px;
+}
+
+    .menu-contenido .icono.izquierdo {
+        float: left;
+        margin-right: 10px;
+        margin-top: 5px;
+    }
+
+    .menu-contenido .icono.derecho {
+        float: right;
+        margin-left: 20px;
+        margin-top: 5px;
+    }
+
+.menu-contenido li a {
+    color: #494949;
+    display: inline-block;
+    padding: 15px 20px;
+}
+
+    .menu-contenido li a:hover {
+        background: #1a95d5;
+        color: #fff;
+    }
+
+
+.menu-opcion {
+    border: 0px;
+    background: #ffffff;
+    width: 100%;
+    height: 32px;
+    text-align: left;
+    padding-left: 15px;
+}*/
+
+.sin-capa-de-bloqueo {
+    background: #ffffff;
+    display: none;
+    width: 0px;
+    height: 0px;
+}
+
+.con-capa-de-bloqueo-old {
+    display: block;
+    border: double;
+    border-color: antiquewhite;
+    border-width: 10px;
+    background: #ffffff;
+    position: absolute;
+    background-image: url('/images/trabajando.gif');
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0.2;
+}
+
+.con-capa-de-bloqueo {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background-color: rgba(255, 255, 255, 0.5); /* Velo suave transparente */
+/*    border: double 10px antiquewhite;
+    box-sizing: border-box;*/
+}
+
+    /* Creamos el círculo de carga con CSS puro */
+    .con-capa-de-bloqueo::before {
+        content: "";
+        position: absolute;
+        width: 80px; /* Tamaño del círculo */
+        height: 80px;
+        border: 5px solid dotted; /* Aquí puedes jugar con el estilo */
+        border-top: 5px solid #3498db; /* Color de los puntos */
+        border-right: 5px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#TextoContador {
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    z-index: 10;
+}
+
+/*
+ * ESTILOS GENERALES PARA EL MENÚ PRINCIPAL (.modal-menu)
+ * Aplicando un diseño moderno y consistente con los menús de cabecera.
+ */
+
+.modal-menu {
+    display: none; /* Oculto por defecto. JavaScript controla su visibilidad */
+    position: fixed; /* Posición fija en la ventana */
+    z-index: 5; /* Asegura que esté por encima de otros elementos */
+    margin-top: 1px; /* Margen superior (ajusta según necesidad, si está debajo de un header fijo) */
+    top: 49px; /* Posicionado 49px desde la parte superior (debajo de tu div visible) */
+    left: 1px;
+    width: 300px; /* Ancho fijo del menú */
+    height: 90%; /* Altura inicial del menú (JavaScript puede ajustarla) */
+    overflow: auto; /* Habilita el scroll si el contenido excede la altura */
+    /* ESTILOS MODERNOS (HEREDADOS de los menús de cabecera) */
+    background-color: #fff; /* Fondo blanco */
+    border: 4px solid #ddd; /* Borde sutil */
+    border-radius: 20px; /* Esquinas redondeadas para un aspecto suave */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra para efecto de profundidad */
+}
+
+/* Contenedor interno del menú (donde se aplica un padding general) */
+.menu-contenedor {
+    width: 95%;
+    display: inline-block;
+    line-height: 18px;
+    padding-top: 10px;
+}
+
+
+/* Contenido principal del menú. Este es el `div` que envuelve el `ul#id_menuraiz` */
+.menu-contenido {
+    background-color: #ffffff;
+    padding: 1px;
+    width: 100%;
+    height: -webkit-fill-available;
+    list-style: none; /* Asegura que este contenedor no agregue estilos de lista */
+}
+
+    .menu-contenido > li > ul {
+        display: none;
+    }
+
+/*
+ * ESTILOS PARA LAS LISTAS (UL) DEL MENÚ
+ */
+
+/* NUEVO: La UL raíz (id_menuraiz) DEBE ser visible.
+   Apuntamos a la UL que es HIJA DIRECTA de .menu-contenido.
+   Esto evita que la regla global "ul { display: none }" la oculte. */
+.modal-menu .menu-contenido > ul { /* APUNTA ESPECÍFICAMENTE A LA UL RAÍZ */
+    list-style-type: none; /* Elimina viñetas */
+    margin: 0;
+    padding: 8px 0; /* Espaciado interno vertical */
+    display: block; /* **¡IMPORTANTE: ES VISIBLE POR DEFECTO!** */
+    overflow: hidden;
+}
+
+/* IMPORTANTE: ESTILO PARA LAS SUB-ULs (ULs ANIDADAS) */
+/* Estas deben estar ocultas por defecto y JavaScript las mostrará/ocultará.
+   Esta regla es más específica que la anterior, por lo que aplica a las ULs que son hijas de OTRAS ULs. */
+.modal-menu .menu-contenido ul ul { /* APUNTA A CUALQUIER UL QUE ESTÉ DENTRO DE OTRA UL */
+    display: none; /* OCULTA TODOS LOS SUB-ULs POR DEFECTO */
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    /* Indentación para las sub-ULs (segundo nivel) */
+    padding-left: 20px; /* Ajusta este valor para más o menos indentación */
+}
+
+/* Estilo para cada elemento de lista (LI) en cualquier nivel */
+.modal-menu .menu-contenido ul li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/*
+ * ESTILOS PARA LOS ENLACES (A) DE CADA OPCIÓN DEL MENÚ
+ */
+
+.menu-contenido li a {
+    color: #333;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 14px;
+    background: #ffffff;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+    /* Efecto al pasar el ratón por encima (HOVER) en los enlaces */
+    .menu-contenido li a:hover {
+        background-color: #f0f0f0;
+        color: #000;
+    }
+
+    /* Efecto al hacer clic (ACTIVE) en los enlaces */
+    .menu-contenido li a:active {
+        background-color: #e0e0e0;
+        transform: scale(0.98);
+    }
+
+/*
+ * ESTILOS PARA LOS ÍCONOS DENTRO DE LAS OPCIONES DEL MENÚ
+ */
+
+.menu-contenido .icono {
+    width: 20px;
+    height: 20px;
+    line-height: 18px;
+}
+
+    .menu-contenido .icono.izquierdo {
+        float: left;
+        margin-right: 10px;
+        margin-top: 2px;
+    }
+
+    .menu-contenido .icono.derecho {
+        float: right;
+        margin-left: 20px;
+        margin-top: 2px;
+    }
+
+/*
+ * ESTILOS PARA LOS BOTONES <input type="button"> DENTRO DE LAS OPCIONES DEL MENÚ
+ */
+
+.menu-opcion {
+    border: 0px;
+    background: transparent;
+    width: 100%;
+    height: auto;
+    text-align: left;
+    padding-left: 3px;
+    color: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}

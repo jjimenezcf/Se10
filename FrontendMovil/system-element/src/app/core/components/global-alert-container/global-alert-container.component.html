@@ -1,0 +1,6 @@
+<div class="mb-3" *ngIf="alert">
+  <app-alert [type]="alert.type">
+    <span title *ngIf="alert.title">{{alert.title}}</span>
+    <span desc *ngIf="alert.description">{{alert.description}}</span>
+  </app-alert>
+</div>

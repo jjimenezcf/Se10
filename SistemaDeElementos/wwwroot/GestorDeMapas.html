@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="es-es">
+<head>
+    <title>Visualizar Mapa</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuOc8GEU0OqoW6L99Un7CPBXviRfCUFS0"></script>
+
+</head>
+
+<body class="body-pagina">
+    <div id="mapa" style="width: 450px; height: 350px;">
+
+    </div>
+    <script>
+        function VisualizarMapa(sMapa, sCalle) {
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ 'address': sCalle }, function geocodeResult(results, status) {
+                if (status == 'OK') {
+                    var mapOptions = {
+                        center: results[0].geometry.location,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    };
+                    map = new google.maps.Map(sMapa, mapOptions);
+                    map.fitBounds(results[0].geometry.viewport);
+                    var markerOptions = {
+                        position: results[0].geometry.location
+                        , title: sCalle
+                    };
+                    var marker = new google.maps.Marker(markerOptions);
+                    marker.setMap(map);
+                }
+            }
+            );
+        }
+        window.onload = VisualizarMapa(mapa, 'Calle Carmen Conde, murcia, 30830, españa');
+
+    </script>
+
+</body>
+</html>

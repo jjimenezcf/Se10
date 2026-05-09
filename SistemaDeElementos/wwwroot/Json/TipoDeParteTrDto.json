@@ -1,0 +1,106 @@
+[
+  {
+    "propiedad": "Negocio",
+    "posicion": {
+      "fila": 0,
+      "columna": 0
+    }
+  },
+  {
+    "propiedad": "IdPadre",
+    "posicion": {
+      "fila": 0,
+      "columna": 1
+    }
+  },
+  {
+    "propiedad": "Padre",
+    "posicion": {
+      "fila": 0,
+      "columna": 1
+    }
+  },
+  {
+    "propiedad": "Nombre",
+    "posicion": {
+      "fila": 0,
+      "columna": 2
+    }
+  },
+  {
+    "propiedad": "Sigla",
+    "posicion": {
+      "fila": 1,
+      "columna": 0
+    }
+  },
+  {
+    "propiedad": "ClaseDeLibro",
+    "posicion": {
+      "fila": 1,
+      "columna": 1
+    }
+  },
+  {
+    "propiedad": "Estado",
+    "posicion": {
+      "fila": 1,
+      "columna": 2
+    }
+  },
+  {
+    "propiedad": "IdPermisoDeAdministrador",
+    "posicion": {
+      "fila": 5,
+      "columna": 0
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "IdPermisoDeGestor",
+    "posicion": {
+      "fila": 5,
+      "columna": 1
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "IdPermisoDeConsultor",
+    "posicion": {
+      "fila": 6,
+      "columna": 0
+    },
+    "colspan": 2
+  },
+  {
+    "propiedad": "IdPermisoDeInterventor",
+    "posicion": {
+      "fila": 6,
+      "columna": 1
+    },
+    "colspan":1
+  },
+  {
+    "propiedad": "TipoFacturaEmt",
+    "posicion": {
+      "fila": 7,
+      "columna": 0
+    },
+    "colspan": 3
+  },
+  {
+    "propiedad": "Activo",
+    "posicion": {
+      "fila": 8,
+      "columna": 0
+    },
+    "css": "CheckEnLinea"
+  }
+]
+
+
+/*
+  
+
+
+  */

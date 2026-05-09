@@ -1,0 +1,101 @@
+[
+  {
+    "propiedad": "CG",
+    "ordenarGridPor": "Cg.Codigo",
+    "PosicionEnGrid": 1,
+    "RestrictorFijo": "Negocio;Pago;Gestor"
+  },
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Gastos.TipoDePagoDto",
+    "VistaDondeNavegar": "TiposDePago",
+    "RestrictorFijo": "Negocio;Pago;Gestor",
+    "Negocio": "Pago",
+    "ColSpan": 2
+  },
+  {
+    "propiedad": "Clase",
+    "PosicionEnGrid": 3,
+    "posicion": {
+      "Fila": 0,
+      "Columna": 4
+    }
+  },
+  {
+    "propiedad": "IdEstado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 7,
+    "VisibleAlCrear": "false",
+    "VisibleAlEditar": "true",
+    "EditableAlCrear": "false",
+    "EditableAlEditar": "false",
+    "posicion": {
+      "Fila": 0,
+      "Columna": 3
+    }
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "AutoSpan": "true",
+    "PosicionEnGrid": 6,
+    "Etiqueta": "Asunto",
+    "EtiquetaGrid": "Asunto",
+    "PorAnchoMnt": 30,
+    "posicion": {
+      "Fila": 1,
+      "Columna": 0
+    }
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "VisibleAlCrear": "false",
+    "EditableAlCrear": "false",
+    "posicion": {
+      "Fila": 1,
+      "Columna": 4
+    }
+  },
+  {
+    "propiedad": "Descripcion",
+    "posicion": {
+      "Fila": 7,
+      "Columna": 0
+    }
+  },
+  {
+    "propiedad": "DcCcc",
+    "AnchoMaximo": "3em"
+  },
+  {
+    "propiedad": "Activa",
+    "AnchoMaximo": "6em"
+  },
+  {
+    "propiedad": "IdFacturaRec",
+    "AutoSpan": "true",
+    "posicion": {
+      "Fila": 8,
+      "Columna": 0
+    }
+  },
+  {
+    "propiedad": "PagarEl",
+    "PosicionEnGrid": 14,
+    "TamanoFijo": "8em"
+  },
+  {
+    "propiedad": "PagadoEl",
+    "PosicionEnGrid": 15,
+    "TamanoFijo": "8em"
+  },
+  {
+    "propiedad": "Importe",
+    "PosicionEnGrid": 13,
+    "TamanoFijo": "7em"
+  }
+]

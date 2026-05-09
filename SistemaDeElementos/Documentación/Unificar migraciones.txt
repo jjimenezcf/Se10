@@ -1,0 +1,38 @@
+﻿- verificar que el appsetting apunta a se_test
+
+- copia de seguridad de SE_TEST
+
+- aplicar las migraciones a todas las bd (si es necesario) 
+  ejecutar el script: 'Migraciones aplicadas.Sql' para validar que todas las migraciones están aplicadas
+
+- hacer una copia de seguridad de la tabla de migraciones
+  ejecutar el script: 'BackUp de Migraciones.sql', la almacena en __Migraciones_Backup
+
+- eliminar del proyecto todas las migraciones, incluida la inicial
+
+- crear una migración inicial Add-Migration InitialCreate
+
+- Modificar el fichero de la migración inicial para que incluya:
+  #region region a incluir 1 
+  #region region a incluir 2
+
+- Comentar la creación y borrado de la tabla name: "MENU_SE", ya que es una vista
+
+- Modificar el appsetting y apuntar a SE_TEST_BACK
+- Crear las funciones [ESQUEMA].[CC_TABLA_NOMBRE] de los nuevos negocios
+- crear la BD 
+- eljecutar en localhost
+- comparar las bd (CompareDatabases.sql)
+
+- si todo es ok 
+  publicar 
+  copiar prepublicación
+  parar servicios
+  ejecutar el script 'Migraciones aplicadas.sql'
+  copiar valor de la bd: SE_TEST_BACK	20241010143448_InitialCreate	8.0.0
+  *****   Ajusta este valor según tu migración inicial
+  *****   DECLARE @MigracionInicial NVARCHAR(150) = '20240731185903_InitialCreate';
+  ejecutar el script 'Unificar Migraciones.sql'
+  ejecutar el script 'Migraciones aplicadas.sql'
+  verificar todo ok.
+  arrancar servicios

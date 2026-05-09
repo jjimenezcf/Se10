@@ -1,0 +1,99 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>disable</Nullable>
+		<NoWarn>$(NoWarn);CS8981</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Migrations\20200304210352_inicialUniversitario.cs" />
+		<Compile Remove="Migrations\20200304210352_inicialUniversitario.Designer.cs" />
+		<Compile Remove="Migrations\20200308124317_CREAR_TABLA_ROL_pERMISO.cs" />
+		<Compile Remove="Migrations\20200308124317_CREAR_TABLA_ROL_pERMISO.Designer.cs" />
+		<Compile Remove="Migrations\20200328185559_ListaDeSubmenus.cs" />
+		<Compile Remove="Migrations\20200328185559_ListaDeSubmenus.Designer.cs" />
+		<Compile Remove="Migrations\20200328192229_ListaDeSubmenus.cs" />
+		<Compile Remove="Migrations\20200328192229_ListaDeSubmenus.Designer.cs" />
+		<Compile Remove="Migrations\20200329085425_anadirSubmenu.cs" />
+		<Compile Remove="Migrations\20200329085425_anadirSubmenu.Designer.cs" />
+		<Compile Remove="Migrations\20200329085625_anadirSubmenu.cs" />
+		<Compile Remove="Migrations\20200329085625_anadirSubmenu.Designer.cs" />
+		<Compile Remove="Migrations\20200329085944_anadirSubmenu.cs" />
+		<Compile Remove="Migrations\20200329085944_anadirSubmenu.Designer.cs" />
+		<Compile Remove="Migrations\20200329090304_anadirSubmenu.cs" />
+		<Compile Remove="Migrations\20200329090304_anadirSubmenu.Designer.cs" />
+		<Compile Remove="Migrations\20200329090620_anadirSubmenu.cs" />
+		<Compile Remove="Migrations\20200329090620_anadirSubmenu.Designer.cs" />
+		<Compile Remove="Migrations\20200329091111_anadirSubmenu.cs" />
+		<Compile Remove="Migrations\20200329091111_anadirSubmenu.Designer.cs" />
+		<Compile Remove="Migrations\20200503190148_anadirPropiedadAUsuarios.cs" />
+		<Compile Remove="Migrations\20200503190148_anadirPropiedadAUsuarios.Designer.cs" />
+		<Compile Remove="Migrations\20200504212234_añadir_clase_permisos.cs" />
+		<Compile Remove="Migrations\20200504212234_añadir_clase_permisos.Designer.cs" />
+		<Compile Remove="Migrations\20200504212531_añadir_clase_permisos.cs" />
+		<Compile Remove="Migrations\20200504212531_añadir_clase_permisos.Designer.cs" />
+		<Compile Remove="Migrations\20200504212700_añadir_clase_permisos.cs" />
+		<Compile Remove="Migrations\20200504212700_añadir_clase_permisos.Designer.cs" />
+		<Compile Remove="Migrations\20200505085410_tabla_tipo_permiso.cs" />
+		<Compile Remove="Migrations\20200505085410_tabla_tipo_permiso.Designer.cs" />
+		<Compile Remove="Migrations\20200505090014_tabla_tipo_permiso.cs" />
+		<Compile Remove="Migrations\20200505090014_tabla_tipo_permiso.Designer.cs" />
+		<Compile Remove="Migrations\20200505091455_modificar_tabla_permiso.cs" />
+		<Compile Remove="Migrations\20200505091455_modificar_tabla_permiso.Designer.cs" />
+		<Compile Remove="Migrations\20200505091654_modificar_tabla_permiso.cs" />
+		<Compile Remove="Migrations\20200505091654_modificar_tabla_permiso.Designer.cs" />
+		<Compile Remove="Migrations\20200505092541_obligatorio_idtipo_en_permiso.cs" />
+		<Compile Remove="Migrations\20200505092541_obligatorio_idtipo_en_permiso.Designer.cs" />
+		<Compile Remove="Migrations\20200505092903_modificar_tabla_permiso_campos_requeridos.cs" />
+		<Compile Remove="Migrations\20200505092903_modificar_tabla_permiso_campos_requeridos.Designer.cs" />
+		<Compile Remove="Migrations\20200521174711_ColumnasTipoClase.cs" />
+		<Compile Remove="Migrations\20200521174711_ColumnasTipoClase.Designer.cs" />
+		<Compile Remove="Migrations\20200521175719_ColumnasTipoClase.cs" />
+		<Compile Remove="Migrations\20200521175719_ColumnasTipoClase.Designer.cs" />
+		<Compile Remove="Migrations\20200521182100_ColumnasTipoClase.cs" />
+		<Compile Remove="Migrations\20200521182100_ColumnasTipoClase.Designer.cs" />
+		<Compile Remove="Migrations\20200521184249_ColumnasTipoClase.cs" />
+		<Compile Remove="Migrations\20200521184249_ColumnasTipoClase.Designer.cs" />
+		<Compile Remove="Migrations\20200522072608_TablaDeArchivos.cs" />
+		<Compile Remove="Migrations\20200522072608_TablaDeArchivos.Designer.cs" />
+		<Compile Remove="Migrations\20200522073511_TablaDeArchivos.cs" />
+		<Compile Remove="Migrations\20200522073511_TablaDeArchivos.Designer.cs" />
+		<Compile Remove="Migrations\20200522125622_anadirArchivoUsuario.cs" />
+		<Compile Remove="Migrations\20200522125622_anadirArchivoUsuario.Designer.cs" />
+		<Compile Remove="Migrations\20200603204138_anadirNombre.cs" />
+		<Compile Remove="Migrations\20200603204138_anadirNombre.Designer.cs" />
+		<Compile Remove="Migrations\20200609192010_anadir.cs" />
+		<Compile Remove="Migrations\20200609192010_anadir.Designer.cs" />
+		<Compile Remove="Migrations\20200905110520_permisoFueraEnMenuObligatorioEnVistas.cs" />
+		<Compile Remove="Migrations\20200905110520_permisoFueraEnMenuObligatorioEnVistas.Designer.cs" />
+		<Compile Remove="Migrations\20200908161859_añadir roles de un permiso.cs" />
+		<Compile Remove="Migrations\20200908161859_añadir roles de un permiso.Designer.cs" />
+		<Compile Remove="Migrations\20200908174621_añadir roles de un permiso.cs" />
+		<Compile Remove="Migrations\20200908174621_añadir roles de un permiso.Designer.cs" />
+		<Compile Remove="Migrations\20200908202823_permiso_rol 4.cs" />
+		<Compile Remove="Migrations\20200908202823_permiso_rol 4.Designer.cs" />
+		<Compile Remove="Migrations\20200908205154_permiso_rol 5.cs" />
+		<Compile Remove="Migrations\20200908205154_permiso_rol 5.Designer.cs" />
+		<Compile Remove="Migrations\20200908205355_permiso_rol 5.cs" />
+		<Compile Remove="Migrations\20200908205355_permiso_rol 5.Designer.cs" />
+		<Compile Remove="Migrations\20200908210015_permiso_rol 5.cs" />
+		<Compile Remove="Migrations\20200908210015_permiso_rol 5.Designer.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7" />
+		<PackageReference Include="Newtonsoft.Json.Schema" Version="4.0.1" />
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Servicios\GestorDeElementos\GestorDeElementos.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NuGet.Packaging" Version="7.3.1" />
+		<PackageReference Include="NuGet.Protocol" Version="7.3.1" />
+	</ItemGroup>
+
+</Project>
