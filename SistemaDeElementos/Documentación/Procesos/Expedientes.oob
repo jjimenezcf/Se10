@@ -950,7 +950,7 @@ IndxFKName=%REFR%_FK
 IndxThreshold=
 ColnFKName=%.3:PARENT%_%COLUMN%
 ColnFKNameUse=No</a:ModelOptionsText>
-<a:RepositoryFilename>C:\Users\jjimenezc\source\repos\SistemaDeElementos\SistemaDeElementos\Documentación\Procesos\Expedientes.oom</a:RepositoryFilename>
+<a:RepositoryFilename>C:\Users\jjimenezc\source\repos\Se10\SistemaDeElementos\Documentación\Procesos\Expedientes.oom</a:RepositoryFilename>
 <c:ObjectLanguage>
 <o:Shortcut Id="o3">
 <a:ObjectID>90738335-B510-45F6-838E-F0521F943F38</a:ObjectID>
