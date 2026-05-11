@@ -1,12 +1,10 @@
-﻿using DocumentFormat.OpenXml.Drawing;
-using Gestor.Errores;
+﻿using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
 using GestoresDeNegocio.Negocio;
 using GestoresDeNegocio.TrabajosSometidos;
 using ModeloDeDto;
-using ModeloDeDto.Entorno;
 using ModeloDeDto.Negocio;
 using ModeloDeDto.SistemaDocumental;
 using ModeloDeDto.Tarea;

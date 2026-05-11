@@ -1935,7 +1935,7 @@
         }
 
         public EstaElFiltroOculto(): boolean {
-            return !EsMayorDeCero(this.ExpandirFiltro.value);
+            return Definido(this.ExpandirFiltro) ? !EsMayorDeCero(this.ExpandirFiltro.value): false;
         }
 
         public OcultarMostrarFiltro(): void {
@@ -1948,6 +1948,8 @@
         }
 
         public MostrarFiltro(): void {
+            if (!Definido(this.ExpandirFiltro))
+                return;
             this.ExpandirFiltro.value = "1";
             ApiPanel.MostrarPanel(this.PanelFiltro);
             this.EtiquetaMostrarOcultarFiltro.innerText = "Ocultar filtro";
@@ -1956,6 +1958,8 @@
 
 
         public OcultarFiltro(): void {
+            if (!Definido(this.ExpandirFiltro))
+                return;
             ApiPanel.OcultarPanel(this.PanelFiltro);
             this.ExpandirFiltro.value = "0";
             this.EtiquetaMostrarOcultarFiltro.innerText = "Mostrar filtro";
