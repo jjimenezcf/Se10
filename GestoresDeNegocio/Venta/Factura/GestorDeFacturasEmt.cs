@@ -1065,6 +1065,8 @@ namespace GestoresDeNegocio.Ventas
             if (facturaDtm.ClaseDeEmision != enumClaseDeEmision.Impresa)
                 GenerarFacturaE(contexto, factura);
 
+            GenerarFacturaUbl25(contexto, factura);
+
             string rutaConFichero;
             if (facturaDtm.ClaseDeEmision == enumClaseDeEmision.Impresa)
                 rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"Fac-{factura.Referencia}.{enumExtensiones.pdf}".NormalizarFichero());
@@ -1087,6 +1089,17 @@ namespace GestoresDeNegocio.Ventas
             var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero);
             var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
             AsociarArchivoFactura(contexto, fae, idArchivo, original: true);
+        }
+
+        private static void GenerarFacturaUbl25(ContextoSe contexto, FacturaEmtDto factura)
+        {
+            var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
+            var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Fac-{factura.Referencia}-UBL25.xml");
+            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
+            new GeneradorDeFacturaEmtXmlUbl25(contexto, facturaDtm, rutaConFichero).GenerarUbl();
+            var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero);
+            var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
+            AsociarArchivoFactura(contexto, fae, idArchivo, original: false);
         }
 
         public static void GenerarFacturaE32(ContextoSe contexto, int idFactura)
