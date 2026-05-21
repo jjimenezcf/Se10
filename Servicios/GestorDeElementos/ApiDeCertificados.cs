@@ -255,13 +255,12 @@ namespace GestorDeElementos
         {
             try
             {
-                // 1. Validar que el objeto del certificado no sea nulo
                 if (this._Certificado == null)
                 {
                     throw new InvalidOperationException("El objeto _Certificado no está inicializado.");
                 }
 
-                // 2. Carga moderna y segura del certificado (.NET 10) evitando métodos obsoletos
+                // 1. Carga segura del certificado (.NET 10)
                 X509Certificate2 cert = null;
                 string rutaCert = this._Certificado.RutaDelCertificado;
                 string passCert = this._Certificado.Password;
@@ -272,34 +271,75 @@ namespace GestorDeElementos
                 }
                 else
                 {
-                    throw new FileNotFoundException($"No se encontró el archivo del certificado físico en la ruta: {rutaCert}");
+                    throw new FileNotFoundException($"No se encontró el certificado en: {rutaCert}");
                 }
 
-                // 3. Instanciar el servicio principal de la librería
+                // 2. Instanciar el servicio de la librería
                 FirmaXadesNetCore.XadesService xadesService = new FirmaXadesNetCore.XadesService();
 
-                // 4. Configurar los parámetros usando la ruta exacta de namespaces revelada en el fuente
+                // 3. Configurar parámetros base de la firma
                 FirmaXadesNetCore.Signature.Parameters.SignatureParameters parametros = new FirmaXadesNetCore.Signature.Parameters.SignatureParameters
                 {
-                    // El enumerado SignaturePackaging cuelga del mismo namespace
                     SignaturePackaging = FirmaXadesNetCore.Signature.Parameters.SignaturePackaging.ENVELOPED,
-
-                    // Inicializar las propiedades de formato de datos expuestas en el archivo DataFormat.cs
                     DataFormat = new FirmaXadesNetCore.Signature.Parameters.DataFormat
                     {
                         MimeType = "text/xml"
                     },
-
-                    // Asignar el firmante encapsulado en la clase Signer de la librería
                     Signer = new FirmaXadesNetCore.Crypto.Signer(cert)
                 };
 
-                // 5. Leer el XML original, aplicar la firma avanzada XAdES-BES y guardar el resultado
-                using (FileStream fsEntrada = new FileStream(rutaDocumentoSinFirma, FileMode.Open, FileAccess.Read))
-                {
-                    // El método Sign de la librería procesa el stream usando los parámetros configurados
-                    var documentoFirmado = xadesService.Sign(fsEntrada, parametros);
+                // 4. Cargar el XML en memoria para comprobar formato e inyectar cuna si es UBL
+                XmlDocument docManipulable = new XmlDocument();
+                docManipulable.PreserveWhitespace = true;
+                docManipulable.Load(rutaDocumentoSinFirma);
 
+                XmlElement rootXml = docManipulable.DocumentElement;
+
+                if (rootXml != null && rootXml.LocalName == "Invoice" && rootXml.NamespaceURI == Extensores.NamespacesUbl.NsInvoice)
+                {
+                    string nsExt = Extensores.NamespacesUbl.NsExt;
+
+                    // Inyectamos el atributo de namespace si no estuviera ya en la raíz
+                    if (!rootXml.HasAttribute("xmlns:ext"))
+                    {
+                        rootXml.SetAttribute("xmlns:ext", nsExt);
+                    }
+
+                    // Creamos los elementos de la cuna UBL
+                    XmlElement ublExtensions = docManipulable.CreateElement("ext", "UBLExtensions", nsExt);
+                    XmlElement ublExtension = docManipulable.CreateElement("ext", "UBLExtension", nsExt);
+                    XmlElement extensionContent = docManipulable.CreateElement("ext", "ExtensionContent", nsExt);
+
+                    ublExtension.AppendChild(extensionContent);
+                    ublExtensions.AppendChild(ublExtension);
+
+                    // CRÍTICO UBL XSD: Las extensiones DEBEN ser el primer hijo de la raíz
+                    rootXml.PrependChild(ublExtensions);
+
+                    // Configuramos el destino exacto de la firma usando el objeto de tu librería
+                    parametros.SignatureDestination = new FirmaXadesNetCore.Signature.Parameters.SignatureXPathExpression
+                    {
+                        XPathExpression = "/*[local-name()='Invoice']/*[local-name()='UBLExtensions']/*[local-name()='UBLExtension']/*[local-name()='ExtensionContent']"
+                    };
+                }
+
+                // 5. Firmar el documento utilizando flujos de memoria intermedios
+                using (MemoryStream msEntrada = new MemoryStream())
+                {
+                    // Guardamos el XML (con o sin cuna inyectada) en el Stream temporal
+                    var settings = new XmlWriterSettings { Indent = true, Encoding = System.Text.Encoding.UTF8 };
+                    using (XmlWriter writer = XmlWriter.Create(msEntrada, settings))
+                    {
+                        docManipulable.Save(writer);
+                    }
+
+                    // Reset del puntero del stream antes de firmar
+                    msEntrada.Position = 0;
+
+                    // Ejecutamos la firma criptográfica XAdES
+                    var documentoFirmado = xadesService.Sign(msEntrada, parametros);
+
+                    // 6. Guardar el archivo firmado definitivo en disco
                     using (FileStream fsSalida = new FileStream(rutaDocumentoFirmado, FileMode.Create, FileAccess.Write))
                     {
                         documentoFirmado.Save(fsSalida);
@@ -308,67 +348,65 @@ namespace GestorDeElementos
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error crítico en el proceso de firma digital XAdES-BES con FirmaXadesNetCore: {ex.Message}", ex);
+                throw new Exception($"Error en el firmado digital del XML: {ex.Message}", ex);
             }
         }
-
-        private void FirmarGenericoSHA1(XmlDocument doc)
-        {
-            // Comportamiento idéntico a FirmarXmlOld: SHA1, sin C14N explícito, sin Id.
-            // No usar CrearSignedXml (que aplica SHA256 + C14N) para no romper
-            // los validadores que esperan el formato original.
-            var signedXml = new SignedXml(doc);
-            signedXml.SigningKey = _Certificado.RSAPrivateKey;
-
-            var reference = new Reference("");
-            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
-            signedXml.AddReference(reference);
-
-            var keyInfo = new KeyInfo();
-            keyInfo.AddClause(new KeyInfoX509Data(_Certificado.X509Certificado));
-            signedXml.KeyInfo = keyInfo;
-
-            signedXml.ComputeSignature();
-            var xmlSig = signedXml.GetXml();
-            // Sin SetAttribute("Id",...) — igual que FirmarXmlOld
-            doc.DocumentElement.AppendChild(doc.ImportNode(xmlSig, true));
-        }
-
         public string FirmarImagenComoXml(ContextoSe contexto, string fichero, string destino)
         {
-            // Crear el XML
+            // 1. Crear el XML contenedor
             var xmlDoc = new XmlDocument();
+            xmlDoc.AppendChild(xmlDoc.CreateXmlDeclaration("1.0", "UTF-8", null)); // Buenas prácticas: Declaramos codificación
+
             var root = xmlDoc.CreateElement("ImagenFirmada");
             xmlDoc.AppendChild(root);
 
-            // Añadir el nombre del fichero
+            // Añadir el nombre del fichero de origen
             var nombreElement = xmlDoc.CreateElement("NombreFichero");
             nombreElement.InnerText = System.IO.Path.GetFileName(fichero);
+            root.ChildNodes.Item(0)?.AppendChild(nombreElement); // O root.AppendChild(nombreElement);
+
             root.AppendChild(nombreElement);
 
-            // Convertir la imagen a base64
+            // Convertir la imagen física a base64
             var imagenBase64 = Convert.ToBase64String(File.ReadAllBytes(fichero));
             var imagenElement = xmlDoc.CreateElement("ImagenBase64");
             imagenElement.InnerText = imagenBase64;
             root.AppendChild(imagenElement);
-            // Guardar el XML temporal
+
+            // 2. Asegurar existencia del directorio de intercambio transitorio
             if (!Directory.Exists(CacheDeVariable.CFG_Ruta_Ficheros_A_Firmar))
+            {
                 Directory.CreateDirectory(CacheDeVariable.CFG_Ruta_Ficheros_A_Firmar);
-            var xmlTempPath = System.IO.Path.Combine(CacheDeVariable.CFG_Ruta_Ficheros_A_Firmar, $"{Guid.NewGuid()}.{enumExtensiones.xml}");
+            }
+
+            // Usamos Path.ChangeExtension para forzar que el destino siempre sea XML de manera robusta
+            destino = System.IO.Path.ChangeExtension(destino, "xml");
+
+            var xmlTempPath = System.IO.Path.Combine(CacheDeVariable.CFG_Ruta_Ficheros_A_Firmar, $"{Guid.NewGuid()}.xml");
+
             try
             {
-                xmlDoc.Save(xmlTempPath);
-                destino = System.IO.Path.Combine($@"{System.IO.Path.GetDirectoryName(destino)}", $"{System.IO.Path.GetFileNameWithoutExtension(destino)}.{enumExtensiones.xml}");
+                // Guardar el XML en UTF-8 nativo para que coincida con la declaración
+                var settings = new XmlWriterSettings { Indent = true, Encoding = System.Text.Encoding.UTF8 };
+                using (var writer = XmlWriter.Create(xmlTempPath, settings))
+                {
+                    xmlDoc.Save(writer);
+                }
+
+                // 3. Delegar en nuestro método unificado de firma
                 FirmarXml(xmlTempPath, destino);
+
                 return destino;
             }
             finally
             {
-                // Eliminar el archivo XML temporal
-                if (File.Exists(xmlTempPath)) File.Delete(xmlTempPath);
+                // 4. Garantía absoluta de limpieza de la caché
+                if (File.Exists(xmlTempPath))
+                {
+                    File.Delete(xmlTempPath);
+                }
             }
         }
-
     }
 
     public static class ApiDeCertificados

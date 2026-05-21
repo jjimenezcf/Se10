@@ -13,11 +13,15 @@ using static ServicioDeDatos.Elemento.Enumerados;
 
 namespace GestorDeElementos.Extensores
 {
-    public static class ExtensorUbl
+    
+    public static class NamespacesUbl
     {
         public const string NsInvoice = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
         public const string NsCac = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
         public const string NsCbc = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
+        
+        // NUEVO: Namespace oficial para las extensiones de firma
+        public const string NsExt = "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2";
     }
 
     /// <summary>
@@ -30,9 +34,9 @@ namespace GestorDeElementos.Extensores
     {
         // ── Namespaces ────────────────────────────────────────────────────────
         // Idénticos en UBL 2.1 y 2.5: solo el namespace raíz (Invoice-2) y cac/cbc/ext comparten URN.
-        protected const string NsInvoice = ExtensorUbl.NsInvoice;
-        protected const string NsCac = ExtensorUbl.NsCac;
-        protected const string NsCbc = ExtensorUbl.NsCbc;
+        protected const string NsInvoice = NamespacesUbl.NsInvoice;
+        protected const string NsCac = NamespacesUbl.NsCac;
+        protected const string NsCbc = NamespacesUbl.NsCbc;
 
         // ── Propiedades de versión — deben implementar las subclases ──────────
         /// <summary>Valor del elemento cbc:UBLVersionID (p.ej. "2.1" o "2.5").</summary>
@@ -73,11 +77,15 @@ namespace GestorDeElementos.Extensores
             var doc = new XmlDocument();
             doc.AppendChild(doc.CreateXmlDeclaration("1.0", "UTF-8", null));
 
-            var root = doc.CreateElement("Invoice", NsInvoice);
-            root.SetAttribute("xmlns:cac", NsCac);
-            root.SetAttribute("xmlns:cbc", NsCbc);
+            doc.PreserveWhitespace = true;
+
+            // 1. Crear el elemento raíz Invoice estándar
+            var root = doc.CreateElement("", "Invoice", NamespacesUbl.NsInvoice);
+            root.SetAttribute("xmlns:cac", NamespacesUbl.NsCac);
+            root.SetAttribute("xmlns:cbc", NamespacesUbl.NsCbc);
             doc.AppendChild(root);
 
+            // 2. Mapeo de campos estándar usando tu método Cbc
             Cbc(doc, root, "UBLVersionID", UblVersionID);
             Cbc(doc, root, "CustomizationID", CustomizationID);
 
@@ -88,7 +96,10 @@ namespace GestorDeElementos.Extensores
             Cbc(doc, root, "IssueDate", (Factura.FacturadaEl ?? DateTime.Now).ToString("yyyy-MM-dd"));
             if (Factura.VenceEl.HasValue)
                 Cbc(doc, root, "DueDate", Factura.VenceEl.Value.ToString("yyyy-MM-dd"));
+
+            // Corregido: Usando Cbc que es el que lee tu clase base
             Cbc(doc, root, "InvoiceTypeCode", Factura.EsRectificativa ? "381" : "380");
+
             Cbc(doc, root, "DocumentCurrencyCode", Factura.Moneda);
 
             // PEPPOL-EN16931-R003: BuyerReference o OrderReference obligatorio en Peppol
