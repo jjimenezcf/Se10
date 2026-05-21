@@ -72,10 +72,16 @@ namespace ServicioDeDatos.Terceros
 
         public static string QuitarIsoDeNif(string nif)
         {
-           return nif.StartsWith(ltrIsoPaises.Spain) ? nif.Replace(ltrIsoPaises.Spain, "").ToUpper().Trim() : nif.ToUpper().Trim();
+            if (ApiDeTerceros.ClaseDeNacionalidad(nif) != enumClaseDeNacionalidad.Nacional)
+                return nif.ToUpper().Trim();
+
+            return nif.StartsWith(ltrIsoPaises.Spain) ? nif.Replace(ltrIsoPaises.Spain, "").ToUpper().Trim() : nif.ToUpper().Trim();
         }
         public static string PonerIsoDeNif(string nif)
         {
+            if (ApiDeTerceros.ClaseDeNacionalidad(nif) != enumClaseDeNacionalidad.Nacional)
+                return nif.ToUpper().Trim();
+
             return !nif.StartsWith(ltrIsoPaises.Spain) ? (ltrIsoPaises.Spain + nif).ToUpper().Trim() : nif.ToUpper().Trim();
         }
     }

@@ -453,9 +453,9 @@ namespace GestorDeElementos.Extensores
         {
             if (interlocutor.EsPersona)
             {
-                return quitarPrefijoEs ? interlocutor.Persona(contexto).NIFSinIsoEs: interlocutor.Persona(contexto).NIF.ToUpper();
+                return quitarPrefijoEs ? interlocutor.Persona(contexto).NIFSinIsoEs: interlocutor.Persona(contexto).NIFConIsoEs;
             }
-            return quitarPrefijoEs ? interlocutor.Sociedad(contexto).NIFSinIsoEs : interlocutor.Sociedad(contexto).NIF.ToUpper();
+            return quitarPrefijoEs ? interlocutor.Sociedad(contexto).NIFSinIsoEs : interlocutor.Sociedad(contexto).NIFConIsoEs;
         }
 
         public static string Nombre(this InterlocutorDtm interlocutor, ContextoSe contexto)

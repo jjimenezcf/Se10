@@ -80,6 +80,8 @@ namespace MVCSistemaDeElementos.Descriptores
             if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
                 Editor.IncluirMfIndividual("Generar preasiento", eventosDeMf.Fae_GenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
 
+            Editor.IncluirMfIndividual("Generar Ubl", eventosDeMf.Fae_GenerarUbl, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+
             if (Contexto.SePuedeParametrizar())
             {
                 Editor.IncluirMfIndividual("Sincronizar con la AEAT", eventosDeMf.Fae_SincronizarConAeat, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);

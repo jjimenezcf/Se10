@@ -3856,6 +3856,7 @@ const ltrMenus = {
                 FacturarTareas: 'facturar-tareas',
                 Rectificativa: 'rectificativa',
                 GenerarPreasieto: 'generar-preasiento',
+                GenerarUbl: 'generar-ubl',
                 CambiarDatos: 'cambiar-datos-fae'
             },
             RemesasFae: {

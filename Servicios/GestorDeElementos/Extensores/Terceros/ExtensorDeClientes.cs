@@ -126,15 +126,19 @@ namespace GestorDeElementos.Extensores
             if (!cache.ContainsKey(cliente.Id.ToString()))
                 cache[cliente.Id.ToString()] = cliente.VAT.IsNullOrEmpty() ? cliente.Interlocutor(contexto).NIF(contexto, quitarPrefijoEs) : cliente.VAT.ToUpper();
 
-            var resultado = (string)cache[cliente.Id.ToString()];
+            var nif = (string)cache[cliente.Id.ToString()];
 
             if (quitarPrefijoEs)
             {
-                resultado = SociedadDtm.QuitarIsoDeNif(resultado);
+                nif = SociedadDtm.QuitarIsoDeNif(nif);
+            }
+            else
+            {   
+                nif = SociedadDtm.PonerIsoDeNif(nif);
             }
 
 
-            return resultado;
+            return nif;
         }
 
         public static string RazonSocial(this ClienteDtm cliente, ContextoSe contexto) => cliente.Interlocutor(contexto).RazonSocial(contexto);

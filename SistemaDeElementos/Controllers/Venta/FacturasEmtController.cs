@@ -210,6 +210,9 @@ namespace MVCSistemaDeElementos.Controllers
                         throw;
                     }
                     return null;
+                case eventosDeMf.Fae_GenerarUbl:
+                    Resultado resultado = GenerarUbl(parametros);
+                    return resultado;
                 case eventosDeMf.Fae_CopiarLa:
                     var ids = (List<int>)parametros[ltrParametrosEp.ids];
                     if (ids.Count != 1)
@@ -227,6 +230,21 @@ namespace MVCSistemaDeElementos.Controllers
                     return new Resultado { Mensaje = "Factura sincronizada con los datos de la AEAT" };
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
+        }
+
+        private Resultado GenerarUbl(Dictionary<string, object> parametros)
+        {
+            try
+            {
+                ((GestorDeFacturasEmt)_GestorDeElementos).GenerarUbl(parametros);
+            }
+            catch (Exception exc)
+            {
+                if (exc.Data != null && exc.Data.Contains(Datos.CodigoError) && (enumCodigoDeError)exc.Data[Datos.CodigoError] == enumCodigoDeError.MensajeInformativo)
+                    return new Resultado { Estado = enumEstadoPeticion.Ok, Mensaje = exc.Message };
+                throw;
+            }
+            return null;
         }
 
         public IActionResult MaestrosDeFacturasEmt()

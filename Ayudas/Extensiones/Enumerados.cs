@@ -855,6 +855,7 @@ namespace Utilidades
         public const string Fae_IrAPartesTr = IrAPartesTr;
         public const string Fae_ModalDeImprimir = ModalDeImprimir;
         public const string Fae_GenerarPreasiento = "generar-preasiento";
+        public const string Fae_GenerarUbl = "generar-ubl";
         public const string Fae_SincronizarConAeat = "sicronizar-con-la-aeat";
 
 

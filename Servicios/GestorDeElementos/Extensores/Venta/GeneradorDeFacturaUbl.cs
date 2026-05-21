@@ -1,10 +1,7 @@
-using GestorDeElementos.Extensores;
 using ModeloDeDto.Negocio;
-using ModeloXml.eFactura;
 using ServicioDeDatos;
 using ServicioDeDatos.Callejero;
 using ServicioDeDatos.Contabilidad;
-using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
 using System;
@@ -14,20 +11,64 @@ using System.Xml;
 using Utilidades;
 using static ServicioDeDatos.Elemento.Enumerados;
 
-namespace GestoresDeNegocio.Ventas
+namespace GestorDeElementos.Extensores
 {
-    public class GeneradorDeFacturaEmtXmlUbl25 : GeneradorDeFacturaEmtXml
+    public static class ExtensorUbl
     {
-        private const string NsInvoice = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
-        private const string NsCac = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
-        private const string NsCbc = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
+        public const string NsInvoice = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
+        public const string NsCac = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
+        public const string NsCbc = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
+    }
 
-        public GeneradorDeFacturaEmtXmlUbl25(ContextoSe contexto, FacturaEmtDtm factura, string rutaConFichero)
-            : base(contexto, factura, rutaConFichero)
+    /// <summary>
+    /// Clase base abstracta para la generación de facturas electrónicas en formato UBL.
+    /// Contiene toda la lógica de construcción del XML común a todas las versiones UBL.
+    /// Las subclases concretas (GeneradorDeFacturaUbl21, GeneradorDeFacturaUbl25) solo
+    /// deben proporcionar los valores que difieren entre versiones.
+    /// </summary>
+    public abstract class GeneradorDeFacturaUbl
+    {
+        // ── Namespaces ────────────────────────────────────────────────────────
+        // Idénticos en UBL 2.1 y 2.5: solo el namespace raíz (Invoice-2) y cac/cbc/ext comparten URN.
+        protected const string NsInvoice = ExtensorUbl.NsInvoice;
+        protected const string NsCac = ExtensorUbl.NsCac;
+        protected const string NsCbc = ExtensorUbl.NsCbc;
+
+        // ── Propiedades de versión — deben implementar las subclases ──────────
+        /// <summary>Valor del elemento cbc:UBLVersionID (p.ej. "2.1" o "2.5").</summary>
+        protected abstract string UblVersionID { get; }
+
+        /// <summary>
+        /// Valor del elemento cbc:CustomizationID.
+        /// UBL 2.1 / Peppol BIS 3.0: "urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0"
+        /// UBL 2.5 / EN 16931 base:   "urn:cen.eu:en16931:2017"
+        /// </summary>
+        protected abstract string CustomizationID { get; }
+
+        /// <summary>
+        /// Valor de cbc:ProfileID. Solo lo emiten las subclases que lo necesiten (p.ej. UBL 2.1/Peppol).
+        /// Por defecto null → no se escribe el elemento.
+        /// </summary>
+        protected virtual string ProfileID => null;
+
+        // ── Estado de instancia ───────────────────────────────────────────────
+        protected ContextoSe Contexto { get; }
+        protected FacturaEmtDtm Factura { get; }
+        protected string Ruta { get; }
+
+        protected SociedadDtm _emisor = null;
+        protected SociedadDtm Emisor => _emisor ?? Factura.Sociedad(Contexto);
+
+        // ── Constructor ───────────────────────────────────────────────────────
+        protected GeneradorDeFacturaUbl(ContextoSe contexto, FacturaEmtDtm factura, string rutaConFichero)
         {
+            Contexto = contexto;
+            Factura = factura;
+            Ruta = rutaConFichero;
         }
 
-        public string GenerarUbl()
+        // ── Punto de entrada público ──────────────────────────────────────────
+        public string Generar()
         {
             var doc = new XmlDocument();
             doc.AppendChild(doc.CreateXmlDeclaration("1.0", "UTF-8", null));
@@ -37,14 +78,21 @@ namespace GestoresDeNegocio.Ventas
             root.SetAttribute("xmlns:cbc", NsCbc);
             doc.AppendChild(root);
 
-            Cbc(doc, root, "UBLVersionID", "2.5");
-            Cbc(doc, root, "CustomizationID", "urn:cen.eu:en16931:2017");
+            Cbc(doc, root, "UBLVersionID", UblVersionID);
+            Cbc(doc, root, "CustomizationID", CustomizationID);
+
+            if (!string.IsNullOrEmpty(ProfileID))
+                Cbc(doc, root, "ProfileID", ProfileID);
+
             Cbc(doc, root, "ID", Factura.NumeroDeFactura);
             Cbc(doc, root, "IssueDate", (Factura.FacturadaEl ?? DateTime.Now).ToString("yyyy-MM-dd"));
             if (Factura.VenceEl.HasValue)
                 Cbc(doc, root, "DueDate", Factura.VenceEl.Value.ToString("yyyy-MM-dd"));
             Cbc(doc, root, "InvoiceTypeCode", Factura.EsRectificativa ? "381" : "380");
             Cbc(doc, root, "DocumentCurrencyCode", Factura.Moneda);
+
+            // PEPPOL-EN16931-R003: BuyerReference o OrderReference obligatorio en Peppol
+            Cbc(doc, root, "BuyerReference", Factura.Cliente(Contexto).Id.ToString());
 
             if (Factura.EsRectificativa)
                 AgregarReferenciaFacturaRectificada(doc, root);
@@ -70,6 +118,8 @@ namespace GestoresDeNegocio.Ventas
             return Ruta;
         }
 
+        // ── Secciones del documento ───────────────────────────────────────────
+
         private void AgregarReferenciaFacturaRectificada(XmlDocument doc, XmlElement root)
         {
             var rectificada = Factura.RectificaA(Contexto);
@@ -83,6 +133,10 @@ namespace GestoresDeNegocio.Ventas
         {
             var supplierParty = Cac(doc, root, "AccountingSupplierParty");
             var party = Cac(doc, supplierParty, "Party");
+
+            // PEPPOL-EN16931-R020: EndpointID obligatorio — NIF con schemeID="0002" (ES)
+            var endpointEmisor = Cbc(doc, party, "EndpointID", Emisor.NIFConIsoEs);
+            endpointEmisor.SetAttribute("schemeID", "0002");
 
             var partyName = Cac(doc, party, "PartyName");
             Cbc(doc, partyName, "Name", Emisor.Nombre.IsNullOrEmpty() ? Emisor.RazonSocial : Emisor.Nombre);
@@ -112,6 +166,11 @@ namespace GestoresDeNegocio.Ventas
         {
             var customerParty = Cac(doc, root, "AccountingCustomerParty");
             var party = Cac(doc, customerParty, "Party");
+
+            // PEPPOL-EN16931-R010: EndpointID obligatorio — NIF con schemeID="0002" (ES)
+            var nifReceptor = Factura.Cliente(Contexto).NIF(Contexto, quitarPrefijoEs: false);
+            var endpointReceptor = Cbc(doc, party, "EndpointID", nifReceptor);
+            endpointReceptor.SetAttribute("schemeID", "0002");
 
             var partyName = Cac(doc, party, "PartyName");
             Cbc(doc, partyName, "Name", Factura.Cliente(Contexto).RazonSocial(Contexto));
@@ -148,7 +207,10 @@ namespace GestoresDeNegocio.Ventas
         private void AgregarMedioDePago(XmlDocument doc, XmlElement root)
         {
             var paymentMeans = Cac(doc, root, "PaymentMeans");
-            var cuentas = Factura.Sociedad(Contexto).Detalles<CuentaDeMiSociedadDtm>(Contexto).Where(x => x.Activa == true).ToList();
+            var cuentas = Factura.Sociedad(Contexto)
+                                 .Detalles<CuentaDeMiSociedadDtm>(Contexto)
+                                 .Where(x => x.Activa == true)
+                                 .ToList();
 
             if (cuentas.Count == 1)
             {
@@ -167,7 +229,9 @@ namespace GestoresDeNegocio.Ventas
             }
             else
             {
-                Cbc(doc, paymentMeans, "PaymentMeansCode", "10");
+                // BR-61: código 30 exige IBAN (PayeeFinancialAccount/ID). Sin cuenta bancaria
+                // concreta usamos código 1 (instrumento no definido) que no obliga a incluirlo.
+                Cbc(doc, paymentMeans, "PaymentMeansCode", "1");
                 Cbc(doc, paymentMeans, "PaymentDueDate", Factura.VenceEl!.Value.ToString("yyyy-MM-dd"));
             }
         }
@@ -178,19 +242,21 @@ namespace GestoresDeNegocio.Ventas
             var totalIva = Math.Round(Convert.ToDouble(ivas.Sum(x => x.Importe)), 2);
 
             var taxTotal = Cac(doc, root, "TaxTotal");
-            CbcConAtributo(doc, taxTotal, "TaxAmount", totalIva.ToString("F2"), "currencyID", Factura.Moneda);
+            CbcConAtributo(doc, taxTotal, "TaxAmount", Fmt(totalIva), "currencyID", Factura.Moneda);
 
             foreach (var iva in ivas)
             {
                 if (iva.EsNosujeto) continue;
 
                 var taxSubtotal = Cac(doc, taxTotal, "TaxSubtotal");
-                CbcConAtributo(doc, taxSubtotal, "TaxableAmount", Math.Round(Convert.ToDouble(iva.BI), 2).ToString("F2"), "currencyID", Factura.Moneda);
-                CbcConAtributo(doc, taxSubtotal, "TaxAmount", Math.Round(Convert.ToDouble(iva.Importe), 2).ToString("F2"), "currencyID", Factura.Moneda);
+                CbcConAtributo(doc, taxSubtotal, "TaxableAmount",
+                    Fmt(Math.Round(Convert.ToDouble(iva.BI), 2)), "currencyID", Factura.Moneda);
+                CbcConAtributo(doc, taxSubtotal, "TaxAmount",
+                    Fmt(Math.Round(Convert.ToDouble(iva.Importe), 2)), "currencyID", Factura.Moneda);
 
                 var taxCategory = Cac(doc, taxSubtotal, "TaxCategory");
                 Cbc(doc, taxCategory, "ID", CodigoCategoriaIva(iva));
-                Cbc(doc, taxCategory, "Percent", Math.Round(Convert.ToDouble(iva.Porcentaje), 2).ToString("F2"));
+                Cbc(doc, taxCategory, "Percent", Fmt(Math.Round(Convert.ToDouble(iva.Porcentaje), 2)));
                 if (iva.EsIsp)
                     Cbc(doc, taxCategory, "TaxExemptionReasonCode", "VATEX-EU-AE");
                 var taxScheme = Cac(doc, taxCategory, "TaxScheme");
@@ -200,22 +266,31 @@ namespace GestoresDeNegocio.Ventas
             var irpf = Factura.Irpf(Contexto);
             if (irpf > 0)
             {
+                // aplicarJoin: true para que BiSujeta e Irpf estén cargados
+                var irpfEmt = Factura.IrpfEmt(Contexto, errorSiNoHay: false, aplicarJoin: true);
+
                 var withholdingTaxTotal = Cac(doc, root, "WithholdingTaxTotal");
-                CbcConAtributo(doc, withholdingTaxTotal, "TaxAmount", Math.Round(Convert.ToDouble(irpf), 2).ToString("F2"), "currencyID", Factura.Moneda);
+                // TaxAmount [1..1] a nivel de WithholdingTaxTotal
+                CbcConAtributo(doc, withholdingTaxTotal, "TaxAmount",
+                    Fmt(Math.Round(Convert.ToDouble(irpf), 2)), "currencyID", Factura.Moneda);
+
                 var taxSubtotal = Cac(doc, withholdingTaxTotal, "TaxSubtotal");
+                // TaxableAmount [0..1] — base imponible sujeta a retención
+                if (irpfEmt?.BiSujeta != null)
+                    CbcConAtributo(doc, taxSubtotal, "TaxableAmount",
+                        Fmt((decimal)irpfEmt.BiSujeta), "currencyID", Factura.Moneda);
+                // TaxAmount [1..1] — obligatorio en TaxSubtotal según XSD UBL 2.1 y 2.5
+                CbcConAtributo(doc, taxSubtotal, "TaxAmount",
+                    Fmt(Math.Round(Convert.ToDouble(irpf), 2)), "currencyID", Factura.Moneda);
+
                 var taxCategory = Cac(doc, taxSubtotal, "TaxCategory");
                 Cbc(doc, taxCategory, "ID", "S");
+                // Percent [0..1] — porcentaje real de retención
+                if (irpfEmt?.Irpf != null)
+                    Cbc(doc, taxCategory, "Percent", Fmt((decimal)irpfEmt.Irpf));
                 var taxScheme = Cac(doc, taxCategory, "TaxScheme");
                 Cbc(doc, taxScheme, "ID", "IRPF");
             }
-        }
-
-        private static string CodigoCategoriaIva(ImportePorTipoDeIva iva)
-        {
-            if (iva.EsIsp) return "AE";
-            if (iva.EsExportacion) return iva.EsIntraComunitario ? "K" : "G";
-            if (iva.EsExento) return "E";
-            return "S";
         }
 
         private void AgregarTotalesMonetarios(XmlDocument doc, XmlElement root)
@@ -227,18 +302,19 @@ namespace GestoresDeNegocio.Ventas
             var aPagar = Math.Round(Convert.ToDouble(Factura.APagar(Contexto)), 2);
             var descuento = Math.Round(sinDescuento - bi, 2);
 
-            CbcConAtributo(doc, legalMonetaryTotal, "LineExtensionAmount", bi.ToString("F2"), "currencyID", Factura.Moneda);
-            CbcConAtributo(doc, legalMonetaryTotal, "TaxExclusiveAmount", bi.ToString("F2"), "currencyID", Factura.Moneda);
-            CbcConAtributo(doc, legalMonetaryTotal, "TaxInclusiveAmount", biConIva.ToString("F2"), "currencyID", Factura.Moneda);
+            CbcConAtributo(doc, legalMonetaryTotal, "LineExtensionAmount", Fmt(bi), "currencyID", Factura.Moneda);
+            CbcConAtributo(doc, legalMonetaryTotal, "TaxExclusiveAmount", Fmt(bi), "currencyID", Factura.Moneda);
+            CbcConAtributo(doc, legalMonetaryTotal, "TaxInclusiveAmount", Fmt(biConIva), "currencyID", Factura.Moneda);
             if (descuento > 0)
-                CbcConAtributo(doc, legalMonetaryTotal, "AllowanceTotalAmount", descuento.ToString("F2"), "currencyID", Factura.Moneda);
-            CbcConAtributo(doc, legalMonetaryTotal, "PayableAmount", aPagar.ToString("F2"), "currencyID", Factura.Moneda);
+                CbcConAtributo(doc, legalMonetaryTotal, "AllowanceTotalAmount", Fmt(descuento), "currencyID", Factura.Moneda);
+            CbcConAtributo(doc, legalMonetaryTotal, "PayableAmount", Fmt(aPagar), "currencyID", Factura.Moneda);
         }
 
         private void AgregarLineas(XmlDocument doc, XmlElement root)
         {
             var lineas = Factura.Detalles<LineaDeUnaFaeDtm>(Contexto, aplicarJoin: true);
             int lineaUbl = 0;
+
             foreach (var linea in lineas)
             {
                 if (linea.TipoDeLinea == enumTipoDeLinea.Comentario) continue;
@@ -248,20 +324,21 @@ namespace GestoresDeNegocio.Ventas
                 Cbc(doc, invoiceLine, "ID", lineaUbl.ToString());
 
                 var unidad = ObtenerCodigoUnidad(linea.Unidad?.Sigla);
-                var qty = Cbc(doc, invoiceLine, "InvoicedQuantity", Math.Round(Convert.ToDouble(linea.Cantidad ?? 0), 2).ToString("F2"));
+                var qty = Cbc(doc, invoiceLine, "InvoicedQuantity",
+                                 Fmt(Math.Round(Convert.ToDouble(linea.Cantidad ?? 0), 2)));
                 qty.SetAttribute("unitCode", unidad);
 
                 CbcConAtributo(doc, invoiceLine, "LineExtensionAmount",
-                    Math.Round(Convert.ToDouble(linea.ImporteConDto), 2).ToString("F2"), "currencyID", Factura.Moneda);
+                    Fmt(Math.Round(Convert.ToDouble(linea.ImporteConDto), 2)), "currencyID", Factura.Moneda);
 
                 if (linea.ImporteDeDto > 0)
                 {
                     var allowanceCharge = Cac(doc, invoiceLine, "AllowanceCharge");
                     Cbc(doc, allowanceCharge, "ChargeIndicator", "false");
                     CbcConAtributo(doc, allowanceCharge, "Amount",
-                        Math.Round(Convert.ToDouble(linea.ImporteDeDto), 2).ToString("F2"), "currencyID", Factura.Moneda);
+                        Fmt(Math.Round(Convert.ToDouble(linea.ImporteDeDto), 2)), "currencyID", Factura.Moneda);
                     CbcConAtributo(doc, allowanceCharge, "BaseAmount",
-                        Math.Round(Convert.ToDouble(linea.ImporteSinDto), 2).ToString("F2"), "currencyID", Factura.Moneda);
+                        Fmt(Math.Round(Convert.ToDouble(linea.ImporteSinDto), 2)), "currencyID", Factura.Moneda);
                 }
 
                 var item = Cac(doc, invoiceLine, "Item");
@@ -275,15 +352,25 @@ namespace GestoresDeNegocio.Ventas
                     var classifiedTaxCategory = Cac(doc, item, "ClassifiedTaxCategory");
                     Cbc(doc, classifiedTaxCategory, "ID", CodigoCategoriaIvaLinea(linea));
                     Cbc(doc, classifiedTaxCategory, "Percent",
-                        Math.Round(Convert.ToDouble(linea.IvaRepercutido.Porcentaje), 2).ToString("F2"));
+                        Fmt(Math.Round(Convert.ToDouble(linea.IvaRepercutido.Porcentaje), 2)));
                     var taxScheme = Cac(doc, classifiedTaxCategory, "TaxScheme");
                     Cbc(doc, taxScheme, "ID", "VAT");
                 }
 
                 var price = Cac(doc, invoiceLine, "Price");
                 CbcConAtributo(doc, price, "PriceAmount",
-                    Math.Round(Convert.ToDouble(linea.Precio ?? 0), 6).ToString("F6"), "currencyID", Factura.Moneda);
+                    Fmt(Math.Round(Convert.ToDouble(linea.Precio ?? 0), 6), 6), "currencyID", Factura.Moneda);
             }
+        }
+
+        // ── Helpers estáticos de categoría de IVA ─────────────────────────────
+
+        private static string CodigoCategoriaIva(ImportePorTipoDeIva iva)
+        {
+            if (iva.EsIsp) return "AE";
+            if (iva.EsExportacion) return iva.EsIntraComunitario ? "K" : "G";
+            if (iva.EsExento) return "E";
+            return "S";
         }
 
         private static string CodigoCategoriaIvaLinea(LineaDeUnaFaeDtm linea)
@@ -313,14 +400,22 @@ namespace GestoresDeNegocio.Ventas
             };
         }
 
-        private static XmlElement Cac(XmlDocument doc, XmlElement parent, string localName)
+        // ── Helpers de construcción XML ───────────────────────────────────────
+
+        /// <summary>Formatea decimales con cultura invariante (punto como separador).</summary>
+        protected static string Fmt(double value, int decimales = 2) => Fmt((decimal)value, decimales);
+
+        protected static string Fmt(decimal value, int decimales = 2)
+            => value.Formatear(decimales: decimales, alineacion: false, separadorDecimal: ".");
+
+        protected static XmlElement Cac(XmlDocument doc, XmlElement parent, string localName)
         {
             var element = doc.CreateElement("cac", localName, NsCac);
             parent.AppendChild(element);
             return element;
         }
 
-        private static XmlElement Cbc(XmlDocument doc, XmlElement parent, string localName, string value)
+        protected static XmlElement Cbc(XmlDocument doc, XmlElement parent, string localName, string value)
         {
             var element = doc.CreateElement("cbc", localName, NsCbc);
             element.InnerText = value ?? string.Empty;
@@ -328,7 +423,8 @@ namespace GestoresDeNegocio.Ventas
             return element;
         }
 
-        private static XmlElement CbcConAtributo(XmlDocument doc, XmlElement parent, string localName, string value, string atributo, string valorAtributo)
+        protected static XmlElement CbcConAtributo(XmlDocument doc, XmlElement parent,
+            string localName, string value, string atributo, string valorAtributo)
         {
             var element = Cbc(doc, parent, localName, value);
             element.SetAttribute(atributo, valorAtributo);

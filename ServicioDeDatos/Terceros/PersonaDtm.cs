@@ -31,8 +31,25 @@ namespace ServicioDeDatos.Terceros
         public override string Expresion => $"({NIF}) {Apellidos}, {base.Expresion}";
         public bool EsInterlocutor { get; set; }
 
-        public string NIFConIsoEs => !NIF.StartsWith(ltrIsoPaises.Spain) ? (ltrIsoPaises.Spain + NIF).ToUpper() : NIF.ToUpper();
-        public string NIFSinIsoEs => NIF.StartsWith(ltrIsoPaises.Spain) ? NIF.Replace(ltrIsoPaises.Spain, "").ToUpper() : NIF.ToUpper();
+        public string NIFConIsoEs {
+            get
+            {
+                if (ApiDeTerceros.ClaseDeNacionalidad(NIF) != enumClaseDeNacionalidad.Nacional)
+                    return NIF.ToUpper().Trim();
+
+                return !NIF.StartsWith(ltrIsoPaises.Spain) ? (ltrIsoPaises.Spain + NIF).ToUpper() : NIF.ToUpper();
+            }
+        }
+
+        public string NIFSinIsoEs {
+            get
+            {
+                if (ApiDeTerceros.ClaseDeNacionalidad(NIF) != enumClaseDeNacionalidad.Nacional)
+                    return NIF.ToUpper().Trim();
+
+                return NIF.StartsWith(ltrIsoPaises.Spain) ? NIF.Substring(ltrIsoPaises.Spain.Length).ToUpper() : NIF.ToUpper();
+            }
+        }
 
         public string Referencia => NIF.ToUpper();
     }

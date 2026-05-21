@@ -138,7 +138,7 @@ namespace GestoresDeNegocio.Ventas
             consulta = consulta.FiltroPorContratos(filtros);
             consulta = consulta.FiltroPorCliente(filtros);
             consulta = consulta.FiltroPorRemesas(Contexto, filtros);
-            consulta = consulta.FiltroPorDeudor(Contexto, filtros);            
+            consulta = consulta.FiltroPorDeudor(Contexto, filtros);
             consulta = consulta.FiltroPorImportesSinIva(Contexto, filtros);
             consulta = consulta.FiltroPorCobrado(Contexto, filtros);
             consulta = consulta.FiltroPorFechaDeFacturacion(filtros);
@@ -176,7 +176,7 @@ namespace GestoresDeNegocio.Ventas
             if (parametros.Insertando)
             {
                 fae.InicializarPrefactura();
-                fae.ClaseDeEmision = fae.Cliente(Contexto).ClaseDeEmision(Contexto);
+                fae.ClaseDeEmision = fae.Cliente(Contexto).ClaseDeEmision();
                 fae.ValidarClaseDeEmision(Contexto, errorSiNoValida: $"No puede indicar que la clase de emisión para el cliente '{fae.Cliente(Contexto).Referencia(Contexto)}' es '{enumClaseDeEmision.Impresa}' e indicar que el sistema usa verifactu, actualice el parámetro '{enumParametrosDeCliente.Cli_Como_Emitir_Factura}'");
             }
 
@@ -318,19 +318,19 @@ namespace GestoresDeNegocio.Ventas
             //si estoy insertando --> el archivo en blanco
             if (parametros.Insertando) fae.IdArchivo = null;
             else
-            //si estoy modificando pero no transito y la etapa es cumplimentación y cancelada --> archivo en blanco, sino el de la BD
-            if (parametros.Modificando && !parametros.EsUnaTransicion)
-            {
-                var esta = fae.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeFacturasEmt> { enumEtapasDeFacturasEmt.FAE_Etapa_Prefactura, enumEtapasDeFacturasEmt.FAE_Etapa_Anulada });
-                if (esta) fae.IdArchivo = null;
-                else fae.IdArchivo = ((FacturaEmtDtm)parametros.registroEnBd).IdArchivo;
-            }
-            else
-            //si estoy transitando y el estado destino NO está en la etapa de prefacturación -->  copio el archivo de BD
-            if (parametros.EsUnaTransicion)
-            {
-                if (!fae.EstaEnLaEtapa(enumEtapasDeFacturasEmt.FAE_Etapa_Prefactura)) fae.IdArchivo = ((FacturaEmtDtm)parametros.registroEnBd).IdArchivo;
-            }
+                //si estoy modificando pero no transito y la etapa es cumplimentación y cancelada --> archivo en blanco, sino el de la BD
+                if (parametros.Modificando && !parametros.EsUnaTransicion)
+                {
+                    var esta = fae.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeFacturasEmt> { enumEtapasDeFacturasEmt.FAE_Etapa_Prefactura, enumEtapasDeFacturasEmt.FAE_Etapa_Anulada });
+                    if (esta) fae.IdArchivo = null;
+                    else fae.IdArchivo = ((FacturaEmtDtm)parametros.registroEnBd).IdArchivo;
+                }
+                else
+                    //si estoy transitando y el estado destino NO está en la etapa de prefacturación -->  copio el archivo de BD
+                    if (parametros.EsUnaTransicion)
+                    {
+                        if (!fae.EstaEnLaEtapa(enumEtapasDeFacturasEmt.FAE_Etapa_Prefactura)) fae.IdArchivo = ((FacturaEmtDtm)parametros.registroEnBd).IdArchivo;
+                    }
 
         }
 
@@ -1064,9 +1064,7 @@ namespace GestoresDeNegocio.Ventas
             var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
             if (facturaDtm.ClaseDeEmision != enumClaseDeEmision.Impresa)
                 GenerarFacturaE(contexto, factura);
-
-            GenerarFacturaUbl25(contexto, factura);
-
+            
             string rutaConFichero;
             if (facturaDtm.ClaseDeEmision == enumClaseDeEmision.Impresa)
                 rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"Fac-{factura.Referencia}.{enumExtensiones.pdf}".NormalizarFichero());
@@ -1091,12 +1089,41 @@ namespace GestoresDeNegocio.Ventas
             AsociarArchivoFactura(contexto, fae, idArchivo, original: true);
         }
 
-        private static void GenerarFacturaUbl25(ContextoSe contexto, FacturaEmtDto factura)
+        public void GenerarUbl(Dictionary<string, object> parametros)
+        {
+            if (!parametros.ContieneClave(ltrParametrosEp.ids)) GestorDeErrores.Emitir("No se ha indicado la factura de la que generar el Ubl");
+            var idFacturasUbl = (List<int>)parametros[ltrParametrosEp.ids];
+            if (idFacturasUbl.Count != 1) GestorDeErrores.Emitir("Debe indicar una única factura de la que generar el Ubl");
+            var idFactura = idFacturasUbl[0];
+            var trans = Contexto.IniciarTransaccion();
+            try
+            {
+                var facturaDtm = Contexto.SeleccionarPorId<FacturaEmtDtm>(idFactura);
+                GenerarUbl(Contexto, facturaDtm);
+                Contexto.Commit(trans);
+            }
+            catch
+            {
+                Contexto.Rollback(trans);
+                throw;
+            }
+
+            GestorDeErrores.Emitir($"Fichero Uml generado", GestorDeErrores.enumCodigoDeError.MensajeInformativo);
+        }
+
+
+        private static void GenerarUbl(ContextoSe contexto, FacturaEmtDtm factura)
         {
             var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
-            var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Fac-{factura.Referencia}-UBL25.xml");
+            var usarPepplo = factura.Cliente(contexto).UsarPeppol();
+            var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Ubl{(usarPepplo ? "21" : "25")}-{factura.Referencia}.xml");
             var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
-            new GeneradorDeFacturaEmtXmlUbl25(contexto, facturaDtm, rutaConFichero).GenerarUbl();
+
+            GeneradorDeFacturaUbl gen = usarPepplo
+                        ? new GeneradorDeFacturaUbl21(contexto, factura, rutaConFichero)
+                        : new GeneradorDeFacturaUbl25(contexto, factura, rutaConFichero);
+
+            gen.Generar();
             var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero);
             var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
             AsociarArchivoFactura(contexto, fae, idArchivo, original: false);

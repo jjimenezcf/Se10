@@ -1,14 +1,14 @@
-﻿
+﻿extern alias BouncyCastleNuevo;
+using FirmaXadesNetCore;
+using FirmaXadesNetCore.Signature;
+using FirmaXadesNetCore.Signature.Parameters;
 using Gestor.Errores;
 using iText.Bouncycastle.Crypto;
 using iText.Bouncycastle.X509;
-using iText.Commons.Bouncycastle.Cert;
 using iText.Kernel.Crypto;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Signatures;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pkcs;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
@@ -23,7 +23,12 @@ using System.Text;
 using System.Xml;
 using Utilidades;
 using static iText.Signatures.PdfSigner;
-
+// CORRECCIÓN DE MAPEO: Ajustamos los tipos para que iText 9 sea feliz
+using AsymmetricKeyParameter = BouncyCastleNuevo::Org.BouncyCastle.Crypto.AsymmetricKeyParameter;
+// Añadimos el alias nativo para la interfaz de certificados que iText exige en las cadenas (Chain)
+using IX509Certificate = iText.Commons.Bouncycastle.Cert.IX509Certificate;
+using Pkcs12Store = BouncyCastleNuevo::Org.BouncyCastle.Pkcs.Pkcs12Store;
+using Pkcs12StoreBuilder = BouncyCastleNuevo::Org.BouncyCastle.Pkcs.Pkcs12StoreBuilder;
 
 
 
@@ -40,6 +45,7 @@ namespace GestorDeElementos
         public int Id { get; }
 
         private string _pfxFile { get; }
+
 
         public string Password { get; }
 
@@ -198,7 +204,7 @@ namespace GestorDeElementos
 
         }
 
-        public void FirmarXml(string rutaDocumentoSinFirma, string rutaDocumentoFirmado)
+        public void FirmarXmlOld(string rutaDocumentoSinFirma, string rutaDocumentoFirmado)
         {
             {
                 XmlDocument doc = new XmlDocument();
@@ -245,6 +251,88 @@ namespace GestorDeElementos
             }
         }
 
+        public void FirmarXml(string rutaDocumentoSinFirma, string rutaDocumentoFirmado)
+        {
+            try
+            {
+                // 1. Validar que el objeto del certificado no sea nulo
+                if (this._Certificado == null)
+                {
+                    throw new InvalidOperationException("El objeto _Certificado no está inicializado.");
+                }
+
+                // 2. Carga moderna y segura del certificado (.NET 10) evitando métodos obsoletos
+                X509Certificate2 cert = null;
+                string rutaCert = this._Certificado.RutaDelCertificado;
+                string passCert = this._Certificado.Password;
+
+                if (File.Exists(rutaCert))
+                {
+                    cert = X509CertificateLoader.LoadPkcs12FromFile(rutaCert, passCert, X509KeyStorageFlags.Exportable);
+                }
+                else
+                {
+                    throw new FileNotFoundException($"No se encontró el archivo del certificado físico en la ruta: {rutaCert}");
+                }
+
+                // 3. Instanciar el servicio principal de la librería
+                FirmaXadesNetCore.XadesService xadesService = new FirmaXadesNetCore.XadesService();
+
+                // 4. Configurar los parámetros usando la ruta exacta de namespaces revelada en el fuente
+                FirmaXadesNetCore.Signature.Parameters.SignatureParameters parametros = new FirmaXadesNetCore.Signature.Parameters.SignatureParameters
+                {
+                    // El enumerado SignaturePackaging cuelga del mismo namespace
+                    SignaturePackaging = FirmaXadesNetCore.Signature.Parameters.SignaturePackaging.ENVELOPED,
+
+                    // Inicializar las propiedades de formato de datos expuestas en el archivo DataFormat.cs
+                    DataFormat = new FirmaXadesNetCore.Signature.Parameters.DataFormat
+                    {
+                        MimeType = "text/xml"
+                    },
+
+                    // Asignar el firmante encapsulado en la clase Signer de la librería
+                    Signer = new FirmaXadesNetCore.Crypto.Signer(cert)
+                };
+
+                // 5. Leer el XML original, aplicar la firma avanzada XAdES-BES y guardar el resultado
+                using (FileStream fsEntrada = new FileStream(rutaDocumentoSinFirma, FileMode.Open, FileAccess.Read))
+                {
+                    // El método Sign de la librería procesa el stream usando los parámetros configurados
+                    var documentoFirmado = xadesService.Sign(fsEntrada, parametros);
+
+                    using (FileStream fsSalida = new FileStream(rutaDocumentoFirmado, FileMode.Create, FileAccess.Write))
+                    {
+                        documentoFirmado.Save(fsSalida);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error crítico en el proceso de firma digital XAdES-BES con FirmaXadesNetCore: {ex.Message}", ex);
+            }
+        }
+
+        private void FirmarGenericoSHA1(XmlDocument doc)
+        {
+            // Comportamiento idéntico a FirmarXmlOld: SHA1, sin C14N explícito, sin Id.
+            // No usar CrearSignedXml (que aplica SHA256 + C14N) para no romper
+            // los validadores que esperan el formato original.
+            var signedXml = new SignedXml(doc);
+            signedXml.SigningKey = _Certificado.RSAPrivateKey;
+
+            var reference = new Reference("");
+            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+            signedXml.AddReference(reference);
+
+            var keyInfo = new KeyInfo();
+            keyInfo.AddClause(new KeyInfoX509Data(_Certificado.X509Certificado));
+            signedXml.KeyInfo = keyInfo;
+
+            signedXml.ComputeSignature();
+            var xmlSig = signedXml.GetXml();
+            // Sin SetAttribute("Id",...) — igual que FirmarXmlOld
+            doc.DocumentElement.AppendChild(doc.ImportNode(xmlSig, true));
+        }
 
         public string FirmarImagenComoXml(ContextoSe contexto, string fichero, string destino)
         {
@@ -406,20 +494,20 @@ namespace GestorDeElementos
                 if (ExtensorDeTipoDeArchivos.EsImagen(extension, errorSiNoEstaCatalogada: false))
                     destino = firmante.FirmarImagenComoXml(contexto, fichero, destino);
                 else
-                if (extension == enumExtensiones.xml.ToString())
-                    firmante.FirmarXml(fichero, destino);
-                else
-                if (extension == enumExtensiones.pdf.ToString())
-                    firmante.FirmarPdf(fichero, destino, contexto.DatosDeConexion.Login, visible);
-                else
-                if (extension == enumExtensiones.docx.ToString())
-                {
-                    var ficheroPdf = extDocx.ToPdf(fichero, ParametrosDeArchivadores.ClaveConvertApi); // "1CPToQIEOjozKPfq";
-                    firmante.FirmarPdf(ficheroPdf, destino, contexto.DatosDeConexion.Login, visible);
-                    destino = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(destino), $"{System.IO.Path.GetFileNameWithoutExtension(destino)}.{enumExtensiones.pdf}");
-                }
-                else
-                    GestorDeErrores.Emitir($"No se ha implementado como firmar ficheros con la extención {System.IO.Path.GetExtension(fichero)}");
+                    if (extension == enumExtensiones.xml.ToString())
+                        firmante.FirmarXml(fichero, destino);
+                    else
+                        if (extension == enumExtensiones.pdf.ToString())
+                            firmante.FirmarPdf(fichero, destino, contexto.DatosDeConexion.Login, visible);
+                        else
+                            if (extension == enumExtensiones.docx.ToString())
+                            {
+                                var ficheroPdf = extDocx.ToPdf(fichero, ParametrosDeArchivadores.ClaveConvertApi); // "1CPToQIEOjozKPfq";
+                                firmante.FirmarPdf(ficheroPdf, destino, contexto.DatosDeConexion.Login, visible);
+                                destino = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(destino), $"{System.IO.Path.GetFileNameWithoutExtension(destino)}.{enumExtensiones.pdf}");
+                            }
+                            else
+                                GestorDeErrores.Emitir($"No se ha implementado como firmar ficheros con la extención {System.IO.Path.GetExtension(fichero)}");
 
                 return destino;
             }
@@ -444,7 +532,7 @@ namespace GestorDeElementos
             {
                 return certificado.Archivo(contexto).DescargarCertificado(contexto);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception(Excepciones.MensajeCompleto(e));
             }
@@ -471,8 +559,7 @@ namespace GestorDeElementos
             }
         }
 
+
     }
 
 }
-
-

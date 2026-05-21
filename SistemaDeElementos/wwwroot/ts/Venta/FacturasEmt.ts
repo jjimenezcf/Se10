@@ -609,6 +609,7 @@
                 ApiControl.OcultarHtmlAnchor(this.HtmlAnchorCrearEvento, false);
                 ApiDeMenuFlotante.DesbloquearOpcionDeMenu(this.ContenedorMenu, ltrMenus.eventosDeMf.Entorno.Agenda.ModalDeCrearEvento, ltrMenus.enumOrigen.edicion);
                 ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Venta.FacturasEmt.GenerarPreasieto, ltrMenus.enumOrigen.edicion, Registro.EsAdministrador());
+                ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Venta.FacturasEmt.GenerarUbl, ltrMenus.enumOrigen.edicion, Registro.EsAdministrador());
             }
 
             //Si es una prefactura
@@ -618,6 +619,7 @@
                 ApiDeMenuFlotante.BloquearOpcionDeMenu(this.ContenedorMenu, ltrMenus.eventosDeMf.Venta.FacturasEmt.CambiarVencimiento, ltrMenus.enumOrigen.edicion);
                 ApiDeMenuFlotante.BloquearOpcionDeMenu(this.ContenedorMenu, ltrMenus.eventosDeMf.Venta.FacturasEmt.Rectificativa, ltrMenus.enumOrigen.edicion);
                 ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Venta.FacturasEmt.GenerarPreasieto, ltrMenus.enumOrigen.edicion, true);
+                ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Venta.FacturasEmt.GenerarUbl, ltrMenus.enumOrigen.edicion, true);
             }
 
             if (esRectificativa) {
@@ -772,6 +774,10 @@
             if (opcion === ltrMenus.eventosDeMf.Venta.FacturasEmt.GenerarPreasieto) {
                 this.RecargarValoresDeCabecera(this.ElementoEditado.Id);
                 this.RecargarGridDeTrazas()
+                return true;
+            }
+            if (opcion === ltrMenus.eventosDeMf.Venta.FacturasEmt.GenerarUbl) {
+                this.RecargarArchivos();
                 return true;
             }
             if (opcion === ltrMenus.eventosDeMf.Venta.FacturasEmt.CopiarLa) {

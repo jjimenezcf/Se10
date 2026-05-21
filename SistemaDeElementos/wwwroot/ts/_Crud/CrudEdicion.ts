@@ -1038,6 +1038,10 @@
             this.EditarSeleccionado(editando);
         }
 
+        public RecargarArchivos() {
+            ApiDeArchivos.MostrarArchivosAnexados(this.PanelDeArchivos.id, this.CrudDeMnt.NombreDeNegocio, this.Registro.id, null);
+        }
+
         public RecargarGridDeTrazas() {
             var trazas = this.GridDeTrazas;
             if (!Definido(trazas))
