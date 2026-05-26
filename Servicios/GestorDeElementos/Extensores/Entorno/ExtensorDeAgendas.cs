@@ -1,24 +1,31 @@
-﻿using ServicioDeDatos.Elemento;
+﻿using ServicioDeDatos;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Juridico;
 using ServicioDeDatos.Presupuesto;
 using ServicioDeDatos.RegistroEs;
+using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Tarea;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
-using ServicioDeDatos;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Utilidades;
-using ServicioDeDatos.Entorno;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
-using ServicioDeDatos.Seguridad;
+using Utilidades;
 
 namespace GestorDeElementos.Extensores
 {
-    public enum enumParametroAgenda { Agenda_Leer_Desde, Agenda_Leer_Hasta}
+    public enum enumParametroAgenda
+    {
+        [Description("Días a trás a partir del día de hoy desde el que se mostrará el calendario")]
+        Agenda_Leer_Desde,
+        [Description("Días hacia adelante a partir del día de hoy que se leerá el calendario")]
+        Agenda_Leer_Hasta
+    }
 
     public static class ExtensorDeAgendas
     {
