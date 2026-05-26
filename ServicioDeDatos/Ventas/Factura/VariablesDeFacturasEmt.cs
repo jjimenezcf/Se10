@@ -91,7 +91,18 @@ namespace ServicioDeDatos.Ventas
         [Description("Indica el nº de implantación")]
         SII_SSII_IMPLANTACION,
         [Description("Indica la Url de la AEAT para registrar la factura")]
-        SII_URL_DE_VERIFICACION
+        SII_URL_DE_VERIFICACION,
+        [Description("Indica la versión de Ubl que se va a usar (2.1 o 2.5)")]
+        FAE_UBL_VERSION
+    }
+
+    public static class UblVersiones
+    {
+        public const string Ubl_21 = "2.1";
+        public const string Ubl_25 = "2.5";
+
+        public static bool Usar21 => ParametrosDelSii.FAE_Ubl_Version == Ubl_21;
+
     }
 
     public static class EndpointsDe
@@ -135,6 +146,10 @@ namespace ServicioDeDatos.Ventas
         {
             public static string Pendiente = _jsonDeSSII_Implantacion;
         }
+
+        public static string FAE_Ubl_Version => enumNegocio.FacturaEmitida.Parametro(enumParametrosDeFacturasEmt.FAE_UBL_VERSION
+            , crearParametro: true
+            , valorPorDefecto: UblVersiones.Ubl_21).Valor;
 
         public static string SII_UrlDeRegistro => enumNegocio.FacturaEmitida.Parametro(enumParametrosDeFacturasEmt.SII_URL_DE_VERIFICACION
             , crearParametro: true

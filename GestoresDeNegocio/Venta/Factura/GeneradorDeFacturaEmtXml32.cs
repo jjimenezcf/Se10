@@ -73,8 +73,8 @@ namespace GestoresDeNegocio.Ventas
         {
             efactura.FileHeader.Batch.BatchIdentifier = $"{Emisor.NIFConIsoEs}-{Factura.Id}";
             efactura.FileHeader.Batch.InvoicesCount = 1;
-            efactura.FileHeader.Batch.TotalInvoicesAmount.TotalAmount.Value = Math.Round(Convert.ToDouble(Factura.BiConIva(Contexto)), 2);
-            efactura.FileHeader.Batch.TotalOutstandingAmount.TotalAmount.Value = Math.Round(Convert.ToDouble(Factura.BiConIva(Contexto)), 2);
+            efactura.FileHeader.Batch.TotalInvoicesAmount.TotalAmount.Value = Math.Round(Convert.ToDouble(Factura.APagar(Contexto)), 2);
+            efactura.FileHeader.Batch.TotalOutstandingAmount.TotalAmount.Value = Math.Round(Convert.ToDouble(Factura.APagar(Contexto)), 2);
             efactura.FileHeader.Batch.TotalExecutableAmount.TotalAmount.Value = Math.Round(Convert.ToDouble(Factura.APagar(Contexto)), 2);
             efactura.FileHeader.Batch.InvoiceCurrencyCode = ApiDeEnsamblados.ToEnumerado<CurrencyCodeType>(Factura.Moneda);
         }
@@ -166,6 +166,7 @@ namespace GestoresDeNegocio.Ventas
         private void Invoice(eFactura32 efactura, InvoiceType invoice)
         {
             invoice.TaxesOutputs = TaxesOutputs32(Contexto, Factura);
+            if (Factura.TienenIrpf(Contexto)) invoice.TaxesWithheld = efactura.Retenciones(Contexto, Factura);
             invoice.InvoiceTotals = new InvoiceTotalsType
             {
                 TotalGrossAmount = new DoubleTwoDecimalType { Value = Math.Round(Convert.ToDouble(Factura.SinDescuento(Contexto)), 2) },

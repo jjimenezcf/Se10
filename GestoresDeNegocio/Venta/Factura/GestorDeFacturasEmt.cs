@@ -1020,13 +1020,13 @@ namespace GestoresDeNegocio.Ventas
         }
 
 
-        public static void GenerarPruebaDeEFactura(ContextoSe contexto, FacturaEmtDtm factura)
-        {
-            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"Prueba-{factura.Referencia}.xml".NormalizarFichero());
-            new GeneradorDeFacturaEmtXml(contexto, factura, rutaConFichero).Generar();
-            var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
-            AsociarArchivoFactura(contexto, factura, idArchivo, original: false);
-        }
+        //public static void GenerarPruebaDeEFactura(ContextoSe contexto, FacturaEmtDtm factura)
+        //{
+        //    var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"Prueba-{factura.Referencia}.xml".NormalizarFichero());
+        //    new GeneradorDeFacturaEmtXml(contexto, factura, rutaConFichero).Generar();
+        //    var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
+        //    AsociarArchivoFactura(contexto, factura, idArchivo, original: false);
+        //}
 
         public static bool EnviarFacturaAeat(ContextoSe contexto, int Idfactura, bool someterEnvio)
         {
@@ -1063,30 +1063,39 @@ namespace GestoresDeNegocio.Ventas
         {
             var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
             if (facturaDtm.ClaseDeEmision != enumClaseDeEmision.Impresa)
-                GenerarFacturaE(contexto, factura);
-            
+                GenerarFacturaE(contexto, facturaDtm);
+
             string rutaConFichero;
             if (facturaDtm.ClaseDeEmision == enumClaseDeEmision.Impresa)
                 rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"Fac-{factura.Referencia}.{enumExtensiones.pdf}".NormalizarFichero());
             else
                 rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"COPIA-{factura.Referencia}-{factura.ClaseDeEmision.ToString().Replace("eFactura", "")}.{enumExtensiones.pdf}".NormalizarFichero());
-
-            var facturaEmtRpt = (FacturaEmtRpt)new GeneradorDeFacturaEmtRpt(contexto, facturaDtm).ObtenerInformacionDeRpt(plantilla: null);
-            new ReporteDeFacturaEmt(facturaEmtRpt).GeneratePdf(rutaConFichero);
+            try
+            {
+                var facturaEmtRpt = (FacturaEmtRpt)new GeneradorDeFacturaEmtRpt(contexto, facturaDtm).ObtenerInformacionDeRpt(plantilla: null);
+                new ReporteDeFacturaEmt(facturaEmtRpt).GeneratePdf(rutaConFichero);
+            }
+            catch (Exception e)
+            {
+                facturaDtm.CrearTraza(contexto, "No se ha podido imprimir la factura Xml", $"Factura comunicada en Verifactu pero no se ha podido emitir:{Environment.NewLine}{e.Message}");
+                return;
+            }
             var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
             var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
             AsociarArchivoFactura(contexto, fae, idArchivo, original: factura.ClaseDeEmision == enumClaseDeEmision.Impresa);
         }
 
-        private static void GenerarFacturaE(ContextoSe contexto, FacturaEmtDto factura)
+        private static void GenerarFacturaE(ContextoSe contexto, FacturaEmtDtm factura)
         {
-            var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
-            var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Fac-{factura.Referencia}.xml");
+            var nombrePropuesto = factura.ProponerNombreDeArchivo(contexto, $"Fac-{factura.Referencia}.xml");
             var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
-            new GeneradorDeFacturaEmtXml(contexto, facturaDtm, rutaConFichero).Generar();
-            var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero);
-            var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
-            AsociarArchivoFactura(contexto, fae, idArchivo, original: true);
+            var generado = new GeneradorDeFacturaEmtXml(contexto, factura, rutaConFichero).Generar();
+            if (generado)
+            {
+                var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero);
+                var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
+                AsociarArchivoFactura(contexto, fae, idArchivo, original: true);
+            }
         }
 
         public void GenerarUbl(Dictionary<string, object> parametros)
@@ -1099,7 +1108,7 @@ namespace GestoresDeNegocio.Ventas
             try
             {
                 var facturaDtm = Contexto.SeleccionarPorId<FacturaEmtDtm>(idFactura);
-                GenerarUbl(Contexto, facturaDtm);
+                GenerarUbl(Contexto, facturaDtm, esCopia: true);
                 Contexto.Commit(trans);
             }
             catch
@@ -1112,57 +1121,57 @@ namespace GestoresDeNegocio.Ventas
         }
 
 
-        private static void GenerarUbl(ContextoSe contexto, FacturaEmtDtm factura)
+        private static void GenerarUbl(ContextoSe contexto, FacturaEmtDtm factura, bool esCopia)
         {
             var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
-            var usarPepplo = factura.Cliente(contexto).UsarPeppol();
-            var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Ubl{(usarPepplo ? "21" : "25")}-{factura.Referencia}.xml");
+            var esUbl21 = UblVersiones.Usar21;
+            var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Ubl{(esUbl21 ? "21" : "25")}-{factura.Referencia}.xml");
             var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
 
-            GeneradorDeFacturaUbl gen = usarPepplo
+            GeneradorDeFacturaUbl gen = esUbl21
                         ? new GeneradorDeFacturaUbl21(contexto, factura, rutaConFichero)
                         : new GeneradorDeFacturaUbl25(contexto, factura, rutaConFichero);
 
-            gen.Generar();
+            gen.Generar(esCopia);
             var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero);
             var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(factura.Id);
             AsociarArchivoFactura(contexto, fae, idArchivo, original: false);
         }
 
-        public static void GenerarFacturaE32(ContextoSe contexto, int idFactura)
-        {
-            var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(idFactura);
-            var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Fac-{facturaDtm.Referencia}.xml");
-            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
-            new GeneradorDeFacturaEmtXml(contexto, facturaDtm, rutaConFichero).Generar();
-            var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
-            var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(facturaDtm.Id);
-            AsociarArchivoFactura(contexto, fae, idArchivo, original: true);
-        }
+        //public static void GenerarFacturaE32(ContextoSe contexto, int idFactura)
+        //{
+        //    var facturaDtm = contexto.SeleccionarPorId<FacturaEmtDtm>(idFactura);
+        //    var nombrePropuesto = facturaDtm.ProponerNombreDeArchivo(contexto, $"Fac-{facturaDtm.Referencia}.xml");
+        //    var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
+        //    new GeneradorDeFacturaEmtXml(contexto, facturaDtm, rutaConFichero).Generar();
+        //    var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
+        //    var fae = contexto.SeleccionarPorId<FacturaEmtDtm>(facturaDtm.Id);
+        //    AsociarArchivoFactura(contexto, fae, idArchivo, original: true);
+        //}
 
         private static void AsociarArchivoFactura(ContextoSe contexto, FacturaEmtDtm factura, int idArchivo, bool original)
         {
-
-            if (original)
+            try
             {
-                factura.IdArchivo = idArchivo;
-                factura = factura.Modificar(contexto, esUnaAccion: true, parametros: new Dictionary<string, object> { { ltrParametrosNeg.AccionQueSeEjecuta, ltrDeUnaFacturaEmt.Accion_AsociarArchivo } });
-            }
-            GestorDeVinculos.Vincular(contexto, enumNegocio.FacturaEmitida, enumNegocio.Archivos, factura.Id, idArchivo);
-
-            var certificadosDeUnaSociedad = GestorDeVinculos.RegistrosVinculados<CertificadoDtm>(contexto, enumNegocio.Sociedad, enumNegocio.Certificado, factura.Cg(contexto).IdSociedad);
-            if (certificadosDeUnaSociedad.Count == 1)
-            {
-                var password = ApiDeCertificados.LeerPasswordDeCertificado(contexto, certificadosDeUnaSociedad[0].Id);
-                try
+                if (original)
                 {
+                    factura.IdArchivo = idArchivo;
+                    factura = factura.Modificar(contexto, esUnaAccion: true, parametros: new Dictionary<string, object> { { ltrParametrosNeg.AccionQueSeEjecuta, ltrDeUnaFacturaEmt.Accion_AsociarArchivo } });
+                }
+                GestorDeVinculos.Vincular(contexto, enumNegocio.FacturaEmitida, enumNegocio.Archivos, factura.Id, idArchivo);
+                var certificadosDeUnaSociedad = GestorDeVinculos.RegistrosVinculados<CertificadoDtm>(contexto, enumNegocio.Sociedad, enumNegocio.Certificado, factura.Cg(contexto).IdSociedad);
+                if (certificadosDeUnaSociedad.Count == 1)
+                {
+
+                    var password = ApiDeCertificados.LeerPasswordDeCertificado(contexto, certificadosDeUnaSociedad[0].Id);
                     GestorDeArchivos.Gestor(contexto, contexto.Mapeador).FirmarAnexado(enumNegocio.FacturaEmitida, factura.Id, idArchivo, certificadosDeUnaSociedad[0].Id, password,
                             new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDePersistencia, false } });
+
                 }
-                catch (Exception exc)
-                {
-                    factura.CrearTraza(contexto, "No se ha podido firmar la factura", $"Se ha producido un error al firmar la factura:{Environment.NewLine}{exc.Message}");
-                }
+            }
+            catch (Exception exc)
+            {
+                factura.CrearTraza(contexto, "No se ha podido firmar la factura", $"Se ha producido un error al firmar la factura:{Environment.NewLine}{exc.Message}");
             }
         }
 

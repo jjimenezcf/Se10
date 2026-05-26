@@ -72,7 +72,7 @@ namespace GestorDeElementos.Extensores
         }
 
         // ── Punto de entrada público ──────────────────────────────────────────
-        public string Generar()
+        public string Generar(bool esCopia)
         {
             var doc = new XmlDocument();
             doc.AppendChild(doc.CreateXmlDeclaration("1.0", "UTF-8", null));
@@ -93,6 +93,7 @@ namespace GestorDeElementos.Extensores
                 Cbc(doc, root, "ProfileID", ProfileID);
 
             Cbc(doc, root, "ID", Factura.NumeroDeFactura);
+            Cbc(doc, root, "CopyIndicator", esCopia.ToString().ToLower());
             Cbc(doc, root, "IssueDate", (Factura.FacturadaEl ?? DateTime.Now).ToString("yyyy-MM-dd"));
             if (Factura.VenceEl.HasValue)
                 Cbc(doc, root, "DueDate", Factura.VenceEl.Value.ToString("yyyy-MM-dd"));

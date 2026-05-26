@@ -205,27 +205,23 @@ namespace ModeloXml.eFactura.Facturae32
             return plazos.ToArray();
         }
 
-        //public object LegalEntitySeller(ContextoSe contexto, FacturaEmtDtm factura)
-        //{
-        //    var datosSociedad = (ParametrosDeMiSociedadDtm)factura.Sociedad(contexto).SeleccionarAmpliacion(contexto, typeof(ParametrosDeMiSociedadDtm));
 
-        //    return new LegalEntityType
-        //    {
-        //        CorporateName = factura.Sociedad(contexto).RazonSocial,
-        //        TradeName = factura.Sociedad(contexto).Nombre,
-        //        RegistrationData = new RegistrationDataType
-        //        {
-        //            Book = datosSociedad.Libro.ToString(),
-        //            RegisterOfCompaniesLocation = datosSociedad.LocalizadoEn,
-        //            Sheet = datosSociedad.Hoja.ToString(), // "0",
-        //            Folio = datosSociedad.Folio.ToString(), //"1",
-        //            Section = datosSociedad.Seccion, //"3ª",
-        //            Volume = datosSociedad.Volumen, //"0",
-        //            AdditionalRegistrationData = datosSociedad.Adicional //"ref.3657,Inscip.1ª"
-        //        },
-        //        Item = Address(contexto, factura.Sociedad(contexto).DireccionFiscal(contexto))
-        //    };
-        //}
+        public TaxType[] Retenciones(ContextoSe contexto, FacturaEmtDtm factura)
+        {
+            var irpfs = factura.Irpfs(contexto);
+            var impuestos = new List<TaxType>();
+
+            foreach (var irpf in irpfs.Where(i => i.Porcentaje > 0))
+            {
+                var retencion = new TaxType { TaxTypeCode = TaxTypeCodeType.Item04 };
+                retencion.TaxRate = new DoubleTwoDecimalType { Value = Math.Round(Convert.ToDouble(irpf.Porcentaje), 2) };
+                retencion.TaxableBase = new AmountType { TotalAmount = { Value = Math.Round(Convert.ToDouble(irpf.BI), 2) } };
+                retencion.TaxAmount = new AmountType { TotalAmount = { Value = Math.Round(Convert.ToDouble(irpf.Importe), 2) } };
+                impuestos.Add(retencion);
+            }
+
+            return impuestos.ToArray();
+        }
 
         public object LegalEntitySeller(ContextoSe contexto, FacturaEmtDtm factura)
         {

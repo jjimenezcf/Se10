@@ -532,9 +532,20 @@ namespace GestorDeElementos
                 if (ExtensorDeTipoDeArchivos.EsImagen(extension, errorSiNoEstaCatalogada: false))
                     destino = firmante.FirmarImagenComoXml(contexto, fichero, destino);
                 else
+                {
                     if (extension == enumExtensiones.xml.ToString())
-                        firmante.FirmarXml(fichero, destino);
+                    {
+                        if (FirmadorXadesService.PuedeFirmarConJar())
+                        {
+                            FirmadorXadesService.Firmar(fichero, destino, certificado.RutaDelCertificado, certificado.Password);
+                        }
+                        else
+                        {
+                            firmante.FirmarXml(fichero, destino);
+                        }
+                    }
                     else
+                    {
                         if (extension == enumExtensiones.pdf.ToString())
                             firmante.FirmarPdf(fichero, destino, contexto.DatosDeConexion.Login, visible);
                         else
@@ -546,7 +557,8 @@ namespace GestorDeElementos
                             }
                             else
                                 GestorDeErrores.Emitir($"No se ha implementado como firmar ficheros con la extención {System.IO.Path.GetExtension(fichero)}");
-
+                    }
+                }
                 return destino;
             }
             finally

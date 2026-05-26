@@ -101,6 +101,22 @@ namespace ModeloXml.eFactura.Facturae322
             return impuestos.ToArray();
         }
 
+        public TaxType[] Retenciones(ContextoSe contexto, FacturaEmtDtm factura)
+        {
+            var irpfs = factura.Irpfs(contexto);
+            var impuestos = new List<TaxType>();
+
+            foreach (var irpf in irpfs.Where(i => i.Porcentaje > 0))
+            {
+                var impuesto = new TaxType { TaxTypeCode = TaxTypeCodeType.Item04 };
+                impuesto.TaxRate = Math.Round(Convert.ToDouble(irpf.Porcentaje), 2);
+                impuesto.TaxableBase = new AmountType { TotalAmount = Math.Round(Convert.ToDouble(irpf.BI), 2) };
+                impuesto.TaxAmount = new AmountType { TotalAmount = Math.Round(Convert.ToDouble(irpf.Importe), 2) };
+                impuestos.Add(impuesto);
+            }
+
+            return impuestos.ToArray();
+        }
         public object InvoiceLine(ContextoSe contexto, FacturaEmtDtm factura, LineaDeUnaFaeDtm linea)
         {
             var invoiceLine = new InvoiceLineType();

@@ -282,3 +282,12 @@ ModelManifest.xml
 [Bb]in/
 [Oo]bj/
 *.user
+
+# --- Componente de firma Java (FirmaDss) ---
+# Los JARs de dependencias DSS son pesados (~25MB) y se regeneran con build-y-desplegar.bat
+SistemaDeElementos/wwwroot/lib/jar/xades/lib/
+SistemaDeElementos/wwwroot/lib/jar/xades/bin/
+# El JAR compilado se regenera con build-y-desplegar.bat
+SistemaDeElementos/wwwroot/lib/jar/xades/FirmaDss.jar
+# El JRE portable se regenera con jlink (ver README en wwwroot/lib/jar/xades)
+SistemaDeElementos/wwwroot/lib/jre/

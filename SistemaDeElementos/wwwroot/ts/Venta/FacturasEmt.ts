@@ -778,6 +778,7 @@
             }
             if (opcion === ltrMenus.eventosDeMf.Venta.FacturasEmt.GenerarUbl) {
                 this.RecargarArchivos();
+                this.RecargarGridDeTrazas()
                 return true;
             }
             if (opcion === ltrMenus.eventosDeMf.Venta.FacturasEmt.CopiarLa) {

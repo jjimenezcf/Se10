@@ -1160,6 +1160,8 @@ namespace GestorDeElementos.Extensores
             var lineas = factura.Detalles<LineaDeUnaFaeDtm>(contexto, errorSiNoHay: false, aplicarJoin: true);
             if (lineas.Count == 0) Emitir($"No puede emitir la factura '{factura.Referencia}', debe definir las líneas de lo facturado");
 
+            FirmadorXadesService.ValidarQueSePuedeFirmarConXade();
+
             factura.ValidarIva(lineas);
             factura.ValidarIrpf(contexto);
             factura.ValidarRequisitosSii(contexto);

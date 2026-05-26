@@ -3,7 +3,6 @@ using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using ModeloXml.eFactura;
 using ModeloXml.eFactura.Facturae322;
-using ModeloXml.eFactura.Schemas;
 using ServicioDeDatos;
 using ServicioDeDatos.Callejero;
 using ServicioDeDatos.Elemento;
@@ -12,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
-using static ServicioDeDatos.Elemento.Enumerados;
 namespace GestoresDeNegocio.Ventas
 {
     public class GeneradorDeFacturaEmtXml322 : GeneradorDeFacturaEmtXml
@@ -116,6 +114,7 @@ namespace GestoresDeNegocio.Ventas
         private void Invoice(eFactura322 efactura, InvoiceType invoice)
         {
             invoice.TaxesOutputs = (TaxOutputType[])efactura.TaxesOutputs(Contexto, Factura);
+            if (Factura.TienenIrpf(Contexto)) invoice.TaxesWithheld = efactura.Retenciones(Contexto, Factura);
             invoice.InvoiceTotals = new InvoiceTotalsType
             {
                 TotalGrossAmount = Math.Round(Convert.ToDouble(Factura.SinDescuento(Contexto)), 2),
@@ -257,8 +256,8 @@ namespace GestoresDeNegocio.Ventas
         {
             efactura.FileHeader.Batch.BatchIdentifier = $"{Emisor.NIFConIsoEs}-{Factura.Id}";
             efactura.FileHeader.Batch.InvoicesCount = 1;
-            efactura.FileHeader.Batch.TotalInvoicesAmount.TotalAmount = Math.Round(Convert.ToDouble(Factura.BiConIva(Contexto)), 2);
-            efactura.FileHeader.Batch.TotalOutstandingAmount.TotalAmount = Math.Round(Convert.ToDouble(Factura.BiConIva(Contexto)), 2);
+            efactura.FileHeader.Batch.TotalInvoicesAmount.TotalAmount = Math.Round(Convert.ToDouble(Factura.APagar(Contexto)), 2);
+            efactura.FileHeader.Batch.TotalOutstandingAmount.TotalAmount = Math.Round(Convert.ToDouble(Factura.APagar(Contexto)), 2);
             efactura.FileHeader.Batch.TotalExecutableAmount.TotalAmount = Math.Round(Convert.ToDouble(Factura.APagar(Contexto)), 2);
             efactura.FileHeader.Batch.InvoiceCurrencyCode = ApiDeEnsamblados.ToEnumerado<CurrencyCodeType>(Factura.Moneda);
         }

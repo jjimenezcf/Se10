@@ -31,7 +31,19 @@ namespace GestoresDeNegocio.Ventas
             Ruta = rutaConFichero;
         }
 
-        public string Generar() => Generar(Factura.ClaseDeEmision);
+        public bool Generar()
+        {
+            try
+            {
+                Generar(Factura.ClaseDeEmision);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Factura.CrearTraza(Contexto, "No se ha podido generar la factura Xml", $"Factura comunicada en Verifactu pero no se ha podido emitir:{Environment.NewLine}{e.Message}");
+            }
+            return false;
+        }
 
 
         public string Generar(enumClaseDeEmision version)
@@ -43,7 +55,6 @@ namespace GestoresDeNegocio.Ventas
                 case enumClaseDeEmision.eFactura32:
                     return new GeneradorDeFacturaEmtXml32(Contexto, Factura, Ruta).GenerarXml(new eFactura32());
             }
-
             throw new NotImplementedException($"no está implementado como generar el xml asociado a {Factura.ClaseDeEmision}");
         }
 
