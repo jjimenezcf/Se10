@@ -460,9 +460,14 @@ namespace ModeloXml.eFactura.Facturae322
             if (factura.TotalIrpf > 0 && irpfObj == null)
             {
                 var retencion = inv.TaxesWithheld?.FirstOrDefault();
+                var porcentaje = retencion != null
+                    ? Convert.ToDecimal(retencion.TaxRate)
+                    : factura.BaseImponible > 0
+                        ? Math.Round(factura.TotalIrpf / factura.BaseImponible * 100, 0)
+                        : 0m;
                 irpfObj = new IrpfFacturaJson
                 {
-                    PorcentajeRetencion = retencion != null ? Convert.ToDecimal(retencion.TaxRate) : 0m,
+                    PorcentajeRetencion = porcentaje,
                     BaseRetencion       = retencion?.TaxableBase != null
                         ? Convert.ToDecimal(retencion.TaxableBase.TotalAmount)
                         : factura.BaseImponible,
