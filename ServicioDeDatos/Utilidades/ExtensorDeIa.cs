@@ -115,17 +115,16 @@ namespace ServicioDeDatos.Utilidades
             try
             {
                 if (ApiDeEnsamblados.ImplementaInterface(ia.GetType(), typeof(IIaPromptFactura).FullName))
-                    ((IIaPromptFactura)ia).PromptFactura = enumNegocio.FacturaRecibida.Parametro(enumParametrosDeFacturasRec.IA_Prompt, crearParametro: true, valorPorDefecto: IIaPromptFactura.Prompt).Valor;
+                {
+                    var reglasEspecificas = enumNegocio.FacturaRecibida.Parametro(enumParametrosDeFacturasRec.IA_Prompt, crearParametro: true, valorPorDefecto: IIaPromptFactura.SinReglas).Valor;
+                    ((IIaPromptFactura)ia).PromptFactura = IIaPromptFactura.Prompt.Replace(IIaPromptFactura.ReglasEspecificas, reglasEspecificas);
+                }
 
-                //if (ia is IaApyhub)
-                //{
-                //    return await ia.AnalizarFactura(rutaArchivo);
-                //}
-                //else if (ia is IaDeepSeek)
-                //{
-                //    return await ia.AnalizarFactura(rutaArchivo);
-                //}
-                //else 
+                if (Path.GetExtension(rutaArchivo).ToLower() == ExtensorDeTipoDeArchivos.xml )
+                {
+                    return await ia.AnalizarFactura(File.ReadAllText(rutaArchivo));
+                }
+
                 if (ia is IaPerplexity)
                 {
                     return await ia.AnalizarFactura(await procesadorOcr.ProcesarFichero(idArchivo, rutaArchivo));
@@ -135,7 +134,6 @@ namespace ServicioDeDatos.Utilidades
                     return await AnalizarFactura((IIaTiposMimesAdmitidos)ia, idArchivo, rutaArchivo, procesadorOcr);
                 }
 
-                //return await ia.AnalizarFactura(rutaArchivo);
                 throw Excepciones.Emitir($"Falta por implementar como usar la Ia de {ia.GetType().Name}");
             }
             catch (Exception e)

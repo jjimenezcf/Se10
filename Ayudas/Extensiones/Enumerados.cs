@@ -2111,9 +2111,13 @@ namespace Utilidades
 
         public const string NoEditables = ".pdf, " + Imagenes;
 
-        public const string NoEditablesMaJson = ".pdf, .json, " + Imagenes;
+        public const string NoEditablesMasJson = ".pdf, .json, " + Imagenes;
+
+        public const string NoEditablesMasJsonMasXml = ".xml, " + NoEditablesMasJson;
 
         public const string Certificados = ".cer, .pfx, .p12" ;
+
+        public static readonly string xml = "." + enumExtensiones.xml.ToString();
 
         public static bool EsImagen(string extensionstring, bool errorSiNoEstaCatalogada)
         {

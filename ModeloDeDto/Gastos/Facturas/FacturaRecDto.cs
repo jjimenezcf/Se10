@@ -670,7 +670,7 @@ namespace ModeloDeDto.Gastos
             Ayuda = "Seleccione el fichero de la factura recibida",
             Tipo = typeof(int),
             TipoDeControl = enumTipoControl.SelectorDeUnArchivo,
-            ExtensionesValidas = ExtensorDeTipoDeArchivos.NoEditablesMaJson,
+            ExtensionesValidas = ExtensorDeTipoDeArchivos.NoEditablesMasJsonMasXml,
             Fila = 15,
             Columna = 0,
             AutoSpan = true)]
@@ -684,7 +684,7 @@ namespace ModeloDeDto.Gastos
             Ayuda = "Seleccione el justificante de pago",
             Tipo = typeof(int),
             TipoDeControl = enumTipoControl.SelectorDeUnArchivo,
-            ExtensionesValidas = ExtensorDeTipoDeArchivos.NoEditablesMaJson,
+            ExtensionesValidas = ExtensorDeTipoDeArchivos.NoEditablesMasJsonMasXml,
             VisibleAlEditar = false,
             VisibleEnVisorAlCrear = false,
             Fila = 15,

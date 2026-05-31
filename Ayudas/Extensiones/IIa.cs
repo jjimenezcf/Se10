@@ -40,50 +40,124 @@ namespace Utilidades
 
     public interface IIaPromptFactura
     {
+        public const string ReglasEspecificas = "[ReglasEspecificas]";
+        public static readonly string SinReglas = "Sin reglas específicas";
+
         public string PromptFactura { get; set; }
 
         public static readonly string Prompt = $@"
-Rol: Actúa como un experto en contabilidad y extracción de datos OCR. Tu objetivo es procesar el texto de una factura y devolver un JSON estrictamente estructurado.
+# ROL
+Eres un experto en contabilidad española y extracción de datos de facturas.
+Tu objetivo es analizar el contenido recibido —texto OCR de una imagen/PDF escaneado, o XML en formato eFactura 3.2/3.2.1/3.2.2, o XML en formato UBL 2.1/2.5— y devolver **únicamente** un objeto JSON estrictamente estructurado según el esquema indicado al final de este prompt.
 
-Instrucciones de Formateo de Datos:
+---
 
-Fechas: Usa siempre el formato YYYY-MM-DD. Si no existe vencimiento, devuelve null.
+# DETECCIÓN DEL FORMATO DE ENTRADA
 
-Números (Total, BI, IVA, IRPF): Devuelve valores numéricos (decimales), no cadenas. Usa el punto . como separador decimal.
+Antes de extraer datos, identifica el formato:
 
-NIF: Elimina puntos, guiones y espacios en blanco.
+- Si el contenido contiene `urn:oasis:names:specification:ubl:schema:xsd:Invoice-2` → formato **UBL 2.1/2.5**. Extrae los datos directamente del XML estructurado.
+- Si el contenido contiene `http://www.facturae.es/` o el elemento raíz es `fe:Facturae` → formato **eFactura 3.2.2**. Extrae los datos directamente del XML estructurado.
+- En cualquier otro caso → trata el contenido como **texto OCR** de una factura escaneada o impresa.
 
-Clasificación de Pago (Lógica de Negocio):
+---
 
-ClaseDePago: Debe ser exactamente uno de estos: {{enumClaseDePago.Contado.Descripcion()}}, {{enumClaseDePago.Transferencia.Descripcion()}} o {{enumClaseDePago.Remesa.Descripcion()}}.
+# REGLAS DE FORMATEO
 
-Nota: Si es domiciliación, tarjeta o efectivo, la clase es Contado.
+- **Fechas**: Siempre `YYYY-MM-DD`. Si no existe, devuelve `null`.
+- **Números** (importes, porcentajes): Valores decimales numéricos, sin cadenas. Separador decimal: punto `.`. Sin símbolos de moneda.
+- **NIF**: Solo letras y números, sin puntos, guiones ni espacios. Si lleva prefijo de país (p.ej. `ESB73961450`), consérvalo tal cual.
+- **Campo no identificable**: Su valor debe ser `null`.
+- **Clasificación de pago**:
+  - `ClaseDePago` debe ser exactamente uno de: `{enumClaseDePago.Contado.Descripcion()}`, `{enumClaseDePago.Transferencia.Descripcion()}` o `{enumClaseDePago.Remesa.Descripcion()}`.
+  - Domiciliación, tarjeta o efectivo → `{enumClaseDePago.Contado.Descripcion()}`.
+  - Si `ClaseDePago` es Contado, `FormaDePago` debe ser: `{enumModoDePagoContado.Contado.Descripcion()}` (efectivo), `{enumModoDePagoContado.Tarjeta.Descripcion()}` o `{enumModoDePagoContado.Domiciliacion.Descripcion()}`.
 
-FormaDePago: Si la clase es Contado, clasifica como: {{enumModoDePagoContado.Contado.Descripcion()}} (para efectivo/contado), {{enumModoDePagoContado.Tarjeta.Descripcion()}} o {{enumModoDePagoContado.Domiciliacion.Descripcion()}}.
+---
 
-Dirección: Desglosa la dirección del emisor con precisión según los campos solicitados.
+# MAPEO DE CAMPOS POR FORMATO XML
 
-Restricción Crítica: Devuelve ÚNICAMENTE el objeto JSON. No incluyas introducciones, ni bloques de código Markdown (```json), ni explicaciones. Si un campo no es identificable, su valor debe ser null.
+## UBL 2.1/2.5
 
-Esquema JSON Requerido:
+| Campo JSON             | Origen en el XML UBL                                                                   |
+|------------------------|----------------------------------------------------------------------------------------|
+| NumeroFactura          | cbc:ID                                                                                 |
+| Fecha                  | cbc:IssueDate                                                                          |
+| FechaVencimiento       | cac:PaymentMeans/cbc:PaymentDueDate                                                    |
+| Proveedor              | cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name                           |
+| Nif                    | cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID                 |
+| BaseImponible          | cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount                                          |
+| TotalIva               | cac:TaxTotal/cbc:TaxAmount                                                             |
+| TotalIrpf              | cac:WithholdingTaxTotal/cbc:TaxAmount (si existe)                                      |
+| Total                  | cac:LegalMonetaryTotal/cbc:PayableAmount                                               |
+| Concepto               | cbc:Note (primera nota relevante)                                                      |
+| CuentaBancaria         | cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID                                      |
+| Lineas[n].Concepto     | cac:InvoiceLine/cac:Item/cbc:Description                                               |
+| Lineas[n].BaseImponible| cac:InvoiceLine/cbc:LineExtensionAmount                                                |
+| Lineas[n].PorcentajeIva| cac:InvoiceLine/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent               |
+| Lineas[n].ImporteIva   | cac:InvoiceLine/cac:TaxTotal/cbc:TaxAmount                                             |
+| Lineas[n].Exenta       | true si cac:TaxCategory/cbc:ID es 'E' o TaxExemptionCode está presente                |
 
-JSON
+## eFactura 3.2/3.2.1/3.2.2
+
+| Campo JSON              | Origen en el XML eFactura                                                                    |
+|-------------------------|----------------------------------------------------------------------------------------------|
+| NumeroFactura           | fe:Invoices/fe:Invoice/fe:InvoiceHeader/fe:InvoiceNumber                                     |
+| Fecha                   | fe:InvoiceIssueData/fe:IssueDate                                                             |
+| Concepto                | fe:InvoiceIssueData/fe:InvoiceDescription                                                    |
+| FechaVencimiento        | fe:PaymentDetails/fe:Installment/fe:InstallmentDueDate (primer plazo)                        |
+| Proveedor               | fe:Parties/fe:SellerParty/.../fe:CorporateName                                               |
+| Nif                     | fe:Parties/fe:SellerParty/fe:TaxIdentification/fe:TaxIdentificationNumber                    |
+| BaseImponible           | fe:InvoiceTotals/fe:TotalGrossAmountBeforeTaxes                                              |
+| TotalIva                | fe:InvoiceTotals/fe:TotalTaxOutputs                                                          |
+| TotalIrpf               | fe:InvoiceTotals/fe:TotalTaxesWithheld                                                       |
+| Total                   | fe:InvoiceTotals/fe:InvoiceTotal                                                             |
+| Lineas[n].Concepto      | fe:Items/fe:InvoiceLine/fe:ItemDescription                                                   |
+| Lineas[n].BaseImponible | fe:Items/fe:InvoiceLine/fe:GrossAmount                                                       |
+| Lineas[n].PorcentajeIva | fe:Items/fe:InvoiceLine/fe:TaxesOutputs/fe:Tax/fe:TaxRate (cuando TaxTypeCode es '01')       |
+| Lineas[n].ImporteIva    | fe:Items/fe:InvoiceLine/fe:TaxesOutputs/fe:Tax/fe:TaxAmount/fe:TotalAmount                   |
+| Lineas[n].Exenta        | true si fe:Tax/fe:TaxTypeCode es '05' (operación exenta)                                     |
+| Irpf.PorcentajeRetencion| fe:Items/fe:InvoiceLine/fe:TaxesWithheld/fe:Tax/fe:TaxRate, o si no, TaxesOutputs con TaxTypeCode '03' o '04' |
+| Irpf.BaseRetencion      | fe:InvoiceTotals/fe:TotalTaxesWithheld (base del importe retenido)                           |
+| Irpf.ImporteRetencion   | fe:InvoiceTotals/fe:TotalTaxesWithheld (importe total retenido)                              |
+
+---
+
+# REGLA DE CUADRE
+
+Verifica siempre antes de responder:
+`BaseImponible` + `TotalIva` - `TotalIrpf` = `Total`
+
+La suma de todos los `Lineas[n].BaseImponible` debe coincidir con `BaseImponible` de cabecera.
+Si detectas discrepancia, usa los valores más fiables del documento (normalmente los totales de cabecera).
+Si no hay retención IRPF, devuelve `""Irpf"": null`.
+
+---
+
+# RESTRICCIÓN CRÍTICA
+
+Devuelve **ÚNICAMENTE** el objeto JSON. Sin introducciones, sin bloques de código Markdown, sin explicaciones.
+
+---
+
+# ESQUEMA JSON REQUERIDO
+
 {{
   ""Proveedor"": ""Nombre legal o comercial"",
-  ""Nif"": ""Solo letras y números"",
+  ""Nif"": ""Solo letras y números (con prefijo país si lo tiene)"",
   ""eMail"": ""ejemplo@dominio.com"",
   ""Telefono"": ""Número limpio"",
   ""NumeroFactura"": ""Serie y número completo"",
   ""Concepto"": ""Resumen claro de los servicios o productos"",
-  ""fecha"": ""YYYY-MM-DD"",
+  ""Fecha"": ""YYYY-MM-DD"",
   ""FechaVencimiento"": ""YYYY-MM-DD o null"",
-  ""total"": 0.00,
-  ""bi"": 0.00,
-  ""totalIva"": 0.00,
-  ""totalIrpf"": 0.00,
+  ""Total"": 0.00,
+  ""BaseImponible"": 0.00,
+  ""TotalIva"": 0.00,
+  ""TotalIrpf"": 0.00,
   ""ClaseDePago"": ""Valor del enumerado"",
   ""FormaDePago"": ""Valor del enumerado o null"",
-  ""CuentaBancaria"": ""IBAN completo sin espacios"",
+  ""CuentaBancaria"": ""IBAN completo sin espacios o null"",
   ""CodigoPostal"": ""5 dígitos"",
   ""Pais"": ""Nombre del país"",
   ""Provincia"": ""Nombre de la provincia"",
@@ -91,9 +165,32 @@ JSON
   ""TipoDeVia"": ""Calle, Avenida, etc."",
   ""Calle"": ""Nombre de la vía"",
   ""NumeroPolicia"": ""Número y letra si existe"",
-  ""RestoDireccion"": ""Piso, puerta o detalles adicionales""
+  ""RestoDireccion"": ""Piso, puerta o detalles adicionales"",
+  ""Lineas"": [
+    {{
+      ""Concepto"": ""Descripción del servicio o producto"",
+      ""BaseImponible"": 0.00,
+      ""PorcentajeIva"": 0.00,
+      ""ImporteIva"": 0.00,
+      ""Exenta"": false
+    }}
+  ],
+  ""Irpf"": {{
+    ""PorcentajeRetencion"": 0.00,
+    ""BaseRetencion"": 0.00,
+    ""ImporteRetencion"": 0.00
+  }}
 }}
-Texto de la factura (OCR):
+
+---
+
+# REGLAS ESPECÍFICAS DE IMPLANTACIÓN
+
+[ReglasEspecificas]
+
+---
+
+Contenido a analizar:
 [CONTENIDO_FACTURA]";
 
     }
@@ -343,6 +440,22 @@ Preguntas anteriores
     }
 
 
+    public class LineaFacturaJson
+    {
+        public string Concepto { get; set; }
+        public decimal BaseImponible { get; set; } = 0;
+        public decimal PorcentajeIva { get; set; } = 0;
+        public decimal ImporteIva { get; set; } = 0;
+        public bool Exenta { get; set; } = false;
+    }
+
+    public class IrpfFacturaJson
+    {
+        public decimal PorcentajeRetencion { get; set; } = 0;
+        public decimal BaseRetencion { get; set; } = 0;
+        public decimal ImporteRetencion { get; set; } = 0;
+    }
+
     public class FacturaJson
     {
         public string Proveedor { get; set; }
@@ -354,6 +467,7 @@ Preguntas anteriores
         public string Fecha { get; set; }
         public string FechaVencimiento { get; set; }
         public decimal Total { get; set; } = 0;
+        public decimal BaseImponible { get; set; } = 0;
         public decimal Bi { get; set; } = 0;
         public decimal TotalIva { get; set; } = 0;
         public decimal TotalIrpf { get; set; } = 0;
@@ -368,6 +482,8 @@ Preguntas anteriores
         public string Calle { get; set; }
         public string NumeroPolicia { get; set; }
         public string RestoDireccion { get; set; }
+        public List<LineaFacturaJson> Lineas { get; set; }
+        public IrpfFacturaJson Irpf { get; set; }
     }
 
 }
