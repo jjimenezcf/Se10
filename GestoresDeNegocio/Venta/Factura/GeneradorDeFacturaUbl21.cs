@@ -24,5 +24,10 @@ namespace GestoresDeNegocio.Ventas
             : base(contexto, factura, rutaConFichero)
         {
         }
+
+        public GeneradorDeFacturaUbl21(ContextoSe contexto, string rutaConFichero, int idCg, int idTipo, int idProveedor, int idArchivo)
+            : base(contexto, rutaConFichero, idCg, idTipo, idProveedor, idArchivo)
+        {
+        }
     }
 }

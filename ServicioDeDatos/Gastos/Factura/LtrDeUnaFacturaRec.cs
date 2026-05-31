@@ -46,7 +46,7 @@
         public const string ContactoImportado  = "Contacto importado del la eFactura";
         public const string TrazaDeIncorporacion = "eFactura Incorporada";
 
-        public const string Accion_IncorporarFacturaE = nameof(Accion_IncorporarFacturaE);
+        public const string Accion_IncorporarFacturaXml = nameof(Accion_IncorporarFacturaXml);
         public const string Accion_CrearPagoAlCrearFactura = nameof(Accion_CrearPagoAlCrearFactura);
         public const string Accion_CopiarFactura = nameof(Accion_CopiarFactura);
         

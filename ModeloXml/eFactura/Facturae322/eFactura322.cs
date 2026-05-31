@@ -1,17 +1,21 @@
 ﻿using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
+using ModeloDeDto.Gastos;
 using ModeloDeDto.Negocio;
-using ModeloXml.eFactura.Facturae32;
+using ModeloDeDto.Terceros;
 using ModeloXml.eFactura.Schemas;
 using ServicioDeDatos;
 using ServicioDeDatos.Callejero;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Utilidades;
+using static ServicioDeDatos.Elemento.Enumerados;
 
 namespace ModeloXml.eFactura.Facturae322
 {
@@ -328,6 +332,155 @@ namespace ModeloXml.eFactura.Facturae322
             };
         }
 
+
+        private ContextoSe _contexto;
+        private string _fichero;
+        private int _idCg;
+        private int _idTipo;
+        private int _idProveedor;
+        private int _idArchivo;
+
+        public eFactura322(ContextoSe contexto, string fichero, int idCg, int idTipo, int idProveedor, int idArchivo)
+        {
+            _contexto = contexto;
+            _fichero = fichero;
+            _idCg = idCg;
+            _idTipo = idTipo;
+            _idProveedor = idProveedor;
+            _idArchivo = idArchivo;
+        }
+
+        public FacturaRecDto Importar()
+        {
+            Parsear(_fichero);
+            var facturae = new eFactura322().Validate(_fichero);
+
+            var proveedor = _contexto.SeleccionarPorPropiedad<ProveedorDtm>(nameof(ltrProveedor.NIF), facturae.Parties.SellerParty.TaxIdentification.TaxIdentificationNumber);
+            if (_idProveedor != proveedor.Id)
+                GestorDeErrores.Emitir($"El proveedor de la factura '{proveedor.Expresion}' no se corresponde con el indicado");
+
+            var recibida = new FacturaRecDtm();
+            recibida.IdTipo = _idTipo;
+            recibida.IdCg = _idCg;
+            recibida.Numero = facturae.Invoices[0].InvoiceHeader.InvoiceNumber;
+
+            if (facturae.Invoices[0].InvoiceHeader.InvoiceClass == InvoiceClassType.OR)
+                recibida.ClaseRectificativa = enumClaseDeRectificativa.OR;
+            else if (facturae.Invoices[0].InvoiceHeader.InvoiceClass == InvoiceClassType.OC)
+                recibida.ClaseRectificativa = enumClaseDeRectificativa.OC;
+            else if (facturae.Invoices[0].InvoiceHeader.InvoiceClass != InvoiceClassType.OO)
+                GestorDeErrores.Emitir($"No se ha implementado cómo incorporar una factura de la clase '{facturae.Invoices[0].InvoiceHeader.InvoiceClass}'");
+
+            recibida.Nombre = facturae.Invoices[0].InvoiceIssueData.InvoiceDescription == null ? "(No detallado)" : facturae.Invoices[0].InvoiceIssueData.InvoiceDescription.Left(250);
+            recibida.Descripcion = facturae.Invoices[0].AdditionalData == null ? "(No detallado)" : facturae.Invoices[0].AdditionalData.InvoiceAdditionalInformation.Left(2000);
+            recibida.IdProveedor = proveedor.Id;
+            recibida.RecibidaEl = DateTime.Now.Date;
+            recibida.FacturadaEl = facturae.Invoices[0].InvoiceIssueData.IssueDate;
+            recibida.VenceEl = facturae.Invoices[0].PaymentDetails == null ? facturae.Invoices[0].InvoiceIssueData.IssueDate : facturae.Invoices[0].PaymentDetails[0].InstallmentDueDate;
+            recibida.BaseImponible = facturae.Invoices[0].InvoiceTotals.TotalGrossAmountBeforeTaxes.ToString().Decimal();
+            recibida.TotalDelPago = facturae.Invoices[0].InvoiceTotals.InvoiceTotal.ToString().Decimal();
+
+            recibida.IdArchivo = _idArchivo;
+            recibida.Insertar(_contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+
+            if (facturae.Invoices[0].InvoiceIssueData.InvoiceDescription != null && facturae.Invoices[0].InvoiceIssueData.InvoiceDescription.ToString().Length > 250)
+                recibida.CrearObservacion(_contexto, "Nombre completo en el Xml", facturae.Invoices[0].InvoiceIssueData.InvoiceDescription);
+
+            if (facturae.Invoices[0].AdditionalData != null && facturae.Invoices[0].AdditionalData.InvoiceAdditionalInformation.ToString().Length > 2000)
+                recibida.CrearObservacion(_contexto, "Descripción completa en el Xml", facturae.Invoices[0].AdditionalData.InvoiceAdditionalInformation.Right(1000));
+
+            recibida.CrearTraza(_contexto, ltrDeUnaFacturaRec.TrazaDeIncorporacion, $"El usuario {_contexto.DatosDeConexion.Login} ha incorporado la factura por importe de {recibida.BaseImponible.Moneda()}");
+
+            string imputadoA = null;
+            string informacioDeLineas = null;
+            var linea = new LineaDeUnaFarDtm();
+            var asignarElOrden = 10;
+            linea.IdElemento = recibida.Id;
+            foreach (var item in facturae.Invoices[0].Items)
+            {
+                linea.Orden = Convert.ToInt32(item.SequenceNumber);
+                if (linea.Orden == 0)
+                {
+                    linea.Orden = asignarElOrden;
+                    asignarElOrden = asignarElOrden + 10;
+                }
+
+                var concepto = item.ItemDescription.QuitarSubcadenaInicial(Environment.NewLine);
+                concepto = concepto.QuitarSubcadenaInicial("\n");
+                concepto = concepto.QuitarSubcadenaInicial("\t");
+                concepto = concepto.Trim();
+                concepto = concepto.QuitarDobleIntro()
+                    .RemplazarCaracteres(Environment.NewLine + "\t", Environment.NewLine)
+                    .RemplazarCaracteres(Environment.NewLine + " ", Environment.NewLine);
+                if (item.Quantity > 0 && item.UnitPriceWithoutTax > 0)
+                    concepto = concepto + $" (Cta:{item.Quantity}, Pu:{item.UnitPriceWithoutTax})";
+
+                if (concepto.Length > 250)
+                {
+                    linea.Concepto = "Descripción anotada como observación de la factura";
+                    recibida.CrearObservacion(_contexto, $"Concepto de la línea: {linea.Orden}", concepto);
+                }
+                else
+                    linea.Concepto = concepto;
+
+                if (!item.ReceiverContractReference.IsNullOrEmpty() && (imputadoA == null || !imputadoA.Contains(item.ReceiverContractReference)))
+                    imputadoA = $"{(imputadoA.IsNullOrEmpty() ? "" : imputadoA + ", ")} {item.ReceiverContractReference}";
+
+                if (!item.ReceiverTransactionReference.IsNullOrEmpty() && (imputadoA == null || !imputadoA.Contains(item.ReceiverTransactionReference)))
+                    imputadoA = $"{(imputadoA.IsNullOrEmpty() ? "" : imputadoA + ", ")} {item.ReceiverTransactionReference}";
+
+                linea.BaseImponible = Convert.ToDecimal(item.GrossAmount);
+
+                var impuestos = item.TaxesOutputs;
+                if (impuestos.Length > 1)
+                    GestorDeErrores.Emitir($"No se puede importar la factura, por tener la línea '{linea.Orden}' más de un impuesto definido");
+
+                if (impuestos.Length == 0)
+                {
+                    linea.Clase = enumClaseDeLineaFar.BaseImponible;
+                }
+                else
+                {
+                    if (linea.BaseImponible > 0)
+                    {
+                        var impuesto = impuestos[0];
+                        linea.Clase = impuesto.TaxTypeCode == TaxTypeCodeType.Item05 ? enumClaseDeLineaFar.BiExenta : enumClaseDeLineaFar.BiConIva;
+                        linea.PorcentajeIva = impuesto.TaxTypeCode == TaxTypeCodeType.Item05 ? 0 : Convert.ToDecimal(impuesto.TaxRate);
+                        if (impuesto.TaxTypeCode == TaxTypeCodeType.Item05)
+                            recibida.CrearObservacion(_contexto, "Línea exenta", $"la línea '{linea.Orden}' está exenta de IVA");
+                    }
+                    if (linea.BaseImponible == 0)
+                    {
+                        var impuesto = impuestos[0];
+                        if (impuesto.TaxTypeCode == TaxTypeCodeType.Item03)
+                        {
+                            linea.Clase = enumClaseDeLineaFar.LineaDeIrpf;
+                            linea.PorcentajeIrpf = Convert.ToDecimal(impuesto.TaxRate);
+                        }
+                        else
+                        {
+                            linea.Clase = Convert.ToDecimal(impuesto.TaxRate) == 0 ? enumClaseDeLineaFar.BaseImponible : enumClaseDeLineaFar.LineaDeIva;
+                            linea.PorcentajeIva = Convert.ToDecimal(impuesto.TaxRate);
+                        }
+                    }
+                }
+
+                if (linea.PorcentajeIrpf > 0)
+                    linea.IdIrpf = _contexto.SeleccionarPorPropiedad<IrpfDtm>(nameof(IrpfDtm.Porcentaje), linea.PorcentajeIrpf, errorSiMasDeuno: false).Id;
+
+                if (linea.PorcentajeIva > 0)
+                    linea.IdIvaS = _contexto.SeleccionarPorPropiedad<IvaSoportadoDtm>(nameof(IvaSoportadoDtm.Porcentaje), linea.PorcentajeIva, errorSiMasDeuno: false).Id;
+
+                informacioDeLineas = $"{(informacioDeLineas.IsNullOrEmpty() ? "" : informacioDeLineas + Environment.NewLine)}{item.AdditionalLineItemInformation}";
+                linea.Id = 0;
+                linea.Insertar(_contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+            }
+
+            if (!imputadoA.IsNullOrEmpty())
+                recibida.CrearObservacion(_contexto, "Anotaciones en las líneas", imputadoA);
+
+            return _contexto.SeleccionarDto<FacturaRecDto>(recibida.Id);
+        }
 
         public static void Parsear(string fichero)
         {

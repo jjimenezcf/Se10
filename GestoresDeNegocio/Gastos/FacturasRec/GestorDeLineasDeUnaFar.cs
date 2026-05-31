@@ -82,7 +82,7 @@ namespace GestoresDeNegocio.Gastos
 
         private void ValidarSiEsIncorporada(LineaDeUnaFarDtm linea, ParametrosDeNegocio parametros, FacturaRecDtm factura)
         {
-            if (parametros.AccionQueSeEjecuta == ltrDeUnaFacturaRec.Accion_IncorporarFacturaE)
+            if (parametros.AccionQueSeEjecuta == ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml)
                 return;
 
             if (factura.EsIncorporada(Contexto))

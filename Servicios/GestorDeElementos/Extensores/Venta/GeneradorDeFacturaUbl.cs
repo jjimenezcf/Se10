@@ -1,7 +1,12 @@
+using Gestor.Errores;
+using ModeloDeDto.Gastos;
 using ModeloDeDto.Negocio;
 using ServicioDeDatos;
 using ServicioDeDatos.Callejero;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Gastos;
+using ServicioDeDatos.MaestrosTecnico;
+using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
 using System;
@@ -63,7 +68,12 @@ namespace GestorDeElementos.Extensores
         protected SociedadDtm _emisor = null;
         protected SociedadDtm Emisor => _emisor ?? Factura.Sociedad(Contexto);
 
-        // ── Constructor ───────────────────────────────────────────────────────
+        private int _idCg;
+        private int _idTipo;
+        private int _idProveedor;
+        private int _idArchivo;
+
+        // ── Constructores ─────────────────────────────────────────────────────
         protected GeneradorDeFacturaUbl(ContextoSe contexto, FacturaEmtDtm factura, string rutaConFichero)
         {
             Contexto = contexto;
@@ -71,7 +81,162 @@ namespace GestorDeElementos.Extensores
             Ruta = rutaConFichero;
         }
 
-        // ── Punto de entrada público ──────────────────────────────────────────
+        protected GeneradorDeFacturaUbl(ContextoSe contexto, string rutaConFichero, int idCg, int idTipo, int idProveedor, int idArchivo)
+        {
+            Contexto = contexto;
+            Ruta = rutaConFichero;
+            _idCg = idCg;
+            _idTipo = idTipo;
+            _idProveedor = idProveedor;
+            _idArchivo = idArchivo;
+        }
+
+        // ── Puntos de entrada públicos ────────────────────────────────────────
+        public FacturaRecDto Importar()
+        {
+            var doc = new XmlDocument();
+            doc.Load(Ruta);
+
+            var ns = new XmlNamespaceManager(doc.NameTable);
+            ns.AddNamespace("inv", NsInvoice);
+            ns.AddNamespace("cac", NsCac);
+            ns.AddNamespace("cbc", NsCbc);
+
+            string LeerCbc(string xpath) =>
+                doc.SelectSingleNode(xpath, ns)?.InnerText?.Trim();
+
+            var nifProveedor = LeerCbc("//cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID");
+            if (nifProveedor.IsNullOrEmpty())
+                nifProveedor = LeerCbc("//cac:AccountingSupplierParty/cac:Party/cbc:EndpointID");
+
+            var proveedor = Contexto.SeleccionarPorPropiedad<ProveedorDtm>(nameof(ModeloDeDto.Terceros.ltrProveedor.NIF), nifProveedor);
+            if (_idProveedor != proveedor.Id)
+                GestorDeErrores.Emitir($"El proveedor de la factura '{proveedor.Expresion}' no se corresponde con el indicado");
+
+            var recibida = new FacturaRecDtm();
+            recibida.IdTipo = _idTipo;
+            recibida.IdCg = _idCg;
+            recibida.Numero = LeerCbc("//inv:Invoice/cbc:ID");
+
+            var tipoFactura = LeerCbc("//inv:Invoice/cbc:InvoiceTypeCode");
+            if (tipoFactura == "381")
+                recibida.ClaseRectificativa = enumClaseDeRectificativa.OR;
+
+            var descripcion = LeerCbc("//inv:Invoice/cbc:Note");
+            recibida.Nombre = descripcion.IsNullOrEmpty() ? "(No detallado)" : descripcion.Left(250);
+            recibida.Descripcion = "(No detallado)";
+            recibida.IdProveedor = proveedor.Id;
+            recibida.RecibidaEl = DateTime.Now.Date;
+
+            var fechaTexto = LeerCbc("//inv:Invoice/cbc:IssueDate");
+            recibida.FacturadaEl = DateTime.Parse(fechaTexto);
+
+            var vencimientoTexto = LeerCbc("//cac:PaymentMeans/cbc:PaymentDueDate");
+            recibida.VenceEl = vencimientoTexto.IsNullOrEmpty() ? recibida.FacturadaEl : DateTime.Parse(vencimientoTexto);
+
+            var biTexto = LeerCbc("//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount");
+            recibida.BaseImponible = biTexto.IsNullOrEmpty() ? 0 : biTexto.Decimal();
+
+            var totalTexto = LeerCbc("//cac:LegalMonetaryTotal/cbc:PayableAmount");
+            recibida.TotalDelPago = totalTexto.IsNullOrEmpty() ? 0 : totalTexto.Decimal();
+
+            recibida.IdArchivo = _idArchivo;
+            recibida.Insertar(Contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+
+            if (!descripcion.IsNullOrEmpty() && descripcion.Length > 250)
+                recibida.CrearObservacion(Contexto, "Nombre completo en el Xml", descripcion);
+
+            recibida.CrearTraza(Contexto, ltrDeUnaFacturaRec.TrazaDeIncorporacion,
+                $"El usuario {Contexto.DatosDeConexion.Login} ha incorporado la factura por importe de {recibida.BaseImponible.Moneda()}");
+
+            var lineas = doc.SelectNodes("//inv:Invoice/cac:InvoiceLine", ns);
+            string imputadoA = null;
+            var asignarElOrden = 10;
+
+            foreach (XmlNode item in lineas)
+            {
+                string LeerCbcLinea(string xpath) => item.SelectSingleNode(xpath, ns)?.InnerText?.Trim();
+
+                var linea = new LineaDeUnaFarDtm();
+                linea.IdElemento = recibida.Id;
+
+                var ordenTexto = LeerCbcLinea("cbc:ID");
+                linea.Orden = int.TryParse(ordenTexto, out var ord) && ord > 0 ? ord * 10 : asignarElOrden;
+                asignarElOrden += 10;
+
+                var concepto = LeerCbcLinea("cac:Item/cbc:Name") ?? string.Empty;
+                concepto = concepto.QuitarSubcadenaInicial(Environment.NewLine)
+                    .QuitarSubcadenaInicial("\n")
+                    .QuitarSubcadenaInicial("\t")
+                    .Trim()
+                    .QuitarDobleIntro()
+                    .RemplazarCaracteres(Environment.NewLine + "\t", Environment.NewLine)
+                    .RemplazarCaracteres(Environment.NewLine + " ", Environment.NewLine);
+
+                var cantidadTexto = LeerCbcLinea("cbc:InvoicedQuantity");
+                var precioTexto = LeerCbcLinea("cac:Price/cbc:PriceAmount");
+                if (!cantidadTexto.IsNullOrEmpty() && !precioTexto.IsNullOrEmpty())
+                    concepto = concepto + $" (Cta:{cantidadTexto}, Pu:{precioTexto})";
+
+                if (concepto.Length > 250)
+                {
+                    linea.Concepto = "Descripción anotada como observación de la factura";
+                    recibida.CrearObservacion(Contexto, $"Concepto de la línea: {linea.Orden}", concepto);
+                }
+                else
+                    linea.Concepto = concepto;
+
+                var referencia = LeerCbcLinea("cbc:AccountingCost");
+                if (!referencia.IsNullOrEmpty() && (imputadoA == null || !imputadoA.Contains(referencia)))
+                    imputadoA = $"{(imputadoA.IsNullOrEmpty() ? "" : imputadoA + ", ")} {referencia}";
+
+                var biLineaTexto = LeerCbcLinea("cbc:LineExtensionAmount");
+                linea.BaseImponible = biLineaTexto.IsNullOrEmpty() ? 0 : biLineaTexto.Decimal();
+
+                var taxId = LeerCbcLinea("cac:Item/cac:ClassifiedTaxCategory/cbc:ID");
+                var taxRateTexto = LeerCbcLinea("cac:Item/cac:ClassifiedTaxCategory/cbc:Percent");
+                var taxSchemeId = LeerCbcLinea("cac:Item/cac:ClassifiedTaxCategory/cac:TaxScheme/cbc:ID");
+
+                if (taxSchemeId == "IRPF")
+                {
+                    linea.Clase = enumClaseDeLineaFar.LineaDeIrpf;
+                    linea.PorcentajeIrpf = taxRateTexto.IsNullOrEmpty() ? 0 : taxRateTexto.Decimal();
+                }
+                else if (taxId == "E")
+                {
+                    linea.Clase = enumClaseDeLineaFar.BiExenta;
+                    recibida.CrearObservacion(Contexto, "Línea exenta", $"la línea '{linea.Orden}' está exenta de IVA");
+                }
+                else if (!taxRateTexto.IsNullOrEmpty() && taxRateTexto.Decimal() == 0)
+                {
+                    linea.Clase = enumClaseDeLineaFar.BaseImponible;
+                }
+                else if (!taxRateTexto.IsNullOrEmpty() && linea.BaseImponible == 0)
+                {
+                    linea.Clase = enumClaseDeLineaFar.LineaDeIva;
+                    linea.PorcentajeIva = taxRateTexto.Decimal();
+                }
+                else
+                {
+                    linea.Clase = taxRateTexto.IsNullOrEmpty() ? enumClaseDeLineaFar.BaseImponible : enumClaseDeLineaFar.BiConIva;
+                    linea.PorcentajeIva = taxRateTexto.IsNullOrEmpty() ? 0 : taxRateTexto.Decimal();
+                }
+
+                if (linea.PorcentajeIrpf > 0)
+                    linea.IdIrpf = Contexto.SeleccionarPorPropiedad<IrpfDtm>(nameof(IrpfDtm.Porcentaje), linea.PorcentajeIrpf, errorSiMasDeuno: false).Id;
+
+                if (linea.PorcentajeIva > 0)
+                    linea.IdIvaS = Contexto.SeleccionarPorPropiedad<IvaSoportadoDtm>(nameof(IvaSoportadoDtm.Porcentaje), linea.PorcentajeIva, errorSiMasDeuno: false).Id;
+
+                linea.Insertar(Contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+            }
+
+            if (!imputadoA.IsNullOrEmpty())
+                recibida.CrearObservacion(Contexto, "Anotaciones en las líneas", imputadoA);
+
+            return Contexto.SeleccionarDto<FacturaRecDto>(recibida.Id);
+        }
+
         public string Generar(bool esCopia)
         {
             var doc = new XmlDocument();
