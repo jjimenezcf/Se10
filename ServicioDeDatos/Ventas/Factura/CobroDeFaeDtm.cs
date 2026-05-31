@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Utilidades;
-using static Dapper.SqlMapper;
 
 namespace ServicioDeDatos.Ventas
 {

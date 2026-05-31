@@ -419,6 +419,9 @@ namespace GestoresDeNegocio.Gastos
 
         protected bool CrearDetalle(FacturaRecDto dto, FacturaRecDtm dtm, ParametrosDeNegocio parametros)
         {
+            if (dto.IdArchivo.Entero() > 0 && LaFacturaEsXml(dto, dtm))
+                return true;
+
             var cant = dto.Cantidad ?? 0;
             var detalleCreado = false;
             if (cant == 0)
@@ -496,6 +499,62 @@ namespace GestoresDeNegocio.Gastos
 
             return detalleCreado;
 
+        }
+
+        private bool LaFacturaEsXml(FacturaRecDto dto, FacturaRecDtm dtm)
+        {
+            var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(dto.IdArchivo.Entero(), errorSiNoHay: false);
+            if (archivo == null)
+                return false;
+
+            var rutaArchivo = ApiDeArchivos.ObtenerRutaArchivo(archivo);
+            if (!Path.GetExtension(rutaArchivo).Equals(ExtensorDeTipoDeArchivos.xml, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var contenido = File.ReadAllText(rutaArchivo);
+            var esUbl = contenido.Contains(NamespacesUbl.NsInvoice);
+            var esEFactura = contenido.Contains("http://www.facturae.es/") || contenido.Contains("facturae.gob.es");
+            if (!esUbl && !esEFactura)
+                return false;
+
+            var facturaJson = ParsearFarXmlAJson(rutaArchivo);
+            if (facturaJson?.Lineas == null || !facturaJson.Lineas.Any())
+                return false;
+
+            var orden = enumNegocio.FacturaRecibida.LeerCrearParametro(Contexto, enumParametrosDeFacturasRec.FAR_IncrementarOrdenEn, "10").Valor.Entero();
+            var nOrden = 0;
+
+            var idUnidad = dto.IdUnidad.Entero();
+            var idNaturaleza = dto.IdNaturaleza.Entero();
+
+            foreach (var linea in facturaJson.Lineas)
+            {
+                if (linea.Exenta)
+                {
+                    nOrden += orden;
+                    dtm.CrearLineaExenta(Contexto, linea, nOrden, idUnidad, idNaturaleza);
+                }
+                else if (linea.PorcentajeIva > 0)
+                {
+                    nOrden += orden;
+                    dtm.CrearLineaDeBI(Contexto, linea, nOrden, idUnidad, idNaturaleza);
+                    nOrden += orden;
+                    dtm.CrearLineaDeIva(Contexto, linea, nOrden);
+                }
+                else
+                {
+                    nOrden += orden;
+                    dtm.CrearLineaDeBI(Contexto, linea, nOrden, idUnidad, idNaturaleza);
+                }
+            }
+
+            if (facturaJson.Irpf?.PorcentajeRetencion > 0)
+            {
+                nOrden += orden;
+                dtm.CrearLineaDeIrpf(Contexto, facturaJson.Irpf, nOrden);
+            }
+
+            return true;
         }
 
         private void CrearLineaDeIrpf(FacturaRecDto dto, FacturaRecDtm dtm, decimal pIrpf)
@@ -975,7 +1034,6 @@ namespace GestoresDeNegocio.Gastos
             else GestorDeErrores.Emitir($"No está definido el método {metodo} en la clase {typeof(ExportacionesDePreasientos).FullName}");
         }
 
-
         public int CancelarPreasientos(List<int> ids)
         {
             if (ids.Count == 0) Emitir("No ha indicado facturas a las que cancelarle el preasiento");
@@ -1031,37 +1089,27 @@ namespace GestoresDeNegocio.Gastos
         public static FacturaRecDto ImportarFarDesdeXml(ContextoSe contexto, int idCg, int idTipo, int idProveedor, int idArchivo)
         {
             var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
-            var fichero = Path.Combine(archivo.AlmacenadoEn, $"{archivo.Id}.{ApiDeArchivos.ExtensionSe}");
+            var fichero = ApiDeArchivos.ObtenerRutaArchivo(archivo);
 
+            var facturaJson = ParsearFarXmlAJson(fichero);
+            var recibida = CreadorDeFacturaJson.CrearFacturaJson(contexto, facturaJson, idCg, idTipo, idProveedor);
+
+            GestorDeVinculos.Vincular(contexto, enumNegocio.FacturaRecibida, enumNegocio.Archivos, recibida.Id, archivo.Id);
+            ServidorDocumental.BloquearArchivo(contexto, enumNegocio.FacturaRecibida.IdNegocio(), recibida.Id, archivo.Id, "Factura XML importada", validarSiEstaTerminado: false);
+
+            return contexto.SeleccionarDto<FacturaRecDto>(recibida.Id);
+        }
+
+        /// <summary>
+        /// Parsea un fichero XML de factura (UBL 2.1/2.5 o eFactura 3.2.x) y devuelve el JSON
+        /// de <see cref="Utilidades.FacturaJson"/> sin persistir nada en base de datos.
+        /// </summary>
+        public static FacturaJson ParsearFarXmlAJson(string fichero)
+        {
             var contenido = File.ReadAllText(fichero);
-            FacturaRecDto facturaRec;
-            if (contenido.Contains(NamespacesUbl.NsInvoice))
-                facturaRec = ImportarFacturaUbl(contexto, fichero, idCg, idTipo, idProveedor, idArchivo);
-            else
-                facturaRec = ImportarFacturaE(contexto, fichero, idCg, idTipo, idProveedor, idArchivo);
-
-            ServidorDocumental.BloquearArchivo(contexto, enumNegocio.FacturaRecibida.IdNegocio(), facturaRec.Id, archivo.Id, "Factura XML importada", validarSiEstaTerminado: false);
-            return facturaRec;
-        }
-
-        private static FacturaRecDto ImportarFacturaUbl(ContextoSe contexto, string fichero, int idCg, int idTipo, int idProveedor, int idArchivo)
-        {
-            var doc = new System.Xml.XmlDocument();
-            doc.Load(fichero);
-            var ns = new System.Xml.XmlNamespaceManager(doc.NameTable);
-            ns.AddNamespace("cbc", NamespacesUbl.NsCbc);
-            var version = doc.SelectSingleNode("//cbc:UBLVersionID", ns)?.InnerText?.Trim() ?? "2.1";
-
-            GeneradorDeFacturaUbl generador = version.StartsWith("2.5")
-                ? new GeneradorDeFacturaUbl25(contexto, fichero, idCg, idTipo, idProveedor, idArchivo)
-                : new GeneradorDeFacturaUbl21(contexto, fichero, idCg, idTipo, idProveedor, idArchivo);
-
-            return generador.Importar();
-        }
-
-        private static FacturaRecDto ImportarFacturaE(ContextoSe contexto, string fichero, int idCg, int idTipo, int idProveedor, int idArchivo)
-        {
-            return new eFactura322(contexto, fichero, idCg, idTipo, idProveedor, idArchivo).Importar();
+            return contenido.Contains(NamespacesUbl.NsInvoice)
+                ? GeneradorDeFacturaUbl.ParsearJson(fichero)
+                : eFactura322.ParsearJson(fichero);
         }
 
         public static void Imprimir(FacturaRecDtm factura, ContextoSe contexto)

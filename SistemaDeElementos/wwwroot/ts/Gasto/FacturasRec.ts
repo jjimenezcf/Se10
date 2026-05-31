@@ -311,11 +311,11 @@
             const claseDePago = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.ClaseDePago)
             Ia_MapearFechaVencimiento(venceEl, claseDePago);
 
+            const bi = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.BaseImponible)
+            Ia_MapearBi(bi);
+
             const total = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.Total)
             Ia_MapearTotal(total);
-
-            const bi = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.Bi)
-            Ia_MapearBi(bi);
 
             const numero = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.Numero)
             Ia_MapearNumeroFactura(numero);

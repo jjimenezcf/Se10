@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using ServicioDeDatos.Seguridad;
 using GestorDeElementos.Extensores;
 using ServicioDeDatos.Utilidades;
-using ProcesadorOcr;
 using System.Threading.Tasks;
 
 namespace GestorDeElementos

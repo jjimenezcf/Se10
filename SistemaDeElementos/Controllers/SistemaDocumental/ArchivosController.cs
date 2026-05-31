@@ -2,6 +2,7 @@
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
+using GestoresDeNegocio.Gastos;
 using GestoresDeNegocio.Negocio;
 using GestoresDeNegocio.SistemaDocumental;
 using Microsoft.AspNetCore.Authorization;
@@ -437,6 +438,11 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             if (enumAccion == enumAccionVisorArchivo.Resumir)
             {
                 resultadoExitoso = await Resumir(negocio, ia, rutaArchivo);
+            }
+            else if (negocio == enumNegocio.FacturaRecibida && Path.GetExtension(rutaArchivo).ToLower() == ExtensorDeTipoDeArchivos.xml)
+            {
+                var facturaJson = GestorDeFacturasRec.ParsearFarXmlAJson(rutaArchivo);
+                resultadoExitoso = System.Text.Json.JsonSerializer.Serialize(facturaJson);
             }
             else
             {

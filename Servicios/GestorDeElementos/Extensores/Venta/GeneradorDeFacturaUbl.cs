@@ -92,150 +92,128 @@ namespace GestorDeElementos.Extensores
         }
 
         // ── Puntos de entrada públicos ────────────────────────────────────────
-        public FacturaRecDto Importar()
+
+        /// <summary>
+        /// Parsea un fichero UBL (2.1 o 2.5) y devuelve el JSON de <see cref="FacturaJson"/>
+        /// sin persistir nada en base de datos.
+        /// </summary>
+        public static FacturaJson ParsearJson(string fichero)
         {
             var doc = new XmlDocument();
-            doc.Load(Ruta);
-
+            doc.Load(fichero);
             var ns = new XmlNamespaceManager(doc.NameTable);
             ns.AddNamespace("inv", NsInvoice);
             ns.AddNamespace("cac", NsCac);
             ns.AddNamespace("cbc", NsCbc);
 
-            string LeerCbc(string xpath) =>
-                doc.SelectSingleNode(xpath, ns)?.InnerText?.Trim();
+            string Leer(string xpath) => doc.SelectSingleNode(xpath, ns)?.InnerText?.Trim();
 
-            var nifProveedor = LeerCbc("//cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID");
-            if (nifProveedor.IsNullOrEmpty())
-                nifProveedor = LeerCbc("//cac:AccountingSupplierParty/cac:Party/cbc:EndpointID");
+            var factura = new FacturaJson();
 
-            var proveedor = Contexto.SeleccionarPorPropiedad<ProveedorDtm>(nameof(ModeloDeDto.Terceros.ltrProveedor.NIF), nifProveedor);
-            if (_idProveedor != proveedor.Id)
-                GestorDeErrores.Emitir($"El proveedor de la factura '{proveedor.Expresion}' no se corresponde con el indicado");
+            // ── Cabecera ──────────────────────────────────────────────────────
+            factura.NumeroFactura = Leer("//inv:Invoice/cbc:ID");
+            factura.Fecha         = Leer("//inv:Invoice/cbc:IssueDate");
+            factura.Concepto      = Leer("//inv:Invoice/cbc:Note");
+            factura.FechaVencimiento = Leer("//cac:PaymentMeans/cbc:PaymentDueDate");
 
-            var recibida = new FacturaRecDtm();
-            recibida.IdTipo = _idTipo;
-            recibida.IdCg = _idCg;
-            recibida.Numero = LeerCbc("//inv:Invoice/cbc:ID");
-
-            var tipoFactura = LeerCbc("//inv:Invoice/cbc:InvoiceTypeCode");
+            var tipoFactura = Leer("//inv:Invoice/cbc:InvoiceTypeCode");
             if (tipoFactura == "381")
-                recibida.ClaseRectificativa = enumClaseDeRectificativa.OR;
+                factura.ClaseRectificativa = "OR";
 
-            var descripcion = LeerCbc("//inv:Invoice/cbc:Note");
-            recibida.Nombre = descripcion.IsNullOrEmpty() ? "(No detallado)" : descripcion.Left(250);
-            recibida.Descripcion = "(No detallado)";
-            recibida.IdProveedor = proveedor.Id;
-            recibida.RecibidaEl = DateTime.Now.Date;
+            factura.Nif = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID");
+            if (factura.Nif.IsNullOrEmpty())
+                factura.Nif = Leer("//cac:AccountingSupplierParty/cac:Party/cbc:EndpointID");
 
-            var fechaTexto = LeerCbc("//inv:Invoice/cbc:IssueDate");
-            recibida.FacturadaEl = DateTime.Parse(fechaTexto);
+            factura.Proveedor = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name");
+            if (factura.Proveedor.IsNullOrEmpty())
+                factura.Proveedor = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName");
 
-            var vencimientoTexto = LeerCbc("//cac:PaymentMeans/cbc:PaymentDueDate");
-            recibida.VenceEl = vencimientoTexto.IsNullOrEmpty() ? recibida.FacturadaEl : DateTime.Parse(vencimientoTexto);
+            factura.eMail    = Leer("//cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:ElectronicMail");
+            factura.Telefono = Leer("//cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Telephone");
 
-            var biTexto = LeerCbc("//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount");
-            recibida.BaseImponible = biTexto.IsNullOrEmpty() ? 0 : biTexto.Decimal();
+            // ── Importes ──────────────────────────────────────────────────────
+            factura.BaseImponible = Leer("//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount").Decimal();
+            factura.TotalIva      = Leer("//cac:TaxTotal/cbc:TaxAmount").Decimal();
+            factura.TotalIrpf     = Leer("//cac:WithholdingTaxTotal/cbc:TaxAmount").Decimal();
+            factura.Total         = Leer("//cac:LegalMonetaryTotal/cbc:PayableAmount").Decimal();
 
-            var totalTexto = LeerCbc("//cac:LegalMonetaryTotal/cbc:PayableAmount");
-            recibida.TotalDelPago = totalTexto.IsNullOrEmpty() ? 0 : totalTexto.Decimal();
-
-            recibida.IdArchivo = _idArchivo;
-            recibida.Insertar(Contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
-
-            if (!descripcion.IsNullOrEmpty() && descripcion.Length > 250)
-                recibida.CrearObservacion(Contexto, "Nombre completo en el Xml", descripcion);
-
-            recibida.CrearTraza(Contexto, ltrDeUnaFacturaRec.TrazaDeIncorporacion,
-                $"El usuario {Contexto.DatosDeConexion.Login} ha incorporado la factura por importe de {recibida.BaseImponible.Moneda()}");
-
-            var lineas = doc.SelectNodes("//inv:Invoice/cac:InvoiceLine", ns);
-            string imputadoA = null;
-            var asignarElOrden = 10;
-
-            foreach (XmlNode item in lineas)
+            // ── Pago ─────────────────────────────────────────────────────────
+            factura.CuentaBancaria = Leer("//cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID");
+            var payCode = Leer("//cac:PaymentMeans/cbc:PaymentMeansCode");
+            if (!payCode.IsNullOrEmpty())
             {
-                string LeerCbcLinea(string xpath) => item.SelectSingleNode(xpath, ns)?.InnerText?.Trim();
-
-                var linea = new LineaDeUnaFarDtm();
-                linea.IdElemento = recibida.Id;
-
-                var ordenTexto = LeerCbcLinea("cbc:ID");
-                linea.Orden = int.TryParse(ordenTexto, out var ord) && ord > 0 ? ord * 10 : asignarElOrden;
-                asignarElOrden += 10;
-
-                var concepto = LeerCbcLinea("cac:Item/cbc:Name") ?? string.Empty;
-                concepto = concepto.QuitarSubcadenaInicial(Environment.NewLine)
-                    .QuitarSubcadenaInicial("\n")
-                    .QuitarSubcadenaInicial("\t")
-                    .Trim()
-                    .QuitarDobleIntro()
-                    .RemplazarCaracteres(Environment.NewLine + "\t", Environment.NewLine)
-                    .RemplazarCaracteres(Environment.NewLine + " ", Environment.NewLine);
-
-                var cantidadTexto = LeerCbcLinea("cbc:InvoicedQuantity");
-                var precioTexto = LeerCbcLinea("cac:Price/cbc:PriceAmount");
-                if (!cantidadTexto.IsNullOrEmpty() && !precioTexto.IsNullOrEmpty())
-                    concepto = concepto + $" (Cta:{cantidadTexto}, Pu:{precioTexto})";
-
-                if (concepto.Length > 250)
-                {
-                    linea.Concepto = "Descripción anotada como observación de la factura";
-                    recibida.CrearObservacion(Contexto, $"Concepto de la línea: {linea.Orden}", concepto);
-                }
+                if (payCode == "30" || payCode == "31" || !factura.CuentaBancaria.IsNullOrEmpty())
+                    factura.ClaseDePago = enumClaseDePago.Transferencia.Descripcion();
+                else if (payCode == "12" || payCode == "49")
+                    factura.ClaseDePago = enumClaseDePago.Remesa.Descripcion();
                 else
-                    linea.Concepto = concepto;
-
-                var referencia = LeerCbcLinea("cbc:AccountingCost");
-                if (!referencia.IsNullOrEmpty() && (imputadoA == null || !imputadoA.Contains(referencia)))
-                    imputadoA = $"{(imputadoA.IsNullOrEmpty() ? "" : imputadoA + ", ")} {referencia}";
-
-                var biLineaTexto = LeerCbcLinea("cbc:LineExtensionAmount");
-                linea.BaseImponible = biLineaTexto.IsNullOrEmpty() ? 0 : biLineaTexto.Decimal();
-
-                var taxId = LeerCbcLinea("cac:Item/cac:ClassifiedTaxCategory/cbc:ID");
-                var taxRateTexto = LeerCbcLinea("cac:Item/cac:ClassifiedTaxCategory/cbc:Percent");
-                var taxSchemeId = LeerCbcLinea("cac:Item/cac:ClassifiedTaxCategory/cac:TaxScheme/cbc:ID");
-
-                if (taxSchemeId == "IRPF")
-                {
-                    linea.Clase = enumClaseDeLineaFar.LineaDeIrpf;
-                    linea.PorcentajeIrpf = taxRateTexto.IsNullOrEmpty() ? 0 : taxRateTexto.Decimal();
-                }
-                else if (taxId == "E")
-                {
-                    linea.Clase = enumClaseDeLineaFar.BiExenta;
-                    recibida.CrearObservacion(Contexto, "Línea exenta", $"la línea '{linea.Orden}' está exenta de IVA");
-                }
-                else if (!taxRateTexto.IsNullOrEmpty() && taxRateTexto.Decimal() == 0)
-                {
-                    linea.Clase = enumClaseDeLineaFar.BaseImponible;
-                }
-                else if (!taxRateTexto.IsNullOrEmpty() && linea.BaseImponible == 0)
-                {
-                    linea.Clase = enumClaseDeLineaFar.LineaDeIva;
-                    linea.PorcentajeIva = taxRateTexto.Decimal();
-                }
-                else
-                {
-                    linea.Clase = taxRateTexto.IsNullOrEmpty() ? enumClaseDeLineaFar.BaseImponible : enumClaseDeLineaFar.BiConIva;
-                    linea.PorcentajeIva = taxRateTexto.IsNullOrEmpty() ? 0 : taxRateTexto.Decimal();
-                }
-
-                if (linea.PorcentajeIrpf > 0)
-                    linea.IdIrpf = Contexto.SeleccionarPorPropiedad<IrpfDtm>(nameof(IrpfDtm.Porcentaje), linea.PorcentajeIrpf, errorSiMasDeuno: false).Id;
-
-                if (linea.PorcentajeIva > 0)
-                    linea.IdIvaS = Contexto.SeleccionarPorPropiedad<IvaSoportadoDtm>(nameof(IvaSoportadoDtm.Porcentaje), linea.PorcentajeIva, errorSiMasDeuno: false).Id;
-
-                linea.Insertar(Contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+                    factura.ClaseDePago = enumClaseDePago.Contado.Descripcion();
             }
 
-            if (!imputadoA.IsNullOrEmpty())
-                recibida.CrearObservacion(Contexto, "Anotaciones en las líneas", imputadoA);
+            // ── Dirección proveedor ───────────────────────────────────────────
+            factura.Calle        = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName");
+            factura.Municipio    = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:CityName");
+            factura.Provincia    = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:CountrySubentity");
+            factura.CodigoPostal = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:PostalZone");
+            factura.Pais         = Leer("//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cac:Country/cbc:IdentificationCode");
 
-            return Contexto.SeleccionarDto<FacturaRecDto>(recibida.Id);
+            // ── Líneas ────────────────────────────────────────────────────────
+            var lineas = new System.Collections.Generic.List<LineaFacturaJson>();
+            IrpfFacturaJson irpfObj = null;
+
+            foreach (XmlNode nodoLinea in doc.SelectNodes("//inv:Invoice/cac:InvoiceLine", ns))
+            {
+                string LeerL(string xpath) => nodoLinea.SelectSingleNode(xpath, ns)?.InnerText?.Trim();
+
+                var schemeId  = LeerL("cac:Item/cac:ClassifiedTaxCategory/cac:TaxScheme/cbc:ID");
+                var taxId     = LeerL("cac:Item/cac:ClassifiedTaxCategory/cbc:ID");
+                var taxPct    = LeerL("cac:Item/cac:ClassifiedTaxCategory/cbc:Percent");
+                var biLineaTx = LeerL("cbc:LineExtensionAmount");
+                var biLinea   = biLineaTx.IsNullOrEmpty() ? 0m : biLineaTx.Decimal();
+
+                if (schemeId == "IRPF")
+                {
+                    var baseIrpfTx = Leer("//cac:WithholdingTaxTotal/cac:TaxSubtotal/cbc:TaxableAmount");
+                    irpfObj = new IrpfFacturaJson
+                    {
+                        PorcentajeRetencion = taxPct.IsNullOrEmpty() ? 0m : taxPct.Decimal(),
+                        BaseRetencion       = baseIrpfTx.IsNullOrEmpty() ? factura.BaseImponible : baseIrpfTx.Decimal(),
+                        ImporteRetencion    = factura.TotalIrpf
+                    };
+                }
+                else
+                {
+                    var ivaTx = LeerL("cac:TaxTotal/cbc:TaxAmount");
+                    lineas.Add(new LineaFacturaJson
+                    {
+                        Concepto        = LeerL("cac:Item/cbc:Name") ?? LeerL("cac:Item/cbc:Description") ?? string.Empty,
+                        BaseImponible   = biLinea,
+                        PorcentajeIva   = taxPct.IsNullOrEmpty() ? 0m : taxPct.Decimal(),
+                        ImporteIva      = ivaTx.IsNullOrEmpty() ? 0m : ivaTx.Decimal(),
+                        Exenta          = taxId == "E"
+                    });
+                }
+            }
+
+            // IRPF desde cabecera si existe importe pero no hubo línea explícita
+            if (factura.TotalIrpf > 0 && irpfObj == null)
+            {
+                var pctTx  = Leer("//cac:WithholdingTaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent");
+                var baseTx = Leer("//cac:WithholdingTaxTotal/cac:TaxSubtotal/cbc:TaxableAmount");
+                irpfObj = new IrpfFacturaJson
+                {
+                    PorcentajeRetencion = pctTx.IsNullOrEmpty() ? 0m : pctTx.Decimal(),
+                    BaseRetencion       = baseTx.IsNullOrEmpty() ? factura.BaseImponible : baseTx.Decimal(),
+                    ImporteRetencion    = factura.TotalIrpf
+                };
+            }
+
+            factura.Lineas = lineas;
+            factura.Irpf   = irpfObj;
+
+            return factura;
         }
+
 
         public string Generar(bool esCopia)
         {

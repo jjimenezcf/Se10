@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ModeloDeDto.Gastos;
 using ModeloDeDto.Negocio;
 using ModeloDeDto.Terceros;
@@ -1695,7 +1694,7 @@ namespace GestorDeElementos.Extensores
                 eMail = facturaJson.eMail,
                 RecibidaEl = DateTime.Now,
                 FacturadaEl = facturadaEl.Value,
-                BaseImponible = facturaJson.Bi,
+                BaseImponible = facturaJson.BaseImponible,
                 TotalDelPago = facturaJson.Total,
                 IdArchivo = archivo.Id
             };
@@ -1708,24 +1707,25 @@ namespace GestorDeElementos.Extensores
 
             factura = factura.InsertarComoAdministrador(contexto);
 
-            if (facturaJson.Bi != 0)
+            if (facturaJson.BaseImponible != 0)
             {
+                var (idUnidad, idNaturaleza) = ExtensorDeLineaFarDesdeJson.ResolverUnidadYNaturaleza(factura, contexto, 0, 0);
                 var lineaBi = new LineaDeUnaFarDtm
                 {
                     IdElemento = factura.Id,
                     Orden = 10,
                     Clase = enumClaseDeLineaFar.BaseImponible,
                     Concepto = facturaJson.Concepto,
-                    IdNaturaleza = enumParametrosDeFacturasRec.FAR_Naturaleza.Entero(),
-                    IdUnidad = enumParametrosDeFacturasRec.FAR_Unidad_Medida.Entero(),
+                    IdNaturaleza = idNaturaleza > 0 ? idNaturaleza : (int?)null,
+                    IdUnidad = idUnidad > 0 ? idUnidad : (int?)null,
                     Cantidad = 1,
-                    BaseImponible = facturaJson.Bi
+                    BaseImponible = facturaJson.BaseImponible
                 }.InsertarComoAdministrador(contexto);
             }
             decimal ivaPorcentaje = 0;
-            if (facturaJson.TotalIva != 0 && Math.Abs(facturaJson.Total - (facturaJson.Bi + facturaJson.TotalIva - facturaJson.TotalIrpf)) < VariableDeFacturasRec.ToleranciaEnImportes())
+            if (facturaJson.TotalIva != 0 && Math.Abs(facturaJson.Total - (facturaJson.BaseImponible + facturaJson.TotalIva - facturaJson.TotalIrpf)) < VariableDeFacturasRec.ToleranciaEnImportes())
             {
-                ivaPorcentaje = Math.Round((facturaJson.TotalIva / facturaJson.Bi) * 100, 0);
+                ivaPorcentaje = Math.Round((facturaJson.TotalIva / facturaJson.BaseImponible) * 100, 0);
                 var iva = contexto.Set<IvaSoportadoDtm>().Where(i => i.Porcentaje == ivaPorcentaje).FirstOrDefault();
                 if (iva is not null)
                 {
@@ -1735,14 +1735,14 @@ namespace GestorDeElementos.Extensores
                         Orden = 20,
                         Clase = enumClaseDeLineaFar.LineaDeIva,
                         Concepto = facturaJson.Concepto,
-                        BaseImponible = facturaJson.Bi,
+                        BaseImponible = facturaJson.BaseImponible,
                         IdIvaS = iva.Id,
                         PorcentajeIva = ivaPorcentaje
                     }.InsertarComoAdministrador(contexto);
                 }
                 if (facturaJson.TotalIrpf != 0)
                 {
-                    var irpfPorcentaje = Math.Round((facturaJson.TotalIrpf / facturaJson.Bi) * 100, 0);
+                    var irpfPorcentaje = Math.Round((facturaJson.TotalIrpf / facturaJson.BaseImponible) * 100, 0);
                     var irpf = contexto.Set<IrpfDtm>().Where(i => i.Porcentaje == irpfPorcentaje).FirstOrDefault();
                     if (irpf is not null)
                     {
@@ -1751,7 +1751,7 @@ namespace GestorDeElementos.Extensores
                             IdElemento = factura.Id,
                             Orden = 20,
                             Clase = enumClaseDeLineaFar.LineaDeIrpf,
-                            BaseImponible = facturaJson.Bi,
+                            BaseImponible = facturaJson.BaseImponible,
                             IdIrpf = irpf.Id,
                             PorcentajeIrpf = irpfPorcentaje
                         }.InsertarComoAdministrador(contexto);
@@ -1762,6 +1762,176 @@ namespace GestorDeElementos.Extensores
             return factura;
         }
 
+    }
+
+    /// <summary>
+    /// Métodos de extensión sobre <see cref="FacturaRecDtm"/> para crear líneas
+    /// a partir de un <see cref="FacturaJson"/> parseado desde XML.
+    /// </summary>
+    public static class ExtensorDeLineaFarDesdeJson
+    {
+        /// <summary>
+        /// Resuelve la unidad y la naturaleza siguiendo la cadena de prioridad:
+        /// 1) Valor pasado explícitamente (> 0)
+        /// 2) Valor configurado en el proveedor de la factura
+        /// 3) Parámetro global de la aplicación (FAR_Unidad_Medida / FAR_Naturaleza)
+        /// </summary>
+        internal static (int idUnidad, int idNaturaleza) ResolverUnidadYNaturaleza(FacturaRecDtm factura, ContextoSe contexto, int idUnidad, int idNaturaleza)
+        {
+            if (idUnidad > 0 && idNaturaleza > 0)
+                return (idUnidad, idNaturaleza);
+
+            var proveedor = contexto.SeleccionarPorId<ProveedorDtm>(factura.IdProveedor, aplicarJoin: false, errorSiNoHay: false);
+
+            var unidad = idUnidad > 0
+                ? idUnidad
+                : (proveedor?.IdUnidad ?? enumParametrosDeFacturasRec.FAR_Unidad_Medida.Entero());
+
+            var naturaleza = idNaturaleza > 0
+                ? idNaturaleza
+                : (proveedor?.IdNaturaleza ?? enumParametrosDeFacturasRec.FAR_Naturaleza.Entero());
+
+            return (unidad, naturaleza);
+        }
+
+        public static void CrearLineaExenta(this FacturaRecDtm factura, ContextoSe contexto, LineaFacturaJson linea, int nOrden, int idUnidad = 0, int idNaturaleza = 0)
+        {
+            var (unidad, naturaleza) = ResolverUnidadYNaturaleza(factura, contexto, idUnidad, idNaturaleza);
+            var iva = contexto.Set<IvaSoportadoDtm>().FirstOrDefault(x => x.Clase == enumClasesDeIvaSop.NSJ)
+                      ?? contexto.Set<IvaSoportadoDtm>().FirstOrDefault(x => x.Exento);
+            new LineaDeUnaFarDtm
+            {
+                IdElemento = factura.Id,
+                Orden = nOrden,
+                Clase = Enumerados.enumClaseDeLineaFar.BiExenta,
+                Concepto = linea.Concepto,
+                BaseImponible = linea.BaseImponible,
+                Cantidad = 1,
+                IdUnidad = unidad > 0 ? unidad : (int?)null,
+                IdNaturaleza = naturaleza > 0 ? naturaleza : (int?)null,
+                IdIvaS = iva?.Id,
+                PorcentajeIva = iva?.Porcentaje ?? 0
+            }.Insertar(contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+        }
+
+        public static void CrearLineaDeBI(this FacturaRecDtm factura, ContextoSe contexto, LineaFacturaJson linea, int nOrden, int idUnidad = 0, int idNaturaleza = 0)
+        {
+            var (unidad, naturaleza) = ResolverUnidadYNaturaleza(factura, contexto, idUnidad, idNaturaleza);
+            new LineaDeUnaFarDtm
+            {
+                IdElemento = factura.Id,
+                Orden = nOrden,
+                Clase = Enumerados.enumClaseDeLineaFar.BaseImponible,
+                Concepto = linea.Concepto,
+                BaseImponible = linea.BaseImponible,
+                Cantidad = 1,
+                IdUnidad = unidad > 0 ? unidad : (int?)null,
+                IdNaturaleza = naturaleza > 0 ? naturaleza : (int?)null
+            }.Insertar(contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+        }
+
+        public static void CrearLineaDeIva(this FacturaRecDtm factura, ContextoSe contexto, LineaFacturaJson linea, int nOrden)
+        {
+            var iva = contexto.SeleccionarPorPropiedad<IvaSoportadoDtm>(nameof(IvaSoportadoDtm.Porcentaje), linea.PorcentajeIva, errorSiMasDeuno: false);
+            new LineaDeUnaFarDtm
+            {
+                IdElemento = factura.Id,
+                Orden = nOrden,
+                Clase = Enumerados.enumClaseDeLineaFar.LineaDeIva,
+                Concepto = linea.Concepto,
+                BaseImponible = linea.BaseImponible,
+                IdIvaS = iva?.Id,
+                PorcentajeIva = linea.PorcentajeIva
+            }.Insertar(contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+        }
+
+        public static void CrearLineaDeIrpf(this FacturaRecDtm factura, ContextoSe contexto, IrpfFacturaJson irpf, int nOrden)
+        {
+            var irpfDtm = contexto.SeleccionarPorPropiedad<IrpfDtm>(nameof(IrpfDtm.Porcentaje), irpf.PorcentajeRetencion, errorSiMasDeuno: false);
+            new LineaDeUnaFarDtm
+            {
+                IdElemento = factura.Id,
+                Orden = nOrden,
+                Clase = Enumerados.enumClaseDeLineaFar.LineaDeIrpf,
+                Concepto = factura.Nombre,
+                BaseImponible = irpf.BaseRetencion,
+                IdIrpf = irpfDtm?.Id,
+                PorcentajeIrpf = irpf.PorcentajeRetencion
+            }.Insertar(contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+        }
+    }
+
+    public static class CreadorDeFacturaJson
+    {
+        /// <summary>
+        /// Crea la cabecera y las líneas de una FAR a partir de un <see cref="FacturaJson"/>
+        /// parseado desde un fichero XML (UBL o eFactura).
+        /// </summary>
+        public static FacturaRecDtm CrearFacturaJson(ContextoSe contexto, FacturaJson facturaJson, int idCg, int idTipo, int idProveedor)
+        {
+            var proveedor = contexto.SeleccionarPorPropiedad<ProveedorDtm>(nameof(ltrProveedor.NIF), facturaJson.Nif);
+            if (idProveedor != proveedor.Id)
+                Emitir($"El proveedor de la factura '{proveedor.Expresion}' no se corresponde con el indicado");
+
+            var recibida = new FacturaRecDtm
+            {
+                IdTipo = idTipo,
+                IdCg = idCg,
+                Numero = facturaJson.NumeroFactura,
+                Nombre = facturaJson.Concepto.IsNullOrEmpty() ? "(No detallado)" : facturaJson.Concepto.Left(250),
+                Descripcion = "(No detallado)",
+                IdProveedor = proveedor.Id,
+                RecibidaEl = DateTime.Now.Date,
+                FacturadaEl = facturaJson.Fecha.IsNullOrEmpty() ? DateTime.Now.Date : DateTime.Parse(facturaJson.Fecha),
+                VenceEl = facturaJson.FechaVencimiento.IsNullOrEmpty()
+                    ? DateTime.Parse(facturaJson.Fecha)
+                    : DateTime.Parse(facturaJson.FechaVencimiento),
+                BaseImponible = facturaJson.BaseImponible,
+                TotalDelPago = facturaJson.Total
+            };
+
+            recibida.ClaseRectificativa = ApiDeEnsamblados.ToEnumerado<enumClaseDeRectificativa>(facturaJson.ClaseRectificativa, errorSiNoEsValido: false);
+
+            recibida.Insertar(contexto, accionEjecutada: ltrDeUnaFacturaRec.Accion_IncorporarFacturaXml);
+
+            if (!facturaJson.Concepto.IsNullOrEmpty() && facturaJson.Concepto.Length > 250)
+                recibida.CrearObservacion(contexto, "Nombre completo en el Xml", facturaJson.Concepto);
+
+            recibida.CrearTraza(contexto, ltrDeUnaFacturaRec.TrazaDeIncorporacion,
+                $"El usuario {contexto.DatosDeConexion.Login} ha incorporado la factura por importe de {recibida.BaseImponible.Moneda()}");
+
+            var orden = enumNegocio.FacturaRecibida.LeerCrearParametro(contexto, enumParametrosDeFacturasRec.FAR_IncrementarOrdenEn, "10").Valor.Entero();
+            var nOrden = 0;
+
+            foreach (var linea in facturaJson.Lineas ?? Enumerable.Empty<LineaFacturaJson>())
+            {
+                if (linea.Exenta)
+                {
+                    nOrden += orden;
+                    recibida.CrearLineaExenta(contexto, linea, nOrden);
+                }
+                else if (linea.PorcentajeIva > 0)
+                {
+                    nOrden += orden;
+                    recibida.CrearLineaDeBI(contexto, linea, nOrden);
+                    nOrden += orden;
+                    recibida.CrearLineaDeIva(contexto, linea, nOrden);
+                }
+                else
+                {
+                    nOrden += orden;
+                    recibida.CrearLineaDeBI(contexto, linea, nOrden);
+                }
+            }
+
+            if (facturaJson.Irpf?.PorcentajeRetencion > 0)
+            {
+                nOrden += orden;
+                recibida.CrearLineaDeIrpf(contexto, facturaJson.Irpf, nOrden);
+            }
+
+            return recibida;
+        }
     }
 
 }

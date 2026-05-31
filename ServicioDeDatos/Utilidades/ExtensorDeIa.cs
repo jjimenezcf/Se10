@@ -120,11 +120,6 @@ namespace ServicioDeDatos.Utilidades
                     ((IIaPromptFactura)ia).PromptFactura = IIaPromptFactura.Prompt.Replace(IIaPromptFactura.ReglasEspecificas, reglasEspecificas);
                 }
 
-                if (Path.GetExtension(rutaArchivo).ToLower() == ExtensorDeTipoDeArchivos.xml )
-                {
-                    return await ia.AnalizarFactura(File.ReadAllText(rutaArchivo));
-                }
-
                 if (ia is IaPerplexity)
                 {
                     return await ia.AnalizarFactura(await procesadorOcr.ProcesarFichero(idArchivo, rutaArchivo));
