@@ -44,7 +44,13 @@ namespace GestorDeElementos.Extensores
 
             var cliente = objeto.Cliente is null ? contexto.SeleccionarPorId<ClienteDtm>(objeto.IdCliente, aplicarJoin: true) : objeto.Cliente;
             parametros.Parametros[nameof(ClienteDtm)] = cliente;
-            objeto.Contacto = objeto.Contacto.IsNullOrEmpty() ? cliente.Expresion : objeto.Contacto;
+
+            objeto.Contacto = objeto.Contacto.IsNullOrEmpty() 
+            ? cliente.Interlocutor.EsSociedad 
+            ? cliente.Interlocutor.Sociedad(contexto).RazonSocial 
+            : cliente.Expresion 
+            : objeto.Contacto;
+
             objeto.Telefono = objeto.Telefono.IsNullOrEmpty() ? cliente.Telefono : objeto.Telefono;
             objeto.eMail = objeto.eMail.IsNullOrEmpty() ? cliente.eMail : objeto.eMail;
 
@@ -55,7 +61,7 @@ namespace GestorDeElementos.Extensores
         where T : IUsaCliente
         {
             var cliente = contexto.SeleccionarPorId<ClienteDtm>(objeto.IdCliente, aplicarJoin: true);
-            objeto.Contacto = cliente.Expresion;
+            objeto.Contacto = cliente.Interlocutor.EsSociedad ? cliente.Interlocutor.Sociedad(contexto).RazonSocial : cliente.Expresion;
             objeto.Telefono = cliente.Telefono;
             objeto.eMail = cliente.eMail;
 
@@ -133,7 +139,7 @@ namespace GestorDeElementos.Extensores
                 nif = SociedadDtm.QuitarIsoDeNif(nif);
             }
             else
-            {   
+            {
                 nif = SociedadDtm.PonerIsoDeNif(nif);
             }
 

@@ -34,7 +34,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Utilidades;
 using static ServicioDeDatos.Elemento.Enumerados;
-using static Utilidades.Ampliaciones;
 
 namespace GestoresDeNegocio.Ventas
 {
