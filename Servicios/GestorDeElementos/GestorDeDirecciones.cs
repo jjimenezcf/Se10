@@ -231,7 +231,8 @@ namespace GestorDeElementos
             direccionDto.IntraComunitaria = direccion.EsIntraComunitario(Contexto);
             direccionDto.ExtraComunitaria = direccion.EsExtraComunitario(Contexto);
 
-            if (direccion.Url.IsNullOrEmpty()) direccionDto.Url = direccionDto.NombreDireccion;
+            //if (direccion.Url.IsNullOrEmpty()) 
+            direccionDto.Url = direccionDto.NombreDireccion;
 
             if (parametros.EnConsulta)
                 direccionDto.ModoDeAcceso = ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Consultor;
