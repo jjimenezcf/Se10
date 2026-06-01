@@ -213,6 +213,9 @@ namespace GestoresDeNegocio.Venta.Factura
             {
                 if (e.GetType() == typeof(FaultException))
                     throw Excepciones.Emitir($"{ltrSii.VerifactuNoActivo}: {((FaultException)e).Fault.faultstring}");
+
+                if (e.GetType() == typeof(InvalidOperationException) && e.Message.ToLower().Contains("Certificate is out of date".ToLower()))
+                    throw Excepciones.Emitir($"{msjCertificados.CertificadoCaducado}".Replace("[Empresa]", Sociedad.Nombre));
                 throw;
             }
             finally
@@ -258,12 +261,18 @@ namespace GestoresDeNegocio.Venta.Factura
             {
                 Verifactu.ValidarNif(Contexto, nif, razonSocial, _certificado, _numeroImplantacion);
             }
+            catch (Exception e)
+            {
+                if (e.Message.ToLower().Contains("Certificate is out of date".ToLower()))
+                    throw Excepciones.Emitir($"{msjCertificados.CertificadoCaducado}".Replace("[Empresa]", Sociedad.Nombre));
+                throw;
+            }
             finally
             {
                 _certificado.Dispose();
             }
         }
-       
+
         public void ValidarVat()
         {
 

@@ -15,8 +15,14 @@ namespace ServicioDeDatos.Entorno
         public static readonly string EsMiCertificado = nameof(EsMiCertificado);
 
         public static readonly string FiltrarParaSociedad = nameof(FiltrarParaSociedad);
+
     }
 
+
+    public class msjCertificados
+    {
+        public static readonly string CertificadoCaducado = "No se puede realizar la operación solicitada por estar el certificado caducado de la empresa: [Empresa]";
+    }
 
 
     public class CredencialesDeConexion : RegistroDtm

@@ -141,7 +141,7 @@ namespace GestoresDeNegocio.Terceros
                 cliente.CodigoContable = ((ClienteDtm)parametros.registroEnBd).CodigoContable;
             }
 
-           if (VariableDeFacturasEmt.Fae_Sii_Activo())
+           if (VariableDeFacturasEmt.Fae_Sii_Activo() && VariablesDeClientes.Cli_Validar_En_La_AEAT())
                 ValidarClienteEnAeat(inter.NIF(Contexto, quitarPrefijoEs: true), inter.RazonSocial(Contexto));
 
             var direccion = cliente.DireccionFiscal(Contexto, errorSiNoHay: false);

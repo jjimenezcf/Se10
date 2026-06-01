@@ -22,6 +22,8 @@ namespace ServicioDeDatos.Terceros
         CLI_TipoArchivador,
         [Description("Código del CG donde se crea el archivador del cliente")]
         CLI_CG_De_Cliente,
+        [Description("Indica si se debe validar el cliente en la AEAT")]
+        CLI_Validar_Aeat
     }
 
     public class ComoEmitir
@@ -83,6 +85,12 @@ namespace ServicioDeDatos.Terceros
 
             return relacion.Valor;
         }
+
+        public static bool Cli_Validar_En_La_AEAT()
+        {
+            return enumNegocio.Cliente.Parametro(enumParametrosDeCliente.CLI_Validar_Aeat, crearParametro: true, valorPorDefecto: "true").Valor.EsTrue();
+        }
+
 
         private static List<ComoEmitir> ParsearCli_Como_Emitir_Factura(string json)
         {
