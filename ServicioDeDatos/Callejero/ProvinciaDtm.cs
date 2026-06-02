@@ -15,7 +15,7 @@ namespace ServicioDeDatos.Callejero
 
 
     [Table(Tablas.PROVINCIA, Schema = Esquemas.CALLEJERO)]
-    public class ProvinciaDtm : ElementoDtm
+    public class ProvinciaDtm : ElementoDtm, ISigla
     {
         public string Codigo { get; set; }
         public string Sigla { get; set; }

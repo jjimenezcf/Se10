@@ -20,7 +20,7 @@ namespace ServicioDeDatos.MaestrosTecnico
     }
 
     [Table(Tablas.MT_NATURALEZA, Schema = Esquemas.MT)]
-    public class NaturalezaDtm : RegistroConNombreDtm, IRegistroDeParametrizacion
+    public class NaturalezaDtm : RegistroConNombreDtm, IRegistroDeParametrizacion, ISigla
     {
         public string Sigla { get; set; }
         public override string Expresion => $"({Sigla}) {Nombre}";

@@ -36,6 +36,11 @@ namespace ServicioDeDatos.Elemento
         public string Expresion { get; }
     }
 
+    public interface ISigla 
+    {
+        public string Sigla { get; set; }
+    }
+
     public interface IRegistroDeParametrizacion
     {
 
@@ -99,10 +104,9 @@ namespace ServicioDeDatos.Elemento
     {
     }
 
-    public interface ILibroDeRegistro
+    public interface ILibroDeRegistro: ISigla
     {
         public enumClaseDeLibro ClaseDeLibro { get; set; }
-        public string Sigla { get; set; }
     }
 
     public interface ITipoDeElementoDtm : ITipoDtm, ILibroDeRegistro
@@ -162,7 +166,7 @@ namespace ServicioDeDatos.Elemento
     }
 
 
-    public interface ITipoDtm : IRegistro, INombre
+    public interface ITipoDtm : IRegistro, INombre, ISigla
     {
         public int? IdPadre { get; set; }
 
@@ -178,7 +182,6 @@ namespace ServicioDeDatos.Elemento
         public bool Activo { get; set; }
 
         public enumClaseDeLibro ClaseDeLibro { get; set; }
-        public string Sigla { get; set; }
 
         public bool NombreModificable { get; set; }
         public bool PermiteCrear { get; set; }
@@ -554,6 +557,7 @@ namespace ServicioDeDatos.Elemento
         public static bool ImplementaNombre(this IRegistro registro) => registro.GetType().GetInterfaces().Contains(typeof(INombre));
         public static bool ImplementaRegistroDeParametrizacion(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(IRegistroDeParametrizacion).FullName);
         public static bool ImplementaNombre(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(INombre).FullName);
+        public static bool ImplementaSigla(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(ISigla).FullName);
         public static bool ImplemtaUnIDetalle(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(IDetalle).FullName);
         public static bool ImplementaUnaRelacion(this IRegistro registro) => registro.GetType().GetInterfaces().Contains(typeof(IRelacion));
         public static bool ImplementaNecesitaSerParametrizador(this IRegistro registro) => registro.GetType().GetInterfaces().Contains(typeof(INecesitaSerParametrizador));

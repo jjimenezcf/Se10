@@ -29,7 +29,7 @@ namespace ServicioDeDatos.Terceros
     }
 
     [Table(Tablas.CENTRO_GESTOR, Schema = Esquemas.TERCEROS)]
-    public class CentroGestorDtm : ElementoDtm, IUsaBaja, IUsaArchivo, IPuedeUsarResponsable
+    public class CentroGestorDtm : ElementoDtm, IUsaBaja, IUsaArchivo, IPuedeUsarResponsable, ISigla
     {
         public int IdSociedad { get; set; }
         public int? IdCgPadre { get; set; }

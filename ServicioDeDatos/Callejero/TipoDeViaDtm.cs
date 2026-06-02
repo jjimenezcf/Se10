@@ -5,7 +5,7 @@ using ServicioDeDatos.Elemento;
 namespace ServicioDeDatos.Callejero
 {
     [Table(Tablas.TIPO_VIA, Schema = Esquemas.CALLEJERO)]
-    public class TipoDeViaDtm : RegistroConNombreDtm
+    public class TipoDeViaDtm : RegistroConNombreDtm, ISigla
     {
         public string Sigla { get; set; }
     }

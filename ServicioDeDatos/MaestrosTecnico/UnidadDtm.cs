@@ -19,7 +19,7 @@ namespace ServicioDeDatos.MaestrosTecnico
 
 
     [Table(Tablas.MT_UNIDAD, Schema = Esquemas.MT)]
-    public class UnidadDtm : RegistroConNombreDtm
+    public class UnidadDtm : RegistroConNombreDtm, ISigla
     {
         public string Sigla { get; set; }
         public override string Expresion => $"({Sigla}) {Nombre}";
