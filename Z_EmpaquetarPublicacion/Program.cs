@@ -15,6 +15,10 @@ class Program
             LimpiarDirectorio(directorioOrigen, "Archivos");
             LimpiarDirectorio(directorioOrigen, "Plantillas");
 
+            // Librerías de wwwroot/lib ya presentes en los binarios de productivo
+            LimpiarDirectorio(directorioOrigen, @"lib\jar");
+            LimpiarDirectorio(directorioOrigen, @"lib\jre");
+
             // 2. Eliminar fichero token.json si existe
             EliminarFichero($@"{directorioOrigen}\wwwroot\token.json");
 
@@ -250,6 +254,8 @@ class Program
         try
         {
             Array.ForEach(Directory.GetFiles(ruta), File.Delete);
+            foreach (string subdir in Directory.GetDirectories(ruta))
+                Directory.Delete(subdir, true);
         }
         catch (Exception e)
         {
