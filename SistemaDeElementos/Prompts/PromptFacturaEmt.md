@@ -125,3 +125,87 @@
   1. `{"Clausula": "Rectificadas", "Criterio": "igual", "Valor": "6"}` (Representa SinRelacion).
 
 **Jerarquía:** Si se detecta una búsqueda por nombre, referencia o número específico (R.8.1), se omiten las reglas de situación (R.8.2 y R.8.3).
+
+### R.FacturasVenta.9 · Relación con Remesas
+
+**R.FacturasVenta.9.1 · Búsqueda por datos de Remesa (`NombreRemesaFae`)**
+- **Disparador positivo:** Facturas "de la remesa [Nombre/Referencia]", "incluidas en la remesa [X]", "de la remesa de cobros [Y]".
+- **Disparador negativo:** Facturas "que NO sean de la remesa [X]", "no incluidas en la remesa [Y]", "fuera de la remesa [X]".
+- **Acción (positivo):** `{"Clausula": "NombreRemesaFae", "Criterio": "contiene", "Valor": "nombre_o_referencia"}`
+- **Acción (negativo):** `{"Clausula": "NombreRemesaFae", "Criterio": "noContiene", "Valor": "nombre_o_referencia"}`
+- **Nota:** Busca coincidencia parcial en el nombre o referencia de la remesa.
+
+**R.FacturasVenta.9.2 · Situación: Facturas incluidas en alguna remesa (`IncluidaEnRemesa`)**
+- **Disparador:** Facturas "remesadas", "incluidas en una remesa", "que estén en remesa", "enviadas en remesa", "con remesa".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "IncluidaEnRemesa", "Criterio": "igual", "Valor": "5"}` (Representa ConRelacion).
+
+**R.FacturasVenta.9.3 · Situación: Facturas NO incluidas en remesa (`IncluidaEnRemesa`)**
+- **Disparador:** Facturas "sin remesar", "pendientes de remesa", "no incluidas en ninguna remesa", "que no tengan remesa".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "IncluidaEnRemesa", "Criterio": "igual", "Valor": "6"}` (Representa SinRelacion).
+
+**Jerarquía:** Si se detecta una búsqueda por nombre (R.9.1), se omiten las reglas de situación (R.9.2 y R.9.3).
+
+### R.FacturasVenta.10 · Relación con Contratos
+
+**R.FacturasVenta.10.1 · Búsqueda por datos de Contrato (`NombreContrato`)**
+- **Disparador positivo:** Facturas "del contrato [Nombre/Referencia]", "vinculadas al contrato [X]", "del contrato de venta [Y]".
+- **Disparador negativo:** Facturas "que NO sean del contrato [X]", "no vinculadas al contrato [Y]", "fuera del contrato [X]".
+- **Acción (positivo):** `{"Clausula": "NombreContrato", "Criterio": "contiene", "Valor": "nombre_o_referencia"}`
+- **Acción (negativo):** `{"Clausula": "NombreContrato", "Criterio": "noContiene", "Valor": "nombre_o_referencia"}`
+- **Nota:** Busca coincidencia parcial en el nombre o referencia del contrato.
+
+**R.FacturasVenta.10.2 · Situación: Facturas vinculadas a un contrato (`AsociadaAUnContrato`)**
+- **Disparador:** Facturas "de un contrato", "con contrato de venta", "vinculadas a algún contrato", "que tengan contrato".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "AsociadaAUnContrato", "Criterio": "igual", "Valor": "5"}` (Representa ConRelacion).
+
+**R.FacturasVenta.10.3 · Situación: Facturas sin contrato (`AsociadaAUnContrato`)**
+- **Disparador:** Facturas "sin contrato", "que no pertenezcan a un contrato", "no contractuales", "pendientes de asignar contrato".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "AsociadaAUnContrato", "Criterio": "igual", "Valor": "6"}` (Representa SinRelacion).
+
+**Jerarquía:** Si se detecta una búsqueda por nombre (R.10.1), se omiten las reglas de situación (R.10.2 y R.10.3).
+
+### R.FacturasVenta.11 · Relación con Estimaciones Directas
+
+**R.FacturasVenta.11.1 · Búsqueda por datos de Estimación Directa (`NombreEstimacion`)**
+- **Disparador positivo:** Facturas "de la estimación [Nombre/Referencia]", "incluidas en la estimación directa [X]", "de la estimación contable [Y]".
+- **Disparador negativo:** Facturas "que NO sean de la estimación [X]", "no incluidas en la estimación directa [Y]", "fuera de la estimación [X]".
+- **Acción (positivo):** `{"Clausula": "NombreEstimacion", "Criterio": "contiene", "Valor": "nombre_o_referencia"}`
+- **Acción (negativo):** `{"Clausula": "NombreEstimacion", "Criterio": "noContiene", "Valor": "nombre_o_referencia"}`
+- **Nota:** Busca coincidencia parcial en el nombre o referencia de la estimación directa.
+
+**R.FacturasVenta.11.2 · Situación: Facturas incluidas en alguna estimación (`VinculosAUnaEstimacion`)**
+- **Disparador:** Facturas "en una estimación", "incluidas en estimación directa", "que estén en una estimación contable", "ya estimadas".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "VinculosAUnaEstimacion", "Criterio": "igual", "Valor": "5"}` (Representa ConRelacion).
+
+**R.FacturasVenta.11.3 · Situación: Facturas sin estimación (`VinculosAUnaEstimacion`)**
+- **Disparador:** Facturas "pendientes de estimación", "no incluidas en ninguna estimación directa", "sin estimación contable", "fuera de estimación".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "VinculosAUnaEstimacion", "Criterio": "igual", "Valor": "6"}` (Representa SinRelacion).
+
+**Jerarquía:** Si se detecta una búsqueda por nombre (R.11.1), se omiten las reglas de situación (R.11.2 y R.11.3).
+
+### R.FacturasVenta.12 · Relación con Lotes Contables
+
+**R.FacturasVenta.12.1 · Búsqueda por datos de Lote Contable (`NombreLoteContable`)**
+- **Disparador positivo:** Facturas "del lote [Nombre/Referencia]", "incluidas en el lote contable [X]", "del lote de contabilidad [Y]".
+- **Disparador negativo:** Facturas "que NO sean del lote [X]", "no incluidas en el lote contable [Y]", "fuera del lote [X]".
+- **Acción (positivo):** `{"Clausula": "NombreLoteContable", "Criterio": "contiene", "Valor": "nombre_o_referencia"}`
+- **Acción (negativo):** `{"Clausula": "NombreLoteContable", "Criterio": "noContiene", "Valor": "nombre_o_referencia"}`
+- **Nota:** Busca coincidencia parcial en el nombre o referencia del lote contable.
+
+**R.FacturasVenta.12.2 · Situación: Facturas incluidas en algún lote contable (`VinculosAUnLote`)**
+- **Disparador:** Facturas "en un lote contable", "contabilizadas en lote", "incluidas en lote contable", "que tengan lote", "ya en lote".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "VinculosAUnLote", "Criterio": "igual", "Valor": "5"}` (Representa ConRelacion).
+
+**R.FacturasVenta.12.3 · Situación: Facturas pendientes de lote contable (`VinculosAUnLote`)**
+- **Disparador:** Facturas "pendientes de lote", "sin lote contable", "no incluidas en ningún lote", "fuera de lote contable", "sin contabilizar en lote".
+- **Acción:** Genera el objeto:
+  1. `{"Clausula": "VinculosAUnLote", "Criterio": "igual", "Valor": "6"}` (Representa SinRelacion).
+
+**Jerarquía:** Si se detecta una búsqueda por nombre (R.12.1), se omiten las reglas de situación (R.12.2 y R.12.3).

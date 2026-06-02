@@ -9,9 +9,15 @@
         public const string IdRemesaPag = nameof(IdRemesaPag);
 
         public const string IdContrato = nameof(IdContrato);
+        public const string NombreContrato = nameof(NombreContrato);
         public const string IdExpediente = nameof(IdExpediente);
+        public const string NombreExpediente = nameof(NombreExpediente);
         public const string IdEstimacionDirecta = nameof(IdEstimacionDirecta);
+        public const string NombreEstimacion = nameof(NombreEstimacion);
         public const string IdLoteContable = nameof(IdLoteContable);
+        public const string NombreLoteContable = nameof(NombreLoteContable);
+        public const string NombreRemesaPag = nameof(NombreRemesaPag);
+        public const string NombreNaturaleza = nameof(NombreNaturaleza);
         public const string AsociadaAUnContrato = nameof(AsociadaAUnContrato);
         public const string AsociadaAUnExpediente = nameof(AsociadaAUnExpediente);
         public const string AsociadaAUnLoteContable = nameof(AsociadaAUnLoteContable);

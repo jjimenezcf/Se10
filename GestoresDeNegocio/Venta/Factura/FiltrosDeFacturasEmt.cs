@@ -154,11 +154,45 @@ namespace GestoresDeNegocio.Ventas
 
         public static IQueryable<FacturaEmtDtm> FiltroFacturasEnUnaEstimacion(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
+            var filtroNombre = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.NombreEstimacion.ToLower() && !x.Aplicado);
+            if (filtroNombre != null && !string.IsNullOrEmpty(filtroNombre.Valor))
+            {
+                var busqueda = filtroNombre.Valor.ToLower();
+                var circuitosCoincidentes = contexto.Set<CircuitoDocDtm>().Where(c =>
+                    c.Nombre.ToLower().Contains(busqueda) ||
+                    c.Referencia.ToLower().Contains(busqueda));
+                var esNegacion = filtroNombre.Criterio == enumCriteriosDeFiltrado.noContiene;
+                consulta = esNegacion
+                    ? consulta.Where(fae => !contexto.Set<CircuitoDocDeUnaFacturaEmtDtm>()
+                        .Any(v => v.idElemento1 == fae.Id && circuitosCoincidentes.Any(c => c.Id == v.idElemento2)))
+                    : consulta.Where(fae => contexto.Set<CircuitoDocDeUnaFacturaEmtDtm>()
+                        .Any(v => v.idElemento1 == fae.Id && circuitosCoincidentes.Any(c => c.Id == v.idElemento2)));
+                filtroNombre.Aplicado = true;
+                return consulta;
+            }
             return consulta.FiltroDeElementosConVinculosA<FacturaEmtDtm, CircuitoDocDeUnaFacturaEmtDtm>(contexto, filtros, ltrDeUnaFacturaEmt.IdEstimacionDirecta, ltrDeUnaEstimacion.VinculosAUnaEstimacion);
         }
 
         public static IQueryable<FacturaEmtDtm> FiltroFacturasEnUnLoteContable(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
+            var filtroNombre = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.NombreLoteContable.ToLower() && !x.Aplicado);
+            if (filtroNombre != null && !string.IsNullOrEmpty(filtroNombre.Valor))
+            {
+                var busqueda = filtroNombre.Valor.ToLower();
+                var lotesCoincidentes = contexto.Set<CircuitoDocDtm>().Where(c =>
+                    c.Nombre.ToLower().Contains(busqueda) ||
+                    c.Referencia.ToLower().Contains(busqueda));
+                var preasientosDeFacturas = contexto.Set<PreasientoDtm>().Where(p =>
+                    p.NegocioReferenciado.Equals(enumNegocio.FacturaEmitida) &&
+                    contexto.Set<CircuitoDocDeUnPreasientoDtm>().Any(v => v.idElemento1 == p.Id && lotesCoincidentes.Any(c => c.Id == v.idElemento2)));
+                var esNegacion = filtroNombre.Criterio == enumCriteriosDeFiltrado.noContiene;
+                consulta = esNegacion
+                    ? consulta.Where(f => !preasientosDeFacturas.Any(p => p.IdReferenciado == f.Id))
+                    : consulta.Where(f => preasientosDeFacturas.Any(p => p.IdReferenciado == f.Id));
+                filtroNombre.Aplicado = true;
+                return consulta;
+            }
+
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.IdLoteContable.ToLower() && !x.Aplicado);
             if (filtro != null)
             {
@@ -347,12 +381,27 @@ namespace GestoresDeNegocio.Ventas
             return consulta;
         }
 
-        public static IQueryable<FacturaEmtDtm> FiltroPorContratos(this IQueryable<FacturaEmtDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        public static IQueryable<FacturaEmtDtm> FiltroPorContratos(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
         {
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.IdContrato.ToLower() && !x.Aplicado);
             if (filtro != null)
             {
                 consulta = consulta.AplicarFiltroPorEntero(filtro);
+                return consulta;
+            }
+
+            var filtroNombre = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.NombreContrato.ToLower() && !x.Aplicado);
+            if (filtroNombre != null && !string.IsNullOrEmpty(filtroNombre.Valor))
+            {
+                var busqueda = filtroNombre.Valor.ToLower();
+                var contratosCoincidentes = contexto.Set<ContratoDtm>().Where(c =>
+                    c.Nombre.ToLower().Contains(busqueda) ||
+                    c.Referencia.ToLower().Contains(busqueda));
+                var esNegacion = filtroNombre.Criterio == enumCriteriosDeFiltrado.noContiene;
+                consulta = esNegacion
+                    ? consulta.Where(fae => !contratosCoincidentes.Any(c => c.Id == fae.IdContrato))
+                    : consulta.Where(fae => fae.IdContrato != null && contratosCoincidentes.Any(c => c.Id == fae.IdContrato));
+                filtroNombre.Aplicado = true;
                 return consulta;
             }
 
@@ -388,6 +437,23 @@ namespace GestoresDeNegocio.Ventas
             {
                 var facturasDeLaRemesa = contexto.Set<FacturaEmtDeUnaRemesaDtm>().Where(x => x.IdElemento == filtro.Valor.Entero());
                 consulta = consulta.Where(x => facturasDeLaRemesa.Any(fr => fr.IdFactura == x.Id));
+                return consulta;
+            }
+
+            var filtroNombre = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.NombreRemesaFae.ToLower() && !x.Aplicado);
+            if (filtroNombre != null && !string.IsNullOrEmpty(filtroNombre.Valor))
+            {
+                var busqueda = filtroNombre.Valor.ToLower();
+                var remesasCoincidentes = contexto.Set<RemesaFaeDtm>().Where(r =>
+                    r.Nombre.ToLower().Contains(busqueda) ||
+                    r.Referencia.ToLower().Contains(busqueda));
+                var esNegacion = filtroNombre.Criterio == enumCriteriosDeFiltrado.noContiene;
+                consulta = esNegacion
+                    ? consulta.Where(fae => !contexto.Set<FacturaEmtDeUnaRemesaDtm>()
+                        .Any(fr => fr.IdFactura == fae.Id && remesasCoincidentes.Any(r => r.Id == fr.IdElemento)))
+                    : consulta.Where(fae => contexto.Set<FacturaEmtDeUnaRemesaDtm>()
+                        .Any(fr => fr.IdFactura == fae.Id && remesasCoincidentes.Any(r => r.Id == fr.IdElemento)));
+                filtroNombre.Aplicado = true;
                 return consulta;
             }
 

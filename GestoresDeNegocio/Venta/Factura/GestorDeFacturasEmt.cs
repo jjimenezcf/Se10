@@ -134,7 +134,7 @@ namespace GestoresDeNegocio.Ventas
             consulta = consulta.FiltroPorPresupuestos(filtros);
             consulta = consulta.FiltroPorPlanificacionesDeVenta(Contexto, filtros);
             consulta = consulta.FiltroPorPartesTr(Contexto, filtros);
-            consulta = consulta.FiltroPorContratos(filtros);
+            consulta = consulta.FiltroPorContratos(Contexto, filtros);
             consulta = consulta.FiltroPorCliente(filtros);
             consulta = consulta.FiltroPorRemesas(Contexto, filtros);
             consulta = consulta.FiltroPorDeudor(Contexto, filtros);

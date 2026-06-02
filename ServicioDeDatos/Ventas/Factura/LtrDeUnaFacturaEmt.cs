@@ -36,7 +36,11 @@
 
         public const string IdContrato = nameof(IdContrato);
         public const string AsociadaAUnContrato = nameof(AsociadaAUnContrato);
+        public const string NombreContrato = nameof(NombreContrato);
         public const string IncluidaEnRemesa = nameof(IncluidaEnRemesa);
+        public const string NombreRemesaFae = nameof(NombreRemesaFae);
+        public const string NombreEstimacion = nameof(NombreEstimacion);
+        public const string NombreLoteContable = nameof(NombreLoteContable);
         public const string Rectificadas = nameof(Rectificadas);
 
         public const string FiltrarPorRectificativa = nameof(FiltrarPorRectificativa);

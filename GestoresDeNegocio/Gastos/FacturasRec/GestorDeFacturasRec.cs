@@ -128,6 +128,8 @@ namespace GestoresDeNegocio.Gastos
             consulta = consulta.FiltroFacturasEnUnaEstimacion(Contexto, filtros, parametros);
             consulta = consulta.FiltroFacturasEnUnLoteContable(Contexto, filtros, parametros);
             consulta = consulta.FiltroFacturasAsociablesAUnElemento(Contexto, filtros, parametros);
+            consulta = consulta.FiltroPorExpediente(Contexto, filtros);
+            consulta = consulta.FiltroPorContrato(Contexto, filtros);
             consulta = consulta.FiltroSiHayDependenciaDe(filtros, nameof(FacturaRecDtm.IdExpediente), ltrDeUnaFacturaRec.AsociadaAUnExpediente, parametros, aplicarFiltroDeEstado: false);
             consulta = consulta.FiltroSiHayDependenciaDe(filtros, nameof(FacturaRecDtm.IdContrato), ltrDeUnaFacturaRec.AsociadaAUnContrato, parametros, aplicarFiltroDeEstado: false);
             consulta = consulta.FiltroPorNaturaleza(Contexto, filtros);
