@@ -4,6 +4,13 @@ ghostscript-8.64
 
 https://console.cloud.google.com/welcome?project=sistema-de-elementos
 
+Facturas recibidas y emitidas (*) 2026-06-02
+--------------------------------------------------------------------------------
+importar facturas xml y ubl tanto desde un fichero como desde la interface
+generar facturas ubl
+prompt para filtrar facturas emitidas
+prompt para filtrar facturas recibidas
+
 
 Caifantasia: presentación
 --------------------------------------------------------------------------------
