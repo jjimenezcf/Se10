@@ -27,6 +27,7 @@ namespace ModeloDeDto.Reporte
         public float TamanoTitulo => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoTitulo, 16);
         public float TamanoPieDePagina => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoPieDePagina, 5);
         public float TamanoEncabezado => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoEncabezado, 8);
+        public bool MostrarLogo => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarLogo, true);
 
         public virtual bool VerificarVersionDeParametros()
         {
@@ -41,7 +42,8 @@ namespace ModeloDeDto.Reporte
                    Parametros.ContieneClave(ltrParametrosRpt.PaddingTopPie) &&
                    Parametros.ContieneClave(ltrParametrosRpt.TamanoTitulo) &&
                    Parametros.ContieneClave(ltrParametrosRpt.TamanoPieDePagina) &&
-                   Parametros.ContieneClave(ltrParametrosRpt.TamanoEncabezado);
+                   Parametros.ContieneClave(ltrParametrosRpt.TamanoEncabezado) &&
+                   Parametros.ContieneClave(ltrParametrosRpt.MostrarLogo);
         }
 
         public virtual void ActualizarVersionDeParametros(int idNegocio, System.Enum parametro)
@@ -59,6 +61,7 @@ namespace ModeloDeDto.Reporte
             if (!Parametros.ContieneClave(ltrParametrosRpt.TamanoTitulo)) Parametros[ltrParametrosRpt.TamanoTitulo] = TamanoTitulo;
             if (!Parametros.ContieneClave(ltrParametrosRpt.TamanoPieDePagina)) Parametros[ltrParametrosRpt.TamanoPieDePagina] = TamanoPieDePagina;
             if (!Parametros.ContieneClave(ltrParametrosRpt.TamanoEncabezado)) Parametros[ltrParametrosRpt.TamanoEncabezado] = TamanoEncabezado;
+            if (!Parametros.ContieneClave(ltrParametrosRpt.MostrarLogo)) Parametros[ltrParametrosRpt.MostrarLogo] = MostrarLogo;
             string json = JsonConvert.SerializeObject(Parametros, Formatting.Indented);
             ParametroDeNegocioSql.Actualizar(idNegocio, parametro, valor: json);
         }

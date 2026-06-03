@@ -92,10 +92,9 @@ namespace ServicioDeReportes.Ventas
                 // Última columna: QR SIF y logo; si hay logo el QR va antes, si no hay logo el logo (NIF) va antes
                 cabecera.ConstantItem(190).AlignRight().Row(fila =>
                 {
-                    bool hayLogo = Factura.Logo != string.Empty;
                     byte[] qrSif = (!esPrefactura) ? GenerarCodigoQr(Factura.UrlSe) : null;
 
-                    if (hayLogo && qrSif != null)
+                    if (Factura.MostrarLogo && qrSif != null)
                     {
                         fila.AutoItem().AlignCenter().PaddingRight(8).Column(columna =>
                         {
@@ -107,7 +106,7 @@ namespace ServicioDeReportes.Ventas
                     }
                     else
                     {
-                        ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
+                        //ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
                         if (qrSif != null)
                         {
                             fila.AutoItem().AlignCenter().PaddingLeft(8).Column(columna =>
