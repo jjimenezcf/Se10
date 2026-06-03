@@ -1,17 +1,18 @@
-﻿using ModeloDeDto;
+﻿using GestorDeElementos;
+using GestorDeElementos.Extensores;
+using ModeloDeDto;
 using ModeloDeDto.Ventas;
 using QRCoder;
 using QuestPDF.Drawing;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using ServicioDeDatos.Ventas;
 using ServicioDeReportes.Base;
-using Utilidades;
-using static ServicioDeDatos.Elemento.Enumerados;
 using System.Net;
 using System.Text;
-using ServicioDeDatos.Ventas;
-using GestorDeElementos.Extensores;
+using Utilidades;
+using static ServicioDeDatos.Elemento.Enumerados;
 
 namespace ServicioDeReportes.Ventas
 {
@@ -86,24 +87,37 @@ namespace ServicioDeReportes.Ventas
                             columna.Item().AlignCenter().Text(Factura.LeyendaAeat).FontSize(7).FontColor(Colors.Grey.Darken2);
                         }
                     });
-
-                    // Tercera columna: QR SIF (centrada)
-                    cabecera.RelativeItem().AlignRight().Column(columna =>
-                    {
-                        byte[] qrImage = GenerarCodigoQr(Factura.UrlSe);
-                        if (qrImage != null)
-                        {
-                            columna.Item().AlignCenter().Text("QR del SIF:").FontSize(7).FontColor(Colors.Grey.Darken2);
-                            columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrImage);
-                            columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
-                        }
-                    });
                 }
 
-                // Última columna: logo (alineada a la derecha)
-                cabecera.RelativeItem().AlignRight().Column(columna =>
+                // Última columna: QR SIF y logo; si hay logo el QR va antes, si no hay logo el logo (NIF) va antes
+                cabecera.ConstantItem(190).AlignRight().Row(fila =>
                 {
-                    ApiDeReportes.RenderLogo(cabecera, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
+                    bool hayLogo = Factura.Logo != string.Empty;
+                    byte[] qrSif = (!esPrefactura) ? GenerarCodigoQr(Factura.UrlSe) : null;
+
+                    if (hayLogo && qrSif != null)
+                    {
+                        fila.AutoItem().AlignCenter().PaddingRight(8).Column(columna =>
+                        {
+                            columna.Item().AlignCenter().Text("QR del SIF:").FontSize(7).FontColor(Colors.Grey.Darken2);
+                            columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
+                            columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
+                        });
+                        ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
+                    }
+                    else
+                    {
+                        ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
+                        if (qrSif != null)
+                        {
+                            fila.AutoItem().AlignCenter().PaddingLeft(8).Column(columna =>
+                            {
+                                columna.Item().AlignCenter().Text("QR del SIF:").FontSize(7).FontColor(Colors.Grey.Darken2);
+                                columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
+                                columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
+                            });
+                        }
+                    }
                 });
             });
         }
