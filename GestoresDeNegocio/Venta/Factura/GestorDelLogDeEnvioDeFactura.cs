@@ -1,15 +1,12 @@
 ﻿using AutoMapper;
-using Gestor.Errores;
 using GestorDeElementos;
 using GestoresDeNegocio.TrabajosSometidos;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using ModeloDeDto.Ventas;
 using ServicioDeDatos;
 using ServicioDeDatos.Ventas;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using Utilidades;

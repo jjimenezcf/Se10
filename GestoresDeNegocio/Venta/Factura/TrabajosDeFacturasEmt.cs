@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office2016.Drawing.Charts;
-using Gestor.Errores;
+﻿using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.TrabajosSometidos;
@@ -40,7 +39,9 @@ namespace GestoresDeNegocio.Ventas
         [Description("Generar factura pdf")]
         GenerarFacturaPdf,
         [Description("Actualización de facturas emitidas")]
-        ActualizacionDeFacturas
+        ActualizacionDeFacturas,
+        [Description("Reconstrucción del registro Verifactu")]
+        ReconstruccionVerifactu
     }
 
     public class TrabajosDeFacturasEmt
@@ -493,6 +494,50 @@ namespace GestoresDeNegocio.Ventas
             {
                 var peticion = contexto.SeleccionarPorPropiedad<PeticionDeFacturaEmtDtm>(nameof(PeticionDeFacturaEmtDtm.IdFactura), factura.Id, errorSiNoHay: false);
                 peticion?.RegistrarError(contexto, ltrFacturador.ErrorAlImprimir + Environment.NewLine + e.MensajeCompleto());
+            }
+        }
+
+        public static TrabajoDeUsuarioDtm SometerReconstruccionVerifactu(ContextoSe contexto, int idFactura)
+        {
+            var dll = Assembly.GetExecutingAssembly().GetName().Name;
+            var clase = typeof(TrabajosDeFacturasEmt).FullName;
+            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosDeFacturasEmt.ReconstruccionVerifactu.Descripcion(), dll, clase, nameof(enumTrabajosDeFacturasEmt.ReconstruccionVerifactu), comunicarFin: true);
+            var parametrosEntrada = new Dictionary<string, object> { { nameof(FacturaEmtDtm.Id), idFactura } };
+            var datosDeCreacion = new Dictionary<string, object>
+            {
+                { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() },
+                { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
+            };
+            return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion);
+        }
+
+        public static void ReconstruccionVerifactu(EntornoDeTrabajo entorno)
+        {
+            var contexto = entorno.contextoDelProceso;
+            var parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
+            var idFactura = (int)parametros.LeerValor<long>(nameof(FacturaEmtDtm.Id));
+            var factura = contexto.SeleccionarPorId<FacturaEmtDtm>(idFactura);
+            contexto.IniciarTraza(nameof(ReconstruccionVerifactu));
+            var tran = contexto.IniciarTransaccion();
+            try
+            {
+                if (factura.Verifactu(contexto, errorSiNoHay: false) is not null)
+                {
+                    entorno.CrearTraza($"La factura '{factura.Referencia}' ya tiene registro Verifactu, no es necesario reconstruir");
+                    contexto.Commit(tran);
+                    return;
+                }
+                new GeneradorSii(contexto, factura).ReconstruirVerifactu(entorno);
+                contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                contexto.Rollback(tran);
+                entorno.AnotarError(e);
+            }
+            finally
+            {
+                contexto.CerrarTraza();
             }
         }
 

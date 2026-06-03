@@ -56,8 +56,11 @@ namespace GestoresDeNegocio.Ventas
             informacionRpt.Direccion = Factura.DireccionFiscal(Contexto);
 
             informacionRpt.Logo = informacionRpt.Sociedad.IdArchivo is null
-            ? ApiDeArchivos.FicheroNoEncontrado
+            ? string.Empty
             : ServidorDocumental.DescargarArchivo(Contexto, (int)informacionRpt.Sociedad.IdArchivo, solicitadoPorLaCola: false, erroSiNoEstaEnLaruta: false);
+
+            if (informacionRpt.Logo == ApiDeArchivos.FicheroNoEncontrado)
+                informacionRpt.Logo = string.Empty;
 
             var datosDeFactura = (ParametrosDeMiSociedadDtm)Factura.Sociedad(Contexto).SeleccionarAmpliacion(Contexto, typeof(ParametrosDeMiSociedadDtm));
 

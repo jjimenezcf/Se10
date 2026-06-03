@@ -144,7 +144,24 @@ namespace GestoresDeNegocio.Venta.Factura
                         auditoriaSii = AltaDeFacturaRectificativa();
                     else
                         auditoriaSii = Factura.AltaDeFacturaSIF(Contexto, _certificado, _numeroImplantacion, ((EntornoDeTrabajo)Contexto.Entorno).CrearTraza);
-                    Factura.AsociarAuditoriaSii(Contexto, auditoriaSii);
+
+                    // auditoriaSii != null → AEAT aceptó la factura
+                    try
+                    {
+                        Factura.AsociarAuditoriaSii(Contexto, auditoriaSii);
+                    }
+                    catch (Exception exDb)
+                    {
+                        // El VerifactuDtm pudo crearse (RegistrarVerifactu OK) pero fallaron
+                        // las subidas de ficheros de auditoría al servidor documental.
+                        // En cualquier caso AEAT ya tiene la factura: no relanzar para que
+                        // el caller pueda commitear y continuar con la impresión.
+                        // Se encola un trabajo para recuperar la auditoría cuando sea posible.
+                        Contexto.AnotarTraza(
+                            $"AEAT aceptó '{Factura.Referencia}' pero AsociarAuditoriaSii falló — se encola reconstrucción",
+                            GestorDeErrores.Detalle(exDb));
+                        GestoresDeNegocio.Ventas.TrabajosDeFacturasEmt.SometerReconstruccionVerifactu(Contexto, Factura.Id);
+                    }
                 }
                 finally
                 {
@@ -397,14 +414,35 @@ namespace GestoresDeNegocio.Venta.Factura
             File.WriteAllText(ruta, lineas.ToString());
         }
 
+        public void ReconstruirVerifactu(EntornoDeTrabajo entorno)
+        {
+            // 1ª opción: reconstruir desde el fichero CSV del blockchain local
+            var ficheroCsv = FicheroDondeEstaLaFactura();
+            if (!ficheroCsv.IsNullOrEmpty())
+            {
+                entorno.CrearTraza($"Reconstruyendo Verifactu de '{Factura.Referencia}' desde CSV local '{ficheroCsv}'");
+                RecomponerAuditoria(ficheroCsv);
+                return;
+            }
+
+            // 2ª opción: consultar directamente a la AEAT
+            entorno.CrearTraza($"CSV local no encontrado para '{Factura.Referencia}', consultando la AEAT");
+            SincronizarConDatosDeLaAeat();
+        }
+
         public void SincronizarConDatosDeLaAeat()
         {
+            // Precondición: si el log ya tiene fecha de envío el proceso ya completó
+            // correctamente en su momento — no hay nada que sincronizar
+            var log = Contexto.SeleccionarPorPropiedad<LogDeEnvioDeFacturaDtm>(nameof(LogDeEnvioDeFacturaDtm.IdFactura), Factura.Id);
+            if (log.EnviadaEl is not null)
+                GestorDeErrores.Emitir($"La factura '{Factura.Referencia}' se envió el '{log.EnviadaEl.Fecha().ToString("dd-MM-yyyy HH:mm:ss")}', según el log de envío");
+
             var facturaAeat = BuscarFactura();
             if (facturaAeat is null)
                 GestorDeErrores.Emitir($"No se ha encontrado la factura '{Factura.Referencia}' en la AEAT");
-            var verifactu = Factura.Verifactu(Contexto, errorSiNoHay: false);
 
-            if (verifactu == null)
+            if (Factura.Verifactu(Contexto, errorSiNoHay: false) == null)
             {
                 var ficheroCsv = FicheroDondeEstaLaFactura();
                 if (ficheroCsv.IsNullOrEmpty())
@@ -414,11 +452,6 @@ namespace GestoresDeNegocio.Venta.Factura
                 }
                 Factura.RecomponerVerifactu(Contexto, facturaAeat.Huella);
             }
-
-
-            var log = Contexto.SeleccionarPorPropiedad<LogDeEnvioDeFacturaDtm>(nameof(LogDeEnvioDeFacturaDtm.IdFactura), Factura.Id);
-            if (log.EnviadaEl is not null)
-                GestorDeErrores.Emitir($"La factura '{Factura.Referencia}' se envió el '{log.EnviadaEl.Fecha().ToString("dd-MM-yyyy HH:mm:ss")}', según el log de envío");
 
             log.EnviadaEl = DateTime.Now;
             log.Modificar(Contexto);
