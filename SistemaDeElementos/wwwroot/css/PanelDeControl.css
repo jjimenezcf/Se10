@@ -255,6 +255,11 @@
     }
 }
 
+/* Tarjeta única o última en fila impar → ancho completo */
+.grafica-ancho-completo {
+    grid-column: 1 / -1;
+}
+
 .grafica-contenedor {
     background: #fff;
     border: 1px solid #d0d7de;

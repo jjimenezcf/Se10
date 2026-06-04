@@ -144,6 +144,7 @@ public class Startup
                     $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeDireccion.js",
                     $"{rutaJs}ArbolDeMenu.js",
                     $"{rutaJs}EntornoSe.js",
+                    $"{rutaJs}PanelDeControl.js",
                     $"{rutaJs}_Formulario{Path.DirectorySeparatorChar}FormularioBase.js",
                     $"{rutaJs}_Formulario{Path.DirectorySeparatorChar}Jerarquia.js",
                     $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiDelCrud.js",

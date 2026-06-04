@@ -1169,7 +1169,44 @@ const ltrCss = {
     PanelDeControl: {
         Menu: {
             Oculto: 'menu-pnlctr-oculto',
-        }
+        },
+        DashBoard: {
+            // contenedor principal del panel (grid de tarjetas)
+            PanelGraficas:           'panel-graficas',
+            // tarjeta individual de cada negocio
+            GraficaContenedor:       'grafica-contenedor',
+            // tarjeta con ancho completo (única visible)
+            GraficaAnchoCompleto:    'grafica-ancho-completo',
+            // título de la tarjeta
+            GraficaTitulo:           'grafica-titulo',
+            // contenedor de la visualización activa
+            GraficaVistaContenedor:  'grafica-vista-contenedor',
+            // botón cerrar (✕)
+            GraficaCerrar:           'grafica-cerrar',
+            // botón cambio de modo (tarta / barras / matriz)
+            GraficaModo:             'grafica-modo',
+            // botones de movimiento (flechas)
+            GraficaMover:            'grafica-mover',
+            GraficaMoverDer:         'grafica-mover-der',
+            GraficaMoverIzq:         'grafica-mover-izq',
+            // ── modo matriz ──
+            GraficaMatrizContenedor: 'grafica-matriz-contenedor',
+            GraficaMatriz:           'grafica-matriz',
+            CeldaTipo:               'celda-tipo',
+            CeldaValor:              'celda-valor',
+            // ── modo tartas ──
+            GraficaTartasContenedor: 'grafica-tartas-contenedor',
+            GraficaTartaItem:        'grafica-tarta-item',
+            GraficaTartaTitulo:      'grafica-tarta-titulo',
+            GraficaTartaSvg:         'grafica-tarta-svg',
+            GraficaLeyenda:          'grafica-leyenda',
+            GraficaLeyendaItem:      'grafica-leyenda-item',
+            GraficaLeyendaColor:     'grafica-leyenda-color',
+            // ── modo barras ──
+            GraficaBarrasContenedor: 'grafica-barras-contenedor',
+            GraficaBarraItem:        'grafica-barra-item',
+            GraficaBarraSvg:         'grafica-barra-svg',
+        },
     },
     controlNoVisible: 'controlNoVisible',
     crtlValido: 'propiedad-valida',

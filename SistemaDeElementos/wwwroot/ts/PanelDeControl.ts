@@ -33,6 +33,9 @@ namespace PanelDeControl {
         posicion: number | null;   // orden en el grid; null → al final
     }
 
+    // Alias corto para los literales del DashBoard
+    const css = ltrCss.PanelDeControl.DashBoard;
+
     // Índice de datos por enumerado
     const _negociosData = new Map<string, DatosDeNegocio>();
 
@@ -136,7 +139,7 @@ namespace PanelDeControl {
     // ─── Construcción de tarjetas ─────────────────────────────────────────────
 
     function RenderTarjetas(negocios: DatosDeNegocio[]) {
-        const contenedor = document.getElementById('panel-graficas');
+        const contenedor = document.getElementById(css.PanelGraficas);
         if (!contenedor) return;
         contenedor.innerHTML = '';
         _negociosData.clear();
@@ -146,13 +149,13 @@ namespace PanelDeControl {
             _negociosData.set(negocio.enumerado, negocio);
 
             const tarjeta = document.createElement('div');
-            tarjeta.className = 'grafica-contenedor';
+            tarjeta.className = css.GraficaContenedor;
             tarjeta.id = `grafica-${negocio.enumerado}`;
             tarjeta.dataset.modoActual = 'matriz';
 
             // ── ✕ Cerrar ──
             const btnCerrar = document.createElement('button');
-            btnCerrar.className = 'grafica-cerrar';
+            btnCerrar.className = css.GraficaCerrar;
             btnCerrar.title = 'Ocultar';
             btnCerrar.textContent = '✕';
             btnCerrar.addEventListener('click', () => {
@@ -162,7 +165,7 @@ namespace PanelDeControl {
 
             // ── Modo vista ──
             const btnModo = document.createElement('button');
-            btnModo.className = 'grafica-modo';
+            btnModo.className = css.GraficaModo;
             ponerIconoModo(btnModo, 'matriz');
             btnModo.addEventListener('click', () => {
                 CambiarModo(tarjeta, negocio,
@@ -172,26 +175,26 @@ namespace PanelDeControl {
 
             // ── → Mover derecha ──
             const btnDer = document.createElement('button');
-            btnDer.className = 'grafica-mover grafica-mover-der';
+            btnDer.className = `${css.GraficaMover} ${css.GraficaMoverDer}`;
             btnDer.title = 'Mover a la derecha';
             btnDer.innerHTML = SVG_FLECHA_DER;
             btnDer.addEventListener('click', () => MoverTarjeta(tarjeta, 'derecha'));
 
             // ── ← Mover izquierda ──
             const btnIzq = document.createElement('button');
-            btnIzq.className = 'grafica-mover grafica-mover-izq';
+            btnIzq.className = `${css.GraficaMover} ${css.GraficaMoverIzq}`;
             btnIzq.title = 'Mover a la izquierda';
             btnIzq.innerHTML = SVG_FLECHA_IZQ;
             btnIzq.addEventListener('click', () => MoverTarjeta(tarjeta, 'izquierda'));
 
             // ── Título ──
             const titulo = document.createElement('h3');
-            titulo.className = 'grafica-titulo';
+            titulo.className = css.GraficaTitulo;
             titulo.textContent = negocio.nombre;
 
             // ── Vista ──
             const vistaDiv = document.createElement('div');
-            vistaDiv.className = 'grafica-vista-contenedor';
+            vistaDiv.className = css.GraficaVistaContenedor;
             vistaDiv.appendChild(ConstruirMatriz(negocio));
 
             tarjeta.appendChild(btnCerrar);
@@ -211,7 +214,7 @@ namespace PanelDeControl {
         if (!contenedor) return;
 
         const todas = Array.from(
-            contenedor.querySelectorAll<HTMLDivElement>('.grafica-contenedor'));
+            contenedor.querySelectorAll<HTMLDivElement>(`.${css.GraficaContenedor}`));
         const idx = todas.indexOf(tarjeta);
 
         if (direccion === 'derecha' && idx < todas.length - 1) {
@@ -230,8 +233,8 @@ namespace PanelDeControl {
     // ─── Cambio de modo ───────────────────────────────────────────────────────
 
     function CambiarModo(tarjeta: HTMLDivElement, negocio: DatosDeNegocio, modo: ModoVista) {
-        const vistaDiv = tarjeta.querySelector('.grafica-vista-contenedor') as HTMLDivElement;
-        const btnModo  = tarjeta.querySelector('.grafica-modo') as HTMLButtonElement;
+        const vistaDiv = tarjeta.querySelector(`.${css.GraficaVistaContenedor}`) as HTMLDivElement;
+        const btnModo  = tarjeta.querySelector(`.${css.GraficaModo}`) as HTMLButtonElement;
         vistaDiv.innerHTML = '';
 
         switch (modo) {
@@ -275,6 +278,7 @@ namespace PanelDeControl {
 
                 if (!estados || estados.length === 0) {
                     AplicarDisposicionAleatoria();
+                    AjustarAnchura();
                     return;
                 }
 
@@ -298,6 +302,8 @@ namespace PanelDeControl {
                         }
                     }
                 });
+
+                AjustarAnchura();
             },
             (pet: ApiDeAjax.DescriptorAjax) => {
                 console.error(`Error leyendo disposición: ${pet.resultado.mensaje}`);
@@ -311,7 +317,7 @@ namespace PanelDeControl {
      * Los que tienen posicion=null van al final en orden original.
      */
     function ReordenarTarjetas(estados: EstadoDeDashBoardDto[]) {
-        const contenedor = document.getElementById('panel-graficas');
+        const contenedor = document.getElementById(css.PanelGraficas);
         if (!contenedor) return;
 
         // Ordenar por posición (nulos al final)
@@ -327,20 +333,39 @@ namespace PanelDeControl {
     }
 
     function GuardarDisposicion() {
+        AjustarAnchura();
         const estados = RecopilarEstado();
         const cuerpo = JSON.stringify([{ parametro: 'datosPeticion', valor: estados }]);
         fetch('/Home/epGrabarGraficasDeNegocio', { method: 'POST', body: cuerpo })
             .catch(err => console.error('Error guardando disposición:', err));
     }
 
+    /**
+     * Si solo hay una tarjeta visible la hace ocupar todo el ancho del grid.
+     * Si hay más de una, restaura el ancho normal en todas.
+     */
+    function AjustarAnchura() {
+        const contenedor = document.getElementById(css.PanelGraficas);
+        if (!contenedor) return;
+
+        const todas = Array.from(
+            contenedor.querySelectorAll<HTMLDivElement>(`.${css.GraficaContenedor}`));
+        const visibles = todas.filter(t => t.style.display !== 'none');
+
+        todas.forEach(t => t.classList.remove(css.GraficaAnchoCompleto));
+
+        if (visibles.length === 1)
+            visibles[0].classList.add(css.GraficaAnchoCompleto);
+    }
+
     function RecopilarEstado(): EstadoDeDashBoardDto[] {
-        const contenedor = document.getElementById('panel-graficas');
+        const contenedor = document.getElementById(css.PanelGraficas);
         if (!contenedor) return [];
 
         const resultado: EstadoDeDashBoardDto[] = [];
         let posicion = 0;
 
-        contenedor.querySelectorAll<HTMLDivElement>('.grafica-contenedor')
+        contenedor.querySelectorAll<HTMLDivElement>(`.${css.GraficaContenedor}`)
             .forEach(tarjeta => {
                 const enumerado  = tarjeta.id.replace('grafica-', '');
                 const visible    = tarjeta.style.display !== 'none';
@@ -360,11 +385,11 @@ namespace PanelDeControl {
     // ─── Distribución aleatoria (primera vez) ────────────────────────────────
 
     function AplicarDisposicionAleatoria() {
-        const contenedor = document.getElementById('panel-graficas');
+        const contenedor = document.getElementById(css.PanelGraficas);
         if (!contenedor) return;
 
         const tarjetas = Array.from(
-            contenedor.querySelectorAll<HTMLDivElement>('.grafica-contenedor'));
+            contenedor.querySelectorAll<HTMLDivElement>(`.${css.GraficaContenedor}`));
 
         const hayConDatos = tarjetas.some(t => {
             const nd = _negociosData.get(t.id.replace('grafica-', ''));
@@ -392,10 +417,10 @@ namespace PanelDeControl {
 
     function ConstruirMatriz(negocio: DatosDeNegocio): HTMLDivElement {
         const wrap = document.createElement('div');
-        wrap.className = 'grafica-matriz-contenedor';
+        wrap.className = css.GraficaMatrizContenedor;
 
         const tabla = document.createElement('table');
-        tabla.className = 'grafica-matriz';
+        tabla.className = css.GraficaMatriz;
 
         const indice = new Map<string, number>();
         negocio.celdas.forEach(c => indice.set(`${c.idTipo}_${c.idEstado}`, c.cantidad));
@@ -417,14 +442,14 @@ namespace PanelDeControl {
         negocio.tipos.forEach(tipo => {
             const fila = tbody.insertRow();
             const tdTipo = document.createElement('td');
-            tdTipo.className = 'celda-tipo';
+            tdTipo.className = css.CeldaTipo;
             tdTipo.textContent = tipo.nombre;
             fila.appendChild(tdTipo);
 
             negocio.estados.forEach(estado => {
                 const cantidad = indice.get(`${tipo.id}_${estado.id}`) ?? 0;
                 const td = fila.insertCell();
-                td.className = 'celda-valor';
+                td.className = css.CeldaValor;
                 td.textContent = cantidad > 0 ? cantidad.toString() : '';
                 if (cantidad > 0 && maxVal > 0) {
                     td.style.backgroundColor =
@@ -442,7 +467,7 @@ namespace PanelDeControl {
 
     function ConstruirTartas(negocio: DatosDeNegocio): HTMLDivElement {
         const wrap = document.createElement('div');
-        wrap.className = 'grafica-tartas-contenedor';
+        wrap.className = css.GraficaTartasContenedor;
 
         negocio.tipos.forEach(tipo => {
             const celdasTipo = negocio.celdas.filter(
@@ -451,10 +476,10 @@ namespace PanelDeControl {
 
             const total = celdasTipo.reduce((s, c) => s + c.cantidad, 0);
             const tipoDiv = document.createElement('div');
-            tipoDiv.className = 'grafica-tarta-item';
+            tipoDiv.className = css.GraficaTartaItem;
 
             const tituloT = document.createElement('div');
-            tituloT.className = 'grafica-tarta-titulo';
+            tituloT.className = css.GraficaTartaTitulo;
             tituloT.textContent = tipo.nombre;
             tipoDiv.appendChild(tituloT);
 
@@ -479,8 +504,8 @@ namespace PanelDeControl {
                         `fill="${color}" stroke="#fff" stroke-width="1">` +
                         `<title>${estado?.nombre}: ${celda.cantidad}</title></path>`;
                 }
-                leyenda += `<div class="grafica-leyenda-item">
-                    <span class="grafica-leyenda-color" style="background:${color}"></span>
+                leyenda += `<div class="${css.GraficaLeyendaItem}">
+                    <span class="${css.GraficaLeyendaColor}" style="background:${color}"></span>
                     <span>${estado?.nombre ?? '?'}: <b>${celda.cantidad}</b></span></div>`;
                 angulo = fin;
             });
@@ -489,11 +514,11 @@ namespace PanelDeControl {
             svg.setAttribute('width', '100');
             svg.setAttribute('height', '100');
             svg.setAttribute('viewBox', '0 0 100 100');
-            svg.classList.add('grafica-tarta-svg');
+            svg.classList.add(css.GraficaTartaSvg);
             svg.innerHTML = paths;
 
             const leyendaDiv = document.createElement('div');
-            leyendaDiv.className = 'grafica-leyenda';
+            leyendaDiv.className = css.GraficaLeyenda;
             leyendaDiv.innerHTML = leyenda;
 
             tipoDiv.appendChild(svg);
@@ -508,7 +533,7 @@ namespace PanelDeControl {
 
     function ConstruirBarras(negocio: DatosDeNegocio): HTMLDivElement {
         const wrap = document.createElement('div');
-        wrap.className = 'grafica-barras-contenedor';
+        wrap.className = css.GraficaBarrasContenedor;
 
         const W = 220, H = 120;
         const pL = 28, pB = 36, pT = 12, pR = 8;
@@ -520,10 +545,10 @@ namespace PanelDeControl {
             if (celdasTipo.length === 0) return;
 
             const tipoDiv = document.createElement('div');
-            tipoDiv.className = 'grafica-barra-item';
+            tipoDiv.className = css.GraficaBarraItem;
 
             const tituloB = document.createElement('div');
-            tituloB.className = 'grafica-tarta-titulo';
+            tituloB.className = css.GraficaTartaTitulo;
             tituloB.textContent = tipo.nombre;
             tipoDiv.appendChild(tituloB);
 
@@ -566,7 +591,7 @@ namespace PanelDeControl {
             svg.setAttribute('width',   W.toString());
             svg.setAttribute('height',  H.toString());
             svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-            svg.classList.add('grafica-barra-svg');
+            svg.classList.add(css.GraficaBarraSvg);
             svg.innerHTML = `
                 ${yLines}
                 <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT + aH}"
