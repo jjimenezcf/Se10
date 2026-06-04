@@ -4,6 +4,7 @@ using UtilidadesParaIu;
 using Utilidades;
 using ServicioDeDatos.Seguridad;
 using ModeloDeDto.SistemaDocumental;
+using ServicioDeDatos.SistemaDocumental;
 namespace MVCSistemaDeElementos.Descriptores
 {
     public class DescriptorDeFichadas : DescriptorDeCrud<CircuitoDocDto>
@@ -22,7 +23,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Mnt.OrdenacionInicial = $"{nameof(CircuitoDocDto.Referencia)}:{nameof(CircuitoDocDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
 
-            Mnt.Etiqueta = "Gestión de fichadas";
+            Mnt.Etiqueta = $"Gestión de {VariablesDeCircuitosDoc.Fichadas.ToLower()}";
             Editor.Etiqueta = "Consultar fichada";
             Editor.PermiteConsultasConGuid = false;
         }

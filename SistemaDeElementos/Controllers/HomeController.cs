@@ -1,25 +1,16 @@
 using AutoMapper;
-using Dapper;
 using Gestor.Errores;
 using GestorDeElementos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ModeloDeDto.Entorno;
 using MVCSistemaDeElementos.Descriptores;
 using ServicioDeDatos;
-using ServicioDeDatos.Elemento;
-using ServicioDeDatos.Entorno;
-using ServicioDeDatos.Negocio;
 using SistemaDeElementos.Controllers.Seguridad;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Utilidades;
-using static ServicioDeDatos.Literal;
-using static SistemaDeElementos.Inicializador.enumVistas;
 
 namespace MVCSistemaDeElementos.Controllers
 {
@@ -98,58 +89,7 @@ namespace MVCSistemaDeElementos.Controllers
             var r = new Resultado();
             try
             {
-                var conexion = Contexto.Database.GetDbConnection();
-                var transaccion = Contexto.Database.CurrentTransaction?.GetDbTransaction();
-
-                var resultado = new List<object>();
-
-                foreach (var negocio in Enum.GetValues<enumNegocio>())
-                {
-                    if (negocio == enumNegocio.No_Definido) continue;
-                    if (!negocio.UsaTipo() || !negocio.UsaEstado()) continue;
-
-                    var metadatos = negocio.ObtenerMetadatos(emitirError: false);
-                    if (metadatos?.TipoDtm == null || metadatos?.EstadoDtm == null) continue;
-
-                    try
-                    {
-                        var tablaElementos = ApiDeRegistroDtm.EsquemaTabla(negocio.TipoDtm());
-                        var tablaEstados = ApiDeEstado.TablaDeEstados(negocio.TipoDtm());
-                        var tablaTipos = ApiDeRegistroDtm.EsquemaTabla(metadatos.TipoDtm);
-
-                        var tipos = conexion.Query<ItemNombreId>(
-                            $"SELECT ID as Id, NOMBRE as Nombre FROM {tablaTipos} ORDER BY NOMBRE",
-                            null, transaccion).ToList();
-
-                        var estados = conexion.Query<ItemNombreId>(
-                            $"SELECT ID as Id, NOMBRE as Nombre FROM {tablaEstados} ORDER BY ORDEN",
-                            null, transaccion).ToList();
-
-                        var celdas = conexion.Query<CeldaDeMatriz>(
-                            $"SELECT ID_TIPO as IdTipo, ID_ESTADO as IdEstado, COUNT(*) AS Cantidad " +
-                            $"FROM {tablaElementos} " +
-                            $"WHERE ID_TIPO IS NOT NULL AND ID_ESTADO IS NOT NULL " +
-                            $"GROUP BY ID_TIPO, ID_ESTADO",
-                            null, transaccion).ToList();
-
-                        resultado.Add(new
-                        {
-                            nombre = negocio.Singular(),
-                            enumerado = negocio.ToString(),
-                            numTipos = tipos.Count,
-                            numEstados = estados.Count,
-                            tipos,
-                            estados,
-                            celdas
-                        });
-                    }
-                    catch
-                    {
-                        // ignorar negocios con errores de consulta individuales
-                    }
-                }
-
-                r.Datos = resultado;
+                r.Datos = NegociosDeSe.LeerInformacioParaDashBoard(Contexto);
                 r.Estado = enumEstadoPeticion.Ok;
             }
             catch (Exception e)
@@ -232,19 +172,6 @@ namespace MVCSistemaDeElementos.Controllers
         public IActionResult Error(Exception e)
         {
             return RenderMensaje($"Se ha producido un error.{Environment.NewLine}{e.Message}");
-        }
-
-        private class ItemNombreId
-        {
-            public int Id { get; set; }
-            public string Nombre { get; set; }
-        }
-
-        private class CeldaDeMatriz
-        {
-            public int IdTipo { get; set; }
-            public int IdEstado { get; set; }
-            public int Cantidad { get; set; }
         }
     }
 }

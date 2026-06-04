@@ -22,7 +22,7 @@ namespace PanelDeControl {
         numEstados: number;
         tipos: ItemNombreId[];
         estados: ItemNombreId[];
-        celdas: CeldaDeMatriz[];
+        cantidades: CeldaDeMatriz[];   // renombrado de celdas → cantidades (servidor)
     }
 
     /** DTO para serializar/deserializar hacia el servidor */
@@ -393,13 +393,13 @@ namespace PanelDeControl {
 
         const hayConDatos = tarjetas.some(t => {
             const nd = _negociosData.get(t.id.replace('grafica-', ''));
-            return nd?.celdas.some(c => c.cantidad > 0) ?? false;
+            return nd?.cantidades?.some(c => c.cantidad > 0) ?? false;
         });
 
         tarjetas.forEach(tarjeta => {
             const enumerado   = tarjeta.id.replace('grafica-', '');
             const negocioData = _negociosData.get(enumerado);
-            const tieneElementos = negocioData?.celdas.some(c => c.cantidad > 0) ?? false;
+            const tieneElementos = negocioData?.cantidades?.some(c => c.cantidad > 0) ?? false;
 
             if (!tieneElementos && hayConDatos) {
                 tarjeta.style.display = 'none';
@@ -423,9 +423,9 @@ namespace PanelDeControl {
         tabla.className = css.GraficaMatriz;
 
         const indice = new Map<string, number>();
-        negocio.celdas.forEach(c => indice.set(`${c.idTipo}_${c.idEstado}`, c.cantidad));
-        const maxVal = negocio.celdas.length > 0
-            ? Math.max(...negocio.celdas.map(c => c.cantidad)) : 0;
+        negocio.cantidades.forEach(c => indice.set(`${c.idTipo}_${c.idEstado}`, c.cantidad));
+        const maxVal = negocio.cantidades.length > 0
+            ? Math.max(...negocio.cantidades.map(c => c.cantidad)) : 0;
 
         const thead = tabla.createTHead();
         const filaCab = thead.insertRow();
@@ -470,7 +470,7 @@ namespace PanelDeControl {
         wrap.className = css.GraficaTartasContenedor;
 
         negocio.tipos.forEach(tipo => {
-            const celdasTipo = negocio.celdas.filter(
+            const celdasTipo = negocio.cantidades.filter(
                 c => c.idTipo === tipo.id && c.cantidad > 0);
             if (celdasTipo.length === 0) return;
 
@@ -540,7 +540,7 @@ namespace PanelDeControl {
         const aW = W - pL - pR, aH = H - pT - pB;
 
         negocio.tipos.forEach(tipo => {
-            const celdasTipo = negocio.celdas.filter(
+            const celdasTipo = negocio.cantidades.filter(
                 c => c.idTipo === tipo.id && c.cantidad > 0);
             if (celdasTipo.length === 0) return;
 

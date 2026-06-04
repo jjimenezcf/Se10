@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using ModeloDeDto.Ventas;
 using ModeloDeDto.Gastos;
 using ModeloDeDto.Contabilidad;
+using ServicioDeDatos.SistemaDocumental;
 namespace MVCSistemaDeElementos.Descriptores
 {
     public class DescriptorDeEstimacionesDirectas : DescriptorDeCrud<CircuitoDocDto>
@@ -29,7 +30,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Mnt.OrdenacionInicial = $"{nameof(CircuitoDocDto.Referencia)}:{nameof(CircuitoDocDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
 
-            Mnt.Etiqueta = "Gestión de estimaciones directas";
+            Mnt.Etiqueta = $"Gestión de {VariablesDeCircuitosDoc.EstimacionesDirectas.ToLower()} ";
             Editor.Etiqueta = "Consultar estimación";
 
 

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using Dapper;
 using Gestor.Errores;
 using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Terceros;
-using Utilidades;
 
 namespace ServicioDeDatos.Elemento
 {
@@ -61,6 +63,37 @@ namespace ServicioDeDatos.Elemento
         public EstadoDtm Estado { get; set; }
         IEstado IUsaEstado.Estado => Estado;
     }
+
+    public static class ElementoDeProcesoSql
+    {
+
+        public class CantidadPorTipoYEstado
+        {
+            public int IdTipo { get; set; }
+            public int IdEstado { get; set; }
+            public int Cantidad { get; set; }
+        }
+
+        public static List<CantidadPorTipoYEstado> ObtenerCantidadDeElementosPorTipoYEstado(ContextoSe contexto, Type tipoDtm)
+        {
+            var conexion = contexto.Database.GetDbConnection();
+            var transaccion = contexto.Database.CurrentTransaction?.GetDbTransaction();
+
+            var tablaElementos = ApiDeRegistroDtm.EsquemaTabla(tipoDtm);
+
+            var celdas = conexion.Query<CantidadPorTipoYEstado>(
+                $"SELECT ID_TIPO as IdTipo, ID_ESTADO as IdEstado, COUNT(*) AS Cantidad " +
+                $"FROM {tablaElementos} " +
+                $"WHERE ID_TIPO IS NOT NULL AND ID_ESTADO IS NOT NULL " +
+                $"GROUP BY ID_TIPO, ID_ESTADO",
+                null, transaccion).ToList();
+
+            return celdas;
+        }
+
+
+    }
+
     public static class ApiDeElementoDtm
     {
         public static string TablaDeTipo(Type t) => $"{ApiDeRegistroDtm.EsquemaDeTabla(t)}.{ApiDeRegistroDtm.NombreDeTabla(t)}_{Sufijo.TIPO}";

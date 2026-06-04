@@ -15,6 +15,7 @@ using ServicioDeDatos.Gastos;
 using ModeloDeDto.Gastos;
 using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Contabilidad;
+using ModeloDeDto.Ventas;
 
 namespace GestorDeElementos.Extensores
 {
@@ -125,7 +126,9 @@ namespace GestorDeElementos.Extensores
                 case enumNegocio.Pago:
                     return contexto.Set<TipoDePagoDtm>().Cast<TipoConFlujoDtm>();
                 case enumNegocio.RemesaPag:
-                    return contexto.Set<TipoDeRemesaPagDto>().Cast<TipoConFlujoDtm>();
+                    return contexto.Set<TipoDeRemesaPagDtm>().Cast<TipoConFlujoDtm>();
+                case enumNegocio.PlanificacionDeVenta:
+                    return contexto.Set<TipoDePlanificacionDeVentaDtm>().Cast<TipoConFlujoDtm>();
             }
 
             throw new Exception($"Se debe indicar como obtener los tipos con flujo del negocio: {negocio}");
@@ -162,6 +165,19 @@ namespace GestorDeElementos.Extensores
                 cache[i] = ids;
             }
             return (List<int>)cache[i];
+        }
+
+
+        public static List<EstadoDtm> ObtenerFlujo(this enumNegocio negocio, ContextoSe contexto, int idTipo)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Negocio_Flujo);
+            var i = $"{negocio}-{idTipo}";
+            if (!cache.ContainsKey(i))
+            {
+                var flujo = TipoDeElementoSql.Flujo(contexto, negocio.TipoDtm(), idTipo).ToList();
+                cache[i] = flujo;
+            }
+            return (List<EstadoDtm>)cache[i];
         }
 
     }

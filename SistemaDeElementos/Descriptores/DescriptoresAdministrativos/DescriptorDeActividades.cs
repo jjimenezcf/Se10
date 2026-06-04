@@ -1,7 +1,6 @@
 ﻿using GestorDeElementos;
 using ModeloDeDto;
 using ModeloDeDto.Expediente;
-using ModeloDeDto.Presupuesto;
 using ModeloDeDto.SistemaDocumental;
 using MVCSistemaDeElementos.Controllers;
 using ServicioDeDatos;
@@ -10,7 +9,6 @@ using ServicioDeDatos.SistemaDocumental;
 using System.Collections.Generic;
 using Utilidades;
 using UtilidadesParaIu;
-using static ServicioDeDatos.Literal;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -47,7 +45,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private void DescriptorDeSpanDeActividadesFormativas()
         {
-            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-actividadesformativas", "Actividades formativas", mostrarPlegado: true, "Actividades formativas del expedite");
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-actividadesformativas", VariablesDeCircuitosDoc.ActividadesFormativas , mostrarPlegado: true, $"{VariablesDeCircuitosDoc.ActividadesFormativas} del expediente");
             Editor.Expanes.Insert(0, expansor);
             var columnas = new DescriptorDeColumnas("actividad");
             columnas.Add(titulo: "Actividad", propiedad: nameof(CircuitoDocDto.Expresion), alineacion: enumAliniacion.izquierda, mostrar: true);

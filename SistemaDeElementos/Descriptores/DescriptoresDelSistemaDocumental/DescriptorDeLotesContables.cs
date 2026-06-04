@@ -30,7 +30,7 @@ namespace MVCSistemaDeElementos.Descriptores
             Mnt.OrdenacionInicial = $"{nameof(CircuitoDocDto.Referencia)}:{nameof(CircuitoDocDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
             Mnt.Filtro.FiltroDeNombre.CambiarAtributos("Varios", nameof(ltrDeUnLoteContable.BuscarPorLotePreasiento), "nombre del lote (l:) o referencia del preasiento (p:)");
 
-            Mnt.Etiqueta = "Gestión de lotes contables";
+            Mnt.Etiqueta = $"Gestión de {VariablesDeCircuitosDoc.LotesContables.ToLower()}";
             Editor.Etiqueta = "Consultar lote";
             Editor.PermiteConsultasConGuid = false;
 

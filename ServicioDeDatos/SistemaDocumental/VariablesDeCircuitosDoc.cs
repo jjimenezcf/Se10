@@ -118,6 +118,11 @@ namespace ServicioDeDatos.SistemaDocumental
         private static string etapaDeCancelado => enumNegocio.CircuitoDoc.Parametro(enumEtapasDeCircuitosDoc.CAD_Etapa_Cancelado)?.Valor ?? null;
 
 
+        public static readonly string ActividadesFormativas = "Actividades formativas";
+        public static readonly string EstimacionesDirectas = "Estimaciones directas";
+        public static readonly string LotesContables = "Lotes contables";
+        public static readonly string Fichadas = "Fichadas";
+
         public static string Estados(this enumEtapasDeCircuitosDoc etapa)
         {
             string estados = null;
@@ -206,6 +211,7 @@ namespace ServicioDeDatos.SistemaDocumental
                             }
                      ]
                     ";
+
         public static List<MetadatosDeFichada> ObtenerMetadatosDeFichadas(ContextoSe contexto, bool errorSiNoDefinido = true)
         {
             var json = enumNegocio.CircuitoDoc.Parametro(enumParametrosDeCircuitosDoc.CAD_ParametrosParaFichadaAutomatica, crearParametro: true, valorPorDefecto: valorPorDefecto).Valor;

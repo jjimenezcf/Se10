@@ -43,6 +43,8 @@ namespace Utilidades
         public static readonly string Negocio_Transiciones = nameof(Negocio_Transiciones);
         public static readonly string Negocio_TransicionesDisponibles = nameof(Negocio_TransicionesDisponibles);
         public static readonly string Negocio_TransicionesHasta = nameof(Negocio_TransicionesHasta);
+        public static readonly string Negocio_Flujo = nameof(Negocio_Flujo);
+        
 
 
         public static readonly string Permisos_PorTipo = "PermisosPorTipoSql.PermisosDeUsuario";

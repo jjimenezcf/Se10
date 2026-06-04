@@ -172,6 +172,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<EstadoDeUnPreasientoDtm>().Cast<EstadoDtm>();
                 case enumNegocio.RemesaFae:
                     return contexto.Set<EstadoDeUnaRemesaFaeDtm>().Cast<EstadoDtm>();
+                case enumNegocio.RemesaPag:
+                    return contexto.Set<EstadoDeUnaRemesaPagDtm>().Cast<EstadoDtm>();
                 case enumNegocio.CircuitoDoc:
                     return contexto.Set<EstadoDeUnCircuitoDocDtm>().Cast<EstadoDtm>();
                 case enumNegocio.Pago:

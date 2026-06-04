@@ -176,10 +176,7 @@ namespace GestoresDeNegocio.Negocio
 
         protected override void EliminarCaches(EstadoDtm registro, ParametrosDeNegocio parametros)
         {
-            base.EliminarCaches(registro, parametros);
-            ServicioDeCaches.EliminarElemento(CacheDe.Estados, Negocio.ToString());
-            ServicioDeCaches.EliminarElemento(CacheDe.Estado, $"{Negocio}-{registro.Id}");
-            ServicioDeCaches.EliminarElemento(nameof(EstadoSql.LeerEstadoPorId), $"{_tabla}.{registro.Id}");
+            ServicioDeCaches.EliminarTodas();
         }
 
         protected override void DespuesDeMapearElElemento(EstadoDtm registro, EstadoDto elemento, ParametrosDeNegocio parametros)

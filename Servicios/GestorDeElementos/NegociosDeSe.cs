@@ -762,7 +762,7 @@ public static class NegociosDeSe
 
     public static int IdNegocio(Type tipoDtm)
     {
-       var negocio = NegocioDeUnDtm(tipoDtm);
+        var negocio = NegocioDeUnDtm(tipoDtm);
         if (negocio == enumNegocio.No_Definido)
         {
             GestorDeErrores.Emitir($"El tipo '{tipoDtm.FullName}' no tiene correspondencia con ningún negocio");
@@ -1599,5 +1599,119 @@ public static class NegociosDeSe
         }
 
         return resultado;
+    }
+
+
+    public static List<object> LeerInformacioParaDashBoard(ContextoSe contexto)
+    {
+        var resultado = new List<object>();
+
+        foreach (var negocio in Enum.GetValues<enumNegocio>())
+        {
+            if (negocio == enumNegocio.No_Definido) continue;
+            if (!negocio.UsaTipo() || !negocio.UsaEstado()) continue;
+
+            var metadatos = negocio.ObtenerMetadatos(emitirError: false);
+            if (metadatos?.TipoDtm == null || metadatos?.EstadoDtm == null) continue;
+
+            var tipos = negocio.TiposConFlujo(contexto).Select(tipo => new { tipo.Id, tipo.Nombre, tipo.IdEstado }).ToList();
+            var estados = negocio.Estados(contexto).Select(estado => new { estado.Id, estado.Nombre }).ToList();
+            if (negocio == enumNegocio.CircuitoDoc)
+            {
+                // Obtenemos todos los recuentos de una sola vez (evita N+1 queries)
+                var cantidades = ElementoDeProcesoSql.ObtenerCantidadDeElementosPorTipoYEstado(contexto, negocio.TipoDtm());
+
+                // IDs de los 4 tipos especiales (0 = no definido en este sistema)
+                var idFichadas         = VariablesDeCircuitosDoc.IdDelTipoCircuitoDocParaFichada(errorSiNoEstaDefinido: false);
+                var idLotes            = VariablesDeCircuitosDoc.IdDelTipoCircuitoDocParaLoteDePreasientos(errorSiNoEstaDefinido: false);
+                var idEstimaciones     = VariablesDeCircuitosDoc.IdDelTipoCircuitoDocParaEstimacionDirecta(errorSiNoEstaDefinido: false);
+                var idActFormativas    = VariablesDeCircuitosDoc.IdDelTipoCircuitoDocParaActividadesFormativas(errorSiNoEstaDefinido: false);
+
+                var idsEspeciales = new HashSet<int>(
+                    new[] { idFichadas, idLotes, idEstimaciones, idActFormativas }
+                    .Where(id => id > 0));
+
+                // Función local que construye y agrega una entrada al resultado
+                void AgregarGrupo(string nombre, string enumerado, int idTipo)
+                {
+                    if (idTipo <= 0) return;
+                    var tipo = tipos.FirstOrDefault(t => t.Id == idTipo);
+                    if (tipo == null) return;
+
+                    var flujoDelTipo = negocio.ObtenerFlujo(contexto, idTipo);
+                    var idsEstados   = flujoDelTipo.Select(e => e.Id).ToHashSet();
+
+                    resultado.Add(new
+                    {
+                        nombre,
+                        enumerado,
+                        numTipos    = 1,
+                        numEstados  = idsEstados.Count,
+                        tipos       = new[] { tipo }.ToList(),
+                        estados     = flujoDelTipo
+                                          .Select(e => new { e.Id, e.Nombre })
+                                          .ToList<object>(),
+                        cantidades  = cantidades
+                                          .Where(c => c.IdTipo == idTipo
+                                                   && idsEstados.Contains(c.IdEstado))
+                                          .ToList()
+                    });
+                }
+
+                AgregarGrupo(VariablesDeCircuitosDoc.Fichadas,  $"{enumNegocio.CircuitoDoc}_Fichadas", idFichadas);
+                AgregarGrupo(VariablesDeCircuitosDoc.LotesContables, $"{enumNegocio.CircuitoDoc}_LotesContables", idLotes);
+                AgregarGrupo(VariablesDeCircuitosDoc.EstimacionesDirectas, $"{enumNegocio.CircuitoDoc}_EstimacionesDirectas", idEstimaciones);
+                AgregarGrupo(VariablesDeCircuitosDoc.ActividadesFormativas, $"{enumNegocio.CircuitoDoc}_ActividadesFormativas", idActFormativas);
+
+                // Resto de circuitos documentales (tipos no asignados a ninguna categoría especial)
+                var tiposResto = tipos.Where(t => !idsEspeciales.Contains(t.Id)).ToList();
+                if (tiposResto.Any())
+                {
+                    var idsResto = tiposResto.Select(t => t.Id).ToHashSet();
+
+                    var estadosResto = tiposResto
+                        .SelectMany(t => negocio.ObtenerFlujo(contexto, t.Id))
+                        .GroupBy(e => e.Id)
+                        .Select(g => new { g.First().Id, g.First().Nombre })
+                        .ToList<object>();
+
+                    var idsEstadosResto = estadosResto
+                        .Select(e => (int)((dynamic)e).Id)
+                        .ToHashSet();
+
+                    resultado.Add(new
+                    {
+                        nombre      = negocio.Singular(),
+                        enumerado   = negocio.ToString(),
+                        numTipos    = tiposResto.Count,
+                        numEstados  = estadosResto.Count,
+                        tipos       = tiposResto,
+                        estados     = estadosResto,
+                        cantidades  = cantidades
+                                          .Where(c => idsResto.Contains(c.IdTipo)
+                                                   && idsEstadosResto.Contains(c.IdEstado))
+                                          .ToList()
+                    });
+                }
+            }
+            else
+            {
+                var cantidades = ElementoDeProcesoSql.ObtenerCantidadDeElementosPorTipoYEstado(contexto, negocio.TipoDtm());
+                resultado.Add(new
+                {
+                    nombre = negocio.Singular(),
+                    enumerado = negocio.ToString(),
+                    numTipos = tipos.Count,
+                    numEstados = estados.Count,
+                    tipos,
+                    estados,
+                    cantidades
+                });
+            }
+
+        }
+
+        return resultado;
+
     }
 }

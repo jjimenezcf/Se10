@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using Dapper;
 using Gestor.Errores;
 using Microsoft.EntityFrameworkCore;
@@ -342,6 +343,61 @@ order by T2.{ICampos.NOMBRE}, T1.{ICampos.NOMBRE}
             }
 
             return (TipoDeElementoDtm)cache[id.ToString()];
+        }
+
+        /// <summary>
+        /// Recorre el grafo de transiciones a partir del estado inicial del tipo indicado
+        /// y devuelve todos los estados alcanzables (flujo completo del tipo).
+        /// El resultado se usa en <see cref="GestorDeElementos.Extensores.ObtenerFlujo"/>.
+        /// </summary>
+        public static List<EstadoDtm> Flujo(ContextoSe contexto, Type tipoDtm, int idTipo)
+        {
+            var conexion    = contexto.Database.GetDbConnection();
+            var transaccion = contexto.Database.CurrentTransaction?.GetDbTransaction();
+
+            var tablaTipos        = ApiDeRegistroDtm.EsquemaTabla(tipoDtm);
+            var tablaEstados      = ApiDeElementoDtm.TablaDeEstados(tipoDtm);
+            var tablaTransiciones = ApiDeElementoDtm.TablaDeTransiciones(tipoDtm);
+
+            // La columna Visitados lleva un registro de los estados ya recorridos
+            // para evitar ciclos en el grafo de transiciones (p.ej. A→B→A→...).
+            // OPTION (MAXRECURSION 0) elimina el límite de 100 niveles de SQL Server
+            // como medida adicional de seguridad.
+            var sql = $@"
+                WITH FLUJO AS (
+                    -- Estado de inicio del tipo
+                    SELECT T.{ICampos.ID_ESTADO} AS IdEstado,
+                           CAST(',' + CAST(T.{ICampos.ID_ESTADO} AS VARCHAR(10)) + ','
+                                AS VARCHAR(MAX)) AS Visitados
+                    FROM   {tablaTipos} T WITH(NOLOCK)
+                    WHERE  T.{ICampos.ID} = @IdTipo
+
+                    UNION ALL
+
+                    -- Expansión recursiva: solo si el destino NO ha sido visitado aún
+                    SELECT TR.{ICampos.ID_DESTINO} AS IdEstado,
+                           F.Visitados + CAST(TR.{ICampos.ID_DESTINO} AS VARCHAR(10)) + ','
+                    FROM   {tablaTransiciones} TR WITH(NOLOCK)
+                    INNER JOIN FLUJO F ON TR.{ICampos.ID_ORIGEN} = F.IdEstado
+                    WHERE  TR.ACTIVO = 1
+                      AND  CHARINDEX(
+                               ',' + CAST(TR.{ICampos.ID_DESTINO} AS VARCHAR(10)) + ',',
+                               F.Visitados) = 0
+                )
+                SELECT DISTINCT
+                    E.{ICampos.ID}         AS {nameof(EstadoDtm.Id)},
+                    E.{ICampos.NOMBRE}     AS {nameof(EstadoDtm.Nombre)},
+                    E.{ICampos.ORDEN}      AS {nameof(EstadoDtm.Orden)},
+                    E.{ICampos.INICIAL}    AS {nameof(EstadoDtm.Inicial)},
+                    E.{ICampos.TERMINADO}  AS {nameof(EstadoDtm.Terminado)},
+                    E.{ICampos.CANCELADO}  AS {nameof(EstadoDtm.Cancelado)}
+                FROM   {tablaEstados} E WITH(NOLOCK)
+                INNER JOIN (SELECT DISTINCT IdEstado FROM FLUJO) F
+                    ON E.{ICampos.ID} = F.IdEstado
+                ORDER BY E.{ICampos.ORDEN}
+                OPTION (MAXRECURSION 0)";
+
+            return conexion.Query<EstadoDtm>(sql, new { IdTipo = idTipo }, transaccion).ToList();
         }
 
         public static List<RegistroDtm> TiposDependientes(ContextoSe contexto, Type tipoDtm, int idTipo)

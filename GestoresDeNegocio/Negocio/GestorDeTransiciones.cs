@@ -267,12 +267,7 @@ namespace GestoresDeNegocio.Negocio
 
         protected override void EliminarCaches(TransicionDtm registro, ParametrosDeNegocio parametros)
         {
-            base.EliminarCaches(registro, parametros);
-            var clave = $"{_tabla}.{registro.Id}";
-            ServicioDeCaches.EliminarElemento(nameof(TransicionSql.LeerTransicionPorId), clave);
-            ServicioDeCaches.EliminarElemento(CacheDe.Negocio_Transiciones, Negocio.ToString());
-            ServicioDeCaches.EliminarElementos(CacheDe.Negocio_TransicionesDisponibles, Negocio.ToString());
-            ServicioDeCaches.EliminarElementos(CacheDe.Negocio_TransicionesHasta, Negocio.ToString());
+            ServicioDeCaches.EliminarTodas();
         }
 
         protected override void DespuesDeMapearElElemento(TransicionDtm registro, TransicionDto elemento, ParametrosDeNegocio parametros)
