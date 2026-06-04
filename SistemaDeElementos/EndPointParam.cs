@@ -72,11 +72,6 @@ public class DatosPropuestos
     public List<PlantillaDeCreacionDto> Plantillas { get; set; }
 }
 
-public class DatosParaCreacion
-{
-    public DatosPropuestos datosPropuestos { get; set; }
-}
-
 
 public class DatosParaElMantenimiento
 {

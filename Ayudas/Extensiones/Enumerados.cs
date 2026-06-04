@@ -128,6 +128,7 @@ namespace Utilidades
         MostarOcultarAbout,
         DescargarDeclaracionResponsable,
         Logout,
+        ResetearDashBoard,
 
         MiCorreo_ComoArchivar,
         MiCorreo_ComoVincular,
@@ -769,6 +770,7 @@ namespace Utilidades
         public const string Comun_EliminarPlantillaFiltrado = "eliminar-plantillas-filtrado";
         public const string Comun_LeerDatosParaExportacion = "leer-datos-para-exportacion";
         public const string Comun_EnviarElemento = "enviar_elemento";
+        public const string Comun_GuardarDisposicionDashBoard = "guardar-disposicion-dashboard";
 
         public const string Imputar_FacturasRec = "imputar-facturas";
 

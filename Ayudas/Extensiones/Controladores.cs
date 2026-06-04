@@ -53,7 +53,8 @@ namespace Utilidades
         Presupuesto,
         Venta,
         Gasto,
-        Logistica
+        Logistica,
+        PanelDeControl
     }
 
     public static class enumFicheroDeApi

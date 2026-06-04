@@ -216,6 +216,52 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        [HttpGet]
+        public JsonResult epLeerDisposicionDashBoard()
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerDisposicionDashBoard));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                r.Datos = DatosParaInicializarDashBoard();
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al obtener la disposición del dashboard para el usuario {DatosDeConexion.Login}.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
+        [HttpGet]
+        public JsonResult epResetearDashBoard()
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epResetearDashBoard));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                enumNegocio.Negocio.EliminarParametroDeUsuario(
+                    Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard);
+                r.Estado = enumEstadoPeticion.Ok;
+                r.Consola = $"Disposición del dashboard eliminada para el usuario {DatosDeConexion.Login}";
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al resetear la disposición del dashboard para el usuario {DatosDeConexion.Login}.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
         public JsonResult epLeerDatosParaInicializarVista(string negocio, string parametrosJson)
         {
             var r = new Resultado();
@@ -821,7 +867,7 @@ namespace MVCSistemaDeElementos.Controllers
 
 
         [AllowAnonymous]
-        public JsonResult epLeerVinculosConPorGuid(int idNegocio,int idVinculado, int idElemento1, string parametrosJson)
+        public JsonResult epLeerVinculosConPorGuid(int idNegocio, int idVinculado, int idElemento1, string parametrosJson)
         {
             var r = new Resultado();
             Contexto.IniciarTraza(nameof(epLeerVinculosConPorGuid));
@@ -834,7 +880,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var negocio = NegociosDeSe.ToEnumerado(NegociosDeSe.ToDtm(typeof(TElemento)));
 
                 ValidarConsultaPorGuid(negocio, id, guid);
-                return epLeerVinculosCon(idNegocio,idVinculado ,idElemento1, parametrosJson);
+                return epLeerVinculosCon(idNegocio, idVinculado, idElemento1, parametrosJson);
             }
             catch (Exception e)
             {
@@ -1110,6 +1156,11 @@ namespace MVCSistemaDeElementos.Controllers
         {
             switch (peticion)
             {
+                case eventosDeMf.Comun_GuardarDisposicionDashBoard:
+                    var dashboard = parametros.LeerValor<List<EstadoDeDashBoardPorNegocio>>(ltrParametrosEp.datosPeticion);
+                    JObject disposicion = JObject.FromObject(new { estados = dashboard });
+                    negocio.ResetearParametroDeUsuario(Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard, disposicion.ToString());
+                    return null;
                 case eventosDeMf.Comun_GuardarEstadosDeExpansores:
                     var espansores = parametros.LeerValor<List<EstadoDeEspan>>(ltrParametrosEp.datosPeticion);
                     JObject estados = JObject.FromObject(new { estados = espansores });
@@ -1295,6 +1346,17 @@ namespace MVCSistemaDeElementos.Controllers
             return View("../Negocio/GraficoDeUnProceso", descriptor);
         }
 
+        protected List<EstadoDeDashBoardPorNegocio> DatosParaInicializarDashBoard()
+        {
+            var jDatos = (JObject)enumNegocio.Negocio.LeerParametroDeUsuario<JObject>(
+                Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard);
+
+            if (jDatos == null || !jDatos.HasValues)
+                return new List<EstadoDeDashBoardPorNegocio>();
+
+            return jDatos["estados"]?.ToObject<List<EstadoDeDashBoardPorNegocio>>()
+                ?? new List<EstadoDeDashBoardPorNegocio>();
+        }
 
         protected dynamic DatosParaInicializarLaCreacion(enumNegocio negocio, Dictionary<string, object> parametros, DatosDeCreacion datosDeCreacion)
         {

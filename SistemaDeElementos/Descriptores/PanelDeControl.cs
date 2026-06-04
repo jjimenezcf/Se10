@@ -211,18 +211,26 @@ namespace MVCSistemaDeElementos.Descriptores
                 iasOpciones += CrearOpcion(ia.Nombre, $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.SeleccionarIa}(this)", "Seleccione la IA que desea usar", nombre: ia.Enumerado.ToString(), claseHref: clase);
             }
 
-            iasOpciones = 
+            iasOpciones =
                 "<li class='opc-menu-prc-ia' title='Seleccione la IA que desea usar'>" +
                    "<a href='#'>IA</a>" +
                    "<ul class='submenu-ia'>" +
                       iasOpciones +
                    "</ul>" +
-                "</li>"
-                ;
+                "</li>";
+
+            // Opción DashBoard: icono papelera via CSS (igual que el resto del menú)
+            var opcionDashboard =
+                $"<li class='opc-menu-prc-resetear-dashboard' title='Resetear el panel de control'>" +
+                $"<a href='#' onclick='{enumNameSpaceTs.PanelDeControl}.{enumFunctionTs.ResetearDashBoard}(); return false'>" +
+                "DashBoard" +
+                "</a>" +
+                "</li>";
 
             var menu = CabeceraDeMenu(id: "opcion-about", clase: "btn-about", onclick: $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.MostarOcultarAbout}()", imagen: "About.png", ayuda: "información y cerrar") +
                 $@"                <div id='contenedor-menu-about' class='menu-pnlctr-oculto contenedor-menu-about' >
                                     <ul id='about-menu-1'>
+                                       {opcionDashboard}
                                        {iasOpciones}
                                         <hr>
                                        {CrearOpcion("Veri*fatu", $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.DescargarDeclaracionResponsable}()", "Descargar declaración responsable", claseLi: "opc-menu-prc-verfactu")}
@@ -332,16 +340,11 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private static string RenderCuerpo()
         {
-            //            return $@"  
-            //    <div class='cuerpo-cabecera'>cabecera</div>
-            //    <div class='cuerpo-datos'>
-            //      <div class='cuerpo-datos-filtro'>filtro</div>
-            //      <div class='cuerpo-datos-grid'>grid</div>
-            //    </div>
-            //    <div class='cuerpo-pie'>pie</div>
-            //    <div class='cuerpo-creacion'>creacion</div>
-            //";
-            return "";
+            return @"
+            <div id='panel-graficas' class='panel-graficas'></div>
+            <script>
+                window.addEventListener('load', function() { PanelDeControl.Inicializar(); });
+            </script>";
         }
     }
 }

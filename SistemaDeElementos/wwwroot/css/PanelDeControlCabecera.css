@@ -169,16 +169,23 @@
 
 .opc-menu-prc-ia a,
 .opc-menu-prc-verfactu a,
-.opc-menu-prc-logout a {
+.opc-menu-prc-logout a,
+.opc-menu-prc-resetear-dashboard a {
     background-repeat: no-repeat;
-    background-position: 5px center; /* Posicionar el icono a la izquierda */
+    background-position: 5px center;
     padding-left: 30px;
 }
 
 /* Icono de Configuración/Rosca para IA */
 .opc-menu-prc-ia > a {
     background-image: url('../images/menu/setting.png');
-    background-size: 18px 18px; /* Tamaño del icono */
+    background-size: 18px 18px;
+}
+
+/* Icono papelera para Resetear DashBoard */
+.opc-menu-prc-resetear-dashboard a {
+    background-image: url('../images/menu/papelera.svg');
+    background-size: 16px 16px;
 }
 
 /* Icono de Descarga para Veri*fatu */

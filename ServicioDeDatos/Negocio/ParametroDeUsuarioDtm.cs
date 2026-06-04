@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
+using Utilidades;
 
 namespace ServicioDeDatos.Negocio
 {
@@ -29,7 +30,19 @@ namespace ServicioDeDatos.Negocio
         [Description("Indica si ha de mostrar el visor de archivo al iniciar la edición")]
         USU_Mostrar_El_Visor_Al_Iniciar,
         [Description("Indica la Ia usada por el usuario")]
-        USU_Ia_Usada
+        USU_Ia_Usada,
+        [Description("Información sobre la disposición del DashBoard")]
+        USU_Disposicion_DashBoard
+    }
+
+    public enum enumClaseDeDashBoard {Matriz, Tarta, Coordenadas }
+
+    public class EstadoDeDashBoardPorNegocio
+    {
+        public enumNegocio Negocio { get; set; }
+        public enumClaseDeDashBoard Clase { get; set; }
+        public bool Visible { get; set; }
+        public int? Posicion { get; set; }
     }
 
     public class EstadoDeEspan
