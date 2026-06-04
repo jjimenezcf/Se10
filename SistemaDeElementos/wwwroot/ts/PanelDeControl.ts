@@ -23,6 +23,7 @@ namespace PanelDeControl {
         tipos: ItemNombreId[];
         estados: ItemNombreId[];
         cantidades: CeldaDeMatriz[];   // renombrado de celdas → cantidades (servidor)
+        url?: string;                  // enlace para gestionar los objetos del negocio
     }
 
     /** DTO para serializar/deserializar hacia el servidor */
@@ -187,10 +188,19 @@ namespace PanelDeControl {
             btnIzq.innerHTML = SVG_FLECHA_IZQ;
             btnIzq.addEventListener('click', () => MoverTarjeta(tarjeta, 'izquierda'));
 
-            // ── Título ──
+            // ── Título (enlace si hay url, texto plano si no) ──
             const titulo = document.createElement('h3');
             titulo.className = css.GraficaTitulo;
-            titulo.textContent = negocio.nombre;
+            if (negocio.url) {
+                const enlace = document.createElement('a');
+                enlace.href = negocio.url;
+                enlace.target = '_blank';
+                enlace.rel = 'noopener noreferrer';
+                enlace.textContent = negocio.nombre;
+                titulo.appendChild(enlace);
+            } else {
+                titulo.textContent = negocio.nombre;
+            }
 
             // ── Vista ──
             const vistaDiv = document.createElement('div');
