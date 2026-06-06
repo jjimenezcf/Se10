@@ -35,6 +35,11 @@ namespace ServicioDeDatos.Juridico
 
     public static class VariablesDeContratos
     {
+
+        public static readonly string ContratosDeCompra = "Contratos de compra";
+        public static readonly string ContratosDeVenta = "Contratos de venta";
+        public static readonly string ContratosDeMatricula = "Matrícula";
+
         public static string porcentageAviso => enumNegocio.Contrato.Parametro(enumParametrosDeContratos.CTR_Porcentaje_Aviso)?.Valor ?? null;
         public static string porcentageBloqueo => enumNegocio.Contrato.Parametro(enumParametrosDeContratos.CTR_Porcentaje_Bloqueo)?.Valor ?? null;
 

@@ -1622,11 +1622,26 @@ public static class NegociosDeSe
             {
                 LeerInformacionParaElDashBoardDeCircuitosDoc(contexto, resultado);
             }
+            else if (negocio == enumNegocio.Expediente)
+            {
+                LeerInformacionParaElDashBoardDeExpedientes(contexto, resultado);
+            }
+            else if (negocio == enumNegocio.Contrato)
+            {
+                LeerInformacionParaElDashBoardDeContrato(contexto, resultado);
+            }
             else
             {
                 var tipos = negocio.TiposConFlujo(contexto).Select(tipo => new { tipo.Id, tipo.Nombre, tipo.IdEstado }).ToList();
+
+                if (tipos.Count == 0)
+                    continue;
+
                 var estados = negocio.Estados(contexto).Select(estado => new { estado.Id, estado.Nombre }).ToList();
                 var cantidades = ElementoDeProcesoSql.ObtenerCantidadDeElementosPorTipoYEstado(contexto, negocio.TipoDtm());
+                if (!cantidades.Any() || cantidades.Sum(c => c.Cantidad) == 0)
+                    continue;
+
                 var url = $"{negocio.Controlador()}/{negocio.VistaMvc(contexto).Accion}";
                 resultado.Add(new
                 {
@@ -1707,33 +1722,85 @@ public static class NegociosDeSe
         grupo = AgregarGrupo(contexto, negocio, VariablesDeCircuitosDoc.ActividadesFormativas, $"{enumNegocio.CircuitoDoc}_ActividadesFormativas", tipos.FirstOrDefault(t => t.Id == idActFormativas), cantidades, enumVistasSistemaDocumental.CrudActividadesFormativas);
         if (grupo != null) resultado.Add(grupo);
 
-        // Resto de circuitos documentales (tipos no asignados a ninguna categoría especial)
         var tiposResto = tipos.Where(t => !idsEspeciales.Contains(t.Id)).ToList();
+        LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, tiposResto, cantidades);
+    }
+
+    private static void LeerInformacionParaElDashBoardDeExpedientes(ContextoSe contexto, List<object> resultado)
+    {
+        enumNegocio negocio = enumNegocio.Expediente;
+        var tipos = negocio.TiposConFlujo(contexto).ToList();
+        var estados = negocio.Estados(contexto).ToList();
+        var cantidades = ElementoDeProcesoSql.ObtenerCantidadDeElementosPorTipoYEstado(contexto, negocio.TipoDtm());
+
+        var idActividades = VariablesDeExpedientes.IdDelTipoParaActividades(errorSiNoEstaDefinido: false);
+        var idsEspeciales = new HashSet<int>(new[] { idActividades }.Where(id => id > 0));
+
+        var grupo = AgregarGrupo(contexto, negocio, VariablesDeExpedientes.Actividades, $"{enumNegocio.Expediente}_Actividades", tipos.FirstOrDefault(t => t.Id == idActividades), cantidades, enumVistasAdministrativo.CrudActividades);
+        if (grupo != null) resultado.Add(grupo);
+
+        var tiposResto = tipos.Where(t => !idsEspeciales.Contains(t.Id)).ToList();
+        LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, tiposResto, cantidades);
+    }
+
+    private static void LeerInformacionParaElDashBoardDeContrato(ContextoSe contexto, List<object> resultado)
+    {
+        enumNegocio negocio = enumNegocio.Contrato;
+        var tipos = negocio.TiposConFlujo(contexto).ToList();
+        var estados = negocio.Estados(contexto).ToList();
+        var cantidades = ElementoDeProcesoSql.ObtenerCantidadDeElementosPorTipoYEstado(contexto, negocio.TipoDtm());
+
+        var idCompras = tipos.Where(t => t is TipoDeContratoDtm && ((TipoDeContratoDtm)t).ClaseDeContrato == enumClaseDeContrato.Compra).Select(t => t.Id).FirstOrDefault();
+        var idVentas = tipos.Where(t => t is TipoDeContratoDtm && ((TipoDeContratoDtm)t).ClaseDeContrato == enumClaseDeContrato.Venta).Select(t => t.Id).FirstOrDefault();
+        var idMatriculas = tipos.Where(t => t is TipoDeContratoDtm && ((TipoDeContratoDtm)t).ClaseDeContrato == enumClaseDeContrato.MatriculaDeGuarderia).Select(t => t.Id).FirstOrDefault();
+
+        string CrudDeMatriculas = $"{enumVistasJuridicos.CrudContratos}?clase={enumClaseDeContrato.MatriculaDeGuarderia}";
+        string CrudDeCrudDeCompras = $"{enumVistasJuridicos.CrudContratos}?clase={enumClaseDeContrato.Compra}";
+        string CrudDeContratosDeVentas = $"{enumVistasJuridicos.CrudContratos}?clase={enumClaseDeContrato.Venta}";
+
+        var grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeCompra, $"{enumNegocio.Contrato}_Compras", tipos.FirstOrDefault(t => t.Id == idCompras), cantidades, CrudDeCrudDeCompras);
+        if (grupo != null) resultado.Add(grupo);
+
+        if (grupo != null) resultado.Add(grupo); grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeVenta, $"{enumNegocio.Contrato}_Ventas", tipos.FirstOrDefault(t => t.Id == idVentas), cantidades, CrudDeContratosDeVentas);
+        if (grupo != null) resultado.Add(grupo);
+
+        if (grupo != null) resultado.Add(grupo); grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeMatricula, $"{enumNegocio.Contrato}_Matriculas", tipos.FirstOrDefault(t => t.Id == idMatriculas), cantidades, CrudDeMatriculas);
+        if (grupo != null) resultado.Add(grupo);
+    }
+
+    private static void LeerInformacionConjuntaDeNegocio(ContextoSe contexto, List<object> resultado, enumNegocio negocio, List<TipoConFlujoDtm> tiposResto, List<ElementoDeProcesoSql.CantidadPorTipoYEstado> cantidades)
+    {
         if (tiposResto.Any())
         {
             var idsResto = tiposResto.Select(t => t.Id).ToHashSet();
-
-            var estadosResto = tiposResto
-                .SelectMany(t => negocio.ObtenerFlujo(contexto, t.Id))
-                .GroupBy(e => e.Id)
-                .Select(g => new { g.First().Id, g.First().Nombre })
-                .ToList<object>();
-
-            var idsEstadosResto = estadosResto
-                .Select(e => (int)((dynamic)e).Id)
-                .ToHashSet();
-
-            resultado.Add(new
+            if (idsResto.Count > 0)
             {
-                nombre = negocio.Singular(),
-                enumerado = negocio.ToString(),
-                numTipos = tiposResto.Count,
-                numEstados = estadosResto.Count,
-                tipos = tiposResto,
-                estados = estadosResto,
-                cantidades = cantidades.Where(c => idsResto.Contains(c.IdTipo) && idsEstadosResto.Contains(c.IdEstado)).ToList(),
-                url = $"{negocio.Controlador()}/{enumVistasSistemaDocumental.CrudCircuitosDoc}"
-        });
+                var estadosResto = tiposResto
+                    .SelectMany(t => negocio.ObtenerFlujo(contexto, t.Id))
+                    .GroupBy(e => e.Id)
+                    .Select(g => new { g.First().Id, g.First().Nombre })
+                    .ToList<object>();
+
+                var idsEstadosResto = estadosResto
+                    .Select(e => (int)((dynamic)e).Id)
+                    .ToHashSet();
+                if (idsEstadosResto.Count > 0)
+                {
+                    var cantidadesAgregadas = cantidades.Where(c => idsResto.Contains(c.IdTipo) && idsEstadosResto.Contains(c.IdEstado)).ToList();
+                    if (cantidadesAgregadas.Sum(c => c.Cantidad) > 0)
+                        resultado.Add(new
+                        {
+                            nombre = negocio.Singular(),
+                            enumerado = negocio.ToString(),
+                            numTipos = tiposResto.Count,
+                            numEstados = estadosResto.Count,
+                            tipos = tiposResto,
+                            estados = estadosResto,
+                            cantidades = cantidades.Where(c => idsResto.Contains(c.IdTipo) && idsEstadosResto.Contains(c.IdEstado)).ToList(),
+                            url = $"{negocio.Controlador()}/{enumVistasSistemaDocumental.CrudCircuitosDoc}"
+                        });
+                }
+            }
         }
     }
 
@@ -1748,6 +1815,13 @@ public static class NegociosDeSe
         var flujoDelTipo = negocio.ObtenerFlujo(contexto, tipo.Id);
         var idsEstados = flujoDelTipo.Select(e => e.Id).ToHashSet();
 
+        if (!cantidades.Any(c => c.IdTipo == tipo.Id && idsEstados.Contains(c.IdEstado)))
+            return null;
+
+        var cantidadesAgregada = cantidades.Where(c => c.IdTipo == tipo.Id && idsEstados.Contains(c.IdEstado)).ToList();
+        if (cantidadesAgregada.Sum(c => c.Cantidad) == 0)
+            return null;
+
         var url = $"{negocio.Controlador()}/{vista}";
         return new
         {
@@ -1757,7 +1831,7 @@ public static class NegociosDeSe
             numEstados = idsEstados.Count,
             tipos = new[] { tipo }.ToList(),
             estados = flujoDelTipo.Select(e => new { e.Id, e.Nombre }).ToList<object>(),
-            cantidades = cantidades.Where(c => c.IdTipo == tipo.Id && idsEstados.Contains(c.IdEstado)).ToList(),
+            cantidades = cantidadesAgregada,
             url = url
         };
     }

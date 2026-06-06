@@ -152,6 +152,7 @@ namespace ServicioDeDatos.Expediente
 
     public static class VariablesDeExpedientes
     {
+        public static readonly string Actividades = "Actividades";
 
         public static int IdDelTipoParaActividades(bool errorSiNoEstaDefinido = true)
         {
