@@ -619,6 +619,7 @@
                 const peticion = await ApiDePeticiones.Totales(this, this.Controlador, 0, -1, filtros);
                 const totales = peticion.resultado.datos;
                 MapearAlPanel.ElObjeto(this.PanelDeTotales, totales, ModoAcceso.enumModoDeAccesoDeDatos.Consultor);
+                this.InsertarGraficaDeTotales(this.ContenedorDeGraficos);
                 this.MostrandoTotales = true;
             }
             catch (error) {
@@ -2656,7 +2657,8 @@
         public async MostrarPanelDeTotales(controlador: string) {
 
             this.OcultarVisorDeDetalle();
-            if (this.ContenedorDeGraficos === this.PanelDeTotales.parentElement)
+            const panelEstabaEnGraficos = this.ContenedorDeGraficos === this.PanelDeTotales.parentElement;
+            if (panelEstabaEnGraficos)
                 this.PadreDelPanelDeTotales.insertBefore(this.PanelDeTotales, this.PadreDelPanelDeTotales.appendChild(this.PanelDeTotales));
 
             const modal: HTMLDivElement = this.ModalMostrarTotales;
@@ -2668,7 +2670,96 @@
             MapearAlPanel.ElObjeto(modal, totales, ModoAcceso.enumModoDeAccesoDeDatos.Consultor);
             const infoDeTotales = ApiControl.BuscarEditor(modal, ltrPropiedades.Negocio.Totales.Comun.Procesados);
             AsignarValor(infoDeTotales, ObtenerPropiedad(totales, ltrPropiedades.Negocio.Totales.Comun.Procesados))
+            if (panelEstabaEnGraficos)
+                this.InsertarGraficaDeTotales(null);
             ApiPanel.AbrirModal(modal);
+        }
+
+        private InsertarGraficaDeTotales(divGraficos: HTMLDivElement): void {
+            const panel = this.PanelDeTotales;
+            if (!Definido(panel)) return;
+
+            const idGrafica = `grafica-totales-${panel.id}`;
+            const anterior = document.getElementById(idGrafica);
+            if (Definido(anterior)) anterior.remove();
+
+            const controles = panel.querySelectorAll(`[${atControl.propiedad}]`) as NodeListOf<HTMLInputElement>;
+            const datos: { etiqueta: string; valor: number }[] = [];
+            controles.forEach(ctrl => {
+                const valor = parseFloat((ctrl.value ?? '').replace(/\./g, '').replace(',', '.'));
+                if (!isNaN(valor) && valor > 0) {
+                    const label = document.getElementById(`etiqueta-${ctrl.id}`);
+                    const etiqueta = (label?.textContent ?? ctrl.getAttribute(atControl.propiedad) ?? '').replace(/:$/, '').trim();
+                    datos.push({ etiqueta, valor });
+                }
+            });
+
+            if (datos.length === 0) return;
+
+            const contenedor = document.createElement('div');
+            contenedor.id = idGrafica;
+
+            if (Definido(divGraficos)) {
+                const anchoPadre = divGraficos.offsetWidth || panel.offsetWidth;
+                const altoSvg = 220;
+                const separacion = 8;
+                const margenSuperior = Math.max(divGraficos.offsetHeight - panel.offsetHeight - altoSvg - separacion, separacion);
+                contenedor.style.cssText = `width:${anchoPadre}px;margin-top:${margenSuperior}px;overflow-x:auto;display:flex;justify-content:center;`;
+                contenedor.innerHTML = this.CrearSvgDeBarras(datos, anchoPadre);
+                divGraficos.appendChild(contenedor);
+            } else {
+                contenedor.style.cssText = `margin-top:12px;overflow-x:auto;display:flex;justify-content:center;`;
+                contenedor.innerHTML = this.CrearSvgDeBarras(datos);
+                panel.parentElement.insertBefore(contenedor, panel.nextSibling);
+            }
+        }
+
+        private CrearSvgDeBarras(datos: { etiqueta: string; valor: number }[], anchoPadre: number = 0): string {
+            const anchoTotal = anchoPadre > 0 ? anchoPadre : Math.max(datos.length * 80, 300);
+            const alto = 220;
+            const margenIzq = 60;
+            const margenInf = 60;
+            const margenSup = 10;
+            const anchoBarra = 40;
+            const separacion = (anchoTotal - margenIzq) / datos.length;
+            const maxValor = Math.max(...datos.map(d => d.valor));
+            const alturaDisponible = alto - margenInf - margenSup;
+
+            const barras = datos.map((d, i) => {
+                const alturaBarra = maxValor > 0 ? (d.valor / maxValor) * alturaDisponible : 0;
+                const x = margenIzq + i * separacion + (separacion - anchoBarra) / 2;
+                const y = margenSup + alturaDisponible - alturaBarra;
+                const etiquetaX = x + anchoBarra / 2;
+                const etiquetaRecortada = d.etiqueta.length > 10 ? d.etiqueta.substring(0, 9) + '…' : d.etiqueta;
+                const valorFormateado = d.valor.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+                return `
+                    <rect x="${x}" y="${y}" width="${anchoBarra}" height="${alturaBarra}" fill="#1976d2" rx="3"/>
+                    <text x="${etiquetaX}" y="${y - 4}" text-anchor="middle" font-size="10" fill="#333">${valorFormateado}</text>
+                    <text x="${etiquetaX}" y="${alto - margenInf + 14}" text-anchor="middle" font-size="10" fill="#555" transform="rotate(-25,${etiquetaX},${alto - margenInf + 14})">${etiquetaRecortada}</text>`;
+            }).join('');
+
+            const escalaY = this.CrearEscalaY(maxValor, alturaDisponible, margenIzq, margenSup);
+
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${anchoTotal}" height="${alto}" style="display:block;">
+                <line x1="${margenIzq}" y1="${margenSup}" x2="${margenIzq}" y2="${margenSup + alturaDisponible}" stroke="#aaa" stroke-width="1"/>
+                <line x1="${margenIzq}" y1="${margenSup + alturaDisponible}" x2="${anchoTotal}" y2="${margenSup + alturaDisponible}" stroke="#aaa" stroke-width="1"/>
+                ${escalaY}
+                ${barras}
+            </svg>`;
+        }
+
+        private CrearEscalaY(maxValor: number, alturaDisponible: number, margenIzq: number, margenSup: number): string {
+            const pasos = 4;
+            let resultado = '';
+            for (let i = 0; i <= pasos; i++) {
+                const valor = (maxValor / pasos) * i;
+                const y = margenSup + alturaDisponible - (alturaDisponible / pasos) * i;
+                const etiqueta = valor.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+                resultado += `
+                    <line x1="${margenIzq - 4}" y1="${y}" x2="${margenIzq}" y2="${y}" stroke="#aaa" stroke-width="1"/>
+                    <text x="${margenIzq - 6}" y="${y + 4}" text-anchor="end" font-size="9" fill="#777">${etiqueta}</text>`;
+            }
+            return resultado;
         }
 
         public GuardarPlantillaFiltrado(): void {
