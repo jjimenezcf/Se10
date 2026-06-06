@@ -355,7 +355,7 @@ order by T2.{ICampos.NOMBRE}, T1.{ICampos.NOMBRE}
             var conexion    = contexto.Database.GetDbConnection();
             var transaccion = contexto.Database.CurrentTransaction?.GetDbTransaction();
 
-            var tablaTipos        = ApiDeRegistroDtm.EsquemaTabla(tipoDtm);
+            var tablaTipos        = ApiDeElementoDtm.TablaDeTipo(tipoDtm);
             var tablaEstados      = ApiDeElementoDtm.TablaDeEstados(tipoDtm);
             var tablaTransiciones = ApiDeElementoDtm.TablaDeTransiciones(tipoDtm);
 

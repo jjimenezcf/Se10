@@ -1760,11 +1760,11 @@ public static class NegociosDeSe
 
         var grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeCompra, $"{enumNegocio.Contrato}_Compras", tipos.FirstOrDefault(t => t.Id == idCompras), cantidades, CrudDeCrudDeCompras);
         if (grupo != null) resultado.Add(grupo);
-
-        if (grupo != null) resultado.Add(grupo); grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeVenta, $"{enumNegocio.Contrato}_Ventas", tipos.FirstOrDefault(t => t.Id == idVentas), cantidades, CrudDeContratosDeVentas);
+        
+        grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeVenta, $"{enumNegocio.Contrato}_Ventas", tipos.FirstOrDefault(t => t.Id == idVentas), cantidades, CrudDeContratosDeVentas);
         if (grupo != null) resultado.Add(grupo);
 
-        if (grupo != null) resultado.Add(grupo); grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeMatricula, $"{enumNegocio.Contrato}_Matriculas", tipos.FirstOrDefault(t => t.Id == idMatriculas), cantidades, CrudDeMatriculas);
+        grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeMatricula, $"{enumNegocio.Contrato}_Matriculas", tipos.FirstOrDefault(t => t.Id == idMatriculas), cantidades, CrudDeMatriculas);
         if (grupo != null) resultado.Add(grupo);
     }
 

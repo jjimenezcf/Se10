@@ -258,6 +258,7 @@ namespace MVCSistemaDeElementos.Controllers
             finally
             {
                 Contexto.CerrarTraza();
+                ServicioDeCaches.EliminarCache(CacheDe.Negocio_Flujo);
             }
             return new JsonResult(r);
         }
