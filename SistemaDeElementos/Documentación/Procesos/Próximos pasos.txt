@@ -4,6 +4,17 @@ ghostscript-8.64
 
 https://console.cloud.google.com/welcome?project=sistema-de-elementos
 
+
+Dashboard y flujos
+-------------------------------------------------------------------------------------
+Pintar en panel de control el dasboar de los elementos de negocio (*) 2026-06-04
+Visualizar el flujo de un elemnto y grabarlo (*) 2026-06-06
+Partir el dashboar de contratos: compras/ventas/matriculas
+Aplicar seguridad al dashboard
+Mostrar filtros guardados por negocio para poder acceder rápidamente
+
+
+
 Facturas recibidas y emitidas (*) 2026-06-02
 --------------------------------------------------------------------------------
 importar facturas xml y ubl tanto desde un fichero como desde la interface
