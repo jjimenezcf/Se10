@@ -9,6 +9,7 @@ using ModeloDeDto.Seguridad;
 using ModeloDeDto.SistemaDocumental;
 using ModeloDeDto.Ventas;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
@@ -1646,6 +1647,40 @@ public static class NegociosDeSe
 
     }
 
+    public static object ObtenerFlujoDeNegocio(ContextoSe contexto, enumNegocio negocio, int idEstado)
+    {
+        var todasLasTransiciones = negocio.ListaDeTransiciones(contexto);
+        var todosLosEstados = negocio.Estados(contexto);
+
+        var estadosVisitados = new HashSet<int> { idEstado };
+        var transicionesDelFlujo = new List<TransicionDtm>();
+        var cola = new Queue<int>();
+        cola.Enqueue(idEstado);
+
+        while (cola.Count > 0)
+        {
+            var estadoActual = cola.Dequeue();
+            var salientes = todasLasTransiciones.Where(t => t.IdOrigen == estadoActual && t.Activo).ToList();
+            foreach (var t in salientes)
+            {
+                transicionesDelFlujo.Add(t);
+                if (estadosVisitados.Add(t.IdDestino))
+                    cola.Enqueue(t.IdDestino);
+            }
+        }
+
+        var estados = todosLosEstados
+            .Where(e => estadosVisitados.Contains(e.Id))
+            .Select(e => new { e.Id, e.Nombre })
+            .ToList<object>();
+
+        var transiciones = transicionesDelFlujo
+            .Select(t => new { t.Id, t.Nombre, t.IdOrigen, t.IdDestino })
+            .ToList<object>();
+
+        return new { estados, transiciones };
+    }
+
     private static void LeerInformacionParaElDashBoardDeCircuitosDoc(ContextoSe contexto, List<object> resultado)
     {
         enumNegocio negocio = enumNegocio.CircuitoDoc;
@@ -1697,7 +1732,7 @@ public static class NegociosDeSe
                 tipos = tiposResto,
                 estados = estadosResto,
                 cantidades = cantidades.Where(c => idsResto.Contains(c.IdTipo) && idsEstadosResto.Contains(c.IdEstado)).ToList(),
-                url = $"{negocio.Controlador()}/{negocio.VistaMvc(contexto).Accion}"
+                url = $"{negocio.Controlador()}/{enumVistasSistemaDocumental.CrudCircuitosDoc}"
         });
         }
     }
@@ -1725,5 +1760,15 @@ public static class NegociosDeSe
             cantidades = cantidades.Where(c => c.IdTipo == tipo.Id && idsEstados.Contains(c.IdEstado)).ToList(),
             url = url
         };
+    }
+
+    public static List<EstadoDeDashBoardPorNegocio> DatosParaInicializarDashBoard(ContextoSe contexto)
+    {
+        var jDatos = (JObject)enumNegocio.Negocio.LeerParametroDeUsuario<JObject>(contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard);
+
+        if (jDatos == null || !jDatos.HasValues)
+            return new List<EstadoDeDashBoardPorNegocio>();
+
+        return jDatos["estados"]?.ToObject<List<EstadoDeDashBoardPorNegocio>>() ?? new List<EstadoDeDashBoardPorNegocio>();
     }
 }

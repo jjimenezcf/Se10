@@ -530,8 +530,8 @@ const ltrControladores = {
         PlantillasDeFiltrado: 'PlantillasDeFiltrado',
         PlantillasDeCreacion: 'PlantillasDeCreacion',
         PlantillasDeExportacion: 'PlantillasDeExportacion',
-        PlantillasDeNegocio: 'PlantillasDeNegocio'
-
+        PlantillasDeNegocio: 'PlantillasDeNegocio',
+        Estados: 'Estados'
     },
     Administracion: {
         Expedientes: 'Expedientes',
@@ -1622,6 +1622,11 @@ const Ajax = {
                 DescargarPlantilla: 'epDescargarPlantilla',
                 DescargarEtiquetas: 'epDescargarEtiquetas',
             },
+            Estados: {
+                ObtenerFlujo:        'epObtenerFlujo',
+                LeerPosiciones:      'epLeerPosicionesDeEstados',
+                GrabarDisposicion:   'epGrabarDisposicionDeEstados'
+            }
         },
     },
     EpDeAcceso: {
@@ -1648,6 +1653,7 @@ const Ajax = {
         VinculadosA: 'vinculadosA',
         ids: 'ids',
         idTipo: 'idTipo',
+        idEstado: 'idEstado',
         modo: 'modo',
         descriptor: 'descriptor',
         accion: literal.accion,
@@ -3591,7 +3597,7 @@ const ltrParametrosUrl = {
     idSociedad: 'idSociedad',
     idPersona: 'IdPersona',
     idInterlocutor: 'IdInterlocutor',
-    idEstado: 'transiciondtm',
+    idEstado: 'filtroorporiddeestado',
     idAgenda: 'idAgenda',
     valorGuid: '0',
     fecha: 'fecha',
@@ -3730,7 +3736,8 @@ const ltrMenus = {
                 Comun_LeerDatosParaExportacion: 'leer-datos-para-exportacion'
             },
             Estados: {
-                Transiciones: 'transiciones'
+                Transiciones: 'transiciones',
+                Flujo: 'flujo'
             },
         },
         Entorno: {

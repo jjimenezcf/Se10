@@ -291,7 +291,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var htmlVisorDeDetalle = Crud.HayTablaConGraficos
                 ? $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeDetalles}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeDetalleOculto.Render()}' title='Mostrar o ocultar detalle' onclick=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.MostrarOcultarVisorDeDetalle}');¨> </div>"
-                : "";
+                : $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeDetalles}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeDetalleInvisible.Render()}'¨> </div>";
 
             var htmlParteSuperiror = $@"
             <!--  ******************* menú ******************* -->

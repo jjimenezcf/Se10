@@ -224,7 +224,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                r.Datos = DatosParaInicializarDashBoard();
+                r.Datos = NegociosDeSe.DatosParaInicializarDashBoard(Contexto);
                 r.Estado = enumEstadoPeticion.Ok;
             }
             catch (Exception e)
@@ -1154,12 +1154,20 @@ namespace MVCSistemaDeElementos.Controllers
 
         protected virtual dynamic ProcesarPeticion(enumNegocio negocio, VistaMvcDtm vista, string peticion, Dictionary<string, object> parametros)
         {
+            string jsonCrudo;
             switch (peticion)
             {
                 case eventosDeMf.Comun_GuardarDisposicionDashBoard:
-                    var dashboard = parametros.LeerValor<List<EstadoDeDashBoardPorNegocio>>(ltrParametrosEp.datosPeticion);
+                    jsonCrudo = parametros[ltrParametrosEp.datosPeticion]?.ToString();
+                    List<EstadoDeDashBoardPorNegocio> dashboard = Newtonsoft.Json.JsonConvert.DeserializeObject<List<EstadoDeDashBoardPorNegocio>>(jsonCrudo);
                     JObject disposicion = JObject.FromObject(new { estados = dashboard });
                     negocio.ResetearParametroDeUsuario(Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard, disposicion.ToString());
+                    return null;
+                case eventosDeMf.Comun_GuardarDisposicionEstados:
+                    jsonCrudo = parametros[ltrParametrosEp.datosPeticion]?.ToString();
+                    List<PosicionDeEstado> posicion = Newtonsoft.Json.JsonConvert.DeserializeObject<List<PosicionDeEstado>>(jsonCrudo);
+                    JObject posiciones = JObject.FromObject(new { estados = posicion });
+                    negocio.ResetearParametroDeUsuario(Contexto, enumParametrosDeUsuario.USU_Disposicion_Estados, posiciones.ToString());
                     return null;
                 case eventosDeMf.Comun_GuardarEstadosDeExpansores:
                     var espansores = parametros.LeerValor<List<EstadoDeEspan>>(ltrParametrosEp.datosPeticion);
@@ -1344,18 +1352,6 @@ namespace MVCSistemaDeElementos.Controllers
             var descriptor = new GraficoDeUnProceso(contexto, "layout-Se");
 
             return View("../Negocio/GraficoDeUnProceso", descriptor);
-        }
-
-        protected List<EstadoDeDashBoardPorNegocio> DatosParaInicializarDashBoard()
-        {
-            var jDatos = (JObject)enumNegocio.Negocio.LeerParametroDeUsuario<JObject>(
-                Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard);
-
-            if (jDatos == null || !jDatos.HasValues)
-                return new List<EstadoDeDashBoardPorNegocio>();
-
-            return jDatos["estados"]?.ToObject<List<EstadoDeDashBoardPorNegocio>>()
-                ?? new List<EstadoDeDashBoardPorNegocio>();
         }
 
         protected dynamic DatosParaInicializarLaCreacion(enumNegocio negocio, Dictionary<string, object> parametros, DatosDeCreacion datosDeCreacion)

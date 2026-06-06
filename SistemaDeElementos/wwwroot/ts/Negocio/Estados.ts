@@ -1,4 +1,4 @@
-﻿namespace Negocio {
+namespace Negocio {
 
     export function CrearCrudDeEstados(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string) {
         Crud.crudMnt = new Negocio.CrudDeEstados(idPanelMnt, idPanelCreacion, idPanelEdicion, idModalBorrar);
@@ -21,12 +21,32 @@
             if (super.DespuesDeProcesarOpcionMf(peticion)) return true;
             let datosDeEntrada: Parametros = new Parametros(peticion.DatosDeEntrada as Parametro[]);
             let opcion = datosDeEntrada.ObtenerValorDeParametro(ltrMenus.opcion);
-            let idEstado = datosDeEntrada.ObtenerValorDeParametro(Ajax.Param.ids);
+            let idEstado = datosDeEntrada.ObtenerValorDeParametro(Ajax.Param.ids)[0];
             let estado = datosDeEntrada.ObtenerValorDeParametro(ltrPropiedades.Elemento.Textos);
             switch (opcion) {
                 case ltrMenus.eventosDeMf.Parametrizacion.Estados.Transiciones:
                     let url = `${window.location.origin}/${ltrUrls.Entorno.Trasiciones}?${literal.negocio}=${this.NombreDeNegocio}&${ltrParametrosUrl.filtros}=[${ltrParametrosUrl.idEstado}=${idEstado}=${estado}]`;
                     EntornoSe.AbrirPestana(url);
+                    return true;
+                case ltrMenus.eventosDeMf.Parametrizacion.Estados.Flujo:
+                    let parametros: Array<Parametro> = new Array<Parametro>();
+                    parametros.push(new Parametro(Ajax.Param.enumNegocio, this.NombreDeNegocio));
+                    parametros.push(new Parametro(Ajax.Param.idEstado, idEstado));
+                    ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Negocio.Estados.ObtenerFlujo, parametros, new Array<Parametro>())
+                        .then((pFlujo: ApiDeAjax.DescriptorAjax) => {
+                            // Cargar posiciones guardadas antes de pintar
+                            const parPos: Array<Parametro> = [
+                                new Parametro(Ajax.Param.enumNegocio, this.NombreDeNegocio),
+                                new Parametro(Ajax.Param.idEstado, idEstado)
+                            ];
+                            // Cargar posiciones guardadas con fetch directo (negocio en query-string)
+                            const urlPos = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.LeerPosiciones}?negocio=${encodeURIComponent(this.NombreDeNegocio)}`;
+                            fetch(urlPos, { credentials: 'same-origin' })
+                                .then(r => r.json())
+                                .then(d => Flujo.MostrarModalDeFlujo(estado, pFlujo.resultado.datos, this.NombreDeNegocio, Numero(idEstado), d.datos || []))
+                                .catch(() => Flujo.MostrarModalDeFlujo(estado, pFlujo.resultado.datos, this.NombreDeNegocio, Numero(idEstado), []));
+                        })
+                        .catch((p: ApiDeAjax.DescriptorAjax) => ApiDePeticiones.EmitirError(p));
                     return true;
             }
             return false;

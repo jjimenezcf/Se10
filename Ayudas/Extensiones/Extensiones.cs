@@ -779,6 +779,18 @@ namespace Utilidades
                 if (elemento.Value.GetType() == typeof(Newtonsoft.Json.Linq.JArray))
                     return ((Newtonsoft.Json.Linq.JArray)elemento.Value).ToObject<T>();
 
+                //if (elemento.Value.GetType() == typeof(string) && typeof(T) != typeof(string))
+                //{
+                //    try
+                //    {
+                //        return Newtonsoft.Json.JsonConvert.DeserializeObject<T>((string)elemento.Value);
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        throw new Exception($"El valor de la clave '{clave}' es un string pero no se pudo deserializar al tipo {typeof(T).Name}.", ex);
+                //    }
+                //}
+
                 if (typeof(T).BaseType == typeof(Enum) && elemento.Value is string)
                     return (T)Enum.Parse(typeof(T), (string)elemento.Value, ignoreCase: true);
 

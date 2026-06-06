@@ -32,7 +32,15 @@ namespace ServicioDeDatos.Negocio
         [Description("Indica la Ia usada por el usuario")]
         USU_Ia_Usada,
         [Description("Información sobre la disposición del DashBoard")]
-        USU_Disposicion_DashBoard
+        USU_Disposicion_DashBoard,
+        [Description("Información sobre las coordenadas (x,y) donde mostrar un estado")]
+        USU_Disposicion_Estados
+    }
+    public class PosicionDeEstado
+    {
+        public int IdEstado { get; set; }
+        public int PosX { get; set; }
+        public int PosY { get; set; }
     }
 
     public enum enumClaseDeDashBoard {Matriz, Tarta, Coordenadas }

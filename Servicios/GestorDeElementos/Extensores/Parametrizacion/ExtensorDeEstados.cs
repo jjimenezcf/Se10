@@ -1,20 +1,22 @@
 ﻿using Gestor.Errores;
+using Newtonsoft.Json.Linq;
+using ServicioDeDatos;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Expediente;
+using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Juridico;
+using ServicioDeDatos.Logistica;
+using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Presupuesto;
 using ServicioDeDatos.RegistroEs;
+using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Tarea;
-using ServicioDeDatos;
+using ServicioDeDatos.Ventas;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
-using ServicioDeDatos.Ventas;
-using ServicioDeDatos.SistemaDocumental;
-using ServicioDeDatos.Gastos;
-using ServicioDeDatos.Logistica;
-using ServicioDeDatos.Contabilidad;
 
 namespace GestorDeElementos.Extensores
 {
@@ -250,5 +252,14 @@ namespace GestorDeElementos.Extensores
 
         public static bool EstaEnLaEtapa(int idEstado, string estadosDeUnaEtapa) => estadosDeUnaEtapa.ToLista<int>(Simbolos.Coma).Contains(idEstado);
 
+        public static List<PosicionDeEstado> PosicionesDeEstados(this enumNegocio negocio,  ContextoSe contexto)
+        {
+            var jDatos = (JObject)ExtensorDeParmetrosDeUsuario.LeerParametroDeUsuario<JObject>(negocio, contexto, enumParametrosDeUsuario.USU_Disposicion_Estados);
+
+            if (jDatos == null || !jDatos.HasValues)
+                return new List<PosicionDeEstado>();
+
+            return jDatos["estados"]?.ToObject<List<PosicionDeEstado>>() ?? new List<PosicionDeEstado>();
+        }
     }
 }

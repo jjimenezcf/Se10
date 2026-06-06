@@ -739,6 +739,7 @@ namespace Utilidades
         public const string CuentasBancarias = "cta-bancarias";
         public const string MiCertificado = "mi-certificado";
         public const string Transiciones = "transiciones";
+        public const string Flujo = "flujo";
         public const string CrearTareas = "crear-tarea";
         public const string AbrirAgenda = "abrir-agenda";
         public const string GenerarLosPlanificadores = "generar-planificadores";
@@ -771,6 +772,7 @@ namespace Utilidades
         public const string Comun_LeerDatosParaExportacion = "leer-datos-para-exportacion";
         public const string Comun_EnviarElemento = "enviar_elemento";
         public const string Comun_GuardarDisposicionDashBoard = "guardar-disposicion-dashboard";
+        public const string Comun_GuardarDisposicionEstados = "guardar-disposicion-estados";
 
         public const string Imputar_FacturasRec = "imputar-facturas";
 
@@ -1023,6 +1025,7 @@ namespace Utilidades
         MenuDeDetalle,
         MenuDeDetalleOculto,
         MenuDeDetalleVisible,
+        MenuDeDetalleInvisible,
         MenuDeRelaciones,
         MenuFormulario,
         DivVacioDeLaDerecha,
@@ -1943,6 +1946,7 @@ namespace Utilidades
                 case enumCssMnt.MenuDeDetalle: return "menu-de-detalle";
                 case enumCssMnt.MenuDeDetalleOculto: return "menu-de-detalle-oculto";
                 case enumCssMnt.MenuDeDetalleVisible: return "menu-de-detalle-visible";
+                case enumCssMnt.MenuDeDetalleInvisible: return "menu-de-detalle-invisible";
 
                 case enumCssMnt.MenuFormulario: return "menu-formulario";
                 case enumCssMnt.DivVacioDeLaDerecha: return "div-vacio-derecha";

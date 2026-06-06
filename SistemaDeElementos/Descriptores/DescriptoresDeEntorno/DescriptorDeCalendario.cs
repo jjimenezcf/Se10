@@ -63,7 +63,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             DescriptorDeEdicion<AgendaDto>.IncluirMfIndividual(opciones, "<hr>");
             DescriptorDeEdicion<AgendaDto>.IncluirMfIndividual(opciones
-                , $"<li id='{idMenu}.{eventosDeMf.Transiciones}' accion-menu='{eventosDeMf.AbrirAgenda}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Abrir agenda</li>");
+                , $"<li id='{idMenu}.{eventosDeMf.AbrirAgenda}' accion-menu='{eventosDeMf.AbrirAgenda}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Abrir agenda</li>");
         }
 
 

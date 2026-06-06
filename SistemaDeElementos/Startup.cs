@@ -4,7 +4,6 @@ using GestoresDeNegocio;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,14 +16,11 @@ using ServicioDeDatos;
 using SistemaDeElementos.Extensions;
 using SistemaDeElementos.Middleware;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json.Serialization;
 using Utilidades;
 using WebOptimizer.Processors;
-using static GestoresDeNegocio.Tarea.GestorDeTareas;
 
 namespace MVCSistemaDeElementos;
 
@@ -142,6 +138,7 @@ public class Startup
                     $"{rutaJs}_Api{Path.DirectorySeparatorChar}MapearAlPanel.js",
                     $"{rutaJs}_Api{Path.DirectorySeparatorChar}MapearAlControl.js",
                     $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeDireccion.js",
+                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiFlujo.js",
                     $"{rutaJs}ArbolDeMenu.js",
                     $"{rutaJs}EntornoSe.js",
                     $"{rutaJs}PanelDeControl.js",

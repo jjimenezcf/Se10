@@ -345,6 +345,9 @@
     content: url(../images/Menu/OcultarDetalle.png);
 }
 
+.menu-de-detalle-invisible {
+}
+
 .menu-de-totales-visible {
     content: url(../images/Menu/MostrarTotales.png) !important;
 }

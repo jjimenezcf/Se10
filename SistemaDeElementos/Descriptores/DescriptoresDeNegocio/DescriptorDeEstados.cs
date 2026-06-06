@@ -46,8 +46,9 @@ namespace MVCSistemaDeElementos.Descriptores
         }
         private void DefinirMf(string idMenu, List<string> opciones)
         {
-            DescriptorDeEdicion<EstadoDto>.IncluirMfIndividual(opciones, "<hr>");
+            //DescriptorDeEdicion<EstadoDto>.IncluirMfIndividual(opciones, "<hr>");
             DescriptorDeEdicion<EstadoDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.{eventosDeMf.Transiciones}' accion-menu='{eventosDeMf.Transiciones}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Transiciones</li>");
+            DescriptorDeEdicion<EstadoDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.{eventosDeMf.Flujo}' accion-menu='{eventosDeMf.Flujo}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Flujo</li>");
         }
 
 

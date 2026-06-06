@@ -545,17 +545,30 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public static string DefinirNavegador(string idHtml, string controlador, string vistaDondeNavegar, enumNegocio negocio, string onClick)
         {
+            if (vistaDondeNavegar.IsNullOrEmpty())
+                return "";
+
+            // Si apunta al CRUD de Estados, abrir la modal del flujo en lugar de navegar
+            if (vistaDondeNavegar == enumVistasNegocio.CrudDeEstados)
+                return $@"<a id=¨{idHtml}-navegador¨
+                              tipo=¨{enumTipoControl.Referencia}¨
+                              class=¨boton-de-navegacion¨
+                              controlador='{controlador.Replace(ltrEndPoint.Controller, "")}'
+                              vista='{vistaDondeNavegar}'
+                              negocio='{negocio.ToNombre()}'
+                              href=¨#¨
+                              onclick='return Flujo.MostrarFlujoDeEstado(this);'/>></a>";
+
             onClick = onClick.IsNullOrEmpty() ? "" : $"al-pulsar = '{onClick}'";
-            return !vistaDondeNavegar.IsNullOrEmpty() ?
-               $@"<a id =¨{idHtml}-navegador¨ 
-                      tipo =¨{enumTipoControl.Referencia}¨
-                      class=¨boton-de-navegacion¨ 
-                      {(onClick.IsNullOrEmpty() ? $"target=¨_blank¨" : "")}
-                      controlador='{controlador.Replace(ltrEndPoint.Controller, "")}'
-                      vista='{vistaDondeNavegar}'
-                      negocio = '{negocio.ToNombre()}'
-                      {onClick}
-                      href=¨{(!onClick.IsNullOrEmpty() ? "#" : "")}¨/>></a>" : "";
+            return $@"<a id =¨{idHtml}-navegador¨
+                          tipo =¨{enumTipoControl.Referencia}¨
+                          class=¨boton-de-navegacion¨
+                          {(onClick.IsNullOrEmpty() ? $"target=¨_blank¨" : "")}
+                          controlador='{controlador.Replace(ltrEndPoint.Controller, "")}'
+                          vista='{vistaDondeNavegar}'
+                          negocio = '{negocio.ToNombre()}'
+                          {onClick}
+                          href=¨{(!onClick.IsNullOrEmpty() ? "#" : "")}¨/>></a>";
         }
 
         internal static string DefinirBotonNavegador(string idHtml, bool urlExterna)
