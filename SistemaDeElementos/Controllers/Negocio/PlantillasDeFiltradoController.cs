@@ -1,12 +1,13 @@
-﻿using ServicioDeDatos;
-using Gestor.Errores;
+﻿using Gestor.Errores;
+using GestorDeElementos;
 using GestoresDeNegocio.Negocio;
 using ModeloDeDto.Negocio;
-using ServicioDeDatos.Negocio;
-using Utilidades;
-using System.Collections.Generic;
-using GestorDeElementos;
+using ServicioDeDatos;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Negocio;
+using System;
+using System.Collections.Generic;
+using Utilidades;
 
 namespace MVCSistemaDeElementos.Controllers
 {
@@ -28,7 +29,18 @@ namespace MVCSistemaDeElementos.Controllers
             switch (peticion)
             {
                 case eventosDeMf.Comun_GuardarPlantillaFiltrado:
-                    return GestorDePlantillasDeFiltrado.GuardarPlantillasDeFiltrado(Contexto, negocio, parametros);
+                    string urlNavegador = HttpContext.Request.Headers["Referer"].ToString(); 
+                    if (string.IsNullOrEmpty(urlNavegador))
+                    {
+                        GestorDeErrores.Emitir("No se ha podido determinar la URL de origen desde el navegador.");
+                    }
+                    var uri = new Uri(urlNavegador);
+                    var segmentos = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (segmentos.Length < 2)
+                    {
+                        GestorDeErrores.Emitir("La URL no tiene el formato esperado para guardar la plantilla de filtrado.");
+                    }
+                    return GestorDePlantillasDeFiltrado.GuardarPlantillasDeFiltrado(Contexto, negocio, controlador: segmentos[0], accion: segmentos[1], parametros);
                 case eventosDeMf.Comun_EliminarPlantillaFiltrado:
                     return Contexto.EliminarPorId<PlantillaDeFiltradoDtm>((int)parametros.LeerValor<long>(nameof(PlantillaDeFiltradoDtm.Id)));
             }

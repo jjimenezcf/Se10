@@ -125,10 +125,13 @@ namespace Utilidades
         InicializarModalCambiarPassword,
 
         SeleccionarIa,
+        OpcionSeleccionada,
+        AbrirVista,
         MostarOcultarAbout,
         DescargarDeclaracionResponsable,
         Logout,
         ResetearDashBoard,
+        MostarMisFiltros,
 
         MiCorreo_ComoArchivar,
         MiCorreo_ComoVincular,

@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
-using AutoMapper;
-using ServicioDeDatos;
+﻿using AutoMapper;
+using Gestor.Errores;
 using GestorDeElementos;
-using Utilidades;
-using ServicioDeDatos.Negocio;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using ModeloDeDto.Negocio;
-using Gestor.Errores;
-using Newtonsoft.Json.Linq;
-using GestorDeElementos.Extensores;
-using Newtonsoft.Json;
+using ServicioDeDatos;
+using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Negocio;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Utilidades;
 
 namespace GestoresDeNegocio.Negocio
 {
@@ -49,6 +50,12 @@ namespace GestoresDeNegocio.Negocio
             base.DespuesDePersistir(parametro, parametros);
         }
 
+        protected override void EliminarCaches(PlantillaDeFiltradoDtm registro, ParametrosDeNegocio parametros)
+        {
+            base.EliminarCaches(registro, parametros);
+            ServicioDeCaches.EliminarCache(CacheDe.RenderCrud);
+        }
+
         protected override IQueryable<PlantillaDeFiltradoDtm> AplicarJoins(IQueryable<PlantillaDeFiltradoDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
             consulta = base.AplicarJoins(consulta, filtros, parametros);
@@ -61,12 +68,22 @@ namespace GestoresDeNegocio.Negocio
             base.DespuesDeMapearElElemento(parametro, elemento, parametros);
         }
 
-        public static PlantillaDeFiltradoDto GuardarPlantillasDeFiltrado(ContextoSe contexto, enumNegocio negocio, Dictionary<string, object> parametros)
+        public static PlantillaDeFiltradoDto GuardarPlantillasDeFiltrado(ContextoSe contexto, enumNegocio negocio, string controlador, string accion, Dictionary<string, object> parametros)
         {
             var plantilla = parametros.LeerValor(nameof(PlantillaDeFiltradoDto.Plantilla), "").Trim();
             if (plantilla.IsNullOrEmpty()) GestorDeErrores.Emitir("Ha de indicar el nombre de la plantilla a crear");
-            var vista = parametros.LeerValor(nameof(PlantillaDeFiltradoDtm.Vista), "");
+            var titulo = parametros.LeerValor(nameof(PlantillaDeFiltradoDtm.Vista), "");
             if (plantilla.IsNullOrEmpty()) GestorDeErrores.Emitir("Ha de indicar el nombre de la vista");
+
+            var vistaDtm = contexto.Set<VistaMvcDtm>().Where(v => v.Controlador == controlador && v.Accion == accion);
+            if (!vistaDtm.Any())
+            {
+                GestorDeErrores.Emitir($"No se puede guarada el filtro indicado ya que la vista '{controlador}/{accion}' no existe");
+            }
+            if (vistaDtm.Count() > 1)
+            {
+                GestorDeErrores.Emitir($"No se puede guarada el filtro indicado ya que la vista '{controlador}/{accion}' está definida más de una vez");
+            }
 
             var valor = parametros.LeerValor<string>(ltrParametrosEp.datosPeticion);
             var filtros = new Dictionary<string, object>
@@ -74,7 +91,7 @@ namespace GestoresDeNegocio.Negocio
                 {nameof(PlantillaDeFiltradoDtm.IdUsuario), contexto.DatosDeConexion.IdUsuario},
                 {nameof(PlantillaDeFiltradoDtm.IdNegocio), negocio.IdNegocio() },
                 {nameof(PlantillaDeFiltradoDtm.Nombre), plantilla },
-                {nameof(PlantillaDeFiltradoDtm.Vista), vista }
+                {nameof(PlantillaDeFiltradoDtm.Vista), titulo }
             };
             var plantillaDtm = contexto.SeleccionarPorAk<PlantillaDeFiltradoDtm>(filtros, errorSiNoHay: false);
 
@@ -85,8 +102,9 @@ namespace GestoresDeNegocio.Negocio
                     IdNegocio = negocio.IdNegocio(),
                     IdUsuario = contexto.DatosDeConexion.IdUsuario,
                     Nombre = plantilla,
-                    Vista = vista,
-                    Valor = valor
+                    Vista = titulo,
+                    Valor = valor,
+                    IdVista = vistaDtm.First().Id
                 }.Insertar(contexto);
             }
             else if (plantillaDtm.Valor != valor)
@@ -97,5 +115,35 @@ namespace GestoresDeNegocio.Negocio
 
             return plantillaDtm.MapearDto<PlantillaDeFiltradoDto>(contexto);
         }
+
+        public static List<MisFiltros> LeerFiltrosDeUsuario(ContextoSe contexto)
+        {
+            var resultado = new List<MisFiltros>();
+            var filtros = contexto.Set<PlantillaDeFiltradoDtm>().Include(f => f.Negocio).Where(f => f.IdUsuario == contexto.DatosDeConexion.IdUsuario && f.IdVista != null).OrderBy(f => f.Negocio.Enumerado).ToList();
+            var idsDeNegocios = filtros.Select(f => f.IdNegocio).Distinct();
+            foreach (var idNegocio in idsDeNegocios)
+            {
+                var filtrosPorNegocio = filtros.Where(f => f.IdNegocio == idNegocio).ToList();
+                var negocio = filtros.Where(f => f.IdNegocio == idNegocio).Select(f => f.Negocio.Nombre).FirstOrDefault();
+                foreach (var filtro in filtrosPorNegocio)
+                {
+                    var vista = contexto.Set<VistaMvcDtm>().Where(v => v.Id == filtro.IdVista).First();
+                    var url = $"{vista.Controlador}/{vista.Accion}";
+                    resultado.Add(new MisFiltros
+                    {
+                        Id = filtro.Id,
+                        IdVista = filtro.IdVista.Entero(),
+                        Negocio = negocio,
+                        Enumerado =NegociosDeSe.ToEnumerado(negocio),
+                        Nombre = filtro.Nombre,
+                        Titulo = filtro.Vista,
+                        Url = url
+                    });
+                }
+            }
+            return resultado;
+
+        }
+
     }
 }

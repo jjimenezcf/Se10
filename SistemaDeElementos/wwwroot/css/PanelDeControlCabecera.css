@@ -131,6 +131,15 @@
     display: none;
 }
 
+.contenedor-menu-misfiltros {
+    position: absolute;
+    right: 10px;
+    top: 50px;
+    z-index: 1000;
+    width: 200px
+}
+
+
 .contenedor-menu-about {
     position: absolute;
     right: 10px;
@@ -166,6 +175,15 @@
  * ESTILOS PARA LOS MENÚS DESPLEGABLES DE LA CABECERA
  */
 
+.opc-menu-misfiltros a {
+    background-repeat: no-repeat;
+    background-position: 5px center;
+    padding-left: 30px;
+}
+
+.opc-menu-misfiltros:hover > .submenu-misfiltros {
+    display: block;
+}
 
 .opc-menu-prc-ia a,
 .opc-menu-prc-verfactu a,
@@ -204,7 +222,8 @@
 /* 1. Contenedor principal del menú (el <ul>) - El "cuadrado bonito" */
 .contenedor-menu-ultimos-registros ul,
 .contenedor-menu-ultimos-accesos ul,
-.contenedor-menu-favoritos ul, 
+.contenedor-menu-misfiltros ul,
+.contenedor-menu-favoritos ul,
 .contenedor-menu-about ul {
     list-style-type: none; /* Quita los puntos de la lista */
     margin: 0;
@@ -216,57 +235,69 @@
     /* overflow: hidden;  Asegura que todo el contenido respete los bordes redondeados */
 }
 
+.contenedor-menu-misfiltros a {
+    padding: 10px 10px !important;
+}
 
-    /* 2. Cada opción del menú (el <li> y su enlace <a>) */
-    .contenedor-menu-ultimos-registros ul li a,
-    .contenedor-menu-ultimos-accesos ul li a,
-    .contenedor-menu-favoritos ul li a,
-    .contenedor-menu-about ul li a {
-        display: flex !important; /* Hace que el enlace ocupe todo el espacio del <li> */
-        padding: 10px 28px; /* Espaciado interno para que no esté pegado al texto */
-        color: #333; /* Color de texto oscuro */
-        text-decoration: none; /* Quita el subrayado de los enlaces */
-        font-size: 14px;
-        /* La magia de la transición suave */
-        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+/* 2. Cada opción del menú (el <li> y su enlace <a>) */
+.contenedor-menu-ultimos-registros ul li a,
+.contenedor-menu-ultimos-accesos ul li a,
+.contenedor-menu-favoritos ul li a,
+.contenedor-menu-misfiltros ul li a,
+.contenedor-menu-about ul li a {
+    display: flex !important; /* Hace que el enlace ocupe todo el espacio del <li> */
+    padding: 10px 28px; /* Espaciado interno para que no esté pegado al texto */
+    color: #333; /* Color de texto oscuro */
+    text-decoration: none; /* Quita el subrayado de los enlaces */
+    font-size: 14px;
+    /* La magia de la transición suave */
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+    /* 3. Efecto al pasar el ratón por encima (HOVER) */
+    .contenedor-menu-ultimos-registros ul li a:hover,
+    .contenedor-menu-ultimos-accesos ul li a:hover,
+    .contenedor-menu-favoritos ul li a:hover,
+    .contenedor-menu-misfiltros ul li a:hover,
+    .contenedor-menu-about ul li a:hover {
+        background-color: #f0f0f0; /* Color de fondo gris claro para resaltar */
+        color: #000; /* Texto un poco más oscuro */
     }
 
-        /* 3. Efecto al pasar el ratón por encima (HOVER) */
-        .contenedor-menu-ultimos-registros ul li a:hover,
-        .contenedor-menu-ultimos-accesos ul li a:hover,
-        .contenedor-menu-favoritos ul li a:hover,
-        .contenedor-menu-about ul li a:hover {
-            background-color: #f0f0f0; /* Color de fondo gris claro para resaltar */
-            color: #000; /* Texto un poco más oscuro */
-        }
-
-        /* 4. Efecto al hacer clic (ACTIVE) - La transición de pulsación */
-        .contenedor-menu-ultimos-registros ul li a:active,
-        .contenedor-menu-ultimos-accesos ul li a:active,
-        .contenedor-menu-favoritos ul li a:active,
-        .contenedor-menu-about ul li a:active {
-            background-color: #e0e0e0; /* Un fondo ligeramente más oscuro que el hover */
-            transform: scale(0.98); /* Reduce ligeramente el tamaño para simular que se presiona */
-        }
+    /* 4. Efecto al hacer clic (ACTIVE) - La transición de pulsación */
+    .contenedor-menu-ultimos-registros ul li a:active,
+    .contenedor-menu-ultimos-accesos ul li a:active,
+    .contenedor-menu-favoritos ul li a:active,
+    .contenedor-menu-misfiltros ul li a:active,
+    .contenedor-menu-about ul li a:active {
+        background-color: #e0e0e0; /* Un fondo ligeramente más oscuro que el hover */
+        transform: scale(0.98); /* Reduce ligeramente el tamaño para simular que se presiona */
+    }
 
 
-        /*
+    /*
 
             */
 
-        .contenedor-menu-ultimos-registros ul li a input,
-        .contenedor-menu-ultimos-accesos ul li a input {
-            margin-left: 5px;
-        }
-
-    /* Opcional: Para el li que no es un enlace (si lo tuvieras) */
-    .contenedor-menu-ultimos-registros ul li,
-    .contenedor-menu-ultimos-accesos ul li,
-    .contenedor-menu-favoritos ul li,
-    .contenedor-menu-about ul li {
-        margin: 0;
-        padding: 0;
+    .contenedor-menu-ultimos-registros ul li a input,
+    .contenedor-menu-misfiltros ul li a input,
+    .contenedor-menu-ultimos-accesos ul li a input {
+        margin-left: 5px;
     }
+
+/* Opcional: Para el li que no es un enlace (si lo tuvieras) */
+.contenedor-menu-ultimos-registros ul li,
+.contenedor-menu-ultimos-accesos ul li,
+.contenedor-menu-favoritos ul li,
+.contenedor-menu-misfiltros ul li,
+.contenedor-menu-about ul li {
+    margin: 0;
+    padding: 0;
+}
+
+.contenedor-menu-misfiltros ul li {
+    padding-left: 15px;
+}
 
 .contenedor-menu-derecho-cabecera {
     display: inline-flex;
@@ -297,7 +328,7 @@
 }
 
 /* Ocultar el submenú por defecto */
-.submenu-ia {
+.submenu-ia, .submenu-misfiltros {
     display: none;
     position: absolute;
     /* AJUSTE CLAVE: REPOSICIONAMIENTO A LA IZQUIERDA */
@@ -355,6 +386,18 @@
     padding-right: 30px;
     padding-left: 30px;
 }
+
+.btn-mis-filtros {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 5px
+}
+
 
 .btn-ultimos-accesos {
     background: none;

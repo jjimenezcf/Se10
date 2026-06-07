@@ -39,7 +39,6 @@
     export async function OpcionSeleccionada(idVistaMvc: string, controlador: string, accion: string, parametros: string, event: KeyboardEvent | MouseEvent) {
         const target = event.target as HTMLElement;
         let dentroDeUl = false;
-
         if (target) {
             let elem: HTMLElement | null = target;
             while (elem) {
@@ -54,29 +53,8 @@
         if (!dentroDeUl) {
             MostrarMenu();
         }
-        PonerCapa();
-        EntornoSe.OcultarMenusRapidos();
-        try {
-            let urlBase: string = window.location.origin;
-            let pagina: string = `${urlBase}/${controlador}/${accion}?origen=menu`;
-            let url: string = `${pagina}${IsNullOrEmpty(parametros) ? '' : `&${parametros.replace('|', '&')}`}`;
-
-            if (accion === Ajax.Entorno.ArbolMenu.Inicializar)
-                Registro.EliminarArbolDeMenu();
-
-            if (parametros.indexOf('guid=0') >= 0)
-                url = url.replace('guid=0', 'guid=' + generarUUID());
-
-            await GuardarMenuAccedido(idVistaMvc, parametros, url);
-
-            if (!Definido(event) || !event['ctrlKey'])
-                EntornoSe.NavegarAUrl(url);
-            else
-                EntornoSe.AbrirPestana(url);
-        }
-        finally {
-            QuitarCapa();
-        }
+        let url = EntornoSe.AbrirVista(controlador, accion, parametros, event);
+        await GuardarMenuAccedido(idVistaMvc, parametros, url);
     }
 
     export async function UrlSeleccionada(url: string, event: KeyboardEvent | MouseEvent) {

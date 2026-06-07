@@ -158,7 +158,8 @@ namespace EntornoSe {
         let menuUltimosAccesos: HTMLDivElement = document.getElementById('contenedor-menu-ultimos-accesos') as HTMLDivElement;
         let menuFavoritos: HTMLDivElement = document.getElementById('contenedor-menu-favoritos') as HTMLDivElement;
         let menuAbout: HTMLDivElement = document.getElementById('contenedor-menu-about') as HTMLDivElement;
-        return { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros };
+        let menuMisFiltros: HTMLDivElement = document.getElementById('contenedor-menu-misfiltros') as HTMLDivElement;
+        return { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros, menuMisFiltros };
     }
 
     function cerrarMenusFlotantes() {
@@ -179,10 +180,27 @@ namespace EntornoSe {
             }
         }
     }
+    export function MostarMisFiltros(): void {
+        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros, menuMisFiltros }:
+            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; menuMisFiltros: HTMLDivElement; }
+            = ContenedoresDeMenus();
+        ArbolDeMenu.CerrarMenu();
+        cerrarMenusFlotantes();
+        if (!menuMisFiltros.classList.contains(ltrCss.PanelDeControl.Menu.Oculto))
+            ApiControl.IncluirCss(menuMisFiltros, ltrCss.PanelDeControl.Menu.Oculto);
+        else {
+            ApiControl.IncluirCss(menuUltimosAccesos, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.IncluirCss(menuFavoritos, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.IncluirCss(menuAbout, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.IncluirCss(menuUltimosRegistros, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.ExcluirCss(menuMisFiltros, ltrCss.PanelDeControl.Menu.Oculto);
+        }
+    }
+
 
     export function MostarUltimosRegistros(): void {
-        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros }:
-            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; }
+        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros, menuMisFiltros }:
+            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; menuMisFiltros: HTMLDivElement; }
             = ContenedoresDeMenus();
         ArbolDeMenu.CerrarMenu();
         cerrarMenusFlotantes();
@@ -192,13 +210,14 @@ namespace EntornoSe {
             ApiControl.IncluirCss(menuUltimosAccesos, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.IncluirCss(menuFavoritos, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.IncluirCss(menuAbout, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.IncluirCss(menuMisFiltros, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.ExcluirCss(menuUltimosRegistros, ltrCss.PanelDeControl.Menu.Oculto);
         }
     }
 
     export function MostarUltimosAccesos(): void {
-        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros }:
-            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; }
+        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros, menuMisFiltros }:
+            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; menuMisFiltros: HTMLDivElement; }
             = ContenedoresDeMenus();
         ArbolDeMenu.CerrarMenu();
         cerrarMenusFlotantes();
@@ -208,12 +227,13 @@ namespace EntornoSe {
             ApiControl.IncluirCss(menuFavoritos, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.IncluirCss(menuAbout, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.IncluirCss(menuUltimosRegistros, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.IncluirCss(menuMisFiltros, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.ExcluirCss(menuUltimosAccesos, ltrCss.PanelDeControl.Menu.Oculto);
         }
     }
     export function MostarOcultarFavoritos(): void {
-        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros }:
-            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; }
+        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros, menuMisFiltros }:
+            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; menuMisFiltros: HTMLDivElement; }
             = ContenedoresDeMenus();
         ArbolDeMenu.CerrarMenu();
         cerrarMenusFlotantes();
@@ -223,6 +243,7 @@ namespace EntornoSe {
             ApiControl.IncluirCss(menuAbout, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.IncluirCss(menuUltimosRegistros, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.IncluirCss(menuUltimosAccesos, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.IncluirCss(menuMisFiltros, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.ExcluirCss(menuFavoritos, ltrCss.PanelDeControl.Menu.Oculto);
         }
     }
@@ -299,8 +320,8 @@ namespace EntornoSe {
 
 
     export function MostarOcultarAbout(): void {
-        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros }:
-            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; }
+        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros, menuMisFiltros }:
+            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; menuMisFiltros: HTMLDivElement; }
             = ContenedoresDeMenus();
         ArbolDeMenu.CerrarMenu();
         cerrarMenusFlotantes();
@@ -311,18 +332,20 @@ namespace EntornoSe {
             ApiControl.IncluirCss(menuUltimosRegistros, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.IncluirCss(menuUltimosAccesos, ltrCss.PanelDeControl.Menu.Oculto);
             ApiControl.ExcluirCss(menuAbout, ltrCss.PanelDeControl.Menu.Oculto);
+            ApiControl.IncluirCss(menuMisFiltros, ltrCss.PanelDeControl.Menu.Oculto);
         }
     }
 
 
     export function OcultarMenusRapidos(): void {
-        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros }:
-            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; }
+        let { menuUltimosAccesos, menuFavoritos, menuAbout, menuUltimosRegistros, menuMisFiltros }:
+            { menuUltimosAccesos: HTMLDivElement; menuFavoritos: HTMLDivElement; menuAbout: HTMLDivElement; menuUltimosRegistros: HTMLDivElement; menuMisFiltros: HTMLDivElement; }
             = ContenedoresDeMenus();
         ApiControl.IncluirCss(menuFavoritos, ltrCss.PanelDeControl.Menu.Oculto);
         ApiControl.IncluirCss(menuUltimosRegistros, ltrCss.PanelDeControl.Menu.Oculto);
         ApiControl.IncluirCss(menuUltimosAccesos, ltrCss.PanelDeControl.Menu.Oculto);
         ApiControl.IncluirCss(menuAbout, ltrCss.PanelDeControl.Menu.Oculto);
+        ApiControl.IncluirCss(menuMisFiltros, ltrCss.PanelDeControl.Menu.Oculto);
     }
 
     export function CambiarPassword(): void {
@@ -389,14 +412,13 @@ namespace EntornoSe {
         EntornoSe.AbrirPestana(url);
     }
 
-
     export async function Fichar(): Promise<void> {
         const obtenerPosicion = (): Promise<GeolocationPosition | null> => {
             return new Promise((resolve) => {
                 if (!navigator.geolocation) return resolve(null);
                 navigator.geolocation.getCurrentPosition(
                     (pos) => resolve(pos),
-                    () => resolve(null), 
+                    () => resolve(null),
                     { timeout: 10000 }
                 );
             });
@@ -412,8 +434,6 @@ namespace EntornoSe {
             .finally(() => MostarOcultarFavoritos());
     }
 
-
-
     export function DespuesDeFichar(peticion: ApiDeAjax.DescriptorAjax): any {
         //var url = peticion.resultado.datos;
         ApiLocalStorage.CambiarTextoFichada()
@@ -421,5 +441,30 @@ namespace EntornoSe {
         //EntornoSe.AbrirPestana(url)
     }
 
+    export function AbrirVista(controlador: string, accion: string, parametros: string, event: KeyboardEvent | MouseEvent): string {
+        PonerCapa();
+        EntornoSe.OcultarMenusRapidos();
+        let urlBase: string = window.location.origin;
+        let pagina: string = `${urlBase}/${controlador}/${accion}?origen=menu`;
+        let url: string = `${pagina}${IsNullOrEmpty(parametros) ? '' : `&${parametros.replace('|', '&')}`}`;
+        try {
+            if (accion === Ajax.Entorno.ArbolMenu.Inicializar)
+                Registro.EliminarArbolDeMenu();
 
+            if (parametros.indexOf('guid=0') >= 0)
+                url = url.replace('guid=0', 'guid=' + generarUUID());
+
+            if (!Definido(event) || !event['ctrlKey'])
+                EntornoSe.NavegarAUrl(url);
+            else
+                EntornoSe.AbrirPestana(url);
+            return url;
+        }
+        catch {
+            MensajesSe.EmitirExcepcion("EntornoSe","Error al abrir la url:" + url);
+        }
+        finally {
+            QuitarCapa();
+        }
+    }
 }

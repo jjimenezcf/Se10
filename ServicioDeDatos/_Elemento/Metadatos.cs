@@ -361,6 +361,7 @@ namespace ServicioDeDatos.Elemento
         internal const string ORDEN = nameof(ORDEN);
         internal const string PADRE = nameof(PADRE);
         public const string VISTA = nameof(VISTA);
+        public const string ID_VISTA = nameof(ID_VISTA);
         internal const string CONTROLADOR = nameof(CONTROLADOR);
         internal const string ACCION = nameof(ACCION);
         internal const string PARAMETROS = nameof(PARAMETROS);

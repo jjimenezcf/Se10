@@ -78,7 +78,7 @@ namespace ServicioDeDatos.Elemento
         public enumNegocio Negocio { get; }
     }
 
-    public class PlantillaDeUsuario : RegistroConNombreDtm, IPlantillaDeUsuario
+    public class PlantillaDeUsuarioDtm : RegistroConNombreDtm, IPlantillaDeUsuario
     {
         public string Valor { get; set; }
         public int IdNegocio { get; set; }

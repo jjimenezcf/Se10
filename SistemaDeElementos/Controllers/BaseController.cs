@@ -263,6 +263,26 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        public JsonResult epLeerFiltrosDeUsuario()
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epVincular));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al obtener los filtros para el usuario {DatosDeConexion.Login}.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
         public JsonResult epLeerDatosParaInicializarVista(string negocio, string parametrosJson)
         {
             var r = new Resultado();

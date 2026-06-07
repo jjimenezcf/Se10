@@ -428,7 +428,7 @@ namespace ServicioDeDatos.Elemento
             }
         }
 
-        internal static void DefinirPantillaDeUsuario<TEntity>(ModelBuilder modelBuilder) where TEntity : PlantillaDeUsuario
+        internal static void DefinirPantillaDeUsuario<TEntity>(ModelBuilder modelBuilder) where TEntity : PlantillaDeUsuarioDtm
         {
             var nombreDeTabla = NombreDeTabla(typeof(TEntity));
 
@@ -436,8 +436,8 @@ namespace ServicioDeDatos.Elemento
             modelBuilder.Entity<TEntity>().Property(p => p.Vista).HasColumnName(ICampos.VISTA).HasColumnType(IDominio.VARCHAR_250).IsRequired(true);
             modelBuilder.Entity<TEntity>().Property(p => p.Valor).HasColumnName(ICampos.VALOR).HasColumnType(IDominio.VARCHAR_MAX).IsRequired(true);
 
-            DefinirCampoFk<TEntity>(modelBuilder, nameof(PlantillaDeUsuario.Negocio), nameof(PlantillaDeUsuario.IdNegocio), ICampos.ID_NEGOCIO, requerida: true, unico: false);
-            DefinirCampoFk<TEntity>(modelBuilder, nameof(PlantillaDeUsuario.Usuario), nameof(PlantillaDeUsuario.IdUsuario), ICampos.ID_USUARIO, requerida: true, unico: false);
+            DefinirCampoFk<TEntity>(modelBuilder, nameof(PlantillaDeUsuarioDtm.Negocio), nameof(PlantillaDeUsuarioDtm.IdNegocio), ICampos.ID_NEGOCIO, requerida: true, unico: false);
+            DefinirCampoFk<TEntity>(modelBuilder, nameof(PlantillaDeUsuarioDtm.Usuario), nameof(PlantillaDeUsuarioDtm.IdUsuario), ICampos.ID_USUARIO, requerida: true, unico: false);
 
             modelBuilder.Entity<TEntity>()
             .HasIndex(p => new { p.IdNegocio, p.IdUsuario, p.Nombre, p.Vista })

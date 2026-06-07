@@ -6,7 +6,7 @@ namespace ServicioDeDatos.Negocio
 {
 
     [Table(Tablas.PLANTILLA_CREACION, Schema = Esquemas.NEGOCIO)]
-    public class PlantillaDeCreacionDtm : PlantillaDeUsuario
+    public class PlantillaDeCreacionDtm : PlantillaDeUsuarioDtm
     {
 
     }

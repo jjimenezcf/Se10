@@ -110,7 +110,7 @@ namespace SistemaDeElementos.Controllers.Entorno
             $@"<li  title=¨{funcion.Descripcion}¨>{Environment.NewLine}" +
             $@"  <a style=¨display: flex; padding-top: 2px;padding-bottom: 2px;¨>{Environment.NewLine}" +
             $@"    <img src=¨/images/menu/{funcion.Icono}¨ style=¨margin-top: 6px;margin-right: 0px; width: 20px; height: 20px;¨  alt=¨{funcion.Nombre}¨/>" +
-            $@"    <input id='{idHtml}' type='button' class='menu-opcion' value='{funcion.Nombre}' style=¨padding-left: 3px;¨ onclick =¨ArbolDeMenu.OpcionSeleccionada('{idHtml}','{funcion.VistaMvc.Controlador}','{funcion.VistaMvc.Accion}','{funcion.Parametros}', event)¨ />{Environment.NewLine}" +
+            $@"    <input id='{idHtml}' type='button' class='menu-opcion' value='{funcion.Nombre}' style=¨padding-left: 3px;¨ onclick =¨{enumNameSpaceTs.ArbolDeMenu}.OpcionSeleccionada('{idHtml}','{funcion.VistaMvc.Controlador}','{funcion.VistaMvc.Accion}','{funcion.Parametros}', event)¨ />{Environment.NewLine}" +
             $@"  </a>" +
             $@"</li>{Environment.NewLine}";
 
@@ -125,7 +125,7 @@ namespace SistemaDeElementos.Controllers.Entorno
             $@"<li  title=¨{negocio.Singular()}: {nombre}¨>{Environment.NewLine}" +
             $@"  <a style=¨display: flex; padding-top: 2px;padding-bottom: 2px;¨>{Environment.NewLine}" +
             $@"    <img src=¨/images/menu/{icono}¨ style=¨margin-top: 6px;margin-right: 0px; width: 20px; height: 20px;¨  alt=¨{referencia}¨/>" +
-            $@"    <input id='{idHtml}' type='button' class='menu-opcion' value='{referencia}' style=¨padding-left: 3px;¨ onclick =¨ArbolDeMenu.UrlSeleccionada('{url}', event)¨ />{Environment.NewLine}" +
+            $@"    <input id='{idHtml}' type='button' class='menu-opcion' value='{referencia}' style=¨padding-left: 3px;¨ onclick =¨{enumNameSpaceTs.ArbolDeMenu}.UrlSeleccionada('{url}', event)¨ />{Environment.NewLine}" +
             $@"  </a>" +
             $@"</li>{Environment.NewLine}";
 

@@ -1,16 +1,19 @@
 ﻿using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
+using GestoresDeNegocio.Negocio;
 using ModeloDeDto.Entorno;
 using MVCSistemaDeElementos.Controllers;
 using ServicioDeDatos;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
 using UtilidadesParaIu;
+using static SistemaDeElementos.Inicializador.enumVistas;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -142,6 +145,8 @@ namespace MVCSistemaDeElementos.Descriptores
             <div class='cabecera-separador'></div>
             <!-- Button Container: Favoritos & About -->
             <div class='contenedor-menu-derecho-cabecera'>
+                <!-- Mis filtros Button -->
+                {MenuDeMisFiltros(contexto)}
                 <!-- Ultimos registros Button -->
                 {MenuDeUltimosRegistros(contexto)}
                 <!-- Ultimos accesos Button -->
@@ -193,6 +198,53 @@ namespace MVCSistemaDeElementos.Descriptores
             menu = menu.Replace(ltrPanelDeControl.UltimosRegistros, opciones);
 
             return menu;
+        }
+
+        private static string MenuDeMisFiltros(ContextoSe contexto)
+        {
+            var misfiltros = GestorDePlantillasDeFiltrado.LeerFiltrosDeUsuario(contexto).OrderBy( f => f.Negocio);
+            var negocios = misfiltros.Select(f => f.Negocio).Distinct().ToList();
+            var li = string.Empty;
+            foreach (var negocio in negocios)
+            {
+                li = li + $"<li class='opc-menu-misfiltros' title = 'filtros definidos para: {negocio}'>" +
+                              $"<a href='#'>{negocio}</a>" +
+                              $"<ul class='submenu-misfiltros'>" +
+                                "[filtrosPorNegocio]" +
+                              "</ul>" +
+                           "</li>";
+
+                var innerHtml = string.Empty;
+                foreach (var filtro in misfiltros.Where(f => f.Negocio == negocio))
+                {
+                    innerHtml += RenderFiltro(filtro);
+                }
+
+                li = li.Replace("[filtrosPorNegocio]", innerHtml);
+            }
+            var menu = CabeceraDeMenu(id: "opcion-mis-filtros", clase: "btn-mis-filtros", onclick: $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.MostarMisFiltros}()", imagen: "MisFiltros.png", ayuda: "mis filtros") +
+                $@"                   <div id='contenedor-menu-misfiltros' class='menu-pnlctr-oculto contenedor-menu-misfiltros' >
+                                      <ul id='misfiltros-menu-1'>
+                                       {li}
+                                      </ul>
+                               </div>";
+            return menu;
+        }
+
+        private static string RenderFiltro(MisFiltros filtro)
+        {
+            //window.location.href='{url}'
+            var idHtml = $"{filtro.Enumerado}-{filtro.Id}";
+            var opcionHtml =
+            $@"<li  title=¨{filtro.Enumerado.Singular()}: {filtro.Nombre}¨>{Environment.NewLine}" +
+            $@"  <a style=¨display: flex; padding-top: 2px;padding-bottom: 2px;¨>{Environment.NewLine}" +
+            $@"    <img src=¨/images/menu/{filtro.Enumerado.Icono()}¨ style=¨margin-top: 6px;margin-right: 0px; width: 20px; height: 20px;¨  alt=¨{filtro.Titulo}¨/>" +
+            $@"    <input id='{idHtml}' type='button' class='menu-opcion' value='{filtro.Nombre}' style=¨padding-left: 3px;¨ " +
+            $@"     onclick=¨{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{filtro.Url.Split('/')[0]}', '{filtro.Url.Split('/')[1]}', 'MiFiltro={filtro.Id}',event)¨ />{Environment.NewLine}" +
+            $@"  </a>" +
+            $@"</li>{Environment.NewLine}";
+
+            return opcionHtml.Replace("¨", "\""); ;
         }
 
         private static string MenuDeAbout(ContextoSe contexto)
