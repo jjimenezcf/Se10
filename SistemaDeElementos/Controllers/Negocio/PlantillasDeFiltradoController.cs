@@ -47,7 +47,11 @@ namespace MVCSistemaDeElementos.Controllers
             var partes = peticion.Split(Simbolos.Subrrallado);
             if (partes.Length == 2 && partes[0] == nameof(PlantillaDeFiltradoDto.Plantilla))
             {
-                return Contexto.SeleccionarPorId<PlantillaDeFiltradoDtm>(partes[1].Entero());
+                var  plantilla = Contexto.SeleccionarPorId<PlantillaDeFiltradoDtm>(partes[1].Entero());
+                if (plantilla.IdUsuario != Contexto.DatosDeConexion.IdUsuario)
+                {
+                    GestorDeErrores.Emitir("La plantilla de filtrado solicitada no pertenece al usuario conectado.");
+                }
             }
             return base.ProcesarPeticion(negocio, vista, peticion, parametros);
         }

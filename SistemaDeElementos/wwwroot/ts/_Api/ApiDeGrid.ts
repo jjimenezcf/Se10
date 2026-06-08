@@ -887,7 +887,7 @@
         throw Error(`No se ha localizado una celda con la propiedad '${propiedadBuscada}' definida`);
     }
 
-    export function AplicarDisposicionDelEncolumnado(tabla: HTMLDivElement, disposicionDeColumnas: DisposicionDeColumna[]): void {
+    export function AplicarDisposicionDelEncolumnadoOld(tabla: HTMLDivElement, disposicionDeColumnas: DisposicionDeColumna[]): void {
         // Obtener referencias a los th y td
         const ths = Array.from(tabla.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.columna));
 
@@ -954,6 +954,76 @@
                 }
             });
             tbody!.appendChild(nuevaFila);
+        });
+    }
+
+    export function AplicarDisposicionDelEncolumnado(tabla: HTMLDivElement, disposicionDeColumnas: DisposicionDeColumna[]): void {
+        // 1. Crear mapas de búsqueda rápida para evitar hacer .find() repetidamente
+        const mapaPosicionesPorId = new Map<string, number>();
+        const mapaPosicionesPorPropiedad = new Map<string, number>();
+
+        disposicionDeColumnas.forEach(d => {
+            mapaPosicionesPorId.set(d.Id, d.Posicion);
+            mapaPosicionesPorPropiedad.set(d.Propiedad, d.Posicion);
+        });
+
+        // --- ORDENAR CABECERAS (THEAD) ---
+        const thead = tabla.querySelector('.' + ltrCss.crud.thead);
+        if (!thead) return; // Control de seguridad por si no existe el thead
+
+        const ths = Array.from(tabla.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.columna));
+
+        // Ordenar cabeceras usando el mapa indexado
+        ths.sort((a, b) => {
+            const posA = mapaPosicionesPorId.has(a.id) ? mapaPosicionesPorId.get(a.id)! : 999;
+            const posB = mapaPosicionesPorId.has(b.id) ? mapaPosicionesPorId.get(b.id)! : 999;
+            return posA - posB;
+        });
+
+        // Reconstruir el THEAD con el nuevo orden
+        const nuevaFilaHeader = document.createElement('div');
+        nuevaFilaHeader.classList.add(ltrCss.crud.fila);
+        ths.forEach(th => nuevaFilaHeader.appendChild(th));
+
+        thead.innerHTML = '';
+        thead.appendChild(nuevaFilaHeader);
+
+
+        // --- ORDENAR FILAS Y CELDAS (TBODY) ---
+        const tbody = tabla.querySelector<HTMLDivElement>('.' + ltrCss.crud.tbody);
+        if (!tbody) return; // Control de seguridad por si no existe el tbody
+
+        // Obtener las filas actuales y desconectarlas del DOM
+        const filasBody = Array.from(tbody.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila));
+        filasBody.forEach(fila => fila.remove());
+
+        // Procesar y reordenar las celdas de cada fila
+        filasBody.forEach(fila => {
+            const nuevaFilaBody = document.createElement('div');
+            // Opcional: Si tus filas necesitan mantener alguna clase original, descomenta la siguiente línea:
+            // nuevaFilaBody.className = fila.className; 
+
+            const celdas = Array.from(fila.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.celda));
+
+            // Ordenar las celdas de la fila usando el mapa indexado
+            celdas.sort((a, b) => {
+                const propA = a.getAttribute('propiedad') || '';
+                const propB = b.getAttribute('propiedad') || '';
+
+                const posA = mapaPosicionesPorPropiedad.has(propA) ? mapaPosicionesPorPropiedad.get(propA)! : 999;
+                const posB = mapaPosicionesPorPropiedad.has(propB) ? mapaPosicionesPorPropiedad.get(propB)! : 999;
+                return posA - posB;
+            });
+
+            // Insertar solo las celdas que tengan una disposición válida configurada
+            celdas.forEach(td => {
+                const prop = td.getAttribute('propiedad') || '';
+                if (mapaPosicionesPorPropiedad.has(prop)) {
+                    nuevaFilaBody.appendChild(td);
+                }
+            });
+
+            tbody.appendChild(nuevaFilaBody);
         });
     }
 

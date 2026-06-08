@@ -1406,13 +1406,21 @@
                         if (this.HayQueIrACrear) this.IraCrear();
                         else {
                             const parametros = ObtenerParametrosDeLaUrl()
-                            for (let i = 0; i < parametros.length; i++) {
-                                const control = ApiControl.BuscarControl(this.PanelFiltro, parametros[i].clave, false);
-                                if (control && control instanceof HTMLSelectElement) {
-                                    MapearAlControl.ListaDeValores(control, parametros[i].valor)
-                                }
+                            if (parametros.find(p => p.clave === ltrParametrosUrl.miFiltro)) {
+                                let miFiltro = ObtenerParametroUrl(ltrParametrosUrl.miFiltro, 0, false);
+                                this.CargarGrid().then(() => {
+                                    this.ProcesarOpcionMf(this.IdNegocio, `${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}_${miFiltro}`, true);
+                                });
                             }
-                            this.CargarGrid();
+                            else {
+                                for (let i = 0; i < parametros.length; i++) {
+                                    const control = ApiControl.BuscarControl(this.PanelFiltro, parametros[i].clave, false);
+                                    if (control && control instanceof HTMLSelectElement) {
+                                        MapearAlControl.ListaDeValores(control, parametros[i].valor)
+                                    }
+                                }
+                                this.CargarGrid();
+                            }
                         }
                     }
                 }
@@ -2550,7 +2558,7 @@
 
 
         public ProcesarOpcionMf(idNegocio: number, opcion: string, esContextual: boolean): void {
-            if (opcion.startsWith(`${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}_`)) {
+            if (opcion.startsWith(`${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}${ltrSimbolos.subrayado}`)) {
                 let parametros: Array<Parametro> = new Array<Parametro>();
                 let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
                 datosDeEntrada.push(new Parametro(ltrMenus.opcion, opcion));
@@ -2575,7 +2583,7 @@
 
         public DespuesDeProcesarPeticion(peticion: ApiDeAjax.DescriptorAjax): boolean {
             let opcion: string = ObtenerPropiedad(peticion.DatosDeEntrada, ltrMenus.opcion);
-            if (opcion.startsWith(`${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}_`)) {
+            if (opcion.startsWith(`${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}${ltrSimbolos.subrayado}`)) {
                 peticion.llamador.AplicarPlantillaDeFiltrado(peticion.llamador, peticion.resultado.datos);
             }
             peticion.llamador.IndicarSiHayFiltrosEnAlgunaModal();

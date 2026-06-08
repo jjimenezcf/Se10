@@ -13,6 +13,7 @@ const ltrSimbolos = {
     separadorDeValores: '|',
     separadorDeEnteros: ',',
     ArchivoCancelado: '(_)',
+    subrayado: '_',
     igual: '='
 };
 
@@ -3602,6 +3603,7 @@ const ltrParametrosUrl = {
     valorGuid: '0',
     fecha: 'fecha',
     guid: 'guid',
+    miFiltro: 'MiFiltro',
     SisDoc: {
         IdArchivador: 'idarchivador'
     },
