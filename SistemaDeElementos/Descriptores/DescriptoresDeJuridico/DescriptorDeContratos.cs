@@ -271,9 +271,9 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             switch (clase)
             {
-                case enumClaseDeContrato.Venta: return "Gestión de contratos de venta";
-                case enumClaseDeContrato.Compra: return "Gestión de contratos de compra";
-                case enumClaseDeContrato.MatriculaDeGuarderia: return "Gestión de matrículas";
+                case enumClaseDeContrato.Venta: return enumTituloDeVistaContratos.Venta.Descripcion();
+                case enumClaseDeContrato.Compra: return enumTituloDeVistaContratos.Compra.Descripcion();
+                case enumClaseDeContrato.MatriculaDeGuarderia: return enumTituloDeVistaContratos.MatriculaDeGuarderia.Descripcion();
             }
             return "Gestión de contratos";
         }

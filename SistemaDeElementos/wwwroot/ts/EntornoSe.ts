@@ -445,7 +445,7 @@ namespace EntornoSe {
         PonerCapa();
         EntornoSe.OcultarMenusRapidos();
         let urlBase: string = window.location.origin;
-        let pagina: string = `${urlBase}/${controlador}/${accion}?origen=menu`;
+        let pagina: string = `${urlBase}/${controlador}/${accion}${(accion.indexOf('?') > 0 ?'&':'?')}origen=menu`;
         let url: string = `${pagina}${IsNullOrEmpty(parametros) ? '' : `&${parametros.replace('|', '&')}`}`;
         try {
             if (accion === Ajax.Entorno.ArbolMenu.Inicializar)

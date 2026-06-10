@@ -52,6 +52,7 @@ namespace MVCSistemaDeElementos.Controllers
                 {
                     GestorDeErrores.Emitir("La plantilla de filtrado solicitada no pertenece al usuario conectado.");
                 }
+                return plantilla;
             }
             return base.ProcesarPeticion(negocio, vista, peticion, parametros);
         }

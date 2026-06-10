@@ -27,6 +27,16 @@ namespace ServicioDeDatos.Juridico
         MatriculaDeGuarderia
     }
 
+    public enum enumTituloDeVistaContratos
+    {
+        [Description("Gestión de contratos de venta")]
+        Venta,
+        [Description("Gestión de contratos de compra")]
+        Compra,
+        [Description("Gestión de matrículas")]
+        MatriculaDeGuarderia
+    }
+
     [Table(Tablas.CONTRATO + "_" + Sufijo.ESTADO, Schema = Esquemas.JURIDICO)]
     public class EstadoDeUnContratoDtm : EstadoDtm, IInstanciaEstado
     {

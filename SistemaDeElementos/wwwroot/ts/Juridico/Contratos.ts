@@ -28,10 +28,10 @@
         }
 
         public ModalDePedirDatos_Aceptar(modal: HTMLDivElement) {
-            if (this.ClaseDeContrato === enumClaseDeContrato.Venta && modal.id === this.ModalGenerarLosPlanificadores.id) {
-                LlamarA_GenerarPlanificador(modal, (modal) => super.ModalDePedirDatos_Aceptar(modal));
-            }
-            else
+            // if (this.ClaseDeContrato === enumClaseDeContrato.Venta && modal.id === this.ModalGenerarLosPlanificadores.id) {
+            //     LlamarA_GenerarPlanificador(modal, (modal) => super.ModalDePedirDatos_Aceptar(modal));
+            // }
+            // else
                 if (this.ClaseDeContrato === enumClaseDeContrato.Venta && modal.id === this.ModalPrepararPartesTr.id) {
                     LlamarA_PrepararPartesTr(modal, (modal) => super.ModalDePedirDatos_Aceptar(modal));
                 }

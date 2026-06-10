@@ -7,6 +7,7 @@ using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Juridico;
 using ServicioDeDatos.Negocio;
 using System;
 using System.Collections.Generic;
@@ -129,6 +130,16 @@ namespace GestoresDeNegocio.Negocio
                 {
                     var vista = contexto.Set<VistaMvcDtm>().Where(v => v.Id == filtro.IdVista).First();
                     var url = $"{vista.Controlador}/{vista.Accion}";
+                    if (vista.Controlador == enumControladoresJuridicos.Contratos.ToString())
+                    {
+                        if (filtro.Vista == enumTituloDeVistaContratos.Venta.Descripcion())
+                            url = $"{url}?clase={enumClaseDeContrato.Venta}";
+                        else if (filtro.Vista == enumTituloDeVistaContratos.Compra.Descripcion())
+                            url = $"{url}?clase={enumClaseDeContrato.Compra}";
+                        else if (filtro.Vista == enumTituloDeVistaContratos.MatriculaDeGuarderia.Descripcion())
+                            url = $"{url}?clase={enumClaseDeContrato.MatriculaDeGuarderia}";
+                    }
+
                     resultado.Add(new MisFiltros
                     {
                         Id = filtro.Id,
