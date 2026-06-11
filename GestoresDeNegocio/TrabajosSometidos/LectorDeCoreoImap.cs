@@ -16,7 +16,6 @@ using System.Text;
 using System.IO;
 using iText.Layout;
 using iText.Layout.Element;
-using System.Collections.Concurrent;
 using GestorDeElementos.Extensores;
 using Newtonsoft.Json;
 using static Gestor.Errores.GestorDeErrores;
@@ -59,7 +58,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
         public LectorDeCoreoImap(ContextoSe contexto, string cuenta, string password)
         {
-            string host = "imap.gmx.com";
+            string host = cuenta.Contains("gmail") ? "imap.gmail.com": "imap.gmx.com";
             int port = 993;
             var client = new ImapClient();
             _Cuenta = cuenta;
@@ -84,7 +83,8 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 var datos = BuscarMensajePorMessageIdEnTodosBuzones(idMiCorreoDto);
                 if (datos.mail is null)
                     Emitir($"No se ha localizado el email '{idMiCorreoDto}' en ningún buzón de la cuenta '{_Cuenta}'");
-                miCorreoDto = CrearCorreo(datos.mail, datos.folder);
+                // La carpeta viene de BuscarMensajePorMessageIdEnTodosBuzones, posiblemente abierta
+                miCorreoDto = CrearCorreo(datos.mail, datos.folder, folderAlreadyOpen: false, cerrarTrasLeer: true);
             }
             return miCorreoDto;
         }
@@ -158,15 +158,27 @@ namespace GestoresDeNegocio.TrabajosSometidos
             IMailFolder folder = AbrirCarpeta(buzon);
             try
             {
-                var messages = folder.Fetch(0, -1, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+                // Optimización: Fetch solo items necesarios (Envelope) en lugar de Full
+                // Full incluye BodyStructure y otros datos innecesarios que consumen 232ms
+                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.Size);
+
+                // Optimización: Construir HashSet para búsquedas O(1) en lugar de Any() O(n)
+                var idsExistentes = new HashSet<string>(MisCorreos.Select(x => x.IdMensaje));
+
                 foreach (var eMail in messages)
                 {
                     if (EstaProcesado(eMail, _Contexto))
                         continue;
-                    var correo = CrearCorreo(eMail, folder);
+                    // Pasar folderAlreadyOpen=true porque la carpeta ya está abierta aquí
+                    var correo = CrearCorreo(eMail, folder, folderAlreadyOpen: true, cerrarTrasLeer: false);
                     correosBuzon.Add(correo);
-                    if (!MisCorreos.Any(x => x.IdMensaje == correo.IdMensaje))
+
+                    // Optimización: Usa HashSet para búsqueda O(1) en lugar de Any() O(n)
+                    if (!idsExistentes.Contains(correo.IdMensaje))
+                    {
                         MisCorreos.Add(correo);
+                        idsExistentes.Add(correo.IdMensaje);
+                    }
                 }
                 return correosBuzon;
             }
@@ -313,7 +325,8 @@ namespace GestoresDeNegocio.TrabajosSometidos
         {
             var folder = AbrirCarpeta(buzon);
             var mensaje = LeerMensajePorIdMensaje(folder, idMail);
-            var correo = CrearCorreo(mensaje, folder);
+            // Pasar folderAlreadyOpen=false porque LeerMensajePorIdMensaje llama a AbrirCarpeta internamente
+            var correo = CrearCorreo(mensaje, folder, folderAlreadyOpen: false, cerrarTrasLeer: true);
             var sb = new StringBuilder();
             sb.AppendLine($"De: {correo.Emisor}");
             sb.AppendLine($"Para: {correo.To}");
@@ -342,10 +355,13 @@ namespace GestoresDeNegocio.TrabajosSometidos
             return fichero;
         }
 
-        private IMessageSummary LeerMensajePorIdMensaje(IMailFolder folder, string idMensaje)
+        private IMessageSummary LeerMensajePorIdMensaje(IMailFolder folder, string idMensaje, bool folderAlreadyOpen = false)
         {
-            AbrirCarpeta(folder.Name, FolderAccess.ReadWrite);
-            var messages = folder.Fetch(0, -1, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+            // Optimización: evita reapertura de carpeta si ya está abierta
+            if (!folderAlreadyOpen)
+                AbrirCarpeta(folder.Name, FolderAccess.ReadWrite);
+            // Optimización: Solo necesitamos Envelope para buscar por ID, no Full
+            var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
             foreach (var eMail in messages)
             {
                 var id = IdMensaje(eMail).ToString();
@@ -427,9 +443,11 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
         }
 
-        private MiCorreoDto CrearCorreo(IMessageSummary eMail, IMailFolder folder)
+        private MiCorreoDto CrearCorreo(IMessageSummary eMail, IMailFolder folder, bool folderAlreadyOpen , bool cerrarTrasLeer )
         {
-            AbrirCarpeta(folder.Name);
+            // Optimización: evita reapertura de carpeta si ya está abierta
+            if (!folderAlreadyOpen)
+                AbrirCarpeta(folder.Name);
             try
             {
                 MiCorreoDto correo = new();
@@ -449,7 +467,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
             finally
             {
-               if (folder.IsOpen) folder.Close();
+                if (folder.IsOpen && cerrarTrasLeer) folder.Close();
             }
         }
 
@@ -564,7 +582,8 @@ namespace GestoresDeNegocio.TrabajosSometidos
             foreach (var folder in personal.GetSubfolders(false))
             {
                 AbrirCarpeta(folder.Name);
-                var messages = folder.Fetch(0, -1, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+                // Optimización: Solo necesitamos Envelope para buscar por ID, no Full
+                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
                 foreach (var eMail in messages)
                 {
                     var id = IdMensaje(eMail);
@@ -581,7 +600,8 @@ namespace GestoresDeNegocio.TrabajosSometidos
             foreach (var folder in personal.GetSubfolders(false))
             {
                 AbrirCarpeta(folder.Name);
-                var messages = folder.Fetch(0, -1, MessageSummaryItems.Full | MessageSummaryItems.UniqueId);
+                // Optimización: Solo necesitamos Envelope para buscar por ID, no Full
+                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
                 foreach (var eMail in messages)
                 {
                     var id = IdMensaje(eMail);
