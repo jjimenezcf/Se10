@@ -188,7 +188,9 @@
     height: 100%;
     background-color: #f0f0f0;
     cursor: col-resize;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease; 
+    /* Evita que el texto se seleccione accidentalmente al arrastrar rápido */
+    user-select: none;
 }
 
     .splitter::after {

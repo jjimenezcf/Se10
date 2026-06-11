@@ -23,6 +23,30 @@
     display: none !important;
 }
 
+.resizer-borde {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px; /* Zona de acción de 6 píxeles de ancho */
+    height: 100%;
+    cursor: col-resize;
+    z-index: 10;
+    background-color: transparent;
+    transition: background-color 0.2s;
+}
+
+    /* Efecto visual sutil cuando pasas el ratón por encima del límite */
+    .resizer-borde:hover {
+        background-color: rgba(0, 120, 215, 0.5); /* Línea azul semitransparente */
+    }
+
+/* Forzar el cursor en toda la pantalla mientras se está arrastrando */
+body.resizing-en-progreso,
+body.resizing-en-progreso * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
 .div-tabla {
     display: table;
     border-collapse: collapse;
@@ -59,7 +83,13 @@
     border-right: 1px solid #ccc;
     position: relative;
     box-sizing: border-box; /* Asegura que el borde no afecte el tamaño total */
+
+    position: relative;
+    /* Evita que el texto se seleccione accidentalmente al arrastrar rápido */
+    user-select: none;
 }
+
+
 
     .div-th::after {
         content: '';

@@ -195,12 +195,14 @@
                     this.DatosDelGrid.InicializarCache();
                     this.CrearFilasEnElGrid(peticion);
                     ApiDeGrid.OcultarMostrarColumna(this.Tabla, 'elemento', !this.EstaEnEdicion, true);
+                    let cabeceraHistorial = document.getElementById("crud_historialdto_historial_grid_cabecera") as HTMLDivElement;
+                    MapearAlGrid.HabilitarRedimensionadoColumnas(cabeceraHistorial);
                 })
                 .catch((peticion) => {
                     this.SiHayErrorAlCargarElGrid(peticion);
                 });
         }
-        
+
         private CerrarHistorial(): void {
             if (this._modoOriginal === enumModoTrabajo.mantenimiento)
                 this.IrAlMantenimiento();

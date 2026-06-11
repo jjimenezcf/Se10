@@ -1240,6 +1240,7 @@ const ltrCss = {
     pieModal: 'contenido-pie',
     soloLectura: 'solo-lectura',
     columnaOculta: 'columna-oculta',
+    columnaAccion: 'columna-accion',
     columnaCabecera: 'columna-cabecera',
     filaDelGrid: 'cuerpo-datos-tbody-tr',
     filaSeleccionada: 'fila-seleccionada',
@@ -1320,7 +1321,11 @@ const ltrCss = {
         barra: 'barra-de-carga',
         animarBarrra: 'barra-animada',
         valorTrue: 'valor-true',
-        valorFalse: 'valor-false'
+        valorFalse: 'valor-false',
+        Columnas: {
+            resize: 'resizer-borde',
+            resizeEnProgreso: 'resizing-en-progreso',
+        }
     },
     Archivos: {
         SelectorDeArchivos: 'selector-de-archivos',

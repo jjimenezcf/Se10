@@ -763,6 +763,74 @@ namespace MapearAlGrid {
         return panelParaBarra
     }
 
+    export function HabilitarRedimensionadoColumnas(cabecera: HTMLDivElement) {
+        if (!cabecera) return;
+
+        // Buscamos todas las columnas de la cabecera
+        let columnas = Array.from(cabecera.querySelectorAll('.div-th')) as HTMLDivElement[];
+
+        columnas.forEach((col) => {
+            // 1. Ignorar columnas ocultas o de acción genéricas
+            if (col.classList.contains(ltrCss.columnaOculta) || col.classList.contains(ltrCss.columnaAccion)) {
+                return;
+            }
+
+            // 2. Filtro específico por propiedad (ej: el selector de 24px del historial)
+            let propiedad = col.getAttribute('propiedad');
+            if (propiedad === 'chksel') return;
+
+            // Evitar duplicar el resizer si la función se ejecuta de nuevo
+            if (col.querySelector('.resizer-borde')) return;
+
+            // Crear el elemento visual del borde
+            let resizer = document.createElement('div');
+            ApiControl.IncluirCss(resizer, ltrCss.Espan.Columnas.resize);
+            col.appendChild(resizer);
+
+            let xInicial = 0;
+            let anchoInicial = 0;
+
+            const mousedownHandler = function (e: MouseEvent) {
+                xInicial = e.clientX;
+                anchoInicial = col.getBoundingClientRect().width;
+                ApiControl.IncluirCss(document.body, ltrCss.Espan.Columnas.resizeEnProgreso);
+
+                document.addEventListener('mousemove', mousemoveHandler);
+                document.addEventListener('mouseup', mouseupHandler);
+            };
+
+            const mousemoveHandler = function (e: MouseEvent) {
+                const diferenciaX = e.clientX - xInicial;
+                const nuevoAncho = Math.max(55, anchoInicial + diferenciaX); // Mínimo 55px razonable
+
+                // Aplicar tamaño a la cabecera
+                col.style.setProperty('width', `${nuevoAncho}px`, 'important');
+                col.style.setProperty('min-width', `${nuevoAncho}px`, 'important');
+                col.style.setProperty('max-width', `${nuevoAncho}px`, 'important');
+
+                // Buscar la tabla contenedora raíz (.div-tabla) para actualizar las celdas del cuerpo
+                let tablaContenedora = cabecera.closest('.div-tabla') || cabecera.parentElement;
+                if (tablaContenedora && propiedad) {
+                    let celdasCuerpo = tablaContenedora.querySelectorAll(`.div-td[propiedad="${propiedad}"], .div-td[headers="${col.id}"]`);
+                    celdasCuerpo.forEach((celda) => {
+                        let c = celda as HTMLDivElement;
+                        c.style.setProperty('width', `${nuevoAncho}px`, 'important');
+                        c.style.setProperty('min-width', `${nuevoAncho}px`, 'important');
+                        c.style.setProperty('max-width', `${nuevoAncho}px`, 'important');
+                    });
+                }
+            };
+
+            const mouseupHandler = function () {
+                ApiControl.ExcluirCss(document.body, ltrCss.Espan.Columnas.resizeEnProgreso);
+                document.removeEventListener('mousemove', mousemoveHandler);
+                document.removeEventListener('mouseup', mouseupHandler);
+            };
+
+            resizer.addEventListener('mousedown', mousedownHandler);
+        });
+    }
+
     function RescribirReferencia(referencia: HTMLAnchorElement, titulo: string) {
         if (!Definido(referencia))
             return;
@@ -775,73 +843,14 @@ namespace MapearAlGrid {
     }
 
     function adjustColumnWidths(grid: HTMLDivElement) {
-        let tabla: HTMLDivElement = document.getElementById(grid.id.replace("contenedor", "tabla")) as HTMLDivElement;
-        const headers = tabla.querySelectorAll('th.auto-ajustable');
+        let tabla: HTMLDivElement = document.getElementById(grid.id.replace('contenedor', 'tabla')) as HTMLDivElement;
+        if (!tabla) return;
 
-        headers.forEach(header => {
-            const columnIndex = Array.from(header.parentNode.children).indexOf(header);
-            const cells = tabla.querySelectorAll(`td:nth-child(${columnIndex + 1})`);
+        let cabecera = tabla.querySelector('.div-thead') as HTMLDivElement;
 
-            // Calcular el ancho mínimo basado en el contenido del encabezado
-            const headerSpan = document.createElement('span');
-            headerSpan.style.visibility = 'hidden';
-            headerSpan.style.position = 'absolute';
-            headerSpan.style.whiteSpace = 'nowrap';
-            headerSpan.textContent = header.textContent;
-            document.body.appendChild(headerSpan);
-
-            let minWidth = headerSpan.offsetWidth + 40; // Aumentar el padding
-            document.body.removeChild(headerSpan);
-
-            let maxWidth = minWidth;
-
-            cells.forEach(cell => {
-                const input = cell.querySelector('input');
-                if (input) {
-                    const tempSpan = document.createElement('span');
-                    tempSpan.style.visibility = 'hidden';
-                    tempSpan.style.position = 'absolute';
-                    tempSpan.style.whiteSpace = 'nowrap';
-                    tempSpan.style.font = window.getComputedStyle(input).font; // Usar el mismo estilo de fuente que el input
-                    tempSpan.textContent = input.value  // Considerar tanto el valor como el placeholder
-                    document.body.appendChild(tempSpan);
-
-                    const width = tempSpan.offsetWidth;
-                    if (width > maxWidth) {
-                        maxWidth = width;
-                    }
-
-                    document.body.removeChild(tempSpan);
-                }
-            });
-
-            // Añadir más padding al maxWidth
-            //maxWidth += 1;
-
-            // Asegurar que maxWidth no sea menor que minWidth
-            maxWidth = Math.max(maxWidth, minWidth);
-
-            // Establecer el ancho para el encabezado y todas las celdas en esta columna
-            (header as HTMLDivElement).style.width = `${maxWidth}px`;
-            (header as HTMLDivElement).style.minWidth = `${minWidth}px`;
-            (header as HTMLDivElement).style.maxWidth = `${maxWidth}px`;
-
-            cells.forEach(cell => {
-                (cell as HTMLDivElement).style.width = `${maxWidth}px`;
-                (cell as HTMLDivElement).style.minWidth = `${minWidth}px`;
-                (cell as HTMLDivElement).style.maxWidth = `${maxWidth}px`;
-
-                // Si hay un input, ajustar su ancho también
-                const input = cell.querySelector('input');
-                if (input) {
-                    input.style.width = '100%';
-                    input.style.minWidth = `${minWidth}px`;
-                    input.style.maxWidth = `${maxWidth}px`;
-                }
-            });
-        });
+        // Reutilización del método común
+        HabilitarRedimensionadoColumnas(cabecera);
     }
-
     function IncluirFilas(grid: HTMLDivElement, datos: any) {
         let tabla: HTMLDivElement = document.getElementById(grid.id.replace('contenedor', 'tabla')) as HTMLDivElement;
         let filaCabecera: ApiDeGrid.PropiedadesDeLaFila[] = ApiDeGrid.ObtenerDescriptorDeLaCabecera(tabla);
