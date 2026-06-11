@@ -112,7 +112,7 @@ namespace EntornoSe {
         window.open(url, '_blank', `width=${width},height=${height}`);
     }
 
-    async function validarUrl(url: string) {
+    async function validarUrlOld(url: string) {
         PonerCapa();
         try {
             if (url.includes('/Crud')) {
@@ -132,6 +132,39 @@ namespace EntornoSe {
                 }
             }
             Registro.UrlValida(url);
+        }
+        catch(mensaje) {
+            MensajesSe.Error("validarUrl", mensaje);
+        }
+        finally {
+            QuitarCapa();
+        }
+    }
+
+    async function validarUrl(url: string) {
+        PonerCapa();
+        try {
+            if (url.includes('/Crud')) {
+                const response = await fetch(url, { method: 'GET' });
+
+                if (!response.ok || response.status !== 200) {
+                    let errorMessage = `Página '${url}' no disponible`;
+
+                    if (response.status === 900) {
+                        errorMessage = `Modulo no activo`;
+                    } else if (response.status === 404) {
+                        errorMessage = `Recurso no encontrado: '${url}'`;
+                    } else if (response.status === 500) {
+                        errorMessage = `Error interno del servidor al acceder a '${url}'`;
+                    }
+
+                    throw new Error(errorMessage);
+                }
+            }
+            Registro.UrlValida(url);
+        }
+        catch (error) {
+            MensajesSe.Error("validarUrl", error);
         }
         finally {
             QuitarCapa();
@@ -451,7 +484,7 @@ namespace EntornoSe {
             if (accion === Ajax.Entorno.ArbolMenu.Inicializar)
                 Registro.EliminarArbolDeMenu();
 
-            if (parametros.indexOf('guid=0') >= 0)
+            if (Definido(parametros) && parametros.indexOf('guid=0') >= 0)
                 url = url.replace('guid=0', 'guid=' + generarUUID());
 
             if (!Definido(event) || !event['ctrlKey'])

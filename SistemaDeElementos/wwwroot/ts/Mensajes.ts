@@ -134,12 +134,33 @@
     export function Advertencia(mensaje: string, consola?: string) {
         MensajesSe.Apilar(enumTipoMensaje.advertencia, mensaje, consola);
     }
-    export function Error(origen: string, mensaje: string, consola?: string) {
-        _Almacen.Error(origen, mensaje);
-        if (!Definido(consola))
-            consola = `Error originado en '${origen}': '${mensaje}''`;
 
-        MensajesSe.Apilar(enumTipoMensaje.error, mensaje, consola);
+    export function Error(origen: string, error: any, consola?: string) {
+        // 1. Extraemos el mensaje real de forma segura
+        let textoError = "";
+
+        if (error instanceof window.Error) {
+            // Usamos window.Error por si tu función está en un namespace llamado 'Error' y evitar colisiones
+            textoError = error.message;
+        } else if (typeof error === 'object' && error !== null) {
+            // Si el objeto tiene una propiedad 'message' (ej: respuestas personalizadas de error) la usamos
+            if ('message' in error && typeof error.message === 'string') {
+                textoError = error.message;
+            } else {
+                textoError = JSON.stringify(error);
+            }
+        } else {
+            textoError = String(error); // Si ya era un string o un tipo primitivo
+        }
+
+        // 2. Ejecutamos tu lógica original con el string ya limpio e interiorizado
+        _Almacen.Error(origen, textoError);
+
+        if (!Definido(consola)) {
+            consola = `Error originado en '${origen}': '${textoError}'`;
+        }
+
+        MensajesSe.Apilar(enumTipoMensaje.error, textoError, consola);
     }
 
     export function EmitirMensajeDeExcepcion(origen: string, mensaje: string, consola?: string) {

@@ -1642,7 +1642,7 @@ public static class NegociosDeSe
                 if (!cantidades.Any() || cantidades.Sum(c => c.Cantidad) == 0)
                     continue;
 
-                var url = $"{negocio.Controlador()}/{negocio.VistaMvc(contexto).Accion}";
+                var url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{negocio.VistaMvc(contexto).Accion}', null,event);";
                 resultado.Add(new
                 {
                     nombre = negocio.Singular(),
@@ -1723,7 +1723,7 @@ public static class NegociosDeSe
         if (grupo != null) resultado.Add(grupo);
 
         var tiposResto = tipos.Where(t => !idsEspeciales.Contains(t.Id)).ToList();
-        LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, tiposResto, cantidades);
+        LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, enumVistasSistemaDocumental.CrudCircuitosDoc, tiposResto, cantidades);
     }
 
     private static void LeerInformacionParaElDashBoardDeExpedientes(ContextoSe contexto, List<object> resultado)
@@ -1740,7 +1740,7 @@ public static class NegociosDeSe
         if (grupo != null) resultado.Add(grupo);
 
         var tiposResto = tipos.Where(t => !idsEspeciales.Contains(t.Id)).ToList();
-        LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, tiposResto, cantidades);
+        LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, enumVistasAdministrativo.CrudExpedientes, tiposResto, cantidades);
     }
 
     private static void LeerInformacionParaElDashBoardDeContrato(ContextoSe contexto, List<object> resultado)
@@ -1760,7 +1760,7 @@ public static class NegociosDeSe
 
         var grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeCompra, $"{enumNegocio.Contrato}_Compras", tipos.FirstOrDefault(t => t.Id == idCompras), cantidades, CrudDeCrudDeCompras);
         if (grupo != null) resultado.Add(grupo);
-        
+
         grupo = AgregarGrupo(contexto, negocio, VariablesDeContratos.ContratosDeVenta, $"{enumNegocio.Contrato}_Ventas", tipos.FirstOrDefault(t => t.Id == idVentas), cantidades, CrudDeContratosDeVentas);
         if (grupo != null) resultado.Add(grupo);
 
@@ -1768,7 +1768,7 @@ public static class NegociosDeSe
         if (grupo != null) resultado.Add(grupo);
     }
 
-    private static void LeerInformacionConjuntaDeNegocio(ContextoSe contexto, List<object> resultado, enumNegocio negocio, List<TipoConFlujoDtm> tiposResto, List<ElementoDeProcesoSql.CantidadPorTipoYEstado> cantidades)
+    private static void LeerInformacionConjuntaDeNegocio(ContextoSe contexto, List<object> resultado, enumNegocio negocio, string vista, List<TipoConFlujoDtm> tiposResto, List<ElementoDeProcesoSql.CantidadPorTipoYEstado> cantidades)
     {
         if (tiposResto.Any())
         {
@@ -1797,7 +1797,7 @@ public static class NegociosDeSe
                             tipos = tiposResto,
                             estados = estadosResto,
                             cantidades = cantidades.Where(c => idsResto.Contains(c.IdTipo) && idsEstadosResto.Contains(c.IdEstado)).ToList(),
-                            url = $"{negocio.Controlador()}/{enumVistasSistemaDocumental.CrudCircuitosDoc}"
+                            url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{vista}', null,event);"
                         });
                 }
             }
@@ -1822,7 +1822,7 @@ public static class NegociosDeSe
         if (cantidadesAgregada.Sum(c => c.Cantidad) == 0)
             return null;
 
-        var url = $"{negocio.Controlador()}/{vista}";
+        var url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{vista}', null,event);";
         return new
         {
             nombre = nombre,

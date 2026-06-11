@@ -190,13 +190,21 @@ namespace PanelDeControl {
 
             // ── Título (enlace si hay url, texto plano si no) ──
             const titulo = document.createElement('h3');
-            titulo.className = css.GraficaTitulo;
+            titulo.className = css.GraficaTitulo; // Esto aplicará "grafica-titulo"
+
             if (negocio.url) {
                 const enlace = document.createElement('a');
-                enlace.href = negocio.url;
-                enlace.target = '_blank';
-                enlace.rel = 'noopener noreferrer';
+
+                // 1. Establecemos el href a "#" tal y como quieres
+                enlace.setAttribute('href', '#');
+
+                // 2. Le inyectamos el string que viene de C# en el atributo 'onclick'
+                // Además, le concatenamos el '; return false;' para anular el comportamiento del '#'
+                enlace.setAttribute('onclick', `${negocio.url}; return false;`);
+
+                // 3. El texto visible del enlace
                 enlace.textContent = negocio.nombre;
+
                 titulo.appendChild(enlace);
             } else {
                 titulo.textContent = negocio.nombre;

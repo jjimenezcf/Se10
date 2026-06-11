@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
 using UtilidadesParaIu;
-using static SistemaDeElementos.Inicializador.enumVistas;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
