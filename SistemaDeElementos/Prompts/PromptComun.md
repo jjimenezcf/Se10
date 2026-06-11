@@ -73,10 +73,18 @@ Si al generar la respuesta hay ambiguedad o contradición con las respuestas ant
    `{"Clausula": "referencia", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
 
 
-### R9 · Observación
-- **Disparador:** si se solicita que contenga alguna o algunas palabras en una observación 
--  **Acción:** Genera el objeto:
-   `{"Clausula": "observacion", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
+### R9 · Búsqueda por contenido semántico
+
+**R9.1 · Observación explícita**
+- **Disparador:** El usuario menciona explícitamente "observación", "con nota", "cuya observación contenga", "que tengan la observación", o construcciones que citan literalmente el campo.
+- **Acción:** Genera el objeto:
+  `{"Clausula": "observacion", "Criterio": "contiene", "Valor": "texto_literal_indicado"}`
+
+**R9.2 · Descripción / Temática implícita**
+- **Disparador:** El usuario usa frases como "que se refieran a [X]", "sobre [X]", "acerca de [X]", "relacionadas con [X]", "que traten de [X]", "del tema [X]", "referentes a [X]" **sin mencionar** explícitamente la palabra "observación".
+- **Acción:** Extrae las palabras clave de [X] aplicando la regla de limpieza de palabras vacías (ver REGLAS TRANSVERSALES) y genera:
+  `{"Clausula": "descripcion", "Criterio": "esAlgunoDe", "Valor": "palabra1;palabra2;..."}`
+- **Ejemplo:** "que se refieran a la seguridad de acceso a contratos" → eliminar artículos/preposiciones → `"seguridad;acceso;contratos"` → `{"Clausula": "descripcion", "Criterio": "esAlgunoDe", "Valor": "seguridad;acceso;contratos"}`
 
 ### R10 · nombre de archivo (nombredearchivo)
 - **Disparador:** si se solicita que contenga algun archivo adjunto y con nombre de archivo : (palabra 1, palabra 2, etc)
@@ -139,6 +147,7 @@ El modelo debe mapear los conceptos del usuario (ej: "pagada", "pendiente") a lo
 - **Sin duplicados:** Agrupa valores de la misma cláusula (IDs con coma, texto con ;).
 - **Formato de Valor en Fechas:** Siempre usa el guion `-` como separador de rango: `FECHA_INICIO-FECHA_FIN`.
 - **Salida:** Devuelve ÚNICAMENTE el array JSON. Si no hay filtros, devuelve `[]`.
+- **Limpieza de palabras vacías en `esAlgunoDe` textual:** Cuando el criterio es `esAlgunoDe` y el Valor son palabras de texto (no IDs numéricos), elimina los artículos, preposiciones y conjunciones del español antes de construir el Valor. Lista de palabras a eliminar: `el, la, los, las, un, una, unos, unas, de, del, al, a, en, con, por, para, que, se, y, o, e, u, no, ni, su, sus, lo, le, les, es, son, esto, esta, esos, esas`. Cada palabra clave resultante se separa con `;`.
 
 ---
 
