@@ -1,7 +1,9 @@
 ﻿using Gestor.Errores;
 using GestorDeElementos;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Util.Store;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using Google.Apis.Http;
@@ -40,6 +42,11 @@ namespace GestoresDeNegocio.TrabajosSometidos
     {
         internal const string Aplicacion = "Sistema de elementos";
         public static string RutaDeTokens = enumRutas.RutaDeToken;
+        private static string _ficheroClienteSecreto;
+
+        public static void InicializarClienteSecreto(string fichero) => _ficheroClienteSecreto = fichero;
+        public static string ClienteSecreto(string email) => _ficheroClienteSecreto
+            ?? throw new InvalidOperationException("El fichero de cliente secreto no ha sido inicializado. Llame a InicializarClienteSecreto primero.");
     }
 
     public static class LectorDeGmailApiKey
@@ -69,26 +76,33 @@ namespace GestoresDeNegocio.TrabajosSometidos
     public static class LectorDeGmailAuth2
     {
 
-        public static GoogleCredential Credenciales(string email)
+        public static UserCredential Credenciales(string email)
         {
             var cacheCredenciales = ServicioDeCaches.Obtener(CacheDe.Ent_MisCorreos_Credenciales);
             if (!cacheCredenciales.ContainsKey(email))
                 cacheCredenciales[email] = LeerCredenciales(email);
-            GoogleCredential credenciales = (GoogleCredential)cacheCredenciales[email];
-            return credenciales;
+            return (UserCredential)cacheCredenciales[email];
         }
 
-        private static GoogleCredential LeerCredenciales(string email)
+        private static UserCredential LeerCredenciales(string email)
         {
             string ruta = ltrLectorDeCorreo.RutaDeTokens;
             string ficheroDeCredenciales = Path.Combine(ruta, $"{email}.tkrp");
             if (!Path.Exists(ficheroDeCredenciales))
-            {
                 GestorDeErrores.Emitir($"No se encuentra el fichero de credenciales, '{ficheroDeCredenciales}', vuelva a conectarse");
-            }
-            string contenido = File.ReadAllText(ficheroDeCredenciales);
-            TokenResponse tokenLeido = JsonConvert.DeserializeObject<TokenResponse>(contenido);
-            return GoogleCredential.FromAccessToken(tokenLeido.AccessToken);
+
+            string contenidoToken = File.ReadAllText(ficheroDeCredenciales);
+            string ficheroClienteSecreto = Path.Combine(ruta, ltrLectorDeCorreo.ClienteSecreto(email));
+            using var stream = new FileStream(ficheroClienteSecreto, FileMode.Open, FileAccess.Read);
+            var secrets = GoogleClientSecrets.FromStream(stream).Secrets;
+            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = secrets,
+                Scopes = new[] { GmailService.Scope.GmailModify },
+                DataStore = new FileDataStore(ruta, true)
+            });
+            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(contenidoToken);
+            return new UserCredential(flow, email, tokenResponse);
         }
 
         public static int CachearMisCorreos(ContextoSe contexto, string guid, string buzon, object credenciales, string filtroAsunto)
@@ -173,7 +187,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
         public static void AsociarCorreoEnArchivador(ContextoSe contexto, int idCorreo, enumNegocio negocio, int idArchivador, int idCarpeta, string email)
         {
-            GoogleCredential credenciales = Credenciales(email);
+            UserCredential credenciales = Credenciales(email);
             var datos = PrepararDatosParaIncorporar(idCorreo, credenciales);
             var archivador = contexto.SeleccionarPorId<ArchivadorDtm>(idArchivador);
             var carpeta = idCarpeta > 0 ? contexto.SeleccionarPorId<CarpetaDtm>(idCarpeta) : null;
@@ -185,7 +199,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
         private static void AsociarCorreo<T>(this enumNegocio negocio, ContextoSe contexto, int idCorreo, int idElemento, string email)
         where T : ElementoDtm
         {
-            GoogleCredential credenciales = Credenciales(email);
+            UserCredential credenciales = Credenciales(email);
             var datos = PrepararDatosParaIncorporar(idCorreo, credenciales);
             var elemento = contexto.SeleccionarPorId<T>(idElemento);
             AdjuntarAdjuntos(contexto, negocio, elemento, credenciales, datos);
@@ -195,7 +209,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
         public static IElementoDto ArchivarCorreo(ContextoSe contexto, enumNegocio negocio, int id, int idTipo, int idCg, string nombre, string email, Dictionary<string, object> parametros)
         {
-            GoogleCredential credenciales = Credenciales(email);
+            UserCredential credenciales = Credenciales(email);
             var datos = PrepararDatosParaIncorporar(id, credenciales);
             IElementoDtm elemento = negocio.NuevoDtm(contexto, idCg, idTipo, nombre, datos.correo.Cuerpo, parametros);
             negocio.Insertar(contexto, elemento, parametros: parametros);
@@ -205,7 +219,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             return negocio.LeerElemento(contexto, elemento.Id);
         }
 
-        public static string ImprimirCorreo(string idMail, GoogleCredential credenciales)
+        public static string ImprimirCorreo(string idMail, UserCredential credenciales)
         {
             var servicioGmail = new GmailService(new BaseClientService.Initializer
             {
@@ -215,7 +229,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             return servicioGmail.ImprimirCorreoPDF(idMail);
         }
 
-        public static void EliminarCorreo(ContextoSe contexto, int id, GoogleCredential credenciales)
+        public static void EliminarCorreo(ContextoSe contexto, int id, UserCredential credenciales)
         {
             var servicioGmail = new GmailService(new BaseClientService.Initializer
             {
@@ -258,7 +272,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             return (MiCorreoDto)entrada.Value;
         }
 
-        public static string DescargarAdjunto(string idMail, string idAdjunto, string idParte, GoogleCredential credenciales)
+        public static string DescargarAdjunto(string idMail, string idAdjunto, string idParte, UserCredential credenciales)
         {
             var servicioGmail = new GmailService(new BaseClientService.Initializer
             {
@@ -285,7 +299,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             throw new Exception("No se ha localizado el adjunto");
         }
 
-        private static void AdjuntarAdjuntos(ContextoSe contexto, enumNegocio negocio, INombre elemento, GoogleCredential credenciales, (MiCorreoDto correo, List<Adjunto> adjuntos, string archivoImpreso) datos)
+        private static void AdjuntarAdjuntos(ContextoSe contexto, enumNegocio negocio, INombre elemento, UserCredential credenciales, (MiCorreoDto correo, List<Adjunto> adjuntos, string archivoImpreso) datos)
         {
             if (!datos.archivoImpreso.IsNullOrEmpty())
             {
@@ -319,7 +333,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
         }
 
         private static (MiCorreoDto correo, List<Adjunto> adjuntos, string archivoImpreso)
-        PrepararDatosParaIncorporar(int id, GoogleCredential credenciales)
+        PrepararDatosParaIncorporar(int id, UserCredential credenciales)
         {
             var correo = LeerPorId(id);
             var adjuntos = JsonConvert.DeserializeObject<List<Adjunto>>(correo.Adjuntos);

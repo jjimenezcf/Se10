@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ServicioDeDatos.Seguridad;
 using GestoresDeNegocio.TrabajosSometidos;
-using Google.Apis.Auth.OAuth2.Responses;
 using Newtonsoft.Json;
 using System;
 using ModeloDeDto.SistemaDocumental;
@@ -55,6 +54,9 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 throw new Exception($"Ha de definir el protocolo de acceso al correo, valores válidos: {enumMiCorreoModoAcceso.Auth2}, {enumMiCorreoModoAcceso.IMAP}, {enumMiCorreoModoAcceso.ApiKey}");
             }
+
+            if (_Protocolo == enumMiCorreoModoAcceso.Auth2)
+                ltrLectorDeCorreo.InicializarClienteSecreto(_ClienteSecreto);
         }
 
         public JsonResult epPeticionDeAcceso()
@@ -234,7 +236,7 @@ namespace MVCSistemaDeElementos.Controllers
         {
             var filtroAsunto = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(MiCorreoDto.Asunto).ToLower())?.Valor;
 
-            GoogleCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
+            UserCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
             var total = LectorDeGmailAuth2.CachearMisCorreos(Contexto, guid, buzon, credenciales, filtroAsunto);
 
             if (accion == epAcciones.ultima.ToString())
@@ -393,7 +395,7 @@ namespace MVCSistemaDeElementos.Controllers
                 switch (_Protocolo)
                 {
                     case enumMiCorreoModoAcceso.Auth2:
-                        GoogleCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
+                        UserCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
                         ruta = LectorDeGmailAuth2.DescargarAdjunto(idMail, idAdjunto, idParte, credenciales);
                         break;
                     case enumMiCorreoModoAcceso.IMAP:
@@ -417,7 +419,7 @@ namespace MVCSistemaDeElementos.Controllers
             switch (_Protocolo)
             {
                 case enumMiCorreoModoAcceso.Auth2:
-                    GoogleCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
+                    UserCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
                     ruta = LectorDeGmailAuth2.ImprimirCorreo(idMail, credenciales);
                     break;
                 case enumMiCorreoModoAcceso.IMAP:
@@ -442,7 +444,7 @@ namespace MVCSistemaDeElementos.Controllers
                 switch (_Protocolo)
                 {
                     case enumMiCorreoModoAcceso.Auth2:
-                        GoogleCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
+                        UserCredential credenciales = LectorDeGmailAuth2.Credenciales(_MiCorreo);
                         LectorDeGmailAuth2.EliminarCorreo(Contexto, parametros.LeerValor<int>(nameof(MiCorreoDto.Id)), credenciales);
                         break;
                     case enumMiCorreoModoAcceso.IMAP:
@@ -477,20 +479,18 @@ namespace MVCSistemaDeElementos.Controllers
             }
         }
 
-        private GoogleCredential ObtenerCredencialesUsandoAuth2(string code)
+        private UserCredential ObtenerCredencialesUsandoAuth2(string code)
         {
             var cacheFlujoAuth2 = ServicioDeCaches.Obtener(CacheDe.Ent_FlujodeAutorizacion);
 
             var f = (GoogleAuthorizationCodeFlow)cacheFlujoAuth2[_ClienteSecreto];
-            var token = f.ExchangeCodeForTokenAsync(_MiCorreo, code, $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/{nameof(MiCorreoController).Replace("Controller", "")}/{nameof(CrudDeMiCorreo)}", CancellationToken.None).Result;
+            var redirectUri = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/{nameof(MiCorreoController).Replace("Controller", "")}/{nameof(CrudDeMiCorreo)}";
+            var token = f.ExchangeCodeForTokenAsync(_MiCorreo, code, redirectUri, CancellationToken.None).Result;
 
             string ficheroDeCredenciales = Path.Combine(ltrLectorDeCorreo.RutaDeTokens, $"{_MiCorreo}.tkrp");
-            var contenidoToken = JsonConvert.SerializeObject(token);
-            System.IO.File.WriteAllText(ficheroDeCredenciales, contenidoToken);
+            System.IO.File.WriteAllText(ficheroDeCredenciales, JsonConvert.SerializeObject(token));
 
-            TokenResponse tokenLeido = JsonConvert.DeserializeObject<TokenResponse>(contenidoToken);
-            GoogleCredential credenciales = GoogleCredential.FromAccessToken(tokenLeido.AccessToken);
-            return credenciales;
+            return new UserCredential(f, _MiCorreo, token);
         }
 
         public FileStreamResult ObtenerArchivo(string ruta)
