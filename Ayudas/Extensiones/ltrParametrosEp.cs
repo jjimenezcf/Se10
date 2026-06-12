@@ -35,6 +35,7 @@
         public static readonly string Controlador = nameof(Controlador);
         public static readonly string Accion = nameof(Accion);
         public static readonly string IaSeleccionada = nameof(IaSeleccionada);
+        public static readonly string Correos = nameof(Correos).ToLower();
 
 
         public static readonly string idTransicion = nameof(idTransicion).ToLower();

@@ -781,7 +781,7 @@
             }
         }
         catch (error) {
-            MensajesSe.EmitirExcepcion("Obtener coluna del grid de realción", 'No se ha podido obtener el Id de la relación', error);
+            MensajesSe.EmitirExcepcion("Obtener coluna del grid de realción", 'No se ha podido obtener la propiedad:' + propiedad, error);
         }
         return valor;
     }

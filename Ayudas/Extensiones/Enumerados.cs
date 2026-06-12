@@ -159,6 +159,7 @@ namespace Utilidades
         Agenda_AbrirAgendaSeleccionada,
         Agenda_EjecutarAccionAsociada,
         Agenda_AlCambiar_EventoDeDia,
+        Agenda_EnviarEventoIcs,
         MiCalendario_IrAlElemento,
 
         Historial_EjecutarAccionAsociada,

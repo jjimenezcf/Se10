@@ -54,6 +54,17 @@ namespace GestorDeElementos
             return (T)negocio.CrearGestor(contexto, typeof(T)).LeerRegistroPorId(id, aplicarJoin, usarLaCache, parametros);
         }
 
+        public static IElementoDtm SeleccionarElementoPorId(this ContextoSe contexto, Type tipo, int id, bool aplicarJoin = false, bool errorSiNoHay = true, bool usarLaCache = true, Dictionary<string, object> parametros = null)
+        {
+            if (!tipo.ImplementaUnElemento())
+                GestorDeErrores.Emitir($"El tipo '{tipo.Name}' no implementa la interface '{nameof(IElementoDtm)}'");
+
+            var negocio = NegociosDeSe.NegocioDeUnDtm(tipo);
+            parametros = parametros == null ? new Dictionary<string, object>() : parametros;
+            parametros[ltrParametrosNeg.ErrorSiNoLoHay] = errorSiNoHay;
+            return (IElementoDtm)negocio.CrearGestor(contexto, tipo).LeerRegistroPorId(id, aplicarJoin, usarLaCache, parametros);
+        }
+
         public static T SeleccionarPorAk<T>(this ContextoSe contexto, Dictionary<string, object> filtrosPorAk, bool errorSiNoHay = true, bool aplicarJoin = false, bool incluirBaja = true)
         where T : RegistroDtm
         {

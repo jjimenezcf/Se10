@@ -1173,40 +1173,40 @@ const ltrCss = {
         },
         DashBoard: {
             // contenedor principal del panel (grid de tarjetas)
-            PanelGraficas:           'panel-graficas',
+            PanelGraficas: 'panel-graficas',
             // tarjeta individual de cada negocio
-            GraficaContenedor:       'grafica-contenedor',
+            GraficaContenedor: 'grafica-contenedor',
             // tarjeta con ancho completo (única visible)
-            GraficaAnchoCompleto:    'grafica-ancho-completo',
+            GraficaAnchoCompleto: 'grafica-ancho-completo',
             // título de la tarjeta
-            GraficaTitulo:           'grafica-titulo',
+            GraficaTitulo: 'grafica-titulo',
             // contenedor de la visualización activa
-            GraficaVistaContenedor:  'grafica-vista-contenedor',
+            GraficaVistaContenedor: 'grafica-vista-contenedor',
             // botón cerrar (✕)
-            GraficaCerrar:           'grafica-cerrar',
+            GraficaCerrar: 'grafica-cerrar',
             // botón cambio de modo (tarta / barras / matriz)
-            GraficaModo:             'grafica-modo',
+            GraficaModo: 'grafica-modo',
             // botones de movimiento (flechas)
-            GraficaMover:            'grafica-mover',
-            GraficaMoverDer:         'grafica-mover-der',
-            GraficaMoverIzq:         'grafica-mover-izq',
+            GraficaMover: 'grafica-mover',
+            GraficaMoverDer: 'grafica-mover-der',
+            GraficaMoverIzq: 'grafica-mover-izq',
             // ── modo matriz ──
             GraficaMatrizContenedor: 'grafica-matriz-contenedor',
-            GraficaMatriz:           'grafica-matriz',
-            CeldaTipo:               'celda-tipo',
-            CeldaValor:              'celda-valor',
+            GraficaMatriz: 'grafica-matriz',
+            CeldaTipo: 'celda-tipo',
+            CeldaValor: 'celda-valor',
             // ── modo tartas ──
             GraficaTartasContenedor: 'grafica-tartas-contenedor',
-            GraficaTartaItem:        'grafica-tarta-item',
-            GraficaTartaTitulo:      'grafica-tarta-titulo',
-            GraficaTartaSvg:         'grafica-tarta-svg',
-            GraficaLeyenda:          'grafica-leyenda',
-            GraficaLeyendaItem:      'grafica-leyenda-item',
-            GraficaLeyendaColor:     'grafica-leyenda-color',
+            GraficaTartaItem: 'grafica-tarta-item',
+            GraficaTartaTitulo: 'grafica-tarta-titulo',
+            GraficaTartaSvg: 'grafica-tarta-svg',
+            GraficaLeyenda: 'grafica-leyenda',
+            GraficaLeyendaItem: 'grafica-leyenda-item',
+            GraficaLeyendaColor: 'grafica-leyenda-color',
             // ── modo barras ──
             GraficaBarrasContenedor: 'grafica-barras-contenedor',
-            GraficaBarraItem:        'grafica-barra-item',
-            GraficaBarraSvg:         'grafica-barra-svg',
+            GraficaBarraItem: 'grafica-barra-item',
+            GraficaBarraSvg: 'grafica-barra-svg',
         },
     },
     controlNoVisible: 'controlNoVisible',
@@ -1521,7 +1521,8 @@ const Ajax = {
                 AsociarAlElemento: 'epAsociarAlElemento'
             },
             Agenda: {
-                IrAlElementoDelEvento: 'epIrAlElementoDelEvento'
+                IrAlElementoDelEvento: 'epIrAlElementoDelEvento',
+                EnviarEventoIcs: 'epEnviarEventoIcs'
             },
             ArbolMenu: {
                 GuardarMenuAccedido: 'epGuardarMenuAccedido',
@@ -1629,9 +1630,9 @@ const Ajax = {
                 DescargarEtiquetas: 'epDescargarEtiquetas',
             },
             Estados: {
-                ObtenerFlujo:        'epObtenerFlujo',
-                LeerPosiciones:      'epLeerPosicionesDeEstados',
-                GrabarDisposicion:   'epGrabarDisposicionDeEstados'
+                ObtenerFlujo: 'epObtenerFlujo',
+                LeerPosiciones: 'epLeerPosicionesDeEstados',
+                GrabarDisposicion: 'epGrabarDisposicionDeEstados'
             }
         },
     },
@@ -2352,7 +2353,8 @@ const ltrPropiedades = {
             eventoDeDia: 'eventodedia',
             EsDelSistema: 'esdelsistema',
             Agenda: 'agenda',
-            IdAgenda: 'idagenda'
+            IdAgenda: 'idagenda',
+            Correos: 'correos'
         },
         Menu: {
             activo: 'activo',

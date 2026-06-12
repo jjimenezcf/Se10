@@ -658,6 +658,19 @@ div[propiedad="Agenda"] a {
     vertical-align: middle;
 }
 
+div[propiedad="Enviar ICS"] a {
+    font-size: 0;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url('/images/menu/Correo.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
 div[propiedad="Detalle"] a {
     font-size: 0;
     display: inline-block;

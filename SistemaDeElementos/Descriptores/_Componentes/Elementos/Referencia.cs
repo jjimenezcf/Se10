@@ -159,6 +159,10 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             return $"javascript:{enumNameSpaceTs.ApiDeAgenda}.{enumFunctionTs.Agenda_AbrirAgenda}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
         }
+        internal static string Agenda_EnviarEventoIcs(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.ApiDeAgenda}.{enumFunctionTs.Agenda_EnviarEventoIcs}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
         internal static string SisDoc_CarpetasDeUnArchivador(DescriptorDeExpansor expansor)
         {
             return $"javascript:{enumNameSpaceTs.ApiDeArchivos}.{enumFunctionTs.SisDoc_CarpetasDeUnArchivador}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";

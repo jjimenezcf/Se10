@@ -35,8 +35,9 @@ namespace MVCSistemaDeElementos.Descriptores
             //}
             columnas.Add(titulo: "Desde", propiedad: nameof(EventoDeAgendaDto.Inicio), alineacion: enumAliniacion.centrada, mostrar: true, tamano: 150, formato: enumFormato.FechaHoraMinutos);
             columnas.Add(titulo: "Hasta", propiedad: nameof(EventoDeAgendaDto.Fin), alineacion: enumAliniacion.centrada, mostrar: true, tamano: 150, formato: enumFormato.FechaHoraMinutos);
+            columnas.Add(titulo: "Id de negocio", propiedad: nameof(EventoDeAgendaDto.IdNegocio), alineacion: enumAliniacion.derecha, mostrar: false); 
             columnas.Add(titulo: "Id de agenda", propiedad: nameof(EventoDeAgendaDto.IdAgenda), alineacion: enumAliniacion.derecha, mostrar: false);
-            columnas.Add(titulo: "Id", propiedad: nameof(InterlocutorDto.Id), alineacion: enumAliniacion.derecha, mostrar: false);
+            columnas.Add(titulo: "Id", propiedad: nameof(EventoDeAgendaDto.Id), alineacion: enumAliniacion.derecha, mostrar: false);
             columnas.Add(titulo: nameof(EventoDeAgendaDto.Descripcion), propiedad: nameof(EventoDeAgendaDto.Descripcion), alineacion: enumAliniacion.izquierda, mostrar: false);
             var parametros = new Dictionary<string, object> {
                    { nameof(GridDeRelacion.Controlador), typeof(VisorDeAgendaController) }
@@ -61,6 +62,13 @@ namespace MVCSistemaDeElementos.Descriptores
             else
             {
                 gridDeRelacion.PermitirBorrar = true;
+                gridDeRelacion.acciones.Add(new ColumnaAccion
+                {
+                    accion = Referencia.Agenda_EnviarEventoIcs(expansor),
+                    titulo = "Enviar ICS",
+                    tamano = 100,
+                    visible = true
+                });
                 gridDeRelacion.acciones.Add(new ColumnaAccion
                 {
                     accion = Referencia.Agenda_AbrirAgenda(expansor),

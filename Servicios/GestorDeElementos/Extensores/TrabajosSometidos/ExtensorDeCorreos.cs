@@ -11,7 +11,6 @@ using Utilidades;
 using System.Threading.Tasks;
 using Gestor.Errores;
 using System.Linq;
-using System.IO;
 
 namespace GestorDeElementos.Extensores
 {

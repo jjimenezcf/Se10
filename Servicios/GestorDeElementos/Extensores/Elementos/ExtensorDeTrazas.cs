@@ -41,8 +41,23 @@ namespace GestorDeElementos.Extensores
         public static TrazaDtm CrearTraza<T>(this T elemento, ContextoSe contexto,string nombre, string descripción, Dictionary<string,object> parametros = null)
         where T: IUsaTraza
         {
-            var traza = NuevaTraza(elemento.GetType().NegocioDeUnDtm());
-            traza.IdElemento =((IRegistro) elemento).Id;
+            return CrearTrazaInterno((IElementoDtm)elemento, contexto, nombre, descripción, parametros, elemento.GetType().NegocioDeUnDtm());
+        }
+
+        public static TrazaDtm CrearTraza(this IElementoDtm elemento, ContextoSe contexto, string nombre, string descripción, Dictionary<string, object> parametros = null)
+        {
+            var tipo = elemento.GetType();
+            var negocio = tipo.NegocioDeUnDtm();
+            if (!negocio.UsaTrazas())
+                GestorDeErrores.Emitir($"El negocio {negocio.Singular()} no implementa el uso de trazas");
+
+            return CrearTrazaInterno(elemento, contexto, nombre, descripción, parametros, negocio);
+        }
+
+        private static TrazaDtm CrearTrazaInterno(IElementoDtm elemento, ContextoSe contexto, string nombre, string descripción, Dictionary<string, object> parametros, enumNegocio negocio)
+        {
+            var traza = NuevaTraza(negocio);
+            traza.IdElemento = ((IRegistro)elemento).Id;
             traza.Nombre = nombre;
             traza.Descripcion = descripción.Left(IDominio.Longitud(IDominio.VARCHAR_2000) - 1);
             var gestor = GestorDeTrazas.Gestor(contexto, traza.Negocio);

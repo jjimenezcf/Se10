@@ -112,6 +112,53 @@ namespace GestorDeElementos.Extensores
             return contexto.SeleccionarTodos<EventoDeAgendaDtm>(filtros, parametros: new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDeConsulta, false } });
         }
 
+        public static string GenerarIcsDeEvento(this EventoDeAgendaDtm evento, ContextoSe contexto)
+        {
+            var agenda = contexto.SeleccionarPorId<AgendaDtm>(evento.IdAgenda);
+            var renderizarUrl = agenda.EsDeSociedad(contexto) || agenda.EsDeUsuario(contexto);
+
+            var calendario = new StringBuilder();
+            calendario.AppendLine("BEGIN:VCALENDAR");
+            calendario.AppendLine("VERSION:2.0");
+            calendario.AppendLine("PRODID:Calendarios.Se");
+            calendario.AppendLine("METHOD:REQUEST");
+            calendario.AppendLine("");
+
+            calendario.AppendLine("BEGIN:VEVENT");
+            calendario.AppendLine($"UID:SE{evento.Id}");
+
+            if (evento.EventoDeDia)
+                calendario.AppendLine($"DTSTART;VALUE=DATE:{evento.Inicio.ToUniversalTime().ToString("yyyyMMdd")}");
+            else
+                calendario.AppendLine($"DTSTART;VALUE=DATE-TIME:{evento.Inicio.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+
+            calendario.AppendLine("SEQUENCE:0");
+            calendario.AppendLine("TRANSP:OPAQUE");
+
+            if (evento.EventoDeDia)
+                calendario.AppendLine($"DTEND;VALUE=DATE:{evento.Fin.ToUniversalTime().ToString("yyyyMMdd")}");
+            else
+                calendario.AppendLine($"DTEND;VALUE=DATE-TIME:{evento.Fin.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+
+            calendario.AppendLine($"SUMMARY:{evento.Nombre}");
+
+            var urlDelEvento = renderizarUrl ? UriEvento(contexto, evento) : "";
+            string descripcionFormateada = $"{evento.Descripcion}\n\n{urlDelEvento}"
+                .Replace("\r\n", "\\n")
+                .Replace("\n", "\\n");
+            calendario.AppendLine($"DESCRIPTION:{descripcionFormateada}");
+
+            calendario.AppendLine("CLASS:PUBLIC");
+            calendario.AppendLine($"CATEGORIES:{NegociosDeSe.LeerNegocioPorId(evento.IdNegocio).Nombre}");
+            calendario.AppendLine($"DTSTAMP:{evento.FechaCreacion.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+            calendario.AppendLine($"CREATED:{DateTime.Now.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+            calendario.AppendLine("END:VEVENT");
+            calendario.AppendLine("");
+            calendario.AppendLine("END:VCALENDAR");
+
+            return calendario.ToString();
+        }
+
         private static string GenerarIcs(this AgendaDtm agenda, ContextoSe contexto, List<EventoDeAgendaDtm> eventos)
         {
             var renderizarUrl = agenda.EsDeSociedad(contexto) || agenda.EsDeUsuario(contexto);

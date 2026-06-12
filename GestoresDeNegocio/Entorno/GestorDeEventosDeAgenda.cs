@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using Microsoft.EntityFrameworkCore;
@@ -236,6 +237,22 @@ namespace GestoresDeNegocio.Entorno
             opciones[nameof(ltrParametrosNeg.Peticion)] = enumPeticion.LeerEventos;
             var eventosDto = Gestor(Contexto, Contexto.Mapeador).LeerElementos(0, -1, filtros, ordenacion, opciones);
             return eventosDto.ToList();
+        }
+
+        public static void EnviarEventoIcs(ContextoSe contexto, int idEvento, int idNegocio, string correos)
+        {
+            var evento = contexto.SeleccionarPorId<EventoDeAgendaDtm>(idEvento);
+            if (evento.IdNegocio != idNegocio) 
+                GestorDeErrores.Emitir("El evento no pertenece al negocio indicado");
+
+            string[] listaCorreos = correos.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            foreach (var correo in listaCorreos)
+            {
+                ValidadorEmail.ValidarMail(correo.Trim());
+            }
+
+            ExtensorDeEventosDelCalendario.EnviarEventoIcs(contexto, evento, listaCorreos);
         }
     }
 }

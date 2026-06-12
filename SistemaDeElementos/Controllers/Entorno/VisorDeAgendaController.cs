@@ -209,6 +209,36 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        public JsonResult epEnviarEventoIcs(string parametrosJson)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epEnviarEventoIcs));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var parametros = parametrosJson.ToDiccionarioDeParametros();
+                var idEvento = (int)parametros.LeerValor<long>(nameof(EventoDeAgendaDtm.Id));
+                var idNegocio = (int)parametros.LeerValor<long>(nameof(EventoDeAgendaDtm.IdNegocio));
+                var correos = parametros.LeerValor<string>(ltrParametrosEp.Correos);
+                if (correos.IsNullOrEmpty())
+                    GestorDeErrores.Emitir("Debe indicar un correo electrónico");
+
+                GestorDeEventosDeAgenda.EnviarEventoIcs(Contexto, idEvento, idNegocio, correos);
+
+                r.Consola = $"Evento enviado a: '{correos}'";
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "Error al enviar el evento.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
         [AllowAnonymous]
         public JsonResult epLeerLosEventosPorGuid(string filtrosJson, string parametrosJson)
         {

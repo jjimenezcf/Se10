@@ -1,7 +1,5 @@
-﻿using Mailjet.Client.Resources;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -11,7 +9,6 @@ using System.Net.Mail;
 using System.Reflection;
 using System.Threading.Tasks;
 using Utilidades;
-using static ServicioDeCorreos.Oficce365;
 
 namespace ServicioDeCorreos
 {

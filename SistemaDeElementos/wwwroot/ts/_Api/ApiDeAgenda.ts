@@ -73,6 +73,87 @@
         Agenda_AlCambiar_EventoDeDia(eventoDeDia);        
     }
 
+    export function Agenda_EnviarEventoIcs(parametros: string): void {
+        let partes = parametros.split(';');
+        let idGrid: string = partes[0];
+        let fila: number = Numero(partes[1]);
+        let idEvento: number = Numero(ApiDeGrid.Expansor_ObtenerPropiedadDeLaFila(idGrid, fila, literal.id));
+        let idNegocio: number = Numero(ApiDeGrid.Expansor_ObtenerPropiedadDeLaFila(idGrid, fila, ltrPropiedades.Negocio.idNegocio));
+        let nombreEvento: string = ApiDeGrid.Expansor_ObtenerPropiedadDeLaFila(idGrid, fila, literal.nombre);
+
+        // Crear modal dinámica
+        const idModal = 'modal-enviar-ics';
+        let modalExistente = document.getElementById(idModal);
+        if (modalExistente) modalExistente.remove();
+
+        let overlay = document.createElement('div');
+        overlay.id = idModal;
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+        let dialogo = document.createElement('div');
+        dialogo.style.cssText = 'background:#fff;border-radius:8px;padding:24px;min-width:380px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+
+        let titulo = document.createElement('h5');
+        titulo.innerText = `Enviar evento: ${nombreEvento}`;
+        titulo.style.marginBottom = '16px';
+
+        let label = document.createElement('label');
+        label.innerText = 'Correo electrónico:';
+        label.style.display = 'block';
+        label.style.marginBottom = '6px';
+
+        let inputCorreo = document.createElement('input');
+        inputCorreo.type = 'email';
+        inputCorreo.placeholder = 'destino@ejemplo.com';
+        inputCorreo.style.cssText = 'width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-bottom:16px;box-sizing:border-box;';
+
+        let contenedorBotones = document.createElement('div');
+        contenedorBotones.style.cssText = 'display:flex;justify-content:flex-end;gap:10px;';
+
+        let btnCerrar = document.createElement('button');
+        btnCerrar.innerText = 'Cerrar';
+        btnCerrar.className = 'btn btn-secondary';
+        btnCerrar.onclick = () => overlay.remove();
+
+        let btnEnviar = document.createElement('button');
+        btnEnviar.innerText = 'Enviar';
+        btnEnviar.className = 'btn btn-primary';
+        btnEnviar.onclick = () => {
+            let correos = inputCorreo.value.trim();
+            if (IsNullOrEmpty(correos)) {
+                MensajesSe.Error('Validación', 'Debe indicar un correo electrónico');
+                return;
+            }
+            overlay.remove();
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(literal.id, idEvento));
+            parametros.push(new Parametro(ltrPropiedades.Negocio.idNegocio, idNegocio));
+            parametros.push(new Parametro(ltrPropiedades.Entorno.EventoDeAgenda.Correos, correos));
+            ApiDePeticiones.EjecutarPeticion(
+                null,
+                ltrControladores.Entorno.VisorDeAgenda,
+                Ajax.EndPoint.Entorno.Agenda.EnviarEventoIcs,
+                parametros,
+                new Array<Parametro>()
+            )
+            .then((peticion) => {
+                MensajesSe.Info(peticion.resultado.consola);
+            })
+            .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+        };
+
+        contenedorBotones.appendChild(btnCerrar);
+        contenedorBotones.appendChild(btnEnviar);
+        dialogo.appendChild(titulo);
+        dialogo.appendChild(label);
+        dialogo.appendChild(inputCorreo);
+        dialogo.appendChild(contenedorBotones);
+        overlay.appendChild(dialogo);
+        document.body.appendChild(overlay);
+
+        setTimeout(() => inputCorreo.focus(), 100);
+    }
+
     export function Agenda_AlCambiar_EventoDeDia(check: HTMLInputElement) {
         let idTabla = check.id.replace(`-${check.getAttribute(atControl.propiedad)}`, '');
         let tabla = document.getElementById(idTabla);
