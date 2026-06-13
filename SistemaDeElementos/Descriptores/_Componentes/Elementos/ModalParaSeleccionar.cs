@@ -40,8 +40,8 @@ namespace MVCSistemaDeElementos.Descriptores
                               		    <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               			    crudParaSeleccionar
                                         </div>
-                                        <div id=¨{IdHtml}_pie¨ class=¨contenido-pie¨>
-                                           <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨boton-modal¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaSeleccionar}('{eventosParaSeleccionar.Cerrar}','{IdHtml}')¨ />
+                                        <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
+                                           <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaSeleccionar}('{eventosParaSeleccionar.Cerrar}','{IdHtml}')¨ />
                                         </div>
                                       </div>
                               </div>";

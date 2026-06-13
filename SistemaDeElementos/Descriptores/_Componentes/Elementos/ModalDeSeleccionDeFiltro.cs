@@ -42,9 +42,9 @@ namespace MVCSistemaDeElementos.Descriptores
                               		    <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               			    crudDeSeleccion
                                         </div>
-                                        <div id=¨{IdHtml}_pie¨ class=¨contenido-pie¨>
-                                           <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ class=¨boton-modal¨ value=¨Seleccionar¨ clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ readonly onclick=¨Crud.EventosModalDeSeleccion('seleccionar-elementos','{IdHtml}')¨       />
-                                           <input type=¨text¨ id=¨{IdHtml}_Cerrar¨  class=¨boton-modal¨ value=¨Cerrar¨ clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ readonly onclick=¨Crud.EventosModalDeSeleccion('cerrar-modal-seleccion','{IdHtml}')¨ />
+                                        <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
+                                           <input type=¨text¨ id=¨{IdHtml}_Cerrar¨  class=¨{enumCssModal.BotonSecundario.Render()}¨ value=¨Cerrar¨ clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ readonly onclick=¨Crud.EventosModalDeSeleccion('cerrar-modal-seleccion','{IdHtml}')¨ />
+                                           <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Seleccionar¨ clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ readonly onclick=¨Crud.EventosModalDeSeleccion('seleccionar-elementos','{IdHtml}')¨ />
                                         </div>
                                       </div>
                               </div>";

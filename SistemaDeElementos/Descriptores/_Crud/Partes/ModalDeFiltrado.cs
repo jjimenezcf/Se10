@@ -75,19 +75,19 @@ namespace MVCSistemaDeElementos.Descriptores
                  	   <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpo.Render()}¨>
                  	      {RenderControlesDeFiltrado()}
                        </div>
-                       <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPie.Render()}¨>
-                          <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ 
-                              class=¨boton-modal {Css.Render(enumCssOpcionMenu.BotonPorDefecto)}¨ 
-                              value=¨Filtrar¨ 
-                              clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
-                              readonly 
-                              onclick=¨{enumAccionesModalDeFiltrado.AplicarFiltro.Render(IdHtml)}¨/>
+                       <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
                           <input type=¨text¨ id=¨{IdHtml}_Cerrar¨  
-                              class=¨boton-modal¨ 
+                              class=¨{enumCssModal.BotonSecundario.Render()}¨ 
                               value=¨Cerrar¨ 
                               clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
                               readonly 
                               onclick=¨{enumAccionesModalDeFiltrado.CerrarFiltro.Render(IdHtml)}¨ />
+                          <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ 
+                              class=¨{enumCssModal.BotonPrincipal.Render()} {Css.Render(enumCssOpcionMenu.BotonPorDefecto)}¨ 
+                              value=¨Filtrar¨ 
+                              clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
+                              readonly 
+                              onclick=¨{enumAccionesModalDeFiltrado.AplicarFiltro.Render(IdHtml)}¨/>
                        </div>
                     </div>
                  </div>";

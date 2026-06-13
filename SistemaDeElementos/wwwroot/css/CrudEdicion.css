@@ -422,11 +422,17 @@
     display: none !important;
 }
 
-.contenido-modal-pie-menu {
-    float: left;
-    display: inline-block;
+/*.contenido-modal-pie-menu {
+    float: left;*/
+/*    display: inline-block;
     width: 50%;
-    min-width: 210px;
+    min-width: 210px;*/
+/*}*/
+
+.contenido-modal-pie-menu {
+    display: flex;
+    gap: 10px;
+    /* Eliminados los floats y el order anterior */
 }
 
 .contenido-modal-pie-menu,
@@ -441,12 +447,19 @@
     width: 50%;
 }
 
-.contenido-modal-pie-navegador {
+/*.contenido-modal-pie-navegador {
     text-align: right;
     float: right;
     display: inline-block;
     width: 50%;
     min-width: 210px;
+}*/
+
+.contenido-modal-pie-navegador {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    /* Eliminados los floats y el order anterior */
 }
 
     .contenido-modal-pie-navegador > img {

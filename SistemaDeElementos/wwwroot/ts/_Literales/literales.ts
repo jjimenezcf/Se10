@@ -1285,7 +1285,9 @@ const ltrCss = {
         Boton: 'boton-modal',
         BotonPorDefecto: 'boton-por-defecto',
         ContenidoCuerpo: 'contenido-cuerpo',
-        ContenedorEdicionCuerpo: 'contenedor-edicion-cuerpo'
+        ContenedorEdicionCuerpo: 'contenedor-edicion-cuerpo',
+        BotonPrincipal: 'boton-modal btn btn-primary boton-por-defecto',
+        BotonSecundario: 'boton-modal btn btn-secondary'
     },
     controlesDto: {
         hora: 'hora-dto',

@@ -1327,8 +1327,10 @@ namespace Utilidades
                 var listaJson = parametrosJson.ToListaDeParametros();
                 foreach (var p in listaJson)
                 {
-                    if (parametros.ContainsKey(p.parametro))
+                    if (parametros.ContainsKey(p.parametro) && parametros[p.parametro].ToString() != p.valor.ToString())
                         throw new Exception($"El parámetro '{p.parametro}' ya existe");
+                    if (parametros.ContainsKey(p.parametro) && parametros[p.parametro].ToString() == p.valor.ToString())
+                        continue;
                     parametros.Add(p.parametro, p.valor);
                 }
             }

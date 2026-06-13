@@ -91,9 +91,9 @@
 }
 
 .contenedor-pie-modal-opciones {
-    float: right;
+/*    float: right;
     padding-right: 10px;
-    text-align: right;
+    text-align: right;*/
     width: 50%;
     min-width: 210px;
 }

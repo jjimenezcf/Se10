@@ -38,9 +38,9 @@ namespace MVCSistemaDeElementos.Descriptores
                               		       <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               		 	       crudDeRelacion
                                            </div>
-                                           <div id=¨{IdHtml}_pie¨ class=¨contenido-pie¨>
-                                              <input type=¨text¨ id=¨{IdHtml}-relacionar¨ class=¨boton-modal¨ value=¨Relacionar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalDeCrearRelaciones}('{eventosDeRelacionar.Relacionar}','{IdHtml}')¨/>
-                                              <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨boton-modal¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalDeCrearRelaciones}('{eventosDeRelacionar.Cerrar}','{IdHtml}')¨ />
+                                           <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
+                                              <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨{enumCssModal.BotonSecundario.Render()}¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalDeCrearRelaciones}('{eventosDeRelacionar.Cerrar}','{IdHtml}')¨ />
+                                              <input type=¨text¨ id=¨{IdHtml}-relacionar¨ class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Relacionar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalDeCrearRelaciones}('{eventosDeRelacionar.Relacionar}','{IdHtml}')¨/>
                                            </div>
                                         </div>
                                      </div>";

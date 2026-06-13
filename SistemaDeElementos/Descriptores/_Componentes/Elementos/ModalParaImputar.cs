@@ -49,9 +49,9 @@ namespace MVCSistemaDeElementos.Descriptores
                               		       <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               		 	       crudDeImputacion
                                            </div>
-                                           <div id=¨{IdHtml}_pie¨ class=¨contenido-pie¨>
-                                              <input type=¨text¨ id=¨{IdHtml}-imputar¨ class=¨boton-modal¨ value=¨Imputar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaImputar}('{eventosDeImputar.Imputar}','{IdHtml}')¨/>
-                                              <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨boton-modal¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaImputar}('{eventosDeImputar.Cerrar}','{IdHtml}')¨ />
+                                           <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
+                                              <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨{enumCssModal.BotonSecundario.Render()}¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaImputar}('{eventosDeImputar.Cerrar}','{IdHtml}')¨ />
+                                              <input type=¨text¨ id=¨{IdHtml}-imputar¨ class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Imputar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaImputar}('{eventosDeImputar.Imputar}','{IdHtml}')¨/>
                                            </div>
                                         </div>
                                      </div>";

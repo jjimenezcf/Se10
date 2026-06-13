@@ -3,7 +3,7 @@
 .contenedor-modal {
     display: none;
     position: fixed;
-    z-index: 0;
+    z-index: 1;
     padding-top: 100px;
     left: 0px;
     top: 0px;
@@ -143,13 +143,31 @@
 /*min-height: 3em;*/
 /*}*/
 
-.contenido-pie {
-    display: flex;
-    flex-wrap: nowrap;
+/*.contenido-pie {
+    display: flex;*/
+    /*    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-    min-width: 0;
+    min-width: 0;*/ 
+    /*justify-content: flex-end;
+    gap: 10px;
+}*/
+
+.contenido-pie {
+    display: flex;
+    /* Cambiamos flex-end por space-between para empujar 
+       un bloque a cada extremo (izq y der) */
+    justify-content: space-between;
+    align-items: center; /* Alinea verticalmente los elementos */
+    gap: 10px;
+    width: 100%; /* Asegura que ocupe todo el ancho del modal */
 }
+
+    /* Esta clase alineará TODO el contenido que tenga dentro hacia la derecha */
+    .contenido-pie.pie-solo-botones {
+        justify-content: flex-end;
+        gap: 10px; /* Espacio de 10px entre el botón Cerrar y Relacionar */
+    }
 
 .pie-de-totales {
     display: flex;
@@ -159,11 +177,11 @@
 
 
 .contenido-modal .boton-modal {
-    width: 75px;
+/*    width: 75px;
     color: #ffffff;
     background-color: #adb5bd;
     border: 1px solid #6c757d;
-    text-align: center;
+    text-align: center;*/
 }
 
     .contenido-modal .boton-modal:hover {
@@ -171,12 +189,12 @@
         background-color: #ffffff;
     }
 
-.contenedor-modal .boton-modal {
+.contenedor-modal .boton-modal { 
     width: 75px;
-    color: #ffffff;
+    /*color: #ffffff;
     background-color: #adb5bd;
     border: 1px solid #6c757d;
-    text-align: center;
+    text-align: center;*/
 }
 
     .contenedor-modal .boton-modal:hover {
@@ -229,3 +247,112 @@
         background-color: #fafafa;
         margin-bottom: 10px;
     }
+
+/* ==========================================================================
+   MODALES GENÉRICAS CON GRID (Ajuste Perfecto de Altura y Scroll Interno)
+   ========================================================================== */
+
+/* 1. Contenedor Raíz de la Modal: Forzamos comportamiento Flex vertical */
+.contenido-modal-cabecera.modal-con-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 85vh; /* Ocupa el 85% de la altura de la ventana del navegador */
+    max-height: 700px; /* Altura máxima para pantallas grandes */
+    min-height: 450px; /* Altura mínima garantizada */
+    box-sizing: border-box;
+    overflow: hidden !important; /* Capa de seguridad anti-scroll exterior */
+}
+
+    /* 2. Cuerpo Central (Filtro + Contenedor del Grid) */
+    .contenido-modal-cabecera.modal-con-grid .contenido-cuerpo-con-grid {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0; /* TRUCO FLEX: Permite a los hijos encogerse por debajo de su contenido */
+        overflow: hidden !important;
+    }
+
+/* 3. El wrapper del Grid (div-visible) */
+.modal-con-grid .contenedor-cuerpo-con-grid {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* 4. Filtro superior: Estático, nunca se encoge */
+.modal-con-grid .cuerpo-datos-filtro {
+    flex-shrink: 0;
+    overflow: visible !important;
+}
+
+/* 5. Contenedor General de la Tabla (Cabecera + Datos + Navegador del grid) */
+.modal-con-grid .cuerpo-datos-grid {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 4px ridge;
+    box-sizing: border-box;
+    overflow: hidden !important; /* Evita que el recuadro crezca hacia abajo */
+}
+
+.modal-con-grid .contenedor-tabla {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Estructura de la Tabla Interna */
+/*.modal-con-grid .div-table {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+}*/
+
+.modal-con-grid .div-tabla.cuerpo-datos-tabla {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto !important; /* vertical aquí, barra siempre visible a la derecha */
+    overflow-x: auto !important;
+}
+
+/* 6. Encolumnado superior: Siempre fijo */
+.modal-con-grid .div-thead.cuerpo-datos-thead {
+    flex: 0 0 auto !important;
+    display: block;
+}
+
+/* 7. EL FILTRADO DEL SCROLL: El cuerpo real de las filas */
+.modal-con-grid .div-tbody.cuerpo-datos-tbody {
+    min-width: 100em !important;
+    width: fit-content;
+    display: block !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    /* quitamos flex-grow, height:0 y min-height — ya no aplica aquí */
+}
+
+/* 8. Pie de la Tabla (Navegador interno del grid: Página X de Y, Seleccionados) 
+      Siempre fijo justo encima del pie de la modal */
+.modal-con-grid .pie-grid {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #ddd;
+    /* NO forzar display: block, deja el display original (flex) */
+}
+
+/* 9. Botones del Pie de la Modal (Cerrar / Relacionar) siempre visibles al fondo */
+.contenido-modal-cabecera.modal-con-grid .contenido-pie.pie-solo-botones {
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding-top: 10px;
+}

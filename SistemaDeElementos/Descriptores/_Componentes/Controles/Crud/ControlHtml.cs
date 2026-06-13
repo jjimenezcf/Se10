@@ -129,7 +129,7 @@ namespace MVCSistemaDeElementos.Descriptores
         public int IdNegocio { get; }
     }
 
-    public interface IExpanes 
+    public interface IExpanes
     {
         public List<DescriptorDeExpansor> Expanes { get; set; }
     }
@@ -167,7 +167,7 @@ namespace MVCSistemaDeElementos.Descriptores
         public void ModificarId(string id)
         {
             _ListaDeIdsAsignados.Remove(Id);
-            Id = id;          
+            Id = id;
         }
 
         public string IdHtml => Id.ToLower();
@@ -248,7 +248,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var htmlEtiqueta = $@"<div id='etiqueta-{idEtiqueta}-contenedor' name='contenedor-etiqueta' 
                                        class='{enumCssControles.ContenedorEtiqueta.Render()}'
                                        [estilo_contenedor]>
-                                   <label id='etiqueta-{idEtiqueta}' { ( excluirFor ? "": $"for='{idControl}'") }
+                                   <label id='etiqueta-{idEtiqueta}' {(excluirFor ? "" : $"for='{idControl}'")}
                                           class='{enumCssControles.Etiqueta.Render()}{(clases.IsNullOrEmpty() ? "" : $" {clases}")}' 
                                           title='{ayuda}'
                                           [estilo]>
@@ -301,7 +301,7 @@ namespace MVCSistemaDeElementos.Descriptores
             valores["Checked"] = chequeado ? "true" : "false";
             valores["Etiqueta"] = etiqueta;
             valores["Accion"] = accion;
-            if (css != null) 
+            if (css != null)
                 valores["Css"] = ((enumCssFiltro)css).Render();
 
             return PlantillasHtml.Render(PlantillasHtml.checkFlt, valores)
@@ -319,7 +319,7 @@ namespace MVCSistemaDeElementos.Descriptores
             valores["Checked"] = chequeado ? "true" : "false";
             valores["Etiqueta"] = etiqueta;
             valores["Accion"] = accion;
-           
+
             return PlantillasHtml.Render(PlantillasHtml.checkFiltroOnOff, valores)
                 .Replace("class=¨[CssContenedor]¨", "")
                 .Replace("filtrar-por-false=¨[FiltrarPorFalse]¨", "");
@@ -480,30 +480,37 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var tituloOpcionCerrar = otrosAtributos.LeerValor<string>(EventosModal.TituloOpcionCerrar, null);
             var htmlOpcion = "";
+            var hayBotonPrimario = false;
             if (!opcion.IsNullOrEmpty() && !accion.IsNullOrEmpty())
             {
-                htmlOpcion = $@"<input id=¨{idOpcion}¨ 
-                                       type=¨button¨ 
-                                       tipo=¨{enumTipoControl.Opcion.Render()}¨
-                                       clase=¨{Css.Render(claseBoton)}¨ 
-                                       class=¨{Css.Render(enumCssOpcionMenu.BotonPorDefecto)}¨ 
-                                       permisos-necesarios=¨{permisosNecesarios.Render()}¨ 
-                                       value=¨{opcion}¨ 
+                hayBotonPrimario = true;
+                htmlOpcion = $@"<input id='{idOpcion}' 
+                                       type='button' 
+                                       tipo='{enumTipoControl.Opcion.Render()}'
+                                       clase='{Css.Render(claseBoton)}' 
+                                       class='{enumCssModal.BotonPrincipal.Render()}' 
+                                       permisos-necesarios='{permisosNecesarios.Render()}' 
+                                       value='{opcion}' 
                                        onclick=¨{accion}¨ />";
             }
 
-            var htmlCerrar = $@"<input id=¨{idHtml}-cerrar¨ 
-                                       type=¨button¨ 
-                                       tipo=¨{enumTipoControl.Opcion.Render()}¨
-                                       clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
-                                       permisos-necesarios=¨{enumModoDeAccesoDeDatos.SinPermiso.Render()}¨ 
-                                       value=¨{(tituloOpcionCerrar.IsNullOrEmpty()?"Cerrar":tituloOpcionCerrar)}¨
-                                       onclick=¨{cerrar}¨ />";
+            var htmlCerrar = $@"<input id='{idHtml}-cerrar' 
+                                       type='button' 
+                                       tipo='{enumTipoControl.Opcion.Render()}'
+                                       clase='{Css.Render(enumCssOpcionMenu.Basico)}' 
+                                       class='{(hayBotonPrimario ? enumCssModal.BotonSecundario.Render() : enumCssModal.BotonPrincipal.Render())} btn' 
+                                       permisos-necesarios='{enumModoDeAccesoDeDatos.SinPermiso.Render()}' 
+                                       value='{(tituloOpcionCerrar.IsNullOrEmpty() ? "Cerrar" : tituloOpcionCerrar)}'
+                                       onclick=¨{cerrar}¨/>";
 
             var htmlLadoIzquierdoMenuPie = enumTipoDeModal.ModalDeTotales == tipoModal
             ? $"<div><input id='{idHtml}_{nameof(ITotalesDto.Procesados)}' class='{enumCssControles.Editor.Render()} {enumCssControles.InfoDeTotales.Render()}' propiedad='{nameof(ITotalesDto.Procesados)}' tipo='editor' readonly disabled></input></div>"
             : navegador;
-            //todo: ver como meto el título, para ello analizar donde se usa esta css contenido-modal
+
+            var clasePie = htmlLadoIzquierdoMenuPie.IsNullOrEmpty() ? enumCssModal.ContenidoPieSoloBotones.Render() : enumCssModal.ContenidoPie.Render();
+            clasePie = $"{clasePie}{(enumTipoDeModal.ModalDeTotales == tipoModal ? " " + enumCssModal.PieDeTotales.Render() : "")}";
+
+
             var htmlModal = $@" <!--  *******************  modal de {idHtml} ******************* -->
                                 <div id=¨{idHtml}¨ class=¨contenedor-modal¨ controlador=¨{controlador}¨ tipoModal = ¨{tipoModal.Render()}¨ {AtributosHtml}>
                               		<div id=¨{idHtml}_contenido¨ class=¨{enumCssModal.ContenidoModal.Render()}¨>
@@ -513,12 +520,12 @@ namespace MVCSistemaDeElementos.Descriptores
                               		    <div id=¨{idHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpo.Render()}¨>
                                         {cuerpo}
                                         </div>
-                                        <div id=¨{idHtml}_pie¨ class=¨{enumCssModal.ContenidoPie.Render()}{(enumTipoDeModal.ModalDeTotales == tipoModal? " " + enumCssModal.PieDeTotales.Render() : "")}¨>
-                                          <div id=¨{idHtml}_menu¨ class=¨contenido-modal-pie-menu¨>
-                                           {htmlOpcion}
+                                        <div id=¨{idHtml}_pie¨ class=¨{clasePie}¨>
+                                           {htmlLadoIzquierdoMenuPie}                                          
+                                          <div id=¨{idHtml}_menu¨ class=¨{enumCssModal.DivDeBotonesPie.Render()}¨>
                                            {htmlCerrar}
+                                           {htmlOpcion}
                                           </div>
-                                           {htmlLadoIzquierdoMenuPie}
                                         </div>
                                    </div>
                               </div>

@@ -1049,7 +1049,11 @@ namespace Utilidades
         ContenidoCuerpoConGrid,
         EstiloContenidoCuerpo,
         ContenidoPie,
-        PieDeTotales
+        ContenidoPieSoloBotones,
+        DivDeBotonesPie,
+        PieDeTotales,
+        BotonPrincipal,
+        BotonSecundario,
     }
 
     public enum enumCssNavegadorEnModal
@@ -1964,7 +1968,7 @@ namespace Utilidades
             switch (clase)
             {
                 case enumCssModal.ContenidoModal: return "contenido-modal";
-                case enumCssModal.ContenidoModalConCabecera: return "contenido-modal-cabecera";
+                case enumCssModal.ContenidoModalConCabecera: return "contenido-modal-cabecera modal-con-grid";
                 case enumCssModal.EstiloModalConCabecera: return "style= ¨grid-template-rows: 2.5em auto 2.5em; max-height: fit-content;¨";
                 case enumCssModal.ContenidoCabecera: return "contenido-cabecera";
                 case enumCssModal.CabeceraRelacionarElementos: return "cabecera-relacionar-elementos";
@@ -1975,7 +1979,11 @@ namespace Utilidades
 
                 case enumCssModal.EstiloContenidoCuerpo: return "style = ¨height: auto; overflow: hidden;¨";
                 case enumCssModal.ContenidoPie: return "contenido-pie";
+                case enumCssModal.ContenidoPieSoloBotones: return $"{enumCssModal.ContenidoPie.Render()} pie-solo-botones";
+                case enumCssModal.DivDeBotonesPie: return "contenido-modal-pie-menu";
                 case enumCssModal.PieDeTotales: return "pie-de-totales";
+                case enumCssModal.BotonPrincipal: return $"boton-modal btn btn-primary {Css.Render(enumCssOpcionMenu.BotonPorDefecto)}";
+                case enumCssModal.BotonSecundario: return "boton-modal btn btn-secondary";
 
             }
             throw new Exception($"No se ha definido que renderizar para la clase {clase}");

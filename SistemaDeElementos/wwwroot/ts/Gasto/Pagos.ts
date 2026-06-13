@@ -38,7 +38,8 @@
 
         public IncluirParametrosParaProcesarOpcionMf(opcion, esContextual: boolean, parametros: Parametro[], datosDeEntrada: Array<Parametro>): void {
             super.IncluirParametrosParaProcesarOpcionMf(opcion, esContextual, parametros, datosDeEntrada);
-            parametros.push(new Parametro(Ajax.Param.ids, this.InfoSelector.IdsSeleccionados));
+            if (!parametros.find(p => p.parametro === Ajax.Param.ids))
+                parametros.push(new Parametro(Ajax.Param.ids, this.InfoSelector.IdsSeleccionados));
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
