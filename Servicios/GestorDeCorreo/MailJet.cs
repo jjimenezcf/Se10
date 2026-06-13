@@ -48,7 +48,7 @@ namespace ServicioDeCorreos
                     byte[] fileBytes = File.ReadAllBytes(archivo);
                     string base64File = Convert.ToBase64String(fileBytes);
                     attachments.Add(new JObject {
-                             {"ContentType", MimeTypeMap.ApplicationOctetStream},
+                             {"ContentType", ExtensorDistribuidorDeCorreos.ContentTypeParaAdjunto(archivo)},
                              {"Filename", Path.GetFileName(archivo)},
                              {"Base64Content", base64File} });
                 }

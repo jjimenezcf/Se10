@@ -112,12 +112,12 @@
 
         let btnCerrar = document.createElement('button');
         btnCerrar.innerText = 'Cerrar';
-        btnCerrar.className = 'btn btn-secondary';
+        btnCerrar.className = ltrCss.Modal.BotonSecundario; 
         btnCerrar.onclick = () => overlay.remove();
 
         let btnEnviar = document.createElement('button');
         btnEnviar.innerText = 'Enviar';
-        btnEnviar.className = 'btn btn-primary';
+        btnEnviar.className = ltrCss.Modal.BotonSecundario; 
         btnEnviar.onclick = () => {
             let correos = inputCorreo.value.trim();
             if (IsNullOrEmpty(correos)) {

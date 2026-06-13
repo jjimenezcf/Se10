@@ -34,11 +34,12 @@ public class Oficce365 : IDistribuidorOfice365
                 var fileContent = File.ReadAllBytes(rutaArchivo);
                 var base64Content = Convert.ToBase64String(fileContent);
 
-                attachments.Add(new
+                attachments.Add(new Dictionary<string, object>
                 {
-                    @odata_type = "#microsoft.graph.fileAttachment",
-                    name = Path.GetFileName(rutaArchivo),
-                    contentBytes = base64Content
+                    ["@odata.type"]  = "#microsoft.graph.fileAttachment",
+                    ["name"]         = Path.GetFileName(rutaArchivo),
+                    ["contentBytes"] = base64Content,
+                    ["contentType"]  = ExtensorDistribuidorDeCorreos.ContentTypeParaAdjunto(rutaArchivo)
                 });
             }
         }

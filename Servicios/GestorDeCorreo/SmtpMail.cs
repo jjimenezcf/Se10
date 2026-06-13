@@ -43,18 +43,7 @@ namespace ServicioDeCorreos
             message.To.Add(MailboxAddress.Parse(receptores));
             message.Subject = asunto;
 
-            var builder = new BodyBuilder();
-            builder.TextBody = mensaje;
-            builder.HtmlBody = $"<html><body>{mensaje}</body></html>";
-
-            foreach (var archivo in archivos)
-            {
-                if (File.Exists(archivo))
-                {
-                    builder.Attachments.Add(archivo);
-                }
-            }
-            message.Body = builder.ToMessageBody();
+            message.Body = ExtensorDistribuidorDeCorreos.ConstruirCuerpoMime(mensaje, archivos);
 
             using (var client = new MailKit.Net.Smtp.SmtpClient())
             {
