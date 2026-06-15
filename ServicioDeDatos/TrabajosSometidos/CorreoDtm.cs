@@ -6,6 +6,11 @@ using ServicioDeDatos.Entorno;
 
 namespace ServicioDeDatos.TrabajosSometidos
 {
+    public class ltrDeCoreos
+    {
+        public const string CorreoDeInvitacion = "Invitación";
+    }
+
     [Table("CORREO", Schema = "TRABAJO")]
 
     public class CorreoDtm: RegistroDtm

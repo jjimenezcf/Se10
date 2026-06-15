@@ -4,9 +4,7 @@ using ModeloDeDto;
 using ServicioDeDatos;
 using System;
 using System.Collections.Generic;
-using System.Net.Mime;
 using Utilidades;
-using static SistemaDeElementos.Inicializador.enumVistas;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -96,11 +94,6 @@ namespace MVCSistemaDeElementos.Descriptores
             if (negocio == enumNegocio.No_Definido)
             {
                 GestorDeErrores.Emitir("No hay descriptor para un negocio, no definido.");
-            }
-
-            if (negocio == enumNegocio.CircuitoDoc)
-            {
-              var circuito =  negocio.LeerRegistro(contexto, id);
             }
 
             var descriptor = Activator.CreateInstance(negocio.ObtenerMetadatos().DescriptoDeConsultas, contexto);

@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using Gestor.Errores;
+using Microsoft.Extensions.DependencyInjection;
 using ModeloDeDto;
+using ModeloDeDto.Negocio;
 using NuGet.Protocol;
 using ServicioDeCorreos;
-using ServicioDeDatos.TrabajosSometidos;
 using ServicioDeDatos;
-using Microsoft.Extensions.DependencyInjection;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.TrabajosSometidos;
 using System;
-using static ServicioDeCorreos.ServicioDeCorreo;
-using Utilidades;
-using System.Threading.Tasks;
-using Gestor.Errores;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Utilidades;
+using static ServicioDeCorreos.ServicioDeCorreo;
 
 namespace GestorDeElementos.Extensores
 {
@@ -62,7 +64,7 @@ namespace GestorDeElementos.Extensores
 
         public static async Task EnviarCorreo<T>(this ContextoSe contexto, string servidor, CorreoDtm correo, bool ejecutadoPorLaCola, bool esHtlm = true)
         {
-            string cuerpo = correo is not null ? AdjuntarElementos(correo) : "";
+            string cuerpo = correo is not null ? AdjuntarElementos(contexto,correo) : "";
             var archivos = correo is not null ? correo.Archivos.JsonToLista<string>() : new List<string>();
             var receptores = correo is not null ? correo.Receptores.JsonToLista<string>() : new List<string>();
 
@@ -89,13 +91,21 @@ namespace GestorDeElementos.Extensores
             return correosBorrados;
         }
 
-        private static string AdjuntarElementos(CorreoDtm correoDtm)
+        private static string AdjuntarElementos(ContextoSe contexto, CorreoDtm correoDtm)
         {
             var elementos = correoDtm.Elementos.JsonToLista<TipoDtoElmento>();
             var cuerpo = correoDtm.Cuerpo;
+            var esUnainvitacion = correoDtm.Asunto.StartsWith(ltrDeCoreos.CorreoDeInvitacion);
             foreach (TipoDtoElmento elemento in elementos)
             {
-                cuerpo = $"{cuerpo}{Environment.NewLine}{elemento.ComponerUrl()}";
+                var conConsulta = esUnainvitacion && elemento.Negocio().PermiteConultasConGuid();
+                cuerpo = $"{cuerpo}{Environment.NewLine}Pulse para editar: {elemento.ComponerUrl()}";
+                if (conConsulta)
+                {
+                    var registro = elemento.Negocio().LeerRegistro(contexto, elemento.IdElemento);
+                    var guid =((IElementoDtm) registro).RegistrarConsultaConGuid(contexto, caducaEl: DateTime.Now.AddMonths(1), maximoDeDescargas: null);
+                    cuerpo = $"{cuerpo}{Environment.NewLine}Pulse para consultar: {elemento.ConsultaUrl(guid)}";
+                }
             }
 
             return cuerpo;

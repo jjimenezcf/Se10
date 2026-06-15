@@ -106,6 +106,45 @@ namespace GestorDeElementos
             return refHtml;
         }
 
+        public static string ConsultaUrl(this TipoDtoElmento elemento, string guid, bool errorSiNoConsulta = true)
+        {
+            var negocio = elemento.Negocio();
+            var permiteConsultas = !negocio.PermiteConultasConGuid();
+            if (errorSiNoConsulta && !permiteConsultas)
+            {
+                    throw new Exception($"El negocio {elemento.Negocio()} no permite la consulta de elementos.");
+            }
+            if (!errorSiNoConsulta && !permiteConsultas)
+            {
+                return string.Empty;
+            }
+
+            string rutaConsulta = $"{negocio.Controlador()}/{enumVistasSeguridad.Consultar}";
+
+            // 1. Inicializamos el builder con la URL base de la configuración
+            UriBuilder builder = new UriBuilder(CacheDeVariable.Cfg_UrlBase);
+
+            // 2. Combinamos de forma segura el Path que ya pudiera tener la URL base con la nueva ruta
+            string pathExistente = builder.Path.Trim('/');
+
+            if (string.IsNullOrEmpty(pathExistente))
+            {
+                builder.Path = rutaConsulta;
+            }
+            else
+            {
+                builder.Path = $"{pathExistente}/{rutaConsulta}";
+            }
+
+            // 3. Asignamos los parámetros de la QueryString (GUID e ID)
+            builder.Query = $"guid={guid}&id={elemento.IdElemento}";
+
+            // 4. Generamos el tag HTML final
+            var refHtml = $@"<a href='{builder.Uri}' target='_blank' idelemento='{elemento.IdElemento}'>{elemento.Referencia}</a>";
+
+            return refHtml;
+        }
+
         public static string PatronUrl(this Type claseDto)
         {
             var ruta = ExtensionesDto.UrlBaseDeUnDto(claseDto, vista: "", errorSiMasDeUno: false);

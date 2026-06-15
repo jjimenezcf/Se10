@@ -26,8 +26,10 @@ namespace Utilidades
         public static readonly string DllDelGestorDeNegocio = "GestoresDeNegocio.dll";
         public static readonly string DllDelServicioDeDatos = "ServicioDeDatos.dll";
         public static readonly string DllDelModeloDeDto = "ModeloDeDto.dll";
+        public static readonly string DllDelGestorDeElementos = "GestorDeElementos.dll";
 
         public static string GestoresDeNegocio => DllDelGestorDeNegocio.Replace(".dll", "");
+        public static string GestoresDeElementos => DllDelGestorDeElementos.Replace(".dll", "");
         private static string SistemaDocumental => nameof(SistemaDocumental);
         private static string GestorDeArchivos => nameof(GestorDeArchivos);
 
@@ -38,10 +40,14 @@ namespace Utilidades
         public static readonly string ClaseDelPemisosDelElemento = $"{DllDelGestorDeNegocio.Replace(".dll", "")}.Seguridad.GestorDePemisosDelElemento";
         public static readonly string ClaseCacheDeVariable = $"{DllDelServicioDeDatos.Replace(".dll", "")}.CacheDeVariable";
         public static readonly string ClaseVariableDtm = $"{DllDelServicioDeDatos.Replace(".dll", "")}.Entorno.VariableDtm";
+        public static readonly string ClaseNegociosDeSe = $"{GestoresDeElementos}.NegociosDeSe";
+
 
         public static readonly string MetodoDeAnexarArchivo = "AnexarArchivo";
         public static readonly string MetodoDeCopiarArchivo = "CopiarArchivo";
         public static readonly string MetodoDeCrearPermisosDelElemento = "CrearPermisosDelElemento";
+        public static readonly string MetodoDeNegocioDeUnDto = "NegocioDeUnDto";
+        
 
         public static readonly string MetodoDeEstimacionDirectaEnNcs = "EstimacionDirectaEnNcs";
 

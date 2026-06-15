@@ -117,7 +117,7 @@
 
         let btnEnviar = document.createElement('button');
         btnEnviar.innerText = 'Enviar';
-        btnEnviar.className = ltrCss.Modal.BotonSecundario; 
+        btnEnviar.className = ltrCss.Modal.BotonPrincipal; 
         btnEnviar.onclick = () => {
             let correos = inputCorreo.value.trim();
             if (IsNullOrEmpty(correos)) {

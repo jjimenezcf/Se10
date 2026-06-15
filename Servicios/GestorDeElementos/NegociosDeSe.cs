@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Gestor.Errores;
 using GestorDeElementos.Extensores;
 using ModeloDeDto;
@@ -10,7 +9,6 @@ using ModeloDeDto.SistemaDocumental;
 using ModeloDeDto.Ventas;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Utilities;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;

@@ -2137,7 +2137,7 @@ namespace Utilidades
 
         public static readonly string xml = "." + enumExtensiones.xml.ToString();
 
-        public static bool EsImagen(string extensionstring, bool errorSiNoEstaCatalogada)
+        public static bool EsImagen(string extensionstring, bool errorSiNoEstaCatalogada, bool excluirSvg = false)
         {
             var extension = IntentarParsear(extensionstring);
 
@@ -2145,6 +2145,10 @@ namespace Utilidades
             {
                throw new Exception("La extensión '" + extensionstring + "' no es una extensión de archivo válida");
             }
+
+            //extension != ".jpg" && extension != ".jpeg" && extension != ".png" && extension != ".webp"
+
+            if (excluirSvg && extension.HasValue && extension == enumExtensiones.svg) return false;
 
             return extension.HasValue && (extension == enumExtensiones.png ||
                 extension == enumExtensiones.jpg || 

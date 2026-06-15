@@ -1,16 +1,15 @@
-﻿using System;
-using System.Linq;
-using Utilidades;
-using ServicioDeDatos.Elemento;
-using System.IO;
-using System.Collections.Generic;
-using ServicioDeDatos.Entorno;
-using Dapper;
+﻿using Dapper;
 using Gestor.Errores;
-using ServicioDeDatos.Negocio;
-using System.Reflection;
 using ServicioDeDatos;
-using Microsoft.SqlServer.Dac.Model;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Negocio;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Utilidades;
 
 namespace ModeloDeDto
 {
@@ -25,6 +24,14 @@ namespace ModeloDeDto
         public Type ClaseDto()
         {
             return ExtensionesDto.ObtenerTypoDto(TipoDto);
+        }
+
+        public enumNegocio Negocio()
+        {
+            return (enumNegocio)ApiDeEnsamblados.EjecutarMetodoEstatico(ApiDeEnsamblados.GestoresDeElementos,
+                ApiDeEnsamblados.ClaseNegociosDeSe,
+                ApiDeEnsamblados.MetodoDeNegocioDeUnDto,
+                new object[] { ExtensionesDto.ObtenerTypoDto(TipoDto) });
         }
 
         public static TipoDtoElmento Crear<T>(ElementoDtm elementoDtm, string vista = null)

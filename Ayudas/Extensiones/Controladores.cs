@@ -327,6 +327,7 @@ namespace Utilidades
         public const string CrudPermisosHeredados = nameof(CrudPermisosHeredados);
         public const string Conectar = nameof(Conectar);
         public const string NuevaContrasena = nameof(NuevaContrasena);
+        public const string Consultar = nameof(Consultar);
     }
 
     public enum enumControladoresTrabajosSometidos

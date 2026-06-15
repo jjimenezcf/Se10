@@ -5,6 +5,7 @@ using ModeloDeDto.Tarea;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.TrabajosSometidos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -138,7 +139,7 @@ namespace GestorDeElementos.Extensores
             {
                 ExtensorDeCorreos.CrearCorreo(contexto,
                     listaCorreos.ToList(),
-                    $"Invitación: {evento.Nombre}",
+                    $"{ltrDeCoreos.CorreoDeInvitacion}: {evento.Nombre}",
                     "Descargue e incorpore el evento adjunto.",
                     new List<TipoDtoElmento> { infoElemento },
                     archivos: new List<string> { pathIcs },
