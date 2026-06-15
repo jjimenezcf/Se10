@@ -12,6 +12,8 @@ using Newtonsoft.Json.Schema.Generation;
 using RtfPipe;
 using SevenZipExtractor;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -1794,35 +1796,143 @@ namespace Utilidades
 
     public static class extImagenes
     {
-        public static bool EsImagen(string rutaConFichero)
+        public static bool EsImagen(string rutaConFichero, bool excluirSvg = false)
         {
             string ext = Path.GetExtension(rutaConFichero).ToLower();
-            return ExtensorDeTipoDeArchivos.EsImagen(ext, errorSiNoEstaCatalogada: false);
+            return ExtensorDeTipoDeArchivos.EsImagen(ext, errorSiNoEstaCatalogada: false, excluirSvg: excluirSvg);
+        }
+
+        public static string OptimizarImagenSiEsNecesario(string rutaArchivo)
+        {
+            const long MaxBytes = 3 * 1024 * 1024; // 3 MB en Bytes
+
+            if (!File.Exists(rutaArchivo)) return rutaArchivo;
+
+            FileInfo fileInfo = new FileInfo(rutaArchivo);
+
+            // Si pesa menos de 3MB, ni lo tocamos
+            if (fileInfo.Length <= MaxBytes) return rutaArchivo;
+
+            string extension = fileInfo.Extension.ToLower();
+            // Validamos extensiones comunes de imagen
+            if (!EsImagen(rutaArchivo, excluirSvg: true))
+            {
+                return rutaArchivo; // No es una imagen soportada
+            }
+
+            try
+            {
+                // Creamos una ruta temporal para guardar la imagen comprimida
+                string rutaTemporal = Path.Combine(Path.GetDirectoryName(rutaArchivo), "compressed_" + Path.GetFileName(rutaArchivo));
+
+                using (Image image = Image.Load(rutaArchivo))
+                {
+                    // Nota: Para máxima compatibilidad y reducción de peso, 
+                    // a menudo conviene exportar a JPEG/WebP. Aquí mantendremos calidad al 75%
+                    var encoder = new JpegEncoder
+                    {
+                        Quality = 75 // Ajuste óptimo entre peso y calidad visual
+                    };
+
+                    // Si la imagen es gigantesca en píxeles (ej. 8K), también la redimensionamos un poco
+                    if (image.Width > 2560 || image.Height > 2560)
+                    {
+                        image.Mutate(x => x.Resize(new ResizeOptions
+                        {
+                            Size = new Size(2560, 2560),
+                            Mode = ResizeMode.Max
+                        }));
+                    }
+
+                    image.Save(rutaTemporal, encoder);
+                }
+
+                // Si la compresión funcionó y el archivo es más pequeño, reemplazamos el original
+                FileInfo fileInfoCompreso = new FileInfo(rutaTemporal);
+                if (fileInfoCompreso.Exists)
+                {
+                    File.Delete(rutaArchivo);
+                    File.Move(rutaTemporal, rutaArchivo);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Loguear el error si tienes sistema de Logs. 
+                // Si falla la compresión, es mejor dejar pasar el archivo original a que se caiga el proceso.
+            }
+
+            return rutaArchivo;
         }
 
         public static string SanitizeImage(string rutaConFichero)
         {
-            if (!File.Exists(rutaConFichero)) 
-                throw new Exception($"El fichero '{rutaConFichero}'no existe");
+            if (!File.Exists(rutaConFichero))
+                throw new Exception($"El fichero '{rutaConFichero}' no existe");
 
             string extension = Path.GetExtension(rutaConFichero).ToLower();
-            if (ExtensorDeTipoDeArchivos.EsSvg(extension, errorSiNoEstaCatalogada : true)) return SanitizeSvg(rutaConFichero);
+            if (ExtensorDeTipoDeArchivos.EsSvg(extension, errorSiNoEstaCatalogada: true)) return SanitizeSvg(rutaConFichero);
+
             try
             {
                 string directorio = Path.GetDirectoryName(rutaConFichero);
                 string nombreSinExt = Path.GetFileNameWithoutExtension(rutaConFichero);
                 string rutaSaneada = Path.Combine(directorio, $"{nombreSinExt}_saneado{extension}");
 
-                // Cargamos la imagen (ImageSharp detecta el formato automáticamente)
+                // 1. Validamos el tamaño del archivo original
+                FileInfo fileInfo = new FileInfo(rutaConFichero);
+                long maxBytes = 3 * 1024 * 1024; // 3 MB
+
                 using (Image image = Image.Load(rutaConFichero))
                 {
-                    // Al mutar la imagen o simplemente guardarla con una configuración limpia,
-                    // eliminamos los perfiles EXIF, IPTC y XMP por defecto.
+                    // 2. Sanitización (Eliminar perfiles EXIF, IPTC y XMP)
                     image.Metadata.ExifProfile = null;
                     image.Metadata.IptcProfile = null;
                     image.Metadata.XmpProfile = null;
 
-                    // Guardamos la imagen. ImageSharp usará el codificador correcto según la extensión.
+                    // 3. Si excede los 3MB, aplicamos compresión/redimensión en caliente
+                    if (fileInfo.Length > maxBytes)
+                    {
+                        // Si la imagen es gigantesca en resolución, la bajamos a un tope 2K para reducir peso drásticamente
+                        if (image.Width > 2560 || image.Height > 2560)
+                        {
+                            image.Mutate(x => x.Resize(new ResizeOptions
+                            {
+                                Size = new Size(2560, 2560),
+                                Mode = ResizeMode.Max
+                            }));
+                        }
+
+                        // Intentamos parsear de forma segura (puede devolver null)
+                        var enumExtension = ExtensorDeTipoDeArchivos.IntentarParsear(extension);
+
+                        if (enumExtension.HasValue)
+                        {
+                            // Dependiendo de la extensión, aplicamos un encoder con calidad optimizada (75%)
+                            if (enumExtension == enumExtensiones.jpg || enumExtension == enumExtensiones.jpeg)
+                            {
+                                var encoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder { Quality = 75 };
+                                image.Save(rutaSaneada, encoder);
+                                return rutaSaneada;
+                            }
+                            else if (enumExtension == enumExtensiones.webp)
+                            {
+                                var encoder = new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 75 };
+                                image.Save(rutaSaneada, encoder);
+                                return rutaSaneada;
+                            }
+                            else if (enumExtension == enumExtensiones.png)
+                            {
+                                // Forzamos el uso del encoder de PNG. Al guardarlo explícitamente a través de su encoder,
+                                // ImageSharp aplica algoritmos de compresión por defecto (Zlib) muy eficientes.
+                                var encoder = new SixLabors.ImageSharp.Formats.Png.PngEncoder();
+                                image.Save(rutaSaneada, encoder);
+                                return rutaSaneada;
+                            }
+                        }
+                    }
+
+                    // Si no superaba los 3MB (o es un formato de imagen no mapeado arriba), 
+                    // se guarda con el formato detectado automáticamente por ImageSharp.
                     image.Save(rutaSaneada);
                 }
 
@@ -1830,10 +1940,9 @@ namespace Utilidades
             }
             catch (Exception e)
             {
-               throw new Exception($"Error al sanitizar la imagen '{rutaConFichero}'", e);
+                throw new Exception($"Error al sanitizar y comprimir la imagen '{rutaConFichero}'", e);
             }
         }
-
 
         private static string SanitizeSvg(string rutaConFichero)
         {

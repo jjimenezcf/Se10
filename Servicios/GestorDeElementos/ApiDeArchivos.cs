@@ -827,12 +827,15 @@ namespace GestorDeElementos
                 }
             }
 
+
             var fecha = DateTime.Now;
             var almacenarEn = Path.Combine(new string[] { rutaServidorDeArchivos, fecha.Year.ToString(), fecha.Month.ToString(), fecha.Day.ToString(), fecha.Hour.ToString(), contexto.DatosDeConexion.IdUsuario.ToString() });
             Directory.CreateDirectory(almacenarEn);
             var fichero = nombreFicheroParaAlmacenar.IsNullOrEmpty() ? Path.GetFileName(rutaConFichero) : nombreFicheroParaAlmacenar;
             var archivo = new ArchivoDtm { Nombre = fichero, AlmacenadoEn = almacenarEn };
+
             if (sanitizar) rutaConFichero = SanitizeFile(rutaConFichero);
+
             var tran = contexto.IniciarTransaccion();
             try
             {
