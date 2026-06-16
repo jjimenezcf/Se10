@@ -108,11 +108,12 @@ namespace GestorDeElementos
 
         public static string ConsultaUrl(this TipoDtoElmento elemento, string guid, bool errorSiNoConsulta = true)
         {
+            //El negocio Tarea no permite la consulta de elementos.
             var negocio = elemento.Negocio();
-            var permiteConsultas = !negocio.PermiteConultasConGuid();
+            var permiteConsultas = negocio.PermiteConultasConGuid();
             if (errorSiNoConsulta && !permiteConsultas)
             {
-                    throw new Exception($"El negocio {elemento.Negocio()} no permite la consulta de elementos.");
+                    throw new Exception($"El negocio '{elemento.Negocio()}' no permite la consulta de elementos.");
             }
             if (!errorSiNoConsulta && !permiteConsultas)
             {

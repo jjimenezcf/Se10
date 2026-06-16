@@ -132,7 +132,9 @@ namespace GestorDeElementos.Extensores
                 IdElemento = evento.IdElemento,
                 Referencia = elemento.Referencia(contexto)
             };
-            evento.Descripcion = $"{evento.Descripcion}{Environment.NewLine}Acceso al elemento :{infoElemento.ComponerUrl()}";
+            // ComponerUrl() devuelve HTML (<a href=...>) que no es válido en ICS — usamos la URL plana
+            var urlPlana = negocio.ComponerUrlPorId(contexto, evento.IdElemento).Uri.ToString();
+            evento.Descripcion = $"{evento.Descripcion}{Environment.NewLine}Acceso al elemento: {urlPlana}";
             string pathIcs = GenerarIcs(evento, listaCorreos);
             var tran = contexto.IniciarTransaccion();
             try
