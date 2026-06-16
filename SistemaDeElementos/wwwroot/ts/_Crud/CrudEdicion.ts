@@ -1342,17 +1342,33 @@
             if (inputOriginal) {
                 const anchor = document.createElement("a");
 
-                // Configuración del enlace con la URL extraída por el Regex
                 anchor.textContent = inputOriginal.value;
-                anchor.href = urlEncontrada;
-                anchor.target = "_blank";
-
-                // Estilos para mantener la estética y que parezca un link
                 anchor.className = inputOriginal.className;
                 anchor.style.textDecoration = "underline";
                 anchor.style.color = "#0056b3";
                 anchor.style.textAlign = "left";
                 anchor.style.width = "100%";
+
+                const urlObj = new URL(urlEncontrada);
+
+                if (urlObj.origin === window.location.origin) {
+                    // URL interna: extraemos controlador, acción y parámetros
+                    const partes = urlObj.pathname.replace(/^\//, "").split("/");
+                    const controlador = partes[0] ?? "";
+                    const accion = partes[1] ?? "";
+                    // Parámetros de query: sustituimos & por | para el formato esperado por AbrirVista
+                    const parametros = urlObj.search.replace(/^\?/, "").replace(/&/g, "|");
+
+                    anchor.href = "";
+                    anchor.onclick = (event) => {
+                        event.preventDefault();
+                        EntornoSe.AbrirVista(controlador, accion, parametros, event);
+                    };
+                } else {
+                    // URL externa: comportamiento original
+                    anchor.href = urlEncontrada;
+                    anchor.target = "_blank";
+                }
 
                 // Reemplazo en el DOM
                 inputOriginal.parentNode?.replaceChild(anchor, inputOriginal);
