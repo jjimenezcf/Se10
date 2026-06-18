@@ -515,7 +515,8 @@ const ltrControladores = {
     },
     Callejero: {
         Provincia: 'Provincias',
-        Municipio: 'Municipios'
+        Municipio: 'Municipios',
+        Calles: 'Calles'
     },
     Entorno: {
         Acciones: 'Acciones',
@@ -1101,7 +1102,13 @@ const ltrCss = {
             VisorDeCreacion: 'visor-de-edicion',
             ImagenIa: 'img-ia',
             ImagenOcr: 'img-ocr',
-            ImagenArchivo: 'img-archivo'
+            ImagenArchivo: 'img-archivo',
+            CuerpoCreacionConMapa: 'cuerpo-creacion-con-mapa',
+            CreacionConMapa: 'creacion-con-mapa',
+            DtoConMapa: 'dto-con-mapa',
+            AsistenteDelMapa: 'asistente-mapa',
+            barraBusquedaMapa: 'barra-busqueda-mapa',
+            divMapa: 'div-mapa-creacion'
         },
         panelDeEdicion: {
             ContenedorDeAcciones: 'acciones-del-panel-edicion',
@@ -3781,6 +3788,11 @@ const ltrMenus = {
             }
         },
         Maestros: {
+            Callejero: {
+                Calle: {
+                    ValidarSiExiste: 'ValidarSiExisteCalle',
+                }
+            },
             Terceros: {
                 Interlocutores: 'interlocutores',
                 Proveedores: 'ir-a-proveedor',

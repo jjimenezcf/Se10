@@ -15,6 +15,45 @@
 }
 
 
+.cuerpo-creacion-con-mapa {
+    grid-template-rows: 3em 1fr 1.5em !important;
+}
+
+.creacion-con-mapa {
+    display: inline-flex !important;
+    width: 100%;
+    align-items: stretch;
+}
+
+.dto-con-mapa {
+    flex: 1px;
+    min-width: 0px;
+}
+
+.asistente-mapa {
+    padding: 6px;
+    flex: 1px;
+    min-width: 0px;
+    display: flex !important;
+    flex-direction: column;
+}
+
+.barra-busqueda-mapa {
+    display: flex !important;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+    .barra-busqueda-mapa > input[type=text] {
+        flex: 1;
+        padding: 4px 6px;
+    }
+
+.div-mapa-creacion {
+    flex: 1px;
+    min-height: 0px;
+}
 
 .contenedor-creacion-cuerpo-datos-visor {
     grid-area: contenedor-edicion-cuerpo;
@@ -61,6 +100,7 @@
             display: none !important;
             width: auto !important;
         }
+
         .contenedor-creacion-cuerpo-datos-visor .splitter {
             display: none !important;
             width: auto !important;
@@ -91,7 +131,7 @@
 }
 
 .contenedor-pie-modal-opciones {
-/*    float: right;
+    /*    float: right;
     padding-right: 10px;
     text-align: right;*/
     width: 50%;
@@ -120,12 +160,11 @@
     }
 
     /*.lista-de-elementos-dto {*/
-        /* 'none' es el valor correcto para anular un max-width */
-        /*max-width: none !important;*/
-        /* Aseguramos que ocupe el ancho disponible en el móvil */
-        /*width: 100% !important;*/
-        /* Evita que el control se vea gigante en pantallas un poco más anchas */
-        /*box-sizing: border-box;
+    /* 'none' es el valor correcto para anular un max-width */
+    /*max-width: none !important;*/
+    /* Aseguramos que ocupe el ancho disponible en el móvil */
+    /*width: 100% !important;*/
+    /* Evita que el control se vea gigante en pantallas un poco más anchas */
+    /*box-sizing: border-box;
     }*/
 }
-

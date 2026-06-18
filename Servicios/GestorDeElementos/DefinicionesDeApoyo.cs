@@ -87,6 +87,7 @@ namespace GestorDeElementos
         public static readonly string EstoyLeyendoParaAnalizarElModoDeAcceso = nameof(EstoyLeyendoParaAnalizarElModoDeAcceso);
         public static readonly string FechaDeCreacion = nameof(FechaDeCreacion);
         public static readonly string FechaDeTransicion = nameof(FechaDeTransicion);
+        public static readonly string MensajeErrorSiNoHay = nameof(MensajeErrorSiNoHay);
     }
 
     public enum enumPeticion

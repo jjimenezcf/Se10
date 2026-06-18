@@ -96,10 +96,28 @@ namespace GestorDeElementos
             return contexto.SeleccionarPorPropiedad<T>(propiedad, valor.ToString(), errorSiNoHay, errorSiMasDeuno, aplicarJoin, usarLaCache, p);
         }
 
+        public static T SeleccionarPorNombre<T>(this ContextoSe contexto, string valor, string mensajeDeErroSiNoHay, bool aplicarJoin = false, bool usarLaCache = true)
+        where T : RegistroConNombreDtm
+        {
+            return contexto.SeleccionarPorNombre<T>(valor, errorSiNoHay: false, errorSiMasDeuno: true, aplicarJoin, usarLaCache, new Dictionary<string, object> { { ltrParametrosNeg.MensajeErrorSiNoHay, mensajeDeErroSiNoHay }  });
+        }
+
         public static T SeleccionarPorNombre<T>(this ContextoSe contexto, string valor, bool errorSiNoHay = true, bool errorSiMasDeuno = true, bool aplicarJoin = false, bool usarLaCache = true, Dictionary<string, object> parametros = null)
         where T : RegistroConNombreDtm
-        =>
-        SeleccionarPorPropiedad<T>(contexto, nameof(INombre.Nombre), valor, errorSiNoHay, errorSiMasDeuno, aplicarJoin, usarLaCache, parametros);
+        {
+            var mensaje = string.Empty;
+            if (parametros is not null && parametros.Any(p => p.Key == ltrParametrosNeg.MensajeErrorSiNoHay))
+            {
+                mensaje = parametros[ltrParametrosNeg.MensajeErrorSiNoHay].ToString();
+                errorSiNoHay = false;
+            }
+            var resultado = SeleccionarPorPropiedad<T>(contexto, nameof(INombre.Nombre), valor, errorSiNoHay, errorSiMasDeuno, aplicarJoin, usarLaCache, parametros);
+
+            if (resultado == null && mensaje != string.Empty)
+                GestorDeErrores.Emitir(mensaje);
+
+            return resultado;
+        }
 
         public static T SeleccionarActivosPorPropiedad<T>(this ContextoSe contexto, string propiedad, object valor, bool errorSiNoHay = true, bool errorSiMasDeuno = true, bool aplicarJoin = false, bool usarLaCache = true, Dictionary<string, object> parametros = null)
         where T : RegistroDtm, IElementoDeProcesoDtm

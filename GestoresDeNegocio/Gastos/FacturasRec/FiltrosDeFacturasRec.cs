@@ -36,6 +36,7 @@ namespace GestoresDeNegocio.Gastos
                     var filtrosDeProveedor = contexto.Set<ProveedorDtm>().AplicarFiltroDeCadena(filtro);
                     consulta = consulta.Where(f => filtrosDeProveedor.Any(prv => f.IdProveedor == prv.Id));
                 }
+                filtro.Aplicado = true;
             }
             else
             {

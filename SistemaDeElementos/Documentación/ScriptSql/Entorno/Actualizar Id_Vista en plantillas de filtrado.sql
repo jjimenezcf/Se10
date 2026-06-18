@@ -1,4 +1,16 @@
 BEGIN TRANSACTION;
+-- 1. Tu consulta de comprobación (añadimos punto y coma al final)
+SELECT t1.*, 
+       (SELECT ID 
+        FROM ENTORNO.VISTA_MVC
+        WHERE ELEMENTO_DTO LIKE (SELECT ELEMENTO_DTO FROM NEGOCIO.NEGOCIO WHERE id = t1.id_negocio)
+          AND 1 = (SELECT COUNT(*) 
+                   FROM ENTORNO.VISTA_MVC
+                   WHERE ELEMENTO_DTO LIKE (SELECT ELEMENTO_DTO FROM NEGOCIO.NEGOCIO WHERE id = t1.id_negocio))
+       ) AS id_Vista_2
+FROM NEGOCIO.PLANTILLA_FILTRADO t1
+WHERE ID_VISTA IS NULL;
+
 -- 2. El UPDATE corregido para SQL Server
 UPDATE t1
 SET ID_VISTA = (

@@ -77,6 +77,11 @@
     //    });
     //}
 
+    function AjustarAlturaIframe(panel: HTMLDivElement): void {
+        const iframe = panel.querySelector('iframe') as HTMLIFrameElement;
+        if (iframe) iframe.style.height = '100%';
+    }
+
     function RenderizarIframe(panel: HTMLDivElement, url: string): void {
         panel.innerHTML = "";
 
@@ -93,5 +98,35 @@
         // que Google Maps y OpenStreetMap bloquean
         panel.style.display = 'block';
     }
+
+    export function MostrarFrameGoogleMapsPorTexto(panel: HTMLDivElement, texto: string): void {
+        const link = `https://www.google.com/maps?q=${encodeURIComponent(texto)}&output=embed`;
+        RenderizarIframe(panel, link);
+    }
+
+    export async function MostrarFrameStreetViewPorTexto(panel: HTMLDivElement, texto: string, deltaIn: number): Promise<void> {
+        try {
+            const params = new URLSearchParams({ q: texto, format: 'json', limit: '1' });
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+                headers: { 'Accept-Language': 'es' }
+            });
+            if (response.ok) {
+                const datos = await response.json();
+                if (datos && datos.length > 0) {
+                    const lat = parseFloat(datos[0].lat);
+                    const lon = parseFloat(datos[0].lon);
+                    const delta = deltaIn;
+                    const bbox = `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`;
+                    RenderizarIframe(panel, `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`);
+                    AjustarAlturaIframe(panel);
+                    return;
+                }
+            }
+        } catch { }
+        // Fallback: España completa
+        RenderizarIframe(panel, `https://www.openstreetmap.org/export/embed.html?bbox=-9.5,35.8,4.5,43.9&layer=mapnik`);
+        AjustarAlturaIframe(panel);
+    }
+
 
 }

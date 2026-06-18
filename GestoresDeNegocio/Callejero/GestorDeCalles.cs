@@ -8,7 +8,6 @@ using ModeloDeDto.Callejero;
 using Utilidades;
 using System;
 using Microsoft.EntityFrameworkCore;
-using ModeloDeDto;
 using Gestor.Errores;
 using ServicioDeDatos.Elemento;
 using static GestoresDeNegocio.Callejero.GestorDeCpsDeUnaCalle;
@@ -102,6 +101,10 @@ namespace GestoresDeNegocio.Callejero
                 seleccionarParaDireccion.Clausula = nameof(INombre.Nombre);
                 parametros.Parametros[ltrCalles.SeleccionarParaDireccion] = true;
             }
+
+            consulta = consulta.FiltroPorMunicipio(Contexto, filtros);
+            consulta = consulta.FiltroPorTipoDeVia(Contexto, filtros);
+            consulta = consulta.FiltroPorCp(Contexto, filtros);
 
             foreach (ClausulaDeFiltrado filtro in filtros)
             {
