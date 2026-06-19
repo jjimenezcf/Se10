@@ -28,6 +28,7 @@
 .dto-con-mapa {
     flex: 1px;
     min-width: 0px;
+    border: ridge;
 }
 
 .asistente-mapa {
@@ -36,6 +37,7 @@
     min-width: 0px;
     display: flex !important;
     flex-direction: column;
+    border: ridge;
 }
 
 .barra-busqueda-mapa {
@@ -118,6 +120,10 @@
             }
 }
 
+
+.splitter-mapa {
+    flex-shrink: 0;
+}
 
 .editar-tras-crear {
     /* grid-template-rows: 0.02fr 1fr 0em;*/

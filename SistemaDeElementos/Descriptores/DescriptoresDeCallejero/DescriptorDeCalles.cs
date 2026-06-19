@@ -96,10 +96,10 @@ namespace MVCSistemaDeElementos.Descriptores
             var expansorDeBarrios = DescriptorDeExpansorBarrios(Editor);
             Editor.Expanes.Insert(2, expansorDeBarrios);
 
-            var expansorDeMapa1 = DescriptorDeExpansorGoogleMap(Editor);
-            Editor.Expanes.Insert(3, expansorDeMapa1);
-            var expansorDeMapa2 = DescriptorDeExpansorStreetView(Editor);
-            Editor.Expanes.Insert(4, expansorDeMapa2);
+            //var expansorDeMapa1 = DescriptorDeExpansorGoogleMap(Editor);
+            //Editor.Expanes.Insert(3, expansorDeMapa1);
+            //var expansorDeMapa2 = DescriptorDeExpansorStreetView(Editor);
+            //Editor.Expanes.Insert(4, expansorDeMapa2);
 
         }
 

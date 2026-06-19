@@ -65,126 +65,13 @@ namespace Callejero {
 
     export class CrudCreacionCalle extends Crud.CrudCreacion {
 
-        private _nominatimResultado: any = null;
-
         constructor(crud: Crud.CrudMnt, idPanelCreacion: string) {
             super(crud, idPanelCreacion);
         }
 
         public override InicializarControlesDeCreacion(peticion: ApiDeAjax.DescriptorAjax): void {
             super.InicializarControlesDeCreacion(peticion);
-            this.InicializarAsistenteDeMapas();
-        }
-
-        private get IdAsistente(): string {
-            return `${this.PanelDeCrear.id}-asistente-maps`;
-        }
-
-        private InicializarAsistenteDeMapas(): void {
-            if (document.getElementById(this.IdAsistente)) return;
-
-            const divCuerpo = this.PanelDeCrear.querySelector('.' + ltrCss.contenedorEdicionCuerpo) as HTMLDivElement;
-            if (!divCuerpo) return;
-
-            // Hacer que el row del cuerpo ocupe el espacio disponible en lugar de auto
-            const divCuerpoCreacion = divCuerpo.closest('.' + ltrCss.crud.creacion) as HTMLDivElement;
-            if (divCuerpoCreacion) {
-                ApiControl.IncluirCss(divCuerpo, ltrCss.crud.panelCreacion.CuerpoCreacionConMapa);
-            }
-
-            ApiControl.IncluirCss(divCuerpo, ltrCss.crud.panelCreacion.CreacionConMapa);
-
-            // El primer hijo (formulario) ocupa la mitad
-            const primerHijo = divCuerpo.firstElementChild as HTMLElement;
-            if (primerHijo) {
-                ApiControl.IncluirCss(primerHijo, ltrCss.crud.panelCreacion.DtoConMapa);
-            }
-
-            const divAsistente = document.createElement('div');
-            divAsistente.id = this.IdAsistente;
-            ApiControl.IncluirCss(divAsistente, ltrCss.crud.panelCreacion.AsistenteDelMapa);
-
-            // Sub-div 1: barra de búsqueda
-            const divCabecera = document.createElement('div');
-            ApiControl.IncluirCss(divCabecera, ltrCss.crud.panelCreacion.barraBusquedaMapa);
-
-            const inputDireccion = document.createElement('input');
-            inputDireccion.type = 'text';
-            inputDireccion.id = `${this.IdAsistente}-input`;
-            inputDireccion.placeholder = 'Escriba la dirección a buscar...';
-            inputDireccion.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.BuscarEnMaps(); });
-
-            const btnBuscar = document.createElement('input');
-            btnBuscar.type = 'button';
-            btnBuscar.value = 'Buscar';
-            btnBuscar.className = enumCssOpcionMenu.DeElemento;
-            btnBuscar.onclick = () => this.BuscarEnMaps();
-
-            const btnMapear = document.createElement('input');
-            btnMapear.type = 'button';
-            btnMapear.id = `${this.IdAsistente}-btn-mapear`;
-            btnMapear.value = 'Mapear';
-            btnMapear.title = 'mapea los datos de la calle marcada para poder crear'
-            btnMapear.className = enumCssOpcionMenu.DeElemento;
-            btnMapear.style.display = 'none';
-            btnMapear.onclick = () => this.MapearDesdeAsistente();
-
-            divCabecera.appendChild(inputDireccion);
-            divCabecera.appendChild(btnBuscar);
-            divCabecera.appendChild(btnMapear);
-
-            // Sub-div 2: mapa (ocupa el espacio restante del asistente)
-            const divMapa = document.createElement('div');
-            divMapa.id = `${this.IdAsistente}-mapa`;
-            ApiControl.IncluirCss(divMapa, ltrCss.crud.panelCreacion.divMapa);
-
-            divAsistente.appendChild(divCabecera);
-            divAsistente.appendChild(divMapa);
-
-            divCuerpo.appendChild(divAsistente);
-
-            // Mapa inicial: España completa con embed limpio (solo mapa, sin UI de Nominatim)
-            GestorDeMapas.MostrarFrameStreetViewPorTexto(divMapa, 'España', 5);
-        }
-
-        private async BuscarEnMaps(): Promise<void> {
-            const input = document.getElementById(`${this.IdAsistente}-input`) as HTMLInputElement;
-            if (!input || IsNullOrEmpty(input.value)) {
-                MensajesSe.Info('Indique una dirección para buscar');
-                return;
-            }
-            const divMapa = document.getElementById(`${this.IdAsistente}-mapa`) as HTMLDivElement;
-            const btnMapear = document.getElementById(`${this.IdAsistente}-btn-mapear`) as HTMLInputElement;
-            this._nominatimResultado = null;
-            if (btnMapear) btnMapear.style.display = 'none';
-
-            GestorDeMapas.MostrarFrameStreetViewPorTexto(divMapa, input.value, 0.002);
-
-            const resultado = await ApiCallejero.BuscarDireccionEnNominatim(input.value);
-            if (resultado) {
-                this._nominatimResultado = resultado;
-                if (btnMapear) btnMapear.style.display = '';
-            }
-        }
-
-        private ParsearRuta(ruta: string): { tipoDeVia: string, nombre: string } {
-            if (IsNullOrEmpty(ruta))
-                return { tipoDeVia: '', nombre: '' };
-            const partes = ruta.trim().split(' ');
-            if (partes.length <= 1)
-                return { tipoDeVia: '', nombre: ruta };
-            return { tipoDeVia: partes[0], nombre: partes.slice(1).join(' ') };
-        }
-
-        private async MapearDesdeAsistente(): Promise<void> {
-            if (!this._nominatimResultado) return;
-            const addr = this._nominatimResultado.address;
-            const rutaCompleta = addr.road || '';
-            const { tipoDeVia, nombre } = this.ParsearRuta(rutaCompleta);
-            const municipioNombre = addr.city || addr.town || addr.village || addr.municipality || '';
-            const cpCodigo = addr.postcode || '';
-
-            ApiCallejero.ValidarSiExisteCalle(this.PanelDeCrear,tipoDeVia, nombre, municipioNombre, cpCodigo)
+            ApiCallejero.InicializarAsistenteDeMapas(Crud.crudMnt);
         }
     }
 
@@ -196,29 +83,37 @@ namespace Callejero {
 
         protected MapearOtraInformacion(peticion: ApiDeAjax.DescriptorAjax, modoDeAcceso: ModoAcceso.enumModoDeAccesoDeDatos): void {
             super.MapearOtraInformacion(peticion, modoDeAcceso);
-            let mapaGm: HTMLDivElement = document.getElementById(`${this.PanelDeEditar.id}-mapas-gmaps-cuerpo-detalle`) as HTMLDivElement;
-            mapaGm.style.height = "400px";
-            mapaGm.style.width = "100%";
-            mapaGm.style.display = ltrStyle.display.block;
 
-            let mapaSv: HTMLDivElement = document.getElementById(`${this.PanelDeEditar.id}-mapas-street-cuerpo-detalle`) as HTMLDivElement;
-            mapaSv.style.height = "400px";
-            mapaSv.style.width = "100%";
-            mapaSv.style.display = ltrStyle.display.block;
-
-            let pais: string = ObtenerPropiedad(peticion.resultado.datos,ltrPropiedades.Callejero.Calle.Pais).substring(6);
-            let provincia: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Provincia); 
+            let pais: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Pais).substring(6);
+            let provincia: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Provincia);
             let municipio: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Municipio);
             let tipoDeVia: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.TipoDeVia);
-            let calle: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Nombre); 
-            let zona: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Zona,'');   
-            let cp : string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Cp,'');       
+            let calle: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Nombre);
+            let zona: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Zona, '');
+            let cp: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Cp, '');
 
-            GestorDeMapas.MostrarFrameOpenStreetView(mapaSv, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
-            //GestorDeMapas.VisualizarMapaConGoogle(mapaGm, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
+            ApiCallejero.InicializarAsistenteDeMapas(Crud.crudMnt);
 
-            GestorDeMapas.MostrarFrameGoogleMaps(mapaGm, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
+            const idAsistente = `${this.PanelDeEditar.id}-asistente-maps`;
+            const divMapa = document.getElementById(`${idAsistente}-mapa`) as HTMLDivElement;
+            if (divMapa) {
+                GestorDeMapas.MostrarFrameOpenStreetView(divMapa, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
+            }
 
+            const inputAsistente = document.getElementById(`${idAsistente}-input`) as HTMLInputElement;
+            if (inputAsistente) {
+                const provinciaLimpia = provincia.replace(/\(\d+\)\s*/, '');
+                const partes = [`${tipoDeVia} ${calle}`, municipio, provinciaLimpia, cp, pais].filter(Boolean);
+                inputAsistente.value = partes.join(', ');
+            }
+
+            // let mapaGm: HTMLDivElement = document.getElementById(`${this.PanelDeEditar.id}-mapas-gmaps-cuerpo-detalle`) as HTMLDivElement;
+            // if (mapaGm) {
+            //     mapaGm.style.height = "400px";
+            //     mapaGm.style.width = "100%";
+            //     mapaGm.style.display = ltrStyle.display.block;
+            //     GestorDeMapas.MostrarFrameGoogleMaps(mapaGm, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
+            // }
         }
     }
 

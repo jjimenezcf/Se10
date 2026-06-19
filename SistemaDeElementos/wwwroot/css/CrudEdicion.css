@@ -222,6 +222,10 @@
     grid-template-areas: "contenedor-edicion-editor-visor" "contenedor-edicion-editor-historial";
 }
 
+.asistente-mapa-edicion {
+    height: 100%;
+}
+
 .contenedor-edicion-editor-visor {
     grid-area: contenedor-edicion-editor-visor;
     display: grid;

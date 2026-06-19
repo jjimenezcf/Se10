@@ -31,6 +31,8 @@
         return null;
     }
 
+
+
     function ParametrosDeBusqueda(): Array<Parametro> {
         const p = new Array<Parametro>();
         p.push(new Parametro(Ajax.Param.cantidad, 2));
@@ -155,6 +157,226 @@
         MapearAlControl.ListaDinamica(lista, idcp, cp, true);
 
         ApiControl.MapearEditor(panel, Callejero.objeto.calleDto.nombre, ObtenerPropiedad(objeto, Callejero.objeto.calleDto.nombre) as string)
+    }
+
+    // ---- Asistente de mapas ----
+
+    const _nominatimResultados: { [idAsistente: string]: any } = {};
+
+    export function InicializarAsistenteDeMapas(crud: Crud.CrudMnt): void {
+        const panel = crud.EstoyCreando ? crud.crudDeCreacion.PanelDeCrear : crud.crudDeEdicion.PanelDeEditar;
+        const idAsistente = `${panel.id}-asistente-maps`;
+
+        if (document.getElementById(idAsistente)) {
+            const div = document.getElementById(idAsistente) as HTMLDivElement;
+            const input = document.getElementById(`${idAsistente}-input`) as HTMLInputElement;
+            if (input) input.value = '';
+
+            if (!crud.EstoyCreando) {
+                MontarAsistenteEnEdicion(panel, div);
+            }
+
+            return;
+        }
+
+        const divAsistente = CrearDivAsistente(idAsistente, crud.EstoyCreando);
+
+        if (crud.EstoyCreando)
+            MontarAsistenteEnCreacion(panel, divAsistente, idAsistente);
+        else
+            MontarAsistenteEnEdicion(panel, divAsistente);
+
+        const divMapa = document.getElementById(`${idAsistente}-mapa`) as HTMLDivElement;
+        GestorDeMapas.MostrarFrameStreetView(divMapa, ltrValores.Maestros.Callejero.Paises.Espana, 5);
+    }
+
+    function CrearDivAsistente(idAsistente: string, conBotonMapear: boolean): HTMLDivElement {
+        const divAsistente = document.createElement('div');
+        divAsistente.id = idAsistente;
+        ApiControl.IncluirCss(divAsistente, ltrCss.crud.panelCreacion.AsistenteDelMapa);
+
+        const divCabecera = document.createElement('div');
+        ApiControl.IncluirCss(divCabecera, ltrCss.crud.panelCreacion.barraBusquedaMapa);
+
+        const inputDireccion = document.createElement('input');
+        inputDireccion.type = 'text';
+        inputDireccion.id = `${idAsistente}-input`;
+        inputDireccion.placeholder = 'Escriba la dirección a buscar...';
+        inputDireccion.addEventListener('keydown', (e) => { if (e.key === 'Enter') BuscarEnMapsDesdeAsistente(idAsistente); });
+
+        const btnBuscar = document.createElement('input');
+        btnBuscar.type = 'button';
+        btnBuscar.value = 'Buscar';
+        btnBuscar.className = enumCssOpcionMenu.DeElemento;
+        btnBuscar.onclick = () => BuscarEnMapsDesdeAsistente(idAsistente);
+
+        divCabecera.appendChild(inputDireccion);
+        divCabecera.appendChild(btnBuscar);
+
+        if (conBotonMapear) {
+            const btnMapear = document.createElement('input');
+            btnMapear.type = 'button';
+            btnMapear.id = `${idAsistente}-btn-mapear`;
+            btnMapear.value = 'Mapear';
+            btnMapear.title = 'Mapea los datos de la calle marcada para poder crear';
+            btnMapear.className = enumCssOpcionMenu.DeElemento;
+            btnMapear.style.display = 'none';
+            btnMapear.onclick = () => MapearDesdeAsistente(idAsistente);
+            divCabecera.appendChild(btnMapear);
+        }
+
+        const divMapa = document.createElement('div');
+        divMapa.id = `${idAsistente}-mapa`;
+        ApiControl.IncluirCss(divMapa, ltrCss.crud.panelCreacion.divMapa);
+
+        divAsistente.appendChild(divCabecera);
+        divAsistente.appendChild(divMapa);
+
+        return divAsistente;
+    }
+
+    function MontarAsistenteEnCreacion(panel: HTMLDivElement, divAsistente: HTMLDivElement, idAsistente: string): void {
+        const divCuerpo = panel.querySelector('.' + ltrCss.contenedorEdicionCuerpo) as HTMLDivElement;
+        if (!divCuerpo) return;
+
+        const divCuerpoCreacion = divCuerpo.closest('.' + ltrCss.crud.creacion) as HTMLDivElement;
+        if (divCuerpoCreacion) ApiControl.IncluirCss(divCuerpo, ltrCss.crud.panelCreacion.CuerpoCreacionConMapa);
+        ApiControl.IncluirCss(divCuerpo, ltrCss.crud.panelCreacion.CreacionConMapa);
+
+        const primerHijo = divCuerpo.firstElementChild as HTMLElement;
+        if (primerHijo) ApiControl.IncluirCss(primerHijo, ltrCss.crud.panelCreacion.DtoConMapa);
+
+        const divSplitter = document.createElement('div');
+        divSplitter.id = `${idAsistente}-splitter`;
+        divSplitter.title = 'Arrastre para redimensionar';
+        ApiControl.IncluirCss(divSplitter, 'splitter');
+        ApiControl.IncluirCss(divSplitter, ltrCss.crud.panelCreacion.SplitterMapa);
+
+        divCuerpo.appendChild(divSplitter);
+        divCuerpo.appendChild(divAsistente);
+
+        InicializarSplitter(divSplitter, primerHijo, divAsistente, divCuerpo);
+    }
+
+    function MontarAsistenteEnEdicion(panel: HTMLDivElement, divAsistente: HTMLDivElement): void {
+        const divContenedorEditor = panel.querySelector('.' + ltrCss.crud.panelDeEdicion.ContenedorDeDatosMasVisor) as HTMLDivElement;
+        if (!divContenedorEditor) return;
+
+        ApiControl.ExcluirCss(divContenedorEditor, ltrCss.crud.panelDeEdicion.VisorOculto);
+        const divContenedorNavegador = panel.querySelector('.' + ltrCss.crud.panelDeEdicion.NavegadorDeEdicionCuerpoVisor) as HTMLDivElement;
+        
+        ApiControl.IncluirCss(divContenedorNavegador, ltrCss.divNoVisible);
+
+        const divContenedorVisor = divContenedorEditor.querySelector('.' + ltrCss.crud.panelDeEdicion.ContenedorVisor) as HTMLDivElement;
+        if (!divContenedorVisor) return;
+
+        const divVisorDeEdicion = divContenedorVisor.querySelector('.' + ltrCss.crud.panelDeEdicion.VisorDeEdicion) as HTMLDivElement;
+        if (!divVisorDeEdicion) return;
+
+        divVisorDeEdicion.innerHTML = '';
+        ApiControl.IncluirCss(divAsistente, ltrCss.crud.panelDeEdicion.AsistenteMapaEnEdicion);
+        divVisorDeEdicion.appendChild(divAsistente);
+    }
+
+    function InicializarSplitter(splitter: HTMLDivElement, panelIzq: HTMLElement, panelDer: HTMLElement, contenedor: HTMLElement): void {
+        const anchoSplitter = splitter.offsetWidth || 6;
+        let arrastrando = false;
+        let ultimaEjecucion: number = undefined;
+
+        const onMouseDown = (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            arrastrando = true;
+            ultimaEjecucion = undefined;
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mouseleave', onMouseUp);
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if ((e.buttons & 1) === 0) { onMouseUp(e); return; }
+            if (!arrastrando) return;
+            if (ultimaEjecucion && Date.now() - ultimaEjecucion < 16) return;
+            ultimaEjecucion = Date.now();
+
+            const rect = contenedor.getBoundingClientRect();
+            const nuevoAnchoIzq = e.clientX - rect.left;
+            const nuevoAnchoDer = rect.width - nuevoAnchoIzq - anchoSplitter;
+            if (nuevoAnchoIzq < 150 || nuevoAnchoDer < 150) return;
+
+            requestAnimationFrame(() => {
+                panelIzq.style.flex = 'none';
+                panelIzq.style.width = `${nuevoAnchoIzq}px`;
+                panelDer.style.flex = 'none';
+                panelDer.style.width = `${nuevoAnchoDer}px`;
+            });
+        };
+
+        const onMouseUp = (e: MouseEvent) => {
+            if (!arrastrando) return;
+            arrastrando = false;
+            ultimaEjecucion = undefined;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            document.removeEventListener('mouseleave', onMouseUp);
+        };
+
+        splitter.addEventListener('mousedown', onMouseDown);
+
+        window.addEventListener('resize', () => {
+            if (!panelIzq.style.width) return;
+            const rect = contenedor.getBoundingClientRect();
+            const izqPx = parseFloat(panelIzq.style.width);
+            if (isNaN(izqPx)) return;
+            const total = rect.width - anchoSplitter;
+            const pct = izqPx / (izqPx + (parseFloat(panelDer.style.width) || total));
+            panelIzq.style.width = `${total * pct}px`;
+            panelDer.style.width = `${total * (1 - pct)}px`;
+        });
+    }
+
+    async function BuscarEnMapsDesdeAsistente(idAsistente: string): Promise<void> {
+        const input = document.getElementById(`${idAsistente}-input`) as HTMLInputElement;
+        if (!Definido(input) || IsNullOrEmpty(input.value)) {
+            MensajesSe.Info('Indique una dirección para buscar');
+            return;
+        }
+        const divMapa = document.getElementById(`${idAsistente}-mapa`) as HTMLDivElement;
+        const btnMapear = document.getElementById(`${idAsistente}-btn-mapear`) as HTMLInputElement;
+        delete _nominatimResultados[idAsistente];
+        if (btnMapear) btnMapear.style.display = 'none';
+
+        // 💡 Una única llamada: Renderiza el mapa Y nos devuelve el objeto de resultados de Nominatim
+        const resultado = await GestorDeMapas.MostrarFrameStreetView(divMapa, input.value, 0.002);
+
+        // Si la función localizó la dirección, guardamos el resultado para el proceso de guardado/mapeo
+        if (resultado) {
+            _nominatimResultados[idAsistente] = resultado;
+            if (btnMapear && Crud.crudMnt.EstoyCreando) btnMapear.style.display = '';
+        }
+    }
+
+    function ParsearRuta(ruta: string): { tipoDeVia: string, nombre: string } {
+        if (IsNullOrEmpty(ruta)) return { tipoDeVia: '', nombre: '' };
+        const partes = ruta.trim().split(' ');
+        if (partes.length <= 1) return { tipoDeVia: '', nombre: ruta };
+        return { tipoDeVia: partes[0], nombre: partes.slice(1).join(' ') };
+    }
+
+    function MapearDesdeAsistente(idAsistente: string): void {
+        const resultado = _nominatimResultados[idAsistente];
+        if (!resultado) return;
+        const addr = resultado.address;
+        const { tipoDeVia, nombre } = ParsearRuta(addr.road || '');
+        const municipioNombre = addr.city || addr.town || addr.village || addr.municipality || '';
+        const cpCodigo = addr.postcode || '';
+        ValidarSiExisteCalle(Crud.crudMnt.crudDeCreacion.PanelDeCrear, tipoDeVia, nombre, municipioNombre, cpCodigo);
     }
 
     export function MapearPais(crud: Crud.CrudMnt, objeto: any): void {

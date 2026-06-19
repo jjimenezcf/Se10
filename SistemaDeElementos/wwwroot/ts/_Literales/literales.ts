@@ -1108,7 +1108,8 @@ const ltrCss = {
             DtoConMapa: 'dto-con-mapa',
             AsistenteDelMapa: 'asistente-mapa',
             barraBusquedaMapa: 'barra-busqueda-mapa',
-            divMapa: 'div-mapa-creacion'
+            divMapa: 'div-mapa-creacion',
+            SplitterMapa: 'splitter-mapa'
         },
         panelDeEdicion: {
             ContenedorDeAcciones: 'acciones-del-panel-edicion',
@@ -1122,7 +1123,9 @@ const ltrCss = {
             ContenedorCabecera: 'contenedor-edicion-cabecera',
             ContenedorDeDatosDto: 'contenedor-edicion-editor-datos',
             ContenedorDeDatosMasVisor: 'contenedor-edicion-editor',
+            AsistenteMapaEnEdicion: 'asistente-mapa-edicion',
             VisorDeNombreAnexados: 'visor-nombre-archivo',
+            NavegadorDeEdicionCuerpoVisor: 'navegador-edicion-editor-visor',
             FiltroSelectorDeArchivos: 'filtro-selector-archivos',
             ProcesarConIa: 'procesar-con-ia',
             PasarOcr: 'pasar-ocr',
@@ -3513,6 +3516,15 @@ const ltrValores = {
             AbrirPpt: 'AbrirPpt',
             Descargar: 'Descargar'
         },
+    },
+
+    Maestros: {
+        Callejero: {
+            Paises:
+            {
+                Espana: 'España'
+            }
+        }
     },
     Terceros: {
         Cliente: {
