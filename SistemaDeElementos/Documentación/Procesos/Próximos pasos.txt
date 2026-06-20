@@ -9,9 +9,10 @@ Dashboard y flujos
 -------------------------------------------------------------------------------------
 Pintar en panel de control el dasboar de los elementos de negocio (*) 2026-06-04
 Visualizar el flujo de un elemnto y grabarlo (*) 2026-06-06
-Partir el dashboar de contratos: compras/ventas/matriculas
+Partir el dashboar de contratos: compras/ventas/matriculas (*) 2026-06-15
+Mostrar filtros guardados por negocio para poder acceder rápidamente (*) 2026-06-15
+Mostrar la calle en el visor al crear o editar (*) 2026-06-18
 Aplicar seguridad al dashboard
-Mostrar filtros guardados por negocio para poder acceder rápidamente
 
 
 

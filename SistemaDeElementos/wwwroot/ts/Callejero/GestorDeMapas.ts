@@ -1,5 +1,14 @@
 ﻿namespace GestorDeMapas {
 
+    export const ltrDireccionEstructurada = {
+        Calle: 'calle',
+        Municipio: 'municipio',
+        Provincia: 'provincia',
+        Pais: 'pais'
+    } as const;
+
+    type NivelBusqueda = typeof ltrDireccionEstructurada[keyof typeof ltrDireccionEstructurada];
+
     export function VisualizarMapaConGoogle(mapa: HTMLDivElement, pais: string, provincia: string, municipio: string, zona: string, tipoDeVia: string, calle: string, cp: string) {
         let posicion = `${tipoDeVia} ${calle}${(IsNullOrEmpty(zona) ? "" : "," + zona)}${(IsNullOrEmpty(cp) ? "" : "," + cp)}, ${municipio}, ${provincia}, ${pais}`;
 
@@ -119,10 +128,6 @@
         panel.style.display = 'block';
     }
 
-    export function MostrarFrameGoogleMapsPorTexto(panel: HTMLDivElement, texto: string): void {
-        const link = `https://www.google.com/maps?q=${encodeURIComponent(texto)}&output=embed`;
-        RenderizarIframe(panel, link);
-    }
     // Definimos la interfaz para dar soporte de tipos en TypeScript
     export interface IDireccionEstructurada {
         calle: string;
@@ -140,12 +145,22 @@
 
         // 🪜 ESTRATEGIA EN CASCADA
         // 1. Intentamos buscar por Calle (Dirección Completa)
-        let datos = await ObtenerLatitudLongitud(input, 'calle');
+        let datos = await ObtenerLatitudLongitud(input, ltrDireccionEstructurada.Calle);
+
+        // 1b. Solo para estructuradas: si falla, reintentamos sin CP y validamos que el resultado
+        //     sea del mismo municipio (el CP puede estar en null o ser incorrecto para Nominatim)
+        if (!datos && typeof input !== 'string') {
+            const sinCp: IDireccionEstructurada = { ...input, cp: '' };
+            const datosSinCp = await ObtenerLatitudLongitud(sinCp, ltrDireccionEstructurada.Calle);
+            if (datosSinCp && EsMismoMunicipio(datosSinCp, input)) {
+                datos = datosSinCp;
+            }
+        }
 
         // 2. Si falla, intentamos por Municipio
         if (!datos) {
             console.warn("Nominatim no encontró la calle. Reintentando por Municipio...");
-            datos = await ObtenerLatitudLongitud(input, 'municipio');
+            datos = await ObtenerLatitudLongitud(input, ltrDireccionEstructurada.Municipio);
             deltaIn = 0.05;
             if (datos) MensajesSe.Info('No se localiza la calle, te muestro el municipio');
         }
@@ -153,7 +168,7 @@
         // 3. Si falla, intentamos por Provincia
         if (!datos) {
             console.warn("Nominatim no encontró el municipio. Reintentando por Provincia...");
-            datos = await ObtenerLatitudLongitud(input, 'provincia');
+            datos = await ObtenerLatitudLongitud(input, ltrDireccionEstructurada.Provincia);
             deltaIn = 0.5;
             if (datos) MensajesSe.Info('No se localiza la calle, ni el municipio, te muestro la provincia');
         }
@@ -161,7 +176,7 @@
         // 4. Si falla, intentamos por País
         if (!datos) {
             console.warn("Nominatim no encontró la provincia. Reintentando por País...");
-            datos = await ObtenerLatitudLongitud(input, 'pais');
+            datos = await ObtenerLatitudLongitud(input, ltrDireccionEstructurada.Pais);
             deltaIn = 5;
             if (datos) MensajesSe.Info('Sólo se ha localizado el país, ni la calle ni el municipio ni la provincia');
         }
@@ -188,75 +203,73 @@
         return null;
     }
 
+    function EsMismoMunicipio(resultado: any, dir: IDireccionEstructurada): boolean {
+        const addr = resultado.address;
+        if (!addr) return true;
+        const municipioResultado = (addr.city || addr.town || addr.village || addr.municipality || '').toLowerCase();
+        const municipioEsperado = dir.municipio.toLowerCase();
+        if (!municipioResultado || !municipioEsperado) return true;
+        return municipioResultado.includes(municipioEsperado) || municipioEsperado.includes(municipioResultado);
+    }
+
     async function ObtenerLatitudLongitud(
         input: string | IDireccionEstructurada,
-        propiedad: 'calle' | 'municipio' | 'provincia' | 'pais'
+        propiedad: NivelBusqueda
     ): Promise<any | null> {
         try {
             let datosBusqueda: IDireccionEstructurada;
 
             if (typeof input === 'string') {
-                // 🔍 INTUICIÓN POR REGEX: Separamos por comas y limpiamos espacios
-                // Espera un formato aprox: "Calle, Municipio, Provincia, CP, Pais" o similar
                 const partes = input.split(',').map(p => p.trim());
-
-                // Reconstrucción estimada basada en la posición desde el final (más seguro)
                 datosBusqueda = {
                     pais: partes[partes.length - 1] || '',
                     provincia: partes[partes.length - 2] || '',
-                    cp: '', // El CP es difícil de asegurar por posición exacta en string plano
+                    cp: '',
                     municipio: partes.length >= 3 ? partes[partes.length - 3] : '',
-                    calle: partes.slice(0, partes.length - 3).join(', ') // Todo lo anterior es la calle
+                    calle: partes.slice(0, partes.length - 3).join(', ')
                 };
-
-                // Intento de limpiar el CP si viene pegado en la provincia (ej: "30430 Cehegín")
                 const matchCP = input.match(/\b\d{5}\b/);
                 if (matchCP) datosBusqueda.cp = matchCP[0];
             } else {
-                // Si ya es estructurada, la usamos directamente
                 datosBusqueda = { ...input };
             }
 
-            // 🛠️ Construimos los parámetros de Nominatim según el nivel (propiedad) solicitado
             let params: URLSearchParams;
 
             switch (propiedad) {
-                case 'calle':
-                    // Búsqueda completa (Máxima precisión)
+                case ltrDireccionEstructurada.Calle:
                     params = new URLSearchParams({
                         street: datosBusqueda.calle,
                         city: datosBusqueda.municipio,
                         county: datosBusqueda.provincia,
-                        postalcode: datosBusqueda.cp,
                         country: datosBusqueda.pais
                     });
+                    // Solo añadimos postalcode si tiene valor, evitando enviar "null" o vacío
+                    if (!IsNullOrEmpty(datosBusqueda.cp)) params.append('postalcode', datosBusqueda.cp);
                     break;
-                case 'municipio':
-                    // Bajamos un escalón: Buscamos solo el municipio dentro de su provincia/país
+                case ltrDireccionEstructurada.Municipio:
                     params = new URLSearchParams({
                         city: datosBusqueda.municipio,
                         county: datosBusqueda.provincia,
                         country: datosBusqueda.pais
                     });
                     break;
-                case 'provincia':
-                    // Bajamos otro escalón: Solo la provincia dentro del país
+                case ltrDireccionEstructurada.Provincia:
                     params = new URLSearchParams({
                         county: datosBusqueda.provincia,
                         country: datosBusqueda.pais
                     });
                     break;
-                case 'pais':
-                    // Último recurso dirigido: El país completo
+                case ltrDireccionEstructurada.Pais:
                     params = new URLSearchParams({
                         country: datosBusqueda.pais
                     });
                     break;
             }
 
-            // Añadimos el formato obligatorio de respuesta
             params.append('format', 'json');
             params.append('limit', '1');
+            params.append('addressdetails', '1');
 
             const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
                 headers: { 'Accept-Language': 'es', 'User-Agent': 'SistemaDeElementos/1.0' }
@@ -265,7 +278,7 @@
             if (response.ok) {
                 const datos = await response.json();
                 if (datos && datos.length > 0) {
-                    return datos[0]; // Devolvemos el primer resultado encontrado
+                    return datos[0];
                 }
             }
         } catch (error) {
