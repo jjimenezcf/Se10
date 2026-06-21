@@ -14,7 +14,7 @@
   },
   "include": [
     "wwwroot/lib/types/googlemaps/index.d.ts",
-    "wwwroot/ts/**/*"
+"wwwroot/ts/**/*"
   ],
   "exclude": [
     "node_modules",

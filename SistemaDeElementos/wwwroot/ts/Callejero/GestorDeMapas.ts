@@ -1,4 +1,37 @@
-﻿namespace GestorDeMapas {
+﻿declare namespace L {
+    function map(element: HTMLElement | string, options?: any): L.Map;
+    function tileLayer(urlTemplate: string, options?: any): L.TileLayer;
+    function marker(latlng: [number, number] | { lat: number; lng: number }, options?: any): L.Marker;
+
+    function icon(options: any): L.Icon;
+
+    interface Icon { }
+
+    interface Map {
+        setView(center: [number, number], zoom: number): this;
+        fitBounds(bounds: [[number, number], [number, number]]): this;
+        remove(): void;
+        invalidateSize(): void;
+    }
+    interface TileLayer {
+        addTo(map: L.Map): this;
+    }
+    interface Marker {
+        addTo(map: L.Map): this;
+        bindPopup(content: string): this;
+        openPopup(): this;
+    }
+    type LatLngBoundsExpression = [[number, number], [number, number]];
+}
+
+namespace GestorDeMapas {
+
+    export const ltrModoRenderizacion = {
+        Frame: 'frame',
+        Flet: 'flet'
+    } as const;
+
+    type ModoRenderizacion = typeof ltrModoRenderizacion[keyof typeof ltrModoRenderizacion];
 
     export const ltrDireccionEstructurada = {
         Calle: 'calle',
@@ -49,20 +82,15 @@
         pais: string,
         provincia: string,
         municipio: string,
-        zona: string, // Ignorada según tus indicaciones
+        zona: string,
         tipoDeVia: string,
         calle: string,
         cp: string
     ) {
-        // 1. Limpiamos la provincia eliminando los paréntesis con números y espacios
         const provinciaLimpia = provincia.replace(/\(\d+\)\s*/, '');
-
-        // 2. Concatenamos el tipo de vía con la calle para el parámetro 'street' de Nominatim
-        // Ej: "Camino de la" + " " + "Torrecica" = "Camino de la Torrecica"
         const calleCompleta = `${tipoDeVia} ${calle}`.trim();
 
-        // 3. Creamos el objeto con la estructura que necesita tu nueva función
-        const direccionEstructurada = {
+        const direccionEstructurada: IDireccionEstructurada = {
             calle: calleCompleta,
             municipio: municipio,
             provincia: provinciaLimpia,
@@ -70,10 +98,8 @@
             pais: pais
         };
 
-        // 4. Llamamos a tu gestor de mapas pasando el objeto estructurado
-        // Nota: Asegúrate de actualizar 'MostrarFrameStreetView' en tu GestorDeMapas 
-        // para que acepte este objeto y monte los parámetros estructurados (street, city, etc.)
-        GestorDeMapas.MostrarFrameStreetView(panel, direccionEstructurada, 0.002);
+        const popupHtml = `<b>${calleCompleta}</b><br>${municipio}, ${provinciaLimpia}`;
+        GestorDeMapas.MostrarFrameStreetView(panel, direccionEstructurada, 0.002, GestorDeMapas.ltrModoRenderizacion.Flet, popupHtml);
     }
 
     function ComponerDireccion(tipoDeVia: string, calle: string, zona: string, municipio: string, provincia: string, cp: string, pais: string): string {
@@ -88,44 +114,111 @@
         return partesDireccion.filter(Boolean).join(', ');
     }
 
-    //function RenderizarIframe(panel: HTMLDivElement, url: string): void {
-    //    panel.style.display = 'none';
-    //    panel.innerHTML = "";
-
-    //    const iframe = document.createElement('iframe');
-    //    iframe.id = panel.id + '-iframe';
-    //    iframe.setAttribute("src", url);
-    //    iframe.style.width = "100%";
-    //    iframe.style.height = "400px";
-    //    iframe.style.border = "0";
-
-    //    panel.appendChild(iframe);
-
-    //    iframe.addEventListener("load", () => {
-    //        panel.style.display = 'block';
-    //    });
-    //}
-
-    function AjustarAlturaIframe(panel: HTMLDivElement): void {
-        const iframe = panel.querySelector('iframe') as HTMLIFrameElement;
-        if (iframe) iframe.style.height = '100%';
-    }
-
     function RenderizarIframe(panel: HTMLDivElement, url: string): void {
         panel.innerHTML = "";
-
         const iframe = document.createElement('iframe');
         iframe.id = panel.id + '-iframe';
         iframe.setAttribute("src", url);
         iframe.style.width = "100%";
-        iframe.style.height = "400px";
+        iframe.style.height = "100%";
         iframe.style.border = "0";
-
         panel.appendChild(iframe);
-
-        // Mostrar directamente sin esperar al evento load
-        // que Google Maps y OpenStreetMap bloquean
         panel.style.display = 'block';
+    }
+
+    function RenderizarIframeOSM(panel: HTMLDivElement, lat: number, lon: number, delta: number): void {
+        const bbox = `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`;
+        RenderizarIframe(panel, `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`);
+    }
+
+    const _leafletMaps = new WeakMap<HTMLDivElement, L.Map>();
+    const _leafletObservers = new WeakMap<HTMLDivElement, ResizeObserver>();
+
+    const _iconoMarcador = () => L.icon({
+        iconUrl: '/lib/leaflet/dist/images/marker-icon.png',
+        iconRetinaUrl: '/lib/leaflet/dist/images/marker-icon-2x.png',
+        shadowUrl: '/lib/leaflet/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    function AsegurarLeafletCargado(): Promise<void> {
+        return new Promise((resolve) => {
+            if (typeof L !== 'undefined') { resolve(); return; }
+            if (!document.getElementById('leaflet-css')) {
+                const link = document.createElement('link');
+                link.id = 'leaflet-css';
+                link.rel = 'stylesheet';
+                link.href = '/lib/leaflet/dist/leaflet.css';
+                document.head.appendChild(link);
+            }
+            const script = document.createElement('script');
+            script.src = '/lib/leaflet/dist/leaflet.js';
+            script.onload = () => resolve();
+            document.head.appendChild(script);
+        });
+    }
+
+    async function RenderizarLeaflet(panel: HTMLDivElement, lat: number, lon: number, delta: number, popupHtml?: string): Promise<void> {
+        await AsegurarLeafletCargado();
+
+        const observerExistente = _leafletObservers.get(panel);
+        if (observerExistente) { observerExistente.disconnect(); _leafletObservers.delete(panel); }
+
+        const mapaExistente = _leafletMaps.get(panel);
+        if (mapaExistente) { mapaExistente.remove(); _leafletMaps.delete(panel); }
+
+        panel.innerHTML = '';
+        panel.style.display = 'block';
+
+        const mapa = L.map(panel);
+        _leafletMaps.set(panel, mapa);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(mapa);
+
+        const bounds: L.LatLngBoundsExpression = [[lat - delta, lon - delta], [lat + delta, lon + delta]];
+        mapa.fitBounds(bounds);
+
+        if (lat !== 0 || lon !== 0) {
+            const marker = L.marker([lat, lon], { icon: _iconoMarcador() }).addTo(mapa);
+            if (!IsNullOrEmpty(popupHtml)) {
+                marker.bindPopup(popupHtml).openPopup();
+            }
+        }
+
+        const observer = new ResizeObserver(() => mapa.invalidateSize());
+        observer.observe(panel);
+        _leafletObservers.set(panel, observer);
+    }
+
+    async function RenderizarLeafletEspana(panel: HTMLDivElement): Promise<void> {
+        await AsegurarLeafletCargado();
+
+        const observerExistente = _leafletObservers.get(panel);
+        if (observerExistente) { observerExistente.disconnect(); _leafletObservers.delete(panel); }
+
+        const mapaExistente = _leafletMaps.get(panel);
+        if (mapaExistente) { mapaExistente.remove(); _leafletMaps.delete(panel); }
+
+        panel.innerHTML = '';
+        panel.style.display = 'block';
+
+        const mapa = L.map(panel);
+        _leafletMaps.set(panel, mapa);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(mapa);
+
+        mapa.fitBounds([[35.8, -9.5], [43.9, 4.5]]);
+
+        const observer = new ResizeObserver(() => mapa.invalidateSize());
+        observer.observe(panel);
+        _leafletObservers.set(panel, observer);
     }
 
     // Definimos la interfaz para dar soporte de tipos en TypeScript
@@ -140,7 +233,9 @@
     export async function MostrarFrameStreetView(
         panel: HTMLDivElement,
         input: string | IDireccionEstructurada,
-        deltaIn: number
+        deltaIn: number,
+        modo: ModoRenderizacion,
+        popupHtml?: string
     ): Promise<any | null> {
 
         // 🪜 ESTRATEGIA EN CASCADA
@@ -185,21 +280,19 @@
         if (datos) {
             const lat = parseFloat(datos.lat);
             const lon = parseFloat(datos.lon);
-            const delta = deltaIn;
-            const bbox = `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`;
-
-            RenderizarIframe(panel, `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`);
-            AjustarAlturaIframe(panel);
-
-            return datos; // Devolvemos el registro que ha rescatado la búsqueda
+            if (modo === ltrModoRenderizacion.Flet)
+                await RenderizarLeaflet(panel, lat, lon, deltaIn, popupHtml);
+            else
+                RenderizarIframeOSM(panel, lat, lon, deltaIn);
+            return datos;
         }
 
         // 🚨 FALLBACK CRÍTICO: Si absolutamente todo falla (sin internet, API caída...)
         console.error("Todos los niveles de búsqueda en cascada han fallado. Aplicando fallback España.");
-        RenderizarIframe(panel, `https://www.openstreetmap.org/export/embed.html?bbox=-9.5,35.8,4.5,43.9&layer=mapnik`);
-        AjustarAlturaIframe(panel);
-        if (datos) MensajesSe.Info('No se localiza la calle indicada');
-
+        if (modo === ltrModoRenderizacion.Flet)
+            await RenderizarLeafletEspana(panel);
+        else
+            RenderizarIframe(panel, `https://www.openstreetmap.org/export/embed.html?bbox=-9.5,35.8,4.5,43.9&layer=mapnik`);
         return null;
     }
 
@@ -221,15 +314,21 @@
 
             if (typeof input === 'string') {
                 const partes = input.split(',').map(p => p.trim());
+                const municipioRaw = partes.length >= 3 ? partes[partes.length - 3] : '';
+                const municipioPartes = municipioRaw.split('-').map(p => p.trim());
+                const municipio = municipioPartes.length > 1 ? municipioPartes.slice(1).join('-').trim() : municipioPartes[0];
+                const cpDeMunicipio = municipioPartes.length > 1 ? municipioPartes[0] : '';
                 datosBusqueda = {
                     pais: partes[partes.length - 1] || '',
                     provincia: partes[partes.length - 2] || '',
-                    cp: '',
-                    municipio: partes.length >= 3 ? partes[partes.length - 3] : '',
+                    cp: cpDeMunicipio,
+                    municipio: municipio,
                     calle: partes.slice(0, partes.length - 3).join(', ')
                 };
-                const matchCP = input.match(/\b\d{5}\b/);
-                if (matchCP) datosBusqueda.cp = matchCP[0];
+                if (IsNullOrEmpty(datosBusqueda.cp)) {
+                    const matchCP = input.match(/\b\d{5}\b/);
+                    if (matchCP) datosBusqueda.cp = matchCP[0];
+                }
             } else {
                 datosBusqueda = { ...input };
             }

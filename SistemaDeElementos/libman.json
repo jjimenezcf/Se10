@@ -9,6 +9,18 @@
       "files": [
         "index.d.ts"
       ]
-    }
+    },
+    {
+      "provider": "unpkg",
+      "library": "leaflet@1.9.4",
+      "destination": "wwwroot/lib/leaflet/",
+      "files": [
+        "dist/leaflet.js",
+        "dist/leaflet.css",
+        "dist/images/marker-icon.png",
+        "dist/images/marker-icon-2x.png",
+        "dist/images/marker-shadow.png"
+      ]
+    },
   ]
 }

@@ -187,7 +187,8 @@
             MontarAsistenteEnEdicion(panel, divAsistente);
 
         const divMapa = document.getElementById(`${idAsistente}-mapa`) as HTMLDivElement;
-        GestorDeMapas.MostrarFrameStreetView(divMapa, ltrValores.Maestros.Callejero.Paises.Espana, 5);
+        const modoInicial = crud.EstoyCreando ? GestorDeMapas.ltrModoRenderizacion.Frame : GestorDeMapas.ltrModoRenderizacion.Flet;
+        GestorDeMapas.MostrarFrameStreetView(divMapa, ltrValores.Maestros.Callejero.Paises.Espana, 5, modoInicial);
     }
 
     function CrearDivAsistente(idAsistente: string, conBotonMapear: boolean): HTMLDivElement {
@@ -201,7 +202,7 @@
         const inputDireccion = document.createElement('input');
         inputDireccion.type = 'text';
         inputDireccion.id = `${idAsistente}-input`;
-        inputDireccion.placeholder = 'Escriba la dirección a buscar...';
+        inputDireccion.placeholder = 'Escriba la dirección a buscar (calle,cp - municipio, provincia, país)';
         inputDireccion.addEventListener('keydown', (e) => { if (e.key === 'Enter') BuscarEnMapsDesdeAsistente(idAsistente); });
 
         const btnBuscar = document.createElement('input');
@@ -353,7 +354,8 @@
         if (btnMapear) btnMapear.style.display = 'none';
 
         // 💡 Una única llamada: Renderiza el mapa Y nos devuelve el objeto de resultados de Nominatim
-        const resultado = await GestorDeMapas.MostrarFrameStreetView(divMapa, input.value, 0.002);
+        const modo = Crud.crudMnt.EstoyCreando ? GestorDeMapas.ltrModoRenderizacion.Frame : GestorDeMapas.ltrModoRenderizacion.Flet;
+        const resultado = await GestorDeMapas.MostrarFrameStreetView(divMapa, input.value, 0.002, modo);
 
         // Si la función localizó la dirección, guardamos el resultado para el proceso de guardado/mapeo
         if (resultado) {
