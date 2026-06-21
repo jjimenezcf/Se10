@@ -126,26 +126,29 @@
                     break;
                 }
                 case ltrEventos.Mnt.OcultarMostrarBloque: {
-                    let idHtmlBloque: string = parametros;
+                    const idHtmlBloque: string = parametros;
                     crudMnt.OcultarMostrarBloque(idHtmlBloque);
                     break;
                 }
                 case ltrEventos.Mnt.OcultarMostrarAmpliacion: {
-                    let idHtmlBloque: string = parametros;
+                    const idHtmlBloque: string = parametros;
                     crudMnt.OcultarMostrarExpansor(idHtmlBloque);
                     crudMnt.GuardarSituacionDeEspanes();
                     break;
                 }
                 case ltrEventos.Mnt.OcultarMostrarDetalle: {
-                    let idHtmlBloque: string = parametros;
+                    const idHtmlBloque: string = parametros;
                     crudMnt.OcultarMostrarExpansor(idHtmlBloque);
                     crudMnt.GuardarSituacionDeEspanes();
                     break;
                 }
                 case ltrEventos.Mnt.MostrarOcultarVisorDeDetalle: {
-                    let idHtmlBloque: string = parametros;
                     crudMnt.MostrarOcultarVisorDeDetalle();
                     crudMnt.GuardarSituacionDeEspanes();
+                    break;
+                }
+                case ltrEventos.Mnt.MostrarModalConDireccion: {
+                    crudMnt.MostrarDirecciones();
                     break;
                 }
                 case ltrEventos.Mnt.TeclaPulsada: {

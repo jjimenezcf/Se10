@@ -175,7 +175,7 @@ body.resizing-en-progreso * {
     width: 100%;
     padding: 0.2em;
     display: grid;
-    grid-template-columns: auto 35% auto 1.5em 1.5em 1.5em 1.5em 1.5em 0em;
+    grid-template-columns: auto 35% auto 1.5em 1.5em 1.5em 1.5em 1.5em 1.5em 0em;
     grid-template-rows: 1fr;
     column-gap: 0.5em;
 }
@@ -280,6 +280,17 @@ body.resizing-en-progreso * {
         vertical-align: -webkit-baseline-middle;
     }
 
+/*.div-mnt-filtro-expansor {
+    width: 100%;
+    text-align: right;
+    align-content: end;
+    padding-right: 1.5em;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    align-self: center;
+}*/
+
 .div-mnt-filtro-expansor {
     width: 100%;
     text-align: right;
@@ -289,10 +300,11 @@ body.resizing-en-progreso * {
     white-space: nowrap;
     text-overflow: ellipsis;
     align-self: center;
+    justify-self: end; /* Asegura que el bloque se pegue a la derecha en el grid */
 }
 
 .menu-del-proceso {
-    width: 100%;
+    width: 100%;   
 }
 
 .acciones-del-panel-edicion {
@@ -376,11 +388,42 @@ body.resizing-en-progreso * {
 }
 
 .menu-de-detalle-invisible {
+    /* 1. Convierte la imagen a escala de grises completa */
+    filter: grayscale(100%);
+    /* 2. Le da un efecto semitransparente (típico de elementos deshabilitados) */
+    opacity: 0.5;
+    /* 3. Fuerza a que el cursor sea la flecha por defecto, no la mano (pointer/grabbing) */
+    cursor: default !important;
+    /* 4. Opcional: Evita que responda a clics o eventos del ratón */
+    pointer-events: none;
+    content: url(../images/Menu/MostrarDetalle.png);
 }
 
 .menu-de-totales-visible {
     content: url(../images/Menu/MostrarTotales.png) !important;
 }
+
+
+.menu-de-mostrar-direccion {
+    min-height: 24px;
+    min-width: 24px;
+    max-height: 24px;
+    max-width: 24px;
+    content: url(../images/Menu/mostrarDireccion.png);
+}
+
+.menu-de-mostrar-direccion-invisible {
+    /* 1. Convierte la imagen a escala de grises completa */
+    filter: grayscale(100%);
+    /* 2. Le da un efecto semitransparente (típico de elementos deshabilitados) */
+    opacity: 0.5;
+    /* 3. Fuerza a que el cursor sea la flecha por defecto, no la mano (pointer/grabbing) */
+    cursor: default !important;
+    /* 4. Opcional: Evita que responda a clics o eventos del ratón */
+    pointer-events: none;
+    content: url(../images/Menu/mostrarDireccion.png);
+}
+
 
 .div-vacio-derecha {
     width: 100%;
@@ -624,3 +667,4 @@ body.resizing-en-progreso * {
         overflow: visible;
     }
 }
+

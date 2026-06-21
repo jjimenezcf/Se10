@@ -202,7 +202,7 @@
         const inputDireccion = document.createElement('input');
         inputDireccion.type = 'text';
         inputDireccion.id = `${idAsistente}-input`;
-        inputDireccion.placeholder = 'Escriba la dirección a buscar (calle,cp - municipio, provincia, país)';
+        inputDireccion.placeholder = 'Escriba la dirección a buscar (calle, municipio, provincia, cp, país)';
         inputDireccion.addEventListener('keydown', (e) => { if (e.key === 'Enter') BuscarEnMapsDesdeAsistente(idAsistente); });
 
         const btnBuscar = document.createElement('input');
@@ -255,6 +255,19 @@
 
         divCuerpo.appendChild(divSplitter);
         divCuerpo.appendChild(divAsistente);
+
+        const ajustarVisibilidadMovil = () => {
+            if (EsDispositvoMovil()) {
+                ApiControl.IncluirCss(divAsistente, ltrCss.divNoVisible);
+                ApiControl.IncluirCss(divSplitter, ltrCss.divNoVisible);
+            } else {
+                ApiControl.ExcluirCss(divAsistente, ltrCss.divNoVisible);
+                ApiControl.ExcluirCss(divSplitter, ltrCss.divNoVisible);
+            }
+        };
+
+        ajustarVisibilidadMovil();
+        window.addEventListener('resize', ajustarVisibilidadMovil);
 
         InicializarSplitter(divSplitter, primerHijo, divAsistente, divCuerpo);
     }

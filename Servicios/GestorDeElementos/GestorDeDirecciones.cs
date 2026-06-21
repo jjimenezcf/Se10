@@ -46,6 +46,17 @@ namespace GestorDeElementos
             return gestor.LeerElementos(idElemento);
         }
 
+        public static IEnumerable<DireccionDto> MapearDtos(ContextoSe contexto, enumNegocio negocio, List<DireccionDtm> direcciones)
+        {
+            var gestor = Gestor(contexto, negocio);
+            var direccionesDto = new List<DireccionDto>();
+            foreach (var direccion in direcciones)
+            {
+                direccionesDto.Add(gestor.MapearElemento(direccion, parametros: null));
+            }
+            return direccionesDto;
+        }
+
         public static IEnumerable<DireccionDtm> LeerRegistros(ContextoSe contexto, enumNegocio negocio, int idElemento)
         {
             var gestor = Gestor(contexto, negocio);
@@ -164,39 +175,39 @@ namespace GestorDeElementos
                     , registro.Url).Id;
             }
             else
-            if (parametros.Operacion == enumTipoOperacion.Modificar)
-            {
-                //if (registro.IdCreador != Contexto.DatosDeConexion.IdUsuario)
-                //    GestorDeErrores.Emitir("No se pueden modificar las direcciones no añadidas por Ud.");
+                if (parametros.Operacion == enumTipoOperacion.Modificar)
+                {
+                    //if (registro.IdCreador != Contexto.DatosDeConexion.IdUsuario)
+                    //    GestorDeErrores.Emitir("No se pueden modificar las direcciones no añadidas por Ud.");
 
-                if (Negocio.UsaTrazas()) parametros.registroEnBd = DireccionSql.LeerPorId(Contexto, _Tabla, Negocio.TipoDtm(), registro.Id);
-                DireccionSql.Modificar(Contexto, _Tabla,
-                                 registro.Id
-                               , registro.Calificador.ToString()
-                               , registro.IdPais
-                               , registro.IdProvincia
-                               , registro.IdMunicipio
-                               , registro.IdCalle
-                               , registro.IdBarrio
-                               , registro.IdZona
-                               , registro.IdCp
-                               , registro.Numero
-                               , registro.Escalera
-                               , registro.Piso
-                               , registro.Puerta
-                               , registro.Otros
-                               , registro.Url
-                               , registro.Activo);
-            }
-            else
-            if (parametros.Operacion == enumTipoOperacion.Eliminar)
-            {
+                    if (Negocio.UsaTrazas()) parametros.registroEnBd = DireccionSql.LeerPorId(Contexto, _Tabla, Negocio.TipoDtm(), registro.Id);
+                    DireccionSql.Modificar(Contexto, _Tabla,
+                                     registro.Id
+                                   , registro.Calificador.ToString()
+                                   , registro.IdPais
+                                   , registro.IdProvincia
+                                   , registro.IdMunicipio
+                                   , registro.IdCalle
+                                   , registro.IdBarrio
+                                   , registro.IdZona
+                                   , registro.IdCp
+                                   , registro.Numero
+                                   , registro.Escalera
+                                   , registro.Piso
+                                   , registro.Puerta
+                                   , registro.Otros
+                                   , registro.Url
+                                   , registro.Activo);
+                }
+                else
+                    if (parametros.Operacion == enumTipoOperacion.Eliminar)
+                    {
 
-                if (Negocio.UsaTrazas()) parametros.registroEnBd = DireccionSql.LeerPorId(Contexto, _Tabla, Negocio.TipoDtm(), registro.Id);
-                DireccionSql.Eliminar(Contexto, _Tabla, registro.Id);
-            }
-            else
-                GestorDeErrores.Emitir($"La operacion {parametros.Operacion} no está permitida para las direcciones del negocio {Negocio.ToNombre()}");
+                        if (Negocio.UsaTrazas()) parametros.registroEnBd = DireccionSql.LeerPorId(Contexto, _Tabla, Negocio.TipoDtm(), registro.Id);
+                        DireccionSql.Eliminar(Contexto, _Tabla, registro.Id);
+                    }
+                    else
+                        GestorDeErrores.Emitir($"La operacion {parametros.Operacion} no está permitida para las direcciones del negocio {Negocio.ToNombre()}");
         }
 
         protected override void DespuesDePersistir(DireccionDtm direccion, ParametrosDeNegocio parametros)
@@ -227,6 +238,16 @@ namespace GestorDeElementos
             direccionDto.Negocio = NegociosDeSe.ToNombre(Negocio);
             direccionDto.NombreDireccion = direccion.Nombre(Contexto);
             direccionDto.Expresion = direccion.Expresion(Contexto);
+
+            if (direccion.Pais.IsNullOrEmpty())
+            {
+                var calle = Contexto.SeleccionarPorId<CalleDtm>(direccion.IdCalle, aplicarJoin: true);
+                direccionDto.Pais = calle.Municipio.Provincia.Pais.Nombre;
+                direccionDto.Provincia = calle.Municipio.Provincia.Nombre;
+                direccionDto.Municipio = calle.Municipio.Nombre;
+                direccionDto.Calle = calle.TipoDeVia.Nombre + ' ' + calle.Nombre;
+                direccionDto.CodigoPostal = direccion.IdCp == null ? "" : Contexto.SeleccionarPorId<CodigoPostalDtm>((int)direccion.IdCp).Codigo;
+            }
 
             direccionDto.IntraComunitaria = direccion.EsIntraComunitario(Contexto);
             direccionDto.ExtraComunitaria = direccion.EsExtraComunitario(Contexto);

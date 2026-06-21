@@ -36,6 +36,7 @@ namespace MVCSistemaDeElementos.Descriptores
         internal static string menuDeFiltro = "menu.de.filtro";
         internal static string menuHistorial = "menu.de.historial";
         internal static string menuDeDetalles = "menu.de.detalle";
+        internal static string menuDeMostrarDireccion = "menu.de.mostrar.direccion";
 
 
         private List<PropiedaJson> _atributosJson = null;
@@ -699,7 +700,10 @@ namespace MVCSistemaDeElementos.Descriptores
                                    <!--  *******************  div de edición -->
                                    {Editor?.RenderControl()??""}";
                 }
-
+                if (Negocio.UsaDirecciones())
+                {
+                    renderCrud = $@"<script src=¨../../js/{enumNameSpaceTs.Callejero}/GestorDeMapas.js?v={System.DateTime.Now.Ticks}¨></script>{Environment.NewLine}{renderCrud}";
+                }
                 return PanelDeControl.RenderPagina(Contexto, renderCrud, claseAdicional: SinEdicion && SinCreacion ? enumCssCuerpo.CuerpoSoloConGrid.Render(): null );
             }
             catch (Exception e)

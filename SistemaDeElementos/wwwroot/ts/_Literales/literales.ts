@@ -1297,7 +1297,13 @@ const ltrCss = {
         ContenidoCuerpo: 'contenido-cuerpo',
         ContenedorEdicionCuerpo: 'contenedor-edicion-cuerpo',
         BotonPrincipal: 'boton-modal btn btn-primary boton-por-defecto',
-        BotonSecundario: 'boton-modal btn btn-secondary'
+        BotonSecundario: 'boton-modal btn btn-secondary',
+        MostrarDireccion: {
+            Css: 'modal-mostrar-direccion',
+            Dialogo: 'modal-mostrar-direccion-dialogo',
+            Mapa: 'modal-mostrar-direccion-mapa',
+            Menu: 'modal-mostrar-direccion-menu'
+        }
     },
     controlesDto: {
         hora: 'hora-dto',
@@ -1472,6 +1478,7 @@ const Ajax = {
         LeerGridEnHtml: 'epLeerGridHtml',
         LeerDatosParaElGrid: 'epLeerDatosPost',
         Totales: 'epTotales',
+        LeerDirecciones: 'epLeerDirecciones',
         LeerElemento: 'epLeerElemento',
         LeerElementos: 'epLeerElementos',
         LeerElementosPorGuid: 'epLeerElementosPorGuid',
@@ -1708,6 +1715,7 @@ const Ajax = {
         nombreDeNegocio: literal.negocio,
         enumNegocio: literal.enumNegocio,
         idElemento: atControl.idElemento,
+        idsDeElementos: 'idsDeElementos',
         propiedadId: 'propiedadId',
         datosPeticion: 'datosPeticion',
         tipoJson: 'tipoJson',
@@ -2025,6 +2033,7 @@ const ltrEventos = {
         OcultarMostrarAmpliacion: 'ocultar-mostrar-ampliacion',
         OcultarMostrarDetalle: 'ocultar-mostrar-detalle',
         MostrarOcultarVisorDeDetalle: 'mostrar-ocultar-visor-detalle',
+        MostrarModalConDireccion: 'mostrar-modal-con-direccion',
         TeclaPulsada: 'tecla-pulsada',
         MostrarAuditoria: 'mostrar-auditoria',
         OcultarMostrarColumnas: 'ocultar-mostrar-columnas',
@@ -2381,7 +2390,8 @@ const ltrPropiedades = {
                 TamanoDeGraficos: 'tamano-de-graficos',
                 IaUsada: 'IA_Usada',
                 MostrarVisorAlIniciar: 'MostrarVisorAlIniciar',
-                UsaTotalizador: 'UsaTotalizador'
+                UsaTotalizador: 'UsaTotalizador',
+                UsaDirecciones: 'UsaDirecciones'
             }
         },
         seguridad: {

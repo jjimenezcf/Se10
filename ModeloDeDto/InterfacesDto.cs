@@ -10,6 +10,7 @@ namespace ModeloDeDto
         public const string CapaConVinculados = nameof(CapaConVinculados);
         public const string MostrarVisorAlIniciar = nameof(MostrarVisorAlIniciar);
         public const string UsaTotalizador = nameof(UsaTotalizador);
+        public const string UsaDirecciones = nameof(UsaDirecciones);
     }
 
     public interface IUsaNombreDto : IElementoDto

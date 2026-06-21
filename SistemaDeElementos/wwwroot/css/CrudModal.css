@@ -357,3 +357,42 @@
     margin-top: 10px;
     padding-top: 10px;
 }
+
+.modal-mostrar-direccion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-mostrar-direccion-dialogo {
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    width: 80vw;
+    max-width: 900px;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-mostrar-direccion-mapa {
+    display:block;
+    flex: 1;
+    min-height: 0;
+}
+
+.modal-mostrar-direccion-menu {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    max-height: 36px;
+}

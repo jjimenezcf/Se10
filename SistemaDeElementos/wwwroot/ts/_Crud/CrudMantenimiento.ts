@@ -40,6 +40,7 @@
         private _idModalBorrar: string;
         private _idHistorial: string;
         private _Guid: any;
+        public ModalMostrarDirecion: string = null;
 
         private _MostrandoTotales: boolean;
         public get MostrandoTotales(): boolean {
@@ -93,6 +94,11 @@
         private _usaTotalizador: boolean
         public get UsaTotalizador(): boolean {
             return this._usaTotalizador;
+        }
+
+        private _usaDirecciones: boolean
+        public get UsaDirecciones(): boolean {
+            return this._usaDirecciones;
         }
 
 
@@ -424,6 +430,54 @@
             if (this.HayHistorial) {
                 this.crudHistorial = new Crud.CrudHistorial(this, this._idHistorial);
             }
+        }
+
+        public MostrarDirecciones(): void {
+
+            if (this.InfoSelector.IdsSeleccionados.length === 0) {
+                MensajesSe.Info("ha de seleccionar los elementos de los que quiere ver su dirección");
+                return;
+            }
+
+            const parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(Ajax.Param.idsDeElementos, this.InfoSelector.IdsSeleccionados));          
+            ApiDePeticiones.LeerDirecciones(this, this.Controlador, parametros).
+                then((peticion) => {
+                    this.DespuesDeLeerDirecciones(peticion);
+
+                })
+                .catch((peticion) => {
+                    ApiDePeticiones.EmitirError(peticion);
+                });
+        }
+
+        private DespuesDeLeerDirecciones(peticion: ApiDeAjax.DescriptorAjax) {
+            const filas: Array<any> = peticion.resultado.datos;
+            if (!filas || filas.length === 0) {
+                MensajesSe.Info("no hay direcciones a mostrar");
+                return;
+            }
+
+            const ltrDir = ltrPropiedades.Callejero.Direccion;
+            const direcciones: Array<GestorDeMapas.IDireccionEstructurada> = filas.map(fila => {
+                const tipoDeVia = ObtenerPropiedad(fila, ltrDir.TipoDeVia, '');
+                const nombreCalle = ObtenerPropiedad(fila, ltrDir.Calle, '');
+                const numero = ObtenerPropiedad(fila, ltrDir.Numero, '');
+                const calleCompleta = [nombreCalle, numero].filter(v => !IsNullOrEmpty(v)).join(' ');
+                const direccion =  {
+                    calle: calleCompleta,
+                    municipio: ObtenerPropiedad(fila, ltrDir.Municipio, ''),
+                    provincia: ObtenerPropiedad(fila, ltrDir.Provincia, ''),
+                    cp: ObtenerPropiedad(fila, ltrDir.Cp, ''),
+                    pais: ObtenerPropiedad(fila, ltrDir.Pais, '')
+                } as GestorDeMapas.IDireccionEstructurada;
+                return direccion;
+            });
+
+            if (!this.ModalMostrarDirecion)
+                this.ModalMostrarDirecion = GestorDeMapas.ConstruirModalParaMostrarDirecion();
+
+            GestorDeMapas.MostrarDireccionesEnMapa(this.ModalMostrarDirecion, direcciones);
         }
 
         public AntesDeSalir() {
@@ -1199,6 +1253,7 @@
             this.TamanoDelVisor = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.TamanoDelVisor);
             this._iaUsada = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.IaUsada);
             this._usaTotalizador = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaTotalizador);
+            this._usaDirecciones = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaDirecciones);
         }
 
         protected AplicarExpansores(estadosDelLosExpansores: Array<EstadoDeEspan>): void {

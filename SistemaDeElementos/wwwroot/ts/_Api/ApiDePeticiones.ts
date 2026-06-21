@@ -1827,6 +1827,27 @@ namespace ApiDePeticiones {
         });
     }
 
+    export function LeerDirecciones(llamador: any, controlador: string, parametros: Array<Parametro>): Promise<ApiDeAjax.DescriptorAjax> {
+        return new Promise((resolve, reject) => {
+
+            let url: string = `/${controlador}/${Ajax.EndPoint.LeerDirecciones}`;
+            let a = new ApiDeAjax.DescriptorAjax(llamador
+                , Ajax.EndPoint.LeerDirecciones
+                , undefined
+                , url
+                , ApiDeAjax.TipoPeticion.Asincrona
+                , ApiDeAjax.ModoPeticion.Post
+                , (peticion) => {
+                    resolve(peticion);
+                }
+                , (peticion) => {
+                    reject(peticion);
+                }
+            );
+            a.Ejecutar(Encriptar(literal.ClaveDeEncriptacion, JSON.stringify(parametros)));
+        });
+    }
+
     export function Totales(llamador: any, controlador: string, posicion: number, cantidad: number, parametros: Array<Parametro>): Promise<ApiDeAjax.DescriptorAjax> {
         return new Promise((resolve, reject) => {
 

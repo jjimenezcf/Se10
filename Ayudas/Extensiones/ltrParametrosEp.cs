@@ -42,6 +42,7 @@
         public static readonly string idEstadoDestino = nameof(idEstadoDestino).ToLower();
         public static readonly string idEstado = nameof(idEstado).ToLower();
         public static readonly string idElemento = nameof(idElemento).ToLower();
+        public static readonly string idsDeElementos = nameof(idsDeElementos).ToLower();
         public static readonly string Elemento = nameof(Elemento).ToLower();
         public static readonly string asunto = nameof(asunto);
         public static readonly string detalleAsunto = nameof(detalleAsunto);

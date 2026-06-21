@@ -232,11 +232,17 @@ namespace GestorDeMapas {
 
     export async function MostrarCalleEnStreetView(
         panel: HTMLDivElement,
-        input: string | IDireccionEstructurada,
+        input: string | IDireccionEstructurada | null,
         deltaIn: number,
         modo: ModoRenderizacion,
         popupHtml?: string
     ): Promise<any | null> {
+
+        if (input === null) {
+            if (modo === ltrModoRenderizacion.Flet) await RenderizarLeafletEspana(panel);
+            else RenderizarIframe(panel, `https://www.openstreetmap.org/export/embed.html?bbox=-9.5,35.8,4.5,43.9&layer=mapnik`);
+            return null;
+        }
 
         // 🪜 ESTRATEGIA EN CASCADA
         // 1. Intentamos buscar por Calle (Dirección Completa)
@@ -314,21 +320,14 @@ namespace GestorDeMapas {
 
             if (typeof input === 'string') {
                 const partes = input.split(',').map(p => p.trim());
-                const municipioRaw = partes.length >= 3 ? partes[partes.length - 3] : '';
-                const municipioPartes = municipioRaw.split('-').map(p => p.trim());
-                const municipio = municipioPartes.length > 1 ? municipioPartes.slice(1).join('-').trim() : municipioPartes[0];
-                const cpDeMunicipio = municipioPartes.length > 1 ? municipioPartes[0] : '';
+                const con5 = partes.length >= 5;
                 datosBusqueda = {
                     pais: partes[partes.length - 1] || '',
-                    provincia: partes[partes.length - 2] || '',
-                    cp: cpDeMunicipio,
-                    municipio: municipio,
-                    calle: partes.slice(0, partes.length - 3).join(', ')
+                    cp: con5 ? partes[partes.length - 2] : '',
+                    provincia: con5 ? partes[partes.length - 3] : partes[partes.length - 2] || '',
+                    municipio: con5 ? partes[partes.length - 4] : partes[partes.length - 3] || '',
+                    calle: partes.slice(0, con5 ? partes.length - 4 : partes.length - 3).join(', ')
                 };
-                if (IsNullOrEmpty(datosBusqueda.cp)) {
-                    const matchCP = input.match(/\b\d{5}\b/);
-                    if (matchCP) datosBusqueda.cp = matchCP[0];
-                }
             } else {
                 datosBusqueda = { ...input };
             }
@@ -384,6 +383,105 @@ namespace GestorDeMapas {
             console.error(`Error buscando por ${propiedad}:`, error);
         }
         return null;
+    }
+
+    export function ConstruirModalParaMostrarDirecion(): string {
+        const idModal = 'modal-mostrar-direccion';
+
+        const overlay = document.createElement('div');
+        overlay.id = idModal;
+        ApiControl.IncluirCss(overlay, ltrCss.Modal.MostrarDireccion.Css);
+        ApiControl.IncluirCss(overlay, ltrCss.divNoVisible);
+        //overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:none;align-items:center;justify-content:center;';
+
+        const dialogo = document.createElement('div');
+        ApiControl.IncluirCss(dialogo, ltrCss.Modal.MostrarDireccion.Dialogo);
+        //dialogo.style.cssText = 'background:#fff;border-radius:8px;padding:24px;width:80vw;max-width:900px;height:70vh;display:flex;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+
+        const divMapa = document.createElement('div');
+        divMapa.id = `${idModal}-mapa`;
+        ApiControl.IncluirCss(divMapa, ltrCss.Modal.MostrarDireccion.Mapa);
+
+        const contenedorBotones = document.createElement('div');
+        ApiControl.IncluirCss(contenedorBotones, ltrCss.Modal.MostrarDireccion.Menu);
+
+        const btnCerrar = document.createElement('button');
+        btnCerrar.innerText = 'Cerrar';
+        btnCerrar.className = ltrCss.Modal.BotonPrincipal;
+        btnCerrar.onclick = () => {
+            ApiControl.IncluirCss(overlay, ltrCss.divNoVisible);
+        };
+
+        contenedorBotones.appendChild(btnCerrar);
+        dialogo.appendChild(divMapa);
+        dialogo.appendChild(contenedorBotones);
+        overlay.appendChild(dialogo);
+        document.body.appendChild(overlay);
+
+        return idModal;
+    }
+
+    export async function MostrarDireccionesEnMapa(idModal: string, direcciones: Array<IDireccionEstructurada>): Promise<void> {
+        const overlay = document.getElementById(idModal);
+        if (!overlay) return;
+
+        // Mostrar el overlay antes de geocodificar para que el div tenga dimensiones reales
+        ApiControl.ExcluirCss(overlay, ltrCss.divNoVisible);
+
+        const divMapa = document.getElementById(`${idModal}-mapa`) as HTMLDivElement;
+        if (!divMapa) return;
+
+        await AsegurarLeafletCargado();
+
+        // Geocodificar todas las direcciones antes de tocar el mapa
+        const posiciones: Array<{ lat: number; lon: number; popupHtml: string }> = [];
+        for (const dir of direcciones) {
+            const datos = await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Calle)
+                ?? await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Municipio);
+            if (!datos) continue;
+            posiciones.push({
+                lat: parseFloat(datos.lat),
+                lon: parseFloat(datos.lon),
+                popupHtml: `<b>${dir.calle.trim()}</b><br>${dir.municipio}, ${dir.provincia}`
+            });
+        }
+
+        // Destruir instancia anterior si existe
+        const observerExistente = _leafletObservers.get(divMapa);
+        if (observerExistente) { observerExistente.disconnect(); _leafletObservers.delete(divMapa); }
+        const mapaExistente = _leafletMaps.get(divMapa);
+        if (mapaExistente) { mapaExistente.remove(); _leafletMaps.delete(divMapa); }
+        divMapa.innerHTML = '';
+
+        // Esperar un frame para que el browser calcule las dimensiones del contenedor visible
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+        const mapa = L.map(divMapa);
+        _leafletMaps.set(divMapa, mapa);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(mapa);
+
+        for (const pos of posiciones) {
+            L.marker([pos.lat, pos.lon], { icon: _iconoMarcador() }).addTo(mapa).bindPopup(pos.popupHtml);
+        }
+
+        if (posiciones.length > 0) {
+            const lats = posiciones.map(p => p.lat);
+            const lons = posiciones.map(p => p.lon);
+            const bounds: L.LatLngBoundsExpression = [
+                [Math.min(...lats) - 0.05, Math.min(...lons) - 0.05],
+                [Math.max(...lats) + 0.05, Math.max(...lons) + 0.05]
+            ];
+            mapa.fitBounds(bounds);
+        } else {
+            mapa.fitBounds([[35.8, -9.5], [43.9, 4.5]]);
+        }
+
+        const observer = new ResizeObserver(() => mapa.invalidateSize());
+        observer.observe(divMapa);
+        _leafletObservers.set(divMapa, observer);
     }
 
 }

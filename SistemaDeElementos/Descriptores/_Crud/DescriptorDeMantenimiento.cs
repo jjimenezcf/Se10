@@ -293,6 +293,11 @@ namespace MVCSistemaDeElementos.Descriptores
                 ? $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeDetalles}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeDetalleOculto.Render()}' title='Mostrar o ocultar detalle' onclick=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.MostrarOcultarVisorDeDetalle}');¨> </div>"
                 : $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeDetalles}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeDetalleInvisible.Render()}'¨> </div>";
 
+            var htmlModalConDireccion = Crud.Negocio.UsaDirecciones()
+                ? $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeMostrarDireccion}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeMostrarDireccion.Render()}' title='Mostrar en mapa' onclick=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.MostrarModalConDireccion}');¨> </div>"
+                : $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeMostrarDireccion}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeMostrarDireccionInvisible.Render()}'¨> </div>";
+
+
             var htmlParteSuperiror = $@"
             <!--  ******************* menú ******************* -->
             <div id = ¨contenedor.{IdHtml}.MenuDelMnt¨ class=¨{Css.Render(enumCssMnt.MntMenuContenedor)} {sinMfs}¨>  
@@ -306,6 +311,7 @@ namespace MVCSistemaDeElementos.Descriptores
                   <a id = ¨mostrar.{IdHtml}.ref¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.OcultarMostrarFiltro}', '{("")}');¨>Ocultar filtro</a>
                   <input id=¨expandir.{IdHtml}¨ type=¨hidden¨ value=¨1¨ >  
                 </div>
+                {htmlModalConDireccion}
                 {htmlVisorDeDetalle}
                 <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeFiltro}' class='{Css.Render(enumCssMnt.MenuDeFiltro)} {cssDivNulo}' offset-x = 110 menu-flotante='{DescriptorDeCrud<TElemento>.menuDeFiltro}'> </div>
                 <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuContextual}' class='{Css.Render(enumCssMnt.MenuContextual)} {cssDivNulo}' offset-x = 110 menu-flotante='{DescriptorDeCrud<TElemento>.menuContextual}'> </div>

@@ -509,6 +509,7 @@ namespace Utilidades
         public const string OcultarMostrarColumnas = "ocultar-mostrar-columnas";
         public const string OrdenarPor = "ordenar-por";
         public const string MostrarOcultarVisorDeDetalle = "mostrar-ocultar-visor-detalle";
+        public const string MostrarModalConDireccion = "mostrar-modal-con-direccion";
     }
 
     public static class eventosDeInterlocutores
@@ -1030,6 +1031,8 @@ namespace Utilidades
         MenuDeDetalleOculto,
         MenuDeDetalleVisible,
         MenuDeDetalleInvisible,
+        MenuDeMostrarDireccion,
+        MenuDeMostrarDireccionInvisible,
         MenuDeRelaciones,
         MenuFormulario,
         DivVacioDeLaDerecha,
@@ -1955,6 +1958,9 @@ namespace Utilidades
                 case enumCssMnt.MenuDeDetalleOculto: return "menu-de-detalle-oculto";
                 case enumCssMnt.MenuDeDetalleVisible: return "menu-de-detalle-visible";
                 case enumCssMnt.MenuDeDetalleInvisible: return "menu-de-detalle-invisible";
+                case enumCssMnt.MenuDeMostrarDireccion: return "menu-de-mostrar-direccion";
+                case enumCssMnt.MenuDeMostrarDireccionInvisible: return "menu-de-mostrar-direccion-invisible";
+                    
 
                 case enumCssMnt.MenuFormulario: return "menu-formulario";
                 case enumCssMnt.DivVacioDeLaDerecha: return "div-vacio-derecha";

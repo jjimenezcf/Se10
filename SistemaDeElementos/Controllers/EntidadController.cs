@@ -6,6 +6,8 @@ using GestoresDeNegocio.SistemaDocumental;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ModeloDeDto;
+using ModeloDeDto.Expediente;
+using ModeloDeDto.Negocio;
 using MVCSistemaDeElementos.Descriptores;
 using Newtonsoft.Json;
 using ServicioDeDatos;
@@ -348,13 +350,13 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
                 var negocio = NegociosDeSe.ToEnumerado(typeof(TRegistro), errorSiNoEsUnNegocio: false);
                 var cache = ServicioDeCaches.Obtener(CacheDe.Ia_Filtros);
                 var guid = parametros.LeerValor<string>(ltrParametrosEp.guid);
-                var indice = $"{guid}_{textoNatural.ToLower().Replace(" ","")}";
+                var indice = $"{guid}_{textoNatural.ToLower().Replace(" ", "")}";
                 var nuevaPregunta = parametros.LeerValor<bool>(ltrParametrosEp.nuevaPregunta);
                 if (nuevaPregunta)
                     ServicioDeCaches.EliminarElementosComiencenPor(CacheDe.Ia_Filtros, guid);
                 if (!cache.ContainsKey(indice))
                 {
-                    var preguntaEnBd = nuevaPregunta ? IaPreguntaSql.BuscarPregunta(Contexto, textoNatural): null;
+                    var preguntaEnBd = nuevaPregunta ? IaPreguntaSql.BuscarPregunta(Contexto, textoNatural) : null;
                     string filtrosIaJson;
 
                     if (preguntaEnBd != null)
@@ -1209,12 +1211,43 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
     {
         var indicadores = base.IndicadoresParaInicializarLaVistaMnt(contexto, parametros);
         var usaTotalizador = ApiParaDtos.ImplementaITotalizador(_GestorDeElementos.GetType());
-        if (usaTotalizador)
-        {
-            indicadores.Add(IndCrud.UsaTotalizador, true);
-        }
+        indicadores.Add(IndCrud.UsaTotalizador, usaTotalizador);
+
+        var negocio = NegociosDeSe.ToEnumerado(typeof(TRegistro), errorSiNoEsUnNegocio: false);
+        indicadores.Add(IndCrud.UsaDirecciones, negocio != enumNegocio.No_Definido && negocio.UsaDirecciones());
 
         return indicadores;
+    }
+
+
+    [HttpPost]
+    public async Task<JsonResult> epLeerDirecciones()
+    {
+        var body = ApiController.LeerBody(HttpContext);
+        var parametros = Utilidades.extJson.ToDiccionarioDeParametros(body.parametrosJson);
+        var ids = parametros.LeerValor(ltrParametrosEp.idsDeElementos, (List<int>)null);
+        var r = new Resultado();
+        Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerDirecciones));
+        try
+        {
+            ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+            var negocio = NegociosDeSe.ToEnumerado(typeof(TRegistro));       
+            var direcciones = ExtensorDeDirecciones.Direcciones(negocio, Contexto).Where(d => ids.Contains(d.IdElemento)).ToList();
+            var direccionesDto = GestorDeDirecciones.MapearDtos(Contexto, negocio, direcciones);
+            r.Consola = $"Direcciones obtenidas";
+            r.Datos = direccionesDto.ToList();
+            r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+            r.Estado = enumEstadoPeticion.Ok;
+        }
+        catch (Exception e)
+        {
+            ApiController.PrepararError(e, r, "Error al obtener las direcciones.");
+        }
+        finally
+        {
+            Contexto.CerrarTraza();
+        }
+        return new JsonResult(r);
     }
 
 }
