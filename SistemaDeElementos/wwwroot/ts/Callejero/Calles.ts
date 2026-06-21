@@ -97,7 +97,7 @@ namespace Callejero {
             const idAsistente = `${this.PanelDeEditar.id}-asistente-maps`;
             const divMapa = document.getElementById(`${idAsistente}-mapa`) as HTMLDivElement;
             if (divMapa) {
-                GestorDeMapas.MostrarFrameOpenStreetView(divMapa, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
+                GestorDeMapas.MostrarVisorDeOpenStreetView(divMapa, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
             }
 
             const inputAsistente = document.getElementById(`${idAsistente}-input`) as HTMLInputElement;

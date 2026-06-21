@@ -77,7 +77,7 @@ namespace GestorDeMapas {
         RenderizarIframe(panel, link);
     }
 
-    export async function MostrarFrameOpenStreetView(
+    export async function MostrarVisorDeOpenStreetView(
         panel: HTMLDivElement,
         pais: string,
         provincia: string,
@@ -99,7 +99,7 @@ namespace GestorDeMapas {
         };
 
         const popupHtml = `<b>${calleCompleta}</b><br>${municipio}, ${provinciaLimpia}`;
-        GestorDeMapas.MostrarFrameStreetView(panel, direccionEstructurada, 0.002, GestorDeMapas.ltrModoRenderizacion.Flet, popupHtml);
+        GestorDeMapas.MostrarCalleEnStreetView(panel, direccionEstructurada, 0.002, GestorDeMapas.ltrModoRenderizacion.Flet, popupHtml);
     }
 
     function ComponerDireccion(tipoDeVia: string, calle: string, zona: string, municipio: string, provincia: string, cp: string, pais: string): string {
@@ -230,7 +230,7 @@ namespace GestorDeMapas {
         pais: string;
     }
 
-    export async function MostrarFrameStreetView(
+    export async function MostrarCalleEnStreetView(
         panel: HTMLDivElement,
         input: string | IDireccionEstructurada,
         deltaIn: number,
