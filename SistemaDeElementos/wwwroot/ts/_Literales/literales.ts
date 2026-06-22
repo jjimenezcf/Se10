@@ -2558,6 +2558,18 @@ const ltrPropiedades = {
             Url: 'url',
             Calificador: 'calificador'
         },
+        Chincheta: {
+            Pais: 'pais',
+            Provincia: 'provincia',
+            Municipio: 'Municipio',
+            Numero: 'numero',
+            Cp: 'codigopostal',
+            Calle: 'calle',
+            TipoDeVia: 'tipoDeVia',
+            Informacion: 'Informacion',
+            hRef: 'href',
+            Calificador: 'Calificador'
+        },
         Calle: {
             Pais: 'pais',
             Provincia: 'provincia',

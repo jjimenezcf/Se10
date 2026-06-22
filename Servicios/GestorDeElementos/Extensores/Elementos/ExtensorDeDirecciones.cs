@@ -158,6 +158,14 @@ namespace GestorDeElementos.Extensores
         }
 
 
+        public static string Cp(this DireccionDtm direccion, ContextoSe contexto)
+        {
+            if (direccion.Cp.IsNullOrEmpty() && direccion.IdCp != null)
+                return contexto.SeleccionarPorId<CodigoPostalDtm>((int)direccion.IdCp).Codigo;
+            return direccion.Cp;
+        }
+
+
         public static void DesactivarDireccion(this DireccionDtm direccion, ContextoSe contexto)
         {
             var gestor = new GestorDeDirecciones(contexto, direccion.Negocio);

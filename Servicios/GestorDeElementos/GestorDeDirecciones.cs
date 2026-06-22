@@ -46,15 +46,32 @@ namespace GestorDeElementos
             return gestor.LeerElementos(idElemento);
         }
 
-        public static IEnumerable<DireccionDto> MapearDtos(ContextoSe contexto, enumNegocio negocio, List<DireccionDtm> direcciones)
+        public static IEnumerable<ChinchetaDto> ChinchetasDto(ContextoSe contexto, enumNegocio negocio, List<DireccionDtm> direcciones)
         {
             var gestor = Gestor(contexto, negocio);
-            var direccionesDto = new List<DireccionDto>();
-            foreach (var direccion in direcciones)
+            var chinchetas = new List<ChinchetaDto>();
+            foreach (var direccion in direcciones.Where(d => d.Activo == true))
             {
-                direccionesDto.Add(gestor.MapearElemento(direccion, parametros: null));
+                var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, direccion.IdElemento);
+                var informacion = ""; // elemento.Referencia(contexto);
+                var calle = contexto.SeleccionarPorId<CalleDtm>(direccion.IdCalle, aplicarJoin: true);
+                chinchetas.Add(new ChinchetaDto
+                {
+                    Id = direccion.Id,
+                    IdElemento = direccion.IdElemento,
+                    Calificador = direccion.Calificador.Descripcion(),
+                    Pais = calle.Municipio.Provincia.Pais.Nombre,
+                    Provincia = calle.Municipio.Provincia.Nombre,
+                    Municipio = calle.Municipio.Nombre,
+                    TipoDeVia = calle.TipoDeVia.Nombre,
+                    Calle =  calle.Nombre,
+                    CodigoPostal = direccion.Cp(contexto),
+                    Informacion = informacion,
+                    Numero = direccion.Numero,
+                    href = elemento.CrearHref(contexto),
+                });
             }
-            return direccionesDto;
+            return chinchetas;
         }
 
         public static IEnumerable<DireccionDtm> LeerRegistros(ContextoSe contexto, enumNegocio negocio, int idElemento)
@@ -238,16 +255,6 @@ namespace GestorDeElementos
             direccionDto.Negocio = NegociosDeSe.ToNombre(Negocio);
             direccionDto.NombreDireccion = direccion.Nombre(Contexto);
             direccionDto.Expresion = direccion.Expresion(Contexto);
-
-            if (direccion.Pais.IsNullOrEmpty())
-            {
-                var calle = Contexto.SeleccionarPorId<CalleDtm>(direccion.IdCalle, aplicarJoin: true);
-                direccionDto.Pais = calle.Municipio.Provincia.Pais.Nombre;
-                direccionDto.Provincia = calle.Municipio.Provincia.Nombre;
-                direccionDto.Municipio = calle.Municipio.Nombre;
-                direccionDto.Calle = calle.TipoDeVia.Nombre + ' ' + calle.Nombre;
-                direccionDto.CodigoPostal = direccion.IdCp == null ? "" : Contexto.SeleccionarPorId<CodigoPostalDtm>((int)direccion.IdCp).Codigo;
-            }
 
             direccionDto.IntraComunitaria = direccion.EsIntraComunitario(Contexto);
             direccionDto.ExtraComunitaria = direccion.EsExtraComunitario(Contexto);

@@ -1233,7 +1233,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
             ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
             var negocio = NegociosDeSe.ToEnumerado(typeof(TRegistro));       
             var direcciones = ExtensorDeDirecciones.Direcciones(negocio, Contexto).Where(d => ids.Contains(d.IdElemento)).ToList();
-            var direccionesDto = GestorDeDirecciones.MapearDtos(Contexto, negocio, direcciones);
+            var direccionesDto = GestorDeDirecciones.ChinchetasDto(Contexto, negocio, direcciones);
             r.Consola = $"Direcciones obtenidas";
             r.Datos = direccionesDto.ToList();
             r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();

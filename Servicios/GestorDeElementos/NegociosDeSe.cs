@@ -1843,4 +1843,13 @@ public static class NegociosDeSe
 
         return jDatos["estados"]?.ToObject<List<EstadoDeDashBoardPorNegocio>>() ?? new List<EstadoDeDashBoardPorNegocio>();
     }
+
+    internal static string InformacionParaLaChincheta(enumNegocio negocio, ContextoSe contexto, int idElemento)
+    {
+        var elemento = (IElementoDtm) negocio.LeerRegistro(contexto, idElemento);
+
+        return elemento.Referencia(contexto);
+    }
+
+
 }

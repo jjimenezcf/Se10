@@ -10,6 +10,7 @@ using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Guarderias;
+using ServicioDeDatos.Juridico;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.SistemaDocumental;
@@ -1183,14 +1184,23 @@ namespace GestorDeElementos.Extensores
                 var vistasPorTipo = negocioDtm.VistasPorTipoDeNegocio(((IElementoConTipo)elemento).IdTipo);
                 vista = contexto.SeleccionarPorId<VistaMvcDtm>(vistasPorTipo.IdVista);
             }
-
+            var parametros = OtrosParametros(contexto, NegociosDeSe.ToEnumerado(negocioDtm.Id), elemento);
             var uri = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
             {
                 Path = $"/{vista.Controlador}/{vista.Accion}",
-                Query = $"id={elemento.Id}"
+                Query = $"id={elemento.Id}{(parametros.IsNullOrEmpty() ? "" : parametros)}"
             };
-
             return uri.Uri.ToString();
+        }
+
+
+        private static string OtrosParametros(ContextoSe contexto, enumNegocio negocio, IElementoDtm elemento)
+        {
+            if (negocio == enumNegocio.Contrato)
+            {
+                return $"&{ltrParametrosEp.Clase}={((ContratoDtm)elemento).ClaseDeContrato}";
+            }
+            return "";
         }
 
         public static UsuarioDtm Bloqueador(this IUsaBloqueo elemento, ContextoSe contexto)

@@ -458,18 +458,21 @@
                 return;
             }
 
-            const ltrDir = ltrPropiedades.Callejero.Direccion;
+            const ltrChincheta = ltrPropiedades.Callejero.Chincheta;
             const direcciones: Array<GestorDeMapas.IDireccionEstructurada> = filas.map(fila => {
-                const tipoDeVia = ObtenerPropiedad(fila, ltrDir.TipoDeVia, '');
-                const nombreCalle = ObtenerPropiedad(fila, ltrDir.Calle, '');
-                const numero = ObtenerPropiedad(fila, ltrDir.Numero, '');
-                const calleCompleta = [nombreCalle, numero].filter(v => !IsNullOrEmpty(v)).join(' ');
+                const tipoDeVia = ObtenerPropiedad(fila, ltrChincheta.TipoDeVia, '');
+                const nombreCalle = ObtenerPropiedad(fila, ltrChincheta.Calle, '');
+                const numero = ObtenerPropiedad(fila, ltrChincheta.Numero, '');
+                const calleCompleta = [tipoDeVia, nombreCalle, numero].filter(v => !IsNullOrEmpty(v)).join(' ');
                 const direccion =  {
                     calle: calleCompleta,
-                    municipio: ObtenerPropiedad(fila, ltrDir.Municipio, ''),
-                    provincia: ObtenerPropiedad(fila, ltrDir.Provincia, ''),
-                    cp: ObtenerPropiedad(fila, ltrDir.Cp, ''),
-                    pais: ObtenerPropiedad(fila, ltrDir.Pais, '')
+                    municipio: ObtenerPropiedad(fila, ltrChincheta.Municipio, ''),
+                    provincia: ObtenerPropiedad(fila, ltrChincheta.Provincia, ''),
+                    cp: ObtenerPropiedad(fila, ltrChincheta.Cp, ''),
+                    pais: ObtenerPropiedad(fila, ltrChincheta.Pais, ''),
+                    calificador: ObtenerPropiedad(fila, ltrChincheta.Calificador, ''),
+                    informacion: ObtenerPropiedad(fila, ltrChincheta.Informacion, ''),
+                    href: ObtenerPropiedad(fila, ltrChincheta.hRef, ''),
                 } as GestorDeMapas.IDireccionEstructurada;
                 return direccion;
             });
@@ -640,7 +643,7 @@
 
             ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.ocultarDetalle);
             ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarDetalle);
-            if (this.InfoSelector.Seleccionados.length > 1)
+            if (this.InfoSelector.Seleccionados.length > 1 && Definido(this.PanelDeTotales))
                 ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
             else
                 ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);

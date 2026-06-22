@@ -95,7 +95,10 @@ namespace GestorDeMapas {
             municipio: municipio,
             provincia: provinciaLimpia,
             cp: cp,
-            pais: pais
+            pais: pais,
+            calificador: undefined,
+            href: undefined,
+            informacion: undefined,
         };
 
         const popupHtml = `<b>${calleCompleta}</b><br>${municipio}, ${provinciaLimpia}`;
@@ -228,6 +231,9 @@ namespace GestorDeMapas {
         provincia: string;
         cp: string;
         pais: string;
+        calificador: string;
+        informacion: string;
+        href: string;
     }
 
     export async function MostrarCalleEnStreetView(
@@ -326,7 +332,10 @@ namespace GestorDeMapas {
                     cp: con5 ? partes[partes.length - 2] : '',
                     provincia: con5 ? partes[partes.length - 3] : partes[partes.length - 2] || '',
                     municipio: con5 ? partes[partes.length - 4] : partes[partes.length - 3] || '',
-                    calle: partes.slice(0, con5 ? partes.length - 4 : partes.length - 3).join(', ')
+                    calle: partes.slice(0, con5 ? partes.length - 4 : partes.length - 3).join(', '),
+                    calificador: undefined,
+                    href: undefined,
+                    informacion: undefined,
                 };
             } else {
                 datosBusqueda = { ...input };
@@ -439,10 +448,18 @@ namespace GestorDeMapas {
             const datos = await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Calle)
                 ?? await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Municipio);
             if (!datos) continue;
+            let cartel: string = `<b>${(Definido(dir.calificador) ? dir.calificador + ': ' : '')}${dir.calle.trim()}</b><br>${dir.municipio}, ${dir.provincia}`;
+            if (Definido(dir.informacion)) {
+                cartel = `<b>${dir.informacion.trim()}</b><br>${dir.href}`
+            }
+            else if (Definido(dir.href)) {
+                cartel = `<b>${dir.calificador.trim()}:${dir.calle.trim()}</b><br>${dir.href}`
+            }
+
             posiciones.push({
                 lat: parseFloat(datos.lat),
                 lon: parseFloat(datos.lon),
-                popupHtml: `<b>${dir.calle.trim()}</b><br>${dir.municipio}, ${dir.provincia}`
+                popupHtml: cartel
             });
         }
 

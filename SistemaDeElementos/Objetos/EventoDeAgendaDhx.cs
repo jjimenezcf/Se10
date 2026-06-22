@@ -1,5 +1,6 @@
 ﻿using System;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using Microsoft.AspNetCore.Http;
 using ModeloDeDto.Entorno;
 using ServicioDeDatos;
@@ -48,42 +49,13 @@ namespace SistemaDeElementos.Objetos
             return eventoDhx;
         }
 
-        public static string UriEvento_1(ContextoSe contexto, EventoDeAgendaDto evento, HttpContext httpContext)
-        {
-            var negocio = NegociosDeSe.LeerNegocioPorId(evento.IdNegocio);
-            var vista = contexto.SeleccionarPorPropiedad<VistaMvcDtm>(nameof(VistaMvcDtm.ElementoDto), negocio.ElementoDto); 
-            string parametros = OtrosParametros(contexto, evento.IdNegocio, evento.IdElemento);
-            var urlBase = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
-            return $"{urlBase}/{vista.Controlador}/{vista.Accion}?id={evento.IdElemento}{(parametros.IsNullOrEmpty() ? "" : parametros)}";
-        }
-
         public static string UriEvento(ContextoSe contexto, EventoDeAgendaDto evento, HttpContext httpContext)
         {
-            var negocio = NegociosDeSe.LeerNegocioPorId(evento.IdNegocio);
-            var vista = contexto.SeleccionarPorPropiedad<VistaMvcDtm>(nameof(VistaMvcDtm.ElementoDto), negocio.ElementoDto);
-            string parametros = OtrosParametros(contexto, evento.IdNegocio, evento.IdElemento);
-            var urlBase = httpContext.Request.Host.Port is null 
-                ? new UriBuilder(httpContext.Request.Scheme, httpContext.Request.Host.Host)
-                : new UriBuilder(httpContext.Request.Scheme, httpContext.Request.Host.Host, (int) httpContext.Request.Host.Port);
-            var uri = new UriBuilder(urlBase.Uri)
-            {
-                Path = $"/{vista.Controlador}/{vista.Accion}",
-                Query = $"id={evento.IdElemento}{(parametros.IsNullOrEmpty() ? "" : parametros)}"
-            };
-            return uri.ToString();
+            var elemento = (IElementoDtm) NegociosDeSe.LeerRegistro(NegociosDeSe.ToEnumerado(evento.IdNegocio), contexto, evento.IdElemento);
+
+            return elemento.CrearLink(contexto);
         }
 
-
-
-        private static string OtrosParametros(ContextoSe contexto, int idNegocio, int idElemento)
-        {
-            if (idNegocio == enumNegocio.Contrato.IdNegocio())
-            {
-                var contrato = contexto.SeleccionarPorId<ContratoDtm>(idElemento);
-                return $"&{ltrParametrosEp.Clase}={contrato.ClaseDeContrato}";
-            }
-            return "";
-        }
     }
 
 }
