@@ -294,8 +294,8 @@ namespace MVCSistemaDeElementos.Descriptores
                 : $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeDetalles}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeDetalleInvisible.Render()}'¨> </div>";
 
             var htmlModalConDireccion = Crud.Negocio.UsaDirecciones()
-                ? $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeMostrarDireccion}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeMostrarDireccion.Render()}' title='Mostrar en mapa' onclick=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.MostrarModalConDireccion}');¨> </div>"
-                : $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeMostrarDireccion}' class='{enumCssMnt.MenuDeDetalle.Render()} {enumCssMnt.MenuDeMostrarDireccionInvisible.Render()}'¨> </div>";
+                ? $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeMostrarDireccion}' class='{enumCssMnt.MenuDeMostrarMapa.Render()} {enumCssMnt.MenuDeMostrarDireccion.Render()}' title='Mostrar en mapa' onclick=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.MostrarModalConDireccion}');¨> </div>"
+                : $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeMostrarDireccion}' class='{enumCssMnt.MenuDeMostrarMapa.Render()} {enumCssMnt.MenuDeMostrarDireccionInvisible.Render()}'¨> </div>";
 
 
             var htmlParteSuperiror = $@"

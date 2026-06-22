@@ -369,8 +369,8 @@ body.resizing-en-progreso * {
     cursor: grabbing;
 }
 
-.menu-de-detalle {
-    width: 100%;
+.menu-de-detalle,
+.menu-de-mostrar-mapa {
     min-height: 1.5em;
     min-width: 1.5em;
     max-height: 1.5em;
@@ -405,10 +405,6 @@ body.resizing-en-progreso * {
 
 
 .menu-de-mostrar-direccion {
-    min-height: 24px;
-    min-width: 24px;
-    max-height: 24px;
-    max-width: 24px;
     content: url(../images/Menu/mostrarDireccion.png);
 }
 

@@ -1070,6 +1070,7 @@ const ltrCss = {
             celda: 'dto-td'
         },
         menuDeDetalle: 'menu-de-detalle',
+        menuDeMostrarMapa: 'menu-de-mostrar-mapa',
         mostrarDetalle: 'menu-de-detalle-oculto',
         ocultarDetalle: 'menu-de-detalle-visible',
         mostrarTotales: 'menu-de-totales-visible',

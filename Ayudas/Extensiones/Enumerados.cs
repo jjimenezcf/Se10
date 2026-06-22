@@ -1033,6 +1033,7 @@ namespace Utilidades
         MenuDeDetalleInvisible,
         MenuDeMostrarDireccion,
         MenuDeMostrarDireccionInvisible,
+        MenuDeMostrarMapa,
         MenuDeRelaciones,
         MenuFormulario,
         DivVacioDeLaDerecha,
@@ -1958,8 +1959,10 @@ namespace Utilidades
                 case enumCssMnt.MenuDeDetalleOculto: return "menu-de-detalle-oculto";
                 case enumCssMnt.MenuDeDetalleVisible: return "menu-de-detalle-visible";
                 case enumCssMnt.MenuDeDetalleInvisible: return "menu-de-detalle-invisible";
+                case enumCssMnt.MenuDeMostrarMapa: return "menu-de-mostrar-mapa";
                 case enumCssMnt.MenuDeMostrarDireccion: return "menu-de-mostrar-direccion";
                 case enumCssMnt.MenuDeMostrarDireccionInvisible: return "menu-de-mostrar-direccion-invisible";
+
                     
 
                 case enumCssMnt.MenuFormulario: return "menu-formulario";
