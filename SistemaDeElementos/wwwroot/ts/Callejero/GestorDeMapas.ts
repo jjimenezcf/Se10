@@ -4,6 +4,7 @@
     function marker(latlng: [number, number] | { lat: number; lng: number }, options?: any): L.Marker;
 
     function icon(options: any): L.Icon;
+    function divIcon(options: any): L.Icon;
 
     interface Icon { }
 
@@ -20,6 +21,7 @@
         addTo(map: L.Map): this;
         bindPopup(content: string): this;
         openPopup(): this;
+        remove(): this;
     }
     type LatLngBoundsExpression = [[number, number], [number, number]];
 }
@@ -146,6 +148,39 @@ namespace GestorDeMapas {
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
     });
+
+    const _nombreCalificador: Record<string, string> = {
+        [enumCalificadorDireccion.Correspondencia]: 'Correspondencia',
+        [enumCalificadorDireccion.Fiscal]:          'Fiscal',
+        [enumCalificadorDireccion.Contacto]:        'Contacto',
+        [enumCalificadorDireccion.Ejecucion]:       'Ejecución',
+        [enumCalificadorDireccion.Entrega]:         'Entrega'
+    };
+
+    const _marcadoresPorModal = new Map<string, Array<{ marker: L.Marker; calificador: string; mapa: L.Map }>>();
+
+    const _colorPorCalificador: Record<string, string> = {
+        [enumCalificadorDireccion.Correspondencia]: '#3b82f6',
+        [enumCalificadorDireccion.Fiscal]:          '#ef4444',
+        [enumCalificadorDireccion.Contacto]:        '#22c55e',
+        [enumCalificadorDireccion.Ejecucion]:       '#f97316',
+        [enumCalificadorDireccion.Entrega]:         '#a855f7'
+    };
+
+    const _iconoMarcadorColor = (calificador: string) => {
+        const color = _colorPorCalificador[_normalizarClave(calificador)] ?? '#64748b';
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 9 12 24 12 24S24 21 24 12C24 5.37 18.63 0 12 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="5" fill="#fff"/>
+        </svg>`;
+        return L.divIcon({
+            html: svg,
+            className: '',
+            iconSize: [24, 36],
+            iconAnchor: [12, 36],
+            popupAnchor: [0, -36]
+        });
+    };
 
     function AsegurarLeafletCargado(): Promise<void> {
         return new Promise((resolve) => {
@@ -414,13 +449,49 @@ namespace GestorDeMapas {
         const contenedorBotones = document.createElement('div');
         ApiControl.IncluirCss(contenedorBotones, ltrCss.Modal.MostrarDireccion.Menu);
 
+        const grupoFiltro = document.createElement('div');
+        ApiControl.IncluirCss(grupoFiltro, ltrCss.Modal.MostrarDireccion.FiltroGrupo);
+
+        const details = document.createElement('details');
+        ApiControl.IncluirCss(details, ltrCss.Modal.MostrarDireccion.FiltroDesplegable);
+
+        const summary = document.createElement('summary');
+        summary.innerText = 'Excluir calificadores';
+        details.appendChild(summary);
+
+        const divOpciones = document.createElement('div');
+        ApiControl.IncluirCss(divOpciones, ltrCss.Modal.MostrarDireccion.FiltroOpciones);
+
+        Object.values(enumCalificadorDireccion).forEach(val => {
+            const label = document.createElement('label');
+            ApiControl.IncluirCss(label, ltrCss.Modal.MostrarDireccion.FiltroOpcion);
+            const chk = document.createElement('input');
+            chk.type = 'checkbox';
+            chk.value = val;
+            chk.dataset.filtroCalificador = idModal;
+            label.appendChild(chk);
+            label.appendChild(document.createTextNode(_nombreCalificador[val] ?? val));
+            divOpciones.appendChild(label);
+        });
+
+        details.appendChild(divOpciones);
+
+        const btnFiltrar = document.createElement('button');
+        btnFiltrar.title = 'Aplicar filtro';
+        ApiControl.IncluirCss(btnFiltrar, ltrCss.Modal.BotonSecundario);
+        ApiControl.IncluirCss(btnFiltrar, ltrCss.Modal.MostrarDireccion.FiltroBtnAplicar);
+        btnFiltrar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
+        btnFiltrar.onclick = () => { _aplicarFiltro(idModal); details.removeAttribute('open'); };
+
+        grupoFiltro.appendChild(details);
+        grupoFiltro.appendChild(btnFiltrar);
+
         const btnCerrar = document.createElement('button');
         btnCerrar.innerText = 'Cerrar';
         btnCerrar.className = ltrCss.Modal.BotonPrincipal;
-        btnCerrar.onclick = () => {
-            ApiControl.IncluirCss(overlay, ltrCss.divNoVisible);
-        };
+        btnCerrar.onclick = () => ApiControl.IncluirCss(overlay, ltrCss.divNoVisible);
 
+        contenedorBotones.appendChild(grupoFiltro);
         contenedorBotones.appendChild(btnCerrar);
         dialogo.appendChild(divMapa);
         dialogo.appendChild(contenedorBotones);
@@ -443,7 +514,7 @@ namespace GestorDeMapas {
         await AsegurarLeafletCargado();
 
         // Geocodificar todas las direcciones antes de tocar el mapa
-        const posiciones: Array<{ lat: number; lon: number; popupHtml: string }> = [];
+        const posiciones: Array<{ lat: number; lon: number; popupHtml: string; calificador: string }> = [];
         for (const dir of direcciones) {
             const datos = await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Calle)
                 ?? await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Municipio);
@@ -459,6 +530,7 @@ namespace GestorDeMapas {
             posiciones.push({
                 lat: parseFloat(datos.lat),
                 lon: parseFloat(datos.lon),
+                calificador: dir.calificador ?? '',
                 popupHtml: cartel
             });
         }
@@ -480,9 +552,12 @@ namespace GestorDeMapas {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(mapa);
 
+        const entradas: Array<{ marker: L.Marker; calificador: string; mapa: L.Map }> = [];
         for (const pos of posiciones) {
-            L.marker([pos.lat, pos.lon], { icon: _iconoMarcador() }).addTo(mapa).bindPopup(pos.popupHtml);
+            const marker = L.marker([pos.lat, pos.lon], { icon: _iconoMarcadorColor(pos.calificador) }).addTo(mapa).bindPopup(pos.popupHtml);
+            entradas.push({ marker, calificador: pos.calificador, mapa });
         }
+        _marcadoresPorModal.set(idModal, entradas);
 
         if (posiciones.length > 0) {
             const lats = posiciones.map(p => p.lat);
@@ -499,6 +574,25 @@ namespace GestorDeMapas {
         const observer = new ResizeObserver(() => mapa.invalidateSize());
         observer.observe(divMapa);
         _leafletObservers.set(divMapa, observer);
+    }
+
+    function _normalizarClave(valor: string): string {
+        return (valor ?? '').toLocaleLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+
+    function _aplicarFiltro(idModal: string): void {
+        const checkboxes = document.querySelectorAll<HTMLInputElement>(`input[type=checkbox][data-filtro-calificador="${idModal}"]`);
+        const excluidos = new Set(
+            Array.from(checkboxes).filter(c => c.checked).map(c => _normalizarClave(c.value))
+        );
+        const entradas = _marcadoresPorModal.get(idModal) ?? [];
+        for (const entrada of entradas) {
+            if (excluidos.has(_normalizarClave(entrada.calificador))) {
+                entrada.marker.remove();
+            } else {
+                entrada.marker.addTo(entrada.mapa);
+            }
+        }
     }
 
 }

@@ -54,10 +54,21 @@ namespace ApiControl {
     export function IncluirCss(control: HTMLElement, css: string): boolean {
         if (!Definido(control))
             return false;
-        if (control.classList.contains(css))
+
+        // Dividir la cadena de clases y procesar cada una
+        const clases = css.split(' ').filter(c => c.length > 0);
+        if (clases.length === 0)
             return false;
-        control.classList.add(css);
-        return true;
+
+        let alMenosUnaClaseAgregada = false;
+        for (const clase of clases) {
+            if (!control.classList.contains(clase)) {
+                control.classList.add(clase);
+                alMenosUnaClaseAgregada = true;
+            }
+        }
+
+        return alMenosUnaClaseAgregada;
     }
 
 
@@ -138,10 +149,21 @@ namespace ApiControl {
     export function ExcluirCss(control: HTMLElement, css: string): boolean {
         if (!Definido(control))
             return false;
-        if (!control.classList.contains(css))
+
+        // Dividir la cadena de clases y procesar cada una
+        const clases = css.split(' ').filter(c => c.length > 0);
+        if (clases.length === 0)
             return false;
-        control.classList.remove(css);
-        return true;
+
+        let alMenosUnaClaseRemovida = false;
+        for (const clase of clases) {
+            if (control.classList.contains(clase)) {
+                control.classList.remove(clase);
+                alMenosUnaClaseRemovida = true;
+            }
+        }
+
+        return alMenosUnaClaseRemovida;
     }
 
     export function EjecutarJs(id: string, texto: string, accion: Function): HTMLAnchorElement {

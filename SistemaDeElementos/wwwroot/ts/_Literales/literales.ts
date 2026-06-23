@@ -1303,7 +1303,12 @@ const ltrCss = {
             Css: 'modal-mostrar-direccion',
             Dialogo: 'modal-mostrar-direccion-dialogo',
             Mapa: 'modal-mostrar-direccion-mapa',
-            Menu: 'modal-mostrar-direccion-menu'
+            Menu: 'modal-mostrar-direccion-menu',
+            FiltroGrupo: 'modal-direccion-filtro-grupo',
+            FiltroDesplegable: 'modal-direccion-filtro-desplegable',
+            FiltroOpciones: 'modal-direccion-filtro-opciones',
+            FiltroOpcion: 'modal-direccion-filtro-opcion',
+            FiltroBtnAplicar: 'modal-direccion-btn-filtrar'
         }
     },
     controlesDto: {
@@ -2173,7 +2178,7 @@ const enumCalificadorDireccion = {
     Contacto: 'contacto',
     Fiscal: 'fiscal',
     Ejecucion: 'ejecucion',
-    Entrega: 'ejecucion'
+    Entrega: 'entrega'
 };
 
 const enumModoTrabajo = {
