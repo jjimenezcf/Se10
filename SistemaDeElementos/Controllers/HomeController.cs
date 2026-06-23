@@ -147,13 +147,16 @@ namespace MVCSistemaDeElementos.Controllers
                 string modalHtml = @$"";
                 switch (modal)
                 {
-                    case "cambiar-password":
+                    case ltrPanelDeControlModales.MiUsuario:
+                        r.Html = layout.RenderModalMiUsuario().Replace("¨", "\"");
+                        break;
+                    case ltrPanelDeControlModales.CambiarPassword:
                         r.Html = layout.RenderModalCambiarPassword().Replace("¨", "\"");
                         break;
-                    case "subir-certificado":
+                    case ltrPanelDeControlModales.SubirCertificado:
                         r.Html = layout.RenderModalSubirCertificado().Replace("¨", "\"");
                         break;
-                    case "modal-ia":
+                    case ltrPanelDeControlModales.Ia:
                         r.Html = layout.RenderModalIa().Replace("¨", "\"");
                         break;
                 }

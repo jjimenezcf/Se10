@@ -25,6 +25,15 @@ namespace MVCSistemaDeElementos.Descriptores
 
     }
 
+    public static class ltrPanelDeControlModales
+    {
+        public const string SubirCertificado = "subir-certificado";
+        public const string MiUsuario =  "mi-usuario";
+        public const string CambiarPassword = "cambiar-password";
+        public const string Ia = "modal-ia";
+
+    }
+
     public class PanelDeControl : ControlHtml
     {
 
@@ -47,6 +56,29 @@ namespace MVCSistemaDeElementos.Descriptores
             return RenderPagina(Contexto, CuerpoHtml.IsNullOrEmpty() ? RenderCuerpo() : CuerpoHtml);
         }
 
+        public string RenderModalMiUsuario()
+        {
+            var idHtml = $"modal-mi-usuario";
+            var eventos = $"Crud.{enumGestorDeEventos.EventosModalDeEdicion}";
+            Dictionary<string, object> otros = new Dictionary<string, object>();
+
+            otros[EventosModal.TrasAbrir] = $"javascript: {enumNameSpaceTs.ApiDePassword}.{enumFunctionTs.InicializarModalMiUsuario}('{idHtml}')";
+            var htmlModal = RenderizarModal(enumTipoDeModal.ModalMiUsuario,
+                idHtml: idHtml
+                , controlador: nameof(UsuariosController)
+                , tituloH2: "Datos del usuario"
+                , cuerpo: DescriptorDeEdicion<MiUsuarioDto>.RenderContenedorDeEdicionCuerpo(this, typeof(MiUsuarioDto), idHtml, nameof(UsuariosController), null, null)
+                , idOpcion: $"{idHtml}-modificar"
+                , opcion: "Modificar"
+                , accion: $"Javascript: {enumNameSpaceTs.ApiDePassword}.{enumFunctionTs.MiUsuario}('{idHtml}')"
+                , cerrar: $"{eventos}('{eventosDeEdicion.CerrarModal}','{idHtml}')"
+                , navegador: ""
+                , claseBoton: enumCssOpcionMenu.DeElemento
+                , permisosNecesarios: enumModoDeAccesoDeDatos.Consultor
+                , otrosAtributos: otros);
+
+            return htmlModal;
+        }
 
         public string RenderModalCambiarPassword()
         {
@@ -59,7 +91,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 idHtml: idHtml
                 , controlador: nameof(UsuariosController)
                 , tituloH2: "Cambiar la password"
-                , cuerpo: DescriptorDeEdicion<MiCertificadoDto>.RenderContenedorDeEdicionCuerpo(this, typeof(CambiarPasswordDto), idHtml, nameof(UsuariosController), null, null)
+                , cuerpo: DescriptorDeEdicion<CambiarPasswordDto>.RenderContenedorDeEdicionCuerpo(this, typeof(CambiarPasswordDto), idHtml, nameof(UsuariosController), null, null)
                 , idOpcion: $"{idHtml}-cambiar"
                 , opcion: "Cambiar"
                 , accion: $"Javascript: {enumNameSpaceTs.ApiDePassword}.{enumFunctionTs.CambiarPassword}('{idHtml}')"

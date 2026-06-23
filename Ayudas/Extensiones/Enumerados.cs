@@ -36,6 +36,7 @@ namespace Utilidades
             , ModalDeTotales
             , ModalMiCertificado
             , ModalCambiarPassword
+            , ModalMiUsuario
             , ModalDeFiltrado
             , ModalDeTransitar
             , ModalDeImprimir
@@ -121,8 +122,10 @@ namespace Utilidades
         HabilitarDescargaConGuid,
         SubirMiCertificado,
         CambiarPassword,
+        MiUsuario,
         InicializarModalMiCertificado,
         InicializarModalCambiarPassword,
+        InicializarModalMiUsuario,
 
         SeleccionarIa,
         OpcionSeleccionada,
@@ -1543,6 +1546,7 @@ namespace Utilidades
                 case enumTipoDeModal.ModalDeTotales: return "modal-de-totales";
                 case enumTipoDeModal.ModalMiCertificado: return "modal-mi-certificado";
                 case enumTipoDeModal.ModalCambiarPassword: return "modal-cambiar-password";
+                case enumTipoDeModal.ModalMiUsuario: return "modal-mi-usuario";
                 case enumTipoDeModal.ModalDeFiltrado: return "modal-de-filtrado";
                 case enumTipoDeModal.ModalDeTransitar: return "modal-de-transitar";
                 case enumTipoDeModal.ModalDeImprimir: return "modal-de-imprimir";
