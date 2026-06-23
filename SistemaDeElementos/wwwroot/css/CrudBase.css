@@ -208,6 +208,12 @@ body.resizing-en-progreso * {
             max-width: 0em !important;
         }
 
+        .div-mnt-menu-contenedor .menu-de-mostrar-mapa {
+            display: none !important;
+            min-width: 0em !important;
+            max-width: 0em !important;
+        }
+
         .div-mnt-menu-contenedor .menu-de-detalle {
             display: none !important;
             min-width: 0em !important;
