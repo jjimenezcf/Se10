@@ -342,7 +342,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
             xmlWriter.WriteElementString("CODIGOCTA", CuentaDelTercero(apunte.Cuenta));
             xmlWriter.WriteElementString("IMPORTE", apunte.Importe.Formatear(decimales: 6, alineacion: false, separadorDecimal: ","));
             xmlWriter.WriteElementString("PORCIVA", "");
-            xmlWriter.WriteElementString("OBSERVACION", ((IElementoDtm)preasiento.Referenciado(Contexto)).CrearLink(Contexto));
+            xmlWriter.WriteElementString("OBSERVACION", ((IElementoDtm)preasiento.Referenciado(Contexto)).CrearLink(Contexto).Uri.ToString());
             xmlWriter.WriteElementString("PUNTEO", "0");
             xmlWriter.WriteElementString("NUMDOCUMENTO", preasiento.IdReferenciado.ToString().Right(7));
             xmlWriter.WriteElementString("EXPLOTACION", "");
@@ -362,7 +362,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
             xmlWriter.WriteElementString("CODIGOCTA", CuentaDelTercero(apunte.Cuenta));
             xmlWriter.WriteElementString("IMPORTE", (-1 * apunte.Importe).Formatear(decimales: 6, alineacion: false, separadorDecimal: ","));
             xmlWriter.WriteElementString("PORCIVA", "");
-            xmlWriter.WriteElementString("OBSERVACION", ((CobroDeFaeDtm)preasiento.Referenciado(Contexto)).Factura(Contexto).CrearLink(Contexto));
+            xmlWriter.WriteElementString("OBSERVACION", ((CobroDeFaeDtm)preasiento.Referenciado(Contexto)).Factura(Contexto).CrearLink(Contexto).Uri.ToString());
             xmlWriter.WriteElementString("PUNTEO", "0");
             xmlWriter.WriteElementString("NUMDOCUMENTO", preasiento.IdReferenciado.ToString().Right(7));
             xmlWriter.WriteElementString("EXPLOTACION", "");
@@ -885,7 +885,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 xmlWriter.WriteElementString("IMPORTE", importe.Formatear(decimales: 6, alineacion: false, separadorDecimal: ","));
                 xmlWriter.WriteElementString("PORCIVA", registro.PorcentajeNcs.Valor());
                 xmlWriter.WriteElementString("NOMBRECL", "");
-                xmlWriter.WriteElementString("OBSERVACION", ((IElementoDtm)preasiento.Referenciado(Contexto)).CrearLink(Contexto));
+                xmlWriter.WriteElementString("OBSERVACION", ((IElementoDtm)preasiento.Referenciado(Contexto)).CrearLink(Contexto).Uri.ToString());
                 xmlWriter.WriteElementString("PUNTEO", "0");
                 xmlWriter.WriteElementString("NUMDOCUMENTO", preasiento.IdReferenciado.ToString().Right(7));
                 xmlWriter.WriteElementString("EXPLOTACION", "");

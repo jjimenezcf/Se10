@@ -53,7 +53,7 @@ namespace SistemaDeElementos.Objetos
         {
             var elemento = (IElementoDtm) NegociosDeSe.LeerRegistro(NegociosDeSe.ToEnumerado(evento.IdNegocio), contexto, evento.IdElemento);
 
-            return elemento.CrearLink(contexto);
+            return elemento.CrearLink(contexto).Uri.ToString();
         }
 
     }

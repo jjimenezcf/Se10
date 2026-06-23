@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using GestorDeElementos.Extensores;
 using ModeloDeDto;
 using ModeloDeDto.Negocio;
 using ServicioDeDatos;
@@ -78,19 +79,26 @@ namespace GestorDeElementos
         }
 
         public static DireccionDto MapearDto(this DireccionDtm registro, ContextoSe contexto, enumNegocio negocio, ParametrosDeNegocio parametros = null)
-        => GestorDeDirecciones.Gestor(contexto, negocio).MapearElemento(registro, parametros == null ? new ParametrosDeNegocio(enumTipoOperacion.LeerSinBloqueo) : parametros);
+        =>
+        GestorDeDirecciones.Gestor(contexto, negocio).MapearElemento(registro, parametros == null ? new ParametrosDeNegocio(enumTipoOperacion.LeerSinBloqueo) : parametros);
+
+        //public static UriBuilder ComponerUrlPorId(this enumNegocio negocio, ContextoSe contexto, int id)
+        //{
+        //    //return ExtensorDeElementos.CrearLink(contexto, negocio, id);
+
+        //    var ruta = ExtensionesDto.UrlBaseDeUnDto(negocio.TipoDto(), vista: "", errorSiMasDeUno: true);
+
+        //    UriBuilder builder = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+        //    {
+        //        Path = ruta,
+        //        Query = $"id={id}"
+        //    };
+        //    return builder;
+        //}
 
         public static UriBuilder ComponerUrlPorId(this enumNegocio negocio, ContextoSe contexto, int id)
-        {
-            var ruta = ExtensionesDto.UrlBaseDeUnDto(negocio.TipoDto(), vista: "", errorSiMasDeUno: true);
-
-            UriBuilder builder = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
-            {
-                Path = ruta,
-                Query = $"id={id}"
-            };
-            return builder;
-        }
+        => 
+        ExtensorDeElementos.CrearLink(contexto, negocio, id); 
 
         public static string ComponerUrl(this TipoDtoElmento elemento)
         {

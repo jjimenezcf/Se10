@@ -1159,11 +1159,17 @@ namespace GestorDeElementos.Extensores
 
         public static string CrearHref(this IElementoDtm elemento, ContextoSe contexto)
         {
-            var refHtml = $@"<a href='{CrearLink(elemento, contexto)}' target='_blank' idelemento='{elemento.Id}'>{elemento.Referencia(contexto)}</a>";
+            var refHtml = $@"<a href='{CrearLink(elemento, contexto).Uri.ToString()}' target='_blank' idelemento='{elemento.Id}'>{elemento.Referencia(contexto)}</a>";
             return refHtml;
         }
 
-        public static string CrearLink(this IElementoDtm elemento, ContextoSe contexto)
+        internal static UriBuilder CrearLink(ContextoSe contexto, enumNegocio negocio, int id)
+        {
+            var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, id);
+            return CrearLink(elemento, contexto);
+        }
+
+        public static UriBuilder CrearLink(this IElementoDtm elemento, ContextoSe contexto)
         {
             var negocioDtm = NegociosDeSe.LeerNegocioPorDtm(elemento.GetType().FullName);
             var vistas = contexto.SeleccionarTodos<VistaMvcDtm>(nameof(VistaMvcDtm.ElementoDto), negocioDtm.ElementoDto);
@@ -1190,7 +1196,7 @@ namespace GestorDeElementos.Extensores
                 Path = $"/{vista.Controlador}/{vista.Accion}",
                 Query = $"id={elemento.Id}{(parametros.IsNullOrEmpty() ? "" : parametros)}"
             };
-            return uri.Uri.ToString();
+            return uri;
         }
 
 
@@ -1332,18 +1338,6 @@ namespace GestorDeElementos.Extensores
                 TipoDto = negocio.TipoDto().FullName,
                 IdElemento = elementoDtm.Id,
                 Referencia = elementoDtm.ImplementaUsaReferencia() ? ((IUsaReferencia)elementoDtm).Referencia : "Abrir"
-            });
-        }
-
-        public static string DefinirLink(this IElementoDtm elementoDtm, ContextoSe contexto, string nombre)
-        {
-            var negocio = elementoDtm.GetType().NegocioDeUnDtm();
-            var elementoDto = elementoDtm.MapearDto(contexto, negocio);
-            return ApiParaDtos.ComponerUrl(new TipoDtoElmento
-            {
-                TipoDto = negocio.TipoDto().FullName,
-                IdElemento = elementoDtm.Id,
-                Referencia = nombre
             });
         }
 
