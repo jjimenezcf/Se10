@@ -158,11 +158,14 @@
                         </div>
                     </div>
                 </div>
-                <div id="{IdHtml}_pie" class="contenido-pie">
-                    <input type="text" id="id-historial-cuerpo-cerrar" class="boton-modal" value="Cerrar" onclick="MensajesSe.CerrarHistorial()" readonly />
-                    <input type="text" id="id-historial-cuerpo-borrar" class="boton-modal" value="Borrar" onclick="MensajesSe.BorrarHistorial()" readonly />
+                <div id="{IdHtml}_pie" class="contenido-modal-pie-menu contenido-modal-pie-derecho">
+                    <input type="text" id="id-historial-cuerpo-borrar" class="boton-modal btn btn-secondary" value="Borrar" onclick="MensajesSe.BorrarHistorial()" readonly />
+                    <input type="text" id="id-historial-cuerpo-cerrar" class="boton-modal btn btn-primary boton-por-defecto" value="Cerrar" onclick="MensajesSe.CerrarHistorial()" readonly />
                 </div>
             </div>
+        </div>
+
+        <div id="contenedor-mi-usuario">
         </div>
 
         <div id="contenedor-subir-certificado">
