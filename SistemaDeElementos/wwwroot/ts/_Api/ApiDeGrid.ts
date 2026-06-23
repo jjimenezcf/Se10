@@ -1105,20 +1105,32 @@
     }
 
     export function ReajustarUltimaColumna(tabla: HTMLDivElement) {
-        setTimeout(() => {
-            const contenedorTabla = document.getElementById(tabla.id.replace('_table', ''));
-            const tamanoDelContenedor = contenedorTabla?.getBoundingClientRect().width || 0;
-            const anchoTablaActual = tabla.getBoundingClientRect().width;
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const contenedorTabla = document.getElementById(tabla.id.replace('_table', ''));
+                const tamanoDelContenedor = contenedorTabla?.getBoundingClientRect().width || 0;
 
-            if (anchoTablaActual < tamanoDelContenedor) {
-                const diferenciaAncho = tamanoDelContenedor - anchoTablaActual;
-                const ultimaColumnaVisible = ApiDeGrid.UltimaColumnaVisible(tabla);
-
-                if (ultimaColumnaVisible) {
-                    ApiDeGrid.ModificarTamano(tabla, ultimaColumnaVisible as HTMLDivElement, diferenciaAncho - 24, false);
+                // Sumar los anchos reales de los div-th visibles en lugar de medir
+                // el div-tabla o div-thead, que se expanden al 100% del contenedor
+                // y harían que la condición nunca se cumpla en grids dentro de modales
+                const ths = tabla.querySelectorAll('.' + ltrCss.crud.columna) as NodeListOf<HTMLDivElement>;
+                let anchoColumnasActual = 0;
+                for (let i = 0; i < ths.length; i++) {
+                    if (!ths[i].classList.contains(ltrCss.columnaOculta)) {
+                        anchoColumnasActual += ths[i].getBoundingClientRect().width;
+                    }
                 }
-            }
-        }, 0);
+
+                if (anchoColumnasActual < tamanoDelContenedor) {
+                    const diferenciaAncho = tamanoDelContenedor - anchoColumnasActual;
+                    const ultimaColumnaVisible = ApiDeGrid.UltimaColumnaVisible(tabla);
+
+                    if (ultimaColumnaVisible) {
+                        ApiDeGrid.ModificarTamano(tabla, ultimaColumnaVisible as HTMLDivElement, diferenciaAncho - 24, false);
+                    }
+                }
+            });
+        });
     }
 
 

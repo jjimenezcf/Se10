@@ -83,7 +83,7 @@ namespace MVCSistemaDeElementos.Descriptores
                               readonly 
                               onclick=¨{enumAccionesModalDeFiltrado.CerrarFiltro.Render(IdHtml)}¨ />
                           <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ 
-                              class=¨{enumCssModal.BotonPrincipal.Render()} {Css.Render(enumCssOpcionMenu.BotonPorDefecto)}¨ 
+                              class=¨{enumCssModal.BotonPrincipal.Render()}¨ 
                               value=¨Filtrar¨ 
                               clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
                               readonly 
