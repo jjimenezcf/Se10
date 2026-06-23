@@ -136,7 +136,7 @@
     right: 10px;
     top: 50px;
     z-index: 1000;
-    width: 200px
+    /*width: 200px*/
 }
 
 
@@ -152,7 +152,7 @@
     right: 10px;
     top: 50px;
     z-index: 1000;
-    width: 200px
+    /*width: 200px*/
 }
 
 .contenedor-menu-ultimos-accesos {
@@ -160,7 +160,7 @@
     right: 10px;
     top: 50px;
     z-index: 1000;
-    width: 200px
+    /*width: 200px*/
 }
 
 .contenedor-menu-ultimos-registros {
@@ -168,7 +168,7 @@
     right: 10px;
     top: 50px;
     z-index: 1000;
-    width: 200px
+    /*width: 200px*/
 }
 
 /*
@@ -197,25 +197,25 @@
 /* Icono de Configuración/Rosca para IA */
 .opc-menu-prc-ia > a {
     background-image: url('../images/menu/setting.png');
-    background-size: 18px 18px;
+    background-size: 20px 20px;
 }
 
 /* Icono papelera para Resetear DashBoard */
 .opc-menu-prc-resetear-dashboard a {
     background-image: url('../images/menu/papelera.svg');
-    background-size: 16px 16px;
+    background-size: 20px 20px;
 }
 
 /* Icono de Descarga para Veri*fatu */
 .opc-menu-prc-verfactu a {
     background-image: url('../images/menu/DescargarDocumento.png');
-    background-size: 18px 18px;
+    background-size: 20px 20px;
 }
 
 /* Icono de Salida/Logout */
 .opc-menu-prc-logout a {
     background-image: url('../images/menu/logout.png');
-    background-size: 18px 18px;
+    background-size: 20px 20px;
 }
 
 

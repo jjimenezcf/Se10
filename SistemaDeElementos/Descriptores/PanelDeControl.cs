@@ -206,8 +206,12 @@ namespace MVCSistemaDeElementos.Descriptores
             var li = string.Empty;
             foreach (var negocio in negocios)
             {
-                li = li + $"<li class='opc-menu-misfiltros' title = 'filtros definidos para: {negocio}'>" +
-                              $"<a href='#'>{negocio}</a>" +
+                var icono = misfiltros.First(f => f.Negocio == negocio).Enumerado.Icono();
+                li = li + $"<li class='opc-menu-misfiltros' title='filtros definidos para: {negocio}'>" +
+                              $"<a href='#' class='favoritos-opcion-enlace'>" +
+                                $"<img src='/images/menu/{icono}' class='favoritos-opcion-img' alt='{negocio}'/>" +
+                                negocio +
+                              "</a>" +
                               $"<ul class='submenu-misfiltros'>" +
                                 "[filtrosPorNegocio]" +
                               "</ul>" +
@@ -236,9 +240,8 @@ namespace MVCSistemaDeElementos.Descriptores
             var idHtml = $"{filtro.Enumerado}-{filtro.Id}";
             var opcionHtml =
             $@"<li  title=¨{filtro.Enumerado.Singular()}: {filtro.Nombre}¨>{Environment.NewLine}" +
-            $@"  <a style=¨display: flex; padding-top: 2px;padding-bottom: 2px;¨>{Environment.NewLine}" +
-            $@"    <img src=¨/images/menu/{filtro.Enumerado.Icono()}¨ style=¨margin-top: 6px;margin-right: 0px; width: 20px; height: 20px;¨  alt=¨{filtro.Titulo}¨/>" +
-            $@"    <input id='{idHtml}' type='button' class='menu-opcion' value='{filtro.Nombre}' style=¨padding-left: 3px;¨ " +
+            $@"  <a>{Environment.NewLine}" +
+            $@"    <input id='{idHtml}' type='button' class='menu-opcion' value='{filtro.Nombre}' " +
             $@"     onclick=¨{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{filtro.Url.Split('/')[0]}', '{filtro.Url.Split('/')[1]}', 'MiFiltro={filtro.Id}',event)¨ />{Environment.NewLine}" +
             $@"  </a>" +
             $@"</li>{Environment.NewLine}";
@@ -313,23 +316,23 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var buzones = ExtensorDeSociedades.PermisosDeBuzones(contexto);
             var menuDeBuzones = ApiDePermisos.TieneAlgunPermiso(contexto, buzones)
-                ? CrearOpcion(opcion: "Correo de entrada", evento: "EntornoSe.MiCorreo()", "Acceder al correo del sistema") : "";
+                ? CrearOpcion(opcion: "Correo de entrada", evento: "EntornoSe.MiCorreo()", "Acceder al correo del sistema", imagen: "Correo.svg") : "";
 
             bool? hayFichada = ExtensorDeTrabajadores.HayFichadas(contexto);
 
             var menuDeFichada = hayFichada is not null
                 ? (bool)hayFichada
-                ? CrearOpcion(opcion: "Fichar salida", evento: "EntornoSe.Fichar()", "Fichar la salida")
-                : CrearOpcion(opcion: "Fichar entrada", evento: "EntornoSe.Fichar()", "Fichar entrada")
+                ? CrearOpcion(opcion: "Fichar salida", evento: "EntornoSe.Fichar()", "Fichar la salida", imagen: "Agenda_1.svg")
+                : CrearOpcion(opcion: "Fichar entrada", evento: "EntornoSe.Fichar()", "Fichar entrada", imagen: "Agenda_1.svg")
                 : "";
 
             var menu = CabeceraDeMenu(id: "opcion-favoritos", clase: "btn-favoritos", onclick: "EntornoSe.MostarOcultarFavoritos()", imagen: "Favoritos.png", ayuda: "mis datos") +
                 $@"                <div id='contenedor-menu-favoritos'  class='menu-pnlctr-oculto contenedor-menu-favoritos' >
                                     <ul id='favoritos-menu-1'>
-                                       {CrearOpcion("Cambiar contraseña", "EntornoSe.CambiarPassword()", "Cambiar mi contraseña en el SE")}
+                                       {CrearOpcion("Cambiar contraseña", "EntornoSe.CambiarPassword()", "Cambiar mi contraseña en el SE", imagen: "Candado.svg")}
                                        {menuDeBuzones}
-                                       {CrearOpcion("Mi certificado", "EntornoSe.SubirCertificado()", "Subir mi certificado personal para firmar documentos")}
-                                       {CrearOpcion("Mi calendario", "EntornoSe.MiCalendario()", "Ver mi agenda")}
+                                       {CrearOpcion("Mi certificado", "EntornoSe.SubirCertificado()", "Subir mi certificado personal para firmar documentos", imagen: "Certificado.svg")}
+                                       {CrearOpcion("Mi calendario", "EntornoSe.MiCalendario()", "Ver mi agenda", imagen: "Agenda.svg")}
                                        {menuDeFichada}
                                    </ul>
                                </div>";
@@ -344,13 +347,15 @@ namespace MVCSistemaDeElementos.Descriptores
                      </button>";
         }
 
-        private static string CrearOpcion(string opcion, string evento, string ayuda, string claseLi = "", string claseHref = "", string nombre = "")
+        private static string CrearOpcion(string opcion, string evento, string ayuda, string claseLi = "", string claseHref = "", string nombre = "", string imagen = "")
         {
-            return $@"<li {(nombre.IsNullOrEmpty() 
-                ? "" 
-                : $"name='{nombre}' ")}{(claseLi.IsNullOrEmpty() ? "" 
-                                         : $"class='{claseLi}' ")}title='{ayuda}'><a href='#' onclick='{evento}; return false' {(claseHref.IsNullOrEmpty() ? "" 
-                                         : $"class='{claseHref}' ")}>{opcion}</a></li>";
+            var img = imagen.IsNullOrEmpty() ? "" : $"<img src='/images/menu/{imagen}' class='favoritos-opcion-img' alt='{opcion}'>";
+            var claseEnlace = imagen.IsNullOrEmpty() ? "" : "class='favoritos-opcion-enlace' ";
+            return $@"<li {(nombre.IsNullOrEmpty()
+                ? ""
+                : $"name='{nombre}' ")}{(claseLi.IsNullOrEmpty() ? ""
+                                         : $"class='{claseLi}' ")}title='{ayuda}'><a href='#' {claseEnlace}onclick='{evento}; return false' {(claseHref.IsNullOrEmpty() ? ""
+                                         : $"class='{claseHref}' ")}>{img}{opcion}</a></li>";
         }
 
         private static string RenderPieDePagina(ContextoSe contexto)
