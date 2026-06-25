@@ -2,11 +2,9 @@
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
 using GestoresDeNegocio.Negocio;
-using ModeloDeDto;
 using ModeloDeDto.Entorno;
 using MVCSistemaDeElementos.Controllers;
 using ServicioDeDatos;
-using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
@@ -15,8 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
 using UtilidadesParaIu;
-using VeriFactu.Xml.Factu;
-using static SistemaDeElementos.Inicializador.enumVistas;
 
 namespace MVCSistemaDeElementos.Descriptores
 {

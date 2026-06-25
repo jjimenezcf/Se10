@@ -480,7 +480,7 @@
             if (!this.ModalMostrarDirecion)
                 this.ModalMostrarDirecion = GestorDeMapas.ConstruirModalParaMostrarDirecion();
 
-            GestorDeMapas.MostrarDireccionesEnMapa(this.ModalMostrarDirecion, direcciones);
+            GestorDeMapas.MostrarChinchetasEnElMapa(this.ModalMostrarDirecion, direcciones);
         }
 
         public AntesDeSalir() {

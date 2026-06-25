@@ -28,6 +28,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Text;
 using Utilidades;
 using static Gestor.Errores.GestorDeErrores;
@@ -2263,6 +2264,14 @@ namespace GestorDeElementos.Extensores
 
             return (FacturaEmtDtm)cache[i];
 
+        }
+
+        internal static string InformacionParaLaChincheta(this FacturaEmtDtm factura, ContextoSe contexto)
+        {
+            var bi = factura.Bi(contexto);
+            var iva = factura.TotalDeIva(contexto);
+            var irpf = factura.TotalDeIrpf(contexto);
+            return $"BI: {bi.ToMoneda()} IVA:{iva.ToMoneda()}{(irpf != 0 ? $" IRPF: {irpf.ToMoneda()}": "")}";
         }
     }
 }

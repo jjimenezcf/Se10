@@ -501,7 +501,7 @@ namespace GestorDeMapas {
         return idModal;
     }
 
-    export async function MostrarDireccionesEnMapa(idModal: string, direcciones: Array<IDireccionEstructurada>): Promise<void> {
+    export async function MostrarChinchetasEnElMapa(idModal: string, direcciones: Array<IDireccionEstructurada>): Promise<void> {
         const overlay = document.getElementById(idModal);
         if (!overlay) return;
 
@@ -514,25 +514,33 @@ namespace GestorDeMapas {
         await AsegurarLeafletCargado();
 
         // Geocodificar todas las direcciones antes de tocar el mapa
-        const posiciones: Array<{ lat: number; lon: number; popupHtml: string; calificador: string }> = [];
+        const posiciones: Array<{ lat: number; lon: number; lineas: string[]; calificador: string }> = [];
         for (const dir of direcciones) {
             const datos = await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Calle)
                 ?? await ObtenerLatitudLongitud(dir, ltrDireccionEstructurada.Municipio);
             if (!datos) continue;
-            let cartel: string = `<b>${(Definido(dir.calificador) ? dir.calificador + ': ' : '')}${dir.calle.trim()}</b><br>${dir.municipio}, ${dir.provincia}`;
-            if (Definido(dir.informacion)) {
-                cartel = `<b>${dir.informacion.trim()}</b><br>${dir.href}`
-            }
-            else if (Definido(dir.href)) {
-                cartel = `<b>${dir.calificador.trim()}:${dir.calle.trim()}</b><br>${dir.href}`
-            }
 
-            posiciones.push({
-                lat: parseFloat(datos.lat),
-                lon: parseFloat(datos.lon),
-                calificador: dir.calificador ?? '',
-                popupHtml: cartel
-            });
+            const lat = parseFloat(datos.lat);
+            const lon = parseFloat(datos.lon);
+            const latKey = lat.toFixed(4);
+            const lonKey = lon.toFixed(4);
+
+            const existente = posiciones.find(p => p.lat.toFixed(4) === latKey && p.lon.toFixed(4) === lonKey);
+
+            if (existente) {
+                if (Definido(dir.informacion))
+                    existente.lineas.push(`<b>${dir.informacion.trim()}</b><br>${dir.href}`);
+                else if (Definido(dir.href))
+                    existente.lineas.push(dir.href);
+            } else {
+                let lineaPrincipal: string = `<b>${(Definido(dir.calificador) ? dir.calificador + ': ' : '')}${dir.calle.trim()}</b><br>${dir.municipio}, ${dir.provincia}`;
+                if (Definido(dir.informacion))
+                    lineaPrincipal = `<b>${dir.calle.trim()}</b><br><b>${dir.informacion.trim()}</b><br>${dir.href}`;
+                else if (Definido(dir.href))
+                    lineaPrincipal = `<b>${dir.calificador.trim()}: ${dir.calle.trim()}</b><br>${dir.href}`;
+
+                posiciones.push({ lat, lon, calificador: dir.calificador ?? '', lineas: [lineaPrincipal] });
+            }
         }
 
         // Destruir instancia anterior si existe
@@ -554,7 +562,10 @@ namespace GestorDeMapas {
 
         const entradas: Array<{ marker: L.Marker; calificador: string; mapa: L.Map }> = [];
         for (const pos of posiciones) {
-            const marker = L.marker([pos.lat, pos.lon], { icon: _iconoMarcadorColor(pos.calificador) }).addTo(mapa).bindPopup(pos.popupHtml);
+            const contenidoPopup = pos.lineas.length > 1
+                ? `<div style="max-height:120px;overflow-y:auto;">${pos.lineas.join('<hr style="margin:4px 0">')}</div>`
+                : pos.lineas[0];
+            const marker = L.marker([pos.lat, pos.lon], { icon: _iconoMarcadorColor(pos.calificador) }).addTo(mapa).bindPopup(contenidoPopup);
             entradas.push({ marker, calificador: pos.calificador, mapa });
         }
         _marcadoresPorModal.set(idModal, entradas);

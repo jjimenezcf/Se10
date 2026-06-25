@@ -53,7 +53,7 @@ namespace GestorDeElementos
             foreach (var direccion in direcciones.Where(d => d.Activo == true))
             {
                 var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, direccion.IdElemento);
-                var informacion = ""; // elemento.Referencia(contexto);
+                var informacion = ExtensorDeDirecciones.InformacionParaLaChincheta(contexto, negocio, elemento);
                 var calle = contexto.SeleccionarPorId<CalleDtm>(direccion.IdCalle, aplicarJoin: true);
                 chinchetas.Add(new ChinchetaDto
                 {

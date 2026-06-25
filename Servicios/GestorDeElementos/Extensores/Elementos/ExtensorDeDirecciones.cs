@@ -165,7 +165,6 @@ namespace GestorDeElementos.Extensores
             return direccion.Cp;
         }
 
-
         public static void DesactivarDireccion(this DireccionDtm direccion, ContextoSe contexto)
         {
             var gestor = new GestorDeDirecciones(contexto, direccion.Negocio);
@@ -336,6 +335,7 @@ namespace GestorDeElementos.Extensores
             }
             return null;
         }
+
         public static enumNegocio DeQuienEsLaDireccion(this CrearDireccionDto crearDireccionDto, Dictionary<string, object> parametros)
         {
             if (crearDireccionDto != null &&
@@ -352,107 +352,19 @@ namespace GestorDeElementos.Extensores
             return enumNegocio.No_Definido;
         }
 
-        public static CalleDtm Calle(this DireccionDtm direccion,  ContextoSe contexto, bool aplicarJoin) => contexto.SeleccionarPorId<CalleDtm>(direccion.IdCalle, aplicarJoin: true);
+        public static CalleDtm Calle(this DireccionDtm direccion, ContextoSe contexto, bool aplicarJoin) => contexto.SeleccionarPorId<CalleDtm>(direccion.IdCalle, aplicarJoin: true);
 
-        //public static DireccionDtm CrearDireccion(ContextoSe contexto, string pais, string provincia, string municipio, string tipoDeVia, string calle, string cp, string np, string rd, bool errorSiNoSePuede = false)
-        //{
-        //    var provinciaDtm = contexto.SeleccionarPorNombre<ProvinciaDtm>(provincia, errorSiNoHay: false);
-
-        //    var municipioDtm = contexto.SeleccionarTodos<MunicipioDtm>(new Dictionary<string, object> {
-        //        { nameof(MunicipioDtm.IdProvincia), provinciaDtm.Id },
-        //        { nameof(MunicipioDtm.Nombre), municipio } });
-        //    if (municipioDtm.Count() != 1)
-        //        return null;
-
-        //    var tipoDeViaDtm = contexto.SeleccionarTodos<TipoDeViaDtm>(new Dictionary<string, object> { { nameof(TipoDeViaDtm.Nombre), tipoDeVia } });
-        //    if (tipoDeViaDtm.Count() != 1)
-        //        return null;
-
-        //    var calleDtm = contexto.SeleccionarTodos<CalleDtm>(new Dictionary<string, object> {
-        //        { nameof(CalleDtm.Nombre), calle },
-        //         { nameof(CalleDtm.IdMunicipio), municipioDtm[0].Id },
-        //         { nameof(CalleDtm.IdTipoDeVia), tipoDeViaDtm[0].Id },
-        //    });
-
-
-        //    if (calleDtm.Count() == 0)
-        //    {
-        //        calleDtm.Add(new CalleDtm
-        //        {
-        //            Nombre = calle,
-        //            IdTipoDeVia = tipoDeViaDtm[0].Id,
-        //            IdMunicipio = municipioDtm[0].Id
-        //        }.InsertarComoAdministrador(contexto));
-        //    }
-
-        //    if (calleDtm.Count() != 1)
-        //        return null;
-
-        //    new DireccionDtm
-        //    {
-        //        IdPais = provinciaDtm.IdPais,
-        //        IdProvincia = provinciaDtm.Id,
-        //        IdMunicipio = municipioDtm[0].Id,
-        //        IdCalle = calleDtm[0].Id,
-        //        Calificador = enumCalificadorDireccion.fiscal,
-        //        Numero = np,
-        //        r
-
-        //    }
-
-        //    return null;
-        //}
+        internal static string InformacionParaLaChincheta(ContextoSe contexto, enumNegocio negocio, IElementoDtm elemento)
+        {
+            var informacion = "";
+            switch (negocio)
+            {
+                case enumNegocio.FacturaEmitida:
+                    return ((FacturaEmtDtm) elemento).InformacionParaLaChincheta(contexto);
+            }
+            return informacion;
+        }
     }
 
 }
-
-
-
-//public static void SincronizarDireccion(this DireccionDtm nueva, ContextoSe contexto, DireccionDtm anterior)
-//{
-//    // si usa el módulo de guarderías y la dirección es de una persona o interlocutor
-//    if (!ExtensorDeGuarderias.ModuloActivo(contexto))
-//        return;
-
-//    // busco si hay infantes dependiente (contacto, papa, mama)
-//    var infantes = nueva.Negocio == enumNegocio.Interlocutor
-//    ? contexto.Set<InfanteDtm>().Where(x => x.IdContacto == nueva.IdElemento).ToList()
-//    : nueva.Negocio == enumNegocio.Persona
-//    ? contexto.Set<InfanteDtm>().Where(x => x.IdMadre == nueva.IdElemento || x.IdPadre == nueva.IdElemento).ToList()
-//    : null;
-
-//    if (infantes is null) return;
-
-//    // para cada infante busco si tiene una dirección de contacto como la anterior
-//    var insertando = anterior == null;
-//    foreach (var infante in infantes)
-//    {
-//        if (insertando) infante.AsignarDireccionSiNoExiste(contexto, nueva, enumCalificadorDireccion.contacto);
-//        else
-//        {
-//            DireccionDtm direccionDelInfanteExistente = infante.Direcciones(contexto).Buscar(anterior, comparaCalificador: false);
-//            DireccionDtm direccionDelInfanteNueva = infante.Direcciones(contexto).Buscar(nueva, comparaCalificador: false);
-
-//            //Si la anterior es la misma que la nueva, es que puede ser que se esté activando o desactivando, si es así, la activo o la desactivo y me voy
-//            if (direccionDelInfanteNueva != null && direccionDelInfanteExistente != null && direccionDelInfanteExistente.Id == direccionDelInfanteNueva.Id)
-//            {
-//                if (direccionDelInfanteExistente.Activo == direccionDelInfanteNueva.Activo) return;
-//                if (nueva.Activo && !direccionDelInfanteNueva.Activo) direccionDelInfanteNueva.ActivarDireccion(contexto);
-//                if (!nueva.Activo && direccionDelInfanteNueva.Activo) direccionDelInfanteNueva.DesactivarDireccion(contexto);
-//                return;
-//            }
-//            if (direccionDelInfanteNueva != null && direccionDelInfanteExistente != null && direccionDelInfanteExistente.Id != direccionDelInfanteNueva.Id)
-//            {
-//                direccionDelInfanteExistente.DesactivarDireccion(contexto);
-//                direccionDelInfanteNueva.ActivarDireccion(contexto);
-//                return;
-//            }
-//            //si no es la misma la que tiene y la que viene como nueva
-//            if (direccionDelInfanteExistente != null && direccionDelInfanteExistente.Activo)
-//                direccionDelInfanteExistente.DesactivarDireccion(contexto);
-
-//            infante.AsignarDireccion(contexto, nueva, enumCalificadorDireccion.contacto);
-//        }
-//    }
-//}
 

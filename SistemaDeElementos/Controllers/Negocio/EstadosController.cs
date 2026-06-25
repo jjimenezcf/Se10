@@ -67,7 +67,7 @@ namespace MVCSistemaDeElementos.Controllers
                 {
                     ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Contexto.Mapeador, HttpContext);
                     var negocioEnum = GestorDeElementos.NegociosDeSe.ToEnumerado(negocio);
-                    r.Datos = GestorDeElementos.NegociosDeSe.ObtenerFlujoDeNegocio(Contexto, negocioEnum, idEstado);
+                    r.Datos = NegociosDeSe.ObtenerFlujoDeNegocio(Contexto, negocioEnum, idEstado);
                     r.Estado = enumEstadoPeticion.Ok;
                     r.Mensaje = "flujo obtenido";
                 }

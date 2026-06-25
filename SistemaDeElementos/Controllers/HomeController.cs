@@ -89,7 +89,7 @@ namespace MVCSistemaDeElementos.Controllers
             var r = new Resultado();
             try
             {
-                r.Datos = NegociosDeSe.LeerInformacioParaDashBoard(Contexto);
+                r.Datos = ExtensorDelPanelDelControl.LeerInformacioParaDashBoard(Contexto);
                 r.Estado = enumEstadoPeticion.Ok;
             }
             catch (Exception e)

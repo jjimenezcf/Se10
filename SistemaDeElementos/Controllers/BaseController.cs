@@ -224,7 +224,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                r.Datos = NegociosDeSe.DatosParaInicializarDashBoard(Contexto);
+                r.Datos = ExtensorDelPanelDelControl.DatosParaInicializarDashBoard(Contexto);
                 r.Estado = enumEstadoPeticion.Ok;
             }
             catch (Exception e)
