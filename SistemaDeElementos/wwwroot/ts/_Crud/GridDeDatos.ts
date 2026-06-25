@@ -734,12 +734,12 @@
                 if (Definido(crudMnt.ContenedorDeTablaConGraficos)) {
 
                     if (window.innerWidth < 1000)
-                        ApiDelCrud.OcultarContenedorDeGraficos();
+                        ApiVisorDeArchivos.OcultarContenedorDeGraficos();
                     else {
                         if (ApiPanel.EsVisible(crudMnt.ContenedorDeGraficos))
-                            ApiDelCrud.MostrarContenedorDeGraficos();
+                            ApiVisorDeArchivos.MostrarContenedorDeGraficos();
                         else
-                            ApiDelCrud.OcultarContenedorDeGraficos();
+                            ApiVisorDeArchivos.OcultarContenedorDeGraficos();
                     }
                 }
             });
@@ -2004,7 +2004,7 @@
             grid.InfoSelector.QuitarTodos();
             grid.Navegador.InformarElementosSeleccionados(grid.InfoSelector.Cantidad);
             grid.ResetearMenusDeElemento();
-            if (ocultarContenedorDeraficos) ApiDelCrud.OcultarContenedorDeGraficos();
+            if (ocultarContenedorDeraficos) ApiVisorDeArchivos.OcultarContenedorDeGraficos();
         }
 
         public MenuGrid_DeselecionarTodasLasFilas(grid: GridDeDatos = null) {

@@ -433,7 +433,7 @@
             this.IdArchivoMostrado = id;
             this.IdDelUltimoArchivoRenderizado = id;
             if (ajustarVisor)
-                ApiDelCrud.CalcularTamanoDelVisor();
+                ApiVisorDeArchivos.CalcularTamanoDelVisor();
         }
 
         private _botonVisor: HTMLImageElement = undefined;
@@ -911,7 +911,7 @@
         }
 
         private handleResize() {
-            ApiDelCrud.AjustarAnchoDeDatosMasVisor();
+            ApiVisorDeArchivos.AjustarAnchoDeDatosMasVisor();
         }
 
         public ComenzarEdicion(infSel: InfoSelector) {
@@ -927,7 +927,7 @@
             else {
                 ApiDelCrud.CambiarPanelActivoDelCrud(this.CrudDeMnt.ModoTrabajo);
                 if (Definido(this.ContenedorDelVisorDeArchivoConHistorial)) {
-                    ApiDelCrud.ConfigurarEventosDeCambioDelAnchoContenedorDeDatos();
+                    ApiVisorDeArchivos.ConfigurarEventosDeCambioDelAnchoContenedorDeDatos();
                     this.handleResize = this.handleResize.bind(this);
                     window.addEventListener('resize', this.handleResize);
                 }
@@ -979,14 +979,14 @@
             ApiControl.RemplazarCss(this.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.MostrarVisor, ltrCss.crud.panelDeEdicion.Acciones.OcultarVisor);
             ApiControl.ExcluirCss(this.ContenedorDeDatosMasVisor, ltrCss.crud.panelDeEdicion.VisorOculto);
             this.RenderizarElPrimeroRenderizable(this.FiltroDeArchivos);
-            ApiDelCrud.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, true);
+            ApiVisorDeArchivos.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, true);
         }
 
 
         private OcultameElVisor(): void {
             ApiControl.RemplazarCss(this.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.OcultarVisor, ltrCss.crud.panelDeEdicion.Acciones.MostrarVisor);
             ApiControl.IncluirCss(this.ContenedorDeDatosMasVisor, ltrCss.crud.panelDeEdicion.VisorOculto);
-            ApiDelCrud.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, false);
+            ApiVisorDeArchivos.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, false);
         }
 
         protected ExpandirExpansores(): void {
@@ -1537,7 +1537,7 @@
             if (this._renderizando)
                 return;
             this._renderizando = true;
-            ApiDelCrud.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, nombreFichero, true)
+            ApiVisorDeArchivos.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, nombreFichero, true)
                 .then(() => {
                     this.IdDelUltimoArchivoRenderizado = idArchivo;
                     if (!this.VisorVisible) this.MostrarOcultarVisor();
@@ -1562,7 +1562,7 @@
             if (!EsRenderizable(nombreFichero))
                 return;
             let idArchivo: number = ObtenerPropiedad(archivoDto, ltrPropiedades.Elemento.Id);
-            ApiDelCrud.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, nombreFichero, true);
+            ApiVisorDeArchivos.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, nombreFichero, true);
             ApiControl.RemplazarCss(this.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.MostrarVisor, ltrCss.crud.panelDeEdicion.Acciones.OcultarVisor);
         }
 
@@ -2395,7 +2395,7 @@
             var idArchivo = Numero(siguienteDiv.id.replace('visor-del-archivo-', ''));
             var ref = siguienteDiv.querySelector('#refJs-' + idArchivo.toString()) as HTMLAnchorElement;
             // Devuelve el id del siguiente div
-            ApiDelCrud.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, ref.text, false);
+            ApiVisorDeArchivos.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, ref.text, false);
             this.IdDelUltimoArchivoRenderizado = idArchivo;
             this.LeerVinculosAl(idArchivo);
         }
@@ -2429,7 +2429,7 @@
             var idArchivo = Numero(anteriorDiv.id.replace('visor-del-archivo-', ''));
             var ref = anteriorDiv.querySelector('#refJs-' + idArchivo.toString()) as HTMLAnchorElement;
 
-            ApiDelCrud.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, ref.text, false);
+            ApiVisorDeArchivos.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, ref.text, false);
             this.IdDelUltimoArchivoRenderizado = idArchivo;
             this.LeerVinculosAl(idArchivo);
         }
@@ -2472,7 +2472,7 @@
             if (!Definido(this.IdArchivoMostrado))
                 return;
 
-            ApiDelCrud.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.ResumirArchivo);
+            ApiVisorDeArchivos.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.ResumirArchivo);
         }
 
 
@@ -2480,7 +2480,7 @@
             if (!Definido(this.IdArchivoMostrado))
                 return;
 
-            ApiDelCrud.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.PasarOcr);
+            ApiVisorDeArchivos.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.PasarOcr);
         }
 
         public CompartirConWhatsApp(): void {

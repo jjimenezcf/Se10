@@ -622,7 +622,7 @@
 
             ApiControl.ExcluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
             ApiControl.ExcluirCss(this.Splitter, ltrCss.divNoVisible);
-            ApiDelCrud.MostrarContenedorDeGraficos();
+            ApiVisorDeArchivos.MostrarContenedorDeGraficos();
 
             if (cantidad === 1) {
                 if (!this.MostrandoTotales) this.PonerElDtoEnElVisorDeGraficos();
@@ -651,7 +651,7 @@
             if (ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible)) {
                 ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
                 this.MostrandoTotales = false;
-                ApiDelCrud.OcultarContenedorDeGraficos();
+                ApiVisorDeArchivos.OcultarContenedorDeGraficos();
             }
         }
 
@@ -1090,9 +1090,9 @@
             this.InicializarModalesDeFiltrado();
 
             if (!Registro.EsMovil()) {
-                ApiDelCrud.ConfigurarEventosDeCambioDelAnchoContenedorDeTablaConGraficos();
+                ApiVisorDeArchivos.ConfigurarEventosDeCambioDelAnchoContenedorDeTablaConGraficos();
             }
-            ApiDelCrud.OcultarContenedorDeGraficos();
+            ApiVisorDeArchivos.OcultarContenedorDeGraficos();
 
             if (Definido(this.ZonaDeMenu)) {
                 ApiDeInicializacion.InicializarOpcionesDeMenu(this.ZonaDeMenu);

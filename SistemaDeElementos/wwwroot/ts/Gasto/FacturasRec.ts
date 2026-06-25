@@ -311,7 +311,7 @@
             const claseDePago = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.ClaseDePago)
             Ia_MapearFechaVencimiento(venceEl, claseDePago);
 
-            const bi = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.BaseImponible)
+            const bi = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.Bi)            
             Ia_MapearBi(bi);
 
             const total = ObtenerPropiedadJson(json, ltrPropiedades.Ia.Json.Total)
@@ -486,7 +486,7 @@
 
             if (!this.IntercambiarFrameResumidoDelVisor()) {
                 this.SetFrameDelFicheroOriginal();
-                const resultado = await ApiDelCrud.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoEnElSelector, ltrEventos.Edicion.FacturasRec.Analizar);
+                const resultado = await ApiVisorDeArchivos.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoEnElSelector, ltrEventos.Edicion.FacturasRec.Analizar);
                 if (resultado) {
                     ApiControl.IntercambiaCss(this.ImageIaArchivo, ltrCss.crud.panelCreacion.ImagenIa, ltrCss.crud.panelCreacion.ImagenArchivo);
                     this.SetFrameDelFicheroResumido();
@@ -601,7 +601,7 @@
             if (!Definido(this.IdArchivoMostrado))
                 return;
 
-            ApiDelCrud.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.FacturasRec.Analizar);
+            ApiVisorDeArchivos.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.FacturasRec.Analizar);
         }
 
         public AplicarClaseParaEditarLinea(claseDeLinea: number, lineaEditable: boolean) {

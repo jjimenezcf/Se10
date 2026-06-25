@@ -162,7 +162,7 @@
         public AsignarIdArchivo(id: number, ajustarVisor: boolean) {
             this.IdArchivoMostrado = id;
             if (ajustarVisor)
-                ApiDelCrud.CalcularTamanoDelVisor();
+                ApiVisorDeArchivos.CalcularTamanoDelVisor();
         }
 
         public get EsModal(): boolean {
@@ -229,7 +229,7 @@
         }
 
         private handleResize() {
-            ApiDelCrud.AjustarAnchoDeDatosMasVisor();
+            ApiVisorDeArchivos.AjustarAnchoDeDatosMasVisor();
         }
 
 
@@ -245,7 +245,7 @@
                 //ApiDelCrud.MostrarPanelDeCreacion();
                 ApiDelCrud.CambiarPanelActivoDelCrud(enumModoTrabajo.creando);
                 if (Definido(this.DivVisor)) {
-                    ApiDelCrud.ConfigurarEventosDeCambioDelAnchoContenedorDeDatos();
+                    ApiVisorDeArchivos.ConfigurarEventosDeCambioDelAnchoContenedorDeDatos();
                     this.handleResize = this.handleResize.bind(this);
                     window.addEventListener('resize', this.handleResize);
                 }
@@ -671,7 +671,7 @@
             ApiControl.RemplazarCss(this.ImageOcrArchivo, ltrCss.crud.panelCreacion.ImagenArchivo, ltrCss.crud.panelCreacion.ImagenOcr);
             this._contenidoPdfOriginal = undefined;
             this.ResetearFramesDelVisor();
-            ApiDelCrud.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, !IsNullOrEmpty(nombreArchivo) ? nombreArchivo : archivo.value, this.IdArchivoMostrado === 0);
+            ApiVisorDeArchivos.RenderizarUrlsEnVisor(this.CrudDeMnt, idArchivo, !IsNullOrEmpty(nombreArchivo) ? nombreArchivo : archivo.value, this.IdArchivoMostrado === 0);
         }
 
         protected IntercambiarFrameResumidoDelVisor(): boolean {
@@ -732,7 +732,7 @@
                 return true;
 
             this.SetFrameDelFicheroOriginal();
-            if (await ApiDelCrud.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.ResumirArchivo)) {
+            if (await ApiVisorDeArchivos.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.ResumirArchivo)) {
                 ApiControl.IntercambiaCss(this.ImageIaArchivo, ltrCss.crud.panelCreacion.ImagenIa, ltrCss.crud.panelCreacion.ImagenArchivo);
                 this.SetFrameDelFicheroResumido();
                 return true;
@@ -750,7 +750,7 @@
 
             this.SetFrameDelFicheroOriginal();
 
-            if (await ApiDelCrud.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.PasarOcr)) {
+            if (await ApiVisorDeArchivos.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.PasarOcr)) {
                 ApiControl.IntercambiaCss(this.ImageOcrArchivo, ltrCss.crud.panelCreacion.ImagenOcr, ltrCss.crud.panelCreacion.ImagenArchivo);
                 this.SetFrameDelFicheroOcr();
                 return true;

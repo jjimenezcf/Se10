@@ -2364,6 +2364,7 @@ const ltrPropiedades = {
             VenceEl: 'FechaVencimiento',
             Total: 'total',
             BaseImponible: 'baseimponible',
+            Bi: 'bi',
             Iva: 'totalIva',
             Irpf: 'totalIrpf'
         }
