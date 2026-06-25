@@ -6,7 +6,10 @@ using Dapper;
 using Gestor.Errores;
 using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Negocio;
+using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Terceros;
+using Utilidades;
 
 namespace ServicioDeDatos.Elemento
 {
@@ -81,14 +84,89 @@ namespace ServicioDeDatos.Elemento
 
             var tablaElementos = ApiDeRegistroDtm.EsquemaTabla(tipoDtm);
 
-            var celdas = conexion.Query<CantidadPorTipoYEstado>(
-                $"SELECT ID_TIPO as IdTipo, ID_ESTADO as IdEstado, COUNT(*) AS Cantidad " +
-                $"FROM {tablaElementos} " +
-                $"WHERE ID_TIPO IS NOT NULL AND ID_ESTADO IS NOT NULL " +
-                $"GROUP BY ID_TIPO, ID_ESTADO",
-                null, transaccion).ToList();
+            string sql;
+            object parametros = null;
 
-            return celdas;
+            if (contexto.DatosDeConexion.EsAdministrador)
+            {
+                sql = $"SELECT ID_TIPO as IdTipo, ID_ESTADO as IdEstado, COUNT(*) AS Cantidad " +
+                      $"FROM {tablaElementos} " +
+                      $"WHERE ID_TIPO IS NOT NULL AND ID_ESTADO IS NOT NULL " +
+                      $"GROUP BY ID_TIPO, ID_ESTADO";
+            }
+            else
+            {
+                var negocioDtm      = NegocioSqls.LeerNegocioPorDtm(tipoDtm.FullName);
+                var idNegocio       = negocioDtm[0].Id;
+                var idUsuario       = contexto.DatosDeConexion.IdUsuario;
+                var tablaTipos      = ApiDeElementoDtm.TablaDeTipo(tipoDtm);
+                var tablaPermTipo   = ApiDeRegistroDtm.EsquemaTabla(typeof(PermisosPorTipoDtm));
+                var tablaPermCg     = ApiDeRegistroDtm.EsquemaTabla(typeof(PermisosPorCgDtm));
+                var tablaPermElem   = ApiDeRegistroDtm.EsquemaTabla(typeof(PermisosPorElementoDtm));
+                var tablaNegCg      = ApiDeRegistroDtm.EsquemaTabla(typeof(NegociosDeUnCgDtm));
+                var tablaPermDel    = ApiDeElementoDtm.TablaDePermisos(tipoDtm);
+                var usaPermPorElem  = GestorDeMetadatos.ExisteTabla(tablaPermDel);
+
+                // Condición 1: acceso consultor al TIPO del elemento para este negocio
+                var condicionTipo = $@"EXISTS (
+                    SELECT 1 FROM {tablaPermTipo} ppt
+                    WHERE ppt.ID_TIPO    = e.ID_TIPO
+                      AND ppt.ID_NEGOCIO = @idNegocio
+                      AND ppt.ID_USUARIO = @idUsuario
+                      AND EXISTS (
+                          SELECT 1 FROM {tablaTipos} t
+                          WHERE t.ID          = e.ID_TIPO
+                            AND t.ID_CONSULTOR = ppt.ID_PERMISO
+                      )
+                )";
+
+                // Condición 2: acceso consultor al CG del elemento para este negocio
+                var condicionCg = $@"EXISTS (
+                    SELECT 1 FROM {tablaPermCg} ppc
+                    WHERE ppc.ID_CG      = e.ID_CG
+                      AND ppc.ID_NEGOCIO = @idNegocio
+                      AND ppc.ID_USUARIO = @idUsuario
+                      AND EXISTS (
+                          SELECT 1 FROM {tablaNegCg} ncg
+                          WHERE ncg.ID_CG      = e.ID_CG
+                            AND ncg.ID_NEGOCIO = @idNegocio
+                            AND ncg.ID_CONSULTOR = ppc.ID_PERMISO
+                      )
+                )";
+
+                // Condición 3 (escape): el interventor asignó acceso directo al elemento
+                var condicionElem = usaPermPorElem
+                    ? $@"EXISTS (
+                    SELECT 1 FROM {tablaPermElem} ppe
+                    WHERE ppe.ID_ELEMENTO = e.ID
+                      AND ppe.ID_NEGOCIO  = @idNegocio
+                      AND ppe.ID_USUARIO  = @idUsuario
+                      AND EXISTS (
+                          SELECT 1 FROM {tablaPermDel} pde
+                          WHERE pde.ID_ELEMENTO = e.ID
+                            AND (   pde.ID_CONSULTOR = ppe.ID_PERMISO
+                                 OR pde.ID_GESTOR    = ppe.ID_PERMISO
+                                 OR pde.ID_ADM       = ppe.ID_PERMISO)
+                      )
+                )"
+                    : "0=1";
+
+                sql = $@"SELECT e.ID_TIPO as IdTipo, e.ID_ESTADO as IdEstado, COUNT(*) AS Cantidad
+                         FROM {tablaElementos} e
+                         WHERE e.ID_TIPO   IS NOT NULL
+                           AND e.ID_ESTADO IS NOT NULL
+                           AND (
+                               (  {condicionTipo}
+                                  AND {condicionCg}
+                               )
+                               OR {condicionElem}
+                           )
+                         GROUP BY e.ID_TIPO, e.ID_ESTADO";
+
+                parametros = new { idNegocio, idUsuario };
+            }
+
+            return conexion.Query<CantidadPorTipoYEstado>(sql, parametros, transaccion).ToList();
         }
 
 

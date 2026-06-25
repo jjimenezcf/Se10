@@ -63,7 +63,7 @@ namespace ServicioDeDatos
 
         public static bool ExisteTabla(string esquema, string tabla)
         {
-            var cache = ServicioDeCaches.Obtener(CacheDe.Dtm_ExisteTabla);
+            var cache = ServicioDeCaches.Obtener(CacheDe.Fija_ExisteTabla);
             var i = $"{esquema}.{tabla}";
             if (!cache.ContainsKey(i))
             {

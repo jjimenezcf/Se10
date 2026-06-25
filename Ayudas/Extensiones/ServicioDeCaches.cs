@@ -27,6 +27,9 @@ namespace Utilidades
         public static readonly string Fija_TiposReferenciados = nameof(Fija) + nameof(Fija_TiposReferenciados).Replace(nameof(Fija),"");
         public static readonly string Fija_InterfacesUsada = nameof(Fija) + nameof(Fija_InterfacesUsada).Replace(nameof(Fija), "");
         public static readonly string Fija_Metodos = nameof(Fija) + nameof(Fija_Metodos).Replace(nameof(Fija),"");
+        public static readonly string Fija_EsquemaDeTabla = nameof(Fija) + nameof(Fija_EsquemaDeTabla).Replace(nameof(Fija), "");
+        public static readonly string Fija_NombreDeTabla = nameof(Fija) + nameof(Fija_NombreDeTabla).Replace(nameof(Fija), "");
+        public static readonly string Fija_ExisteTabla = nameof(Fija) + nameof(Fija_ExisteTabla).Replace(nameof(Fija), "");
 
         public static readonly string Ia_Filtros =  nameof(Ia_Filtros);
 
@@ -85,7 +88,6 @@ namespace Utilidades
 
         public static readonly string VisorDeAgenda = nameof(VisorDeAgenda);
         public static readonly string EventosMapeado = nameof(EventosMapeado);
-        public static readonly string Dtm_ExisteTabla = nameof(Dtm_ExisteTabla);
         public static readonly string ExistePa = nameof(ExistePa);
         public static readonly string Valores = nameof(Valores);
         public static readonly string Estados = nameof(Estados);
@@ -98,8 +100,6 @@ namespace Utilidades
         public static readonly string Detalle = nameof(Detalle);
         public static readonly string HayDetalle = nameof(HayDetalle);
         public static readonly string VariableDtm = ApiDeEnsamblados.ClaseVariableDtm;
-        public static readonly string EsquemaDeTabla = nameof(EsquemaDeTabla);
-        public static readonly string NombreDeTabla = nameof(NombreDeTabla);
         public static readonly string PropiedadesDelTipo = nameof(PropiedadesDelTipo);
         public static readonly string Dtm_HayRegistros = nameof(Dtm_HayRegistros);
         

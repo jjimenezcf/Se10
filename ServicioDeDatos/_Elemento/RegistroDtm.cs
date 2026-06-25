@@ -37,7 +37,7 @@ namespace ServicioDeDatos.Elemento
 
         public static string NombreDeTabla(Type t)
         {
-            var cache = ServicioDeCaches.Obtener(CacheDe.NombreDeTabla);
+            var cache = ServicioDeCaches.Obtener(CacheDe.Fija_NombreDeTabla);
             if (!cache.ContainsKey(t.FullName))
             {
                 Attribute[] attrs = Attribute.GetCustomAttributes(t);
@@ -106,7 +106,7 @@ namespace ServicioDeDatos.Elemento
 
         public static string EsquemaDeTabla(Type t)
         {
-            var cache = ServicioDeCaches.Obtener(CacheDe.EsquemaDeTabla);
+            var cache = ServicioDeCaches.Obtener(CacheDe.Fija_EsquemaDeTabla);
             if (!cache.ContainsKey(t.FullName))
             {
                 Attribute[] attrs = Attribute.GetCustomAttributes(t);

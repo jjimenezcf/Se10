@@ -89,6 +89,7 @@ namespace MVCSistemaDeElementos.Controllers
             var r = new Resultado();
             try
             {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
                 r.Datos = ExtensorDelPanelDelControl.LeerInformacioParaDashBoard(Contexto);
                 r.Estado = enumEstadoPeticion.Ok;
             }
