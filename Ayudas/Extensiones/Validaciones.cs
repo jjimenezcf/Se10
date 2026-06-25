@@ -14,7 +14,7 @@ namespace Utilidades
         /// </summary>
         /// <param name="correo">Cadena con el correo a evaluar.</param>
         /// <returns>True si el formato es válido; de lo contrario, False.</returns>
-        public static void ValidarMail(string correo)
+        public static string ValidarMail(string correo)
         {
             if (string.IsNullOrWhiteSpace(correo))
                 throw new System.Exception($"Debe indicar el correo a validar");
@@ -26,6 +26,7 @@ namespace Utilidades
              if (!esValido)
                 throw new System.Exception($"El correo '{correo}' no tiene un formato válido");
 
+            return correo;
         }
     }
 }

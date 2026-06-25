@@ -99,6 +99,30 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        public JsonResult epCambiarMisDatos(int idUsuario, int idArchivo, string email)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(nameof(epCambiarMisDatos));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+
+                GestorDeUsuarios.CambiarMisDatos(_GestorDeElementos.Contexto, idUsuario, idArchivo, email);
+                r.Estado = enumEstadoPeticion.Ok;
+                r.Mensaje = "Datos cambiados";
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "Error al cambiar los datos.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+
+            return new JsonResult(r);
+        }
+
         public JsonResult epCambiarPassword(int idUsuario, string actual, string nueva, string repetida)
         {
             var r = new Resultado();

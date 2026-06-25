@@ -2,9 +2,11 @@
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
 using GestoresDeNegocio.Negocio;
+using ModeloDeDto;
 using ModeloDeDto.Entorno;
 using MVCSistemaDeElementos.Controllers;
 using ServicioDeDatos;
+using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
@@ -13,6 +15,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
 using UtilidadesParaIu;
+using VeriFactu.Xml.Factu;
+using static SistemaDeElementos.Inicializador.enumVistas;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -28,9 +32,9 @@ namespace MVCSistemaDeElementos.Descriptores
     public static class ltrPanelDeControlModales
     {
         public const string SubirCertificado = "subir-certificado";
-        public const string MiUsuario =  "mi-usuario";
+        public const string MiUsuario = "mi-usuario";
         public const string CambiarPassword = "cambiar-password";
-        public const string Ia = "modal-ia";
+        public const string Ia = "ia";
 
     }
 
@@ -58,7 +62,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public string RenderModalMiUsuario()
         {
-            var idHtml = $"modal-mi-usuario";
+            var idHtml = $"modal-{ltrPanelDeControlModales.MiUsuario}";
             var eventos = $"Crud.{enumGestorDeEventos.EventosModalDeEdicion}";
             Dictionary<string, object> otros = new Dictionary<string, object>();
 
@@ -70,7 +74,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 , cuerpo: DescriptorDeEdicion<MiUsuarioDto>.RenderContenedorDeEdicionCuerpo(this, typeof(MiUsuarioDto), idHtml, nameof(UsuariosController), null, null)
                 , idOpcion: $"{idHtml}-modificar"
                 , opcion: "Modificar"
-                , accion: $"Javascript: {enumNameSpaceTs.ApiDePassword}.{enumFunctionTs.MiUsuario}('{idHtml}')"
+                , accion: $"Javascript: {enumNameSpaceTs.ApiDePassword}.{enumFunctionTs.CambiarDatosUsuario}('{idHtml}')"
                 , cerrar: $"{eventos}('{eventosDeEdicion.CerrarModal}','{idHtml}')"
                 , navegador: ""
                 , claseBoton: enumCssOpcionMenu.DeElemento
@@ -82,7 +86,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public string RenderModalCambiarPassword()
         {
-            var idHtml = $"modal-cambiar-password";
+            var idHtml = $"modal-{ltrPanelDeControlModales.CambiarPassword}";
             var eventos = $"Crud.{enumGestorDeEventos.EventosModalDeEdicion}";
             Dictionary<string, object> otros = new Dictionary<string, object>();
 
@@ -106,7 +110,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public string RenderModalSubirCertificado()
         {
-            var idHtml = $"modal-subir-certificado";
+            var idHtml = $"modal-{ltrPanelDeControlModales.SubirCertificado}";
             var eventos = $"{enumNameSpaceTs.Crud}.{enumGestorDeEventos.EventosModalDeEdicion}";
 
             Dictionary<string, object> otros = new Dictionary<string, object>();
@@ -130,7 +134,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public string RenderModalIa()
         {
-            var htmlModal = "";
+            var htmlModal = $"modal-{ltrPanelDeControlModales.Ia}";
 
             return htmlModal;
         }
@@ -138,10 +142,10 @@ namespace MVCSistemaDeElementos.Descriptores
         public static string RenderPagina(ContextoSe contexto, string cuerpo, string claseAdicional = null)
         {
             var paginaDeConsulta = claseAdicional == enumCssCuerpo.CuerpoSoloConsulta.Render();
-            var pagina =   $@"
+            var pagina = $@"
             <div class='pagina'>
                   <div id='cabecera-de-pagina' class='cabecera'>
-                    {(paginaDeConsulta ? RenderCabeceraDeConsulta (contexto): RenderCabeceraDePagina(contexto))}
+                    {(paginaDeConsulta ? RenderCabeceraDeConsulta(contexto) : RenderCabeceraDePagina(contexto))}
                   </div>
                   <div id='cuerpo-de-pagina'  class='{enumCssCuerpo.Cuerpo.Render()}{(claseAdicional.IsNullOrEmpty() ? "" : $" {claseAdicional}")}'>
                     {cuerpo}
@@ -233,7 +237,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private static string MenuDeMisFiltros(ContextoSe contexto)
         {
-            var misfiltros = GestorDePlantillasDeFiltrado.LeerFiltrosDeUsuario(contexto).OrderBy( f => f.Negocio);
+            var misfiltros = GestorDePlantillasDeFiltrado.LeerFiltrosDeUsuario(contexto).OrderBy(f => f.Negocio);
             var negocios = misfiltros.Select(f => f.Negocio).Distinct().ToList();
             var li = string.Empty;
             foreach (var negocio in negocios)
@@ -358,16 +362,18 @@ namespace MVCSistemaDeElementos.Descriptores
                 : CrearOpcion(opcion: "Fichar entrada", evento: "EntornoSe.Fichar()", "Fichar entrada", imagen: "Agenda_1.svg")
                 : "";
 
+            var url = ApiDeArchivos.SolicitarDescargarArchivo(enumNegocio.Usuario, contexto.Usuario.Id, contexto.Usuario.IdArchivo.Entero());
             var menu = CabeceraDeMenu(id: "opcion-favoritos", clase: "btn-favoritos", onclick: "EntornoSe.MostarOcultarFavoritos()", imagen: "Favoritos.png", ayuda: "mis datos") +
-                $@"                <div id='contenedor-menu-favoritos'  class='menu-pnlctr-oculto contenedor-menu-favoritos' >
-                                    <ul id='favoritos-menu-1'>
-                                       {CrearOpcion("Cambiar contraseña", "EntornoSe.CambiarPassword()", "Cambiar mi contraseña en el SE", imagen: "Candado.svg")}
-                                       {menuDeBuzones}
-                                       {CrearOpcion("Mi certificado", "EntornoSe.SubirCertificado()", "Subir mi certificado personal para firmar documentos", imagen: "Certificado.svg")}
-                                       {CrearOpcion("Mi calendario", "EntornoSe.MiCalendario()", "Ver mi agenda", imagen: "Agenda.svg")}
-                                       {menuDeFichada}
-                                   </ul>
-                               </div>";
+                $@"<div id='contenedor-menu-favoritos'  class='menu-pnlctr-oculto contenedor-menu-favoritos' >
+                        <ul id='favoritos-menu-1'>
+                           {CrearOpcion($"Datos de {contexto.Usuario.Nombre}", "EntornoSe.MiUsuario()", "Cambiar datos del usuario", imagen: url)}
+                           {CrearOpcion("Cambiar contraseña", "EntornoSe.CambiarPassword()", "Cambiar mi contraseña en el SE", imagen: "Candado.svg")}
+                           {menuDeBuzones}
+                           {CrearOpcion("Mi certificado", "EntornoSe.SubirCertificado()", "Subir mi certificado personal para firmar documentos", imagen: "Certificado.svg")}
+                           {CrearOpcion("Mi calendario", "EntornoSe.MiCalendario()", "Ver mi agenda", imagen: "Agenda.svg")}
+                           {menuDeFichada}
+                       </ul>
+                   </div>";
             return menu;
 
             //{ CrearOpcion("Preguntar", "EntornoSe.AbrirModalIa()", "Conversar con la Ia")}
@@ -381,7 +387,9 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private static string CrearOpcion(string opcion, string evento, string ayuda, string claseLi = "", string claseHref = "", string nombre = "", string imagen = "")
         {
-            var img = imagen.IsNullOrEmpty() ? "" : $"<img src='/images/menu/{imagen}' class='favoritos-opcion-img' alt='{opcion}'>";
+            var esDescarga = imagen.StartsWith($"/{enumControladoresSistemaDocumental.Archivos}/{enumAccionesSistemaDocumental.epDescargarThumsnail}");
+
+            var img = imagen.IsNullOrEmpty() ? "" : $"<img src= {(esDescarga ? imagen : $"'/images/menu/{imagen}'")} class='favoritos-opcion-img' alt='{opcion}'>";
             var claseEnlace = imagen.IsNullOrEmpty() ? "" : "class='favoritos-opcion-enlace' ";
             return $@"<li {(nombre.IsNullOrEmpty()
                 ? ""

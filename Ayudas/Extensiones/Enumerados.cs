@@ -122,7 +122,7 @@ namespace Utilidades
         HabilitarDescargaConGuid,
         SubirMiCertificado,
         CambiarPassword,
-        MiUsuario,
+        CambiarDatosUsuario,
         InicializarModalMiCertificado,
         InicializarModalCambiarPassword,
         InicializarModalMiUsuario,

@@ -112,35 +112,6 @@ namespace EntornoSe {
         window.open(url, '_blank', `width=${width},height=${height}`);
     }
 
-    async function validarUrlOld(url: string) {
-        PonerCapa();
-        try {
-            if (url.includes('/Crud')) {
-                const response = await fetch(url, { method: 'HEAD' });
-                if (!response.ok || response.status !== 200) {
-                    let errorMessage = `Página '${url}' no disponible`;
-
-                    if (response.status === 900) {
-                        errorMessage = `Modulo no activo`;
-                    } else if (response.status === 404) {
-                        errorMessage = `Recurso no encontrado: '${url}'`;
-                    } else if (response.status === 500) {
-                        errorMessage = `Error interno del servidor al acceder a '${url}'`;
-                    }
-
-                    throw new Error(errorMessage);
-                }
-            }
-            Registro.UrlValida(url);
-        }
-        catch(mensaje) {
-            MensajesSe.Error("validarUrl", mensaje);
-        }
-        finally {
-            QuitarCapa();
-        }
-    }
-
     async function validarUrl(url: string) {
         PonerCapa();
         try {
@@ -382,17 +353,26 @@ namespace EntornoSe {
     }
 
     export function CambiarPassword(): void {
-        Modales.SolicitarModal('contenedor-cambiar-password', 'cambiar-password');
+        Modales.SolicitarModal(ltrModal.PanelDeControl.CambiarPassword);
         MostarOcultarFavoritos();
     }
 
+    export function MiUsuario(): void {
+        Modales.SolicitarModal(ltrModal.PanelDeControl.MiUsuario);
+        MostarOcultarFavoritos();
+    }
+    
     export function SubirCertificado(): void {
-        Modales.SolicitarModal('contenedor-subir-certificado', 'subir-certificado');
+        Modales.SolicitarModal(ltrModal.PanelDeControl.SubirCertificado);
         MostarOcultarFavoritos();
     }
 
     export function AbrirModalIa(): void {
-        Modales.SolicitarModal('contenedor-modal-ia', 'modal-ia');
+        Modales.SolicitarModal(ltrModal.PanelDeControl.ia);
+    }
+
+    export function AbrirModalMiUsuario(): void {
+        Modales.SolicitarModal(ltrModal.PanelDeControl.MiUsuario);
     }
 
     export function MiCalendario(): void {
@@ -478,7 +458,7 @@ namespace EntornoSe {
         PonerCapa();
         EntornoSe.OcultarMenusRapidos();
         let urlBase: string = window.location.origin;
-        let pagina: string = `${urlBase}/${controlador}/${accion}${(accion.indexOf('?') > 0 ?'&':'?')}origen=menu`;
+        let pagina: string = `${urlBase}/${controlador}/${accion}${(accion.indexOf('?') > 0 ? '&' : '?')}origen=menu`;
         let url: string = `${pagina}${IsNullOrEmpty(parametros) ? '' : `&${parametros.replace('|', '&')}`}`;
         try {
             if (accion === Ajax.Entorno.ArbolMenu.Inicializar)
@@ -494,7 +474,7 @@ namespace EntornoSe {
             return url;
         }
         catch {
-            MensajesSe.EmitirExcepcion("EntornoSe","Error al abrir la url:" + url);
+            MensajesSe.EmitirExcepcion("EntornoSe", "Error al abrir la url:" + url);
         }
         finally {
             QuitarCapa();

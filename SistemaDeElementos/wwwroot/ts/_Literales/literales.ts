@@ -524,7 +524,8 @@ const ltrControladores = {
         VisorDeAgenda: 'VisorDeAgenda',
         ArbolDeMenu: 'ArbolDeMenu',
         Menus: 'Menus',
-        Acceso: 'Acceso'
+        Acceso: 'Acceso',
+        Usuarios:'Usuarios'
     },
     Negocio: {
         TiposDeElemento: 'TiposDeElemento',
@@ -1797,7 +1798,8 @@ const Ajax = {
             LeerUsuarioDeConexion: 'epLeerUsuarioDeConexion',
             LeerCertificados: 'epLeerCertificados',
             SubirMiCertificado: 'epSubirMiCertificado',
-            CambiarPassword: 'epCambiarPassword'
+            CambiarPassword: 'epCambiarPassword',
+            CambiarMisDatos: 'epCambiarMisDatos'
         }
     },
     Planificador: {
@@ -2279,6 +2281,12 @@ const ltrEtiquetas = {
 }
 
 const ltrModal = {
+    PanelDeControl: {
+        CambiarPassword: 'cambiar-password',
+        MiUsuario: 'mi-usuario',
+        ia: 'ia',
+        SubirCertificado:'subir-certificado'
+    },
     SisDoc: {
         Archivo: {
             Bloqueo: {

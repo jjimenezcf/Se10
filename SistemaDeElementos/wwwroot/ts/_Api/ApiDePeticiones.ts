@@ -374,6 +374,40 @@ namespace ApiDePeticiones {
         });
     }
 
+    export function CambiarMisDatos(llamador: any, idArchivo: number, email: string): Promise<ApiDeAjax.DescriptorAjax> {
+        return new Promise((resolve, reject) => {
+
+            let idUsuario: number = Registro.UsuarioConectado().id;
+
+            if (idUsuario === 0) MensajesSe.EmitirExcepcion("CambiarMisDatos", "El usuario debe estar definido");
+
+            let url: string = `/${Ajax.Usuarios.controlador}/${Ajax.Usuarios.accion.CambiarMisDatos}` + '?'
+                + `idUsuario=${idUsuario}&`
+                + `idArchivo=${idArchivo}&`
+                + `email=${email}`;
+
+            let datosDeEntrada: any = {
+                "idElemento": idUsuario
+            };
+
+            let a = new ApiDeAjax.DescriptorAjax(llamador
+                , Ajax.Usuarios.accion.CambiarMisDatos
+                , datosDeEntrada
+                , url
+                , ApiDeAjax.TipoPeticion.Asincrona
+                , ApiDeAjax.ModoPeticion.Get
+                , (peticion) => {
+                    resolve(peticion);
+                }
+                , (peticion) => {
+                    reject(peticion);
+                }
+            );
+
+            a.Ejecutar();
+        });
+    }
+
     export function SubirMiCertificado(llamador: any, idArchivo: number, password: string): Promise<ApiDeAjax.DescriptorAjax> {
         return new Promise((resolve, reject) => {
 

@@ -8,6 +8,23 @@
         }
     }
 
+    const ltrMiUsuario = {
+        propiedades: {
+            eMail: 'email',
+            idArchivo: 'idarchivo'
+        }
+    }
+    export function InicializarModalMiUsuario(idModal: string): void {
+        let modal = document.getElementById(idModal) as HTMLDivElement;
+        let parametros: Array<Parametro> = new Array<Parametro>();
+        parametros.push(new Parametro(Ajax.Param.leerPorIdParaEditar, true));
+        ApiDePeticiones.LeerElementoPorId(modal, ltrControladores.Entorno.Usuarios, Registro.UsuarioConectado().id, parametros, Registro.UsuarioConectado())
+            .then((peticion) => 
+                MapearAlPanel.ElObjeto(modal, peticion.resultado.datos, ModoAcceso.enumModoDeAccesoDeDatos.Gestor)
+            )
+            .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+    }
+
     export function InicializarModalCambiarPassword(idModal: string): void {
         let modal = document.getElementById(idModal) as HTMLDivElement;
         ApiDeInicializacion.Archivos(modal);
@@ -33,4 +50,23 @@
             })
             .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
     }
+
+
+    export function CambiarDatosUsuario(idModal: string): void {
+        let modal = document.getElementById(idModal) as HTMLDivElement;
+        
+        const archivo = ApiControl.BuscarSelectorDeArchivos(modal, ltrMiUsuario.propiedades.idArchivo, atControl.propiedad);
+        const idArchivo = Numero(archivo.getAttribute(atArchivo.idArchivo));
+        const eMail = ApiControl.BuscarEditor(modal, ltrMiUsuario.propiedades.eMail).value;
+
+        if (IsNullOrEmpty(eMail))
+            MensajesSe.EmitirExcepcion("CambiarDatosUsuario", "El campo eMail no puede ser nulo");
+
+        ApiDePeticiones.CambiarMisDatos(modal,idArchivo, eMail)
+            .then((peticion) => {
+                ApiPanel.CerrarModal(modal);
+            })
+            .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+    }
 }
+

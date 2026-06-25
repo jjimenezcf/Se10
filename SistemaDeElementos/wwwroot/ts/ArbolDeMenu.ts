@@ -148,7 +148,8 @@
 
 namespace Modales {
 
-    export function SolicitarModal(idContenedor: string, idModal: string): void {
+    export function SolicitarModal(idModal: string): void {
+        const idContenedor: string = `contenedor-${idModal}`;
         let contenedor: HTMLDivElement = document.getElementById(idContenedor) as HTMLDivElement;
         if (IsNullOrEmpty(contenedor.innerHTML)) {
             let modal = contenedor.querySelector('div') as HTMLDivElement;

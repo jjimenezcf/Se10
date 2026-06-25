@@ -71,6 +71,27 @@ namespace GestoresDeNegocio.Entorno
             return gestor.LeerRegistro(nameof(UsuarioDtm.Login), login, true, true, false, aplicarJoin: false);
         }
 
+        public static void CambiarMisDatos(ContextoSe contexto, int idUsuario, int idArchivo, string email)
+        {
+            if (contexto.DatosDeConexion.IdUsuario != idUsuario)
+                GestorDeErrores.Emitir("No puede actualizar los datos que no son suyos");
+
+            contexto.AsignarUsuario(contexto.Administrador());
+            try
+            {
+                var usuario = contexto.SeleccionarPorId<UsuarioDtm>(idUsuario);
+                if (idArchivo > 0)  
+                    usuario.IdArchivo = idArchivo;
+                usuario.eMail = ValidadorEmail.ValidarMail(email);
+                usuario.Modificar(contexto);
+                ServicioDeCaches.EliminarCachesDeDescriptores();
+            }
+            finally
+            {
+                contexto.AsignarUsuario(contexto.SeleccionarPorId<UsuarioDtm>(idUsuario));
+            }
+        }
+
         public static CertificadoDtm SubirMiCertificado(ContextoSe contexto, int idUsuario, int idArchivo, string password)
         {
             if (contexto.DatosDeConexion.IdUsuario != idUsuario)
