@@ -13,11 +13,12 @@ Partir el dashboar de contratos: compras/ventas/matriculas (*) 2026-06-15
 Mostrar filtros guardados por negocio para poder acceder rápidamente (*) 2026-06-15
 Mostrar la calle en el visor al crear o editar (*) 2026-06-18
 
-Aplicar seguridad al dashboard
+Aplicar seguridad al dashboard(*) 2026-06-25
+Pintar las chinchetas de diferente color en función del calificador (*) 2026-06-25
+En la modal de direcciones añadir un selector que excluya calificadores (*) 2026-06-25
+
 Crear las remesas de pagos y gasto conforme a la nueva normativa
 Poder acceder al mapa desde el panel de control con todos los elementos activos
-Pintar las chinchetas de diferente color en función del calificador
-En la modal de direcciones añadir un selector que excluya calificadores
 
 Facturas recibidas y emitidas (*) 2026-06-02
 --------------------------------------------------------------------------------
