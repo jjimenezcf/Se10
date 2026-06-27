@@ -147,6 +147,7 @@ public class Startup
                     $"{rutaJs}_Formulario{Path.DirectorySeparatorChar}Jerarquia.js",
                     $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiDelCrud.js",
                     $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiVisorDeArchivos.js",
+                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiPreguntasIa.js",
                     $"{rutaJs}_Crud{Path.DirectorySeparatorChar}CrudBase.js",
                     $"{rutaJs}_Crud{Path.DirectorySeparatorChar}GridDeDatos.js",
                     $"{rutaJs}_Crud{Path.DirectorySeparatorChar}CrudCreacion.js",
