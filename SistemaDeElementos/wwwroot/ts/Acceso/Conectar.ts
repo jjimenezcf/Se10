@@ -129,7 +129,7 @@
      */
     function MostrarMensaje(mensaje: string, claseBootstrap: string = "alert-danger") {
         let divInfoConexion = document.getElementById('div-info-conexion') as HTMLDivElement;
-        let textContainer = document.getElementById('info-conexion-text') as HTMLDivElement;
+        let textContainer = document.getElementById('info-conexion');
 
         // Limpiar clases de color previas y añadir la nueva
         divInfoConexion.classList.remove("alert-danger", "alert-info", "alert-warning");
@@ -141,7 +141,7 @@
 
     function OcultarMensaje() {
         let divInfoConexion = document.getElementById('div-info-conexion') as HTMLDivElement;
-        let textContainer = document.getElementById('info-conexion-text') as HTMLDivElement;
+        let textContainer = document.getElementById('info-conexion') as HTMLDivElement;
 
         if (textContainer) textContainer.innerText = "";
 

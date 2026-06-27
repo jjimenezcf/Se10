@@ -93,29 +93,13 @@ body {
 }
 
 #info-conexion {
-    text-align: center; /* Centrado horizontal */
-    display: flex;
-    align-items: center; /* Centrado vertical (si es flex) */
-    justify-content: center;
-    padding: 10px; /* Espaciado para que no toque los bordes */
-    line-height: 1.5; /* Mejora la legibilidad en varias líneas */
-    resize: none;
-    border: none;
-    background: transparent; /* Para que se integre con el Alert */
+    line-height: 1.5;
 }
 
 #div-info-conexion i {
     margin-right: 10px;
 }
 
-/*#info-conexion-text {
-    word-break: break-word;*/ /* Para que palabras muy largas no rompan el diseño */
-/*}*/
-/**
- * En las siguientes lineas
- * se define el diseño adaptable, para que
- * se muestre en los dispositivos móviles
- */
 
 /******************************************/
 /***    DISEÑO PARA MOVILES 320        ****/

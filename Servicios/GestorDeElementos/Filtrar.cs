@@ -85,7 +85,7 @@ namespace GestorDeElementos
             if (tipo == typeof(Guid) || tipo == typeof(Guid?))
             {
                 Guid guidParsed = Guid.Parse(filtro.Valor);
-                var expresion = $"x => x.Guid.Equals(@0)";
+                var expresion = $"x => x.{filtrarPor} == @0";
                 var ConfiguracionDelParseo = new ParsingConfig();
                 ConfiguracionDelParseo.UseParameterizedNamesInDynamicQuery = true;
                 var where = DynamicExpressionParser.ParseLambda<TRegistro, bool>(ConfiguracionDelParseo, false, expresion, guidParsed);
