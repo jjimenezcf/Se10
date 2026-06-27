@@ -355,7 +355,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var menuDeFichada = hayFichada is not null
                 ? (bool)hayFichada
                 ? CrearOpcion(opcion: "Fichar salida", evento: "EntornoSe.Fichar()", "Fichar la salida", imagen: "Agenda_1.svg")
-                : CrearOpcion(opcion: "Fichar entrada", evento: "EntornoSe.Fichar()", "Fichar entrada", imagen: "Agenda_1.svg")
+                : CrearOpcion(opcion: "Fichar entrada", evento: "EntornoSe.Fichar()", "Fichar la entrada", imagen: "Agenda_1.svg")
                 : "";
 
             var url = ApiDeArchivos.SolicitarDescargarArchivo(enumNegocio.Usuario, contexto.Usuario.Id, contexto.Usuario.IdArchivo.Entero());

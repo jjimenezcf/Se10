@@ -268,7 +268,8 @@
         const enlaceFichada = document.querySelector('a[onclick="EntornoSe.Fichar(); return false"]');
         if (enlaceFichada) {
             const nuevoTexto = enlaceFichada.textContent.trim() === 'Fichar entrada' ? 'Fichar salida' : 'Fichar entrada';
-            enlaceFichada.textContent = nuevoTexto;
+            const nodoTexto = Array.from(enlaceFichada.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+            if (nodoTexto) nodoTexto.textContent = nuevoTexto;
             localStorage.setItem(CLAVE_FICHADA, nuevoTexto);
 
             // Enviar mensaje a otras pestañas
