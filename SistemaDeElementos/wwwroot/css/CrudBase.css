@@ -410,6 +410,10 @@ body.resizing-en-progreso * {
 }
 
 
+.menu-de-archivos-visible {
+    content: url(../images/Menu/MostrarArchivos.png) !important;
+}
+
 .menu-de-mostrar-direccion {
     content: url(../images/Menu/mostrarDireccion.png);
 }

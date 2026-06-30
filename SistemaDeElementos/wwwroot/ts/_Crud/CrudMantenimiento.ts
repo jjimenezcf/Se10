@@ -50,6 +50,13 @@
             this._MostrandoTotales = valor;
         }
 
+        private _MostrandoArchivos: boolean;
+        public get MostrandoArchivos(): boolean {
+            return this._MostrandoArchivos;
+        }
+        private set MostrandoArchivos(valor: boolean) {
+            this._MostrandoArchivos = valor;
+        }
 
         public get HayHistorial(): boolean {
             return Definido(document.getElementById('crud_historialdto_historial'));
@@ -152,6 +159,10 @@
 
         public get EstaElDtoEnEdicion(): boolean {
             return this.crudDeEdicion.ContenedorDeDatosPrincipales.parentElement === this.crudDeEdicion.PadreContenedorDeDatosPrincipales
+        }
+
+        public get EstaElPanelDeArchivosEnEdicion(): boolean {
+            return this.PanelDeArchivos.parentElement === this.PadreDelPanelDeArchivos;
         }
 
         private _splitter = null;
@@ -325,6 +336,21 @@
             }
             return this._panelDeTotales;
         }
+
+
+        public get PadreDelPanelDeArchivos(): HTMLDivElement {
+            return this.crudDeEdicion.PanelDeEditar.querySelector('.' + ltrCss.crud.panelDeEdicion.ContenedorDelVisorDeArchivoConHistorial) as HTMLDivElement;
+        }
+
+        private _panelDeArchivos: HTMLDivElement = null;
+        public get PanelDeArchivos(): HTMLDivElement {
+            if (this._panelDeArchivos === null) {
+                const padre = this.PadreDelPanelDeArchivos;
+                this._panelDeArchivos = padre?.querySelector('.' + ltrCss.crud.panelDeEdicion.ContenedorVisor) as HTMLDivElement;
+            }
+            return this._panelDeArchivos;
+        }
+
 
         protected get ModalDeBorrado(): HTMLDivElement {
             return document.getElementById(this._idModalBorrar) as HTMLDivElement;
@@ -553,7 +579,7 @@
             }
 
 
-            if (this.EstaVisualizandoUnSeleccionado && Definido(this.PanelDeTotales) && !this.MostrandoTotales) {
+            if (this.EstaVisualizandoUnSeleccionado && Definido(this.PanelDeTotales) && !this.MostrandoTotales && !this.MostrandoArchivos) {
                 this.MostrarDatosTotales();
                 return;
             }
@@ -563,6 +589,16 @@
                 this.EditarEnPanelDeGraficos(true);
             }
             else {
+
+                if (this.InfoSelector.Seleccionados.length === 1) {
+                    if (this.MostrandoArchivos) {
+                        this.OcultarPanelDeGraficos();
+                        return;
+                    }
+                    this.PonerElPanelDeArchivosEnElVisorDeGraficos();
+                    return;
+                }
+
                 this.OcultarPanelDeGraficos();
                 return;
             }
@@ -571,6 +607,7 @@
         public OcultarVisorDeDetalle(): void {
             ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
             ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.ocultarDetalle);
+            ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarArchivos);
             if (!Definido(this.VisorDeDetalle))
                 return;
             if (ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarDetalle)) {
@@ -589,6 +626,14 @@
                 else {
                     ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
                 }
+                return;
+            }
+
+            if (this.MostrandoArchivos && this.InfoSelector.Seleccionados.length > 1) {
+                if (Definido(this.PanelDeTotales))
+                    this.MostrarDatosTotales();
+                else
+                    this.OcultarPanelDeGraficos();
                 return;
             }
 
@@ -625,11 +670,20 @@
             ApiVisorDeArchivos.MostrarContenedorDeGraficos();
 
             if (cantidad === 1) {
-                if (!this.MostrandoTotales) this.PonerElDtoEnElVisorDeGraficos();
+                if (!this.MostrandoTotales) {
+                    this.PonerElPanelDeArchivosEnEdicion();
+                    this.PonerElDtoEnElVisorDeGraficos();
+                }
                 return;
             }
 
             if (!Definido(this.PadreDelPanelDeTotales)) {
+
+                if (Definido(this.PanelDeArchivos)) {
+                    this.PonerElPanelDeArchivosEnElVisorDeGraficos();
+                    return;
+                }
+
                 this.OcultarVisorDeDetalle();
                 return;
             }
@@ -645,12 +699,15 @@
             ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarDetalle);
             if (this.InfoSelector.Seleccionados.length > 1 && Definido(this.PanelDeTotales))
                 ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
-            else
+            else {
                 ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
+                ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarArchivos);
+            }
 
             if (ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible)) {
                 ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
-                this.MostrandoTotales = false;
+                this.PonerElPanelDeTotalesEnEdicion();
+                this.PonerElPanelDeArchivosEnEdicion();
                 ApiVisorDeArchivos.OcultarContenedorDeGraficos();
             }
         }
@@ -690,21 +747,77 @@
             }
         }
 
+
+        private async MostrarArchivos() {
+            if (!Definido(this.PanelDeArchivos))
+                return;
+
+            this.PonerElPanelDeArchivosEnElVisorDeGraficos();
+
+            try {
+                ApiPanel.BlanquearControlesDeIU(this.PanelDeTotales);
+                const filtros: Array<Parametro> = new Array<Parametro>();
+                const clausulas = this.ObtenerFiltrosParaLasSeleccionadas();
+                filtros.push(new Parametro(Ajax.Param.filtro, clausulas));
+                const peticion = await ApiDePeticiones.Totales(this, this.Controlador, 0, -1, filtros);
+                const totales = peticion.resultado.datos;
+                MapearAlPanel.ElObjeto(this.PanelDeTotales, totales, ModoAcceso.enumModoDeAccesoDeDatos.Consultor);
+
+                const contenedorControles = this.PanelDeTotales;
+                if (Definido(contenedorControles))
+                    ApiDeGraficos.InsertarGraficaDeTotales(contenedorControles, this.ContenedorDeGraficos);
+
+                this.MostrandoTotales = true;
+            }
+            catch (error) {
+                this.MostrandoTotales = false;
+                MensajesSe.MostraExcepcion(error)
+                this.OcultarVisorDeDetalle();
+            }
+        }
+
         private PonerElPanelDeTotalesEnElVisorDeGraficos() {
             this.PonerElDtoEnEdicion();
+            this.PonerElPanelDeArchivosEnEdicion();
 
             ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarDetalle);
             ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
-            ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.ocultarDetalle);
+            if (this.InfoSelector.Seleccionados.length === 1)
+                ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarArchivos);
+            else
+                ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.ocultarDetalle);
 
             if (this.PadreDelPanelDeTotales === this.PanelDeTotales.parentElement)
                 this.ContenedorDeGraficos.appendChild(this.PanelDeTotales);
         }
 
+
+        private PonerElPanelDeArchivosEnElVisorDeGraficos() {
+            this.PonerElDtoEnEdicion();
+            if (this.ContenedorDeGraficos === this.PanelDeTotales?.parentElement) {
+                this.PadreDelPanelDeTotales.appendChild(this.PanelDeTotales);
+                this.ContenedorDeGraficos.innerText = "";
+            }
+            this.MostrandoTotales = false;
+            this.MostrandoArchivos = true;
+            ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarDetalle);
+            ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
+            ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarArchivos);
+            ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.ocultarDetalle);
+
+            if (this.PadreDelPanelDeArchivos === this.PanelDeArchivos.parentElement)
+                this.ContenedorDeGraficos.appendChild(this.PanelDeArchivos);
+            ApiControl.ExcluirCss(this.PanelDeArchivos, ltrCss.divNoVisible);
+            this.crudDeEdicion.InicializarSoloArchivos(this.InfoSelector.IdsSeleccionados[0]);
+        }
+
         private PonerElDtoEnElVisorDeGraficos() {
             this.MostrandoTotales = false;
-            if (this.ContenedorDeGraficos === this.PanelDeTotales?.parentElement)
+            this.MostrandoArchivos = false;
+            if (this.ContenedorDeGraficos === this.PanelDeTotales?.parentElement) {
                 this.PadreDelPanelDeTotales.insertBefore(this.PanelDeTotales, this.PadreDelPanelDeTotales.appendChild(this.PanelDeTotales));
+                this.ContenedorDeGraficos.innerText = "";
+            }
 
             if (this.EstaElDtoEnEdicion)
                 this.ContenedorDeGraficos.appendChild(this.crudDeEdicion.ContenedorDeDatosPrincipales);
@@ -718,6 +831,21 @@
         private PonerElDtoEnEdicion() {
             if (!this.EstaElDtoEnEdicion)
                 this.crudDeEdicion.PadreContenedorDeDatosPrincipales.appendChild(this.crudDeEdicion.ContenedorDeDatosPrincipales);
+        }
+
+
+        public PonerElPanelDeArchivosEnEdicion() {
+            this.MostrandoArchivos = false;
+            if (!this.EstaElPanelDeArchivosEnEdicion)
+                this.PadreDelPanelDeArchivos.appendChild(this.PanelDeArchivos);
+        }
+
+        private PonerElPanelDeTotalesEnEdicion() {
+            this.MostrandoTotales = false;
+            if (this.ContenedorDeGraficos === this.PanelDeTotales?.parentElement) {
+                this.PadreDelPanelDeTotales.appendChild(this.PanelDeTotales);
+                this.ContenedorDeGraficos.innerText = "";
+            }
         }
 
         private MapearDatosPrincipales(peticion: ApiDeAjax.DescriptorAjax,) {
@@ -1512,11 +1640,12 @@
 
             if (this.EstoyEditandoConsultando && Definido(divDelVisor)) {
 
-                if (!this.crudDeEdicion.VisorVisible) {
-                    this.crudDeEdicion.MostrarOcultarVisor();
+                if (this.crudDeEdicion.EstoyMostrandoHistorial) {
+                    this.crudDeEdicion.MostrarOcultarHistorial();
+                } else {
+                    this.crudDeEdicion.MostrarHistorial();
+                    this.crudDeEdicion.EstoyMostrandoHistorial = true;
                 }
-
-                this.crudDeEdicion.MostrarOcultarHistorial();
 
                 if (divDelCuerpoDelHistorial.parentElement !== divDelVisor) {
                     divDelVisor.appendChild(divDelCuerpoDelHistorial);

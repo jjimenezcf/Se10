@@ -381,6 +381,7 @@
         public get DivVisor(): HTMLDivElement {
             if (!Definido(this._DivVisor)) {
                 this._DivVisor = this.ContenedorDeDatosMasVisor?.querySelector('.' + ltrCss.crud.panelDeEdicion.VisorDeEdicion) as HTMLDivElement
+                    ?? this.CrudDeMnt?.PanelDeArchivos?.querySelector('.' + ltrCss.crud.panelDeEdicion.VisorDeEdicion) as HTMLDivElement;
             }
             return this._DivVisor as HTMLDivElement
         }
@@ -388,7 +389,7 @@
 
         private _ContenedorDelVisorDeArchivoConHistorial = null;
         public get ContenedorDelVisorDeArchivoConHistorial(): HTMLDivElement {
-            if (!Definido(this._DivVisor)) {
+            if (!Definido(this._ContenedorDelVisorDeArchivoConHistorial)) {
                 this._ContenedorDelVisorDeArchivoConHistorial = this.ContenedorDeDatosMasVisor?.querySelector('.' + ltrCss.crud.panelDeEdicion.ContenedorDelVisorDeArchivoConHistorial) as HTMLDivElement
             }
             return this._ContenedorDelVisorDeArchivoConHistorial as HTMLDivElement
@@ -927,6 +928,7 @@
             else {
                 ApiDelCrud.CambiarPanelActivoDelCrud(this.CrudDeMnt.ModoTrabajo);
                 if (Definido(this.ContenedorDelVisorDeArchivoConHistorial)) {
+                    this.CrudDeMnt.PonerElPanelDeArchivosEnEdicion();
                     ApiVisorDeArchivos.ConfigurarEventosDeCambioDelAnchoContenedorDeDatos();
                     this.handleResize = this.handleResize.bind(this);
                     window.addEventListener('resize', this.handleResize);
@@ -1198,6 +1200,16 @@
                 .catch((peticion) => this.SiHayErrorAlLeerElemento(peticion));
         }
 
+        public InicializarSoloArchivos(id: number): void {
+            this.IdEditor.value = id.toString();
+            let parametros: Array<Parametro> = this.ParametrosParaLeerElementoPorId();
+            ApiDePeticiones.LeerElementoPorId(this, this.Controlador, id, parametros, id)
+                .then((peticion) => {
+                    this.MapearElementoDevuelto(peticion, false, false, true);
+                })
+                .catch((peticion) => this.SiHayErrorAlLeerElemento(peticion));
+        }
+
         private InicializarDiccionarioDeCarga(): void {
             this._diccionarioDeCarga = new Map<string, boolean>();
             this._diccionarioDeCarga.set(ltrCrud.Enumerados.Edicion.Carga.Principal, false)
@@ -1383,7 +1395,7 @@
         }
 
         public CargaCompletada() {
-            if (!this.PaginaDeConsultaConGuid) {
+            if (!this.PaginaDeConsultaConGuid && this.EstoyEditando) {
                 this.ResetearValoresIniciales()
                 this.AplicarBloqueo();
                 const urlSinParametros: string = window.location.origin + window.location.pathname;
@@ -1482,8 +1494,7 @@
             ApiControl.ExcluirCss(this.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.SinVisor);
             ApiControl.RemplazarCss(this.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.OcultarVisor, ltrCss.crud.panelDeEdicion.Acciones.MostrarVisor);
 
-            if (this.MostrarVisorAlIniciar === false) {
-
+            if (this.CrudDeMnt.EstoyEnMantenimiento === false && this.MostrarVisorAlIniciar === false) {
                 return;
             }
 
@@ -1568,6 +1579,8 @@
 
 
         protected DespuesDeMapearElementoDevuelto(panel: HTMLDivElement, peticion: ApiDeAjax.DescriptorAjax): void {
+            this.OcultarHistorial();
+            this.EstoyMostrandoHistorial = false;
             let delSistema: boolean = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.DelSistema, false);
             var editor = (peticion.llamador as CrudEdicion);
             if (delSistema) {

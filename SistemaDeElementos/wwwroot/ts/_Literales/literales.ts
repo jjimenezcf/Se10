@@ -1063,7 +1063,8 @@ const ltrCss = {
             TablaConGraficos: 'contenedor-tabla-con-graficos',
             Splitter: 'splitter-tabla',
             ContenedorTabla: 'div-grid-tabla',
-            Graficos: 'div-graficos'
+            Graficos: 'div-graficos',
+            GraficoDeTotales: 'div-graficos-totales'
         },
         dto: {
             tbody: 'dto-tbody',
@@ -1075,6 +1076,7 @@ const ltrCss = {
         mostrarDetalle: 'menu-de-detalle-oculto',
         ocultarDetalle: 'menu-de-detalle-visible',
         mostrarTotales: 'menu-de-totales-visible',
+        mostrarArchivos: 'menu-de-archivos-visible',
         pie: 'cuerpo-pie',
         contenedorEdicionCreacion: 'contenedor-edicion-cabecera',
         creacion: 'cuerpo-creacion',

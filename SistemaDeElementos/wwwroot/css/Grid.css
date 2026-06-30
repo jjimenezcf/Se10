@@ -48,6 +48,13 @@
     overflow-y: auto;
 }
 
+.div-graficos-totales {
+    margin-top: 12px;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+}
+
 .splitter-tabla {
     width: 6px;
     height: 100%;

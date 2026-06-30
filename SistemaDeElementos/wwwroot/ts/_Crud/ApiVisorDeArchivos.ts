@@ -79,10 +79,13 @@ namespace ApiVisorDeArchivos {
         if (!Definido(visor))
             return;
 
-        var contenedorDelVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDelVisor : crud.crudDeEdicion.ContenedorDelVisor;
+        var contenedorDelVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDelVisor
+            : crud.EstoyEnMantenimiento ? crud.PanelDeArchivos
+            : crud.crudDeEdicion.ContenedorDelVisor;
         var contenedorDeDatos = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeDatos : crud.crudDeEdicion.ContenedorDeDatos;
         var contenedorCabecera = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeCabecera : crud.crudDeEdicion.ContenedorDeCabecera;
         var contenedorDeDatosMasVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeDatosMasVisor : crud.crudDeEdicion.ContenedorDeDatosMasVisor;
+        if (crud.EstoyEnMantenimiento) ajustarVisor = false;
 
         let input = contenedorDelVisor.getElementsByClassName(ltrCss.crud.panelDeEdicion.VisorDeNombreAnexados) as HTMLCollectionOf<HTMLInputElement>;
 
@@ -94,7 +97,7 @@ namespace ApiVisorDeArchivos {
         }
         else {
             let parametros = `negocio=${crud.NombreDeNegocio}`;
-            parametros = `${parametros}&idElemento=${crud.EstoyCreando ? 0 : crud.crudDeEdicion.ElementoEditado.Id}`;
+            parametros = `${parametros}&idElemento=${crud.EstoyEnMantenimiento ? crud.InfoSelector.IdsSeleccionados[0] : crud.crudDeEdicion.ElementoEditado.Id}`;
             parametros = `${parametros}&idArchivo=${idArchivo}`;
             parametros = `${parametros}&auditar=false`;
             url = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.Descargar}?${parametros}`;

@@ -20,17 +20,16 @@ namespace ApiDeGraficos {
 
         const contenedor = document.createElement('div');
         contenedor.id = idGrafica;
-
+        ApiControl.IncluirCss(contenedor, ltrCss.crud.grid.GraficoDeTotales);
         if (Definido(divPadre)) {
             const anchoPadre = divPadre.offsetWidth || contenedorControles.offsetWidth;
             const altoSvg = 220;
             const separacion = 8;
             const margenSuperior = Math.max(divPadre.offsetHeight - contenedorControles.offsetHeight - altoSvg - separacion, separacion);
-            contenedor.style.cssText = `width:${anchoPadre}px;margin-top:${margenSuperior}px;overflow-x:auto;display:flex;justify-content:center;`;
+            contenedor.style.cssText = `width:${anchoPadre}px;margin-top:${margenSuperior}px;`;
             contenedor.innerHTML = CrearSvgDeBarras(datos, anchoPadre);
             divPadre.appendChild(contenedor);
         } else {
-            contenedor.style.cssText = `margin-top:12px;overflow-x:auto;display:flex;justify-content:center;`;
             contenedor.innerHTML = CrearSvgDeBarras(datos);
             contenedorControles.parentElement.insertBefore(contenedor, contenedorControles.nextSibling);
         }
