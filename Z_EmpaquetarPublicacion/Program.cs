@@ -101,6 +101,7 @@ class Program
                    "itext.kernel.dll",
                    "itext.layout.dll",
                    "itext.pdfa.dll",
+                   "itext.pdfhtml.dll",
                    "itext.pdfua.dll",
                    "itext.sign.dll",
                    "itext.styledxmlparser.dll",

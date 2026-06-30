@@ -16,6 +16,7 @@ using System.Text;
 using System.IO;
 using iText.Layout;
 using iText.Layout.Element;
+using iText.Html2pdf;
 using GestorDeElementos.Extensores;
 using Newtonsoft.Json;
 using static Gestor.Errores.GestorDeErrores;
@@ -158,9 +159,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             IMailFolder folder = AbrirCarpeta(buzon);
             try
             {
-                // Optimización: Fetch solo items necesarios (Envelope) en lugar de Full
-                // Full incluye BodyStructure y otros datos innecesarios que consumen 232ms
-                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.Size);
+                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.Size | MessageSummaryItems.BodyStructure);
 
                 // Optimización: Construir HashSet para búsquedas O(1) en lugar de Any() O(n)
                 var idsExistentes = new HashSet<string>(MisCorreos.Select(x => x.IdMensaje));
@@ -324,35 +323,67 @@ namespace GestoresDeNegocio.TrabajosSometidos
         private string ImprimirCorreoPDF(string buzon, string idMail)
         {
             var folder = AbrirCarpeta(buzon);
-            var mensaje = LeerMensajePorIdMensaje(folder, idMail);
-            // Pasar folderAlreadyOpen=false porque LeerMensajePorIdMensaje llama a AbrirCarpeta internamente
-            var correo = CrearCorreo(mensaje, folder, folderAlreadyOpen: false, cerrarTrasLeer: true);
-            var sb = new StringBuilder();
-            sb.AppendLine($"De: {correo.Emisor}");
-            sb.AppendLine($"Para: {correo.To}");
-            sb.AppendLine($"Fecha: {correo.Fecha}");
-            sb.AppendLine($"Asunto: {correo.Asunto}");
-            sb.AppendLine($"");
-            sb.AppendLine($"Cuerpo");
-            sb.AppendLine($"{correo.Cuerpo}");
-            sb.AppendLine($"Adjuntos: {correo.Adjuntos}");
-            var rawMessage = sb.ToString();
-            var decodedMessage = extCadenas.Base64UrlDecode(rawMessage);
-            // Crear un nuevo documento PDF
+            var summary = LeerMensajePorIdMensaje(folder, idMail);
+            var message = folder.GetMessage(summary.UniqueId);
+            if (folder.IsOpen) folder.Close();
+
+            var correo = MisCorreos.FirstOrDefault(x => x.IdMensaje == idMail)
+                      ?? CrearCorreo(summary, folder, folderAlreadyOpen: false, cerrarTrasLeer: false);
+
             var nombre = correo.Emisor;
             Match match = Regex.Match(correo.Emisor, @"^(.*?)\s<(.*)>$");
             if (match.Success) nombre = match.Groups[1].Value;
             var nombrefichero = $"{nombre.Replace("\"", "")}_{idMail}.pdf".NormalizarFichero();
             var fichero = Path.Combine(enumRutas.RutaDeDescarga, nombrefichero);
-            var pdfDocumento = new PdfDocument(new PdfWriter(fichero));
-            var documento = new Document(pdfDocumento);
 
-            // Agregar el contenido del correo electrónico al documento PDF
-            documento.Add(new Paragraph(decodedMessage));
+            var html = ConstruirHtmlParaPdf(message, correo);
 
-            // Cerrar el documento PDF
-            documento.Close();
+            using var pdfWriter = new PdfWriter(fichero);
+            using var pdfDoc = new PdfDocument(pdfWriter);
+            HtmlConverter.ConvertToPdf(html, pdfDoc, new ConverterProperties());
+
             return fichero;
+        }
+
+        private string ConstruirHtmlParaPdf(MimeMessage message, MiCorreoDto correo)
+        {
+            // Recopilar imágenes inline indexadas por ContentId
+            var imagenesPorCid = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var part in message.BodyParts.OfType<MimePart>())
+            {
+                if (string.IsNullOrEmpty(part.ContentId)) continue;
+                using var ms = new MemoryStream();
+                part.Content.DecodeTo(ms);
+                var base64 = Convert.ToBase64String(ms.ToArray());
+                var mimeType = part.ContentType?.MimeType ?? "image/png";
+                imagenesPorCid[part.ContentId.Trim('<', '>')] = $"data:{mimeType};base64,{base64}";
+            }
+
+            // Usar HTML del correo si existe; si no, convertir texto plano
+            var cuerpoHtml = !string.IsNullOrEmpty(message.HtmlBody)
+                ? message.HtmlBody
+                : $"<pre>{System.Net.WebUtility.HtmlEncode(correo.Cuerpo)}</pre>";
+
+            // Reemplazar cid: referencias por data URIs
+            cuerpoHtml = Regex.Replace(cuerpoHtml, @"cid:([^\"">\s]+)", m =>
+            {
+                var cid = m.Groups[1].Value.Trim('<', '>');
+                return imagenesPorCid.TryGetValue(cid, out var dataUri) ? dataUri : m.Value;
+            }, RegexOptions.IgnoreCase);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'/>");
+            sb.AppendLine("<style>body{font-family:Arial,sans-serif;font-size:11pt;} .cabecera{background:#f0f0f0;padding:8px;margin-bottom:12px;border-bottom:1px solid #ccc;} .cabecera p{margin:2px 0;} img{max-width:100%;height:auto;display:block;}</style>");
+            sb.AppendLine("</head><body>");
+            sb.AppendLine("<div class='cabecera'>");
+            sb.AppendLine($"<p><b>De:</b> {System.Net.WebUtility.HtmlEncode(correo.Emisor)}</p>");
+            sb.AppendLine($"<p><b>Para:</b> {System.Net.WebUtility.HtmlEncode(correo.To)}</p>");
+            sb.AppendLine($"<p><b>Fecha:</b> {correo.Fecha:dd/MM/yyyy HH:mm}</p>");
+            sb.AppendLine($"<p><b>Asunto:</b> {System.Net.WebUtility.HtmlEncode(correo.Asunto)}</p>");
+            sb.AppendLine("</div>");
+            sb.AppendLine(cuerpoHtml);
+            sb.AppendLine("</body></html>");
+            return sb.ToString();
         }
 
         private IMessageSummary LeerMensajePorIdMensaje(IMailFolder folder, string idMensaje, bool folderAlreadyOpen = false)
@@ -360,8 +391,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             // Optimización: evita reapertura de carpeta si ya está abierta
             if (!folderAlreadyOpen)
                 AbrirCarpeta(folder.Name, FolderAccess.ReadWrite);
-            // Optimización: Solo necesitamos Envelope para buscar por ID, no Full
-            var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+            var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.BodyStructure);
             foreach (var eMail in messages)
             {
                 var id = IdMensaje(eMail).ToString();
@@ -514,19 +544,33 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
             else if (bodyPart is BodyPartBasic basic)
             {
-                if (!string.IsNullOrEmpty(basic.FileName))
-                {
-                    var adjunto = new Adjunto
-                    {
-                        Fichero = basic.FileName,
-                        TipoMime = basic.ContentType?.MimeType ?? "desconocido",
-                        IdMail = idMail,
-                        IdAdjunto = basic.ContentId ?? Guid.NewGuid().ToString(),
-                        IdParte = basic.PartSpecifier
-                    };
+                var mimeType = basic.ContentType?.MimeType ?? "";
+                // Ignorar partes de texto del cuerpo y partes ya registradas
+                if (mimeType == "text/plain" || mimeType == "text/html")
+                    return;
 
-                    adjuntos.Add(adjunto);
-                }
+                var nombre = basic.FileName;
+                var contentId = basic.ContentId ?? Guid.NewGuid().ToString();
+
+                // Si no tiene nombre pero sí ContentId y es imagen, usar el ContentId como nombre
+                if (string.IsNullOrEmpty(nombre) && !string.IsNullOrEmpty(basic.ContentId) && mimeType.StartsWith("image/"))
+                    nombre = basic.ContentId.Trim('<', '>');
+
+                if (string.IsNullOrEmpty(nombre))
+                    return;
+
+                // Evitar duplicados con los adjuntos ya procesados desde eMail.Attachments
+                if (adjuntos.Any(a => a.IdAdjunto == contentId))
+                    return;
+
+                adjuntos.Add(new Adjunto
+                {
+                    Fichero = nombre,
+                    TipoMime = mimeType,
+                    IdMail = idMail,
+                    IdAdjunto = contentId,
+                    IdParte = basic.PartSpecifier
+                });
             }
         }
         private BodyPartBasic BuscarAdjunto(IMessageSummary eMail, Adjunto adjunto)
@@ -582,8 +626,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             foreach (var folder in personal.GetSubfolders(false))
             {
                 AbrirCarpeta(folder.Name);
-                // Optimización: Solo necesitamos Envelope para buscar por ID, no Full
-                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.BodyStructure);
                 foreach (var eMail in messages)
                 {
                     var id = IdMensaje(eMail);
@@ -600,8 +643,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             foreach (var folder in personal.GetSubfolders(false))
             {
                 AbrirCarpeta(folder.Name);
-                // Optimización: Solo necesitamos Envelope para buscar por ID, no Full
-                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+                var messages = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.BodyStructure);
                 foreach (var eMail in messages)
                 {
                     var id = IdMensaje(eMail);
@@ -630,8 +672,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                     if (folder.Name == ExtensorDeMiCorreo.BuzonProcesados) continue;
                     AbrirCarpeta(folder.Name);
 
-                    // Obtener todos los mensajes del buzón
-                    var mails = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+                    var mails = folder.Fetch(0, -1, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId | MessageSummaryItems.BodyStructure);
 
                     // Buscar el mensaje con el MessageId específico
                     var mail = mails.FirstOrDefault(m => IdMensaje(m) == idMicorreo);
