@@ -17,8 +17,13 @@ Aplicar seguridad al dashboard(*) 2026-06-25
 Pintar las chinchetas de diferente color en función del calificador (*) 2026-06-25
 En la modal de direcciones añadir un selector que excluya calificadores (*) 2026-06-25
 
+Crear agrupaciones y aplicarlas en facturas recibidas (*) 2026-06-30
+La impresión de correos que sea usando htmltopdf para renderizar imágenes (*) 2026-06-30
+
 Crear las remesas de pagos y gasto conforme a la nueva normativa
 Poder acceder al mapa desde el panel de control con todos los elementos activos
+Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
+El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC
 
 Facturas recibidas y emitidas (*) 2026-06-02
 --------------------------------------------------------------------------------
