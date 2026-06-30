@@ -103,23 +103,6 @@ namespace ModeloDeDto.Gastos
 
         //-----------------------------------------------------
         [IUPropiedad(
-           Etiqueta = "Total pagado",
-           Tipo = typeof(decimal),
-           Ayuda = "total que está pagado",
-           TipoDeControl = enumTipoControl.Editor,
-           Alineada = enumAliniacion.derecha,
-           EditableAlCrear = false,
-           EditableAlEditar = false,
-           Fila = 3,
-           Columna = 2,
-           MantenerHuecoDeLaIzquierda = true,
-           Formato = enumFormato.Moneda
-            )
-        ]
-        public decimal Pagado { get; set; }
-
-        //-----------------------------------------------------
-        [IUPropiedad(
            Etiqueta = "Totales de impuestos",
            Ayuda = "muestra la información de los totales por Iva calculados",
            TipoDeControl = enumTipoControl.AreaDeTexto,
@@ -133,5 +116,40 @@ namespace ModeloDeDto.Gastos
             )
         ]
         public string TotalesPorImpuestos { get; set; }
+
+        //-----------------------------------------------------
+        [IUPropiedad(
+           Etiqueta = "Totales por proveedor",
+           Ayuda = "muestra el número de facturas, importes y media por proveedor",
+           TipoDeControl = enumTipoControl.AreaDeTexto,
+           EditableAlCrear = false,
+           EditableAlEditar = false,
+           NumeroDeFilas = 8,
+           CssDelArea = enumCssControles.MonoSpaceText,
+           Fila = 3,
+           Columna = 0,
+           AutoSpan = true
+            )
+        ]
+        public string TotalesPorProveedor { get; set; }
+
+        //-----------------------------------------------------
+        [IUPropiedad(
+           Etiqueta = "Total pagado",
+           Tipo = typeof(decimal),
+           Ayuda = "total que está pagado",
+           TipoDeControl = enumTipoControl.Editor,
+           Alineada = enumAliniacion.derecha,
+           EditableAlCrear = false,
+           EditableAlEditar = false,
+           Fila = 4,
+           Columna = 2,
+           MantenerHuecoDeLaIzquierda = true,
+           Formato = enumFormato.Moneda
+            )
+        ]
+        public decimal Pagado { get; set; }
+
+
     }
 }

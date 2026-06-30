@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Presentation;
-using Gestor.Errores;
-using ServicioDeDatos.Contabilidad;
+﻿using Gestor.Errores;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Negocio;

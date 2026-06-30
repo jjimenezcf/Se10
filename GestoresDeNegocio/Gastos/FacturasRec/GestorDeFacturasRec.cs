@@ -1147,6 +1147,7 @@ namespace GestoresDeNegocio.Gastos
             var totalesDeIrpf = facturas.TotalesPorTipoDeIrpf(Contexto);
             var totalesDeIva = facturas.TotalesPorTipoDeIva(Contexto);
             totales.TotalesPorImpuestos = FormatearImpuestosTabulados(totalesDeIva, totalesDeIrpf);
+            totales.TotalesPorProveedor = FormatearTotalesPorProveedor(facturas);
 
             totales.Pagado = facturas.Sum(x => x.ImportesDePagosConfirmados(Contexto));
             totales.Pendiente = totales.Pagar - totales.Pagado;
@@ -1165,6 +1166,84 @@ namespace GestoresDeNegocio.Gastos
 
 
             return totales;
+        }
+
+        private string FormatearTotalesPorProveedor(List<FacturaRecDtm> facturas)
+        {
+            if (!facturas.Any()) return string.Empty;
+
+            var agrupacion = new AgrupacionDeTotales(
+                new List<string> { nameof(FacturaRecDtm.IdProveedor) },
+                new List<MetricaDeTotales>
+                {
+                    new MetricaDeTotales(enumOperacionDeTotales.Cuenta, "", "Facturas"),
+                    new MetricaDeTotales(enumOperacionDeTotales.Suma, nameof(FacturaRecDtm.BaseImponible), "SumaBi"),
+                    new MetricaDeTotales(enumOperacionDeTotales.Media, nameof(FacturaRecDtm.BaseImponible), "MediaBi"),
+                    new MetricaDeTotales(enumOperacionDeTotales.Suma, nameof(FacturaRecDtm.TotalDelPago), "SumaPagar"),
+                }
+            );
+
+            var bloques = facturas.AsQueryable().ObtenerTotalesAgrupados(
+                new List<AgrupacionDeTotales> { agrupacion },
+                null
+            );
+
+            // IVA e IRPF no son propiedades directas: se calculan desde las líneas de factura
+            var ivaIrpfPorProveedor = facturas
+                .GroupBy(f => f.IdProveedor)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (
+                        iva: g.Sum(f => f.Total(Contexto, Enumerados.enumImporteFar.TotalIva)),
+                        irpf: g.Sum(f => f.Total(Contexto, Enumerados.enumImporteFar.TotalIrpf))
+                    )
+                );
+
+            var nombrePorProveedor = facturas
+                .GroupBy(f => f.IdProveedor)
+                .ToDictionary(g => g.Key, g => g.First().Proveedor?.Nombre ?? $"Proveedor {g.Key}");
+
+            const int anchoNombre = 40;
+            const int anchoNum = 10;
+            const int anchoImporte = 14;
+
+            var sb = new StringBuilder();
+            sb.AppendLine(
+                $"{"Proveedor".PadRight(anchoNombre)}" +
+                $"{"Facturas".PadLeft(anchoNum)}" +
+                $"{"Base Imp.".PadLeft(anchoImporte)}" +
+                $"{"IVA".PadLeft(anchoImporte)}" +
+                $"{"IRPF".PadLeft(anchoImporte)}" +
+                $"{"A pagar".PadLeft(anchoImporte)}" +
+                $"{"Media BI".PadLeft(anchoImporte)}"
+            );
+            sb.AppendLine(new string('-', anchoNombre + anchoNum + anchoImporte * 5));
+
+            foreach (var fila in bloques[0].Filas.OrderByDescending(f => Convert.ToDecimal(f.Totales["SumaBi"])))
+            {
+                var idProv = Convert.ToInt32(fila.Claves[nameof(FacturaRecDtm.IdProveedor)]);
+                var nombre = nombrePorProveedor.TryGetValue(idProv, out var n) ? n : $"ID {idProv}";
+                ivaIrpfPorProveedor.TryGetValue(idProv, out var ivaIrpf);
+
+                var numFact = Convert.ToInt32(fila.Totales["Facturas"]);
+                var sumaBi = Convert.ToDecimal(fila.Totales["SumaBi"]);
+                var mediaBi = Convert.ToDecimal(fila.Totales["MediaBi"]);
+                var sumaPagar = Convert.ToDecimal(fila.Totales["SumaPagar"]);
+
+                if (nombre.Length > anchoNombre) nombre = nombre.Substring(0, anchoNombre - 1) + "…";
+
+                sb.AppendLine(
+                    $"{nombre.PadRight(anchoNombre)}" +
+                    $"{numFact.ToString().PadLeft(anchoNum)}" +
+                    $"{sumaBi.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{ivaIrpf.iva.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{ivaIrpf.irpf.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{sumaPagar.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{mediaBi.ToString("N2").PadLeft(anchoImporte)}"
+                );
+            }
+
+            return sb.ToString();
         }
 
         private static string FormatearImpuestosTabulados(List<ImportePorTipoDeIva> totalesDeIva, List<ImportePorTipoDeIrpf> totalesDeIrpf)

@@ -44,7 +44,8 @@
     /* El ancho inicial lo establecerá el JS */
     /* ... resto de propiedades ... */
     height: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .splitter-tabla {
