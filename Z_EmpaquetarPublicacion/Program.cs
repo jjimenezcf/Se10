@@ -101,7 +101,7 @@ class Program
                    "itext.kernel.dll",
                    "itext.layout.dll",
                    "itext.pdfa.dll",
-                   "itext.pdfhtml.dll",
+                   "itext.html2pdf.dll",
                    "itext.pdfua.dll",
                    "itext.sign.dll",
                    "itext.styledxmlparser.dll",
@@ -125,7 +125,6 @@ class Program
                    "Magick.NET.Core.dll",
                    "SkiaSharp.dll",
                    "libSkiaSharp.dll",
-                   "libHarfBuzzSharp.dll",
                    "SixLabors.ImageSharp.dll",
                
                    // Reporting
