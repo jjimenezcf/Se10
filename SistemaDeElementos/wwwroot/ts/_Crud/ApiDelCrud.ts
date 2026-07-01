@@ -629,7 +629,7 @@
         if (!Definido(nombrectrl))
             return;
         nombrectrl.removeAttribute(atControl.mascara);
-        nombrectrl.setAttribute(atControl.placeholder, 'Indique el tipo de proceso');
+        nombrectrl.setAttribute(atControl.placeholder, 'Indique el nombre del proceso');
 
         var listaDeClases = ApiControl.BuscarListaDeElementos(contenedor, ltrPropiedades.Elemento.ClaseDeElemento);
         if (Definido(listaDeClases)) OcultarClase(listaDeClases);
