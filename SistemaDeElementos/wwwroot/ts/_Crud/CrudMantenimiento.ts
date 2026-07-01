@@ -351,6 +351,13 @@
             return this._panelDeArchivos;
         }
 
+        public get ContenedorDelVisor(): HTMLDivElement {
+            return this.EstoyCreando
+                ? this.crudDeCreacion.ContenedorDelVisor
+                : this.EstoyEnMantenimiento
+                    ? this.PanelDeArchivos
+                    : this.crudDeEdicion.ContenedorDelVisor;
+        }
 
         protected get ModalDeBorrado(): HTMLDivElement {
             return document.getElementById(this._idModalBorrar) as HTMLDivElement;

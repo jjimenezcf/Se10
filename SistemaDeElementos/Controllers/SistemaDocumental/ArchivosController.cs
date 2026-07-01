@@ -452,9 +452,9 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         catch (Exception e)
         {
             if (e.Message.Contains("API key not valid"))
-                GestorDeErrores.Emitir($"La ApiKey para la ia '{iaUsada.Nombre}' no es válida, actualicela");
+                GestorDeErrores.Emitir(ltrIa.Mensaje_ApiKey_NoDefinida.Replace("[ia]", iaUsada.Nombre));
             if (e.Message.Contains("Too Many Request"))
-                GestorDeErrores.Emitir($"Demasadas peticiones a la ia '{iaUsada.Nombre}', actualice a una versión de pago o pruebe más adelante");
+                GestorDeErrores.Emitir(ltrIa.Mensaje_Demasadas_Peticiones.Replace("[ia]", iaUsada.Nombre)); 
             throw;
         }
 
@@ -468,15 +468,29 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         bool esIaGeminis = ia.GetType() == typeof(IaGeminis);
         bool esIaMistral = ia.GetType() == typeof(IaMistral);
         bool esTipoMimeAdmitido = (esIaGeminis || esIaMistral) && ((IIaTiposMimesAdmitidos)ia).TiposMimeAdmitidosParaResumen.Contains(mimeType);
-
-        if ((esIaGeminis || esIaMistral) && esTipoMimeAdmitido)
+        try
         {
-            return await ExtensorDeIa.ResumirFichero((IIaTiposMimesAdmitidos)ia, negocio, rutaArchivo);
+            if ((esIaGeminis || esIaMistral) && esTipoMimeAdmitido)
+            {
+                return await ExtensorDeIa.ResumirFichero((IIaTiposMimesAdmitidos)ia, negocio, rutaArchivo);
+            }
+            else
+            {
+                string contenido = ApiDeArchivos.ExtraerTextoPlano(rutaArchivo);
+                return await ExtensorDeIa.ResumirContenido(ia, negocio, contenido);
+            }
         }
-        else
+        catch (Exception e)
         {
-            string contenido = ApiDeArchivos.ExtraerTextoPlano(rutaArchivo);
-            return await ExtensorDeIa.ResumirContenido(ia, negocio, contenido);
+            if (e.Message.Contains("Forbidden"))
+            {
+                GestorDeErrores.Emitir(ltrIa.Mensaje_Prohibido.Replace("[ia]", ia.GetType().Name));
+            }
+            if (e.Message.Contains("blocked"))
+            {
+                GestorDeErrores.Emitir(ltrIa.Mensaje_Bloqueado.Replace("[ia]", ia.GetType().Name));
+            }
+            throw;
         }
     }
 

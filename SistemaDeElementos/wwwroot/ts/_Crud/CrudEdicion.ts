@@ -586,7 +586,7 @@
         }
 
         private get InfoSelectorEdicion(): InfoSelector {
-            return this._infoSelectorEdicion;
+            return this.CrudDeMnt.EstoyEnMantenimiento ? this.CrudDeMnt.InfoSelector :   this._infoSelectorEdicion;
         }
 
         public get ContenedorMenu(): HTMLDivElement {

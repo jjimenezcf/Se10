@@ -50,8 +50,8 @@ namespace ServicioDeDatos.Utilidades
             var reglasEspecificas = CacheDeVariable.IA_Resetera_Filtros
             ? negocio.Resetear(enumParametrosDeNegocio.IA_Prompt_Filtro, negocio.FiltoPorDefecto())
             : negocio.Parametro(enumParametrosDeNegocio.IA_Prompt_Filtro, crearParametro: true, valorPorDefecto: negocio.FiltoPorDefecto()).Valor;
-                
-            
+
+
             var cabecera = $"{nameof(UsuarioDtm.Id)}| {nameof(UsuarioDtm.Nombre)}|{nameof(UsuarioDtm.Apellido)}|{nameof(UsuarioDtm.Login)}";
             var filas = string.Join(Environment.NewLine,
                 contexto.Set<UsuarioDtm>()
@@ -78,7 +78,7 @@ namespace ServicioDeDatos.Utilidades
             }
 
             ((IIaPromptFiltrar)ia).PromptFiltrar = IIaPromptFiltrar.Prompt.Replace(IIaPromptFiltrar.Texto, texto)
-                .Replace(IIaPromptFiltrar.ListaDeCentrosGestores, Environment.NewLine +  listaDeCg)
+                .Replace(IIaPromptFiltrar.ListaDeCentrosGestores, Environment.NewLine + listaDeCg)
                 .Replace(IIaPromptFiltrar.ListaDeTipos, Environment.NewLine + listaDeTipos)
                 .Replace(IIaPromptFiltrar.ListaDeEstados, Environment.NewLine + listaDeEstados)
                 .Replace(IIaPromptFiltrar.ListaDeTransiciones, Environment.NewLine + listaDeTransiciones)
@@ -133,7 +133,11 @@ namespace ServicioDeDatos.Utilidades
             {
                 if (e.Message.Contains("Forbidden"))
                 {
-                    GestorDeErrores.Emitir($"Si quiere usar más el botón de AI debe actualizar su usuario en el servicio '{CacheDeVariable.IA_Usada}'");
+                    GestorDeErrores.Emitir(ltrIa.Mensaje_Prohibido.Replace("[ia]", ia.GetType().Name));
+                }
+                if (e.Message.Contains("blocked"))
+                {
+                    GestorDeErrores.Emitir(ltrIa.Mensaje_Bloqueado.Replace("[ia]", ia.GetType().Name));
                 }
                 throw;
             }

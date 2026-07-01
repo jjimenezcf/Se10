@@ -12,6 +12,13 @@ namespace Utilidades
         public const string ApiKey_NoDefinida = "No definida";
         public const string Modelo_PorDefecto = "Por defecto";
         public const string Bearer = nameof(Bearer);
+
+
+        public const string Mensaje_Prohibido = "Las credencial para el uso de la AI '[ia]' está prohibida";
+        public const string Mensaje_Bloqueado = "Las credencial para el uso de la AI '[ia]' está bloqueada";
+        public const string Mensaje_ApiKey_NoDefinida = "La ApiKey para la ia '[ia]' no es válida, actualicela";
+        public const string Mensaje_Demasadas_Peticiones = "Demasadas peticiones a la ia '[ia]', actualice a una versión de pago o pruebe más adelante";
+
     }
 
     public interface IIa : IDisposable

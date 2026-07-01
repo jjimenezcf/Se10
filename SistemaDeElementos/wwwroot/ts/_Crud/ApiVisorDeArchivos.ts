@@ -79,9 +79,7 @@ namespace ApiVisorDeArchivos {
         if (!Definido(visor))
             return;
 
-        var contenedorDelVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDelVisor
-            : crud.EstoyEnMantenimiento ? crud.PanelDeArchivos
-            : crud.crudDeEdicion.ContenedorDelVisor;
+        var contenedorDelVisor = crud.ContenedorDelVisor;
         var contenedorDeDatos = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeDatos : crud.crudDeEdicion.ContenedorDeDatos;
         var contenedorCabecera = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeCabecera : crud.crudDeEdicion.ContenedorDeCabecera;
         var contenedorDeDatosMasVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeDatosMasVisor : crud.crudDeEdicion.ContenedorDeDatosMasVisor;
@@ -211,7 +209,7 @@ namespace ApiVisorDeArchivos {
 
     function obtenerElementosVisuales(crud: Crud.CrudMnt): { visor: HTMLDivElement, contenedorDelVisor } {
         const visor = crud.EstoyCreando ? crud.crudDeCreacion.DivVisor : crud.crudDeEdicion.DivVisor;
-        const contenedorDelVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDelVisor : crud.crudDeEdicion.ContenedorDelVisor;
+        const contenedorDelVisor = crud.ContenedorDelVisor;
         return { visor, contenedorDelVisor };
     }
 
