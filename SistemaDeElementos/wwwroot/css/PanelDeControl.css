@@ -123,32 +123,11 @@
 }
 
 .creando {
-    grid-template-rows: 0px 0px 0px Calc(100vh - 6.8em) 0px 0px;
+    grid-template-rows: 0px 0px 0px 1fr 0px 0px;
 }
 
 .editando {
-    grid-template-rows: 0px 0px 0px 0px Calc(100vh - 6.8em) 0px;
-}
-
-@media (max-device-width: 768px) {
-    .creando {
-        grid-template-rows: 0px 0px 0px Calc(100vh - 10em) 0px 0px;
-    }
-
-    .editando {
-        grid-template-rows: 0px 0px 0px 0px Calc(100vh - 10em) 0px;
-    }
-}
-
-
-@media (max-device-width: 1200px) and (orientation: landscape) {
-    .creando {
-        grid-template-rows: 0px 0px 0px Calc(100vh - 10em) 0px 0px;
-    }
-
-    .editando {
-        grid-template-rows: 0px 0px 0px 0px Calc(100vh - 10em) 0px;
-    }
+    grid-template-rows: 0px 0px 0px 0px 1fr 0px;
 }
 
 
