@@ -207,7 +207,7 @@ namespace GestorDeElementos.Extensores
 
         public static ClienteDtm Cliente(this IUsaCliente elemento, ContextoSe contexto, bool aplicarJoin = false)
         =>
-        elemento.Cliente != null ? elemento.Cliente : contexto.SeleccionarPorId<ClienteDtm>(elemento.IdCliente, aplicarJoin);
+        elemento.Cliente != null && elemento.Cliente.Id == elemento.IdCliente ? elemento.Cliente : contexto.SeleccionarPorId<ClienteDtm>(elemento.IdCliente, aplicarJoin);
 
         public static string NombreDeArchivadorClientes(this ClienteDtm cliente, ContextoSe contexto) => $"Datos iniciales del cliente '{cliente.Referencia(contexto)}'";
 

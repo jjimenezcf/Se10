@@ -169,5 +169,21 @@ namespace ModeloDeDto.Ventas
             )
         ]
         public decimal Abonado { get; set; }
+
+        //-----------------------------------------------------
+        [IUPropiedad(
+           Etiqueta = "Totales por cliente",
+           Ayuda = "muestra el número de facturas, importes y media por cliente",
+           TipoDeControl = enumTipoControl.AreaDeTexto,
+           EditableAlCrear = false,
+           EditableAlEditar = false,
+           NumeroDeFilas = 8,
+           CssDelArea = enumCssControles.MonoSpaceText,
+           Fila = 3,
+           Columna = 0,
+           AutoSpan = true
+            )
+        ]
+        public string TotalesPorCliente { get; set; }
     }
 }

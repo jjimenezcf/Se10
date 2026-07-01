@@ -15,11 +15,13 @@ using GestorDeElementos.Extensores;
 using ServicioDeDatos.Ventas;
 using ServicioDeDatos.Expediente;
 using System;
+using System.Text;
 using Gestor.Errores;
 using ServicioDeDatos.Gastos;
 using System.Threading.Tasks;
 using static ServicioDeDatos.Elemento.Enumerados;
 using ServicioDeDatos.RegistroEs;
+using ServicioDeDatos.Entorno;
 
 namespace GestoresDeNegocio.Tarea
 {
@@ -420,9 +422,108 @@ namespace GestoresDeNegocio.Tarea
                    $"Total en {enumDurabilidad.Jornadas.Descripcion()}: {totalJornadas.Formatear(alineacion: false)}{Environment.NewLine}" +
                    $"{enumDurabilidad.Jornadas.Descripcion()} por tarea: {(tareas.Count() == 0 ? 0.Formatear(alineacion: false) : (totalJornadas / tareas.Count()).Formatear(alineacion: false))}";
             totales.Procesados = tareas.Count();
+            totales.TotalesPorEjecutor = FormatearTotalesPorEjecutor(tareas);
+            totales.TotalesPorSolicitante = FormatearTotalesPorSolicitante(tareas);
+            totales.TotalesPorExpediente = FormatearTotalesPorExpediente(tareas);
             return totales;
         }
 
+        private string FormatearTotalesPorSolicitante(List<TareaDtm> tareas)
+        {
+            if (!tareas.Any()) return string.Empty;
+
+            var grupos = tareas
+                .SoloConRelacionada(t => t.Planificacion(Contexto, errorSiNoHay: false), plf => (plf.EnJornadas() ?? 0) > 0)
+                .AgruparPorRelacionada(t => t.Solicitante(Contexto), s => s.Nombre)
+                .AsEnumerable()
+                .Select(g => new {
+                    Nombre = g.Key,
+                    Tareas = g.Count(),
+                    TotalJornadas = g.Sum(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m),
+                    MediaJornadas = g.Average(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m)
+                })
+                .OrderByDescending(g => g.TotalJornadas)
+                .ToList();
+
+            if (!grupos.Any()) return string.Empty;
+
+            const int anchoNombre = 40;
+            const int anchoNum = 10;
+            const int anchoJornadas = 16;
+
+            var sb = new StringBuilder();
+            sb.AppendLine(
+                $"{"Solicitante".PadRight(anchoNombre)}" +
+                $"{"Tareas".PadLeft(anchoNum)}" +
+                $"{"Total Jorn.".PadLeft(anchoJornadas)}" +
+                $"{"Media Jorn.".PadLeft(anchoJornadas)}"
+            );
+            sb.AppendLine(new string('-', anchoNombre + anchoNum + anchoJornadas * 2));
+
+            foreach (var grupo in grupos)
+            {
+                var nombre = grupo.Nombre;
+                if (nombre.Length > anchoNombre) nombre = nombre.Substring(0, anchoNombre - 1) + "…";
+
+                sb.AppendLine(
+                    $"{nombre.PadRight(anchoNombre)}" +
+                    $"{grupo.Tareas.ToString().PadLeft(anchoNum)}" +
+                    $"{grupo.TotalJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}" +
+                    $"{grupo.MediaJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}"
+                );
+            }
+
+            return sb.ToString();
+        }
+
+        private string FormatearTotalesPorEjecutor(List<TareaDtm> tareas)
+        {
+            if (!tareas.Any()) return string.Empty;
+
+            var grupos = tareas
+                .SoloConRelacionada(t => t.Responsable(Contexto))
+                .SoloConRelacionada(t => t.Planificacion(Contexto, errorSiNoHay: false), plf => (plf.EnJornadas() ?? 0) > 0)
+                .AgruparPorRelacionada(t => t.Responsable(Contexto), u => u.Login)
+                .AsEnumerable()
+                .Select(g => new {
+                    Login = g.Key,
+                    Tareas = g.Count(),
+                    TotalJornadas = g.Sum(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m),
+                    MediaJornadas = g.Average(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m)
+                })
+                .OrderByDescending(g => g.TotalJornadas)
+                .ToList();
+
+            if (!grupos.Any()) return string.Empty;
+
+            const int anchoLogin = 30;
+            const int anchoNum = 10;
+            const int anchoJornadas = 16;
+
+            var sb = new StringBuilder();
+            sb.AppendLine(
+                $"{"Ejecutor".PadRight(anchoLogin)}" +
+                $"{"Tareas".PadLeft(anchoNum)}" +
+                $"{"Total Jorn.".PadLeft(anchoJornadas)}" +
+                $"{"Media Jorn.".PadLeft(anchoJornadas)}"
+            );
+            sb.AppendLine(new string('-', anchoLogin + anchoNum + anchoJornadas * 2));
+
+            foreach (var grupo in grupos)
+            {
+                var login = grupo.Login;
+                if (login.Length > anchoLogin) login = login.Substring(0, anchoLogin - 1) + "…";
+
+                sb.AppendLine(
+                    $"{login.PadRight(anchoLogin)}" +
+                    $"{grupo.Tareas.ToString().PadLeft(anchoNum)}" +
+                    $"{grupo.TotalJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}" +
+                    $"{grupo.MediaJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}" 
+                );
+            }
+
+            return sb.ToString();
+        }
 
         public static int CopiarTarea(ContextoSe contexto, Dictionary<string, object> parametros)
         {
@@ -441,6 +542,54 @@ namespace GestoresDeNegocio.Tarea
                 { ltrDeObservaciones.CreadaPorAdminSe, true }
             });
             return tareaNueva.Id;
+        }
+
+        private string FormatearTotalesPorExpediente(List<TareaDtm> tareas)
+        {
+            if (!tareas.Any()) 
+                return string.Empty;
+
+            var grupos = tareas
+                .SoloConRelacionada(t => t.Planificacion(Contexto, errorSiNoHay: false), plf => (plf.EnJornadas() ?? 0) > 0)
+                .AgruparPorVinculos(t => t.Vinculados<ExpedienteDtm>(Contexto), e => e.Referencia)
+                .Select(g => new {
+                    Referencia = g.Key,
+                    Tareas = g.Count(),
+                    TotalJornadas = g.Sum(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m),
+                    MediaJornadas = g.Average(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m)
+                })
+                .OrderByDescending(g => g.TotalJornadas)
+                .ToList();
+
+            if (!grupos.Any()) return string.Empty;
+
+            const int anchoRef = 30;
+            const int anchoNum = 10;
+            const int anchoJornadas = 16;
+
+            var sb = new StringBuilder();
+            sb.AppendLine(
+                $"{"Expediente".PadRight(anchoRef)}" +
+                $"{"Tareas".PadLeft(anchoNum)}" +
+                $"{"Total Jorn.".PadLeft(anchoJornadas)}" +
+                $"{"Media Jorn.".PadLeft(anchoJornadas)}"
+            );
+            sb.AppendLine(new string('-', anchoRef + anchoNum + anchoJornadas * 2));
+
+            foreach (var grupo in grupos)
+            {
+                var ref_ = grupo.Referencia ?? "Sin expediente";
+                if (ref_.Length > anchoRef) ref_ = ref_.Substring(0, anchoRef - 1) + "…";
+
+                sb.AppendLine(
+                    $"{ref_.PadRight(anchoRef)}" +
+                    $"{grupo.Tareas.ToString().PadLeft(anchoNum)}" +
+                    $"{grupo.TotalJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}" +
+                    $"{grupo.MediaJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}"
+                );
+            }
+
+            return sb.ToString();
         }
     }
 

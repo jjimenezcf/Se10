@@ -104,4 +104,45 @@ namespace GestorDeElementos
             }
         }
     }
+
+    public static class FiltrarYAgruparPorRelacionada
+    {
+        // Mantiene solo los elementos que tienen una entidad relacionada no nula que cumple el predicado opcional.
+        // Uso: tareas.SoloConRelacionada(t => t.Planificacion(ctx, false), plf => plf.EnJornadas() > 0)
+        public static IQueryable<T> SoloConRelacionada<T, TRelacionada>(this IEnumerable<T> elementos, Func<T, TRelacionada> obtenerRelacionada, Func<TRelacionada, bool> predicado = null)
+        where TRelacionada : class
+        {
+            return elementos.Where(t => {
+                var rel = obtenerRelacionada(t);
+                return rel != null && (predicado == null || predicado(rel));
+            }).AsQueryable();
+        }
+
+        // Agrupa elementos por una clave derivada de una entidad relacionada (descarta los que no tienen relacionada).
+        // Uso: tareas.AgruparPorRelacionada(t => t.Responsable(ctx), u => u.Login)
+        public static IQueryable<IGrouping<TKey, T>> AgruparPorRelacionada<T, TRelacionada, TKey>(this IQueryable<T> elementos, Func<T, TRelacionada> obtenerRelacionada, Func<TRelacionada, TKey> selectorClave)
+        where TRelacionada : class
+        where TKey : notnull
+        {
+            return elementos
+                .Where(t => obtenerRelacionada(t) != null)
+                .GroupBy(t => selectorClave(obtenerRelacionada(t)));
+        }
+
+        // Agrupa elementos por vínculos muchos-a-muchos: cada elemento puede aparecer en varios grupos.
+        // Uso: tareas.AgruparPorVinculos(t => t.Vinculados<ExpedienteDtm>(ctx), e => e.Referencia)
+        public static IEnumerable<IGrouping<TKey, T>> AgruparPorVinculos<T, TVinculado, TKey>(
+            this IEnumerable<T> elementos,
+            Func<T, IEnumerable<TVinculado>> obtenerVinculados,
+            Func<TVinculado, TKey> selectorClave)
+        where TVinculado : class
+        where TKey : notnull
+        {
+            return elementos
+                .SelectMany(t => obtenerVinculados(t)
+                    .Where(v => v != null)
+                    .Select(v => (clave: selectorClave(v), elemento: t)))
+                .GroupBy(par => par.clave, par => par.elemento);
+        }
+    }
 }

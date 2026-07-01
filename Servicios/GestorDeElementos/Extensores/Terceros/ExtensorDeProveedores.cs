@@ -205,7 +205,7 @@ namespace GestorDeElementos.Extensores
 
         public static ProveedorDtm Proveedor(this IUsaProveedor elemento, ContextoSe contexto, bool aplicarJoin = false)
         {
-            if (elemento.Proveedor == null)
+            if (elemento.Proveedor == null || elemento.Proveedor.Id != elemento.IdProveedor)
                 elemento.Proveedor = contexto.SeleccionarPorId<ProveedorDtm>(elemento.IdProveedor, aplicarJoin: aplicarJoin);
             else
             {

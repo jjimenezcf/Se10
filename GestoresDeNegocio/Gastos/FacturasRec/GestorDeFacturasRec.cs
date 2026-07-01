@@ -1201,7 +1201,7 @@ namespace GestoresDeNegocio.Gastos
 
             var nombrePorProveedor = facturas
                 .GroupBy(f => f.IdProveedor)
-                .ToDictionary(g => g.Key, g => g.First().Proveedor?.Nombre ?? $"Proveedor {g.Key}");
+                .ToDictionary(g => g.Key, g => g.First().Proveedor(Contexto).Nombre);
 
             const int anchoNombre = 40;
             const int anchoNum = 10;
@@ -1215,7 +1215,8 @@ namespace GestoresDeNegocio.Gastos
                 $"{"IVA".PadLeft(anchoImporte)}" +
                 $"{"IRPF".PadLeft(anchoImporte)}" +
                 $"{"A pagar".PadLeft(anchoImporte)}" +
-                $"{"Media BI".PadLeft(anchoImporte)}"
+                $"{"Media BI".PadLeft(anchoImporte)}" +
+                $"   "
             );
             sb.AppendLine(new string('-', anchoNombre + anchoNum + anchoImporte * 5));
 
@@ -1239,7 +1240,8 @@ namespace GestoresDeNegocio.Gastos
                     $"{ivaIrpf.iva.ToString("N2").PadLeft(anchoImporte)}" +
                     $"{ivaIrpf.irpf.ToString("N2").PadLeft(anchoImporte)}" +
                     $"{sumaPagar.ToString("N2").PadLeft(anchoImporte)}" +
-                    $"{mediaBi.ToString("N2").PadLeft(anchoImporte)}"
+                    $"{mediaBi.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"   "
                 );
             }
 

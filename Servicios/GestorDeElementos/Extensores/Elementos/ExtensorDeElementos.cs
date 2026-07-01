@@ -1100,11 +1100,13 @@ namespace GestorDeElementos.Extensores
             if (!elemento.GetType().ImplementaPuedeUsarResponsable())
                 return null;
 
-            if (((IPuedeUsarResponsable)elemento).Responsable is not null)
-                return ((IPuedeUsarResponsable)elemento).Responsable;
-
             if (((IPuedeUsarResponsable)elemento).IdResponsable is null)
                 return null;
+
+            if (((IPuedeUsarResponsable)elemento).Responsable is not null &&   
+                ((IPuedeUsarResponsable)elemento).Responsable.Id == ((IPuedeUsarResponsable)elemento).IdResponsable)
+                return ((IPuedeUsarResponsable)elemento).Responsable;
+
 
             ((IPuedeUsarResponsable)elemento).Responsable = contexto.SeleccionarPorId<UsuarioDtm>((int)((IPuedeUsarResponsable)elemento).IdResponsable);
             return ((IPuedeUsarResponsable)elemento).Responsable;

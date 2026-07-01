@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Utilidades;
 using static ServicioDeDatos.Elemento.Enumerados;
@@ -1272,7 +1273,85 @@ namespace GestoresDeNegocio.Ventas
 
 
             totales.Procesados = facturas.Count();
+            totales.TotalesPorCliente = FormatearTotalesPorCliente(facturas);
             return totales;
+        }
+
+        private string FormatearTotalesPorCliente(List<FacturaEmtDtm> facturas)
+        {
+            if (!facturas.Any()) return string.Empty;
+
+            var agrupacion = new AgrupacionDeTotales(
+                new List<string> { nameof(FacturaEmtDtm.IdCliente) },
+                new List<MetricaDeTotales>
+                {
+                    new MetricaDeTotales(enumOperacionDeTotales.Cuenta, "", "Facturas"),
+                }
+            );
+
+            var bloques = facturas.AsQueryable().ObtenerTotalesAgrupados(
+                new List<AgrupacionDeTotales> { agrupacion },
+                null
+            );
+
+            // Todos los importes son calculados vía extensores: se agregan con LINQ
+            var importesPorCliente = facturas
+                .GroupBy(f => f.IdCliente)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (
+                        bi: g.Sum(f => f.Bi(Contexto)),
+                        iva: g.Sum(f => f.TotalDeIva(Contexto)),
+                        irpf: g.Sum(f => f.TotalDeIrpf(Contexto)),
+                        pagar: g.Sum(f => f.APagar(Contexto)),
+                        mediaBi: g.Average(f => f.Bi(Contexto))
+                    )
+                );
+
+            var nombrePorCliente = facturas
+                .GroupBy(f => f.IdCliente)
+                .ToDictionary(g => g.Key, g => g.First().Cliente(Contexto).Nombre);
+
+            const int anchoNombre = 40;
+            const int anchoNum = 10;
+            const int anchoImporte = 14;
+
+            var sb = new StringBuilder();
+            sb.AppendLine(
+                $"{"Cliente".PadRight(anchoNombre)}" +
+                $"{"Facturas".PadLeft(anchoNum)}" +
+                $"{"Base Imp.".PadLeft(anchoImporte)}" +
+                $"{"IVA".PadLeft(anchoImporte)}" +
+                $"{"IRPF".PadLeft(anchoImporte)}" +
+                $"{"A cobrar".PadLeft(anchoImporte)}" +
+                $"{"Media BI".PadLeft(anchoImporte)}" +
+                $"   "
+            );
+            sb.AppendLine(new string('-', anchoNombre + anchoNum + anchoImporte * 5));
+
+            foreach (var fila in bloques[0].Filas.OrderByDescending(f => importesPorCliente.TryGetValue(Convert.ToInt32(f.Claves[nameof(FacturaEmtDtm.IdCliente)]), out var imp) ? imp.bi : 0m))
+            {
+                var idCliente = Convert.ToInt32(fila.Claves[nameof(FacturaEmtDtm.IdCliente)]);
+                var nombre = nombrePorCliente.TryGetValue(idCliente, out var n) ? n : $"ID {idCliente}";
+                importesPorCliente.TryGetValue(idCliente, out var importes);
+
+                var numFact = Convert.ToInt32(fila.Totales["Facturas"]);
+
+                if (nombre.Length > anchoNombre) nombre = nombre.Substring(0, anchoNombre - 1) + "…";
+
+                sb.AppendLine(
+                    $"{nombre.PadRight(anchoNombre)}" +
+                    $"{numFact.ToString().PadLeft(anchoNum)}" +
+                    $"{importes.bi.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{importes.iva.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{importes.irpf.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{importes.pagar.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{importes.mediaBi.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"   "
+                );
+            }
+
+            return sb.ToString();
         }
 
         public void GenerarPreasiento(List<int> ids)
