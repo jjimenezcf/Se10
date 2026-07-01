@@ -495,11 +495,17 @@
 
         private _estoyMostrandoHistorial = false;
         public get EstoyMostrandoHistorial(): boolean {
-            return this._estoyMostrandoHistorial;
+            return !this.EsModal ? this._estoyMostrandoHistorial : false;
         }
         public set EstoyMostrandoHistorial(valor: boolean) {
+            if (this.EsModal) {
+                this._estoyMostrandoHistorial = false;
+                return;
+            }
+
             this._estoyMostrandoHistorial = valor
-            if (!valor && !ApiControl.EsVisible(this.BotonVisor)) this.OcultameElVisor();
+            if (!valor && Definido(this.BotonVisor) && !ApiControl.EsVisible(this.BotonVisor))
+                this.OcultameElVisor();
         }
 
         public get PanelDeEditar(): HTMLDivElement {
@@ -586,7 +592,7 @@
         }
 
         private get InfoSelectorEdicion(): InfoSelector {
-            return this.CrudDeMnt.EstoyEnMantenimiento ? this.CrudDeMnt.InfoSelector :   this._infoSelectorEdicion;
+            return this.CrudDeMnt.EstoyEnMantenimiento ? this.CrudDeMnt.InfoSelector : this._infoSelectorEdicion;
         }
 
         public get ContenedorMenu(): HTMLDivElement {
@@ -1636,7 +1642,7 @@
                 MensajesSe.Error("SiHayErrorAlLeerElemento", peticion.resultado.mensaje, peticion.resultado.consola);
             else
                 MensajesSe.Error("SiHayErrorAlLeerElemento", 'error al acceder a los datos', "No se ha podido resolver la petición para obtener los datos");
-            if (!this.PaginaDeConsultaConGuid) {
+            if (!this.PaginaDeConsultaConGuid && Definido(edicion)) {
                 edicion.ModoDeAcceso = ModoAcceso.enumModoDeAccesoDeDatos.SinPermiso;
                 edicion.CrudDeMnt.BlanquearTodosLosCheck();
                 edicion.CerrarEdicion();
@@ -2108,7 +2114,7 @@
             EntornoSe.AbrirPestana(url);
         }
 
-        public Expansor_MostrarPropiedad(idGrid: string, fila: number, propiedad: string, titulo:string): void {
+        public Expansor_MostrarPropiedad(idGrid: string, fila: number, propiedad: string, titulo: string): void {
             const valor = this.Expansor_ObtenerPropiedad(idGrid, fila, propiedad);
 
             // Usamos /\|/g para que reemplace todas las ocurrencias, no solo la primera
