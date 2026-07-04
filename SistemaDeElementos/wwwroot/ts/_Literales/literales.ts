@@ -488,8 +488,7 @@ const ltrControladores = {
         Trazas: 'Trazas',
         Archivadores: 'Archivadores',
         Observaciones: 'Observaciones',
-        Hitos: 'Hitos',
-        Base: 'Base'
+        Hitos: 'Hitos'
     },
     SisDoc: {
         Archivos: 'Archivos',
@@ -1054,6 +1053,9 @@ const ltrCss = {
         cuerpoSoloConGrid: 'cuerpo-solo-con-grid',
         cabecera: 'cuerpo-cabecera',
         datos: 'cuerpo-datos',
+        filtro: {
+            expansor:'div-mnt-filtro-expansor'
+        },
         grid: {
             filto: 'cuerpo-datos-filtro',
             grid: 'cuerpo-datos-grid',
@@ -1201,6 +1203,7 @@ const ltrCss = {
             // botón cambio de modo (tarta / barras / matriz)
             GraficaModo: 'grafica-modo',
             // botones de movimiento (flechas)
+            GraficaPreguntar: 'grafica-preguntar',
             GraficaMover: 'grafica-mover',
             GraficaMoverDer: 'grafica-mover-der',
             GraficaMoverIzq: 'grafica-mover-izq',
@@ -1389,6 +1392,10 @@ const Ajax = {
         NoMostrar: 'no_mostrar'
     },
     Entorno: {
+        Ia: {
+            controlador: ltrControladores.Comunes.Home,
+            PregutaConConteo: 'epPreguntaParaLaIa',
+        },
         MiCorreo: {
             controlador: ltrControladores.Entorno.MiCorreo,
             PeticionDeAcceso: 'epPeticionDeAcceso',

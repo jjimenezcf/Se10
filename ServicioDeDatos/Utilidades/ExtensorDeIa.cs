@@ -93,7 +93,7 @@ namespace ServicioDeDatos.Utilidades
             try
             {
                 contexto.AnotarTraza($"Prompt: {texto}", ((IIaPromptFiltrar)ia).PromptFiltrar);
-                var json = await ia.AnalizarTextoParaFiltros(texto);
+                var json = await ((IIaPromptFiltrar)ia).AnalizarTextoParaFiltros(texto);
                 contexto.AnotarTraza($"Json de respuesta: {texto}", json);
                 return json;
             }
@@ -101,6 +101,59 @@ namespace ServicioDeDatos.Utilidades
             {
                 contexto.CerrarTraza();
             }
+        }
+
+        public async static Task<string> AnalizarPreguntaDeConteo(ContextoSe contexto, enumNegocio negocio, IIa ia, string texto, string listaDeCg, string listaDeTipos, string listaDeEstados, string etapas, string listaDePropiedades, string listaDeTransiciones, string historial = null)
+        {
+            if (!ApiDeEnsamblados.ImplementaInterface(ia.GetType(), typeof(IIaPromptConteo).FullName))
+                GestorDeErrores.Emitir($"La IA {ia.GetType().Name} no implementa {nameof(IIaPromptConteo)}");
+
+            var reglasEspecificas = CacheDeVariable.IA_Resetera_Filtros
+                ? negocio.Resetear(enumParametrosDeNegocio.IA_Prompt_Filtro, negocio.FiltoPorDefecto())
+                : negocio.Parametro(enumParametrosDeNegocio.IA_Prompt_Filtro, crearParametro: true, valorPorDefecto: IIaPromptConteo.SinReglas).Valor;
+
+            var modeloDeDatos = negocio.Parametro(enumParametrosDeNegocio.IA_Prompt_Modelo, crearParametro: true, valorPorDefecto: negocio.ModeloDeDatosDefault()).Valor;
+
+            // Construir la lista de usuarios (igual que en AnalizarTextoParaFiltros)
+            var cabecera = $"{nameof(UsuarioDtm.Id)}| {nameof(UsuarioDtm.Nombre)}|{nameof(UsuarioDtm.Apellido)}|{nameof(UsuarioDtm.Login)}";
+            var filas = string.Join(Environment.NewLine,
+                contexto.Set<UsuarioDtm>()
+                        .Select(x => new { x.Id, x.Nombre, x.Apellido, x.Login })
+                        .ToList()
+                        .Select(x => $"{x.Id}|{x.Nombre}|{x.Apellido}|{x.Login}"));
+            var listaUsuarios = $"{cabecera}{Environment.NewLine}{filas}";
+
+            // Componer el prompt de filtros completo (R1-R11 + datos) para usarlo como reglas de filtrado conocidas
+            var promptFiltroCompleto = IIaPromptFiltrar.Prompt
+                .Replace(IIaPromptFiltrar.Texto,                  texto)
+                .Replace(IIaPromptFiltrar.NegocioTratado,         negocio.Plural())
+                .Replace(IIaPromptFiltrar.FechaDeHoy,             extFechas.FechaFormatoIso8601(DateTime.Now))
+                .Replace(IIaPromptFiltrar.ListaDeCentrosGestores, Environment.NewLine + listaDeCg)
+                .Replace(IIaPromptFiltrar.ListaDeTipos,           Environment.NewLine + listaDeTipos)
+                .Replace(IIaPromptFiltrar.ListaDeEstados,         Environment.NewLine + listaDeEstados)
+                .Replace(IIaPromptFiltrar.ListaDeTransiciones,    Environment.NewLine + listaDeTransiciones)
+                .Replace(IIaPromptFiltrar.ListaDeUsuarios,        Environment.NewLine + listaUsuarios)
+                .Replace(IIaPromptFiltrar.ListaDeEtapas,          Environment.NewLine + etapas)
+                .Replace(IIaPromptFiltrar.ReglasEspecíficas,      Environment.NewLine + reglasEspecificas)
+                .Replace(IIaPromptFiltrar.HistorialDeSesion,      string.Empty);
+
+            ((IIaPromptConteo)ia).PromptConteo = IIaPromptConteo.Prompt
+                .Replace(IIaPromptConteo.Texto,                  texto)
+                .Replace(IIaPromptConteo.NegocioTratado,         negocio.Plural())
+                .Replace(IIaPromptConteo.FechaDeHoy,             extFechas.FechaFormatoIso8601(DateTime.Now))
+                .Replace(IIaPromptConteo.ListaDeCentrosGestores, Environment.NewLine + listaDeCg)
+                .Replace(IIaPromptConteo.ListaDeTipos,           Environment.NewLine + listaDeTipos)
+                .Replace(IIaPromptConteo.ListaDeEstados,         Environment.NewLine + listaDeEstados)
+                .Replace(IIaPromptConteo.ListaDeEtapas,          Environment.NewLine + etapas)
+                .Replace(IIaPromptConteo.ListaDePropiedades,     Environment.NewLine + listaDePropiedades)
+                .Replace(IIaPromptConteo.ModeloDeDatos,          Environment.NewLine + modeloDeDatos)
+                .Replace(IIaPromptConteo.ReglasEspecíficas,      Environment.NewLine + promptFiltroCompleto)
+                .Replace(IIaPromptConteo.HistorialDeSesion,      string.IsNullOrEmpty(historial) ? "(Sin preguntas anteriores)" : historial);
+
+                contexto.AnotarTraza($"Prompt conteo: {texto}", ((IIaPromptConteo)ia).PromptConteo);
+                var json = await  ((IIaPromptConteo)ia).AnalizarPreguntaDeConteo(texto);
+                contexto.AnotarTraza($"Json de conteo: {texto}", json);
+                return json;
         }
 
         public async static Task<string> ProcesarFactura(int idArchivo, string rutaArchivo, IIa ia, ProcesadorOcr.ProcesadorOcr procesadorOcr)

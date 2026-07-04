@@ -259,9 +259,5 @@ namespace Utilidades
             _cliente?.Dispose();
         }
 
-        public Task<string> AnalizarTextoParaFiltros(string origen)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

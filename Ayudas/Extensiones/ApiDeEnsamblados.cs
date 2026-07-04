@@ -61,6 +61,7 @@ namespace Utilidades
         public static readonly string Clase_GestorDeArchivos = $"{GestoresDeNegocio}.{SistemaDocumental}.{GestorDeArchivos}";
 
         public static readonly string DescriptorDeConsultaDeTareas = NameSpaceDescriptores + "." + enumVistasAdministrativo.DescriptorDeConsultaDeTarea;
+        public static readonly string AgrupadosDeTareas = "GestoresDeNegocio.Tarea.AgrupadosDeTareas";
         public static readonly string DescriptorDeConsultaDeInfantes = NameSpaceDescriptores + "." + enumVistasGuarderias.DescriptorDeConsultaDeInfante;
         public static readonly string DescriptorDeConsultaDeCad = NameSpaceDescriptores + "." + enumVistasSistemaDocumental.DescriptorDeConsultaDeCad;
 

@@ -47,6 +47,28 @@ namespace ServicioDeDatos.Gastos
 
     public static class VariableDePagos
     {
+        internal static readonly string IA_Modelo_de_datos = @"
+## MODELO DE DATOS ESPECÍFICO: PagoDtm
+
+### Propiedades específicas de PagoDtm:
+| Propiedad    | Tipo       | Descripción                                                  |
+|--------------|------------|--------------------------------------------------------------|
+| IdSolicitante| int?       | ID del solicitante del pago (→ InterlocutorDtm)              |
+| IdProveedor  | int?       | ID del proveedor a pagar (→ TerceroDtm)                      |
+| IdCliente    | int?       | ID del cliente relacionado (→ TerceroDtm)                    |
+| IdTrabajador | int?       | ID del trabajador (→ TerceroDtm)                             |
+| Importe      | decimal    | Importe a pagar                                              |
+| PagarEl      | DateTime?  | Fecha prevista de pago                                       |
+| PagadoEl     | DateTime?  | Fecha real en que se realizó el pago                         |
+| IdFacturaRec | int?       | ID de la factura recibida asociada (→ FacturaRecDtm)         |
+| Clase        | enum       | Clase o tipo de pago (Contado, Transferencia, Remesa...)     |
+
+### Objetos relacionados adicionales:
+- **TerceroDtm** (`IdProveedor`, `IdCliente`, `IdTrabajador`): `Id`, `Nombre`, `Nif`
+- **FacturaRecDtm** (`IdFacturaRec`): factura recibida que origina el pago
+- **RemesaDePagosDtm**: remesa a la que puede pertenecer este pago
+";
+
         private static string etapaPendiente => enumNegocio.Pago.Parametro(enumEtapasDePagos.PAG_Etapa_Pendiente)?.Valor ?? null;
         private static string etapaDePagado => enumNegocio.Pago.Parametro(enumEtapasDePagos.PAG_Etapa_Pagado)?.Valor ?? null;
         private static string etapaRemesada => enumNegocio.Pago.Parametro(enumEtapasDePagos.PAG_Etapa_Remesado)?.Valor ?? null;

@@ -41,8 +41,6 @@ namespace Utilidades
 
         public Task<string> AnalizarFactura(string origen);
 
-        public Task<string> AnalizarTextoParaFiltros(string origen);
-
     }
 
     public interface IIaPromptFactura
@@ -443,6 +441,118 @@ El modelo debe mapear los conceptos del usuario (ej: ""pagada"", ""pendiente"") 
 Preguntas anteriores
 [HistorialDeSesion]
 "";";
+        public Task<string> AnalizarTextoParaFiltros(string origen);
+    }
+
+    public interface IIaPromptConteo
+    {
+        public const string ListaDeCentrosGestores = "[ListaDeCentrosGestores]";
+        public const string ListaDeTipos           = "[ListaDeTipos]";
+        public const string ListaDeEstados         = "[ListaDeEstados]";
+        public const string ListaDeEtapas          = "[ListaDeEtapas]";
+        public const string ListaDePropiedades     = "[ListaDePropiedades]";
+        public const string NegocioTratado         = "[NegocioTratado]";
+        public const string FechaDeHoy             = "[FechaDeHoy]";
+        public const string Texto                  = "[Texto]";
+        public const string ReglasEspecíficas      = "[ReglasEspecíficas]";
+        public const string ModeloDeDatos          = "[ModeloDeDatos]";
+        public const string HistorialDeSesion      = "[HistorialDeSesion]";
+
+        public string PromptConteo { get; set; }
+
+        public static readonly string SinReglas = "Sin reglas específicas";
+
+        public static readonly string Prompt = @"# PROMPT DE ANÁLISIS DE PREGUNTAS DE CONTEO Y AGREGACIÓN
+
+**ROL:**
+Eres un experto en análisis de datos estructurados. Tu objetivo es interpretar una pregunta en lenguaje natural sobre conteos o agregaciones y devolver un objeto JSON con tres partes: los filtros a aplicar, las propiedades por las que agrupar y las métricas a calcular.
+
+---
+
+## ESTRUCTURA DE RESPUESTA (devuelve ÚNICAMENTE este JSON):
+```json
+{
+  ""filtros"": [ { ""Clausula"": ""string"", ""Criterio"": ""string"", ""Valor"": ""string"" } ],
+  ""agruparPor"": [ ""PropiedadDtm"" ],
+  ""metricas"": [ { ""Operacion"": ""string"", ""Campo"": ""string"", ""Alias"": ""string"" } ]
+}
+```
+
+---
+
+## REGLAS DE FILTROS:
+Aplica las mismas reglas que conoces para filtros estándar:
+- Tipos → `{ ""Clausula"": ""IdTipo"", ""Criterio"": ""igual""|""esAlgunoDe"", ""Valor"": ""id(s)"" }`
+- Estados actuales (presente: ""están en"", ""son"") → `{ ""Clausula"": ""IdEstado"", ""Criterio"": ""igual""|""esAlgunoDe"", ""Valor"": ""id(s)"" }`
+- Etapas actuales (presente: ""están en etapa"", ""que sean"") → `{ ""Clausula"": ""FiltroPorEtapa"", ""Criterio"": ""igual"", ""Valor"": ""NombreEtapa"" }`
+- Estados históricos (pasado: ""han estado"", ""estuvieron"", ""pasaron por"") → `{ ""Clausula"": ""IdsDeEstado"", ""Criterio"": ""esAlgunoDe"", ""Valor"": ""id(s)"" }`. Si se menciona un período, añade también `{ ""Clausula"": ""FechasDeEstado"", ""Criterio"": ""entreFechas"", ""Valor"": ""inicio-fin"" }`.
+- Centros gestores → `{ ""Clausula"": ""IdCg"", ""Criterio"": ""igual""|""esAlgunoDe"", ""Valor"": ""id(s)"" }`
+- Si no hay filtros, devuelve `[]`.
+
+---
+
+## REGLAS DE AGRUPACIÓN (`agruparPor`):
+Lista de nombres de propiedades del DTM por las que agrupar. Usa los nombres exactos de `CONTEXTO DE DATOS :: Propiedades disponibles`.
+- Si la pregunta dice ""por tipo"" o ""de cada tipo"" → incluye `""IdTipo""`
+- Si la pregunta dice ""por estado"" → incluye `""IdEstado""`
+- Si la pregunta dice ""por etapa"" o ""por situación"" → incluye `""IdEstado""` (los estados representan la etapa actual)
+- Si la pregunta dice ""por centro gestor"" o ""por CG"" → incluye `""IdCg""`
+- Si la pregunta pide un total global sin desglose → devuelve `[]`
+- Puede haber más de una propiedad de agrupación si la pregunta lo indica (ej: ""por tipo y por CG"")
+
+---
+
+## REGLAS DE MÉTRICAS (`metricas`):
+Operaciones disponibles: `Cuenta`, `Suma`, `Media`, `Max`, `Min`.
+- **Contar** (""cuántas"", ""número de"", ""total de elementos"") → `{ ""Operacion"": ""Cuenta"", ""Campo"": """", ""Alias"": ""Cantidad"" }`
+- **Sumar** una propiedad numérica → `{ ""Operacion"": ""Suma"", ""Campo"": ""NombrePropiedadDtm"", ""Alias"": ""descripcion"" }`
+- **Media / promedio** → `{ ""Operacion"": ""Media"", ""Campo"": ""NombrePropiedadDtm"", ""Alias"": ""descripcion"" }`
+- **Máximo / mínimo** → `{ ""Operacion"": ""Max""|""Min"", ""Campo"": ""NombrePropiedadDtm"", ""Alias"": ""descripcion"" }`
+- Si la pregunta solo cuenta sin indicar campo numérico → incluye solo la métrica `Cuenta`.
+- Usa los nombres de campo de `CONTEXTO DE DATOS :: Propiedades disponibles`.
+- Si se pide una métrica sobre un campo calculado (no listado en propiedades) → usa el valor EXACTO indicado en `CONTEXTO DE DATOS :: Modelo de datos` bajo la sección de métodos calculados (p. ej. `""Campo"": ""calculado:EnHoras""`). Nunca inventes el nombre del campo calculado.
+- **Tiempo en estados (historial):** cuando se pregunte el tiempo que los elementos han permanecido en estados:
+  - Si se agrupa por `IdEstado` (""por estado"", ""de cada estado"") → usa `""Campo"": ""calculado:TiempoEnEstado""` (sin IDs). Calcula el tiempo de cada elemento en su estado actual. El filtro de exclusión de estados usa `IdEstado` con `noEsNingunoDe`, nunca `IdsDeEstado`.
+  - Si NO se agrupa por estado y se piden estados concretos → usa `""Campo"": ""calculado:TiempoEnEstado:id1,id2,...""`con los IDs exactos de `CONTEXTO DE DATOS :: Estados`.
+  - El resultado se expresa en días (decimal). Ejemplo: estado ""En proceso"" ID 5 → `""calculado:TiempoEnEstado:5""`.
+- **Tiempo desde creación hasta llegar a un estado (ciclo de vida):** cuando se pregunte cuánto tardó un elemento desde que se creó/pidió hasta alcanzar un estado concreto (ej: ""tiempo hasta que se termina"", ""cuánto tarda en completarse"", ""tiempo desde que se pide hasta que se termina""):
+  - Usa `""Campo"": ""calculado:TiempoHastaEstado:id1,id2,...""`con los IDs de los estados destino de `CONTEXTO DE DATOS :: Estados`.
+  - El resultado es `fechaEntradaAlEstado − fechaCreación`, expresado en días (decimal).
+  - Ejemplo: ""tiempo hasta terminada"" con Terminada ID 7 y 27 → `""calculado:TiempoHastaEstado:7,27""`
+  - IMPORTANTE: este campo NO agrupa por `IdEstado`; se agrupa por la propiedad solicitada (ej: solicitante, tipo, CG).
+
+---
+
+## REGLAS TRANSVERSALES:
+- Devuelve **ÚNICAMENTE** el objeto JSON. Sin explicaciones, sin markdown.
+- Si la pregunta es ambigua, prioriza la interpretación más útil.
+- Los IDs numéricos de tipos/estados/CGs se obtienen de `CONTEXTO DE DATOS`.
+
+---
+
+## CONTEXTO DE DATOS:
+- **Negocio tratado:** [NegocioTratado]
+- **Fecha de hoy:** [FechaDeHoy]
+- **Centros Gestores (ID | Nombre):** [ListaDeCentrosGestores]
+- **Tipos (ID | Nombre):** [ListaDeTipos]
+- **Estados (ID | Nombre | Inicial | Terminado | Cancelado):** [ListaDeEstados]
+- **Etapas (Nombre | Descripción):** [ListaDeEtapas]
+- **Propiedades disponibles para métricas/agrupación:** [ListaDePropiedades]
+- **Modelo de datos del negocio:** [ModeloDeDatos]
+- **Reglas específicas del negocio:** [ReglasEspecíficas]
+
+---
+
+## PREGUNTAS ANTERIORES (contexto de conversación):
+[HistorialDeSesion]
+
+---
+
+## TEXTO A ANALIZAR:
+[Texto]
+";
+
+        public Task<string> AnalizarPreguntaDeConteo(string origen);
     }
 
     public interface IIaTiposMimesAdmitidos

@@ -101,6 +101,13 @@ namespace PanelDeControl {
         <rect x="1" y="11" width="12" height="3" opacity="0.25"/>
     </svg>`;
 
+    const SVG_PREGUNTA = `<svg width="11" height="11" viewBox="0 0 14 14" fill="none"
+        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="7" cy="7" r="6"/>
+        <path d="M5.2,5.2 a1.8,1.8 0 1,1 1.8,1.8 v1.2"/>
+        <circle cx="7" cy="11" r="0.5" fill="currentColor" stroke="none"/>
+    </svg>`;
+
     const SVG_FLECHA_DER = `<svg width="10" height="10" viewBox="0 0 10 10"
         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3,1 7,5 3,9"/>
@@ -174,6 +181,13 @@ namespace PanelDeControl {
                 GuardarDisposicion();
             });
 
+            // ── ? Pregunta IA ──
+            const btnPregunta = document.createElement('button');
+            btnPregunta.className = css.GraficaPreguntar;
+            btnPregunta.title = 'Hacer una pregunta';
+            btnPregunta.innerHTML = SVG_PREGUNTA;
+            ApiPreguntasIa.InyectarConteoIA(negocio.enumerado, negocio.nombre, btnPregunta);
+
             // ── → Mover derecha ──
             const btnDer = document.createElement('button');
             btnDer.className = `${css.GraficaMover} ${css.GraficaMoverDer}`;
@@ -217,6 +231,7 @@ namespace PanelDeControl {
 
             tarjeta.appendChild(btnCerrar);
             tarjeta.appendChild(btnModo);
+            tarjeta.appendChild(btnPregunta);
             tarjeta.appendChild(btnDer);
             tarjeta.appendChild(btnIzq);
             tarjeta.appendChild(titulo);

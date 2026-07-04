@@ -56,6 +56,7 @@ namespace GestorDeElementos
         public Type TipoParametros { get; set; }
 
         public Type DescriptoDeConsultas { get; set; } = null;
+        public Type TipoDeAgregados     { get; set; } = null;
     }
 
     public enum enumParametroDeNegocio
@@ -411,7 +412,8 @@ namespace GestorDeElementos
             EstadosDeLaEtapa = etapa => VariablesDeTareas.Lista((enumEtapasDeTareas)etapa),
             PlantillasPorTipoDtm = null,
             ClasesDelTipoDtm = typeof(ClaseDelTipoTareaDtm),
-            DescriptoDeConsultas = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelSistemaDeElementos, ApiDeEnsamblados.DescriptorDeConsultaDeTareas, emitirError: false)
+            DescriptoDeConsultas = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelSistemaDeElementos, ApiDeEnsamblados.DescriptorDeConsultaDeTareas, emitirError: false),
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio,ApiDeEnsamblados.AgrupadosDeTareas, emitirError: false)
         };
 
         public static Metadatos MetadatosDePleitos() => new Metadatos

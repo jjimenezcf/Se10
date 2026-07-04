@@ -150,6 +150,43 @@ namespace ServicioDeDatos.Tarea
 
 ";
 
+        internal static readonly string IA_Modelo_de_datos = @"
+## MODELO DE DATOS ESPECÍFICO: TareaDtm
+
+### Propiedades específicas de TareaDtm:
+| Propiedad      | Tipo       | Descripción                                                  |
+|----------------|------------|--------------------------------------------------------------|
+| IdSolicitante  | int?       | ID del solicitante principal (→ InterlocutorDtm)             |
+| IdResponsable  | int?       | ID del usuario responsable (→ UsuarioDtm)                    |
+| IdFacturaEmt   | int?       | ID de la factura emitida asociada (→ FacturaEmtDtm)          |
+| ClaseDeTarea   | enum       | Clase o categoría interna de la tarea                        |
+
+### Objeto de planificación: PlfDeTareaDtm (acceso: tarea.Planificacion)
+| Propiedad  | Tipo      | Descripción                                  |
+|------------|-----------|----------------------------------------------|
+| PlfDeInicio| DateTime? | Fecha/hora de inicio planificado              |
+| PlfDeFin   | DateTime? | Fecha/hora de fin planificado                 |
+| Iniciada   | DateTime? | Fecha/hora real de inicio                     |
+| Finalizada | DateTime? | Fecha/hora real de finalización               |
+| Duracion   | decimal   | Duración calculada en la unidad de MedidoEn  |
+| MedidoEn   | string    | Unidad de medida de la duración               |
+
+Métodos calculados de PlfDeTareaDtm — usar EXACTAMENTE estos valores en el campo `Campo`:
+- 'Campo': 'calculado:EnJornadas' → duración en jornadas laborales (8 h/jornada)
+- 'Campo': 'calculado:EnHoras'    → duración en horas
+- 'Campo': 'calculado:EnDias'     → duración en días naturales
+- 'Campo': 'calculado:EnMinutos'  → duración en minutos
+
+**IMPORTANTE:** Para preguntas sobre tiempo/duración de tareas, usa siempre `calculado:EnHoras` o `calculado:EnJornadas`. Nunca uses nombres inventados como `DuracionEnHoras` o `TiempoEjecucion`.
+
+### Objetos relacionados adicionales:
+- **InterlocutorDtm** (solicitante): `Id`, `Nombre`, `Apellido`, `Email`, `Telefono`
+- **InterlocutoresDeUnaTareaDtm**: otros solicitantes/interlocutores vinculados a la tarea
+- **FacturaEmtDtm** (`IdFacturaEmt`): factura emitida vinculada (si existe)
+- **TareasDeUnExpedienteDtm**: vínculo N:M con expedientes
+- **TareasDeUnPptDtm**: vínculo N:M con presupuestos
+";
+
         private static string etapaInicial => enumNegocio.Tarea.Parametro(enumEtapasDeTareas.TAR_Etapa_Inicial, valorPorDefecto:0).Valor;
         private static string etapaAsignada => enumNegocio.Tarea.Parametro(enumEtapasDeTareas.TAR_Etapa_Asignada, valorPorDefecto:0).Valor;
         private static string etapaEnResolucion => enumNegocio.Tarea.Parametro(enumEtapasDeTareas.TAR_Etapa_En_Resolucion, valorPorDefecto:0).Valor;

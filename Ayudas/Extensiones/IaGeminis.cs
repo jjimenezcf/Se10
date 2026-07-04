@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Utilidades
 {
-    public class IaGeminis : IIa, IIaPromptFactura, IIaPromptResumen, IDisposable, IIaTiposMimesAdmitidos, IIaPromptFiltrar
+    public class IaGeminis : IIa, IIaPromptFactura, IIaPromptResumen, IDisposable, IIaTiposMimesAdmitidos, IIaPromptFiltrar, IIaPromptConteo
     {
         //gemini-1.5-flash
         private enum enumModelosGeminis
@@ -42,6 +42,7 @@ namespace Utilidades
         public string PromptFactura { get; set; }
         public string PromptResumen { get; set; }
         public string PromptFiltrar { get; set; }
+        string IIaPromptConteo.PromptConteo { get; set; }
 
         private HttpClient _cliente;
 
@@ -319,6 +320,56 @@ namespace Utilidades
             catch (Exception ex)
             {
                 throw new Exception($"Error en AnalizarTextoParaFiltros: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<string> AnalizarPreguntaDeConteo(string origen)
+        {
+            try
+            {
+                var promptFinal = ((IIaPromptConteo)this).PromptConteo;
+
+                var requestBody = new
+                {
+                    contents = new[]
+                    {
+                        new
+                        {
+                            parts = new[]
+                            {
+                                new { text = promptFinal }
+                            }
+                        }
+                    },
+                    generationConfig = new
+                    {
+                        response_mime_type = "application/json",
+                        temperature = 0.1
+                    }
+                };
+
+                string jsonContent = JsonConvert.SerializeObject(requestBody);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo.Descripcion()}:generateContent?key={_apiKey}";
+
+                var response = await Cliente.PostAsync(url, content);
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception($"Error al llamar a Gemini (Conteo). Código: {response.StatusCode}, Detalles: {responseBody}");
+
+                var jsonResponse = JObject.Parse(responseBody);
+                string textoLimpio = jsonResponse["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
+
+                if (!string.IsNullOrEmpty(textoLimpio))
+                    return textoLimpio.Trim().Replace("```json", "").Replace("```", "");
+
+                throw new Exception("No se pudo extraer el JSON de conteo de la respuesta de Gemini.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error en AnalizarPreguntaDeConteo: {ex.Message}", ex);
             }
         }
 

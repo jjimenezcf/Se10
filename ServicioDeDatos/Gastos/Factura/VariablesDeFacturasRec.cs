@@ -88,6 +88,27 @@ namespace ServicioDeDatos.Gastos
     public static class VariableDeFacturasRec
     {
 
+        internal static readonly string IA_Modelo_de_datos = @"
+## MODELO DE DATOS ESPECÍFICO: FacturaRecDtm
+
+### Propiedades específicas de FacturaRecDtm:
+| Propiedad      | Tipo       | Descripción                                              |
+|----------------|------------|----------------------------------------------------------|
+| IdProveedor    | int        | ID del proveedor (→ TerceroDtm: Nombre, Nif)             |
+| FacturadaEl    | DateTime?  | Fecha de la factura del proveedor                        |
+| RecibidaEl     | DateTime?  | Fecha en que se recibió la factura                       |
+| VenceEl        | DateTime?  | Fecha de vencimiento del pago                            |
+| BaseImponible  | decimal    | Base imponible de la factura                             |
+| TotalDelPago   | decimal    | Importe total a pagar (con IVA y retenciones)            |
+| IdContrato     | int?       | ID del contrato asociado (→ ContratoDtm)                 |
+| IdExpediente   | int?       | ID del expediente asociado (→ ExpedienteDtm)             |
+
+### Objetos relacionados adicionales:
+- **TerceroDtm** (`IdProveedor`): `Id`, `Nombre`, `Apellido`, `Nif`, `Email`
+- **PagoDtm**: pagos vinculados a esta factura recibida
+- **ContratoDtm** (`IdContrato`): contrato asociado si existe
+";
+
         internal static readonly string IA_Reglas_de_filtrado = @"# PROMPT DE EXTRACCIÓN: FACTURAS RECIBIDAS
 
 Este bloque de reglas se integra en la sección **## REGLAS ESPECÍFICAS DEL ELEMENTO** cuando el `{NegocioTratado}` es ""Facturas Recibidas"". Utiliza el prefijo **R.FacturasRec**.

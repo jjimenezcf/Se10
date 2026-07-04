@@ -209,6 +209,28 @@ namespace ServicioDeDatos.Ventas
     public static class VariableDeFacturasEmt
     {
 
+        internal static readonly string IA_Modelo_de_datos = @"
+## MODELO DE DATOS ESPECÍFICO: FacturaEmtDtm
+
+### Propiedades específicas de FacturaEmtDtm:
+| Propiedad     | Tipo       | Descripción                                              |
+|---------------|------------|----------------------------------------------------------|
+| IdCliente     | int        | ID del cliente (→ TerceroDtm: Nombre, Nif)               |
+| Ano           | int        | Año de la serie de facturación                           |
+| Serie         | string     | Serie de facturación                                     |
+| Numero        | int        | Número de factura dentro de la serie                     |
+| EmitidaEl     | DateTime?  | Fecha de emisión oficial de la factura                   |
+| FacturadaEl   | DateTime?  | Fecha de facturación (puede diferir de emisión)          |
+| VenceEl       | DateTime?  | Fecha de vencimiento del cobro                           |
+| IdPresupuesto | int?       | ID del presupuesto de origen (→ PresupuestoDtm)          |
+| IdContrato    | int?       | ID del contrato asociado (→ ContratoDtm)                 |
+
+### Objetos relacionados adicionales:
+- **TerceroDtm** (`IdCliente`): `Id`, `Nombre`, `Apellido`, `Nif`, `Email`
+- **PresupuestoDtm** (`IdPresupuesto`): presupuesto del que se originó la factura
+- **ContratoDtm** (`IdContrato`): contrato asociado si existe
+";
+
         internal static readonly string IA_Reglas_de_filtrado = @"
 ### R.FacturasVenta.1 · Cliente, Deudor o Identificación (`FiltrarPorNombreCliente`)
 - **Disparador:** Facturas ""del cliente [Nombre]"", ""emitidas a [Empresa]"", ""compradas por [NIF/CIF]"", ""que debe [Nombre]"", ""del deudor [DNI]"".

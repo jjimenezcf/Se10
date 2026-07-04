@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utilidades;
 
-public class IaMistral : IIa, IIaPromptFactura, IIaPromptResumen, IIaPromptFiltrar, IDisposable, IIaTiposMimesAdmitidos
+public class IaMistral : IIa, IIaPromptFactura, IIaPromptResumen, IIaPromptFiltrar, IIaPromptConteo, IDisposable, IIaTiposMimesAdmitidos
 
 {
 
@@ -22,6 +22,7 @@ public class IaMistral : IIa, IIaPromptFactura, IIaPromptResumen, IIaPromptFiltr
     public string PromptFactura { get; set; } = IIaPromptFactura.Prompt;
     public string PromptResumen { get; set; }
     public string PromptFiltrar { get; set; }
+    string IIaPromptConteo.PromptConteo { get; set; }
 
     private HttpClient _cliente;
 
@@ -532,6 +533,49 @@ public class IaMistral : IIa, IIaPromptFactura, IIaPromptResumen, IIaPromptFiltr
         catch (Exception ex)
         {
             throw new Exception($"Error en AnalizarTextoParaFiltros con Mistral: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<string> AnalizarPreguntaDeConteo(string origen)
+    {
+        try
+        {
+            var requestBody = new
+            {
+                model = _modelo.Descripcion(),
+                messages = new[]
+                {
+                    new
+                    {
+                        role = "user",
+                        content = new object[]
+                        {
+                            new
+                            {
+                                type = "text",
+                                text = ((IIaPromptConteo)this).PromptConteo
+                            }
+                        }
+                    }
+                },
+                response_format = new { type = "json_object" }
+            };
+
+            string jsonContent = JsonConvert.SerializeObject(requestBody);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            var response = await Cliente.PostAsync(ApiChatUrl, content);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            response.EnsureSuccessStatusCode();
+
+            var parsedResponse = JObject.Parse(responseBody);
+            var resultado = parsedResponse["choices"][0]["message"]["content"].ToString().Trim();
+
+            return resultado.Replace("```json", "").Replace("```", "");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error en AnalizarPreguntaDeConteo con Mistral: {ex.Message}", ex);
         }
     }
 }

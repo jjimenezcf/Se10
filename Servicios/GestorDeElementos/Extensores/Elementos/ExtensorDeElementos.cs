@@ -122,7 +122,7 @@ namespace GestorDeElementos.Extensores
             if (!ApiDeInterfaceDtm.ImplementaUsaBaja(typeof(TRegistro)))
                 return consulta;
 
-            if (parametros.IncluirBajas && filtros.Where(x => x.Clausula == ltrParametrosNeg.FiltrarPorBaja).Count() == 0)
+            if (parametros.IncluirBajas && !filtros.Any(x => x.Clausula == ltrParametrosNeg.FiltrarPorBaja))
                 filtros.Add(new ClausulaDeFiltrado(ltrParametrosNeg.FiltrarPorBaja, enumCriteriosDeFiltrado.igual, ltrParametrosNeg.MostrarTodos));
 
             var filtro = filtros.FirstOrDefault(x => (x.Clausula.ToLower() == ltrParametrosNeg.FiltrarPorBaja.ToLower() || x.Clausula.ToLower() == ltrParametrosNeg.IncluirBajas.ToLower()) && x.Valor == ltrParametrosNeg.MostrarTodos.ToString());

@@ -15,7 +15,6 @@ using ServicioDeDatos.Gastos;
 using ModeloDeDto.Gastos;
 using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Contabilidad;
-using ModeloDeDto.Ventas;
 
 namespace GestorDeElementos.Extensores
 {

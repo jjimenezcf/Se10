@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 namespace Utilidades
 {
-    public class IaPerplexity : IIa, IIaPromptFactura, IIaPromptResumen, IDisposable, IIaPromptFiltrar
+    public class IaPerplexity : IIa, IIaPromptFactura, IIaPromptResumen, IDisposable, IIaPromptFiltrar, IIaPromptConteo
     {
         private enum enumModelosPerplexity
         {
@@ -31,6 +31,7 @@ namespace Utilidades
         public string PromptFactura { get; set; }
         public string PromptResumen { get; set; }
         public string PromptFiltrar { get; set; }
+        string IIaPromptConteo.PromptConteo { get; set; }
 
         private HttpClient _cliente;
 
@@ -320,6 +321,56 @@ namespace Utilidades
             catch (Exception ex)
             {
                 throw new Exception($"Error en AnalizarTextoParaFiltros (Perplexity): {ex.Message}", ex);
+            }
+        }
+
+        public async Task<string> AnalizarPreguntaDeConteo(string origen)
+        {
+            try
+            {
+                var promptFinal = ((IIaPromptConteo)this).PromptConteo;
+
+                var requestBody = new
+                {
+                    model = _modelo.Descripcion(),
+                    messages = new[]
+                    {
+                        new {
+                            role = "system",
+                            content = "Eres un asistente técnico. Tu salida debe ser exclusivamente un objeto JSON con las claves 'filtros', 'agruparPor' y 'metricas'. No escribas prosa, ni explicaciones, ni etiquetas markdown."
+                        },
+                        new { role = "user", content = promptFinal }
+                    },
+                    temperature = 0.0,
+                    max_tokens = 1000
+                };
+
+                string jsonContent = JsonConvert.SerializeObject(requestBody);
+                var content = new StringContent(jsonContent, Encoding.UTF8, MimeTypeMap.ApplicationJson);
+
+                var response = await Cliente.PostAsync(_apiChat, content);
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception($"Error al llamar a Perplexity (Conteo). Código: {response.StatusCode}, Detalles: {responseBody}");
+
+                JObject jsonResponse = JObject.Parse(responseBody);
+                if (jsonResponse["choices"] != null && jsonResponse["choices"].Any())
+                {
+                    string textoResult = jsonResponse["choices"][0]["message"]?["content"]?.ToString();
+                    if (!string.IsNullOrEmpty(textoResult))
+                    {
+                        string textoLimpio = LimpiarRespuesta(textoResult.Trim());
+                        JToken.Parse(textoLimpio);
+                        return textoLimpio;
+                    }
+                }
+
+                throw new Exception("No se recibió contenido válido de Perplexity (Conteo).");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error en AnalizarPreguntaDeConteo (Perplexity): {ex.Message}", ex);
             }
         }
     }

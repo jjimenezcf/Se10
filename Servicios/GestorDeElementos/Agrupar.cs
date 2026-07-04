@@ -11,6 +11,107 @@ using Utilidades;
 
 namespace GestorDeElementos
 {
+    // Calcula un agregado decimal sobre una lista de valores ya extraídos
+    internal static class AgregadosHelper
+    {
+        internal static object Calcular(List<decimal> valores, enumOperacionDeTotales operacion)
+        {
+            if (!valores.Any()) return null;
+            return operacion switch
+            {
+                enumOperacionDeTotales.Suma  => (object)valores.Sum(),
+                enumOperacionDeTotales.Media => valores.Average(),
+                enumOperacionDeTotales.Max   => valores.Max(),
+                enumOperacionDeTotales.Min   => valores.Min(),
+                _                            => null
+            };
+        }
+    }
+
+    // Versión dinámica de ObtenerTotalesAgrupados que trabaja sobre el tipo concreto en tiempo de ejecución.
+    // Permite propiedades de subtipos (BaseImponible, Importe, IdResponsable…) y delega campos "calculado:" al caller.
+    public static class AgruparDinamico
+    {
+        public static List<BloqueDeTotales> ObtenerTotalesConCalculados(
+            this IEnumerable<ElementoDeProcesoDtm> registros,
+            List<AgrupacionDeTotales> agrupaciones,
+            Func<ElementoDeProcesoDtm, MetricaDeTotales, decimal?> resolverCalculado = null)
+        {
+            var resultado = new List<BloqueDeTotales>();
+
+            foreach (var agrupacion in agrupaciones)
+            {
+                var bloque = new BloqueDeTotales
+                {
+                    PropiedadesDeAgrupacion = agrupacion.PropiedadesDeAgrupacion,
+                    Filas = new List<FilaDeTotales>()
+                };
+
+                // Agrupar por clave compuesta usando el tipo real en tiempo de ejecución
+                var grupos = registros
+                    .GroupBy(r => string.Join("|", agrupacion.PropiedadesDeAgrupacion.Select(prop =>
+                        r.GetType()
+                         .GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                         ?.GetValue(r)?.ToString() ?? string.Empty)))
+                    .ToList();
+
+                foreach (var grupo in grupos)
+                {
+                    var fila   = new FilaDeTotales();
+                    var items  = grupo.ToList();
+                    var primero = items.FirstOrDefault();
+                    var tipoReal = primero?.GetType() ?? typeof(ElementoDeProcesoDtm);
+
+                    // Claves del grupo
+                    foreach (var prop in agrupacion.PropiedadesDeAgrupacion)
+                    {
+                        var pi = tipoReal.GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        fila.Claves[prop] = primero != null ? pi?.GetValue(primero) : null;
+                    }
+
+                    // Métricas
+                    foreach (var metrica in agrupacion.Metricas)
+                    {
+                        if (metrica.Operacion == enumOperacionDeTotales.Cuenta)
+                        {
+                            if (metrica.Campo.StartsWith("calculado:", StringComparison.OrdinalIgnoreCase) && resolverCalculado != null)
+                                fila.Totales[metrica.Alias] = items.Count(r => { var v = resolverCalculado(r, metrica); return v.HasValue && v.Value != 0m; });
+                            else
+                                fila.Totales[metrica.Alias] = items.Count;
+                            continue;
+                        }
+
+                        if (metrica.Campo.StartsWith("calculado:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (resolverCalculado != null)
+                            {
+                                var vals = items.Select(r => resolverCalculado(r, metrica)).Where(v => v.HasValue).Select(v => v.Value).ToList();
+                                fila.Totales[metrica.Alias] = AgregadosHelper.Calcular(vals, metrica.Operacion);
+                            }
+                            continue;
+                        }
+
+                        var propInfo = tipoReal.GetProperty(metrica.Campo, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (propInfo != null)
+                        {
+                            var vals = items
+                                .Select(r => { var v = propInfo.GetValue(r); return v == null ? (decimal?)null : Convert.ToDecimal(v); })
+                                .Where(v => v.HasValue).Select(v => v.Value).ToList();
+                            fila.Totales[metrica.Alias] = AgregadosHelper.Calcular(vals, metrica.Operacion);
+                        }
+                    }
+
+                    bloque.Filas.Add(fila);
+                }
+
+                resultado.Add(bloque);
+            }
+
+            return resultado;
+        }
+    }
+
+
     public static class Agrupar
     {
         public static List<BloqueDeTotales> ObtenerTotalesAgrupados<T>(this IQueryable<T> consulta,  List<AgrupacionDeTotales> agrupaciones, List<ClausulaDeFiltrado> filtros)
@@ -102,6 +203,21 @@ namespace GestorDeElementos
                     GestorDeErrores.Emitir($"Operación '{metrica.Operacion}' no implementada en CalcularAgregado");
                     return null;
             }
+        }
+    }
+
+    public static class ContarPorMetadatos
+    {
+        // Cuenta elementos agrupados por una o varias propiedades directas del DTM (IdTipo, IdEstado, IdCg...).
+        // Devuelve el bloque listo para formatear sin necesidad de definir AgrupacionDeTotales a mano.
+        public static BloqueDeTotales ContarPorPropiedad<T>(this IQueryable<T> consulta, params string[] propiedadesDeAgrupacion)
+            where T : IRegistro
+        {
+            var agrupacion = new AgrupacionDeTotales(
+                propiedadesDeAgrupacion.ToList(),
+                new List<MetricaDeTotales> { new MetricaDeTotales(enumOperacionDeTotales.Cuenta, "", "Cantidad") }
+            );
+            return consulta.ObtenerTotalesAgrupados(new List<AgrupacionDeTotales> { agrupacion }, null)[0];
         }
     }
 

@@ -47,6 +47,29 @@ namespace ServicioDeDatos.Ventas
 
     public static class VariableDePpts
     {
+        internal static readonly string IA_Modelo_de_datos = @"
+## MODELO DE DATOS ESPECÍFICO: PresupuestoDtm
+
+### Propiedades específicas de PresupuestoDtm:
+| Propiedad          | Tipo       | Descripción                                               |
+|--------------------|------------|-----------------------------------------------------------|
+| IdSolicitante      | int?       | ID del solicitante (→ InterlocutorDtm: Nombre, Email)     |
+| IdResponsable      | int?       | ID del usuario responsable (→ UsuarioDtm)                 |
+| IdExpediente       | int?       | ID del expediente asociado (→ ExpedienteDtm)              |
+| ClaseDePresupuesto | enum       | Clase o modalidad del presupuesto                         |
+| Total              | decimal    | Importe total calculado (propiedad computada)             |
+
+### Objeto de propuesta: PptDeVentaDtm (acceso: presupuesto.DatosPropuestos)
+Contiene los importes y condiciones de la oferta (líneas, descuentos, totales).
+
+### Objetos relacionados adicionales:
+- **InterlocutorDtm** (`IdSolicitante`): `Id`, `Nombre`, `Apellido`, `Email`
+- **UsuarioDtm** (`IdResponsable`): `Id`, `Nombre`, `Login`
+- **ExpedienteDtm** (`IdExpediente`): expediente al que pertenece
+- **FacturaEmtDtm**: facturas emitidas originadas desde este presupuesto
+- **TareasDeUnPptDtm**: tareas vinculadas al presupuesto
+";
+
         private static string etapaElaboracion => enumNegocio.Presupuesto.Parametro(enumEtapasDePpts.PPT_Etapa_Elaboracion)?.Valor ?? null;
         private static string etapaPendiente => enumNegocio.Presupuesto.Parametro(enumEtapasDePpts.PPT_Etapa_Pendiente)?.Valor ?? null;
         private static string etapaDeAceptado => enumNegocio.Presupuesto.Parametro(enumEtapasDePpts.PPT_Etapa_Aceptado)?.Valor ?? null;

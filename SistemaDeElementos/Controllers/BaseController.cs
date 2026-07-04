@@ -29,6 +29,7 @@ using SistemaDeElementos.UtilidadesIu;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Linq;
 using Utilidades;
 using static SistemaDeElementos.Middleware.EliminarFicherosMiddelware;
@@ -1591,6 +1592,67 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 return RenderMensaje(e.Message);
             }
+        }
+
+        // Historial de conversaciones indexado por sessionGuid
+        private static readonly Dictionary<string, string> _historialDeConversaciones = new();
+        private static readonly object _historialLock = new();
+
+        [HttpPost]
+        public async Task<JsonResult> epPreguntaParaLaIa(string negocio, string pregunta, string sessionGuid = null, bool continuarConversacion = true)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epPreguntaParaLaIa));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var body = ApiController.LeerBody(HttpContext);
+                var filtroJson = body.parametros.LeerValor<string>(ltrParametrosEp.Filtro);
+                var filtros = filtroJson.IsNullOrEmpty()
+                    ? new List<ClausulaDeFiltrado>()
+                    : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtroJson);
+
+                // Gestión del historial de conversación
+                string historial = null;
+                if (!string.IsNullOrEmpty(sessionGuid))
+                {
+                    lock (_historialLock)
+                    {
+                        if (continuarConversacion && _historialDeConversaciones.TryGetValue(sessionGuid, out var hist))
+                            historial = hist;
+                        else if (!continuarConversacion)
+                            _historialDeConversaciones.Remove(sessionGuid);
+                    }
+                }
+
+                var negocioEnum = NegociosDeSe.ToEnumerado(negocio);
+                var respuesta = await PreguntaParaLaIa.Resolver(Contexto, negocioEnum, pregunta, filtros, historial);
+
+                // Almacenar la Q+A en el historial de la sesión
+                if (!string.IsNullOrEmpty(sessionGuid))
+                {
+                    lock (_historialLock)
+                    {
+                        var entrada = $"Pregunta: {pregunta}{Environment.NewLine}Respuesta: {respuesta}";
+                        if (_historialDeConversaciones.TryGetValue(sessionGuid, out var prev))
+                            _historialDeConversaciones[sessionGuid] = prev + Environment.NewLine + Environment.NewLine + entrada;
+                        else
+                            _historialDeConversaciones[sessionGuid] = entrada;
+                    }
+                }
+
+                r.Datos = respuesta;
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al resolver la pregunta de la IA para el negocio '{negocio}'");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return Json(r);
         }
     }
 }

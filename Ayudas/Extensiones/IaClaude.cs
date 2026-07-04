@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Utilidades
 {
-    public class IaClaude : IIa, IIaPromptFactura, IIaPromptResumen, IDisposable, IIaTiposMimesAdmitidos, IIaPromptFiltrar
+    public class IaClaude : IIa, IIaPromptFactura, IIaPromptResumen, IDisposable, IIaTiposMimesAdmitidos, IIaPromptFiltrar, IIaPromptConteo
     {
         private enum enumModelosClaude
         {
@@ -322,6 +322,33 @@ namespace Utilidades
             catch (Exception ex)
             {
                 throw new Exception($"Error en AnalizarTextoParaFiltros: {ex.Message}", ex);
+            }
+        }
+
+        string IIaPromptConteo.PromptConteo { get; set; }
+
+        public async Task<string> AnalizarPreguntaDeConteo(string origen)
+        {
+            try
+            {
+                string promptFinal = ((IIaPromptConteo)this).PromptConteo;
+
+                var requestBody = new
+                {
+                    model = _modelo.Descripcion(),
+                    max_tokens = MaxTokens,
+                    messages = new[]
+                    {
+                        new { role = "user", content = promptFinal }
+                    }
+                };
+
+                string resultado = await LlamarApiAsync(requestBody);
+                return resultado.Trim().Replace("```json", "").Replace("```", "");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error en AnalizarPreguntaDeConteo: {ex.Message}", ex);
             }
         }
 

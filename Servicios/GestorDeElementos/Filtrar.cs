@@ -367,7 +367,7 @@ namespace GestorDeElementos
         {
             var valorEntero = filtro.Valor.Entero();
 
-            if (valorEntero == 0 && !(filtro.Criterio == enumCriteriosDeFiltrado.esNulo || filtro.Criterio == enumCriteriosDeFiltrado.noEsNulo || filtro.Criterio == enumCriteriosDeFiltrado.esAlgunoDe))
+            if (valorEntero == 0 && !(filtro.Criterio == enumCriteriosDeFiltrado.esNulo || filtro.Criterio == enumCriteriosDeFiltrado.noEsNulo || filtro.Criterio == enumCriteriosDeFiltrado.esAlgunoDe || filtro.Criterio == enumCriteriosDeFiltrado.noEsNingunoDe))
                 GestorDeErrores.Emitir($"Se ha solicitado filtrar por '{filtro.Clausula}', con el criterio '{filtro.Criterio}' y el valor proporcionado es '{filtro.Valor}', y eso no se puede hacer sobre la clase '{typeof(TRegistro).Name}'. ");
 
             return consulta.AplicarFiltroPorEntero(filtro, propiedad);

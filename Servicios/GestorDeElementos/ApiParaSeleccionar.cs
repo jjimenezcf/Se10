@@ -314,6 +314,22 @@ namespace GestorDeElementos
             return negocio.SeleccionarPorFiltro<T>(contexto, clausulas, aplicarJoin, parametros);
         }
 
+        // Sobrecarga no-genérica para cuando el tipo DTM se conoce solo en tiempo de ejecución (vía enumNegocio).
+        // Llama al SeleccionarTodos<T> tipado —con seguridad y joins— usando reflexión y devuelve ElementoDeProcesoDtm.
+        public static List<ElementoDeProcesoDtm> SeleccionarTodos(this ContextoSe contexto, enumNegocio negocio, List<ClausulaDeFiltrado> clausulas, bool aplicarJoin = false)
+        {
+            var tipoDtm = negocio.TipoDtm();
+            var metodo = typeof(ApiParaSeleccionar)
+                .GetMethods()
+                .First(m => m.Name == nameof(SeleccionarTodos)
+                       && m.IsGenericMethod
+                       && m.GetParameters().Length == 5
+                       && m.GetParameters()[1].ParameterType == typeof(List<ClausulaDeFiltrado>))
+                .MakeGenericMethod(tipoDtm);
+            var lista = (System.Collections.IList)metodo.Invoke(null, new object[] { contexto, clausulas, negocio, aplicarJoin, null });
+            return lista.OfType<ElementoDeProcesoDtm>().ToList();
+        }
+
         public static T DevolverSeleccionado<T>(this List<T> seleccionados, string mensaje, bool errorSiNoHay, bool errorSiMasDeuno)
         where T : IRegistro
         {

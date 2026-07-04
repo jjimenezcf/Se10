@@ -1409,7 +1409,7 @@
 
     export async function GuardarDisposicionDeArchivos(columnas: number) {
         let idVista: number = 0;
-        let controlador: string = ltrControladores.Comunes.Base;
+        let controlador: string = '';
         let estaElModuloCargado = typeof SistemaDocumental !== 'undefined';
         if (estaElModuloCargado && Definido(SistemaDocumental.JerarquiaDeCarpetas)) {
             idVista = SistemaDocumental.JerarquiaDeCarpetas.IdVista;
@@ -1443,7 +1443,7 @@
 
     export async function AplicarDisposicionDeArchivos(contenedor: HTMLDivElement) {
         let idVista: number = 0;
-        let controlador: string = ltrControladores.Comunes.Base;
+        let controlador: string = '';
 
         // Determinar idVista y controlador
         if (typeof SistemaDocumental !== 'undefined' && Definido(SistemaDocumental.JerarquiaDeCarpetas)) {

@@ -426,6 +426,15 @@ namespace Utilidades
             return text;
         }
 
+        public static string Centrar(string s, int ancho)
+        {
+            if (s.Length >= ancho) return s;
+            var pad = ancho - s.Length;
+            var left = pad / 2;
+            var right = pad - left;
+            return new string(' ', left) + s + new string(' ', right);
+        }
+
     }
 
     public static class extFechas
