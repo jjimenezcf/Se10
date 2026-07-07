@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utilidades;
+using ServicioDeDatos.Callejero;
 
 namespace GestorDeElementos
 {
@@ -31,8 +32,10 @@ namespace GestorDeElementos
         }
 
         // Cache de resolvers por negocio — se cargan por reflexión desde los metadatos la primera vez
-        private static readonly Dictionary<enumNegocio, ResolverCalculadoDelegate> _calculadoResolvers = new();
-        private static readonly Dictionary<enumNegocio, ResolverEtiquetaDelegate>  _etiquetaResolvers  = new();
+        private static readonly Dictionary<enumNegocio, ResolverCalculadoDelegate> _calculadoResolvers     = new();
+        private static readonly Dictionary<enumNegocio, ResolverEtiquetaDelegate>  _etiquetaResolvers      = new();
+        // Método fábrica que, dado un conjunto de IDs y el contexto, devuelve un resolver de claves virtuales
+        private static readonly Dictionary<enumNegocio, MethodInfo>                _claveVirtualFactories  = new();
 
         private static void CargarResolversDeMetadatos(enumNegocio negocio)
         {
@@ -41,15 +44,19 @@ namespace GestorDeElementos
 
             var flags = BindingFlags.Public | BindingFlags.Static;
 
-            var mCalc = tipo.GetMethod("ResolverCampoCalculado", flags)
+            var mCalc = tipo.GetMethod(MetadatosDelNegocio.Metodo_ResolverCampoCalculado, flags)
                      ?? tipo.GetMethod(nameof(ResolverCalculadoDelegate), flags);
             if (mCalc != null)
                 _calculadoResolvers[negocio] = (r, m, ctx) => (decimal?)mCalc.Invoke(null, new object[] { r, m, ctx });
 
             var mEtiq = tipo.GetMethod(nameof(ResolverEtiquetaDelegate), flags)
-                     ?? tipo.GetMethod("ResolverEtiqueta", flags);
+                     ?? tipo.GetMethod(MetadatosDelNegocio.Metodo_ResolverEtiqueta, flags);
             if (mEtiq != null)
                 _etiquetaResolvers[negocio] = (prop, id, ctx, tip, est, cgs) => (string)mEtiq.Invoke(null, new object[] { prop, id, ctx, tip, est, cgs });
+
+            var mClaves = tipo.GetMethod(MetadatosDelNegocio.Metodo_ObtenerResolverDeClaves, flags);
+            if (mClaves != null)
+                _claveVirtualFactories[negocio] = mClaves;
         }
 
         public static async Task<string> Resolver(ContextoSe contexto, enumNegocio negocio, string pregunta, List<ClausulaDeFiltrado> filtrosDePantalla, string historial = null)
@@ -103,6 +110,22 @@ namespace GestorDeElementos
                 // --- Obtener registros con seguridad aplicada ---
                 var registros = contexto.SeleccionarTodos(negocio, clausulasDefiltrado, aplicarJoin: false);
 
+                // --- Batch load direcciones si la consulta agrupa por propiedades de dirección ---
+                var idElementos2 = registros.Select(r => r.Id).ToHashSet();
+                Dictionary<int, List<DireccionDtm>> cacheDirecciones = null;
+                if (respuesta.AgruparPor.Any(EsPropiedadDeDireccion))
+                {
+                    try
+                    {
+                        cacheDirecciones = negocio.Direcciones(contexto)
+                            .Where(d => idElementos2.Contains(d.IdElemento))
+                            .ToList()
+                            .GroupBy(d => d.IdElemento)
+                            .ToDictionary(g => g.Key, g => g.ToList());
+                    }
+                    catch { cacheDirecciones = new Dictionary<int, List<DireccionDtm>>(); }
+                }
+
                 // --- Delegados por negocio: carga lazy desde metadatos la primera vez ---
                 if (!_calculadoResolvers.ContainsKey(negocio) && !_etiquetaResolvers.ContainsKey(negocio))
                     CargarResolversDeMetadatos(negocio);
@@ -111,6 +134,36 @@ namespace GestorDeElementos
                     _calculadoResolvers.TryGetValue(negocio, out var calc)
                         ? (r, m) => calc(r, m, contexto)
                         : null;
+
+                // Resolver de claves virtuales específico del negocio (N:M joins, etc.)
+                // Se pasa agruparPor para que solo cargue las tablas que realmente se necesitan.
+                Func<string, ElementoDeProcesoDtm, string> resolverClavesNegocio = null;
+                if (_claveVirtualFactories.TryGetValue(negocio, out var mFab))
+                {
+                    try
+                    {
+                        resolverClavesNegocio = (Func<string, ElementoDeProcesoDtm, string>)
+                            mFab.Invoke(null, new object[] { idElementos2.ToList(), contexto, respuesta.AgruparPor });
+                    }
+                    catch { /* si falla el batch-load, simplemente no hay resolver */ }
+                }
+
+                // Fusionar: primero el resolver de negocio, luego el de direcciones
+                Func<string, ElementoDeProcesoDtm, string> resolverClaveVirtual = null;
+                if (resolverClavesNegocio != null || cacheDirecciones != null)
+                {
+                    resolverClaveVirtual = (prop, r) =>
+                    {
+                        if (resolverClavesNegocio != null)
+                        {
+                            var val = resolverClavesNegocio(prop, r);
+                            if (val != null) return val;
+                        }
+                        if (cacheDirecciones != null && EsPropiedadDeDireccion(prop))
+                            return ResolverClaveDireccion(prop, r.Id, cacheDirecciones);
+                        return null;
+                    };
+                }
 
                 // Resolver genérico de tiempo en estado (válido para cualquier negocio con hitos).
                 // Carga los hitos de todos los registros en un único batch al primer acceso por campo.
@@ -235,7 +288,8 @@ namespace GestorDeElementos
                         {
                     new AgrupacionDeTotales(respuesta.AgruparPor, respuesta.Metricas)
                         },
-                        resolverCalculado)[0];
+                        resolverCalculado,
+                        resolverClaveVirtual)[0];
 
                     resultado = FormatearOpcionB(bloque, respuesta.AgruparPor, respuesta.Metricas, resolverEtiqueta);
                 }
@@ -474,15 +528,92 @@ namespace GestorDeElementos
         }
 
 
+        private static readonly HashSet<string> _propsDireccion = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Calle","CalleObra","CalleEjecucion","CalleFiscal","CalleEntrega","CalleContacto","CalleCorrespondencia",
+            "Municipio","MunicipioObra","MunicipioEjecucion","MunicipioFiscal","MunicipioEntrega",
+            "Provincia","ProvinciaObra","ProvinciaFiscal",
+            "Pais","PaisObra","PaisFiscal",
+            "CodigoPostal","CodigoPostalObra","CodigoPostalFiscal"
+        };
+
+        private static bool EsPropiedadDeDireccion(string prop) => _propsDireccion.Contains(prop);
+
+        private static string ResolverClaveDireccion(string prop, int idElemento, Dictionary<int, List<DireccionDtm>> cache)
+        {
+            if (!cache.TryGetValue(idElemento, out var dirs) || !dirs.Any()) return "—";
+
+            // Extraer campo base y calificador del nombre de la propiedad
+            var (campo, calificador) = ParsearPropDireccion(prop);
+
+            var dir = calificador.HasValue
+                ? dirs.FirstOrDefault(d => d.Calificador == calificador.Value && d.Activo)
+                  ?? dirs.FirstOrDefault(d => d.Calificador == calificador.Value)
+                : dirs.FirstOrDefault(d => d.Activo) ?? dirs.FirstOrDefault();
+
+            if (dir == null) return "—";
+            return campo switch
+            {
+                "calle"          => dir.Calle          ?? "—",
+                "municipio"      => dir.Municipio      ?? "—",
+                "provincia"      => dir.Provincia      ?? "—",
+                "pais"           => dir.Pais           ?? "—",
+                "codigopostal"   => dir.Cp             ?? "—",
+                _                => "—"
+            };
+        }
+
+        private static (string campo, enumCalificadorDireccion? calificador) ParsearPropDireccion(string prop)
+        {
+            var p = prop.ToLowerInvariant();
+            var calificadores = new (string sufijo, enumCalificadorDireccion cal)[]
+            {
+                ("obra",            enumCalificadorDireccion.ejecucion),
+                ("ejecucion",       enumCalificadorDireccion.ejecucion),
+                ("fiscal",          enumCalificadorDireccion.fiscal),
+                ("entrega",         enumCalificadorDireccion.entrega),
+                ("contacto",        enumCalificadorDireccion.contacto),
+                ("correspondencia", enumCalificadorDireccion.correspondencia),
+            };
+            var bases = new[] { "codigopostal", "provincia", "municipio", "calle", "pais" };
+            foreach (var b in bases)
+            {
+                if (!p.StartsWith(b)) continue;
+                var sufijo = p.Substring(b.Length);
+                if (sufijo == string.Empty) return (b, null);
+                foreach (var (s, cal) in calificadores)
+                    if (sufijo == s) return (b, cal);
+            }
+            return (p, null);
+        }
+
         private static string NombreColumna(string prop) => prop.ToLowerInvariant() switch
         {
-            "idtipo" => "Tipo",
-            "idestado" => "Estado",
-            "idcg" => "Centro Gestor",
-            "idresponsable" => "Responsable",
-            "idsolicitante" => "Solicitante",
-            "idproveedor" => "Proveedor",
-            "idcliente" => "Cliente",
+            "idtipo"                => "Tipo",
+            "idestado"              => "Estado",
+            "idcg"                  => "Centro Gestor",
+            "idresponsable"         => "Responsable",
+            "idsolicitante"         => "Solicitante",
+            "idproveedor"           => "Proveedor",
+            "idcliente"             => "Cliente",
+            "idusuacrea"            => "Creador",
+            "idusuamodi"            => "Modificador",
+            "idfacturaemt"          => "Factura emitida",
+            "referenciaexpediente"  => "Expediente",
+            "nombreexpediente"      => "Nombre expediente",
+            "referenciappt"         => "Presupuesto",
+            "nombreppt"             => "Nombre presupuesto",
+            "calle"                 => "Calle",
+            "calleobra"             => "Calle (obra)",
+            "calleejecucion"        => "Calle (ejecución)",
+            "callefiscal"           => "Calle (fiscal)",
+            "municipio"             => "Municipio",
+            "municipioobra"         => "Municipio (obra)",
+            "municipiofiscal"       => "Municipio (fiscal)",
+            "provincia"             => "Provincia",
+            "provinciaobra"         => "Provincia (obra)",
+            "pais"                  => "País",
+            "codigopostal"          => "CP",
             _ => prop
         };
 

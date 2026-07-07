@@ -617,5 +617,52 @@ namespace GestorDeElementos.Extensores
         }
 
     }
+
+    // Métodos compartidos para los resolvers de agrupación IA (Agrupados*.cs de cada negocio)
+    public static class AgrupadosDeUnProcesoHelper
+    {
+        // Resuelve la etiqueta de las propiedades comunes a todos los ElementoDeProcesoDtm.
+        // Cada Agrupados*.cs llama a este método y añade sus propias FK específicas.
+        public static string ResolverEtiquetaComun(
+            string prop, object id, ContextoSe contexto,
+            List<ITipoDeElementoDtm> tipos, List<EstadoDtm> estados, List<CentroGestorDtm> cgs)
+        {
+            if (id == null) return "—";
+            if (!int.TryParse(id.ToString(), out var idInt)) return id.ToString();
+
+            return prop.ToLowerInvariant() switch
+            {
+                "idtipo"   => tipos  .FirstOrDefault(t => t.Id == idInt)?.Nombre ?? id.ToString(),
+                "idestado" => estados.FirstOrDefault(e => e.Id == idInt)?.Nombre ?? id.ToString(),
+                "idcg"     => cgs    .FirstOrDefault(c => c.Id == idInt)?.Nombre ?? id.ToString(),
+
+                "idresponsable" or "idusuacrea" or "idusuamodi" =>
+                    contexto.Set<UsuarioDtm>()
+                        .Where(u => u.Id == idInt)
+                        .Select(u => u.Nombre + " " + u.Apellido)
+                        .FirstOrDefault() ?? id.ToString(),
+
+                "idsolicitante" =>
+                    contexto.Set<InterlocutorDtm>()
+                        .Where(i => i.Id == idInt)
+                        .Select(i => i.Nombre)
+                        .FirstOrDefault() ?? id.ToString(),
+
+                "idproveedor" =>
+                    contexto.Set<ProveedorDtm>()
+                        .Where(p => p.Id == idInt)
+                        .Join(contexto.Set<InterlocutorDtm>(), p => p.IdInterlocutor, i => i.Id, (p, i) => i.Nombre)
+                        .FirstOrDefault() ?? id.ToString(),
+
+                "idcliente" =>
+                    contexto.Set<ClienteDtm>()
+                        .Where(c => c.Id == idInt)
+                        .Join(contexto.Set<InterlocutorDtm>(), c => c.IdInterlocutor, i => i.Id, (c, i) => i.Nombre)
+                        .FirstOrDefault() ?? id.ToString(),
+
+                _ => id.ToString()
+            };
+        }
+    }
 }
 

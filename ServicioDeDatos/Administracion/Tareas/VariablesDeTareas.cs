@@ -38,6 +38,25 @@ namespace ServicioDeDatos.Tarea
         [Description("Indica si se le ha dar un tiempo de ejecución en base a las fechas al finalizar la tarea")]
         TAR_Proponer_Valoracion_Al_Finalizar
     }
+
+    // Etiquetas de agrupación y campos calculados específicos de Tareas.
+    // Úsalas con nameof() en los resolvers y en IA_Modelo_de_datos para mantenerlos sincronizados.
+    public enum enumEtiquetasDeTareas
+    {
+        // Claves virtuales N:M
+        ReferenciaExpediente,
+        NombreExpediente,
+        ReferenciaPpt,
+        NombrePpt,
+        // FK directa
+        IdFacturaEmt,
+        // Campos calculados de planificación (prefijo calculado: en el prompt)
+        EnJornadas,
+        EnHoras,
+        EnDias,
+        EnMinutos,
+    }
+
     public static class VariablesDeTareas
     {
         internal static readonly string IA_Reglas_de_filtrado = @"
@@ -150,7 +169,7 @@ namespace ServicioDeDatos.Tarea
 
 ";
 
-        internal static readonly string IA_Modelo_de_datos = @"
+        internal static readonly string IA_Modelo_de_datos = $@"
 ## MODELO DE DATOS ESPECÍFICO: TareaDtm
 
 ### Propiedades específicas de TareaDtm:
@@ -158,7 +177,7 @@ namespace ServicioDeDatos.Tarea
 |----------------|------------|--------------------------------------------------------------|
 | IdSolicitante  | int?       | ID del solicitante principal (→ InterlocutorDtm)             |
 | IdResponsable  | int?       | ID del usuario responsable (→ UsuarioDtm)                    |
-| IdFacturaEmt   | int?       | ID de la factura emitida asociada (→ FacturaEmtDtm)          |
+| {nameof(enumEtiquetasDeTareas.IdFacturaEmt)}   | int?       | ID de la factura emitida asociada (→ FacturaEmtDtm)          |
 | ClaseDeTarea   | enum       | Clase o categoría interna de la tarea                        |
 
 ### Objeto de planificación: PlfDeTareaDtm (acceso: tarea.Planificacion)
@@ -172,19 +191,33 @@ namespace ServicioDeDatos.Tarea
 | MedidoEn   | string    | Unidad de medida de la duración               |
 
 Métodos calculados de PlfDeTareaDtm — usar EXACTAMENTE estos valores en el campo `Campo`:
-- 'Campo': 'calculado:EnJornadas' → duración en jornadas laborales (8 h/jornada)
-- 'Campo': 'calculado:EnHoras'    → duración en horas
-- 'Campo': 'calculado:EnDias'     → duración en días naturales
-- 'Campo': 'calculado:EnMinutos'  → duración en minutos
+- 'Campo': 'calculado:{nameof(enumEtiquetasDeTareas.EnJornadas)}' → duración en jornadas laborales (8 h/jornada)
+- 'Campo': 'calculado:{nameof(enumEtiquetasDeTareas.EnHoras)}'    → duración en horas
+- 'Campo': 'calculado:{nameof(enumEtiquetasDeTareas.EnDias)}'     → duración en días naturales
+- 'Campo': 'calculado:{nameof(enumEtiquetasDeTareas.EnMinutos)}'  → duración en minutos
 
-**IMPORTANTE:** Para preguntas sobre tiempo/duración de tareas, usa siempre `calculado:EnHoras` o `calculado:EnJornadas`. Nunca uses nombres inventados como `DuracionEnHoras` o `TiempoEjecucion`.
+**IMPORTANTE:** Para preguntas sobre tiempo/duración de tareas, usa siempre `calculado:{nameof(enumEtiquetasDeTareas.EnHoras)}` o `calculado:{nameof(enumEtiquetasDeTareas.EnJornadas)}`. Nunca uses nombres inventados como `DuracionEnHoras` o `TiempoEjecucion`.
 
 ### Objetos relacionados adicionales:
 - **InterlocutorDtm** (solicitante): `Id`, `Nombre`, `Apellido`, `Email`, `Telefono`
 - **InterlocutoresDeUnaTareaDtm**: otros solicitantes/interlocutores vinculados a la tarea
-- **FacturaEmtDtm** (`IdFacturaEmt`): factura emitida vinculada (si existe)
-- **TareasDeUnExpedienteDtm**: vínculo N:M con expedientes
-- **TareasDeUnPptDtm**: vínculo N:M con presupuestos
+- **FacturaEmtDtm** (`{nameof(enumEtiquetasDeTareas.IdFacturaEmt)}`): factura emitida directamente vinculada (FK directa)
+- **ExpedienteDtm** (relación N:M): expediente al que pertenece la tarea
+- **PresupuestoDtm** (relación N:M): presupuesto al que pertenece la tarea
+
+### Claves virtuales de agrupación (no son propiedades del DTM, pero son válidas en `agruparPor`):
+| Clave virtual                                           | Descripción                                                                  |
+|---------------------------------------------------------|------------------------------------------------------------------------------|
+| `{nameof(enumEtiquetasDeTareas.ReferenciaExpediente)}` | Referencia del expediente vinculado (N:M — se toma el primero si hay varios) |
+| `{nameof(enumEtiquetasDeTareas.NombreExpediente)}`     | Nombre del expediente vinculado (N:M)                                        |
+| `{nameof(enumEtiquetasDeTareas.ReferenciaPpt)}`        | Referencia del presupuesto vinculado (N:M)                                   |
+| `{nameof(enumEtiquetasDeTareas.NombrePpt)}`            | Nombre del presupuesto vinculado (N:M)                                       |
+| `{nameof(enumEtiquetasDeTareas.IdFacturaEmt)}`         | Factura emitida directamente vinculada — muestra el número de factura        |
+
+Ejemplos:
+- ""tareas por expediente"" → `""agruparPor"": [""{nameof(enumEtiquetasDeTareas.ReferenciaExpediente)}""]`
+- ""tareas del presupuesto y media en jornadas"" → `""agruparPor"": [""{nameof(enumEtiquetasDeTareas.ReferenciaPpt)}""]`, `""Campo"": ""calculado:{nameof(enumEtiquetasDeTareas.EnJornadas)}""`
+- ""tareas de la factura"" → `""agruparPor"": [""{nameof(enumEtiquetasDeTareas.IdFacturaEmt)}""]`
 ";
 
         private static string etapaInicial => enumNegocio.Tarea.Parametro(enumEtapasDeTareas.TAR_Etapa_Inicial, valorPorDefecto:0).Valor;

@@ -1,8 +1,6 @@
 ﻿using Gestor.Errores;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Negocio;
-using ServicioDeDatos.Presupuesto;
-using ServicioDeDatos.SistemaDocumental;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -150,8 +148,39 @@ namespace ServicioDeDatos.Expediente
     }
 
 
+    public enum enumEtiquetasDeExpedientes
+    {
+        Valorado,
+    }
+
     public static class VariablesDeExpedientes
     {
+        internal static readonly string IA_Modelo_de_datos = $@"
+## MODELO DE DATOS ESPECÍFICO: ExpedienteDtm
+
+### Propiedades específicas de ExpedienteDtm:
+| Propiedad            | Tipo      | Descripción                                              |
+|----------------------|-----------|----------------------------------------------------------|
+| IdSolicitante        | int       | ID del solicitante (→ InterlocutorDtm: Nombre, Email)    |
+| IdResponsable        | int?      | ID del usuario responsable (→ UsuarioDtm)                |
+| IdExpediente         | int?      | ID del expediente padre (auto-referencia)                |
+| ClaseDeExpediente    | enum      | Clase o modalidad del expediente                         |
+| ValoradoEn           | decimal   | Importe valorado del expediente (propiedad computada)    |
+| Contacto             | string    | Nombre de la persona de contacto                         |
+| Telefono             | string    | Teléfono de contacto                                     |
+| eMail                | string    | Correo electrónico de contacto                           |
+
+### Métodos calculados disponibles (usar en Campo de métricas):
+- `calculado:{nameof(enumEtiquetasDeExpedientes.Valorado)}` — importe valorado del expediente (`ValoradoEn`)
+
+### Objetos relacionados adicionales:
+- **InterlocutorDtm** (`IdSolicitante`): `Id`, `Nombre`, `Apellido`, `Email`
+- **UsuarioDtm** (`IdResponsable`): `Id`, `Nombre`, `Login`
+- **DireccionDtm**: dirección de ejecución/fiscal/correspondencia del expediente
+- **TareasDeUnExpedienteDtm**: tareas vinculadas al expediente
+- **HitosDeUnExpedienteDtm**: historial de estados del expediente
+";
+
         public static readonly string Actividades = "Actividades";
 
         public static int IdDelTipoParaActividades(bool errorSiNoEstaDefinido = true)

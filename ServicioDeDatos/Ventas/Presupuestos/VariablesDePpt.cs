@@ -45,9 +45,14 @@ namespace ServicioDeDatos.Ventas
         PPT_IncrementarOrdenEn
     }
 
+    public enum enumEtiquetasDePresupuestos
+    {
+        Total,
+    }
+
     public static class VariableDePpts
     {
-        internal static readonly string IA_Modelo_de_datos = @"
+        internal static readonly string IA_Modelo_de_datos = $@"
 ## MODELO DE DATOS ESPECÍFICO: PresupuestoDtm
 
 ### Propiedades específicas de PresupuestoDtm:
@@ -61,6 +66,9 @@ namespace ServicioDeDatos.Ventas
 
 ### Objeto de propuesta: PptDeVentaDtm (acceso: presupuesto.DatosPropuestos)
 Contiene los importes y condiciones de la oferta (líneas, descuentos, totales).
+
+### Métodos calculados disponibles (usar en Campo de métricas):
+- `calculado:{nameof(enumEtiquetasDePresupuestos.Total)}` — importe total del presupuesto
 
 ### Objetos relacionados adicionales:
 - **InterlocutorDtm** (`IdSolicitante`): `Id`, `Nombre`, `Apellido`, `Email`

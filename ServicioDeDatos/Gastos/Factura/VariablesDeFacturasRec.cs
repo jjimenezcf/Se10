@@ -85,10 +85,15 @@ namespace ServicioDeDatos.Gastos
         public int IdTipoPreasiento { get; set; }
     }
 
+    public enum enumEtiquetasDeFacturasRec
+    {
+        BaseImponible,
+        Total,
+    }
+
     public static class VariableDeFacturasRec
     {
-
-        internal static readonly string IA_Modelo_de_datos = @"
+        internal static readonly string IA_Modelo_de_datos = $@"
 ## MODELO DE DATOS ESPECÍFICO: FacturaRecDtm
 
 ### Propiedades específicas de FacturaRecDtm:
@@ -102,6 +107,10 @@ namespace ServicioDeDatos.Gastos
 | TotalDelPago   | decimal    | Importe total a pagar (con IVA y retenciones)            |
 | IdContrato     | int?       | ID del contrato asociado (→ ContratoDtm)                 |
 | IdExpediente   | int?       | ID del expediente asociado (→ ExpedienteDtm)             |
+
+### Métodos calculados disponibles (usar en Campo de métricas):
+- `calculado:{nameof(enumEtiquetasDeFacturasRec.BaseImponible)}` — base imponible de la factura
+- `calculado:{nameof(enumEtiquetasDeFacturasRec.Total)}` — total a pagar (con IVA y retenciones)
 
 ### Objetos relacionados adicionales:
 - **TerceroDtm** (`IdProveedor`): `Id`, `Nombre`, `Apellido`, `Nif`, `Email`

@@ -21,7 +21,6 @@ using ServicioDeDatos.Gastos;
 using System.Threading.Tasks;
 using static ServicioDeDatos.Elemento.Enumerados;
 using ServicioDeDatos.RegistroEs;
-using ServicioDeDatos.Entorno;
 
 namespace GestoresDeNegocio.Tarea
 {

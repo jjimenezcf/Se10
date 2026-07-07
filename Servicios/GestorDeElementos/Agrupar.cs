@@ -35,7 +35,8 @@ namespace GestorDeElementos
         public static List<BloqueDeTotales> ObtenerTotalesConCalculados(
             this IEnumerable<ElementoDeProcesoDtm> registros,
             List<AgrupacionDeTotales> agrupaciones,
-            Func<ElementoDeProcesoDtm, MetricaDeTotales, decimal?> resolverCalculado = null)
+            Func<ElementoDeProcesoDtm, MetricaDeTotales, decimal?> resolverCalculado = null,
+            Func<string, ElementoDeProcesoDtm, string> resolverClaveVirtual = null)
         {
             var resultado = new List<BloqueDeTotales>();
 
@@ -50,9 +51,11 @@ namespace GestorDeElementos
                 // Agrupar por clave compuesta usando el tipo real en tiempo de ejecución
                 var grupos = registros
                     .GroupBy(r => string.Join("|", agrupacion.PropiedadesDeAgrupacion.Select(prop =>
-                        r.GetType()
-                         .GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
-                         ?.GetValue(r)?.ToString() ?? string.Empty)))
+                    {
+                        var pi = r.GetType().GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (pi != null) return pi.GetValue(r)?.ToString() ?? string.Empty;
+                        return resolverClaveVirtual?.Invoke(prop, r) ?? string.Empty;
+                    })))
                     .ToList();
 
                 foreach (var grupo in grupos)
@@ -66,7 +69,12 @@ namespace GestorDeElementos
                     foreach (var prop in agrupacion.PropiedadesDeAgrupacion)
                     {
                         var pi = tipoReal.GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                        fila.Claves[prop] = primero != null ? pi?.GetValue(primero) : null;
+                        if (pi != null)
+                            fila.Claves[prop] = primero != null ? pi.GetValue(primero) : null;
+                        else if (resolverClaveVirtual != null && primero != null)
+                            fila.Claves[prop] = resolverClaveVirtual(prop, primero);
+                        else
+                            fila.Claves[prop] = null;
                     }
 
                     // Métricas

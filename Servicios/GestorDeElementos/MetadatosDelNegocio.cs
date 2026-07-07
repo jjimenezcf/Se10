@@ -116,6 +116,10 @@ namespace GestorDeElementos
 
     public static class MetadatosDelNegocio
     {
+        public const string Metodo_ResolverEtiqueta       = "ResolverEtiqueta";
+        public const string Metodo_ResolverCampoCalculado  = "ResolverCampoCalculado";
+        public const string Metodo_ObtenerResolverDeClaves = "ObtenerResolverDeClaves";
+
         public static Metadatos ObtenerMetadatos(this enumNegocio negocio, bool emitirError = true)
         {
             if (negocio == enumNegocio.No_Definido)
@@ -293,6 +297,7 @@ namespace GestorDeElementos
             EstadosDeLaEtapa = etapa => VariableDeFacturasEmt.Lista((enumEtapasDeFacturasEmt)etapa),
             DireccionesDtm = typeof(DireccionDeUnaFacturaEmtDtm),
             PlantillasPorTipoDtm = typeof(PlantillaPorTipoDeFacturaEmtDtm),
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasEmt, emitirError: false)
         };
 
 
@@ -309,7 +314,8 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeFacturasRec),
             TipoEtapas = typeof(enumEtapasDeFacturasRec),
             EstadosDeLaEtapa = etapa => VariableDeFacturasRec.Lista((enumEtapasDeFacturasRec)etapa),
-            DireccionesDtm = typeof(DireccionDeUnaFacturaRecDtm)
+            DireccionesDtm = typeof(DireccionDeUnaFacturaRecDtm),
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasRec, emitirError: false)
         };
 
         public static Metadatos MetadatosDePedidos() => new Metadatos
@@ -358,7 +364,8 @@ namespace GestorDeElementos
             TareasDtm = typeof(TareasDeUnExpedienteDtm),
             TipoParametros = typeof(enumParametrosDeExpedientes),
             TipoEtapas = typeof(enumEtapasDeExpedientes),
-            EstadosDeLaEtapa = etapa => ParametrosDeExpedientes.Lista((enumEtapasDeExpedientes)etapa)
+            EstadosDeLaEtapa = etapa => ParametrosDeExpedientes.Lista((enumEtapasDeExpedientes)etapa),
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeExpedientes, emitirError: false)
         };
 
         public static Metadatos MetadatosDePresupuestos() => new Metadatos
@@ -376,7 +383,8 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDePresupuesto),
             TareasDtm = typeof(TareasDeUnPresupuestoDtm),
             TipoEtapas = typeof(enumEtapasDePpts),
-            EstadosDeLaEtapa = etapa => VariableDePpts.Lista((enumEtapasDePpts)etapa)
+            EstadosDeLaEtapa = etapa => VariableDePpts.Lista((enumEtapasDePpts)etapa),
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDePresupuestos, emitirError: false)
         };
 
         public static Metadatos MetadatosDeRegistroEs() => new Metadatos
@@ -567,7 +575,8 @@ namespace GestorDeElementos
             TipoEtapas = typeof(enumEtapasDePagos),
             EstadosDeLaEtapa = etapa => VariableDePagos.Lista((enumEtapasDePagos)etapa),
             DireccionesDtm = null,
-            PlantillasPorTipoDtm = null
+            PlantillasPorTipoDtm = null,
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDePagos, emitirError: false)
         };
 
         public static Metadatos MetadatosDeGastos() => new Metadatos

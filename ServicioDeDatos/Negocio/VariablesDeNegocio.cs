@@ -1,4 +1,5 @@
-﻿using ServicioDeDatos.Gastos;
+﻿using ServicioDeDatos.Expediente;
+using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Tarea;
 using ServicioDeDatos.Ventas;
 using System.ComponentModel;
@@ -41,6 +42,7 @@ namespace ServicioDeDatos.Negocio
                 enumNegocio.FacturaEmitida   => VariableDeFacturasEmt.IA_Modelo_de_datos,
                 enumNegocio.Presupuesto      => VariableDePpts.IA_Modelo_de_datos,
                 enumNegocio.Pago             => VariableDePagos.IA_Modelo_de_datos,
+                enumNegocio.Expediente       => VariablesDeExpedientes.IA_Modelo_de_datos,
                 _                            => string.Empty
             };
             return IA_Modelo_de_datos_comun + (especifico.Length > 0 ? "\n\n" + especifico : string.Empty);

@@ -206,10 +206,14 @@ namespace ServicioDeDatos.Ventas
         public string Valor { get; set; }
     }
 
+    public enum enumEtiquetasDeFacturasEmt
+    {
+        Total,
+    }
+
     public static class VariableDeFacturasEmt
     {
-
-        internal static readonly string IA_Modelo_de_datos = @"
+        internal static readonly string IA_Modelo_de_datos = $@"
 ## MODELO DE DATOS ESPECÍFICO: FacturaEmtDtm
 
 ### Propiedades específicas de FacturaEmtDtm:
@@ -224,6 +228,9 @@ namespace ServicioDeDatos.Ventas
 | VenceEl       | DateTime?  | Fecha de vencimiento del cobro                           |
 | IdPresupuesto | int?       | ID del presupuesto de origen (→ PresupuestoDtm)          |
 | IdContrato    | int?       | ID del contrato asociado (→ ContratoDtm)                 |
+
+### Métodos calculados disponibles (usar en Campo de métricas):
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.Total)}` — suma de líneas de la factura emitida
 
 ### Objetos relacionados adicionales:
 - **TerceroDtm** (`IdCliente`): `Id`, `Nombre`, `Apellido`, `Nif`, `Email`
