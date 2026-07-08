@@ -357,11 +357,35 @@
     box-sizing: border-box;
 }
 
+.grafica-conteo-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 .grafica-conteo-titulo {
     font-size: 13px;
     font-weight: 600;
     color: #24292f;
-    margin: 0 0 2px 0;
+    margin: 0;
+}
+
+.grafica-conteo-consultar {
+    font-size: 12px;
+    color: #0969da;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.grafica-conteo-consultar:hover {
+    text-decoration: underline;
+}
+
+.grafica-conteo-respuesta-cabecera {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
 }
 
 .grafica-conteo-pregunta {
@@ -392,6 +416,7 @@
     overflow-y: auto;
     white-space: pre;
     min-height: 60px;
+    max-height: 200px;
     color: #24292f;
 }
 

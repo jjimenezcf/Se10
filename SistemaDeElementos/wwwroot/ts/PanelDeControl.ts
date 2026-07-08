@@ -186,7 +186,7 @@ namespace PanelDeControl {
             btnPregunta.className = css.GraficaPreguntar;
             btnPregunta.title = 'Hacer una pregunta';
             btnPregunta.innerHTML = SVG_PREGUNTA;
-            ApiPreguntasIa.InyectarConteoIA(negocio.enumerado, negocio.nombre, btnPregunta);
+            ApiPreguntasIa.InyectarConteoIA(negocio.enumerado, negocio.nombre, btnPregunta, negocio.url);
 
             // ── → Mover derecha ──
             const btnDer = document.createElement('button');

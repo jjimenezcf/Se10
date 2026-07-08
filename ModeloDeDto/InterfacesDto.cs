@@ -11,6 +11,7 @@ namespace ModeloDeDto
         public const string MostrarVisorAlIniciar = nameof(MostrarVisorAlIniciar);
         public const string UsaTotalizador = nameof(UsaTotalizador);
         public const string UsaDirecciones = nameof(UsaDirecciones);
+        public const string PermitirFichas = nameof(PermitirFichas);
     }
 
     public interface IUsaNombreDto : IElementoDto
@@ -103,7 +104,10 @@ namespace ModeloDeDto
     {
         public int IdEstado { get; set; }
 
-        public string Estado { get; set; }  
+        public string Estado { get; set; }
+
+        public int OrdenEstado { get; set; }
+        
     }
 
     public interface IUsaTipoDto

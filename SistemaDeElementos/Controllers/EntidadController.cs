@@ -1218,7 +1218,6 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
         return ret;
     }
 
-
     protected override Dictionary<string, object> IndicadoresParaInicializarLaVistaMnt(ContextoSe contexto, Dictionary<string, object> parametros)
     {
         var indicadores = base.IndicadoresParaInicializarLaVistaMnt(contexto, parametros);
@@ -1227,6 +1226,8 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
 
         var negocio = NegociosDeSe.ToEnumerado(typeof(TRegistro), errorSiNoEsUnNegocio: false);
         indicadores.Add(IndCrud.UsaDirecciones, negocio != enumNegocio.No_Definido && negocio.UsaDirecciones());
+
+        indicadores.Add(IndCrud.PermitirFichas, typeof(TRegistro).ImplementaElementoDeUnProceso());
 
         return indicadores;
     }
@@ -1243,7 +1244,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
         try
         {
             ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-            var negocio = NegociosDeSe.ToEnumerado(typeof(TRegistro));       
+            var negocio = NegociosDeSe.ToEnumerado(typeof(TRegistro));
             var direcciones = ExtensorDeDirecciones.Direcciones(negocio, Contexto).Where(d => ids.Contains(d.IdElemento)).ToList();
             var direccionesDto = GestorDeDirecciones.ChinchetasDto(Contexto, negocio, direcciones);
             r.Consola = $"Direcciones obtenidas";

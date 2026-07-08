@@ -1748,6 +1748,12 @@
                 let expresionMostrar: string = grid.Grid.getAttribute(atControl.expresionElemento).toLowerCase();
                 grid.DatosDelGrid.AnadirPagina(grid.Navegador.NumeroDePaginaDelGrid, datosDeEntrada.PosicionDesdeLaQueSeLee, grid.Navegador.Cantidad, infoObtenida.registros, expresionMostrar);
                 grid.MapearPaginaCacheada(grid, registros);
+
+                // buscar, siguiente, anterior, primero (buscar en posición 0) e ira pasan
+                // todos por aquí: si el tablero de fichas está visible hay que repintarlo
+                // también con los registros recién leídos, la tabla se pinta pero está oculta.
+                if (grid instanceof CrudMnt && grid.VistaDeFichasActiva)
+                    grid.PintarFichas(registros);
             }
             catch (error) {
                 lineasCreadas = false;

@@ -1043,7 +1043,7 @@ namespace GestorDeElementos
             if (idsDeEstado is not null)
             {
                 var fechasDeEstados = filtros.FirstOrDefault(f => f.Aplicado == false && f.Clausula.ToLower() == ltrFiltros.FechasDeEstado && f.Criterio == enumCriteriosDeFiltrado.entreFechas);
-                var listaDeEstados = idsDeEstado.Valor.ToLista<int>(separador: ",");
+                var listaDeEstados = idsDeEstado.ToLista();
                 var fechas = fechasDeEstados is not null ? ClausulaDeFiltrado.ParsearFechas(fechasDeEstados.Valor, errorSiNulo: false) : (null, null);
                 consulta = consulta.Where(r => negocio.Hitos(contexto).Any(hito => hito.IdElemento == r.Id
                                            && listaDeEstados.Contains(hito.IdEstado)
@@ -1059,7 +1059,7 @@ namespace GestorDeElementos
             if (idsDeTransiciones is not null)
             {
                 var fechasDeTransiciones = filtros.FirstOrDefault(f => f.Aplicado == false && f.Clausula.ToLower() == ltrFiltros.FechasDeTransiciones && f.Criterio == enumCriteriosDeFiltrado.entreFechas);
-                var listaDeTransiciones = idsDeTransiciones.Valor.ToLista<int>(separador: ",");
+                var listaDeTransiciones = idsDeTransiciones.ToLista();
                 var fechas = fechasDeTransiciones is not null ? ClausulaDeFiltrado.ParsearFechas(fechasDeTransiciones.Valor, errorSiNulo: false) : (null, null);
                 consulta = consulta.Where(r => negocio.Hitos(contexto).Any(hito => hito.IdElemento == r.Id
                                            && hito.IdTransicion != null
@@ -1079,7 +1079,7 @@ namespace GestorDeElementos
             //if (enumNegocio == enumNegocio.No_Definido)
             //    return consulta;
 
-            var filtrosEtapa = filtros.Where(x => x.Clausula.ToLower() == ltrFiltros.FiltroPorEtapa.ToLower()  && !x.Aplicado).ToList();
+            var filtrosEtapa = filtros.Where(x => x.Clausula.ToLower() == ltrFiltros.FiltroPorEtapa.ToLower() && !x.Aplicado).ToList();
             if (filtrosEtapa.Count == 0)
                 return consulta;
 

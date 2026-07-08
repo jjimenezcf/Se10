@@ -150,6 +150,9 @@ namespace ModeloDeDto
             )
         ]
         public int IdEstado { get; set; }
+        
+        [IUPropiedad(Visible = false)]
+        public int OrdenEstado { get; set; }
 
 
         //------------------------------------------------------------------------------------------------------

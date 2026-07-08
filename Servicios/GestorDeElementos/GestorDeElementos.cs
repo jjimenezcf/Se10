@@ -1775,6 +1775,7 @@ namespace GestorDeElementos
                 elemento.EstaTerminada = estado.Terminado;
                 ((IElementoDeUnProcesoDto)elemento).Tipo = ((ITipoDeElementoDtm)parametros.Parametros[nameof(TipoDeElementoDtm)]).Expresion;
                 ((IElementoDeUnProcesoDto)elemento).Estado = estado.Nombre;
+                ((IElementoDeUnProcesoDto)elemento).OrdenEstado = estado.Orden;
 
                 if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item =>
                           item == nameof(IElementoDeUnProcesoDto.TransitadoEl).ToLowerInvariant() ||

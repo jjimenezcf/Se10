@@ -105,6 +105,10 @@
                     crudMnt.EnviarElemento();
                     break;
                 }
+                case ltrEventos.Mnt.AlternarVistaFichas: {
+                    crudMnt.AlternarVistaDeFichas();
+                    break;
+                }
                 case ltrEventos.Mnt.FilaPulsada: {
                     let parIn: Array<string> = parametros.split("#");
                     if (crudMnt.ModoTrabajo === enumModoTrabajo.historial || (crudMnt.HayHistorial && crudMnt.EstoyEditandoConsultando))

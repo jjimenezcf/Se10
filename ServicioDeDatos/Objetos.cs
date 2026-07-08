@@ -1,7 +1,9 @@
 ﻿
 
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Gestor.Errores;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Utilidades;
@@ -35,7 +37,7 @@ namespace ServicioDeDatos
     }
 
 
-    public enum enumCriteriosDeFiltrado { igual, mayor, menor, esNulo, noEsNulo, contiene, noContiene, comienza, termina, mayorIgual, menorIgual, diferente, esAlgunoDe, noEsNingunoDe, entreFechas, porReferencia, porMismaReferencia, deRelacion, deTipos, entreImportes, noEstaRelacionado, entreRangos, porDiferentesPropiedades }
+    public enum enumCriteriosDeFiltrado { igual, mayor, menor, esNulo, noEsNulo, contiene, noContiene, comienza, termina, mayorIgual, menorIgual, diferente, esAlgunoDe, noEsNingunoDe, entreFechas, porReferencia, porMismaReferencia, deRelacion, deTipos, entreImportes, noEstaRelacionado, entreRangos, porDiferentesPropiedades, sonTodos }
 
     public class ClausulaDeFiltrado
     {
@@ -87,6 +89,16 @@ namespace ServicioDeDatos
                 throw new Exception($"No se puede filtrar ya que los importes dados no son coherentes {Valor}");
 
             return (desde, hasta);
+        }
+
+        public List<int> ToLista()
+        {
+            
+            var lista = Valor.ToLista<int>(separador: Simbolos.separadorDeCadenasDeFiltrado);
+            if (lista.Count == 0) 
+                lista = Valor.ToLista<int>(separador: Simbolos.separadorDeEnteros);
+
+            return lista;
         }
 
         public (DateTime? desde, DateTime? hasta) ParsearFechas() => ParsearFechas(Valor);

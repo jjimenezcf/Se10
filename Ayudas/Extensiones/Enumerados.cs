@@ -1389,6 +1389,7 @@ namespace Utilidades
         PasarOcr,
         CompartirConWhatsApp,
         CompartirConGuid,
+        AlternarVistaFichas,
         ConsultarConGuid,
         EnviarCorreo,
         NavegacionImagenes,
@@ -1774,6 +1775,7 @@ namespace Utilidades
                 case enumCssControles.PasarOcr: return "pasar-ocr";
                 case enumCssControles.CompartirConWhatsApp: return "compartir-con-whatsapp";
                 case enumCssControles.CompartirConGuid: return "compartir-con-guid";
+                case enumCssControles.AlternarVistaFichas: return "alternar-vista-fichas";
                 case enumCssControles.ConsultarConGuid: return "consultar-con-guid";
                 case enumCssControles.EnviarCorreo: return "enviar-correo";
                 case enumCssControles.NavegacionImagenes: return "navegacion-imagenes";

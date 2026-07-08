@@ -967,7 +967,8 @@ const atCriterio = {
     igual: 'igual',
     restringido: 'igual',
     noEstaRelacionado: 'noEstaRelacionado',
-    esAlgunoDe: 'esAlgunoDe'
+    esAlgunoDe: 'esAlgunoDe',
+    sonTodos: 'sonTodos'
 };
 
 const atNavegar = {
@@ -1066,7 +1067,14 @@ const ltrCss = {
             Splitter: 'splitter-tabla',
             ContenedorTabla: 'div-grid-tabla',
             Graficos: 'div-graficos',
-            GraficoDeTotales: 'div-graficos-totales'
+            GraficoDeTotales: 'div-graficos-totales',
+            AlternarVistaFichas: 'alternar-vista-fichas',
+            AlternarVistaFichasPulsada: 'alternar-vista-fichas-pulsada',
+            VistaFichas: 'div-vista-fichas',
+            ColumnaFichas: 'columna-de-fichas',
+            CabeceraColumnaFichas: 'cabecera-columna-fichas',
+            TarjetaFicha: 'tarjeta-ficha',
+            TarjetaFichaSeleccionada: 'ficha-seleccionada'
         },
         dto: {
             tbody: 'dto-tbody',
@@ -1708,6 +1716,8 @@ const Ajax = {
         cargarListaDeElementos: 'cargarListaDeElementos',
         creandoEnCrud: 'creandoEnCrud',
         filtro: 'filtro',
+        filtroPrecomputado: 'filtroprecomputado',
+        guidDeFiltros: 'guiddefiltros',
         filtrarConIa: 'filtrarConIa',
         fraseDeFiltrado: 'fraseDeFiltrado',
         nuevaPregunta: 'nuevaPregunta',
@@ -2038,6 +2048,7 @@ const ltrEventos = {
         ObtenerUltimos: 'obtener-ultimos',
         CompartirElemento: 'compartir-elemento',
         EnviarElemento: 'enviar-elemento',
+        AlternarVistaFichas: 'alternar-vista-de-fichas',
         OrdenarPor: atControl.ordenarPor,
         FilaPulsada: 'fila-pulsada',
         DesplazarColumnaDerecha: 'desplaza-columna-derecha',
@@ -2415,7 +2426,8 @@ const ltrPropiedades = {
                 IaUsada: 'IA_Usada',
                 MostrarVisorAlIniciar: 'MostrarVisorAlIniciar',
                 UsaTotalizador: 'UsaTotalizador',
-                UsaDirecciones: 'UsaDirecciones'
+                UsaDirecciones: 'UsaDirecciones',
+                PermitirFichas: 'PermitirFichas'
             }
         },
         seguridad: {
@@ -2657,6 +2669,7 @@ const ltrPropiedades = {
             IdTransicionAplicable: 'idtransicionaplicable',
             TransicionAplicable: 'transicionaplicable',
             TransicionesDisponibles: 'TransicionesDisponibles',
+            OrdenEstado: 'ordenestado',
             Expresion: literal.expresion,
         },
         Historial: {

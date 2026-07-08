@@ -108,6 +108,27 @@
             return this._usaDirecciones;
         }
 
+        private _permitirFichas: boolean
+        public get PermitirFichas(): boolean {
+            return this._permitirFichas;
+        }
+
+        private _botonVistaDeFichas = null;
+        public get BotonVistaDeFichas(): HTMLElement {
+            if (!Definido(this._botonVistaDeFichas)) {
+                this._botonVistaDeFichas = this.Cuerpo.querySelector('.' + ltrCss.crud.grid.AlternarVistaFichas) as HTMLElement
+            }
+            return this._botonVistaDeFichas as HTMLElement
+        }
+
+        private _iconoVistaDeFichas = null;
+        public get IconoVistaDeFichas(): HTMLElement {
+            if (!Definido(this._iconoVistaDeFichas) && Definido(this.BotonVistaDeFichas)) {
+                this._iconoVistaDeFichas = this.BotonVistaDeFichas.querySelector('img') as HTMLElement
+            }
+            return this._iconoVistaDeFichas as HTMLElement
+        }
+
 
         private _tamanoDelVisor: number
         public get TamanoDelVisor(): number {
@@ -142,11 +163,19 @@
         }
 
         private _contenedorDeTabla = null;
-        public get ContenedorDeTabla(): HTMLDivElement {
+        private get RawContenedorDeTabla(): HTMLDivElement {
             if (!Definido(this._contenedorDeTabla)) {
                 this._contenedorDeTabla = document.querySelector('.' + ltrCss.crud.grid.ContenedorTabla) as HTMLDivElement
             }
             return this._contenedorDeTabla as HTMLDivElement
+        }
+        // Para el splitter, los visores de archivo y todo lo que ya maneja el pane
+        // izquierdo de 'contenedor-tabla-con-graficos' vía esta propiedad, es transparente
+        // si lo que se ve es la tabla o el tablero de fichas: se les da el que esté visible.
+        public get ContenedorDeTabla(): HTMLDivElement {
+            if (Definido(this._contenedorDeFichas) && !this._contenedorDeFichas.classList.contains(ltrCss.divNoVisible))
+                return this._contenedorDeFichas;
+            return this.RawContenedorDeTabla;
         }
 
         private _contenedorDeGraficos = null;
@@ -1093,6 +1122,192 @@
                 .catch((peticion) => this.SiHayErrorAlCargarElGrid(peticion));
         }
 
+        private _vistaDeFichasActiva: boolean = false;
+        public get VistaDeFichasActiva(): boolean {
+            return this._vistaDeFichasActiva;
+        }
+        private _contenedorDeFichas: HTMLDivElement = null;
+
+        public AlternarVistaDeFichas(): void {
+            this._vistaDeFichasActiva = !this._vistaDeFichasActiva;
+            if (this._vistaDeFichasActiva) {
+                if (Definido(this.IconoVistaDeFichas)) ApiControl.IncluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
+                ApiControl.IncluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
+                if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
+                if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
+                this.CargarFichas();
+            } else {
+                if (Definido(this.IconoVistaDeFichas)) ApiControl.ExcluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
+                if (Definido(this._contenedorDeFichas)) ApiControl.IncluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
+                ApiControl.ExcluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
+                if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
+                if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
+
+                // si se seleccionaron fichas estando en el tablero, sus filas en la tabla
+                // todavía no están marcadas (la tabla no se repinta al cambiar de vista)
+                this.SincronizarMarcasDeLaTablaConElInfoSelector();
+
+                // ContenedorDeTabla ya resuelve de nuevo al div-grid-tabla real: primero lo deja
+                // al ancho máximo y luego, si había algo seleccionado (p.ej. veníamos de
+                // seleccionar una ficha), EditarEnPanelDeGraficos vuelve a mostrar
+                // splitter+gráficos con el 60/40 habitual.
+                ApiVisorDeArchivos.OcultarContenedorDeGraficos();
+                this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+            }
+        }
+
+        private SincronizarMarcasDeLaTablaConElInfoSelector(): void {
+            const idsSeleccionados = this.InfoSelector.IdsSeleccionados;
+            if (idsSeleccionados.length === 0) return;
+
+            const celdasId = this.ChecksDeSeleccion;
+            for (let j = 0; j < celdasId.length; j++) {
+                const id = Numero(celdasId[j].value);
+                if (idsSeleccionados.indexOf(id) < 0) continue;
+
+                const idCheck = celdasId[j].id.replace(`.${atControl.id}`, `.${ltrMantenimiento.CheckDeSeleccion}`);
+                const check = document.getElementById(idCheck) as HTMLInputElement;
+                if (Definido(check) && !check.checked) ApiDeGrid.MarcarFila(check);
+            }
+        }
+
+        private CargarFichas(): void {
+            let parametros: Array<Parametro> = this.DefinirParametrosParaCargarElGrid(atGrid.accion.buscar);
+            let datosDeEntrada = new DatosPeticionNavegarGrid(this, atGrid.accion.buscar, 0);
+            ApiDePeticiones.CargarGrid(this, this.Navegador.Controlador, atGrid.accion.buscar, 0, this.Navegador.Cantidad, datosDeEntrada, parametros)
+                .then((peticion) => {
+                    this.PintarFichas(peticion.resultado.datos.registros);
+                })
+                .catch((peticion) => this.SiHayErrorAlCargarElGrid(peticion));
+        }
+
+        public PintarFichas(registros: any[]): void {
+            if (!Definido(this._contenedorDeFichas)) {
+                this._contenedorDeFichas = document.createElement('div');
+                ApiControl.IncluirCss(this._contenedorDeFichas, ltrCss.crud.grid.VistaFichas);
+                // se inserta antes del splitter, en el lugar de div-grid-tabla, para que al
+                // seleccionar una ficha el splitter y div-graficos puedan mostrarse a su derecha
+                this.ContenedorDeTablaConGraficos.insertBefore(this._contenedorDeFichas, this.Splitter);
+            }
+            this._contenedorDeFichas.innerHTML = '';
+            ApiControl.ExcluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
+
+            const grupos = new Map<string, any[]>();
+            registros.forEach((r) => {
+                const estado = ObtenerPropiedad(r, 'estado', '');
+                if (!grupos.has(estado)) grupos.set(estado, []);
+                grupos.get(estado).push(r);
+            });
+
+            const idsSeleccionados = this.InfoSelector.IdsSeleccionados;
+
+            // las columnas se ordenan por estado.DeProceso.OrdenEstado: las de orden menor
+            // quedan más a la izquierda. se toma el orden del primer registro de cada grupo,
+            // todos los de un mismo estado comparten el mismo valor.
+            const gruposOrdenados = [...grupos.entries()].sort((a, b) => {
+                const ordenA = Numero(ObtenerPropiedad(a[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
+                const ordenB = Numero(ObtenerPropiedad(b[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
+                return ordenA - ordenB;
+            });
+
+            gruposOrdenados.forEach(([estado, tareas]) => {
+                const columna = document.createElement('div');
+                ApiControl.IncluirCss(columna, ltrCss.crud.grid.ColumnaFichas);
+
+                const cabecera = document.createElement('div');
+                ApiControl.IncluirCss(cabecera, ltrCss.crud.grid.CabeceraColumnaFichas);
+                cabecera.textContent = `${estado} (${tareas.length})`;
+                columna.append(cabecera);
+
+                tareas.forEach((t) => {
+                    const tarjeta = document.createElement('div');
+                    ApiControl.IncluirCss(tarjeta, ltrCss.crud.grid.TarjetaFicha);
+                    const id = Numero(ObtenerPropiedad(t, 'id', 0));
+                    if (idsSeleccionados.indexOf(id) >= 0) ApiControl.IncluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada);
+
+                    // mismo title que ya recibe la fila equivalente en CrearCuerpoDeLaTabla
+                    const detalle = ObtenerPropiedad(t, ltrPropiedades.Elemento.Descripcion, '');
+                    if (detalle) tarjeta.setAttribute('title', detalle);
+
+                    const nombre = document.createElement('div');
+                    nombre.textContent = ObtenerPropiedad(t, 'nombre', '');
+                    const tipo = document.createElement('div');
+                    tipo.textContent = ObtenerPropiedad(t, 'tipo', '');
+                    const cg = document.createElement('div');
+                    cg.textContent = ObtenerPropiedad(t, 'cg', '');
+
+                    tarjeta.append(nombre, tipo, cg);
+                    tarjeta.addEventListener('click', (event: MouseEvent) => this.AlternarSeleccionDeFicha(tarjeta, t, event.ctrlKey));
+                    columna.append(tarjeta);
+                });
+
+                this._contenedorDeFichas.append(columna);
+            });
+
+            // Primero deja div-vista-fichas al ancho máximo (igual que hace la app con
+            // div-grid-tabla cuando no hay selección). OcultarPanelDeGraficos solo repite este
+            // cálculo si detecta un cambio de estado en el splitter/gráficos, así que se hace
+            // aquí de forma incondicional para no depender de ese detalle.
+            ApiVisorDeArchivos.OcultarContenedorDeGraficos();
+
+            // y si hay fichas seleccionadas (p.ej. venías de la tabla con algo seleccionado),
+            // reutiliza el mismo mecanismo que la selección de filas para mostrar
+            // splitter+gráficos, que reajustará el ancho de div-vista-fichas al 60%.
+            this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+        }
+
+        private AlternarSeleccionDeFicha(tarjeta: HTMLDivElement, registro: any, ctrlKey: boolean): void {
+            const id = Numero(ObtenerPropiedad(registro, 'id', 0));
+            const yaSeleccionada = tarjeta.classList.contains(ltrCss.crud.grid.TarjetaFichaSeleccionada);
+
+            if (!ctrlKey) {
+                // sin control: la ficha pinchada reemplaza a la selección anterior
+                this.DeseleccionarTodasLasFichas();
+                if (yaSeleccionada) {
+                    // era la única seleccionada: al reemplazar la selección por sí misma, queda deseleccionada
+                    this.EditarEnPanelDeGraficos(false);
+                    return;
+                }
+                this.SeleccionarFicha(tarjeta, registro);
+                return;
+            }
+
+            // con control: añade o quita solo la pinchada, conservando el resto de la selección
+            if (yaSeleccionada) {
+                ApiControl.ExcluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada);
+                this.QuitarDelSelector(this, id);
+                this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+                return;
+            }
+
+            this.SeleccionarFicha(tarjeta, registro);
+        }
+
+        private SeleccionarFicha(tarjeta: HTMLDivElement, registro: any): void {
+            // 'mostrarDetalle' presente en VisorDeDetalle significa que el panel está OCULTO
+            // (ver EstaVisualizandoUnSeleccionado), no que haya o no fichas ya seleccionadas.
+            const visorOculto = !Definido(this.VisorDeDetalle) || this.VisorDeDetalle.classList.contains(ltrCss.crud.mostrarDetalle);
+
+            ApiControl.IncluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada);
+            this.AnadirAlInfoSelector(this, new Elemento(registro, 'nombre'));
+
+            // si el visor está oculto, simula la pulsación del botón para que se despliegue
+            // automáticamente; si ya estaba visible, basta con refrescarlo con la nueva ficha
+            if (visorOculto)
+                EventosDelMantenimiento(ltrEventos.Mnt.MostrarOcultarVisorDeDetalle, undefined);
+            else
+                this.EditarEnPanelDeGraficos(true);
+        }
+
+        private DeseleccionarTodasLasFichas(): void {
+            if (Definido(this._contenedorDeFichas)) {
+                const seleccionadas = this._contenedorDeFichas.querySelectorAll<HTMLElement>('.' + ltrCss.crud.grid.TarjetaFichaSeleccionada);
+                seleccionadas.forEach((tarjeta) => ApiControl.ExcluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada));
+            }
+            const idsSeleccionados = [...this.InfoSelector.IdsSeleccionados];
+            idsSeleccionados.forEach((id) => this.QuitarDelSelector(this, id));
+        }
+
 
         private TrasRestaurar(): void {
             if (this.Estado.Obtener(ltrClaveDeEstado.EditarAlVolver)) {
@@ -1183,6 +1398,11 @@
             this._iaUsada = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.IaUsada);
             this._usaTotalizador = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaTotalizador);
             this._usaDirecciones = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaDirecciones);
+
+            this._permitirFichas = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.PermitirFichas);
+            if (this._permitirFichas && Definido(this.BotonVistaDeFichas)) {
+                ApiControl.ExcluirCss(this.BotonVistaDeFichas, ltrCss.divNoVisible);
+            }
         }
 
         protected AplicarExpansores(estadosDelLosExpansores: Array<EstadoDeEspan>): void {
@@ -1395,6 +1615,14 @@
                                 this.CargarGrid().then(() => {
                                     this.ProcesarOpcionMf(this.IdNegocio, `${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}_${miFiltro}`, true);
                                 });
+                            }
+                            else if (parametros.find(p => p.clave === ltrParametrosUrl.origenDePeticion && p.valor?.toLowerCase() === 'paneldecontrol')) {
+                                const guidParam = parametros.find(p => p.clave === Ajax.Param.guidDeFiltros);
+                                if (guidParam?.valor) {
+                                    const filtros = ApiPreguntasIa.LeerFiltrosPorGuid(guidParam.valor);
+                                    if (filtros) this.FiltrosPrecomputados = filtros;
+                                }
+                                this.CargarGrid();
                             }
                             else {
                                 for (let i = 0; i < parametros.length; i++) {

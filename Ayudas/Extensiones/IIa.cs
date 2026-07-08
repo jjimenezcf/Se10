@@ -7,6 +7,13 @@ namespace Utilidades
 {
     public enum enumIa { IaGeminis, IaMistral, IaPerplexity, IaOpenAI, IaDeepSeek, IaApyhub, IaClaude }
 
+    // Claves de métricas calculadas por historial de hitos, usables en campo de métricas con prefijo "calculado:"
+    public enum enumTiemposPorHito
+    {
+        TiempoEnEstado,
+        TiempoHastaEstado
+    }
+
     public class ltrIa
     {
         public const string ApiKey_NoDefinida = "No definida";
@@ -460,6 +467,11 @@ Preguntas anteriores
 
         public string PromptConteo { get; set; }
 
+        // Nombres canónicos de los campos calculados por historial de hitos.
+        // F12 sobre nameof() navega a enumTiemposPorHito en este mismo fichero.
+        public static readonly string CampoTiempoEnEstado    = $"calculado:{nameof(enumTiemposPorHito.TiempoEnEstado)}";
+        public static readonly string CampoTiempoHastaEstado = $"calculado:{nameof(enumTiemposPorHito.TiempoHastaEstado)}";
+
         public static readonly string SinReglas = "Sin reglas específicas";
 
         public static readonly string Prompt = @"# PROMPT DE ANÁLISIS DE PREGUNTAS DE CONTEO Y AGREGACIÓN
@@ -556,6 +568,7 @@ Operaciones disponibles: `Cuenta`, `Suma`, `Media`, `Max`, `Min`.
 - Devuelve **ÚNICAMENTE** el objeto JSON. Sin explicaciones, sin markdown.
 - Si la pregunta es ambigua, prioriza la interpretación más útil.
 - Los IDs numéricos de tipos/estados/CGs se obtienen de `CONTEXTO DE DATOS`.
+- **Acumulación de filtros entre turnos:** si en `PREGUNTAS ANTERIORES` hay entradas con `Filtros generados`, y la pregunta actual es una refinación o ampliación de la anterior (usa expresiones como ""y que"", ""además"", ""pero"", ""también"", ""excepto"", ""que también"", ""y solo""), **incluye siempre los filtros del turno anterior** y añade o reemplaza únicamente los que la pregunta actual modifica explícitamente. Si la pregunta actual es completamente nueva (no hace referencia al contexto anterior), genera filtros desde cero.
 
 ---
 
