@@ -102,12 +102,34 @@ namespace ApiPreguntasIa {
 
     // ─── Conteo IA desde el Panel de Control ────────────────────────────────
 
-    export function InyectarConteoIA(negocioEnum: string, negocioNombre: string, btn: HTMLButtonElement): void {
-        btn.dataset.negocio = negocioEnum;
-        btn.addEventListener('click', () => AbrirModalConteo(negocioEnum, negocioNombre));
+    const _ClaveDiccionarioDeFiltros = 'panelDeControl.diccionarioDeFiltros';
+
+    function _generarGuid(): string {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = Math.random() * 16 | 0;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
     }
 
-    export function AbrirModalConteo(negocioEnum: string, negocioNombre: string): void {
+    function _guardarFiltrosConGuid(filtrosJson: string): string {
+        const guid = _generarGuid();
+        const diccionario: Record<string, string> = JSON.parse(localStorage.getItem(_ClaveDiccionarioDeFiltros) ?? '{}');
+        diccionario[guid] = filtrosJson;
+        localStorage.setItem(_ClaveDiccionarioDeFiltros, JSON.stringify(diccionario));
+        return guid;
+    }
+
+    export function LeerFiltrosPorGuid(guid: string): string | null {
+        const diccionario: Record<string, string> = JSON.parse(localStorage.getItem(_ClaveDiccionarioDeFiltros) ?? '{}');
+        return diccionario[guid] ?? null;
+    }
+
+    export function InyectarConteoIA(negocioEnum: string, negocioNombre: string, btn: HTMLButtonElement, urlBase?: string): void {
+        btn.dataset.negocio = negocioEnum;
+        btn.addEventListener('click', () => AbrirModalConteo(negocioEnum, negocioNombre, urlBase));
+    }
+
+    export function AbrirModalConteo(negocioEnum: string, negocioNombre: string, urlBase?: string): void {
         const overlay = document.createElement('div');
         overlay.className = 'grafica-conteo-overlay';
 
@@ -117,12 +139,25 @@ namespace ApiPreguntasIa {
             return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
         });
 
+        // URL para "Consultar respuesta": misma vista pero con origen=paneldecontrol
+        const urlConsultar = urlBase
+            ? urlBase.replace(/,\s*null\s*,/, ",'origen=paneldecontrol',")
+            : null;
+
         overlay.innerHTML = `
             <div class="grafica-conteo-modal">
-                <div class="grafica-conteo-titulo">Pregunta sobre ${negocioNombre}</div>
+                <div class="grafica-conteo-cabecera">
+                    <div class="grafica-conteo-titulo">Pregunta sobre ${negocioNombre}</div>
+                    <a id="gc-link-consultar" class="grafica-conteo-consultar" href="#" style="display:none">Consultar respuesta</a>
+                </div>
                 <textarea id="gc-pregunta" class="grafica-conteo-pregunta"
                     placeholder="Escribe tu pregunta, p.ej.: ¿cuántos ${negocioNombre} hay por tipo?" rows="5"></textarea>
-                <div id="gc-respuesta" class="grafica-conteo-respuesta" style="display:none"></div>
+                <div id="gc-area-respuesta" style="display:none">
+                    <div class="grafica-conteo-respuesta-cabecera">
+                        <a id="gc-link-toggle-filtro" class="grafica-conteo-consultar" href="#">Mostrar filtro</a>
+                    </div>
+                    <div id="gc-respuesta" class="grafica-conteo-respuesta"></div>
+                </div>
                 <div class="grafica-conteo-botones">
                     <label class="grafica-conteo-misma-conv">
                         <input type="checkbox" id="gc-chk-misma-conv" checked>
@@ -137,13 +172,16 @@ namespace ApiPreguntasIa {
         document.body.appendChild(overlay);
         setTimeout(() => overlay.classList.add('fade-in'), 10);
 
-        const txtPregunta  = overlay.querySelector('#gc-pregunta')       as HTMLTextAreaElement;
-        const divRespuesta = overlay.querySelector('#gc-respuesta')       as HTMLDivElement;
-        const btnPreguntar = overlay.querySelector('#gc-btn-preguntar')   as HTMLButtonElement;
-        const btnCerrar    = overlay.querySelector('#gc-btn-cerrar')      as HTMLButtonElement;
-        const chkMismaConv = overlay.querySelector('#gc-chk-misma-conv') as HTMLInputElement;
-        const spanSegundero = overlay.querySelector('#gc-segundero')      as HTMLSpanElement;
-        const spanSeg       = overlay.querySelector('#gc-seg')            as HTMLSpanElement;
+        const txtPregunta     = overlay.querySelector('#gc-pregunta')           as HTMLTextAreaElement;
+        const areaRespuesta   = overlay.querySelector('#gc-area-respuesta')     as HTMLDivElement;
+        const divRespuesta    = overlay.querySelector('#gc-respuesta')           as HTMLDivElement;
+        const btnPreguntar    = overlay.querySelector('#gc-btn-preguntar')       as HTMLButtonElement;
+        const btnCerrar       = overlay.querySelector('#gc-btn-cerrar')         as HTMLButtonElement;
+        const chkMismaConv    = overlay.querySelector('#gc-chk-misma-conv')    as HTMLInputElement;
+        const spanSegundero   = overlay.querySelector('#gc-segundero')          as HTMLSpanElement;
+        const spanSeg         = overlay.querySelector('#gc-seg')                as HTMLSpanElement;
+        const linkConsultar   = overlay.querySelector('#gc-link-consultar')     as HTMLAnchorElement;
+        const linkToggleFiltro = overlay.querySelector('#gc-link-toggle-filtro') as HTMLAnchorElement;
 
         ApiControl.IncluirCss(btnCerrar,    'boton-modal');
         ApiControl.IncluirCss(btnCerrar,    'btn');
@@ -161,6 +199,27 @@ namespace ApiPreguntasIa {
 
         btnCerrar.addEventListener('click', cerrar);
 
+        let _textoRespuesta = '';
+        let _filtrosRespuesta: string | null = null;
+        let _mostrando: 'respuesta' | 'filtro' = 'respuesta';
+
+        linkToggleFiltro.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (_mostrando === 'respuesta' && _filtrosRespuesta) {
+                try {
+                    divRespuesta.textContent = JSON.stringify(JSON.parse(_filtrosRespuesta), null, 2);
+                } catch {
+                    divRespuesta.textContent = _filtrosRespuesta;
+                }
+                linkToggleFiltro.textContent = 'Mostrar respuesta';
+                _mostrando = 'filtro';
+            } else {
+                divRespuesta.textContent = _textoRespuesta;
+                linkToggleFiltro.textContent = 'Mostrar filtro';
+                _mostrando = 'respuesta';
+            }
+        });
+
         btnPreguntar.addEventListener('click', () => {
             const pregunta = txtPregunta.value.trim();
             if (!pregunta) {
@@ -170,7 +229,7 @@ namespace ApiPreguntasIa {
             }
             txtPregunta.style.borderColor = '';
             btnPreguntar.disabled = true;
-            divRespuesta.style.display = 'none';
+            areaRespuesta.style.display = 'none';
             divRespuesta.textContent = '';
 
             // Iniciar segundero
@@ -184,12 +243,29 @@ namespace ApiPreguntasIa {
 
             const continuarConversacion = chkMismaConv.checked;
 
-            LanzarPreguntaDeConteo(negocioEnum, pregunta, sessionGuid, continuarConversacion, respuesta => {
+            LanzarPreguntaDeConteo(negocioEnum, pregunta, sessionGuid, continuarConversacion, (respuesta, filtrosIa) => {
                 clearInterval(timer);
                 spanSegundero.style.display = 'none';
-                divRespuesta.textContent = respuesta;
-                divRespuesta.style.display = '';
                 btnPreguntar.disabled = false;
+
+                _textoRespuesta = respuesta;
+                _filtrosRespuesta = filtrosIa;
+                _mostrando = 'respuesta';
+                divRespuesta.textContent = respuesta;
+                linkToggleFiltro.textContent = 'Mostrar filtro';
+                linkToggleFiltro.style.display = filtrosIa ? '' : 'none';
+                areaRespuesta.style.display = '';
+
+                // Mostrar "Consultar respuesta" si la tarjeta tiene vista y la IA devolvió filtros
+                if (urlConsultar && linkConsultar && filtrosIa) {
+                    const guid = _guardarFiltrosConGuid(filtrosIa);
+                    const urlConGuid = urlConsultar.replace(
+                        "'origen=paneldecontrol'",
+                        `'origen=paneldecontrol&${Ajax.Param.guidDeFiltros}=${guid}'`
+                    );
+                    linkConsultar.setAttribute('onclick', `${urlConGuid}; return false;`);
+                    linkConsultar.style.display = '';
+                }
             });
         });
 
@@ -201,7 +277,7 @@ namespace ApiPreguntasIa {
         pregunta: string,
         sessionGuid: string,
         continuarConversacion: boolean,
-        onResultado: (respuesta: string) => void
+        onResultado: (respuesta: string, filtrosIa: string | null) => void
     ): void {
 
         const url = `/${Ajax.Entorno.Ia.controlador}/${Ajax.Entorno.Ia.PregutaConConteo}` +
@@ -219,12 +295,15 @@ namespace ApiPreguntasIa {
         .then(r => r.json())
         .then((resultado: any) => {
             if (resultado?.estado === 'Ok' || resultado?.estado === 0) {
-                onResultado(resultado.datos ?? '(sin respuesta)');
+                const datos = resultado.datos;
+                const texto    = datos?.texto   ?? datos ?? '(sin respuesta)';
+                const filtros  = datos?.filtrosIa ?? null;
+                onResultado(texto, filtros);
             } else {
-                onResultado(`Error: ${resultado?.mensaje ?? 'respuesta desconocida'}`);
+                onResultado(`Error: ${resultado?.mensaje ?? 'respuesta desconocida'}`, null);
             }
         })
-        .catch(err => onResultado(`Error de red: ${err}`));
+        .catch(err => onResultado(`Error de red: ${err}`, null));
     }
 
 }

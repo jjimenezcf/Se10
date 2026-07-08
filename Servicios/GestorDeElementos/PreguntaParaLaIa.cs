@@ -59,7 +59,7 @@ namespace GestorDeElementos
                 _claveVirtualFactories[negocio] = mClaves;
         }
 
-        public static async Task<string> Resolver(ContextoSe contexto, enumNegocio negocio, string pregunta, List<ClausulaDeFiltrado> filtrosDePantalla, string historial = null)
+        public static async Task<(string Texto, string FiltrosJson)> Resolver(ContextoSe contexto, enumNegocio negocio, string pregunta, List<ClausulaDeFiltrado> filtrosDePantalla, string historial = null)
         {
             // --- Cargar metadatos del negocio ---
             var tipos = negocio.UsaTipo() ? negocio.Tipos(contexto).ToList() : new List<ITipoDeElementoDtm>();
@@ -96,7 +96,7 @@ namespace GestorDeElementos
                 }
                 catch
                 {
-                    return $"La IA devolvió una respuesta no interpretable: {json}";
+                    return ($"La IA devolvió una respuesta no interpretable: {json}", null);
                 }
 
                 // Garantizar al menos la métrica Cuenta si la IA no devolvió métricas
@@ -177,13 +177,13 @@ namespace GestorDeElementos
 
                 Func<ElementoDeProcesoDtm, MetricaDeTotales, decimal?> resolverCalculado = (r, m) =>
                 {
-                    if (m.Campo.StartsWith("calculado:tiempohastaestado:", StringComparison.OrdinalIgnoreCase))
+                    if (m.Campo.StartsWith(IIaPromptConteo.CampoTiempoHastaEstado + ":", StringComparison.OrdinalIgnoreCase))
                     {
                         // Tiempo desde FechaCreacion hasta el primer hito en los estados indicados
                         var cacheKey = m.Campo.ToLowerInvariant();
                         if (!cacheHastaEstado.ContainsKey(cacheKey))
                         {
-                            var idsStr = m.Campo.Substring("calculado:tiempohastaestado:".Length);
+                            var idsStr = m.Campo.Substring((IIaPromptConteo.CampoTiempoHastaEstado + ":").Length);
                             var ids = idsStr.Split(',')
                                            .Select(s => int.TryParse(s.Trim(), out var i) ? i : 0)
                                            .Where(i => i > 0).ToList();
@@ -204,13 +204,13 @@ namespace GestorDeElementos
                         return dias > 0 ? dias : null;
                     }
 
-                    if (m.Campo.StartsWith("calculado:tiempoenestado:", StringComparison.OrdinalIgnoreCase))
+                    if (m.Campo.StartsWith(IIaPromptConteo.CampoTiempoEnEstado + ":", StringComparison.OrdinalIgnoreCase))
                     {
                         // Con IDs específicos: calculado:TiempoEnEstado:5,24
                         var cacheKey = m.Campo.ToLowerInvariant();
                         if (!cacheHitos.ContainsKey(cacheKey))
                         {
-                            var idsStr = m.Campo.Substring("calculado:tiempoenestado:".Length);
+                            var idsStr = m.Campo.Substring((IIaPromptConteo.CampoTiempoEnEstado + ":").Length);
                             var ids = idsStr.Split(',')
                                            .Select(s => int.TryParse(s.Trim(), out var i) ? i : 0)
                                            .Where(i => i > 0).ToList();
@@ -231,7 +231,7 @@ namespace GestorDeElementos
                         return (decimal)TimeSpan.FromTicks(ticks).TotalDays;
                     }
 
-                    if (m.Campo.Equals("calculado:TiempoEnEstado", StringComparison.OrdinalIgnoreCase))
+                    if (m.Campo.Equals(IIaPromptConteo.CampoTiempoEnEstado, StringComparison.OrdinalIgnoreCase))
                     {
                         // Sin IDs: media histórica de todos los hitos del negocio por IdEstado.
                         // Incluye elementos ya terminados/cancelados, no solo los del resultado actual.
@@ -272,7 +272,7 @@ namespace GestorDeElementos
                 bool esHistoricaPorEstado =
                     respuesta.AgruparPor.Count == 1
                     && respuesta.AgruparPor[0].Equals("IdEstado", StringComparison.OrdinalIgnoreCase)
-                    && respuesta.Metricas.Any(m => m.Campo.Equals("calculado:TiempoEnEstado", StringComparison.OrdinalIgnoreCase));
+                    && respuesta.Metricas.Any(m => m.Campo.Equals(IIaPromptConteo.CampoTiempoEnEstado, StringComparison.OrdinalIgnoreCase));
 
                 // --- Contar / agregar ---
                 if (esHistoricaPorEstado)
@@ -295,7 +295,7 @@ namespace GestorDeElementos
                 }
 
                 contexto.AnotarTraza($"Respuesta:{Environment.NewLine}", resultado);
-                return resultado;
+                return (resultado, filtrosEfectivos);
             }
             catch(Exception e)
             {
@@ -362,7 +362,7 @@ namespace GestorDeElementos
                 foreach (var metrica in respuesta.Metricas)
                 {
                     object val;
-                    if (metrica.Campo.Equals("calculado:TiempoEnEstado", StringComparison.OrdinalIgnoreCase))
+                    if (metrica.Campo.Equals(IIaPromptConteo.CampoTiempoEnEstado, StringComparison.OrdinalIgnoreCase))
                         val = AgregadosHelper.Calcular(diasPorHito, metrica.Operacion);
                     else if (metrica.Operacion == enumOperacionDeTotales.Cuenta)
                         val = (object)grupo.Count();
@@ -599,6 +599,7 @@ namespace GestorDeElementos
             "idusuacrea"            => "Creador",
             "idusuamodi"            => "Modificador",
             "idfacturaemt"          => "Factura emitida",
+            "porcentajeirpf"        => "% IRPF",
             "referenciaexpediente"  => "Expediente",
             "nombreexpediente"      => "Nombre expediente",
             "referenciappt"         => "Presupuesto",

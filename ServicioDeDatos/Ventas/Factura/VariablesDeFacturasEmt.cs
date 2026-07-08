@@ -206,9 +206,15 @@ namespace ServicioDeDatos.Ventas
         public string Valor { get; set; }
     }
 
+    // Etiquetas de agrupación y campos calculados específicos de FacturasEmt.
+    // Úsalas con nameof() en los resolvers y en IA_Modelo_de_datos para mantenerlos sincronizados.
     public enum enumEtiquetasDeFacturasEmt
     {
+        // Campos calculados de líneas (prefijo calculado: en el prompt)
         Total,
+        ImporteIrpf,
+        // Clave virtual de agrupación: porcentaje de retención IRPF
+        PorcentajeIrpf,
     }
 
     public static class VariableDeFacturasEmt
@@ -217,25 +223,54 @@ namespace ServicioDeDatos.Ventas
 ## MODELO DE DATOS ESPECÍFICO: FacturaEmtDtm
 
 ### Propiedades específicas de FacturaEmtDtm:
-| Propiedad     | Tipo       | Descripción                                              |
-|---------------|------------|----------------------------------------------------------|
-| IdCliente     | int        | ID del cliente (→ TerceroDtm: Nombre, Nif)               |
-| Ano           | int        | Año de la serie de facturación                           |
-| Serie         | string     | Serie de facturación                                     |
-| Numero        | int        | Número de factura dentro de la serie                     |
-| EmitidaEl     | DateTime?  | Fecha de emisión oficial de la factura                   |
-| FacturadaEl   | DateTime?  | Fecha de facturación (puede diferir de emisión)          |
-| VenceEl       | DateTime?  | Fecha de vencimiento del cobro                           |
-| IdPresupuesto | int?       | ID del presupuesto de origen (→ PresupuestoDtm)          |
-| IdContrato    | int?       | ID del contrato asociado (→ ContratoDtm)                 |
+| Propiedad            | Tipo       | Descripción                                                        |
+|----------------------|------------|--------------------------------------------------------------------|
+| IdCliente            | int        | ID del cliente (→ TerceroDtm: Nombre incluye NIF)                 |
+| Ano                  | int        | Año de la serie de facturación                                     |
+| Serie                | string     | Serie de facturación (p. ej. ""A"", ""B"")                            |
+| Numero               | int        | Número de factura dentro de la serie                               |
+| EmitidaEl            | DateTime?  | Fecha de emisión oficial de la factura                             |
+| FacturadaEl          | DateTime?  | Fecha de facturación (puede diferir de emisión)                    |
+| VenceEl              | DateTime?  | Fecha de vencimiento del cobro                                     |
+| EsRectificativa      | bool       | True si la factura es una nota de abono / rectificativa            |
+| ClaseRectificativa   | enum?      | OC (Complementaria) o OR (Total) — solo en rectificativas          |
+| MotivoDeRectificacion| enum?      | DatosErroneos, PorImportes, PorImpago — solo en rectificativas     |
+| IdPresupuesto        | int?       | ID del presupuesto de origen (→ PresupuestoDtm)                    |
+| IdContrato           | int?       | ID del contrato asociado (→ ContratoDtm)                           |
+| IdParteTr            | int?       | ID del parte de trabajo asociado (→ ParteTrDtm)                    |
 
 ### Métodos calculados disponibles (usar en Campo de métricas):
-- `calculado:{nameof(enumEtiquetasDeFacturasEmt.Total)}` — suma de líneas de la factura emitida
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.Total)}` — suma de líneas de la factura (base + IVA)
+
+### Campos calculados de historial de estados (usar en Campo de métricas):
+- `calculado:TiempoEnEstado` — días que lleva la factura en su estado actual (agrupando por `IdEstado`)
+- `calculado:TiempoEnEstado:id1,id2,...` — días acumulados en los estados indicados
+- `calculado:TiempoHastaEstado:id1,id2,...` — días desde creación hasta entrar en ese estado (ciclo de vida)
+  - Estados terminales relevantes: Cobrada=6, No Cobrable=7, Rectificada=9, Abonada=12
+  - Ejemplo ""tiempo medio hasta cobro"": `calculado:TiempoHastaEstado:6`
 
 ### Objetos relacionados adicionales:
-- **TerceroDtm** (`IdCliente`): `Id`, `Nombre`, `Apellido`, `Nif`, `Email`
+- **TerceroDtm** (`IdCliente`): `Id`, `Nombre` (incluye NIF concatenado), `Nif`, `Email`
 - **PresupuestoDtm** (`IdPresupuesto`): presupuesto del que se originó la factura
 - **ContratoDtm** (`IdContrato`): contrato asociado si existe
+- **ParteTrDtm** (`IdParteTr`): parte de trabajo asociado si existe
+- **TareaDtm** (relación 1:N por `IdFacturaEmt`): tareas vinculadas a la factura
+- **AbonoDeFaeDtm** (relación N:M con `PagoDtm`): registros de cobro parcial o total
+- **FacturaEmtDeUnaRemesaDtm** (relación N:M): facturas incluidas en remesas bancarias
+- **PeriodoEmtDtm**: período de facturación (fecha inicio/fin del servicio facturado)
+- **IrpfEmtDtm** (ampliación 1:1 — `IdElemento` → `FacturaEmtDtm.Id`): retención IRPF de la factura
+  | Campo     | Tipo      | Descripción                                              |
+  |-----------|-----------|----------------------------------------------------------|
+  | BiSujeta  | decimal?  | Base imponible sujeta a retención                        |
+  | Irpf      | decimal?  | Porcentaje de retención aplicado (ej. 15 = 15 %)         |
+  | Importe   | decimal?  | Importe retenido calculado (BiSujeta × Irpf / 100)       |
+  | IdIrpf    | int?      | FK al tipo de IRPF (`IrpfDtm`)                           |
+
+### Campos calculados disponibles (métricas de IRPF):
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteIrpf)}` — importe retenido de IRPF de cada factura (para suma, media, etc.)
+
+### Claves de agrupación disponibles (además de las directas):
+- `{nameof(enumEtiquetasDeFacturasEmt.PorcentajeIrpf)}` — agrupa facturas por el porcentaje de retención aplicado (p. ej. ""15 %"", ""7 %"", ""Sin IRPF"")
 ";
 
         internal static readonly string IA_Reglas_de_filtrado = @"
@@ -450,6 +485,91 @@ namespace ServicioDeDatos.Ventas
   1. `{""Clausula"": ""VinculosAUnLote"", ""Criterio"": ""igual"", ""Valor"": ""6""}` (Representa SinRelacion).
 
 **Jerarquía:** Si se detecta una búsqueda por nombre (R.12.1), se omiten las reglas de situación (R.12.2 y R.12.3).
+### R.FacturasVenta.13 · Serie y Año de facturación (`Serie`, `Ano`)
+- **Disparador:** Facturas ""de la serie [X]"", ""de la serie A"", ""del año [AAAA]"", ""de la serie A de 2025"", ""emitidas en la serie B"".
+- **Acción para serie:** `{""Clausula"": ""Serie"", ""Criterio"": ""igual"", ""Valor"": ""A""}`
+- **Acción para año:** `{""Clausula"": ""Ano"", ""Criterio"": ""igual"", ""Valor"": ""2025""}`
+- **Nota:** Ambas pueden combinarse. `Serie` es sensible a mayúsculas (usar el valor exacto que indique el usuario).
+
+### R.FacturasVenta.14 · Creador de la factura (`idusuacrea`)
+- **Disparador:** Facturas ""creadas por [usuario]"", ""que introdujo [nombre]"", ""dadas de alta por [login]"", ""que ha creado [nombre]"".
+- **Acción:** Busca en `CONTEXTO DE DATOS :: Usuarios` y genera:
+  1. `{""Clausula"": ""idusuacrea"", ""Criterio"": ""igual"", ""Valor"": ""id_encontrado""}`
+  2. Si además pide un período: `{""Clausula"": ""fechacreacion"", ""Criterio"": ""entreFechas"", ""Valor"": ""inicio-fin""}`
+- **Nota:** No confundir con el cliente; ""creador"" o ""introdujo"" refieren siempre al usuario interno del sistema.
+
+### R.FacturasVenta.15 · Facturas rectificativas vs. facturas ordinarias
+**R.FacturasVenta.15.1 · Solo rectificativas (notas de abono)**
+- **Disparador:** ""solo rectificativas"", ""notas de abono"", ""facturas correctoras"", ""abonos emitidos"".
+- **Acción:** `{""Clausula"": ""EsRectificativa"", ""Criterio"": ""igual"", ""Valor"": ""true""}`
+
+**R.FacturasVenta.15.2 · Solo facturas ordinarias (no rectificativas)**
+- **Disparador:** ""facturas normales"", ""no rectificativas"", ""sin nota de abono"", ""facturas ordinarias"".
+- **Acción:** `{""Clausula"": ""EsRectificativa"", ""Criterio"": ""igual"", ""Valor"": ""false""}`
+
+### R.FacturasVenta.17 · Cantidad de Tareas relacionadas (`CantidadDeTareas`)
+- **Disparador:** Facturas ""relacionadas con N tareas"", ""que tengan exactamente N tareas"", ""con más de N tareas"", ""con menos de N tareas"", ""vinculadas a N tareas"", ""que solo tengan N tareas"".
+- **Acción:** Genera el objeto con el criterio adecuado:
+  - Exactamente N → `{""Clausula"": ""CantidadDeTareas"", ""Criterio"": ""igual"", ""Valor"": ""N""}`
+  - Más de N → `{""Clausula"": ""CantidadDeTareas"", ""Criterio"": ""mayor"", ""Valor"": ""N""}`
+  - Al menos N / N o más → `{""Clausula"": ""CantidadDeTareas"", ""Criterio"": ""mayorIgual"", ""Valor"": ""N""}`
+  - Menos de N → `{""Clausula"": ""CantidadDeTareas"", ""Criterio"": ""menor"", ""Valor"": ""N""}`
+  - Como mucho N / N o menos → `{""Clausula"": ""CantidadDeTareas"", ""Criterio"": ""menorIgual"", ""Valor"": ""N""}`
+- **Nota:** El sistema cuenta las tareas que tienen el campo `IdFacturaEmt` apuntando a la factura. Solo usa un número entero en `Valor`.
+- **Ejemplo:** ""facturas que solo estén relacionadas con 4 tareas"" → `{""Clausula"": ""CantidadDeTareas"", ""Criterio"": ""igual"", ""Valor"": ""4""}`
+
+### R.FacturasVenta.18 · Cantidad de Partes de Trabajo relacionados (`CantidadDePartesTr`)
+- **Disparador:** Facturas ""relacionadas con N partes de trabajo"", ""que tengan exactamente N partes"", ""con más de N PTR"", ""con menos de N partes de trabajo"", ""vinculadas a N partes"", ""que solo tengan N partes de trabajo"".
+- **Acción:** Genera el objeto con el criterio adecuado:
+  - Exactamente N → `{""Clausula"": ""CantidadDePartesTr"", ""Criterio"": ""igual"", ""Valor"": ""N""}`
+  - Más de N → `{""Clausula"": ""CantidadDePartesTr"", ""Criterio"": ""mayor"", ""Valor"": ""N""}`
+  - Al menos N / N o más → `{""Clausula"": ""CantidadDePartesTr"", ""Criterio"": ""mayorIgual"", ""Valor"": ""N""}`
+  - Menos de N → `{""Clausula"": ""CantidadDePartesTr"", ""Criterio"": ""menor"", ""Valor"": ""N""}`
+  - Como mucho N / N o menos → `{""Clausula"": ""CantidadDePartesTr"", ""Criterio"": ""menorIgual"", ""Valor"": ""N""}`
+- **Nota:** Cuenta los partes de trabajo (PTR) que tienen el campo `IdFacturaEmt` apuntando a la factura. Solo usa un número entero en `Valor`.
+- **Ejemplo:** ""facturas relacionadas con más de 2 partes de trabajo"" → `{""Clausula"": ""CantidadDePartesTr"", ""Criterio"": ""mayor"", ""Valor"": ""2""}`
+
+### R.FacturasVenta.19 · Cantidad de Planificaciones de Venta relacionadas (`CantidadDePlanificacionesDeVenta`)
+- **Disparador:** Facturas ""relacionadas con N planificaciones"", ""que tengan exactamente N PLV"", ""con más de N planificaciones de venta"", ""con menos de N PLV"", ""vinculadas a N planificaciones"", ""que solo tengan N planificaciones"".
+- **Acción:** Genera el objeto con el criterio adecuado:
+  - Exactamente N → `{""Clausula"": ""CantidadDePlanificacionesDeVenta"", ""Criterio"": ""igual"", ""Valor"": ""N""}`
+  - Más de N → `{""Clausula"": ""CantidadDePlanificacionesDeVenta"", ""Criterio"": ""mayor"", ""Valor"": ""N""}`
+  - Al menos N / N o más → `{""Clausula"": ""CantidadDePlanificacionesDeVenta"", ""Criterio"": ""mayorIgual"", ""Valor"": ""N""}`
+  - Menos de N → `{""Clausula"": ""CantidadDePlanificacionesDeVenta"", ""Criterio"": ""menor"", ""Valor"": ""N""}`
+  - Como mucho N / N o menos → `{""Clausula"": ""CantidadDePlanificacionesDeVenta"", ""Criterio"": ""menorIgual"", ""Valor"": ""N""}`
+- **Nota:** Cuenta las planificaciones de venta (PLV) que tienen el campo `IdFacturaEmt` apuntando a la factura. Solo usa un número entero en `Valor`.
+- **Ejemplo:** ""facturas que tengan exactamente una planificación de venta"" → `{""Clausula"": ""CantidadDePlanificacionesDeVenta"", ""Criterio"": ""igual"", ""Valor"": ""1""}`
+
+### R.FacturasVenta.21 · Facturas con o sin retención IRPF (`TieneIrpf`)
+- **Disparador con IRPF:** ""con retención"", ""que tengan IRPF"", ""con IRPF"", ""sujetas a retención"", ""con retención de IRPF"".
+  - **Acción:** `{""Clausula"": ""TieneIrpf"", ""Criterio"": ""igual"", ""Valor"": ""true""}`
+- **Disparador sin IRPF:** ""sin retención"", ""que no tengan IRPF"", ""sin IRPF"", ""no sujetas a retención"", ""sin retención de IRPF"".
+  - **Acción:** `{""Clausula"": ""TieneIrpf"", ""Criterio"": ""igual"", ""Valor"": ""false""}`
+- **Regla de agrupación:** Si el usuario pide ""agrupar por porcentaje"" o ""por tipo de retención"", usa la clave de agrupación `PorcentajeIrpf` (NO como filtro). El filtro `TieneIrpf=true` ya garantiza que solo aparezcan facturas con IRPF.
+- **Regla de importe retenido:** Si el usuario pide la suma o media de la retención, usa `calculado:ImporteIrpf` como campo de métrica.
+- **Ejemplo completo:** ""cuántas facturas tienen IRPF y agrúpalas por porcentaje aplicado"" →
+  ```json
+  {
+    ""Filtros"": [{""Clausula"": ""TieneIrpf"", ""Criterio"": ""igual"", ""Valor"": ""true""}],
+    ""AgruparPor"": [""PorcentajeIrpf""],
+    ""Metricas"": [{""Operacion"": ""Cuenta"", ""Campo"": """", ""Alias"": ""Facturas""}]
+  }
+  ```
+
+### R.FacturasVenta.20 · Concepto de línea de factura (`ConceptoDeLinea`)
+- **Disparador:** Facturas ""que en su detalle incluyan [servicio]"", ""cuyas líneas contengan [concepto]"", ""que facturen el servicio de [X]"", ""que hayan facturado [X] y [Y]"", ""que incluyan tanto [X] como [Y] en sus líneas"".
+- **Criterios disponibles:**
+  - **`sonTodos` (AND):** Cuando el usuario exige que la factura incluya **todos** los conceptos mencionados (palabras clave como ""y"", ""tanto … como"", ""también"", ""además""):
+    - `{""Clausula"": ""ConceptoDeLinea"", ""Criterio"": ""sonTodos"", ""Valor"": ""concepto1;concepto2""}`
+  - **`esAlgunoDe` (OR):** Cuando basta con que la factura incluya **alguno** de los conceptos (palabras clave como ""o"", ""alguno de""):
+    - `{""Clausula"": ""ConceptoDeLinea"", ""Criterio"": ""esAlgunoDe"", ""Valor"": ""concepto1;concepto2""}`
+  - **`contiene` (único término):** Cuando el usuario menciona un único concepto:
+    - `{""Clausula"": ""ConceptoDeLinea"", ""Criterio"": ""contiene"", ""Valor"": ""limpieza""}`
+- **Nota:** Los términos van separados por `;`. El sistema busca coincidencia parcial (contiene) en el campo `Concepto` de cada línea de la factura.
+- **Ejemplos:**
+  - ""facturas que en su detalle hayan facturado el servicio de limpieza y el de consultoría"" → `{""Clausula"": ""ConceptoDeLinea"", ""Criterio"": ""sonTodos"", ""Valor"": ""limpieza;consultoría""}`
+  - ""facturas que incluyan mantenimiento o reparación"" → `{""Clausula"": ""ConceptoDeLinea"", ""Criterio"": ""esAlgunoDe"", ""Valor"": ""mantenimiento;reparación""}`
+  - ""facturas de suministros"" → `{""Clausula"": ""ConceptoDeLinea"", ""Criterio"": ""contiene"", ""Valor"": ""suministros""}`
 ";
 
         private const string _jsonDeFAE_Serie_Por_Tipo_Anterior = "[{\"IdTipo\": 0,\"Serie\": \"A\"}]";

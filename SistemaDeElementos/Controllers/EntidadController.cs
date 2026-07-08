@@ -323,7 +323,19 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
     public async Task<JsonResult> epLeerDatosPost(string modo, string accion, string posicion, string cantidad)
     {
         var body = ApiController.LeerBody(HttpContext);
-        return await epLeerDatosParaElGrid(modo, accion, posicion, cantidad, body.parametros.LeerValor<string>(ltrParametrosEp.Filtro), body.parametros.LeerValor<string>(ltrParametrosEp.Orden), body.parametrosJson);
+        var filtro = body.parametros.LeerValor<string>(ltrParametrosEp.Filtro);
+        var filtroPrecomputado = body.parametros.LeerValor<string>(ltrParametrosEp.FiltroPrecomputado, null);
+        var clausulasPrecomputadas = string.IsNullOrWhiteSpace(filtroPrecomputado)
+            ? null
+            : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtroPrecomputado);
+        if (clausulasPrecomputadas?.Count > 0)
+        {
+            var clausulasPantalla = string.IsNullOrWhiteSpace(filtro)
+                ? new List<ClausulaDeFiltrado>()
+                : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtro);
+            filtro = Filtrar.FusionarFiltros(clausulasPantalla, clausulasPrecomputadas);
+        }
+        return await epLeerDatosParaElGrid(modo, accion, posicion, cantidad, filtro, body.parametros.LeerValor<string>(ltrParametrosEp.Orden), body.parametrosJson);
     }
 
 

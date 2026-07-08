@@ -148,6 +148,14 @@ namespace GestoresDeNegocio.Ventas
             consulta = consulta.FiltroPorFacturaNoIncluidaEnRemesa(Contexto, filtros);
             consulta = consulta.FiltroParaSeleccionarFacturaEnRemesas(Contexto, filtros);
             consulta = consulta.FiltroParaSeleccionarFacturaDeUnaTarea(Contexto, filtros);
+            consulta = consulta.FiltroPorCantidadDeTareas(Contexto, filtros);
+            consulta = consulta.FiltroPorCantidadDePartesTr(Contexto, filtros);
+            consulta = consulta.FiltroPorCantidadDePlanificacionesDeVenta(Contexto, filtros);
+            consulta = consulta.FiltroPorSerie(filtros);
+            consulta = consulta.FiltroPorAno(filtros);
+            consulta = consulta.FiltroPorEsRectificativa(filtros);
+            consulta = consulta.FiltroPorTieneIrpf(Contexto, filtros);
+            consulta = consulta.FiltroPorConceptoDeLinea(Contexto, filtros);
             consulta = consulta.FiltroFacturasEnUnaEstimacion(Contexto, filtros, parametros);
             consulta = consulta.FiltroFacturasEnUnLoteContable(Contexto, filtros, parametros);
             //consulta = consulta.FiltroPorEtapa(filtros);

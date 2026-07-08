@@ -1,5 +1,6 @@
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
+using Utilidades;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Expediente;
@@ -28,7 +29,7 @@ namespace GestoresDeNegocio.Tarea
                 .ToLowerInvariant();
 
             // TiempoEnEstado lo resuelve el resolver genérico de PreguntaParaLaIa, no la planificación
-            if (campo.StartsWith("tiempoenestado")) return null;
+            if (campo.StartsWith(nameof(enumTiemposPorHito.TiempoEnEstado), StringComparison.OrdinalIgnoreCase)) return null;
 
             // Ampliacion<T> ya cachea internamente: no lanza SQL si ya se cargó para esta tarea
             var plf = tarea.Ampliacion<PlfDeTareaDtm>(contexto, errorSiNoHay: false);

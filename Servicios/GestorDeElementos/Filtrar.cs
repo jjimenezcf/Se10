@@ -1438,13 +1438,38 @@ namespace GestorDeElementos
             return consulta;
         }
 
-        public static void MostrarTodos(this List<ClausulaDeFiltrado> filtros)
+        /// <summary>
+        /// Filtra E por la cantidad de registros D que tienen la FK <paramref name="propiedadFk"/> apuntando a E.Id.
+        /// Usa EF.Property para acceder a la columna por nombre, lo que EF Core traduce correctamente a SQL.
+        /// </summary>
+        public static IQueryable<E> FiltroPorCantidadDeDependencias<E, D>(
+            this IQueryable<E> consulta,
+            ContextoSe contexto,
+            List<ClausulaDeFiltrado> filtros,
+            string clausula,
+            string propiedadFk)
+            where E : RegistroDtm
+            where D : RegistroDtm
         {
-            var filtroQueMostrar = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrParametrosNeg.QueMostrar.ToLower() && x.Criterio == enumCriteriosDeFiltrado.diferente && !x.Aplicado);
-            if (filtroQueMostrar != null)
-                filtroQueMostrar.Aplicado = true;
-        }
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(clausula, StringComparison.OrdinalIgnoreCase) && !x.Aplicado);
+            if (filtro == null || !int.TryParse(filtro.Valor, out var cantidad))
+                return consulta;
 
+            var dependencias = contexto.Set<D>();
+
+            consulta = filtro.Criterio switch
+            {
+                enumCriteriosDeFiltrado.igual => consulta.Where(e => dependencias.Count(d => EF.Property<int?>(d, propiedadFk) == e.Id) == cantidad),
+                enumCriteriosDeFiltrado.mayor => consulta.Where(e => dependencias.Count(d => EF.Property<int?>(d, propiedadFk) == e.Id) > cantidad),
+                enumCriteriosDeFiltrado.mayorIgual => consulta.Where(e => dependencias.Count(d => EF.Property<int?>(d, propiedadFk) == e.Id) >= cantidad),
+                enumCriteriosDeFiltrado.menor => consulta.Where(e => dependencias.Count(d => EF.Property<int?>(d, propiedadFk) == e.Id) < cantidad),
+                enumCriteriosDeFiltrado.menorIgual => consulta.Where(e => dependencias.Count(d => EF.Property<int?>(d, propiedadFk) == e.Id) <= cantidad),
+                _ => consulta.Where(e => dependencias.Count(d => EF.Property<int?>(d, propiedadFk) == e.Id) == cantidad),
+            };
+
+            filtro.Aplicado = true;
+            return consulta;
+        }
     }
 
     public static class FiltrosPorDireccion
@@ -1504,6 +1529,15 @@ namespace GestorDeElementos
             }
             return consulta;
         }
+
+        public static void MostrarTodos(this List<ClausulaDeFiltrado> filtros)
+        {
+            var filtroQueMostrar = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrParametrosNeg.QueMostrar.ToLower() && x.Criterio == enumCriteriosDeFiltrado.diferente && !x.Aplicado);
+            if (filtroQueMostrar != null)
+                filtroQueMostrar.Aplicado = true;
+        }
+
+
     }
 
 }

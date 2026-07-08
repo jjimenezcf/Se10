@@ -57,6 +57,8 @@
 
         public static readonly string Seleccionadas = nameof(Seleccionadas).ToLower();
         public static readonly string Filtro = nameof(Filtro).ToLower();
+        public static readonly string FiltroPrecomputado = nameof(FiltroPrecomputado).ToLower();
+        public static readonly string GuidDeFiltros = nameof(GuidDeFiltros).ToLower();
         public static readonly string Orden = nameof(Orden).ToLower();
         public static readonly string filtrarConIa = nameof(filtrarConIa).ToLower();
         public static readonly string fraseDeFiltrado = nameof(fraseDeFiltrado).ToLower();

@@ -359,6 +359,12 @@ namespace UtilidadesParaIu
             var accionSiguiente = $"Crud.{gestorDeEventos}('obtener-siguientes','{idHtmlModal}')";
             var accionCompartir = $"Crud.{gestorDeEventos}('compartir-elemento')";
             var accionEnviar = $"Crud.{gestorDeEventos}('enviar-elemento')";
+            var accionAlternarFichas = $"Crud.{gestorDeEventos}('alternar-vista-de-fichas')";
+
+            var htmlAlternarFichas = $@"
+                        <button class=""{enumCssControles.AlternarVistaFichas.Render()} {enumCssControles.DivNoVisible.Render()}"" title=""Ver tareas en tablero por estado"" onclick=""{accionAlternarFichas}"">
+                           <img src='/images/menu/Estados.svg' style=""margin-top: -3px;"">
+                        </button>";
 
             var htmlContenedorNavegador = !navegadorEnFinDePagina
                 ? $@"
@@ -392,6 +398,7 @@ namespace UtilidadesParaIu
 
             var htmlNavegadorGrid = $@"
             <div id=¨{grid.IdHtmlNavegador}¨ class=¨{AplicarCss(!mostrarElNavegadorEnElPieDePagina, enumCssNavegadorEnModal.Navegador)}¨>
+                 {htmlAlternarFichas}
                  {htmlCompartir}
                  <div id=¨{grid.IdHtmlNavegador_2}¨>
                         <input type=¨number¨ 

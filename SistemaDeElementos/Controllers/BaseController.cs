@@ -1626,14 +1626,15 @@ namespace MVCSistemaDeElementos.Controllers
                 }
 
                 var negocioEnum = NegociosDeSe.ToEnumerado(negocio);
-                var respuesta = await PreguntaParaLaIa.Resolver(Contexto, negocioEnum, pregunta, filtros, historial);
+                var (respuesta, filtrosIa) = await PreguntaParaLaIa.Resolver(Contexto, negocioEnum, pregunta, filtros, historial);
 
                 // Almacenar la Q+A en el historial de la sesión
                 if (!string.IsNullOrEmpty(sessionGuid))
                 {
                     lock (_historialLock)
                     {
-                        var entrada = $"Pregunta: {pregunta}{Environment.NewLine}Respuesta: {respuesta}";
+                        var filtrosGenerados = string.IsNullOrEmpty(filtrosIa) ? "[]" : filtrosIa;
+                        var entrada = $"Pregunta: {pregunta}{Environment.NewLine}Filtros generados: {filtrosGenerados}{Environment.NewLine}Respuesta: {respuesta}";
                         if (_historialDeConversaciones.TryGetValue(sessionGuid, out var prev))
                             _historialDeConversaciones[sessionGuid] = prev + Environment.NewLine + Environment.NewLine + entrada;
                         else
@@ -1641,7 +1642,7 @@ namespace MVCSistemaDeElementos.Controllers
                     }
                 }
 
-                r.Datos = respuesta;
+                r.Datos = new { texto = respuesta, filtrosIa };
                 r.Estado = enumEstadoPeticion.Ok;
             }
             catch (Exception e)

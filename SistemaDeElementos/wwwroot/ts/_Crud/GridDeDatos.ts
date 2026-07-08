@@ -397,6 +397,10 @@
             this._pregunta = pregunta
         }
 
+        // Filtros precalculados por la IA (JSON de List<ClausulaDeFiltrado>).
+        // Cuando están definidos, se usan como filtro en la siguiente carga del grid (one-shot).
+        public FiltrosPrecomputados: string = null;
+
         private _nuevaConversacion: boolean = false;
         public get NuevaConversacion(): boolean {
             return this._nuevaConversacion;
@@ -1513,6 +1517,10 @@
                 parametros.push(new Parametro(Ajax.Param.nuevaPregunta, this.NuevaConversacion));
             }
             parametros.push(new Parametro(Ajax.Param.filtro, this.ObtenerFiltros(ltrOperacion.CargarDatos)));
+            if (this.FiltrosPrecomputados) {
+                parametros.push(new Parametro(Ajax.Param.filtroPrecomputado, this.FiltrosPrecomputados));
+                this.FiltrosPrecomputados = null;
+            }
             parametros.push(new Parametro(Ajax.Param.orden, this.ObtenerOrdenacion()));
             parametros.push(new Parametro(Ajax.Param.ColumnasOpcionales, JSON.stringify(this.ObtenerColumnasOpcionales())));
             parametros.push(new Parametro(Ajax.Param.idVista, this.IdVista))

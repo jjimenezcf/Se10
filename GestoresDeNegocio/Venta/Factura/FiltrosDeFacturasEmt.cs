@@ -9,6 +9,7 @@ using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Tarea;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -149,6 +150,117 @@ namespace GestoresDeNegocio.Ventas
                 consulta = consulta.Where(factura => contexto.Set<TareaDtm>().Any(tarea => tarea.IdFacturaEmt == factura.Id));
                 filtro.Clausula = nameof(INombre.Expresion);
             }
+            return consulta;
+        }
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorCantidadDeTareas(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+            => consulta.FiltroPorCantidadDeDependencias<FacturaEmtDtm, TareaDtm>(
+                contexto, filtros,
+                clausula:    ltrDeUnaFacturaEmt.CantidadDeTareas,
+                propiedadFk: nameof(TareaDtm.IdFacturaEmt));
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorCantidadDePartesTr(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+            => consulta.FiltroPorCantidadDeDependencias<FacturaEmtDtm, ParteTrDtm>(
+                contexto, filtros,
+                clausula:    ltrDeUnaFacturaEmt.CantidadDePartesTr,
+                propiedadFk: nameof(ParteTrDtm.IdFacturaEmt));
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorCantidadDePlanificacionesDeVenta(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+            => consulta.FiltroPorCantidadDeDependencias<FacturaEmtDtm, PlanificacionDeVentaDtm>(
+                contexto, filtros,
+                clausula:    ltrDeUnaFacturaEmt.CantidadDePlanificacionesDeVenta,
+                propiedadFk: nameof(PlanificacionDeVentaDtm.IdFacturaEmt));
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorSerie(this IQueryable<FacturaEmtDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(nameof(FacturaEmtDtm.Serie), StringComparison.OrdinalIgnoreCase) && !x.Aplicado);
+            if (filtro == null || string.IsNullOrWhiteSpace(filtro.Valor))
+                return consulta;
+            consulta = consulta.Where(f => f.Serie == filtro.Valor);
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorAno(this IQueryable<FacturaEmtDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(nameof(FacturaEmtDtm.Ano), StringComparison.OrdinalIgnoreCase) && !x.Aplicado);
+            if (filtro == null || !int.TryParse(filtro.Valor, out var ano))
+                return consulta;
+            consulta = filtro.Criterio switch
+            {
+                enumCriteriosDeFiltrado.mayor      => consulta.Where(f => f.Ano > ano),
+                enumCriteriosDeFiltrado.mayorIgual => consulta.Where(f => f.Ano >= ano),
+                enumCriteriosDeFiltrado.menor      => consulta.Where(f => f.Ano < ano),
+                enumCriteriosDeFiltrado.menorIgual => consulta.Where(f => f.Ano <= ano),
+                _                                  => consulta.Where(f => f.Ano == ano),
+            };
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorEsRectificativa(this IQueryable<FacturaEmtDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(nameof(FacturaEmtDtm.EsRectificativa), StringComparison.OrdinalIgnoreCase) && !x.Aplicado);
+            if (filtro == null)
+                return consulta;
+            var esRectificativa = filtro.Valor?.ToLower() != "false";
+            consulta = esRectificativa
+                ? consulta.Where(f => f.ClaseRectificativa != null)
+                : consulta.Where(f => f.ClaseRectificativa == null);
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorTieneIrpf(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(ltrDeUnaFacturaEmt.TieneIrpf, StringComparison.OrdinalIgnoreCase) && !x.Aplicado);
+            if (filtro == null)
+                return consulta;
+
+            var irpfs = contexto.Set<IrpfEmtDtm>();
+            var tieneIrpf = !string.Equals(filtro.Valor, "false", StringComparison.OrdinalIgnoreCase);
+
+            consulta = tieneIrpf
+                ? consulta.Where(f => irpfs.Any(i => i.IdElemento == f.Id))
+                : consulta.Where(f => !irpfs.Any(i => i.IdElemento == f.Id));
+
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
+        public static IQueryable<FacturaEmtDtm> FiltroPorConceptoDeLinea(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(ltrDeUnaFacturaEmt.ConceptoDeLinea, StringComparison.OrdinalIgnoreCase) && !x.Aplicado);
+            if (filtro == null || string.IsNullOrWhiteSpace(filtro.Valor))
+                return consulta;
+
+            var terminos = filtro.Valor
+                .Split(Simbolos.separadorDeCadenasDeFiltrado, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim().ToLower())
+                .Where(t => t.Length > 0)
+                .ToList();
+
+            if (terminos.Count == 0)
+                return consulta;
+
+            var lineas = contexto.Set<LineaDeUnaFaeDtm>();
+
+            if (filtro.Criterio == enumCriteriosDeFiltrado.sonTodos)
+            {
+                // AND: la factura debe tener al menos una línea con cada término
+                foreach (var termino in terminos)
+                {
+                    var t = termino;
+                    consulta = consulta.Where(f => lineas.Any(l => l.IdElemento == f.Id && l.Concepto.ToLower().Contains(t)));
+                }
+            }
+            else
+            {
+                // OR (esAlgunoDe / contiene): basta con que alguna línea contenga alguno de los términos
+                consulta = consulta.Where(f => lineas.Any(l => l.IdElemento == f.Id && terminos.Any(t => l.Concepto.ToLower().Contains(t))));
+            }
+
+            filtro.Aplicado = true;
             return consulta;
         }
 

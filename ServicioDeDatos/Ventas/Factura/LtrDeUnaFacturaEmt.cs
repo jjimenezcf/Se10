@@ -53,7 +53,12 @@
         public const string FiltrarPorNombreCliente = nameof(FiltrarPorNombreCliente);        
         public const string FiltroPorCobrado = nameof(FiltroPorCobrado);
         public const string PrefacturaDeUnPpt = nameof(PrefacturaDeUnPpt);
-        public const string FacturaDeUnaTarea = nameof(FacturaDeUnaTarea);
+        public const string FacturaDeUnaTarea     = nameof(FacturaDeUnaTarea);
+        public const string CantidadDeTareas               = nameof(CantidadDeTareas);
+        public const string CantidadDePartesTr             = nameof(CantidadDePartesTr);
+        public const string CantidadDePlanificacionesDeVenta = nameof(CantidadDePlanificacionesDeVenta);
+        public const string ConceptoDeLinea                = nameof(ConceptoDeLinea);
+        public const string TieneIrpf                      = nameof(TieneIrpf);
         public const string FiltroPorEtapa = nameof(FiltroPorEtapa);
         public const string AnoDeEmisison = nameof(AnoDeEmisison);  
         public const string MesDeEmision = nameof(MesDeEmision);
