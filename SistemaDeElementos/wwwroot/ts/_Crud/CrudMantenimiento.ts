@@ -502,7 +502,7 @@
             }
 
             const parametros: Array<Parametro> = new Array<Parametro>();
-            parametros.push(new Parametro(Ajax.Param.idsDeElementos, this.InfoSelector.IdsSeleccionados));          
+            parametros.push(new Parametro(Ajax.Param.idsDeElementos, this.InfoSelector.IdsSeleccionados));
             ApiDePeticiones.LeerDirecciones(this, this.Controlador, parametros).
                 then((peticion) => {
                     this.DespuesDeLeerDirecciones(peticion);
@@ -526,7 +526,7 @@
                 const nombreCalle = ObtenerPropiedad(fila, ltrChincheta.Calle, '');
                 const numero = ObtenerPropiedad(fila, ltrChincheta.Numero, '');
                 const calleCompleta = [tipoDeVia, nombreCalle, numero].filter(v => !IsNullOrEmpty(v)).join(' ');
-                const direccion =  {
+                const direccion = {
                     calle: calleCompleta,
                     municipio: ObtenerPropiedad(fila, ltrChincheta.Municipio, ''),
                     provincia: ObtenerPropiedad(fila, ltrChincheta.Provincia, ''),
@@ -603,7 +603,7 @@
         public MostrarOcultarVisorDeDetalle(): void {
             if (!Definido(this.VisorDeDetalle)) return;
 
-            if (this.InfoSelector.Seleccionados.length === 0) {
+            if (this.InfoSelector.Seleccionados.length === 0 || EsDispositvoMovil()) {
                 this.OcultarPanelDeGraficos();
                 return;
             }
@@ -652,7 +652,7 @@
         }
 
         public EditarEnPanelDeGraficos(mostrarDto: boolean): void {
-            if (this.modoTrabajo !== enumModoTrabajo.mantenimiento || !Definido(this.ContenedorDeTablaConGraficos))
+            if (this.modoTrabajo !== enumModoTrabajo.mantenimiento || !Definido(this.ContenedorDeTablaConGraficos) || EsDispositvoMovil())
                 return;
 
             if (this.VisorDeDetalle?.classList.contains(ltrCss.crud.mostrarDetalle)) {
@@ -1130,6 +1130,7 @@
 
         public AlternarVistaDeFichas(): void {
             this._vistaDeFichasActiva = !this._vistaDeFichasActiva;
+
             if (this._vistaDeFichasActiva) {
                 if (Definido(this.IconoVistaDeFichas)) ApiControl.IncluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
                 ApiControl.IncluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
@@ -1152,6 +1153,8 @@
                 // seleccionar una ficha), EditarEnPanelDeGraficos vuelve a mostrar
                 // splitter+gráficos con el 60/40 habitual.
                 ApiVisorDeArchivos.OcultarContenedorDeGraficos();
+                if (EsDispositvoMovil())
+                    return;
                 this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
             }
         }
@@ -2161,7 +2164,7 @@
         }
 
         public EstaElFiltroOculto(): boolean {
-            return Definido(this.ExpandirFiltro) ? !EsMayorDeCero(this.ExpandirFiltro.value): false;
+            return Definido(this.ExpandirFiltro) ? !EsMayorDeCero(this.ExpandirFiltro.value) : false;
         }
 
         public OcultarMostrarFiltro(): void {
