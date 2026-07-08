@@ -71,7 +71,7 @@ public class BackgroundCola_II : BackgroundService
 
         using var contexto = new ContextoSe(dbContextOptions, configuration, scope.ServiceProvider);
         contexto.Mapeador = mapper;
-        contexto.IniciarTraza("Ejecución de cola", debugar: true);
+        contexto.IniciarTraza(Literal.TrabajosSometidos.NombreFicheroDebug, debugar: true);
         using PeriodicTimer periodicTimer = new(_period);
         while (!stoppingToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(stoppingToken))
         {
@@ -108,12 +108,12 @@ public class BackgroundCola_II : BackgroundService
             finally
             {
                 contexto.TrabajoSometido = false;
-                contexto.CerrarTraza("Fin de ejecución");
+                contexto.AnotarTraza("Fin de ejecución", "Ejecución de cola finalizada");
             }
         }
         else
         {
-            contexto.CerrarTraza("Cola no activa");
+            contexto.AnotarTraza("Cola no activa", "La cola de trabajos no está activa");
         }
     }
 

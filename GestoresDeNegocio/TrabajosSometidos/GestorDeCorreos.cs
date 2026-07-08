@@ -229,40 +229,16 @@ namespace GestoresDeNegocio.TrabajosSometidos
             parametros.Parametros[ltrParamCorreos.JoinConUsuarios] = false;
             var pendientes = LeerRegistros(0, 10, new List<ClausulaDeFiltrado> { filtro }, null, parametros);
             foreach (var pendiente in pendientes)
-                try
+            {
+                var resultado = EnviarCorreoDeAsync(pendiente, ejecutadoPorLaCola: true).Result;
+                if (!resultado.EsOk)
                 {
-                    var resultado = EnviarCorreoDeAsync(pendiente, ejecutadoPorLaCola: true).Result;
-                    if (!resultado.EsOk)
-                        throw new Exception(resultado.Mensaje);
+                    pendiente.Enviado = DateTime.Now;
+                    PersistirRegistro(pendiente, new ParametrosDeNegocio(enumTipoOperacion.Modificar));
+                    throw GestorDeErrores.Emitir($"Error al enviar el correo con id: '{pendiente.Id}', asunto: '{pendiente.Asunto}'", new Exception(resultado.Mensaje);
                 }
-                catch (Exception e)
-                {
-                    try
-                    {
-                        Contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { "jjimenezcf@gmail.com" }
-                            , "Fallo al enviar correos"
-                            , $"Error en:{Environment.NewLine}" +
-                              $"Servidor '{Contexto.DatosDeConexion.Bd}'{Environment.NewLine}" +
-                              $"Enviar el correo con id: {pendiente.Id}{Environment.NewLine}" +
-                              $"Asunto: '{pendiente.Asunto}'{Environment.NewLine}" +
-                              $"{GestorDeErrores.Mensaje(e)}"
-                            );
-                        pendiente.Enviado = DateTime.Now;
-                        PersistirRegistro(pendiente, new ParametrosDeNegocio(enumTipoOperacion.Modificar));
-                    }
-                    catch (Exception ei)
-                    {
-                        Contexto.IniciarTraza("Error en el envío de correo", debugar: true);
-                        try
-                        {
-                            Contexto.AnotarExcepcion(ei);
-                        }
-                        finally
-                        {
-                            Contexto.CerrarTraza();
-                        }
-                    }
-                }
+            }
+
         }
 
         public int EliminarCorreos()

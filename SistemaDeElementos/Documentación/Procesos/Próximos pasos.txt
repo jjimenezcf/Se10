@@ -5,25 +5,19 @@ ghostscript-8.64
 https://console.cloud.google.com/welcome?project=sistema-de-elementos
 
 
-Dashboard y flujos
--------------------------------------------------------------------------------------
-Pintar en panel de control el dasboar de los elementos de negocio (*) 2026-06-04
-Visualizar el flujo de un elemnto y grabarlo (*) 2026-06-06
-Partir el dashboar de contratos: compras/ventas/matriculas (*) 2026-06-15
-Mostrar filtros guardados por negocio para poder acceder rápidamente (*) 2026-06-15
-Mostrar la calle en el visor al crear o editar (*) 2026-06-18
-
-Aplicar seguridad al dashboard(*) 2026-06-25
-Pintar las chinchetas de diferente color en función del calificador (*) 2026-06-25
-En la modal de direcciones añadir un selector que excluya calificadores (*) 2026-06-25
-
-Crear agrupaciones y aplicarlas en facturas recibidas (*) 2026-06-30
-La impresión de correos que sea usando htmltopdf para renderizar imágenes (*) 2026-06-30
-
+Correcciones y ampliaciones
+--------------------------------------------------------------------------------
+Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo
+El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC
+Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
 Crear las remesas de pagos y gasto conforme a la nueva normativa
 Poder acceder al mapa desde el panel de control con todos los elementos activos
-Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
-El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC
+
+Prompt por definir de conteos
+-------------------------------------------------------------------------------
+iva de facturas emitidas
+Pagos, expedientes, cobros, recibidas
+
 
 Facturas recibidas y emitidas (*) 2026-06-02
 --------------------------------------------------------------------------------
@@ -3287,3 +3281,22 @@ Ampliaciones para todos
 - Si al conectarse, la pasword es la de por defecto, mandarlo a la pantalla de cambio  (*) 20-01-2026
 - enviar correo al usuario cuando se da de alta  (*) 20-01-2026
 - validar que el mail de un usuario es válido  (*) 20-01-2026
+
+Dashboard y flujos
+-------------------------------------------------------------------------------------
+Pintar en panel de control el dasboar de los elementos de negocio (*) 2026-06-04
+Visualizar el flujo de un elemnto y grabarlo (*) 2026-06-06
+Partir el dashboar de contratos: compras/ventas/matriculas (*) 2026-06-15
+Mostrar filtros guardados por negocio para poder acceder rápidamente (*) 2026-06-15
+Mostrar la calle en el visor al crear o editar (*) 2026-06-18
+
+Aplicar seguridad al dashboard(*) 2026-06-25
+Pintar las chinchetas de diferente color en función del calificador (*) 2026-06-25
+En la modal de direcciones añadir un selector que excluya calificadores (*) 2026-06-25
+
+Crear agrupaciones y aplicarlas en facturas recibidas (*) 2026-06-30
+La impresión de correos que sea usando htmltopdf para renderizar imágenes (*) 2026-06-30
+
+Poner ia para preguntar y agrupar la información en el panel de control (*) 2026-07-05
+Poder navegar tras la pregunta a al crud (*) 2026-07-07
+Poner en modo ficha el crud (*) 2026-07-08

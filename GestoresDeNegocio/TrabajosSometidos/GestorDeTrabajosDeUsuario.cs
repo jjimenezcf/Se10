@@ -17,6 +17,7 @@ using Dapper;
 using GestoresDeNegocio.Entorno;
 using Microsoft.Data.SqlClient;
 using System.Threading;
+using GestorDeElementos.Extensores;
 
 namespace GestoresDeNegocio.TrabajosSometidos
 {
@@ -194,54 +195,68 @@ namespace GestoresDeNegocio.TrabajosSometidos
     {
         public static Task ProcesarCola(this GestorDeTrabajosDeUsuario gestorDelEntorno, UsuarioDtm usuario)
         {
+            var cnx = gestorDelEntorno.Contexto;
             if (!CacheDeVariable.Cola_Activa) Task.FromResult(new ResultadoDelProceso(true, "Cola no activa"));
 
-            gestorDelEntorno.Contexto.AsignarUsuario(usuario);
+            cnx.AsignarUsuario(usuario);
             bool trazar = CacheDeVariable.Cola_Trazar;
             var trabajosPorEjecutar = LeerTrabajoPendiente(trazar);
-            gestorDelEntorno.Contexto.IniciarTraza("Ejecutar cola", debugar: trazar);
+            cnx.IniciarTraza(Literal.TrabajosSometidos.NombreFicheroDebug, debugar: trazar);
             try
             {
-                while (trabajosPorEjecutar.Count == 1)
+                try
                 {
-                    if (trazar) gestorDelEntorno.Contexto.IniciarTraza(trabajosPorEjecutar[0].Nombre);
-                    try
+                    while (trabajosPorEjecutar.Count == 1)
                     {
-                        GestorDeTrabajosDeUsuario.Iniciar(gestorDelEntorno.Contexto, trabajosPorEjecutar[0].Id, iniciadoPorLaCola: true);
-                        if (trazar)
-                            gestorDelEntorno.Contexto.CerrarTraza($"Trabajo '{trabajosPorEjecutar[0].Nombre}' con Id '{trabajosPorEjecutar[0].Id}' finalizado correctamente");
-                    }
-                    catch (Exception exc)
-                    {
-                        if (trazar)
+                        if (trazar) gestorDelEntorno.Contexto.AnotarTraza("Ejecutando trabajo", trabajosPorEjecutar[0].Nombre);
+                        try
                         {
-                            gestorDelEntorno.Contexto.AnotarExcepcion(exc);
-                            gestorDelEntorno.Contexto.CerrarTraza($"Trabajo '{trabajosPorEjecutar[0].Nombre}' con Id '{trabajosPorEjecutar[0].Id}' finalizado con errores");
+                            GestorDeTrabajosDeUsuario.Iniciar(gestorDelEntorno.Contexto, trabajosPorEjecutar[0].Id, iniciadoPorLaCola: true);
+                            if (trazar)
+                                gestorDelEntorno.Contexto.CerrarTraza($"Trabajo '{trabajosPorEjecutar[0].Nombre}' con Id '{trabajosPorEjecutar[0].Id}' finalizado correctamente");
+                        }
+                        catch (Exception exc)
+                        {
+                            if (trazar)
+                            {
+                                gestorDelEntorno.Contexto.AnotarExcepcion(exc);
+                                gestorDelEntorno.Contexto.AnotarTraza("Error", $"Trabajo '{trabajosPorEjecutar[0].Nombre}' con Id '{trabajosPorEjecutar[0].Id}' finalizado con errores");
+                            }
+                        }
+                        finally
+                        {
+                            trabajosPorEjecutar = LeerTrabajoPendiente(trazar);
                         }
                     }
-                    finally
-                    {
-                        trabajosPorEjecutar = LeerTrabajoPendiente(trazar);
-                    }
+                    cnx.AnotarTraza("Ningún trabajo leido tras ejecutar", TrabajosDeUsuarioSql.LeerTrabajoPendiente);
                 }
-                gestorDelEntorno.Contexto.AnotarTraza("Ningun trabajo leido tras ejecutar", TrabajosDeUsuarioSql.LeerTrabajoPendiente);
-            }
-            catch (Exception e)
-            {
-                gestorDelEntorno.Contexto.AnotarExcepcion(e);
-                throw;
-            }
-            finally
-            {
-                gestorDelEntorno.Contexto.CerrarTraza();
-                var gestorDeCorreos = GestorDeCorreos.Gestor(gestorDelEntorno.Contexto, gestorDelEntorno.Contexto.Mapeador);
-                gestorDeCorreos.EnviarCorreoPendientes();
+                catch (Exception e)
+                {
+                    cnx.AnotarExcepcion(e);
+                    throw;
+                }
+                try
+                {
+                    var gestorDeCorreos = GestorDeCorreos.Gestor(gestorDelEntorno.Contexto, gestorDelEntorno.Contexto.Mapeador);
+                    gestorDeCorreos.EnviarCorreoPendientes();
+                }
+
+                catch (Exception e)
+                {
+                    gestorDelEntorno.Contexto.AnotarExcepcion(e);
+                    throw;
+                }
                 TrabajosDeAgenda.NotificacionesDeAgenda(gestorDelEntorno.Contexto);
                 TrabajosDeEntorno.SometerBorrarTrazas(gestorDelEntorno.Contexto);
                 TrabajosDeEntorno.SometerSincronizarArchivadores(gestorDelEntorno.Contexto);
                 TrabajosDeEntorno.SometerGenerarSeguridad(gestorDelEntorno.Contexto);
                 TrabajosDeEntorno.SometerVaciarCache(gestorDelEntorno.Contexto);
                 TrabajosDeEntorno.SometerEliminarCorreos(gestorDelEntorno.Contexto);
+
+            }
+            finally
+            {
+                gestorDelEntorno.Contexto.CerrarTraza();
             }
 
             return Task.FromResult(new ResultadoDelProceso(true, ""));

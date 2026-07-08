@@ -44,6 +44,10 @@ namespace ServicioDeDatos
         {
             internal static string Catalogo = "CatalogoDelSe";
         }
+        public static class TrabajosSometidos
+        {
+            public static string NombreFicheroDebug = "Ejecución de cola";
+        }
     }
 
     public class DatosDeConexion
@@ -499,6 +503,7 @@ end";
                 Debuggar = valorAnterior;
             }
         }
+
 
         public void CerrarTraza(string mensaje = null)
         {
