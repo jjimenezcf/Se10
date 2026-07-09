@@ -235,7 +235,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 {
                     pendiente.Enviado = DateTime.Now;
                     PersistirRegistro(pendiente, new ParametrosDeNegocio(enumTipoOperacion.Modificar));
-                    throw GestorDeErrores.Emitir($"Error al enviar el correo con id: '{pendiente.Id}', asunto: '{pendiente.Asunto}'", new Exception(resultado.Mensaje);
+                    throw Excepciones.Emitir($"Error al enviar el correo con id: '{pendiente.Id}', asunto: '{pendiente.Asunto}'{Environment.NewLine}Excepción: {resultado.Mensaje}");
                 }
             }
 

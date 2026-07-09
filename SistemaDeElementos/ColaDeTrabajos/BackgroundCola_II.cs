@@ -71,23 +71,26 @@ public class BackgroundCola_II : BackgroundService
 
         using var contexto = new ContextoSe(dbContextOptions, configuration, scope.ServiceProvider);
         contexto.Mapeador = mapper;
-        contexto.IniciarTraza(Literal.TrabajosSometidos.NombreFicheroDebug, debugar: true);
         using PeriodicTimer periodicTimer = new(_period);
+
+        bool trazar = CacheDeVariable.Cola_Trazar;
         while (!stoppingToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(stoppingToken))
         {
             var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(contexto, enumNegocio.Variable.IdNegocio(), 0, enumOpercionesDeSemaforo.EJEC, "").Id;
-
+            contexto.IniciarTraza(Literal.TrabajosSometidos.NombreFicheroDebug, debugar: trazar);
             try
             {
                 await EjecutarTrabajoPendiente(contexto, stoppingToken).ConfigureAwait(false);
             }
             catch (Exception e)
             {
+                contexto.AnotarExcepcion(e);
                 EnviarCorreo("Fallo al ejecutar la cola", "Error al ejecutar la cola" + Environment.NewLine + GestorDeErrores.Detalle(e));
             }
             finally
             {
                 SemaforoDeProcesoSql.QuitarSemaforo(contexto, idSemaforo);
+                contexto.CerrarTraza();
             }
         }
     }
