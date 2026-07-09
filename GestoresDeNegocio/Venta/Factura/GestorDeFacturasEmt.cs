@@ -154,6 +154,7 @@ namespace GestoresDeNegocio.Ventas
             consulta = consulta.FiltroPorSerie(filtros);
             consulta = consulta.FiltroPorAno(filtros);
             consulta = consulta.FiltroPorEsRectificativa(filtros);
+            consulta = consulta.FiltroPorTieneIvaExento(Contexto, filtros);
             consulta = consulta.FiltroPorTieneIrpf(Contexto, filtros);
             consulta = consulta.FiltroPorConceptoDeLinea(Contexto, filtros);
             consulta = consulta.FiltroFacturasEnUnaEstimacion(Contexto, filtros, parametros);

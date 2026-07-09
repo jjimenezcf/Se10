@@ -213,8 +213,10 @@ namespace ServicioDeDatos.Ventas
         // Campos calculados de líneas (prefijo calculado: en el prompt)
         Total,
         ImporteIrpf,
-        // Clave virtual de agrupación: porcentaje de retención IRPF
+        BiIvaExento,
+        // Claves virtuales de agrupación
         PorcentajeIrpf,
+        PorcentajeIva,
     }
 
     public static class VariableDeFacturasEmt
@@ -266,11 +268,13 @@ namespace ServicioDeDatos.Ventas
   | Importe   | decimal?  | Importe retenido calculado (BiSujeta × Irpf / 100)       |
   | IdIrpf    | int?      | FK al tipo de IRPF (`IrpfDtm`)                           |
 
-### Campos calculados disponibles (métricas de IRPF):
+### Campos calculados disponibles (métricas):
 - `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteIrpf)}` — importe retenido de IRPF de cada factura (para suma, media, etc.)
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.BiIvaExento)}` — suma de la base imponible de las líneas con IVA exento (Porcentaje == 0) de cada factura
 
 ### Claves de agrupación disponibles (además de las directas):
-- `{nameof(enumEtiquetasDeFacturasEmt.PorcentajeIrpf)}` — agrupa facturas por el porcentaje de retención aplicado (p. ej. ""15 %"", ""7 %"", ""Sin IRPF"")
+- `{nameof(enumEtiquetasDeFacturasEmt.PorcentajeIrpf)}` — agrupa por porcentaje de retención IRPF (p. ej. ""15 %"", ""7 %"", ""Sin IRPF"")
+- `{nameof(enumEtiquetasDeFacturasEmt.PorcentajeIva)}` — agrupa por tipo(s) de IVA repercutido de la factura (p. ej. ""21 %"", ""10 %"", ""Exento"", ""21 % / 10 %"" si tiene varios)
 ";
 
         internal static readonly string IA_Reglas_de_filtrado = @"
@@ -555,6 +559,34 @@ namespace ServicioDeDatos.Ventas
     ""Metricas"": [{""Operacion"": ""Cuenta"", ""Campo"": """", ""Alias"": ""Facturas""}]
   }
   ```
+
+### R.FacturasVenta.22 · IVA exento (`TieneIvaExento`, `PorcentajeIva`, `BiIvaExento`)
+
+**R.FacturasVenta.22.1 · Filtro: facturas con o sin IVA exento**
+- **Disparador con exento:** ""con IVA exento"", ""que tengan IVA al 0%"", ""exentas de IVA"", ""con líneas exentas"".
+  - **Acción:** `{""Clausula"": ""TieneIvaExento"", ""Criterio"": ""igual"", ""Valor"": ""true""}`
+- **Disparador sin exento:** ""sin IVA exento"", ""todas con IVA"", ""que no tengan exención"".
+  - **Acción:** `{""Clausula"": ""TieneIvaExento"", ""Criterio"": ""igual"", ""Valor"": ""false""}`
+
+**R.FacturasVenta.22.2 · Agrupación por tipo de IVA**
+- **Disparador:** ""agrúpalas por tipo de IVA"", ""por porcentaje de IVA"", ""distribución de IVA"".
+- **Clave de agrupación:** `PorcentajeIva` (devuelve la combinación de porcentajes de la factura: ""21 %"", ""Exento"", ""21 % / 10 %"", etc.)
+
+**R.FacturasVenta.22.3 · Métrica: base imponible exenta**
+- **Disparador:** ""qué media de BI tienen"", ""base imponible exenta"", ""cuánto representan en BI"", ""importe de la base exenta"".
+- **Campo de métrica:** `calculado:BiIvaExento`
+
+**Ejemplo completo:** ""cuántas facturas tienen IVA exento y qué media tienen de BI"" →
+```json
+{
+  ""Filtros"": [{""Clausula"": ""TieneIvaExento"", ""Criterio"": ""igual"", ""Valor"": ""true""}],
+  ""AgruparPor"": [],
+  ""Metricas"": [
+    {""Operacion"": ""Cuenta"",  ""Campo"": """",                  ""Alias"": ""Facturas""},
+    {""Operacion"": ""Media"",   ""Campo"": ""calculado:BiIvaExento"", ""Alias"": ""Media BI exenta""}
+  ]
+}
+```
 
 ### R.FacturasVenta.20 · Concepto de línea de factura (`ConceptoDeLinea`)
 - **Disparador:** Facturas ""que en su detalle incluyan [servicio]"", ""cuyas líneas contengan [concepto]"", ""que facturen el servicio de [X]"", ""que hayan facturado [X] y [Y]"", ""que incluyan tanto [X] como [Y] en sus líneas"".

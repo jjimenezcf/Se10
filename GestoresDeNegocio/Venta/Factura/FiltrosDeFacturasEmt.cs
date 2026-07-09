@@ -211,6 +211,29 @@ namespace GestoresDeNegocio.Ventas
             return consulta;
         }
 
+        public static IQueryable<FacturaEmtDtm> FiltroPorTieneIvaExento(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(ltrDeUnaFacturaEmt.TieneIvaExento, StringComparison.OrdinalIgnoreCase) && !x.Aplicado);
+            if (filtro == null)
+                return consulta;
+
+            // Líneas cuyo IVA repercutido está marcado como exento
+            var lineasConIvaExento = contexto.Set<LineaDeUnaFaeDtm>()
+                .Where(l => l.IdIvaR != null)
+                .Join(contexto.Set<IvaRepercutidoDtm>().Where(iva => iva.Exento),
+                      l => l.IdIvaR, iva => iva.Id,
+                      (l, iva) => l.IdElemento);
+
+            var tieneExento = !string.Equals(filtro.Valor, "false", StringComparison.OrdinalIgnoreCase);
+
+            consulta = tieneExento
+                ? consulta.Where(f => lineasConIvaExento.Contains(f.Id))
+                : consulta.Where(f => !lineasConIvaExento.Contains(f.Id));
+
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
         public static IQueryable<FacturaEmtDtm> FiltroPorTieneIrpf(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
         {
             var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(ltrDeUnaFacturaEmt.TieneIrpf, StringComparison.OrdinalIgnoreCase) && !x.Aplicado);

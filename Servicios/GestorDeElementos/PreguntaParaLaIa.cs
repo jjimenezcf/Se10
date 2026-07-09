@@ -600,6 +600,7 @@ namespace GestorDeElementos
             "idusuamodi"            => "Modificador",
             "idfacturaemt"          => "Factura emitida",
             "porcentajeirpf"        => "% IRPF",
+            "porcentajeiva"         => "Tipo IVA",
             "referenciaexpediente"  => "Expediente",
             "nombreexpediente"      => "Nombre expediente",
             "referenciappt"         => "Presupuesto",

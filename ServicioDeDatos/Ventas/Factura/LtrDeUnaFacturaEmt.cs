@@ -59,6 +59,7 @@
         public const string CantidadDePlanificacionesDeVenta = nameof(CantidadDePlanificacionesDeVenta);
         public const string ConceptoDeLinea                = nameof(ConceptoDeLinea);
         public const string TieneIrpf                      = nameof(TieneIrpf);
+        public const string TieneIvaExento                 = nameof(TieneIvaExento);
         public const string FiltroPorEtapa = nameof(FiltroPorEtapa);
         public const string AnoDeEmisison = nameof(AnoDeEmisison);  
         public const string MesDeEmision = nameof(MesDeEmision);
