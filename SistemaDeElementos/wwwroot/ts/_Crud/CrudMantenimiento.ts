@@ -896,9 +896,15 @@
             MapearAlPanel.ElObjeto(crudMnt.ContenedorDeGraficos, peticion.resultado.datos, ModoAcceso.enumModoDeAccesoDeDatos.Consultor, new Array<string>());
 
             // aquí llega el detalle real del elemento (TransicionesDisponibles/
-            // MostrarModalParaAvanzar, que solo se calculan al leer un elemento individual): si
-            // hay una única ficha seleccionada se refresca su botón avanzar con el criterio
-            // exacto, en vez del genérico que se usa mientras no se conoce ese detalle.
+            // MostrarModalParaAvanzar/IdTransicionParaDevolver/MostrarModalParaDevolver, que
+            // solo se calculan al leer un elemento individual). Se cachea siempre, esté o no
+            // activo el tablero de fichas en este momento: si luego se cambia de vista sin
+            // cambiar de selección, ActualizarControlesDeTransicionDeFichas ya lo tiene
+            // disponible sin esperar a una segunda petición.
+            if (this.InfoSelector.Cantidad === 1) {
+                this._detalleRealSeleccion = peticion.resultado.datos;
+            }
+
             if (this._vistaDeFichasActiva && Definido(this._contenedorDeFichas) && this.InfoSelector.Cantidad === 1) {
                 const tarjeta = this._contenedorDeFichas.querySelector<HTMLDivElement>(`[data-id="${this.InfoSelector.IdsSeleccionados[0]}"]`);
                 if (Definido(tarjeta)) this.InicializarFicha(tarjeta, peticion.resultado.datos, true);
@@ -1137,6 +1143,11 @@
         }
         private _contenedorDeFichas: HTMLDivElement = null;
 
+        // detalle real (LeerPorIdParaEditar) del último elemento único leído vía
+        // MostrarDatosPrincipales, tanto desde la tabla como desde una ficha; se usa para
+        // habilitar bien los botones de transición aunque se cambie de vista entre medias
+        private _detalleRealSeleccion: any = null;
+
         public AlternarVistaDeFichas(): void {
             this._vistaDeFichasActiva = !this._vistaDeFichasActiva;
 
@@ -1348,14 +1359,18 @@
 
             // con una única ficha seleccionada usamos el detalle real (TransicionesDisponibles/
             // MostrarModalParaAvanzar), que solo se calcula al leer el elemento individual
-            // (GestorDeElementos.cs, LeerPorIdParaEditar) y llega vía MapearDatosPrincipales.
-            // Con varias seleccionadas no hay ese detalle por elemento: se deja siempre
-            // habilitado y es el propio modal el que consulta al servidor qué hay disponible.
-            const registroDeReferencia = seleccionados[0].Registro;
-            const conDetalleReal = seleccionados.length === 1;
+            // (GestorDeElementos.cs, LeerPorIdParaEditar). _detalleRealSeleccion lo cachea
+            // MapearDatosPrincipales para el id actualmente seleccionado; si no coincide el id
+            // (selección distinta, o aún no ha llegado la respuesta) se usa el registro "plano"
+            // del listado y se trata como si no hubiera detalle real todavía.
+            const idUnicoSeleccionado = seleccionados.length === 1 ? seleccionados[0].Id : undefined;
+            const hayDetalleReal = Definido(idUnicoSeleccionado) && Definido(this._detalleRealSeleccion) &&
+                Numero(ObtenerPropiedad(this._detalleRealSeleccion, literal.id, -1)) === idUnicoSeleccionado;
+
+            const registroDeReferencia = hayDetalleReal ? this._detalleRealSeleccion : seleccionados[0].Registro;
             seleccionados.forEach((elemento) => {
                 const tarjeta = this._contenedorDeFichas.querySelector<HTMLDivElement>(`[data-id="${elemento.Id}"]`);
-                if (Definido(tarjeta)) this.InicializarFicha(tarjeta, registroDeReferencia, conDetalleReal);
+                if (Definido(tarjeta)) this.InicializarFicha(tarjeta, registroDeReferencia, hayDetalleReal);
             });
         }
 

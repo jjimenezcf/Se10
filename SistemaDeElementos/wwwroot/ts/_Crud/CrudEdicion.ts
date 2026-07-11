@@ -179,8 +179,24 @@
             return this.EsDeProceso ? ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.TransicionAplicable, 0) : undefined;
         }
 
-        public get HayMasDeUnaTransicionParaAvanzar(): boolean {
-            return this.EsDeProceso ? Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.TransicionesDisponibles, 0)) > 1 : undefined;
+        public get TransicionesDisponibles(): number {
+            return this.EsDeProceso ? Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.TransicionesDisponibles, 0)) : 0;
+        }
+
+        public get MostrarModalParaAvanzar(): boolean {
+            return this.EsDeProceso ? ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.MostrarModalParaAvanzar, false) : false;
+        }
+
+        public get IdTransicionParaDevolver(): number {
+            return this.EsDeProceso ? ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.IdTransicionParaDevolver, 0) : undefined;
+        }
+
+        public get TransicionParaDevolver(): string {
+            return this.EsDeProceso ? ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.TransicionParaDevolver, 0) : undefined;
+        }
+
+        public get MostrarModalParaDevolver(): boolean {
+            return this.EsDeProceso ? ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.MostrarModalParaDevolver, false) : false;
         }
 
         public get EstaTerminada(): boolean {
@@ -1108,14 +1124,34 @@
                 .catch((peticion: ApiDeAjax.DescriptorAjax) => ApiDePeticiones.EmitirError(peticion));
         }
 
+        // Mismas reglas que las fichas del tablero (CrudMantenimiento.TransitarAvanzarDesdeFicha
+        // / TransitarDevolverDesdeFicha): aquí siempre hay detalle real (LeerPorIdParaEditar ya
+        // calcula TransicionesDisponibles/MostrarModalParaAvanzar/MostrarModalParaDevolver), así
+        // que no hace falta la distinción por selección múltiple que sí necesitan las fichas.
         private Transitar(accion: string): void {
-
-            if (accion === ltrEventos.Edicion.Avanzar && this.HayMasDeUnaTransicionParaAvanzar) {
-                crudMnt.ModalTransitar_Abrir(this.Id, this.IdTransicionAplicable);
+            if (accion === ltrEventos.Edicion.Retroceder) {
+                if (!this.MostrarModalParaDevolver) {
+                    this.TransitarDirecto(this.IdTransicionParaDevolver);
+                    return;
+                }
+                crudMnt.ModalTransitar_Abrir(this.Id, this.IdTransicionParaDevolver);
                 return;
             }
 
-            let parametros = this.ParametrosParaTransitar(accion);
+            if (this.TransicionesDisponibles === 1 && !this.MostrarModalParaAvanzar) {
+                this.TransitarDirecto(this.IdTransicionAplicable);
+                return;
+            }
+            crudMnt.ModalTransitar_Abrir(this.Id, this.IdTransicionAplicable);
+        }
+
+        protected TransitarDirecto(idTransicion: number): void {
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(ltrPropiedades.Negocio.idNegocio, this.CrudDeMnt.IdNegocio));
+            parametros.push(new Parametro(ltrPropiedades.Elemento.IdElemento, this.Id));
+            parametros.push(new Parametro(ltrPropiedades.Transiciones.Origen, this.IdEstado));
+            parametros.push(new Parametro(Ajax.Param.idTransicion, idTransicion));
+
             if (this.HayCambiosPendientes)
                 this.TransitarTrasModificar(parametros);
             else
@@ -1125,18 +1161,6 @@
                         crudEdicion.Recargar();
                     })
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
-        }
-
-        protected ParametrosParaTransitar(accion: string): Array<Parametro> {
-            let parametros: Array<Parametro> = new Array<Parametro>();
-            parametros.push(new Parametro(ltrPropiedades.Negocio.idNegocio, this.CrudDeMnt.IdNegocio));
-            parametros.push(new Parametro(ltrPropiedades.Elemento.IdElemento, this.Id));
-            parametros.push(new Parametro(ltrPropiedades.Transiciones.Origen, this.IdEstado));
-            if (accion === ltrEventos.Edicion.Retroceder)
-                parametros.push(new Parametro(ltrPropiedades.Transiciones.Destino, this.IdEstadoAnterior));
-            else
-                parametros.push(new Parametro(Ajax.Param.idTransicion, this.IdTransicionAplicable));
-            return parametros;
         }
 
         protected async CerrarEdicion() {
@@ -1446,22 +1470,23 @@
                 return
             }
 
-            if (!Definido(this.EstadoAnterior)) {
+            // mismas reglas que InicializarFicha en CrudMantenimiento.ts
+            if (!Definido(this.IdTransicionParaDevolver)) {
                 ApiControl.DeshabilitarRef(this.BotonDevolver.parentElement as HTMLAnchorElement);
                 this.BotonDevolver.title = '';
             }
             else {
                 ApiControl.HabilitarRef(this.BotonDevolver.parentElement as HTMLAnchorElement);
-                this.BotonDevolver.title = `Devolver al estado '${this.EstadoAnterior}'`;
+                this.BotonDevolver.title = Definido(this.TransicionParaDevolver) ? `${this.TransicionParaDevolver}` : 'Devolver';
             }
 
-            if (!Definido(this.TransicionAplicable)) {
+            if (this.TransicionesDisponibles === 0) {
                 ApiControl.DeshabilitarRef(this.BotonAvanzar.parentElement as HTMLAnchorElement);
                 this.BotonAvanzar.title = '';
             }
             else {
                 ApiControl.HabilitarRef(this.BotonAvanzar.parentElement as HTMLAnchorElement);
-                this.BotonAvanzar.title = `${this.TransicionAplicable}`;
+                this.BotonAvanzar.title = Definido(this.TransicionAplicable) ? `${this.TransicionAplicable}` : 'Transitar';
             }
         }
 
