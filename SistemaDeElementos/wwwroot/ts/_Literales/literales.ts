@@ -1075,7 +1075,9 @@ const ltrCss = {
             CabeceraColumnaFichas: 'cabecera-columna-fichas',
             TarjetaFicha: 'tarjeta-ficha',
             TarjetaFichaSeleccionada: 'ficha-seleccionada',
-            AccionesFicha: 'acciones-ficha'
+            AccionesFicha: 'acciones-ficha',
+            AccionesFichaGrupo: 'acciones-ficha-grupo',
+            BotonObservacionFicha: 'boton-observacion-ficha'
         },
         dto: {
             tbody: 'dto-tbody',
@@ -1150,6 +1152,7 @@ const ltrCss = {
                 Visor: 'img-detalle-dto-visor',
                 Devolver: 'img-detalle-dto-retroceder',
                 Avanzar: 'img-detalle-dto-avanzar',
+                Observacion: 'img-detalle-dto-observacion',
                 MostrarVisor: 'mostrar-visor',
                 OcultarVisor: 'ocultar-visor',
                 SinVisor: 'sin-visor'

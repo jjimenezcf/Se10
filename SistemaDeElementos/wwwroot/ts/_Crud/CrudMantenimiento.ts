@@ -1383,6 +1383,18 @@
             const acciones = document.createElement('div');
             ApiControl.IncluirCss(acciones, ltrCss.crud.grid.AccionesFicha);
 
+            const enlaceObservacion = document.createElement('a');
+            ApiControl.IncluirCss(enlaceObservacion, ltrCss.crud.grid.BotonObservacionFicha);
+            const imgObservacion = document.createElement('img');
+            ApiControl.IncluirCss(imgObservacion, ltrCss.crud.panelDeEdicion.Acciones.Observacion);
+            imgObservacion.title = 'Añadir observación';
+            enlaceObservacion.append(imgObservacion);
+            enlaceObservacion.addEventListener('click', (event: MouseEvent) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.NuevaObservacionDesdeFicha();
+            });
+
             const enlaceDevolver = document.createElement('a');
             const imgDevolver = document.createElement('img');
             ApiControl.IncluirCss(imgDevolver, ltrCss.crud.panelDeEdicion.Acciones.Devolver);
@@ -1403,7 +1415,12 @@
                 this.TransitarAvanzarDesdeFicha(registroDeReferencia, conDetalleReal);
             });
 
-            acciones.append(enlaceDevolver, enlaceAvanzar);
+            // izquierda: solo devolver. derecha: observación y avanzar agrupados
+            const grupoDerecha = document.createElement('div');
+            ApiControl.IncluirCss(grupoDerecha, ltrCss.crud.grid.AccionesFichaGrupo);
+            grupoDerecha.append(enlaceObservacion, enlaceAvanzar);
+
+            acciones.append(enlaceDevolver, grupoDerecha);
             tarjeta.append(acciones);
 
             // Devolver: igual que Avanzar, solo con selección única hay detalle real
@@ -1470,6 +1487,20 @@
             }
 
             this.TransitarDesdeFicha(idTransicionParaDevolver);
+        }
+
+        // mismo mecanismo que NuevaObservacion en GestorDeEventos.ts (rama sin editor, la que
+        // usa el menú flotante en modo mantenimiento): AbrirModalDeRelacionParaCrear con el
+        // primer seleccionado. No exportada en GestorDeEventos.ts, así que se replica aquí en
+        // vez de importarla.
+        private NuevaObservacionDesdeFicha(): void {
+            if (this.InfoSelector.Cantidad === 0) return;
+            const idModal = `${this.crudDeEdicion.PanelDeEditar.id}-observaciones-${enumPostfijoTipoModal.ModalDeCrearRelacion}`;
+            ApiDelCrud.AbrirModalDeRelacionParaCrear(idModal, atControl.idElemento.toLowerCase()
+                , this.InfoSelector.Seleccionados[0].Id
+                , this.InfoSelector.Seleccionados[0].Texto
+                , this.IdNegocio
+                , this.NombreDeNegocio);
         }
 
         private TransitarDesdeFicha(idTransicion: number): void {

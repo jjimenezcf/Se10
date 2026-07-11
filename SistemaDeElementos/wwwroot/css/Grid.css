@@ -118,6 +118,17 @@
     align-items: center;
 }
 
+.acciones-ficha-grupo {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.boton-observacion-ficha {
+    display: flex;
+    cursor: pointer;
+}
+
 .acciones-ficha img {
     width: 20px;
     height: 20px;

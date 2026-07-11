@@ -1720,6 +1720,12 @@ select.form-control:focus::-ms-value {
 /*cursor: not-allowed;*/ /* Opcional: cursor de deshabilitado */
 /*}*/
 
+.img-detalle-dto-observacion {
+    width: 22px;
+    height: 22px;
+    content: url(../images/menu/Observacion.svg);
+}
+
 a.deshabilitado {
     pointer-events: none;
     cursor: not-allowed;
