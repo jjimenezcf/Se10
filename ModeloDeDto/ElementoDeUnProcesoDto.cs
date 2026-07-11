@@ -250,6 +250,22 @@ namespace ModeloDeDto
         //---------------------------------------------------
         [IUPropiedad(Visible = false)]
         public int TransicionesDisponibles { get; set; }
+
+        //---------------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public bool MostrarModalParaAvanzar { get; set; }
+
+        //---------------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public int? IdTransicionParaDevolver { get; set; }
+
+        //---------------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public string TransicionParaDevolver { get; set; }
+
+        //---------------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public bool MostrarModalParaDevolver { get; set; }
     }
 
 

@@ -955,6 +955,9 @@ namespace GestorDeElementos.Extensores
                     IdContrato = faeOrigen.IdContrato,
                     ClaseRectificativa = null,
                     MotivoDeRectificacion = null,
+                    Contacto = faeOrigen.Contacto,
+                    Telefono = faeOrigen.Telefono,
+                    eMail = faeOrigen.eMail,
                     IdArchivadorParaLaReclamacion = null,
                     IdArchivo = null
                 }.Insertar(contexto, parametros);
@@ -1027,7 +1030,10 @@ namespace GestorDeElementos.Extensores
                     MotivoDeRectificacion = motivo,
                     Serie = ltrDeFacturaRectificada.Serie,
                     IdPresupuesto = aRectificar.IdPresupuesto,
-                    IdContrato = aRectificar.IdContrato
+                    IdContrato = aRectificar.IdContrato,
+                    Contacto = aRectificar.Contacto,
+                    Telefono = aRectificar.Telefono,
+                    eMail = aRectificar.eMail
                 }.Insertar(contexto, parametros);
 
                 var lineasFaes = contexto.SeleccionarTodos<LineaDeUnaFaeDtm>(nameof(LineaDeUnaFaeDtm.IdElemento), aRectificar.Id);
@@ -1276,7 +1282,7 @@ namespace GestorDeElementos.Extensores
                 Emitir($"No puede emitir la rectificativa '{rectificativa.Referencia}' porque la rectificada '{rectificada.Referencia}' {(rectificada.TienenIrpf(contexto) ? "tiene" : "no tiene")} irpf");
             }
 
-            if (rectificativa.ClaseRectificativa == enumClaseDeRectificativa.OR && rectificada.TotalDeIrpf(contexto) + rectificada.TotalDeIrpf(contexto) != 0)
+            if (rectificativa.ClaseRectificativa == enumClaseDeRectificativa.OR && rectificativa.TotalDeIrpf(contexto) + rectificada.TotalDeIrpf(contexto) != 0)
             {
                 Emitir($"No puede emitir la rectificativa '{rectificativa.Referencia}' porque la rectificada '{rectificada.Referencia}' tiene distinto irpf '{rectificada.TotalDeIrpf(contexto).ToMoneda()}' a la rectificativa '{rectificativa.TotalDeIrpf(contexto).ToMoneda()}'");
             }
@@ -1646,7 +1652,7 @@ namespace GestorDeElementos.Extensores
 
 
         public static void CargarCacheDeCobros(ContextoSe contexto, List<int> idsFacturas)
-        {           
+        {
             var cacheCobrado = ServicioDeCaches.Obtener(CacheDe.Fae_Cobrado);
             ExtensorDeElementosDeUnProceso.CebarCacheDeIds<FacturaEmtDtm>(contexto, idsFacturas);
             ApiDeDetalles.CebarCacheDeDetalles<CobroDeFaeDtm>(contexto, idsFacturas);
@@ -2271,7 +2277,7 @@ namespace GestorDeElementos.Extensores
             var bi = factura.Bi(contexto);
             var iva = factura.TotalDeIva(contexto);
             var irpf = factura.TotalDeIrpf(contexto);
-            return $"BI: {bi.ToMoneda()} IVA:{iva.ToMoneda()}{(irpf != 0 ? $" IRPF: {irpf.ToMoneda()}": "")}";
+            return $"BI: {bi.ToMoneda()} IVA:{iva.ToMoneda()}{(irpf != 0 ? $" IRPF: {irpf.ToMoneda()}" : "")}";
         }
     }
 }

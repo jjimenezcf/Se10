@@ -179,6 +179,11 @@ namespace ModeloDeDto
         public string TransitadoAl { get; set; }
         public int? IdEstadoAnterior { get; set; }
         public string EstadoAnterior { get; set; }
+        public int? IdTransicionParaDevolver { get; set; }
+
+        public string TransicionParaDevolver { get; set; }
+        public bool MostrarModalParaDevolver { get; set; }
+
 
         public int? IdTransicionAplicable { get; set; }
 
@@ -186,6 +191,7 @@ namespace ModeloDeDto
 
         public int? IdEstadoDestino { get; set; }
         public int TransicionesDisponibles { get; set; }
+        public bool MostrarModalParaAvanzar { get; set; }
     }
 
     public interface IUsaCuentaBancariaDto

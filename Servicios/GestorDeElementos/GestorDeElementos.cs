@@ -1799,34 +1799,52 @@ namespace GestorDeElementos
                         {
                             ((IElementoDeUnProcesoDto)elemento).EstadoAnterior = null;
                             ((IElementoDeUnProcesoDto)elemento).IdEstadoAnterior = null;
+                            ((IElementoDeUnProcesoDto)elemento).IdTransicionParaDevolver = null;
+                            ((IElementoDeUnProcesoDto)elemento).TransicionParaDevolver = null;
+                        }
+                        else
+                        {
+                            ((IElementoDeUnProcesoDto)elemento).IdTransicionParaDevolver = transicionParaDevolver.Id;
+                            ((IElementoDeUnProcesoDto)elemento).TransicionParaDevolver = transicionParaDevolver.Nombre;
+                            ((IElementoDeUnProcesoDto)elemento).MostrarModalParaDevolver = transicionParaDevolver.ConObservacion;
                         }
                     }
+                    List<TransicionAplicable> transicionesAplicables = TransicionesParaAvanzar(registro, elemento);
 
-                    var transicionesAplicables = ((IElementoDeProcesoDtm)registro).TransicionesAplicables(Contexto, delSistema: false, conObservacion: false);
-                    var transicionesDeAvance = transicionesAplicables.Where(t => anterior != null ? t.IdEstadoDestino != anterior.Id : true);
-                    var porDefecto = transicionesDeAvance.FirstOrDefault(t => t.PorDefecto);
-                    if (transicionesDeAvance.Count() > 1 && porDefecto != null)
+                    if (transicionesAplicables.Count() == 0)
                     {
-                        var i = transicionesDeAvance.ToList().IndexOf(porDefecto);
-                        ((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable = transicionesAplicables[i].IdTransicion;
-                        ((IElementoDeUnProcesoDto)elemento).TransicionAplicable = transicionesAplicables[i].Transicion;
-                        ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino = transicionesAplicables[i].IdEstadoDestino;
-                        ((IElementoDeUnProcesoDto)elemento).TransicionesDisponibles = 1;
+                        SinTransicionesParaAvanzar(elemento);
                     }
                     else
                     {
-                        ((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable = transicionesAplicables.Count > 0 ? transicionesAplicables[0].IdTransicion : null;
-                        ((IElementoDeUnProcesoDto)elemento).TransicionAplicable = transicionesAplicables.Count > 0 ? transicionesAplicables[0].Transicion : null;
-                        ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino = transicionesAplicables.Count > 0 ? transicionesAplicables[0].IdEstadoDestino : null;
-                        ((IElementoDeUnProcesoDto)elemento).TransicionesDisponibles = transicionesDeAvance.Count();
-                    }
+                        var transicionesDeAvance = transicionesAplicables.Where(t => anterior != null ? t.IdEstadoDestino != anterior.IdEstado : true).ToList();
+                        if (transicionesDeAvance.Count() == 0)
+                        {
+                            SinTransicionesParaAvanzar(elemento);
+                        }
+                        else
+                        {
+                            var porDefecto = transicionesDeAvance.FirstOrDefault(t => t.PorDefecto);
+                            if (porDefecto != null)
+                            {
+                                ((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable = porDefecto.IdTransicion;
+                                ((IElementoDeUnProcesoDto)elemento).TransicionAplicable = porDefecto.Transicion;
+                                ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino = porDefecto.IdEstadoDestino;
+                                ((IElementoDeUnProcesoDto)elemento).TransicionesDisponibles = 1;
+                            }
+                            else
+                            {
+                                ((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable = transicionesDeAvance[0].IdTransicion;
+                                ((IElementoDeUnProcesoDto)elemento).TransicionAplicable = transicionesDeAvance[0].Transicion;
+                                ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino = transicionesDeAvance[0].IdEstadoDestino;
+                                ((IElementoDeUnProcesoDto)elemento).TransicionesDisponibles = transicionesDeAvance.Count();
+                            }
 
-                    if (((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable != null && ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino == ((IElementoDeUnProcesoDto)elemento).IdEstadoAnterior)
-                    {
-                        ((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable = null;
-                        ((IElementoDeUnProcesoDto)elemento).TransicionAplicable = null;
-                        ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino = null;
-                        ((IElementoDeUnProcesoDto)elemento).TransicionesDisponibles = 0;
+                            if (((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable != null && ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino == ((IElementoDeUnProcesoDto)elemento).IdEstadoAnterior)
+                            {
+                                SinTransicionesParaAvanzar(elemento);
+                            }
+                        }
                     }
                 }
 
@@ -1857,6 +1875,30 @@ namespace GestorDeElementos
             }
 
             ObtenerModoDeAccesoAlElementoQueSeDevuelve(registro, elemento, parametros);
+        }
+
+        private static void SinTransicionesParaAvanzar(TElemento elemento)
+        {
+            ((IElementoDeUnProcesoDto)elemento).IdTransicionAplicable = null;
+            ((IElementoDeUnProcesoDto)elemento).TransicionAplicable = null;
+            ((IElementoDeUnProcesoDto)elemento).IdEstadoDestino = null;
+            ((IElementoDeUnProcesoDto)elemento).TransicionesDisponibles = 0;
+        }
+
+        private List<TransicionAplicable> TransicionesParaAvanzar(TRegistro registro, TElemento elemento)
+        {
+            var transicionesAplicables = ((IElementoDeProcesoDtm)registro).TransicionesAplicables(Contexto, delSistema: false, conObservacion: false);
+            if (transicionesAplicables.Count() == 0)
+            {
+                transicionesAplicables = ((IElementoDeProcesoDtm)registro).TransicionesAplicables(Contexto, delSistema: false, conObservacion: true);
+                ((IElementoDeUnProcesoDto)elemento).MostrarModalParaAvanzar = true;
+            }
+            else
+            {
+                ((IElementoDeUnProcesoDto)elemento).MostrarModalParaAvanzar = false;
+            }
+
+            return transicionesAplicables;
         }
 
         protected virtual void ObtenerModoDeAccesoAlElementoQueSeDevuelve(TRegistro registro, TElemento elemento, ParametrosDeNegocio parametros)

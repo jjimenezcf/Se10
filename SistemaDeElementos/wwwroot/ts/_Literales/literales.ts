@@ -1074,7 +1074,8 @@ const ltrCss = {
             ColumnaFichas: 'columna-de-fichas',
             CabeceraColumnaFichas: 'cabecera-columna-fichas',
             TarjetaFicha: 'tarjeta-ficha',
-            TarjetaFichaSeleccionada: 'ficha-seleccionada'
+            TarjetaFichaSeleccionada: 'ficha-seleccionada',
+            AccionesFicha: 'acciones-ficha'
         },
         dto: {
             tbody: 'dto-tbody',
@@ -2669,6 +2670,10 @@ const ltrPropiedades = {
             IdTransicionAplicable: 'idtransicionaplicable',
             TransicionAplicable: 'transicionaplicable',
             TransicionesDisponibles: 'TransicionesDisponibles',
+            MostrarModalParaAvanzar: 'MostrarModalParaAvanzar',
+            IdTransicionParaDevolver: 'idtransicionparadevolver',
+            TransicionParaDevolver: 'transicionparadevolver',
+            MostrarModalParaDevolver: 'MostrarModalParaDevolver',
             OrdenEstado: 'ordenestado',
             Expresion: literal.expresion,
         },

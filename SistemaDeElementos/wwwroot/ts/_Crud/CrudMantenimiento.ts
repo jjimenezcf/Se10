@@ -894,6 +894,15 @@
             ApiPanel.BlanquearControlesDeIU(crudMnt.ContenedorDeGraficos, false);
 
             MapearAlPanel.ElObjeto(crudMnt.ContenedorDeGraficos, peticion.resultado.datos, ModoAcceso.enumModoDeAccesoDeDatos.Consultor, new Array<string>());
+
+            // aquí llega el detalle real del elemento (TransicionesDisponibles/
+            // MostrarModalParaAvanzar, que solo se calculan al leer un elemento individual): si
+            // hay una única ficha seleccionada se refresca su botón avanzar con el criterio
+            // exacto, en vez del genérico que se usa mientras no se conoce ese detalle.
+            if (this._vistaDeFichasActiva && Definido(this._contenedorDeFichas) && this.InfoSelector.Cantidad === 1) {
+                const tarjeta = this._contenedorDeFichas.querySelector<HTMLDivElement>(`[data-id="${this.InfoSelector.IdsSeleccionados[0]}"]`);
+                if (Definido(tarjeta)) this.InicializarFicha(tarjeta, peticion.resultado.datos, true);
+            }
         }
 
         private SiHayErrorAlLeerElemento(peticion: ApiDeAjax.DescriptorAjax) {
@@ -1226,6 +1235,7 @@
                     const tarjeta = document.createElement('div');
                     ApiControl.IncluirCss(tarjeta, ltrCss.crud.grid.TarjetaFicha);
                     const id = Numero(ObtenerPropiedad(t, 'id', 0));
+                    tarjeta.dataset.id = String(id);
                     if (idsSeleccionados.indexOf(id) >= 0) ApiControl.IncluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada);
 
                     // mismo title que ya recibe la fila equivalente en CrearCuerpoDeLaTabla
@@ -1257,6 +1267,10 @@
             // reutiliza el mismo mecanismo que la selección de filas para mostrar
             // splitter+gráficos, que reajustará el ancho de div-vista-fichas al 60%.
             this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+
+            // las tarjetas se han reconstruido de cero: si había fichas seleccionadas hay que
+            // volver a insertarles los botones de transitar
+            this.ActualizarControlesDeTransicionDeFichas();
         }
 
         private AlternarSeleccionDeFicha(tarjeta: HTMLDivElement, registro: any, ctrlKey: boolean): void {
@@ -1280,6 +1294,7 @@
                 ApiControl.ExcluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada);
                 this.QuitarDelSelector(this, id);
                 this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+                this.ActualizarControlesDeTransicionDeFichas();
                 return;
             }
 
@@ -1300,6 +1315,8 @@
                 EventosDelMantenimiento(ltrEventos.Mnt.MostrarOcultarVisorDeDetalle, undefined);
             else
                 this.EditarEnPanelDeGraficos(true);
+
+            this.ActualizarControlesDeTransicionDeFichas();
         }
 
         private DeseleccionarTodasLasFichas(): void {
@@ -1309,6 +1326,163 @@
             }
             const idsSeleccionados = [...this.InfoSelector.IdsSeleccionados];
             idsSeleccionados.forEach((id) => this.QuitarDelSelector(this, id));
+            this.ActualizarControlesDeTransicionDeFichas();
+        }
+
+        private ActualizarControlesDeTransicionDeFichas(): void {
+            if (!Definido(this._contenedorDeFichas)) return;
+
+            // se quitan de todas las tarjetas: se reconstruyen según la selección actual
+            const acciones = this._contenedorDeFichas.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.grid.AccionesFicha);
+            acciones.forEach((accion) => accion.remove());
+
+            const seleccionados = this.InfoSelector.Seleccionados;
+            if (seleccionados.length === 0) return;
+
+            // solo se puede transitar si todas las fichas seleccionadas están en el mismo
+            // estado, ya que todas van a transitar a la vez al mismo estado destino
+            const idEstadoPatron = ObtenerPropiedad(seleccionados[0].Registro, ltrPropiedades.Elemento.DeProceso.IdEstado);
+            const mismoEstado = seleccionados.every((elemento) =>
+                ObtenerPropiedad(elemento.Registro, ltrPropiedades.Elemento.DeProceso.IdEstado) === idEstadoPatron);
+            if (!mismoEstado) return;
+
+            // con una única ficha seleccionada usamos el detalle real (TransicionesDisponibles/
+            // MostrarModalParaAvanzar), que solo se calcula al leer el elemento individual
+            // (GestorDeElementos.cs, LeerPorIdParaEditar) y llega vía MapearDatosPrincipales.
+            // Con varias seleccionadas no hay ese detalle por elemento: se deja siempre
+            // habilitado y es el propio modal el que consulta al servidor qué hay disponible.
+            const registroDeReferencia = seleccionados[0].Registro;
+            const conDetalleReal = seleccionados.length === 1;
+            seleccionados.forEach((elemento) => {
+                const tarjeta = this._contenedorDeFichas.querySelector<HTMLDivElement>(`[data-id="${elemento.Id}"]`);
+                if (Definido(tarjeta)) this.InicializarFicha(tarjeta, registroDeReferencia, conDetalleReal);
+            });
+        }
+
+        private InicializarFicha(tarjeta: HTMLDivElement, registroDeReferencia: any, conDetalleReal: boolean): void {
+            // si ya se habían insertado (p.ej. al refrescar con el detalle real tras
+            // MapearDatosPrincipales), se quitan y se reconstruyen desde cero
+            const anteriores = tarjeta.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.grid.AccionesFicha);
+            anteriores.forEach((accion) => accion.remove());
+
+            const acciones = document.createElement('div');
+            ApiControl.IncluirCss(acciones, ltrCss.crud.grid.AccionesFicha);
+
+            const enlaceDevolver = document.createElement('a');
+            const imgDevolver = document.createElement('img');
+            ApiControl.IncluirCss(imgDevolver, ltrCss.crud.panelDeEdicion.Acciones.Devolver);
+            enlaceDevolver.append(imgDevolver);
+            enlaceDevolver.addEventListener('click', (event: MouseEvent) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.TransitarDevolverDesdeFicha(registroDeReferencia, conDetalleReal);
+            });
+
+            const enlaceAvanzar = document.createElement('a');
+            const imgAvanzar = document.createElement('img');
+            ApiControl.IncluirCss(imgAvanzar, ltrCss.crud.panelDeEdicion.Acciones.Avanzar);
+            enlaceAvanzar.append(imgAvanzar);
+            enlaceAvanzar.addEventListener('click', (event: MouseEvent) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.TransitarAvanzarDesdeFicha(registroDeReferencia, conDetalleReal);
+            });
+
+            acciones.append(enlaceDevolver, enlaceAvanzar);
+            tarjeta.append(acciones);
+
+            // Devolver: igual que Avanzar, solo con selección única hay detalle real
+            // (IdTransicionParaDevolver/MostrarModalParaDevolver); con varias seleccionadas se
+            // deja siempre habilitado y decide el modal.
+            if (!conDetalleReal) {
+                ApiControl.HabilitarRef(enlaceDevolver);
+                imgDevolver.title = 'Devolver';
+            } else {
+                const idTransicionParaDevolver = ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.IdTransicionParaDevolver, 0);
+                if (!Definido(idTransicionParaDevolver)) {
+                    ApiControl.DeshabilitarRef(enlaceDevolver);
+                    imgDevolver.title = '';
+                } else {
+                    ApiControl.HabilitarRef(enlaceDevolver);
+                    const transicionParaDevolver = ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.TransicionParaDevolver, 0);
+                    imgDevolver.title = Definido(transicionParaDevolver) ? `${transicionParaDevolver}` : 'Devolver';
+                }
+            }
+
+            if (!conDetalleReal) {
+                ApiControl.HabilitarRef(enlaceAvanzar);
+                imgAvanzar.title = 'Transitar';
+                return;
+            }
+
+            const transicionesDisponibles = Numero(ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.TransicionesDisponibles, 0));
+            if (transicionesDisponibles === 0) {
+                ApiControl.DeshabilitarRef(enlaceAvanzar);
+                imgAvanzar.title = '';
+                return;
+            }
+
+            ApiControl.HabilitarRef(enlaceAvanzar);
+            const transicionAplicable = ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.TransicionAplicable, 0);
+            imgAvanzar.title = Definido(transicionAplicable) ? `${transicionAplicable}` : 'Transitar';
+        }
+
+        private TransitarAvanzarDesdeFicha(registroDeReferencia: any, conDetalleReal: boolean): void {
+            const idTransicionAplicable = Numero(ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.IdTransicionAplicable, 0));
+
+            if (conDetalleReal) {
+                const transicionesDisponibles = Numero(ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.TransicionesDisponibles, 0));
+                const mostrarModalParaAvanzar = ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.MostrarModalParaAvanzar, false);
+
+                if (transicionesDisponibles === 1 && !mostrarModalParaAvanzar) {
+                    this.TransitarDirectoDesdeFicha(idTransicionAplicable);
+                    return;
+                }
+            }
+
+            this.TransitarDesdeFicha(idTransicionAplicable);
+        }
+
+        private TransitarDevolverDesdeFicha(registroDeReferencia: any, conDetalleReal: boolean): void {
+            const idTransicionParaDevolver = Numero(ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.IdTransicionParaDevolver, 0));
+
+            if (conDetalleReal) {
+                const mostrarModalParaDevolver = ObtenerPropiedad(registroDeReferencia, ltrPropiedades.Elemento.DeProceso.MostrarModalParaDevolver, false);
+                if (!mostrarModalParaDevolver) {
+                    this.TransitarDirectoDesdeFicha(idTransicionParaDevolver);
+                    return;
+                }
+            }
+
+            this.TransitarDesdeFicha(idTransicionParaDevolver);
+        }
+
+        private TransitarDesdeFicha(idTransicion: number): void {
+            if (this.InfoSelector.Cantidad === 0) return;
+            this.ModalTransitar_Abrir(this.InfoSelector.IdsSeleccionados[0], idTransicion);
+        }
+
+        private TransitarDirectoDesdeFicha(idTransicion: number): void {
+            if (this.InfoSelector.Cantidad === 0) return;
+
+            const idElemento = this.InfoSelector.IdsSeleccionados[0];
+            const idEstado = ObtenerPropiedad(this.InfoSelector.LeerElemento(0).Registro, ltrPropiedades.Elemento.DeProceso.IdEstado);
+
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(ltrPropiedades.Negocio.idNegocio, this.IdNegocio));
+            parametros.push(new Parametro(ltrPropiedades.Elemento.IdElemento, idElemento));
+            parametros.push(new Parametro(ltrPropiedades.Transiciones.Origen, idEstado));
+            parametros.push(new Parametro(Ajax.Param.idTransicion, idTransicion));
+
+            ApiDePeticiones.Transitar(this, this.Controlador, Ajax.EndPoint.Transitar, parametros, new Array<Parametro>())
+                .then((peticion) => this.DespuesDeTransitar(peticion))
+                .catch((peticion) => {
+                    ApiDePeticiones.EmitirError(peticion);
+                    if (!this.EstoyEditandoConsultando) {
+                        this.MenuGrid_DeselecionarTodasLasFilas();
+                        this.CargarGrid();
+                    }
+                });
         }
 
 
@@ -2318,7 +2492,17 @@
             if (!guardar) {
                 ApiDePeticiones.Transitar(this, this.Controlador, Ajax.EndPoint.Transitar, parametros, datosDeEntrada)
                     .then((peticion) => this.DespuesDeTransitar(peticion))
-                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+                    .catch((peticion) => {
+                        ApiDePeticiones.EmitirError(peticion);
+                        // si falla a mitad de una transición (p.ej. en una multiselección de
+                        // fichas/filas), se recarga y repinta para reflejar el estado real,
+                        // en vez de dejar la ficha/fila con datos ya desactualizados
+                        if (!this.EstoyEditandoConsultando) {
+                            this.MenuGrid_DeselecionarTodasLasFilas();
+                            this.CargarGrid();
+                            this.ModalTransitar_Cerrar();
+                        }
+                    });
                 return;
             }
 
