@@ -213,7 +213,7 @@ namespace ServicioDeDatos
             }
         }
 
-        public static bool Cola_Activa => ObtenerVariable(Variable.Cola_Activa, "Indica si la cola de trabajos sometidos está activa", "S") == "S";
+        public static bool Cola_Activa => ObtenerVariable(Variable.Cola_Activa, "Indica si la cola de trabajos sometidos está activa", "S") == "S" && !System.Diagnostics.Debugger.IsAttached;
         public static int Cola_Tiempo_De_Espera => ObtenerVariable(Variable.Cola_Tiempo_De_Espera, Descripciones.Cola_Tiempo_De_Espera, "5").Entero();
 
         public static bool Cola_Usa_Gestor_De_Colas => ObtenerVariable(Variable.Cola_Usa_Gestor_De_Colas, Descripciones.Cola_Usa_Gestor_De_Colas, "S") == "S";

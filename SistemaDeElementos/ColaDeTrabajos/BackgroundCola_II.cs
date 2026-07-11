@@ -76,19 +76,48 @@ public class BackgroundCola_II : BackgroundService
         bool trazar = CacheDeVariable.Cola_Trazar;
         while (!stoppingToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(stoppingToken))
         {
-            var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(contexto, enumNegocio.Variable.IdNegocio(), 0, enumOpercionesDeSemaforo.EJEC, "").Id;
-            contexto.IniciarTraza(Literal.TrabajosSometidos.NombreFicheroDebug, debugar: trazar);
+            // Cola_Activa ya contempla !Debugger.IsAttached: se comprueba antes de tocar
+            // traza/semáforo para que una instancia en depuración (o con la cola desactivada
+            // desde BD) ni siquiera intente poner el semáforo, y así no compita con la
+            // instancia productiva por el mismo semáforo global. El bucle sigue vivo (continue,
+            // no se rompe el while), así que si se reactiva la cola en caliente se retoma sola.
+            if (!CacheDeVariable.Cola_Activa)
+                continue;
+
+            var idSemaforo = 0;
             try
             {
+                // IniciarTraza y PonerSemaforo van dentro del try: ambas hacen I/O (fichero de
+                // traza / fila de semáforo en BD) y pueden lanzar excepción. Fuera del try, esa
+                // excepción se escaparía de ExecuteAsync sin capturar y, al estar el host
+                // configurado con BackgroundServiceExceptionBehavior=StopHost, tumbaría toda la
+                // aplicación en vez de limitarse a saltar este ciclo.
+                contexto.IniciarTraza(Literal.TrabajosSometidos.NombreFicheroDebug, debugar: trazar);
+                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(contexto, enumNegocio.Variable.IdNegocio(), 0, enumOpercionesDeSemaforo.EJEC, "").Id;
                 await EjecutarTrabajoPendiente(contexto, stoppingToken).ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 contexto.AnotarExcepcion(e);
-                EnviarCorreo("Fallo al ejecutar la cola", "Error al ejecutar la cola" + Environment.NewLine + GestorDeErrores.Detalle(e));
+                try
+                {
+                    // si el propio aviso por correo falla (p.ej. error de BD al persistirlo),
+                    // que no se escape: ya se ha anotado la excepción original en la traza, y
+                    // dejar que esta se propague tumbaría el host igual que lo hacía el fallo
+                    // original antes de este arreglo.
+                    EnviarCorreo("Fallo al ejecutar la cola", "Error al ejecutar la cola" + Environment.NewLine + GestorDeErrores.Detalle(e));
+                }
+                catch (Exception eCorreo)
+                {
+                    contexto.AnotarExcepcion(eCorreo);
+                }
             }
             finally
             {
+                // idSemaforo sigue a 0 si PonerSemaforo falló (QuitarSemaforo ya ignora id=0),
+                // así que el semáforo solo existe mientras la cola se ejecuta de verdad, tal
+                // como lo necesita 01-Descomprimir y parar servicios.cmd para decidir si puede
+                // parar el IIS durante un despliegue.
                 SemaforoDeProcesoSql.QuitarSemaforo(contexto, idSemaforo);
                 contexto.CerrarTraza();
             }
@@ -99,24 +128,19 @@ public class BackgroundCola_II : BackgroundService
     {
         var gestor = GestorDeTrabajosDeUsuario.GestorTu(contexto);
 
-        if (CacheDeVariable.Cola_Activa && !System.Diagnostics.Debugger.IsAttached)
+        // Cola_Activa ya se comprobó en ExecuteAsync antes de llegar aquí (y antes de poner el
+        // semáforo), así que si se ha llegado a este punto la cola está activa de verdad.
+        try
         {
-            try
-            {
-                contexto.AnotarTraza("Numero de ejecuciones", $"se ha ejecutado: {VecesEjecutada++}");
-                contexto.TrabajoSometido = true;
-                await gestor.ProcesarCola(Usuario);
-                CacheDeVariable.ResetearVariable(Variable.Cola_Ultima_Ejecucion, Descripciones.Cola_Ultima_Ejecucion, DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
-            }
-            finally
-            {
-                contexto.TrabajoSometido = false;
-                contexto.AnotarTraza("Fin de ejecuci�n", "Ejecuci�n de cola finalizada");
-            }
+            contexto.AnotarTraza("Numero de ejecuciones", $"se ha ejecutado: {VecesEjecutada++}");
+            contexto.TrabajoSometido = true;
+            await gestor.ProcesarCola(Usuario);
+            CacheDeVariable.ResetearVariable(Variable.Cola_Ultima_Ejecucion, Descripciones.Cola_Ultima_Ejecucion, DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
         }
-        else
+        finally
         {
-            contexto.AnotarTraza("Cola no activa", "La cola de trabajos no est� activa");
+            contexto.TrabajoSometido = false;
+            contexto.AnotarTraza("Fin de ejecuci�n", "Ejecuci�n de cola finalizada");
         }
     }
 
