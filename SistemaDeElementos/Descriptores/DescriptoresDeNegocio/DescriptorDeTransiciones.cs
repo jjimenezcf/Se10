@@ -61,7 +61,7 @@ namespace MVCSistemaDeElementos.Descriptores
         private DescriptorDeExpansor DescriptorDeAcciones(DescriptorDeEdicion<TransicionDto> editor)
         {
             var expansor = new DescriptorDeExpansor(editor, $"{editor.Id}-accion", "Acción de la transición", mostrarPlegado: true, "acción de una transición");
-
+            expansor.IdNegocio = Negocio.IdNegocio();
             //Definimos el grid de detalles del cuerpo
             var columnasDeZonas = new DescriptorDeColumnas("accion");
             columnasDeZonas.Add(titulo: "Mto.", propiedad: nameof(AccionesDeTrnDto.Momento), alineacion: enumAliniacion.izquierda, mostrar: true, tamano: 50);
