@@ -533,7 +533,8 @@ const ltrControladores = {
         PlantillasDeCreacion: 'PlantillasDeCreacion',
         PlantillasDeExportacion: 'PlantillasDeExportacion',
         PlantillasDeNegocio: 'PlantillasDeNegocio',
-        Estados: 'Estados'
+        Estados: 'Estados',
+        AccionesDeTrn: 'AccionesDeTrn'
     },
     Administracion: {
         Expedientes: 'Expedientes',
@@ -1393,6 +1394,32 @@ const ltrCss = {
         ConResalto: 'con-resalto',
         Verde: 'resalto-verde',
         Violeta: 'resalto-violeta'
+    },
+    flujo: {
+        modalOverlay: 'flujo-modal-overlay',
+        modalCaja: 'flujo-modal-caja',
+        cabecera: 'flujo-cabecera',
+        titulo: 'flujo-titulo',
+        botones: 'flujo-botones',
+        btnGuardar: 'flujo-btn-guardar',
+        btnGuardarHover: 'flujo-btn-guardar-hover',
+        btnCerrar: 'flujo-btn-cerrar',
+        svg: 'flujo-svg',
+        nodoCirculo: 'flujo-nodo-circulo',
+        nodoCirculoArrastrando: 'flujo-nodo-circulo-arrastrando',
+        nodoTexto: 'flujo-nodo-texto',
+        lineaHit: 'flujo-linea-hit',
+        linea: 'flujo-linea',
+        lineaAvance: 'flujo-linea-avance',
+        lineaRetroceso: 'flujo-linea-retroceso',
+        lineaHover: 'flujo-linea-hover',
+        grupoFlecha: 'flujo-grupo-flecha',
+        marcadorHover: 'flujo-marcador-hover',
+        marcadorHoverVisible: 'flujo-marcador-hover-visible',
+        tooltip: 'flujo-tooltip',
+        tooltipVisible: 'flujo-tooltip-visible',
+        tooltipRect: 'flujo-tooltip-rect',
+        tooltipTexto: 'flujo-tooltip-texto'
     }
 };
 

@@ -10,6 +10,9 @@
 //  MostrarModalDeFlujo(nombre, datos, negocio, idInicial, posGuardadas)
 //    · SVG interactivo: nodos arrastrables, flechas azul/rojo, hover, tooltip
 //    · Botón 💾 graba la disposición actual llamando a epGrabarDisposicionDeEstados
+//
+//  Los estilos visuales están en Flujo.css, referenciados desde ltrCss.flujo
+//  y aplicados/quitados con ApiControl.IncluirCss / ApiControl.ExcluirCss.
 // ─────────────────────────────────────────────────────────────────────────────
 
 namespace Flujo {
@@ -106,13 +109,14 @@ namespace Flujo {
     export function MostrarModalDeFlujo(
         nombreEstado:    string,
         datos:           any,
-        negocio:         string               = '',
-        idEstadoInicial: number               = 0,
-        posGuardadas:    Array<TPosicionGuardada> = []
+        negocio:         string                   = '',
+        idEstadoInicial: number                   = 0,
+        posGuardadas:    Array<TPosicionGuardada>  = []
     ): void {
 
         const estados:     Array<{ id: number, nombre: string }> = datos.estados     || [];
         const transiciones: Array<{ id: number, nombre: string, idOrigen: number, idDestino: number }> = datos.transiciones || [];
+        const idNegocio: number = Numero(datos.idNegocio) || 0;
 
         // ── 1. BFS → niveles ──────────────────────────────────────────────────
         const nivelPorId: Map<number, number> = new Map();
@@ -166,10 +170,10 @@ namespace Flujo {
 
         // ── 4. SVG base ───────────────────────────────────────────────────────
         const ns  = 'http://www.w3.org/2000/svg';
-        const svg = document.createElementNS(ns, 'svg') as SVGSVGElement;
+        const svg = document.createElementNS(ns, 'svg') as unknown as SVGSVGElement;
         svg.setAttribute('width',  String(svgAncho));
         svg.setAttribute('height', String(svgAlto));
-        (svg as SVGElement).style.userSelect = 'none';
+        ApiControl.IncluirCss(svg as unknown as HTMLElement, ltrCss.flujo.svg);
 
         const defs = document.createElementNS(ns, 'defs');
         for (const [id, color] of [['flecha-av', '#4a86e8'], ['flecha-re', '#e05252']]) {
@@ -184,9 +188,8 @@ namespace Flujo {
         svg.appendChild(defs);
 
         // Círculos amarillos inicio/fin (hover)
-        const hoverMarkers = document.createElementNS(ns, 'g');
-        (hoverMarkers as SVGElement).style.display = 'none';
-        hoverMarkers.setAttribute('pointer-events', 'none');
+        const hoverMarkers = document.createElementNS(ns, 'g') as unknown as HTMLElement;
+        ApiControl.IncluirCss(hoverMarkers, ltrCss.flujo.marcadorHover);
         const mkInicio = document.createElementNS(ns, 'circle');
         mkInicio.setAttribute('r', '5'); mkInicio.setAttribute('fill', '#ffd600');
         mkInicio.setAttribute('stroke', '#b8a000'); mkInicio.setAttribute('stroke-width', '1.2');
@@ -196,17 +199,36 @@ namespace Flujo {
         hoverMarkers.appendChild(mkInicio); hoverMarkers.appendChild(mkFin);
 
         // Tooltip (click en flecha)
-        const tooltip = document.createElementNS(ns, 'g');
-        (tooltip as SVGElement).style.display = 'none';
-        tooltip.setAttribute('pointer-events', 'none');
-        const ttRect = document.createElementNS(ns, 'rect');
-        ttRect.setAttribute('rx', '4'); ttRect.setAttribute('ry', '4');
-        ttRect.setAttribute('fill', '#333'); ttRect.setAttribute('opacity', '0.88');
-        const ttText = document.createElementNS(ns, 'text');
-        ttText.setAttribute('fill', '#fff'); ttText.setAttribute('font-size', '12');
-        ttText.setAttribute('font-family', 'sans-serif');
-        ttText.setAttribute('dominant-baseline', 'middle');
-        tooltip.appendChild(ttRect); tooltip.appendChild(ttText);
+        const tooltip = document.createElementNS(ns, 'g') as unknown as HTMLElement;
+        ApiControl.IncluirCss(tooltip, ltrCss.flujo.tooltip);
+        const ttRect = document.createElementNS(ns, 'rect') as unknown as HTMLElement;
+        ApiControl.IncluirCss(ttRect, ltrCss.flujo.tooltipRect);
+        const ttText = document.createElementNS(ns, 'text') as unknown as HTMLElement;
+        ApiControl.IncluirCss(ttText, ltrCss.flujo.tooltipTexto);
+        ttText.setAttribute('x', '0'); ttText.setAttribute('y', '0');
+        tooltip.appendChild(ttRect as unknown as Node); tooltip.appendChild(ttText as unknown as Node);
+
+        // Pinta el tooltip con una línea por cada elemento de `lineas` (usando <tspan>)
+        // y lo posiciona/redimensiona junto al punto donde se hizo click.
+        const _mostrarTooltip = (lineas: string[], ev: MouseEvent) => {
+            const rect = (svg as unknown as SVGSVGElement).getBoundingClientRect();
+            while (ttText.firstChild) ttText.removeChild(ttText.firstChild);
+            lineas.forEach((linea, i) => {
+                const tspan = document.createElementNS(ns, 'tspan') as unknown as HTMLElement;
+                tspan.setAttribute('x', '0');
+                tspan.setAttribute('dy', i === 0 ? '0' : '14');
+                tspan.textContent = linea;
+                ttText.appendChild(tspan as unknown as Node);
+            });
+            ApiControl.IncluirCss(tooltip, ltrCss.flujo.tooltipVisible);
+            tooltip.setAttribute('transform',
+                `translate(${(ev.clientX - rect.left + 10).toFixed(0)},${(ev.clientY - rect.top - 20).toFixed(0)})`);
+            const bb = (ttText as unknown as SVGTextElement).getBBox();
+            ttRect.setAttribute('x',      (bb.x - 6).toFixed(1));
+            ttRect.setAttribute('y',      (bb.y - 4).toFixed(1));
+            ttRect.setAttribute('width',  (bb.width  + 12).toFixed(1));
+            ttRect.setAttribute('height', (bb.height +  8).toFixed(1));
+        };
 
         // ── 5. Flechas ────────────────────────────────────────────────────────
         const DESP = 6;
@@ -243,22 +265,24 @@ namespace Flujo {
         };
 
         let flechaConHover: (() => void) | null = null;
+        // Evita que la respuesta tardía de LeerElementos reabra el tooltip
+        // si el usuario ya cambió de flecha o lo cerró.
+        let tokenTooltipActivo = 0;
 
         for (const t of transiciones) {
             if (!posicionPorId.get(t.idOrigen) || !posicionPorId.get(t.idDestino)) continue;
             const nOrigen  = nivelPorId.get(t.idOrigen)  || 0;
             const nDestino = nivelPorId.get(t.idDestino) || 0;
             const esAvance = nDestino > nOrigen;
-            const color    = esAvance ? '#4a86e8' : '#e05252';
             const marcador = esAvance ? 'url(#flecha-av)' : 'url(#flecha-re)';
 
             const pts = calcPuntos(t); if (!pts) continue;
             let { x1, y1, x2, y2 } = pts;
 
-            const g    = document.createElementNS(ns, 'g');
-            (g as SVGElement).style.cursor = 'pointer';
-            const hit   = document.createElementNS(ns, 'line');
-            const linea = document.createElementNS(ns, 'line');
+            const g = document.createElementNS(ns, 'g') as unknown as HTMLElement;
+            ApiControl.IncluirCss(g, ltrCss.flujo.grupoFlecha);
+            const hit   = document.createElementNS(ns, 'line') as unknown as HTMLElement;
+            const linea = document.createElementNS(ns, 'line') as unknown as HTMLElement;
 
             const aplicarPuntos = (p: typeof pts) => {
                 for (const el of [hit, linea]) {
@@ -267,11 +291,11 @@ namespace Flujo {
                 }
             };
             aplicarPuntos(pts);
-            hit.setAttribute('stroke', 'transparent'); hit.setAttribute('stroke-width', '14');
-            linea.setAttribute('stroke', color); linea.setAttribute('stroke-width', '1.8');
-            linea.setAttribute('stroke-opacity', '0.25'); linea.setAttribute('marker-end', marcador);
-            (linea as SVGElement).style.transition = 'stroke-opacity .12s';
-            g.appendChild(hit); g.appendChild(linea); svg.appendChild(g);
+            ApiControl.IncluirCss(hit,   ltrCss.flujo.lineaHit);
+            ApiControl.IncluirCss(linea, ltrCss.flujo.linea);
+            ApiControl.IncluirCss(linea, esAvance ? ltrCss.flujo.lineaAvance : ltrCss.flujo.lineaRetroceso);
+            linea.setAttribute('marker-end', marcador);
+            g.appendChild(hit); g.appendChild(linea); svg.appendChild(g as unknown as Node);
 
             const updateArrow = () => {
                 const p = calcPuntos(t); if (!p) return;
@@ -287,37 +311,61 @@ namespace Flujo {
 
             g.addEventListener('mouseenter', () => {
                 if (arrastrando) return;
-                linea.setAttribute('stroke-opacity', '1');
+                ApiControl.IncluirCss(linea, ltrCss.flujo.lineaHover);
                 mkInicio.setAttribute('cx', x1.toFixed(1)); mkInicio.setAttribute('cy', y1.toFixed(1));
                 mkFin.setAttribute('cx',    x2.toFixed(1)); mkFin.setAttribute('cy',    y2.toFixed(1));
-                (hoverMarkers as SVGElement).style.display = '';
+                ApiControl.IncluirCss(hoverMarkers, ltrCss.flujo.marcadorHoverVisible);
                 flechaConHover = updateArrow;
             });
             g.addEventListener('mouseleave', () => {
-                linea.setAttribute('stroke-opacity', '0.25');
-                (hoverMarkers as SVGElement).style.display = 'none';
-                (tooltip     as SVGElement).style.display = 'none';
+                ApiControl.ExcluirCss(linea, ltrCss.flujo.lineaHover);
+                ApiControl.ExcluirCss(hoverMarkers, ltrCss.flujo.marcadorHoverVisible);
+                ApiControl.ExcluirCss(tooltip, ltrCss.flujo.tooltipVisible);
                 flechaConHover = null;
+                tokenTooltipActivo++;
             });
             g.addEventListener('click', (ev: MouseEvent) => {
                 ev.stopPropagation();
-                const rect = svg.getBoundingClientRect();
-                ttText.textContent = t.nombre;
-                (tooltip as SVGElement).style.display = '';
-                tooltip.setAttribute('transform',
-                    `translate(${(ev.clientX - rect.left + 10).toFixed(0)},${(ev.clientY - rect.top - 20).toFixed(0)})`);
-                const bb = (ttText as SVGTextElement).getBBox();
-                ttRect.setAttribute('x',      (bb.x - 6).toFixed(1));
-                ttRect.setAttribute('y',      (bb.y - 4).toFixed(1));
-                ttRect.setAttribute('width',  (bb.width  + 12).toFixed(1));
-                ttRect.setAttribute('height', (bb.height +  8).toFixed(1));
+                const miToken = ++tokenTooltipActivo;
+
+                // Mostrar de inmediato el nombre de la transición…
+                _mostrarTooltip([t.nombre], ev);
+
+                // …y a continuación las acciones que se ejecutan en ella (si se conoce el negocio)
+                if (idNegocio > 0) {
+                    const filtros = [
+                        new ClausulaDeFiltrado('IdTransicion',     literal.filtro.criterio.igual, t.id),
+                        new ClausulaDeFiltrado(Ajax.Param.idNegocio, literal.filtro.criterio.igual, idNegocio)
+                    ];
+                    const parametros: Array<Parametro> = [
+                        new Parametro(Ajax.Param.aplicarJoin,      true),
+                        new Parametro(Ajax.Param.cantidad,         '-1'),
+                        new Parametro(Ajax.Param.obtenerSeguridad, false),
+                        new Parametro(Ajax.Param.ordenarPor,       ''),
+                        new Parametro(Ajax.Param.fitrarPara,       'CargarGridDeRelacion')
+                    ];
+                    ApiDePeticiones.LeerElementos(
+                        g,
+                        ltrControladores.Negocio.AccionesDeTrn,
+                        Ajax.EndPoint.LeerElementos,
+                        filtros,
+                        parametros,
+                        new Array<Parametro>(),
+                        false
+                    ).then((pAcciones: ApiDeAjax.DescriptorAjax) => {
+                        if (miToken !== tokenTooltipActivo) return; // el usuario ya cambió de flecha/cerró
+                        const acciones: Array<{ accion: string }> = pAcciones.resultado.datos || [];
+                        const lineas = [t.nombre, ...acciones.map(a => `• ${a.accion}`)];
+                        _mostrarTooltip(lineas, ev);
+                    }).catch(() => { /* se deja el tooltip sólo con el nombre de la transición */ });
+                }
             });
         }
 
         // ── 6. Nodos arrastrables ─────────────────────────────────────────────
         let arrastrando: {
             id: number, startX: number, startY: number, startMX: number, startMY: number,
-            circ: SVGCircleElement, textos: Array<{ el: SVGTextElement, offsetY: number }>
+            circ: HTMLElement, textos: Array<{ el: HTMLElement, offsetY: number }>
         } | null = null;
 
         for (const e of estados) {
@@ -332,32 +380,29 @@ namespace Flujo {
             }
             if (actual) lineas.push(actual);
 
-            const circ = document.createElementNS(ns, 'circle') as SVGCircleElement;
+            const circ = document.createElementNS(ns, 'circle') as unknown as HTMLElement;
             circ.setAttribute('cx', String(pos.x)); circ.setAttribute('cy', String(pos.y));
             circ.setAttribute('r', String(radio));
-            circ.setAttribute('fill', '#e8f0fe'); circ.setAttribute('stroke', '#4a86e8');
-            circ.setAttribute('stroke-width', '2');
-            (circ as SVGElement).style.cursor = 'grab';
-            svg.appendChild(circ);
+            ApiControl.IncluirCss(circ, ltrCss.flujo.nodoCirculo);
+            svg.appendChild(circ as unknown as Node);
 
             const alturaTexto = lineas.length * 14;
             const textos = lineas.map((l, i) => {
                 const offsetY = -alturaTexto / 2 + 14 + i * 14;
-                const txt = document.createElementNS(ns, 'text') as SVGTextElement;
+                const txt = document.createElementNS(ns, 'text') as unknown as HTMLElement;
                 txt.setAttribute('x', String(pos.x));
                 txt.setAttribute('y', (pos.y + offsetY).toFixed(1));
-                txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('font-size', '11');
-                txt.setAttribute('fill', '#1a1a2e'); txt.setAttribute('font-family', 'sans-serif');
-                txt.setAttribute('pointer-events', 'none');
+                ApiControl.IncluirCss(txt, ltrCss.flujo.nodoTexto);
                 txt.textContent = l;
-                svg.appendChild(txt);
+                svg.appendChild(txt as unknown as Node);
                 return { el: txt, offsetY };
             });
 
             circ.addEventListener('mousedown', (ev: MouseEvent) => {
                 ev.preventDefault(); ev.stopPropagation();
-                (tooltip      as SVGElement).style.display = 'none';
-                (hoverMarkers as SVGElement).style.display = 'none';
+                ApiControl.ExcluirCss(tooltip, ltrCss.flujo.tooltipVisible);
+                ApiControl.ExcluirCss(hoverMarkers, ltrCss.flujo.marcadorHoverVisible);
+                tokenTooltipActivo++;
                 arrastrando = {
                     id: e.id,
                     startX: posicionPorId.get(e.id)!.x,
@@ -365,7 +410,7 @@ namespace Flujo {
                     startMX: ev.clientX, startMY: ev.clientY,
                     circ, textos
                 };
-                (circ as SVGElement).style.cursor = 'grabbing';
+                ApiControl.IncluirCss(circ, ltrCss.flujo.nodoCirculoArrastrando);
             });
         }
 
@@ -384,14 +429,17 @@ namespace Flujo {
         });
 
         const soltarNodo = () => {
-            if (arrastrando) { (arrastrando.circ as SVGElement).style.cursor = 'grab'; arrastrando = null; }
+            if (arrastrando) {
+                ApiControl.ExcluirCss(arrastrando.circ, ltrCss.flujo.nodoCirculoArrastrando);
+                arrastrando = null;
+            }
         };
         svg.addEventListener('mouseup',    soltarNodo);
         svg.addEventListener('mouseleave', soltarNodo);
 
-        svg.appendChild(hoverMarkers);
-        svg.appendChild(tooltip);
-        svg.addEventListener('click', () => { (tooltip as SVGElement).style.display = 'none'; });
+        svg.appendChild(hoverMarkers as unknown as Node);
+        svg.appendChild(tooltip as unknown as Node);
+        svg.addEventListener('click', () => { ApiControl.ExcluirCss(tooltip, ltrCss.flujo.tooltipVisible); tokenTooltipActivo++; });
 
         // ── 7. Montar la modal ────────────────────────────────────────────────
         const idModal = 'modal-flujo-estados';
@@ -400,45 +448,31 @@ namespace Flujo {
 
         modal = document.createElement('div');
         modal.id = idModal;
-        modal.style.cssText =
-            'position:fixed;top:0;left:0;width:100%;height:100%;' +
-            'background:rgba(0,0,0,.45);z-index:9999;display:flex;' +
-            'align-items:center;justify-content:center';
+        ApiControl.IncluirCss(modal, ltrCss.flujo.modalOverlay);
 
         const caja = document.createElement('div');
-        caja.style.cssText =
-            'background:#fff;border-radius:8px;padding:20px;' +
-            'max-width:90vw;max-height:90vh;overflow:auto;' +
-            'box-shadow:0 4px 24px rgba(0,0,0,.3)';
+        ApiControl.IncluirCss(caja, ltrCss.flujo.modalCaja);
 
         // Cabecera: título + botón guardar + botón cerrar
         const cabecera = document.createElement('div');
-        cabecera.style.cssText =
-            'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px';
+        ApiControl.IncluirCss(cabecera, ltrCss.flujo.cabecera);
 
         const titulo = document.createElement('h5');
-        titulo.style.cssText = 'margin:0;font-family:sans-serif';
+        ApiControl.IncluirCss(titulo, ltrCss.flujo.titulo);
         titulo.textContent = `Flujo desde: ${nombreEstado}`;
 
         // Botones a la derecha (guardar + cerrar)
         const botones = document.createElement('div');
-        botones.style.cssText = 'display:flex;align-items:center;gap:6px';
+        ApiControl.IncluirCss(botones, ltrCss.flujo.botones);
 
         // Botón guardar (sólo visible si se conoce negocio e idEstadoInicial)
         if (negocio && idEstadoInicial > 0) {
             const btnGuardar = document.createElement('button');
             btnGuardar.title = 'Grabar disposición de estados';
-            btnGuardar.style.cssText =
-                'border:none;background:none;cursor:pointer;padding:2px 4px;' +
-                'color:#555;display:flex;align-items:center;' +
-                'border-radius:4px;transition:color .15s,background .15s';
+            ApiControl.IncluirCss(btnGuardar, ltrCss.flujo.btnGuardar);
             btnGuardar.innerHTML = _iconoDisquete;
-            btnGuardar.addEventListener('mouseenter', () => {
-                btnGuardar.style.color = '#1a6fb0'; btnGuardar.style.background = '#e8f0fe';
-            });
-            btnGuardar.addEventListener('mouseleave', () => {
-                btnGuardar.style.color = '#555'; btnGuardar.style.background = 'none';
-            });
+            btnGuardar.addEventListener('mouseenter', () => ApiControl.IncluirCss(btnGuardar, ltrCss.flujo.btnGuardarHover));
+            btnGuardar.addEventListener('mouseleave', () => ApiControl.ExcluirCss(btnGuardar, ltrCss.flujo.btnGuardarHover));
             btnGuardar.addEventListener('click', (ev) => {
                 ev.stopPropagation();
                 // Convertir posicionPorId al formato que espera el servidor: {idEstado, posX, posY}
@@ -455,16 +489,14 @@ namespace Flujo {
 
         // Botón cerrar
         const btnX = document.createElement('button');
-        btnX.style.cssText =
-            'border:none;background:none;font-size:1.4rem;cursor:pointer;' +
-            'line-height:1;padding:0 2px';
+        ApiControl.IncluirCss(btnX, ltrCss.flujo.btnCerrar);
         btnX.innerHTML = '&times;';
         botones.appendChild(btnX);
 
         cabecera.appendChild(titulo);
         cabecera.appendChild(botones);
         caja.appendChild(cabecera);
-        caja.appendChild(svg);
+        caja.appendChild(svg as unknown as Node);
         modal.appendChild(caja);
         document.body.appendChild(modal);
 

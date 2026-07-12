@@ -1,0 +1,161 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Flujo.css
+   Estilos para la modal del visualizador de flujo de estados (ApiFlujo.ts).
+   Las clases se referencian desde ltrCss.flujo en literales.ts y se
+   aplican/quitan mediante ApiControl.IncluirCss / ApiControl.ExcluirCss.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.flujo-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .45);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flujo-modal-caja {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, .3);
+}
+
+.flujo-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.flujo-titulo {
+    margin: 0;
+    font-family: sans-serif;
+}
+
+.flujo-botones {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Botón guardar (disquete) */
+.flujo-btn-guardar {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    transition: color .15s, background .15s;
+}
+
+.flujo-btn-guardar-hover {
+    color: #1a6fb0;
+    background: #e8f0fe;
+}
+
+/* Botón cerrar (aspa) */
+.flujo-btn-cerrar {
+    border: none;
+    background: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+.flujo-svg {
+    user-select: none;
+}
+
+/* Nodos (estados) */
+.flujo-nodo-circulo {
+    fill: #e8f0fe;
+    stroke: #4a86e8;
+    stroke-width: 2;
+    cursor: grab;
+}
+
+.flujo-nodo-circulo-arrastrando {
+    cursor: grabbing;
+}
+
+.flujo-nodo-texto {
+    text-anchor: middle;
+    font-size: 11px;
+    fill: #1a1a2e;
+    font-family: sans-serif;
+    pointer-events: none;
+}
+
+/* Flechas (transiciones) */
+.flujo-grupo-flecha {
+    cursor: pointer;
+}
+
+.flujo-linea-hit {
+    stroke: transparent;
+    stroke-width: 14px;
+}
+
+.flujo-linea {
+    stroke-width: 1.8px;
+    stroke-opacity: 0.25;
+    transition: stroke-opacity .12s;
+}
+
+.flujo-linea-avance {
+    stroke: #4a86e8;
+}
+
+.flujo-linea-retroceso {
+    stroke: #e05252;
+}
+
+.flujo-linea-hover {
+    stroke-opacity: 1;
+}
+
+/* Marcadores amarillos de inicio/fin (hover sobre una flecha) */
+.flujo-marcador-hover {
+    display: none;
+    pointer-events: none;
+}
+
+.flujo-marcador-hover-visible {
+    display: inline;
+}
+
+/* Tooltip con el nombre de la transición (click sobre una flecha) */
+.flujo-tooltip {
+    display: none;
+    pointer-events: none;
+}
+
+.flujo-tooltip-visible {
+    display: inline;
+}
+
+.flujo-tooltip-rect {
+    fill: #333;
+    opacity: 0.88;
+    rx: 4;
+    ry: 4;
+}
+
+.flujo-tooltip-texto {
+    fill: #fff;
+    font-size: 12px;
+    font-family: sans-serif;
+    dominant-baseline: middle;
+}

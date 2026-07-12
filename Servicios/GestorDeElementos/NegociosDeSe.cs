@@ -1635,7 +1635,7 @@ public static class NegociosDeSe
             .Select(t => new { t.Id, t.Nombre, t.IdOrigen, t.IdDestino })
             .ToList<object>();
 
-        return new { estados, transiciones };
+        return new { idNegocio = negocio.IdNegocio(), estados, transiciones };
     }
 
 
