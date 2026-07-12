@@ -235,7 +235,6 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 var gestorDeCorreos = GestorDeCorreos.Gestor(cnx, cnx.Mapeador);
                 gestorDeCorreos.EnviarCorreoPendientes();
             }
-
             catch (Exception e)
             {
                 cnx.AnotarExcepcion(e);
