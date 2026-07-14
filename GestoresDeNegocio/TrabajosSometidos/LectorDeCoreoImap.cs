@@ -389,7 +389,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
             // Eliminar etiquetas <img> con src externo o vacío que iText7 no puede resolver
             cuerpoHtml = Regex.Replace(cuerpoHtml, @"<img\b[^>]*?\ssrc=""(https?://[^""]*)""[^>]*>", "", RegexOptions.IgnoreCase);
-            cuerpoHtml = Regex.Replace(cuerpoHtml, @"<img\b[^>]*?\ssrc=""""[^>]*>", "", RegexOptions.IgnoreCase);
+            
 
             var sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'/>");
