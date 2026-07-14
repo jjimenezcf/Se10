@@ -302,7 +302,7 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 Contexto.Rollback(tran);
-                ExtensorDeMiCorreo.VaciarCaches();
+                ExtensorDeMiCorreo.VaciarCaches(eliminarCorreos: true, eliminarClientSmtp: true);
                 ApiController.PrepararError(e, r, "Error al archivar el correo.");
             }
             return new JsonResult(r);
@@ -386,7 +386,7 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 Contexto.Rollback(tran);
-                ExtensorDeMiCorreo.VaciarCaches();
+                ExtensorDeMiCorreo.VaciarCaches(eliminarCorreos: true, eliminarClientSmtp: true);
                 ApiController.PrepararError(e, r, "Error al asociar el correo.");
             }
             return new JsonResult(r);
@@ -467,7 +467,7 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 Contexto.Rollback(tran);
-                ExtensorDeMiCorreo.VaciarCaches();
+                ExtensorDeMiCorreo.VaciarCaches(eliminarCorreos: true, eliminarClientSmtp: true);
                 ApiController.PrepararError(e, r, "Error al eliminar el correo.");
             }
             return new JsonResult(r);

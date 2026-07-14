@@ -67,13 +67,15 @@ namespace GestorDeElementos.Extensores
             }.Insertar(contexto);
         }
 
-        public static void VaciarCaches()
+        public static void VaciarCaches(bool eliminarCorreos, bool eliminarClientSmtp)
         {
             ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_filtrados);
             ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Cantidad);
             ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Del_Buzon);
             ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Procesados);
             ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Todos);
+            if (eliminarCorreos) ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Correos);
+            if (eliminarClientSmtp) ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_ClienteSmtp);
         }
     }
 }

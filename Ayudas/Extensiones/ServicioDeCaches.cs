@@ -76,7 +76,8 @@ namespace Utilidades
         public static readonly string Ent_MisCorreos_Del_Buzon = nameof(Ent_MisCorreos_Del_Buzon);
         public static readonly string Ent_MisCorreos_Procesados = nameof(Ent_MisCorreos_Procesados);
         public static readonly string Ent_MisCorreos_Todos = nameof(Ent_MisCorreos_Todos);
-        public static readonly string Ent_MisCorreos_ClienteSmtp = nameof(Ent_MisCorreos_ClienteSmtp);        
+        public static readonly string Ent_MisCorreos_ClienteSmtp = nameof(Ent_MisCorreos_ClienteSmtp);
+        public static readonly string Ent_MisCorreos_Correos = nameof(Ent_MisCorreos_Correos);
         public static readonly string Ent_ReferenciasA = nameof(Ent_ReferenciasA);
 
         public static readonly string Ent_Bloqueadores = nameof(Ent_Bloqueadores);

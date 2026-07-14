@@ -498,27 +498,34 @@ namespace GestoresDeNegocio.TrabajosSometidos
             // Optimización: evita reapertura de carpeta si ya está abierta
             if (!folderAlreadyOpen)
                 AbrirCarpeta(folder.Name);
-            try
+
+            var cache = ServicioDeCaches.Obtener(CacheDe.Ent_MisCorreos_Correos);
+            var i = IdMensaje(eMail);
+            if (!cache.ContainsKey(i.ToString()))
             {
-                MiCorreoDto correo = new();
-                var message = folder.GetMessage(eMail.UniqueId);
-                correo.Id = IdMensaje(eMail); // Encriptacion.GenerarEntero(eMail.EmailId ?? eMail.Envelope.MessageId); //
-                correo.Buzon = folder.Name;
-                correo.Asunto = eMail.Envelope.Subject;
-                correo.Emisor = eMail.Envelope.From.ToString();
-                correo.To = string.Join(",", eMail.Envelope.To);
-                correo.Cuerpo = message.TextBody ?? "";
-                correo.CuerpoHtml = !string.IsNullOrEmpty(message.HtmlBody) ? extHtml.SanitizeHtml(message.HtmlBody) : extHtml.TextoToHtml(correo.Cuerpo);
-                correo.Fecha = eMail.Date.ToLocalTime().DateTime;
-                correo.IdMensaje = IdMensaje(eMail).ToString();
-                correo.ModoDeAcceso = ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Consultor;
-                correo.SerializarAdjuntos(Adjuntos(eMail));
-                return correo;
+                try
+                {
+                    MiCorreoDto correo = new();
+                    var message = folder.GetMessage(eMail.UniqueId);
+                    correo.Id = i;// Encriptacion.GenerarEntero(eMail.EmailId ?? eMail.Envelope.MessageId); //
+                    correo.Buzon = folder.Name;
+                    correo.Asunto = eMail.Envelope.Subject;
+                    correo.Emisor = eMail.Envelope.From.ToString();
+                    correo.To = string.Join(",", eMail.Envelope.To);
+                    correo.Cuerpo = message.TextBody ?? "";
+                    correo.CuerpoHtml = !string.IsNullOrEmpty(message.HtmlBody) ? extHtml.SanitizeHtml(message.HtmlBody) : extHtml.TextoToHtml(correo.Cuerpo);
+                    correo.Fecha = eMail.Date.ToLocalTime().DateTime;
+                    correo.IdMensaje = IdMensaje(eMail).ToString();
+                    correo.ModoDeAcceso = ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Consultor;
+                    correo.SerializarAdjuntos(Adjuntos(eMail));
+                    cache[i.ToString()] = correo;
+                }
+                finally
+                {
+                    if (folder.IsOpen && cerrarTrasLeer) folder.Close();
+                }
             }
-            finally
-            {
-                if (folder.IsOpen && cerrarTrasLeer) folder.Close();
-            }
+            return (MiCorreoDto)cache[i.ToString()];
         }
 
 
@@ -828,17 +835,9 @@ namespace GestoresDeNegocio.TrabajosSometidos
             {
                 if (buzonOrigen.IsOpen) buzonOrigen.Close();
                 if (buzonDestino.IsOpen) buzonDestino.Close();
-                EliminarCaches();
+                ExtensorDeMiCorreo.VaciarCaches(eliminarCorreos: false, eliminarClientSmtp: false);
             }
         }
 
-        private static void EliminarCaches()
-        {
-            ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Cantidad);
-            ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Del_Buzon);
-            ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_filtrados);
-            ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Procesados);
-            ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_Todos);
-        }
     }
 }
