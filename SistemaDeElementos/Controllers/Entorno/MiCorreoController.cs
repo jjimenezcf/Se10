@@ -31,6 +31,7 @@ namespace MVCSistemaDeElementos.Controllers
         private enumMiCorreoModoAcceso? _Protocolo;
         private string _ClienteSecreto;
         private string _MiCorreo;
+        private string _Host;
 
         public MiCorreoController(GestorDeErrores gestorDeErrores, ContextoSe contexto, IMapper mapeador, IConfiguration configuration)
         : base(gestorDeErrores, contexto, mapeador)
@@ -45,6 +46,10 @@ namespace MVCSistemaDeElementos.Controllers
             _ClienteSecreto = seccion[ltrAppSetting.DatosIniciales.ClienteSecreto];
             if (_ClienteSecreto is null)
                 throw new Exception($"Debe definir en la sección de 'DatosIniciales' del AppSetting la clave '{ltrAppSetting.DatosIniciales.ClienteSecreto}'");
+
+            _Host = seccion[ltrAppSetting.DatosIniciales.Host];
+            if (_Host is null)
+                throw new Exception($"Debe definir en la sección de 'DatosIniciales' del AppSetting la clave '{ltrAppSetting.DatosIniciales.Host}'");
 
             try
             {
@@ -164,6 +169,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var guid = filtros.First(x => x.Clausula == ltrParametrosEp.guid).Valor;
                 var idBuzon = filtros.First(x => x.Clausula.ToLower() == nameof(MiCorreoDto.Buzon).ToLower()).Valor;
                 var buzon = Contexto.SeleccionarPorId<BuzonDeMiSociedadDtm>(idBuzon.Entero(), aplicarPermisos: true).Buzon;
+                
                 if (accion == epAcciones.buscar.ToString())
                 {
                     var filtroAsunto = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(MiCorreoDto.Asunto).ToLower())?.Valor;
@@ -199,7 +205,7 @@ namespace MVCSistemaDeElementos.Controllers
         public ResultadoDeLectura<MiCorreoDto> LeerDatosParaElGridImap(string modo, string accion, int pos, int can, string guid, string buzon, List<ClausulaDeFiltrado> filtros, List<ClausulaDeOrdenacion> orden, string parametrosJson)
         {
             var filtroAsunto = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(MiCorreoDto.Asunto).ToLower())?.Valor;
-            var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+            var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
             try
             {
                 var total = clienteImap.Total(guid, buzon, filtroAsunto);
@@ -273,7 +279,7 @@ namespace MVCSistemaDeElementos.Controllers
                         elementoDto = LectorDeGmailAuth2.ArchivarCorreo(Contexto, negocio, idCorreo, idTipo, idCg, nombre, _MiCorreo, parametros);
                         break;
                     case enumMiCorreoModoAcceso.IMAP:
-                        var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+                        var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
                         try
                         {
                             elementoDto = clienteImap.ArchivarCorreo(negocio, idCorreo, idTipo, idCg, nombre, parametros);
@@ -503,7 +509,7 @@ namespace MVCSistemaDeElementos.Controllers
             if (_Protocolo == enumMiCorreoModoAcceso.Auth2) LectorDeGmailAuth2.AsociarCorreoEnArchivador(Contexto, idCorreo, negocio, idElemento, idCarpetaDestino, _MiCorreo);
             else
             {
-                var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+                var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
                 try
                 {
                     clienteImap.AsociarCorreoEnArchivador(idCorreo, negocio, idElemento, idCarpetaDestino);
@@ -521,7 +527,7 @@ namespace MVCSistemaDeElementos.Controllers
             if (_Protocolo == enumMiCorreoModoAcceso.Auth2) LectorDeGmailAuth2.AsociarCorreoEnFacturaRec(Contexto, idCorreo, negocio, idElemento, idArchivadorDestino, idCarpetaDestino, _MiCorreo);
             else
             {
-                var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+                var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
                 try
                 {
                     clienteImap.AsociarCorreoEnFacturaRec(idCorreo, negocio, idElemento, idArchivadorDestino, idCarpetaDestino);
@@ -539,7 +545,7 @@ namespace MVCSistemaDeElementos.Controllers
             if (_Protocolo == enumMiCorreoModoAcceso.Auth2) LectorDeGmailAuth2.AsociarCorreoEnTarea(Contexto, idCorreo, negocio, idElemento, idArchivadorDestino, idCarpetaDestino, _MiCorreo);
             else
             {
-                var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+                var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
                 try
                 {
                     clienteImap.AsociarCorreoEnTarea(idCorreo, negocio, idElemento, idArchivadorDestino, idCarpetaDestino);
@@ -557,7 +563,7 @@ namespace MVCSistemaDeElementos.Controllers
             if (_Protocolo == enumMiCorreoModoAcceso.Auth2) LectorDeGmailAuth2.AsociarCorreoEnRegistroEs(Contexto, idCorreo, negocio, idElemento, idTareaDestino, idArchivadorDestino, idCarpetaDestino, _MiCorreo);
             else
             {
-                var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+                var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
                 try
                 {
                     clienteImap.AsociarCorreoEnRegistroEs(idCorreo, negocio, idElemento, idTareaDestino, idArchivadorDestino, idCarpetaDestino);
@@ -575,7 +581,7 @@ namespace MVCSistemaDeElementos.Controllers
             if (_Protocolo == enumMiCorreoModoAcceso.Auth2) LectorDeGmailAuth2.AsociarCorreoEnExpediente(Contexto, idCorreo, negocio, idElemento, idTareaDestino, idArchivadorDestino, idCarpetaDestino, _MiCorreo);
             else
             {
-                var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+                var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
                 try
                 {
                     clienteImap.AsociarCorreoEnExpediente(idCorreo, negocio, idElemento, idTareaDestino, idArchivadorDestino, idCarpetaDestino);
@@ -590,7 +596,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         private string DescargarAdjuntos(string idMail, string idAdjunto)
         {
-            var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+            var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
             try
             {
                 return clienteImap.DescargarAdjunto(idMail, idAdjunto);
@@ -603,7 +609,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         private string ImprimirCorreo(string buzon, string idMail)
         {
-            var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+            var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
             try
             {
                 return clienteImap.ImprimirCorreo(buzon, idMail);
@@ -616,7 +622,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         private MiCorreoDto LeerPorId(int idCorreo)
         {
-            var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+            var clienteImap = new LectorDeCoreoImap(Contexto,_Host, _MiCorreo, _ClienteSecreto);
             try
             {
                 return clienteImap.LeerCorreo(idCorreo);
@@ -630,7 +636,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         private void EliminarCorreo(int idCorreo)
         {
-            var clienteImap = new LectorDeCoreoImap(Contexto, _MiCorreo, _ClienteSecreto);
+            var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
             try
             {
                 clienteImap.EliminarCorreo(idCorreo);

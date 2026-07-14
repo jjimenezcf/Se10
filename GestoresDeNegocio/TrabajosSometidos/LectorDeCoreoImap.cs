@@ -39,7 +39,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
     public class LectorDeCoreoImap
     {
         public ImapClient ClienteImap { get; }
-       
+
         private ContextoSe _Contexto { get; }
 
         private string _Cuenta { get; }
@@ -55,25 +55,31 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 }
                 return (List<MiCorreoDto>)cacheDeCorreos[_Cuenta];
             }
-        } 
+        }
 
-        public LectorDeCoreoImap(ContextoSe contexto, string cuenta, string password)
+        public LectorDeCoreoImap(ContextoSe contexto, string host, string cuenta, string password)
         {
-            string host = cuenta.Contains("gmail") ? "imap.gmail.com": "imap.gmx.com";
+            //string host = cuenta.Contains("gmail") ? "imap.gmail.com": "imap.gmx.com";
             int port = 993;
             var client = new ImapClient();
             _Cuenta = cuenta;
             _Contexto = contexto;
-            try
+            var cacheDeCliente = ServicioDeCaches.Obtener(CacheDe.Ent_MisCorreos_ClienteSmtp);
+            var indice = $"{cuenta}";
+            if (!cacheDeCliente.ContainsKey(indice))
             {
-                client.Connect(host, port, SecureSocketOptions.SslOnConnect);
-                client.Authenticate(cuenta, password);
-                ClienteImap = client;
+                try
+                {
+                    client.Connect(host, port, SecureSocketOptions.SslOnConnect);
+                    client.Authenticate(cuenta, password);
+                    cacheDeCliente[indice] = client;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error al conectar o autenticar con el servidor IMAP", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error al conectar o autenticar con el servidor IMAP", ex);
-            }
+            ClienteImap = (ImapClient)cacheDeCliente[indice];
         }
 
         public MiCorreoDto LeerCorreo(int idMiCorreoDto)
@@ -94,7 +100,14 @@ namespace GestoresDeNegocio.TrabajosSometidos
         {
             if (ClienteImap.IsConnected)
             {
-                ClienteImap.Disconnect(true);
+                if (!ServicioDeCaches.Obtener(CacheDe.Ent_MisCorreos_ClienteSmtp).ContainsKey($"{_Cuenta}"))
+                {
+                    ClienteImap.Disconnect(true);
+                }
+            }
+            else
+            {
+                ServicioDeCaches.EliminarCache(CacheDe.Ent_MisCorreos_ClienteSmtp);
             }
         }
 
@@ -105,7 +118,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             var indice = $"{guid}-{buzon}-{filtroAsunto}";
             if (!cache.ContainsKey(indice))
             {
-                var correosDto = LeerTodoElBuzon(guid, buzon,0,-1, filtroAsunto);
+                var correosDto = LeerTodoElBuzon(guid, buzon, 0, -1, filtroAsunto);
                 if (correosDto.Count == 0)
                     return 0;
                 cache[indice] = correosDto.Count;
@@ -141,16 +154,19 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
 
             var cacheSolicitados = ServicioDeCaches.Obtener(CacheDe.Ent_MisCorreos_filtrados);
-            var indice = $"{guid}-{buzon}-{filtroAsunto}"; 
+            var indice = $"{guid}-{buzon}-{pos}-{cant}-{filtroAsunto}";
             if (!cacheSolicitados.ContainsKey(indice))
             {
-                cacheSolicitados[indice] = (cant == -1 ? (List<MiCorreoDto>)cacheDelBuzon[indBuzon] : ((List<MiCorreoDto>)cacheDelBuzon[indBuzon]).Skip(pos).Take(cant))
+                cacheSolicitados[indice] = (cant == -1 
+                    ? (List<MiCorreoDto>)cacheDelBuzon[indBuzon] 
+                    : ((List<MiCorreoDto>)cacheDelBuzon[indBuzon]).Skip(pos).Take(cant))
                                       .Where(correo => correo.Asunto.Contains(filtroAsunto.IsNullOrEmpty() ? "" : filtroAsunto))
                                       .ToList();
 
             }
 
             return (List<MiCorreoDto>)cacheSolicitados[indice];
+
         }
 
         private List<MiCorreoDto> LeerCorreosDelBuzon(string buzon)
@@ -229,11 +245,11 @@ namespace GestoresDeNegocio.TrabajosSometidos
             var carpeta = idCarpeta > 0 ? _Contexto.SeleccionarPorId<CarpetaDtm>(idCarpeta) : null;
             var negocioAdj = idCarpeta > 0 ? enumNegocio.Carpeta : negocio;
             INombre elemento = idCarpeta > 0 ? carpeta : archivador;
-            AdjuntarAdjuntos(_Contexto, negocioAdj, elemento,  datos);
+            AdjuntarAdjuntos(_Contexto, negocioAdj, elemento, datos);
             var accion = $"Asociar correo. Negocio: {(idCarpeta > 0 ? enumNegocio.Carpeta : negocio).Singular()}. Elemento: {(idCarpeta > 0 ? carpeta.Referencia(_Contexto) : archivador.Referencia(_Contexto))}. El: {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}. Por: {_Contexto.DatosDeConexion.Login}";
             datos.correo.Auditoria(_Contexto, negocio, archivador, accion);
         }
-        
+
         public void AsociarCorreoEnTarea(int idCorreo, enumNegocio negocio, int idTarea, int idArchivador, int idCarpeta)
         {
             if (idArchivador > 0)
@@ -243,7 +259,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
             AsociarCorreo<TareaDtm>(negocio, idCorreo, idTarea);
         }
-        
+
         public void AsociarCorreoEnRegistroEs(int idCorreo, enumNegocio negocio, int idRegistro, int idTarea, int idArchivador, int idCarpeta)
         {
             if (idArchivador > 0)
@@ -273,7 +289,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
             AsociarCorreo<ExpedienteDtm>(negocio, idCorreo, idExpediente);
         }
-        
+
         public void AsociarCorreoEnFacturaRec(int idCorreo, enumNegocio negocio, int idFacturaRec, int idArchivador, int idCarpeta)
         {
             if (idArchivador > 0)
@@ -438,7 +454,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 }
             }
             else
-            {                
+            {
                 folder.Open(modo);
             }
 
@@ -473,7 +489,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
         }
 
-        private MiCorreoDto CrearCorreo(IMessageSummary eMail, IMailFolder folder, bool folderAlreadyOpen , bool cerrarTrasLeer )
+        private MiCorreoDto CrearCorreo(IMessageSummary eMail, IMailFolder folder, bool folderAlreadyOpen, bool cerrarTrasLeer)
         {
             // Optimización: evita reapertura de carpeta si ya está abierta
             if (!folderAlreadyOpen)
@@ -694,7 +710,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 }
             }
 
-            return (null,null); // Si no se encuentra el mensaje en ningún buzón
+            return (null, null); // Si no se encuentra el mensaje en ningún buzón
         }
 
         private void AdjuntarAdjuntos(ContextoSe contexto, enumNegocio negocio, INombre elemento, (MiCorreoDto correo, List<Adjunto> adjuntos, string archivoImpreso) datos)
@@ -714,7 +730,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                     if (fichero is null)
                         continue;
                     rutas.Add(fichero);
-                    var archivo = ServidorDocumental.AnexarArchivo(contexto, negocio, elemento.Id, fichero, copiar:true, quitarExtensionHtml: true, sanitizar: true);
+                    var archivo = ServidorDocumental.AnexarArchivo(contexto, negocio, elemento.Id, fichero, copiar: true, quitarExtensionHtml: true, sanitizar: true);
                     if (negocio == enumNegocio.FacturaRecibida && datos.adjuntos.Count == 1)
                     {
                         ((FacturaRecDtm)elemento).IdArchivo = archivo.Id;
@@ -724,7 +740,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 }
             }
             GestorDeMiCorreo.AdjuntarCuerpoHtml(contexto, negocio, elemento, datos.correo, rutas);
-            foreach(var ruta in rutas)
+            foreach (var ruta in rutas)
             {
                 if (File.Exists(ruta))
                     File.Delete(ruta);
@@ -784,7 +800,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             var idMensaje = IdMensaje(eMail).ToString();
             if (!cache.ContainsKey(idMensaje))
             {
-                var a = contexto.SeleccionarPorPropiedad<MiCorreoDtm>(nameof(MiCorreoDtm.IdMensaje),idMensaje, errorSiNoHay: false);
+                var a = contexto.SeleccionarPorPropiedad<MiCorreoDtm>(nameof(MiCorreoDtm.IdMensaje), idMensaje, errorSiNoHay: false);
                 cache[idMensaje] = a is not null;
             }
             return (bool)cache[idMensaje];

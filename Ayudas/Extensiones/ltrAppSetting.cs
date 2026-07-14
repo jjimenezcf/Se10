@@ -53,7 +53,8 @@ namespace Utilidades
             public const string UrlBase = nameof(UrlBase);
             public const string Protocolo = nameof(Protocolo);
             public const string MiCorreo = nameof(MiCorreo);
-            public const string ClienteSecreto = nameof(ClienteSecreto);            
+            public const string ClienteSecreto = nameof(ClienteSecreto);
+            public const string Host = nameof(Host);
         }
     }
 }
