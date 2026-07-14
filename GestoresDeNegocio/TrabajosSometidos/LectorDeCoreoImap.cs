@@ -387,8 +387,9 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 return imagenesPorCid.TryGetValue(cid, out var dataUri) ? dataUri : m.Value;
             }, RegexOptions.IgnoreCase);
 
-            // Eliminar src de imágenes externas (http/https) que iText7 no puede resolver en PDF
-            cuerpoHtml = Regex.Replace(cuerpoHtml, @"(<img\b[^>]*?)\ssrc=""https?://[^""]*""", "$1 src=\"\"", RegexOptions.IgnoreCase);
+            // Eliminar etiquetas <img> con src externo o vacío que iText7 no puede resolver
+            cuerpoHtml = Regex.Replace(cuerpoHtml, @"<img\b[^>]*?\ssrc=""(https?://[^""]*)""[^>]*>", "", RegexOptions.IgnoreCase);
+            cuerpoHtml = Regex.Replace(cuerpoHtml, @"<img\b[^>]*?\ssrc=""""[^>]*>", "", RegexOptions.IgnoreCase);
 
             var sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'/>");
