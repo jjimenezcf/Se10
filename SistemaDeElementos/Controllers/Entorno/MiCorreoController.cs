@@ -39,25 +39,45 @@ namespace MVCSistemaDeElementos.Controllers
             var seccion = configuration.GetSection(typeof(ltrAppSetting.DatosIniciales).Name);
             if (seccion is null) throw new Exception($"Debe definir la sección de '{typeof(ltrAppSetting.DatosIniciales).Name}' en el AppSetting");
 
-            _MiCorreo = seccion[ltrAppSetting.DatosIniciales.MiCorreo];
-            if (_MiCorreo is null)
-                throw new Exception($"Debe definir en la sección de 'DatosIniciales' del AppSetting la clave '{ltrAppSetting.DatosIniciales.MiCorreo}'");
+            var servidorEnBd = CacheDeVariable.Cfg_ServidorDeCorreo; //seccion[ltrAppSetting.DatosIniciales.ServidorDeCorreo];
+            var servidores = configuration.GetSection(typeof(ltrAppSetting.ServidorDeCorreo).Name);
+            var definido = servidores.GetSection(servidorEnBd);
 
-            _ClienteSecreto = seccion[ltrAppSetting.DatosIniciales.ClienteSecreto];
-            if (_ClienteSecreto is null)
-                throw new Exception($"Debe definir en la sección de 'DatosIniciales' del AppSetting la clave '{ltrAppSetting.DatosIniciales.ClienteSecreto}'");
+            _Protocolo = definido[ltrAppSetting.ServidorDeCorreo.Sistema].ToLower() == typeof(ltrAppSetting.ServidorDeCorreo.Smtp).Name.ToLower()
+                ? enumMiCorreoModoAcceso.IMAP
+                : null;
 
-            _Host = seccion[ltrAppSetting.DatosIniciales.Host];
-            if (_Host is null)
-                throw new Exception($"Debe definir en la sección de 'DatosIniciales' del AppSetting la clave '{ltrAppSetting.DatosIniciales.Host}'");
-
-            try
+            if (_Protocolo is not null)
             {
-                _Protocolo = ApiDeEnsamblados.ToEnumerado<enumMiCorreoModoAcceso>(seccion[ltrAppSetting.DatosIniciales.Protocolo]);
+                _Host = definido[ltrAppSetting.ServidorDeCorreo.Smtp.ServidorSmtp];
+                _MiCorreo = definido[ltrAppSetting.ServidorDeCorreo.Usuario];
+                _ClienteSecreto = definido[ltrAppSetting.ServidorDeCorreo.Smtp.Password];
+                if (_Host is null || _MiCorreo is null || _ClienteSecreto is null)
+                    throw new Exception($"Debe definir correctamente los datos del servidor de correo {servidorEnBd}");
             }
-            catch
+
+            if (_Protocolo is null)
             {
-                throw new Exception($"Ha de definir el protocolo de acceso al correo, valores válidos: {enumMiCorreoModoAcceso.Auth2}, {enumMiCorreoModoAcceso.IMAP}, {enumMiCorreoModoAcceso.ApiKey}");
+                try
+                {
+                    _Protocolo = ApiDeEnsamblados.ToEnumerado<enumMiCorreoModoAcceso>(seccion[ltrAppSetting.DatosIniciales.Protocolo]);
+                }
+                catch
+                {
+                    throw new Exception($"Ha de definir el protocolo de acceso al correo, valores válidos: {enumMiCorreoModoAcceso.Auth2}, {enumMiCorreoModoAcceso.IMAP}, {enumMiCorreoModoAcceso.ApiKey}");
+                }
+
+                _Host = seccion[ltrAppSetting.DatosIniciales.Host];
+                if (_Host is null)
+                    throw new Exception($"Debe definir en la sección de '{typeof(ltrAppSetting.DatosIniciales).Name}' del AppSetting la clave '{ltrAppSetting.DatosIniciales.Host}'");
+
+                _MiCorreo = seccion[ltrAppSetting.DatosIniciales.MiCorreo];
+                if (_MiCorreo is null)
+                    throw new Exception($"Debe definir en la sección de '{typeof(ltrAppSetting.DatosIniciales).Name}' del AppSetting la clave '{ltrAppSetting.DatosIniciales.MiCorreo}'");
+
+                _ClienteSecreto = seccion[ltrAppSetting.DatosIniciales.ClienteSecreto];
+                if (_ClienteSecreto is null)
+                    throw new Exception($"Debe definir en la sección de ' {typeof(ltrAppSetting.DatosIniciales).Name} ' del AppSetting la clave '{ltrAppSetting.DatosIniciales.ClienteSecreto}'");
             }
 
             if (_Protocolo == enumMiCorreoModoAcceso.Auth2)
@@ -169,7 +189,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var guid = filtros.First(x => x.Clausula == ltrParametrosEp.guid).Valor;
                 var idBuzon = filtros.First(x => x.Clausula.ToLower() == nameof(MiCorreoDto.Buzon).ToLower()).Valor;
                 var buzon = Contexto.SeleccionarPorId<BuzonDeMiSociedadDtm>(idBuzon.Entero(), aplicarPermisos: true).Buzon;
-                
+
                 if (accion == epAcciones.buscar.ToString())
                 {
                     var filtroAsunto = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(MiCorreoDto.Asunto).ToLower())?.Valor;
@@ -622,7 +642,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         private MiCorreoDto LeerPorId(int idCorreo)
         {
-            var clienteImap = new LectorDeCoreoImap(Contexto,_Host, _MiCorreo, _ClienteSecreto);
+            var clienteImap = new LectorDeCoreoImap(Contexto, _Host, _MiCorreo, _ClienteSecreto);
             try
             {
                 return clienteImap.LeerCorreo(idCorreo);

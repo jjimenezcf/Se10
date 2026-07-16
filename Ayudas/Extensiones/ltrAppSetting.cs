@@ -51,10 +51,11 @@ namespace Utilidades
             public const string AlmacenDocumental = nameof(AlmacenDocumental);
             public const string EjecutorDeLaCola = nameof(EjecutorDeLaCola);
             public const string UrlBase = nameof(UrlBase);
+            public const string ServidorDeCorreo = nameof(ServidorDeCorreo);
+            public const string Host = nameof(Host);
             public const string Protocolo = nameof(Protocolo);
             public const string MiCorreo = nameof(MiCorreo);
             public const string ClienteSecreto = nameof(ClienteSecreto);
-            public const string Host = nameof(Host);
         }
     }
 }
