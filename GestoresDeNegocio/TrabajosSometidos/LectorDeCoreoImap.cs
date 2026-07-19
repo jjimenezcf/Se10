@@ -374,9 +374,22 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
             var html = ConstruirHtmlParaPdf(message, correo);
 
-            using var pdfWriter = new PdfWriter(fichero);
-            using var pdfDoc = new PdfDocument(pdfWriter);
-            HtmlConverter.ConvertToPdf(html, pdfDoc, new ConverterProperties());
+            using (var pdfWriter = new PdfWriter(fichero))
+            using (var pdfDoc = new PdfDocument(pdfWriter))
+            {
+                try
+                {
+                    HtmlConverter.ConvertToPdf(html, pdfDoc, new ConverterProperties());
+                }
+                catch
+                {
+                    // iText puede lanzar NullReferenceException con HTML de marketing complejo;
+                    // si el fichero se generó parcialmente lo devolvemos igualmente
+                }
+            }
+
+            if (!File.Exists(fichero) || new FileInfo(fichero).Length == 0)
+                throw new InvalidOperationException($"No se pudo generar el PDF para el correo {idMail}");
 
             return fichero;
         }
@@ -409,6 +422,19 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
             // Eliminar etiquetas <img> con src externo o vacío que iText7 no puede resolver
             cuerpoHtml = Regex.Replace(cuerpoHtml, @"<img\b[^>]*?\ssrc=""(https?://[^""]*)""[^>]*>", "", RegexOptions.IgnoreCase);
+
+            // Sanear HTML de marketing: iText no soporta atributos HTML4 de tabla
+            // Eliminar background="..." en td/tr/table (causa NullReferenceException en pdfhtml)
+            cuerpoHtml = Regex.Replace(cuerpoHtml, @"\s+background=""[^""]*""", "", RegexOptions.IgnoreCase);
+            // Eliminar bgcolor="..." (reemplazado por CSS inline, pero iText lo maneja mejor sin él)
+            cuerpoHtml = Regex.Replace(cuerpoHtml, @"\s+bgcolor=""[^""]*""", "", RegexOptions.IgnoreCase);
+            // Convertir width fijo en px en tablas a max-width para que no desborden A4
+            cuerpoHtml = Regex.Replace(cuerpoHtml, @"(<(?:table|td|th)\b[^>]*?)\s+width=""(\d+)""", m =>
+            {
+                var tag = m.Groups[1].Value;
+                var px = m.Groups[2].Value;
+                return $"{tag} style=\"max-width:{px}px;width:100%;\"";
+            }, RegexOptions.IgnoreCase);
 
 
             var sb = new StringBuilder();
