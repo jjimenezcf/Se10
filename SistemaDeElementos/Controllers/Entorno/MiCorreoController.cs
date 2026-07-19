@@ -49,7 +49,7 @@ namespace MVCSistemaDeElementos.Controllers
 
             if (_Protocolo is not null)
             {
-                _Host = definido[ltrAppSetting.ServidorDeCorreo.Smtp.ServidorSmtp];
+                _Host = definido[ltrAppSetting.ServidorDeCorreo.Smtp.ServidorImap];
                 _MiCorreo = definido[ltrAppSetting.ServidorDeCorreo.Usuario];
                 _ClienteSecreto = definido[ltrAppSetting.ServidorDeCorreo.Smtp.Password];
                 if (_Host is null || _MiCorreo is null || _ClienteSecreto is null)

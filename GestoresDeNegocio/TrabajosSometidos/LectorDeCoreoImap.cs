@@ -1,36 +1,37 @@
 ﻿
+using Gestor.Errores;
+using GestorDeElementos;
+using GestorDeElementos.Extensores;
+using GestoresDeNegocio.Entorno;
+using GestoresDeNegocio.SistemaDocumental;
+using iText.Html2pdf;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Security;
 using MimeKit;
-using ModeloDeDto.Entorno;
-using ServicioDeDatos;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using Utilidades;
-using Gestor.Errores;
-using iText.Kernel.Pdf;
-using System.Text.RegularExpressions;
-using System.Text;
-using System.IO;
-using iText.Layout;
-using iText.Layout.Element;
-using iText.Html2pdf;
-using GestorDeElementos.Extensores;
-using Newtonsoft.Json;
-using static Gestor.Errores.GestorDeErrores;
-using GestoresDeNegocio.SistemaDocumental;
 using ModeloDeDto;
+using ModeloDeDto.Entorno;
+using Newtonsoft.Json;
+using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
-using GestorDeElementos;
-using ServicioDeDatos.Gastos;
-using ServicioDeDatos.SistemaDocumental;
-using GestoresDeNegocio.Entorno;
-using ServicioDeDatos.Tarea;
-using ServicioDeDatos.RegistroEs;
-using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Expediente;
+using ServicioDeDatos.Gastos;
+using ServicioDeDatos.RegistroEs;
+using ServicioDeDatos.SistemaDocumental;
+using ServicioDeDatos.Tarea;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using Utilidades;
+using static Gestor.Errores.GestorDeErrores;
+using static Utilidades.Ampliaciones;
 
 namespace GestoresDeNegocio.TrabajosSometidos
 {
@@ -38,11 +39,43 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
     public class LectorDeCoreoImap
     {
-        public ImapClient ClienteImap { get; }
-
         private ContextoSe _Contexto { get; }
 
         private string _Cuenta { get; }
+        private string _Host { get; }
+        private string _Password { get; }
+        private int _Puerto { get; }
+
+        public ImapClient ClienteImap
+        {
+            get
+            {
+                var cacheDeCliente = ServicioDeCaches.Obtener(CacheDe.Ent_MisCorreos_ClienteSmtp);
+                var cliente = !cacheDeCliente.ContainsKey(_Cuenta) ? null : (ImapClient)cacheDeCliente[_Cuenta];
+                if (cliente == null || !cliente.IsConnected || !cliente.IsAuthenticated)
+                {
+                    if (cliente != null && (!cliente.IsConnected || !cliente.IsAuthenticated))
+                        cliente.Dispose();
+
+                    var client = new ImapClient();
+                    try
+                    {
+                        client.Connect(_Host, _Puerto, SecureSocketOptions.SslOnConnect);
+
+                        client.AuthenticationMechanisms.Remove("XOAUTH2");
+                        client.AuthenticationMechanisms.Remove("NTLM");
+
+                        client.Authenticate(_Cuenta, _Password);
+                        cacheDeCliente[_Cuenta] = client;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Error al conectar o autenticar con el servidor IMAP {_Host}:{_Puerto}({_Cuenta})", ex);
+                    }
+                }
+                return (ImapClient)cacheDeCliente[_Cuenta];
+            }
+        }
 
         private List<MiCorreoDto> MisCorreos
         {
@@ -59,28 +92,15 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
         public LectorDeCoreoImap(ContextoSe contexto, string host, string cuenta, string password)
         {
-            //string host = cuenta.Contains("gmail") ? "imap.gmail.com": "imap.gmx.com";
             int port = 993;
             var client = new ImapClient();
             _Cuenta = cuenta;
+            _Host = host;
+            _Password = password;
+            _Puerto = port;
             _Contexto = contexto;
-            var cacheDeCliente = ServicioDeCaches.Obtener(CacheDe.Ent_MisCorreos_ClienteSmtp);
-            var indice = $"{cuenta}";
-            if (!cacheDeCliente.ContainsKey(indice))
-            {
-                try
-                {
-                    client.Connect(host, port, SecureSocketOptions.SslOnConnect);
-                    client.Authenticate(cuenta, password);
-                    cacheDeCliente[indice] = client;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error al conectar o autenticar con el servidor IMAP", ex);
-                }
-            }
-            ClienteImap = (ImapClient)cacheDeCliente[indice];
         }
+
 
         public MiCorreoDto LeerCorreo(int idMiCorreoDto)
         {
@@ -157,8 +177,8 @@ namespace GestoresDeNegocio.TrabajosSometidos
             var indice = $"{guid}-{buzon}-{pos}-{cant}-{filtroAsunto}";
             if (!cacheSolicitados.ContainsKey(indice))
             {
-                cacheSolicitados[indice] = (cant == -1 
-                    ? (List<MiCorreoDto>)cacheDelBuzon[indBuzon] 
+                cacheSolicitados[indice] = (cant == -1
+                    ? (List<MiCorreoDto>)cacheDelBuzon[indBuzon]
                     : ((List<MiCorreoDto>)cacheDelBuzon[indBuzon]).Skip(pos).Take(cant))
                                       .Where(correo => correo.Asunto.Contains(filtroAsunto.IsNullOrEmpty() ? "" : filtroAsunto))
                                       .ToList();
@@ -389,7 +409,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
             // Eliminar etiquetas <img> con src externo o vacío que iText7 no puede resolver
             cuerpoHtml = Regex.Replace(cuerpoHtml, @"<img\b[^>]*?\ssrc=""(https?://[^""]*)""[^>]*>", "", RegexOptions.IgnoreCase);
-            
+
 
             var sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'/>");
