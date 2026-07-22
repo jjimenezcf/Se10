@@ -378,14 +378,14 @@
     }
 
     export function Neg_Tras_Blanquear_CG(idLista: string): void {
-        if (Crud.ModoTrabajo === enumModoTrabajo.creando) {
+        if (Crud.ModoTrabajo() === enumModoTrabajo.creando) {
             Crud.crudMnt.crudDeCreacion.TrasBlanquearCg();
         }
     }
     export function Neg_Tras_Seleccionar_CG(idLista: string): void {
 
 
-        if (Crud.ModoTrabajo === enumModoTrabajo.creando) {
+        if (Crud.ModoTrabajo() === enumModoTrabajo.creando) {
             Crud.crudMnt.crudDeCreacion.TrasBlanquearCg();
             Crud.crudMnt.crudDeCreacion.TrasSeleccionarCg(idLista);
         }

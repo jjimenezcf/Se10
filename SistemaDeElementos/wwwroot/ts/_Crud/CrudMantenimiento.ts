@@ -8,7 +8,9 @@
 
     export let Consultor: CrudEdicion = null;
 
-    export let ModoTrabajo: string = Definido(crudMnt) ? crudMnt.ModoTrabajo : Definido(Consultor) ? Consultor.ModoTrabajo : ModoAcceso.ModoDeAccesoDeDatos.SinPermiso;
+    export function ModoTrabajo(): string {
+        return Definido(crudMnt) ? crudMnt.ModoTrabajo : Definido(Consultor) ? Consultor.ModoTrabajo : ModoAcceso.ModoDeAccesoDeDatos.SinPermiso;
+    }
 
     export class EstadoDeEspan {
         IdDelEspan: string;
