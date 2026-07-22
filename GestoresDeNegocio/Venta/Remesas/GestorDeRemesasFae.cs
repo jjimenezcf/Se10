@@ -207,7 +207,7 @@ namespace GestoresDeNegocio.Ventas
             remesa = base.DespuesDeTransitar(remesa, transicion, parametros);
 
             if (transicion.EntreEtapas(enumEtapasDeRemesasFae.REM_Etapa_De_Cumplimentacion.Estados(), enumEtapasDeRemesasFae.REM_Etapa_Generada.Estados()))
-                GenerarSepaQ19(Contexto, remesa);
+                GenerarSepaPain008(Contexto, remesa);
 
             if (transicion.EntreEtapas(enumEtapasDeRemesasFae.REM_Etapa_Generada.Estados(), enumEtapasDeRemesasFae.REM_Etapa_De_Cumplimentacion.Estados()))
                 remesa.DespuesDeAnularGeneracion(Contexto, parametros);
@@ -229,10 +229,10 @@ namespace GestoresDeNegocio.Ventas
             elemento.Etapas = remesa.ListaDeEtapas();
         }
 
-        private void GenerarSepaQ19(ContextoSe contexto, RemesaFaeDtm remesa)
+        private void GenerarSepaPain008(ContextoSe contexto, RemesaFaeDtm remesa)
         {
             var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"Rem-{remesa.Referencia}.xml".NormalizarFichero());
-            remesa.GenerarSepaQ19(contexto, rutaConFichero);
+            remesa.GenerarSepaPain008(contexto, rutaConFichero);
             var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
             remesa.AsociarArchivo(contexto, idArchivo, ltrDeUnaRemesaFae.Accion_AsociarQ19);
         }

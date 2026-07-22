@@ -244,7 +244,7 @@ namespace GestoresDeNegocio.Gastos
             remesa = base.DespuesDeTransitar(remesa, transicion, parametros);
 
             if (transicion.EntreEtapas(enumEtapasDeRemesasPag.REM_Etapa_De_Cumplimentacion.Estados(), enumEtapasDeRemesasPag.REM_Etapa_Generada.Estados()))
-                GenerarSepaQ14(Contexto, remesa);
+                GenerarSepaPain001(Contexto, remesa);
 
             if (transicion.EntreEtapas(enumEtapasDeRemesasPag.REM_Etapa_Generada.Estados(), enumEtapasDeRemesasPag.REM_Etapa_De_Cumplimentacion.Estados()))
                 remesa.DespuesDeAnularGeneracion(Contexto, parametros);
@@ -267,10 +267,10 @@ namespace GestoresDeNegocio.Gastos
             elemento.Etapas = remesa.ListaDeEtapas();
         }
 
-        private void GenerarSepaQ14(ContextoSe contexto, RemesaPagDtm remesa)
+        private void GenerarSepaPain001(ContextoSe contexto, RemesaPagDtm remesa)
         {
             var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, $"Rem-{remesa.Referencia}.xml".NormalizarFichero());
-            remesa.GenerarSepaQ14(contexto, rutaConFichero);
+            remesa.GenerarSepaPain001(contexto, rutaConFichero);
             var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
             remesa.AsociarArchivo(contexto, idArchivo, ltrDeUnaRemesaPag.Accion_AsociarSepa);
         }
