@@ -31,6 +31,9 @@ namespace UtilidadesParaIu
         public string IdHtmlPorLeer => $"{IdHtmlNavegador_2}_reg";
 
         public string Controlador => ZonaDeDatos.EsHistorial ? ZonaDeDatos.Historial.Crud.Controlador : ZonaDeDatos.Mnt.Crud.Controlador;
+
+        public enumNegocio Negocio => ZonaDeDatos.EsHistorial ? ZonaDeDatos.Historial.Crud.Negocio : ZonaDeDatos.Mnt.Crud.Negocio;
+
         public bool ConReseteo => ZonaDeDatos.EsHistorial || ZonaDeDatos.Mnt.Crud.Negocio == enumNegocio.No_Definido ? false : true;
 
 
@@ -361,8 +364,8 @@ namespace UtilidadesParaIu
             var accionEnviar = $"Crud.{gestorDeEventos}('enviar-elemento')";
             var accionAlternarFichas = $"Crud.{gestorDeEventos}('alternar-vista-de-fichas')";
 
-            var htmlAlternarFichas = $@"
-                        <button class=""{enumCssControles.AlternarVistaFichas.Render()} {enumCssControles.DivNoVisible.Render()}"" title=""Ver tareas en tablero por estado"" onclick=""{accionAlternarFichas}"">
+            var htmlAlternarFichas = (enumNegocio)crud.Negocio == enumNegocio.No_Definido || !((enumNegocio)crud.Negocio).UsaFlujo() ?"": $@"
+                        <button class=""{enumCssControles.AlternarVistaFichas.Render()} {enumCssControles.DivNoVisible.Render()}"" title=""Ver {((enumNegocio)crud.Negocio).Plural().ToLower()} en tablero por estado"" onclick=""{accionAlternarFichas}"">
                            <img src='/images/menu/Estados.svg' style=""margin-top: -3px;"">
                         </button>";
 
