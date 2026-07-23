@@ -524,7 +524,7 @@ namespace GestoresDeNegocio.Venta.Factura
                     {
                         var cuota = extNumeros.Formatear(anterior.Ivas(Contexto).Sum(iva => iva.Cuota), alineacion: false, separadorDecimal: ".");
                         var total = extNumeros.Formatear(anterior.BiConIva(Contexto) - anterior.Irpf(Contexto), alineacion: false, separadorDecimal: ".");
-                        datosAnteriores = $"[IDEmisorFactura={Sociedad.NIFSinIsoEs}&NumSerieFactura={anterior.NumeroDeFactura}&FechaExpedicionFactura={anterior.FacturadaEl.FechaCorta()}&TipoFactura={facturaAeat.TipoAeat}&CuotaTotal={cuota}&ImporteTotal={total}&Huella={verifactuAnt.Huella}&FechaHoraHusoGenRegistro={anterior.EmitidaEl.FechaFormatoIso8601()}]";
+                        datosAnteriores = $"[IDEmisorFactura={Sociedad.NIFSinIsoEs}&NumSerieFactura={anterior.NumeroDeFactura}&FechaExpedicionFactura={anterior.EmitidaEl.FechaCorta()}&TipoFactura={facturaAeat.TipoAeat}&CuotaTotal={cuota}&ImporteTotal={total}&Huella={verifactuAnt.Huella}&FechaHoraHusoGenRegistro={anterior.EmitidaEl.FechaFormatoIso8601()}]";
                     }
                 }
                 indiceFinal++;

@@ -161,7 +161,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 xmlWriter.WriteElementString("CLIENTE_COD", Sociedad.PlanContable().IdPlanContable); //7052
                 xmlWriter.WriteElementString("COD_ACTIVEJER", _Actividad); //1
                 xmlWriter.WriteElementString("NIF_TERCERO", emitida.Cliente(Contexto).NIF(Contexto, quitarPrefijoEs: true)); //A01004548
-                xmlWriter.WriteElementString("FECHA", emitida.EmitidaEl.Fecha().ToString("dd/MM/yyyy")); //11/03/2018 0:00:00
+                xmlWriter.WriteElementString("FECHA", emitida.FacturadaEl.Fecha().ToString("dd/MM/yyyy")); //11/03/2018 0:00:00
                 xmlWriter.WriteElementString("FE_OPERACION", "");
                 xmlWriter.WriteElementString("TIPO_CONCEPTO", ltrEdTipoConceptoDeIngresos.IngresosExplotacion); //1
                 xmlWriter.WriteElementString("CLVTIPOOPERACION", tipoOperacion.ToString()); //IV01

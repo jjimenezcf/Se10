@@ -122,7 +122,7 @@ namespace GestorDeElementos.Extensores
 
             var datosParaHash = $"{ltrSii.IDEmisorFactura}={factura.Sociedad(contexto).NIFSinIsoEs}&" +
                  $"{ltrSii.NumSerieFactura}={factura.NumeroDeFactura}&" +
-                 $"{ltrSii.FechaExpedicionFactura}={factura.FacturadaEl.FechaCorta()}&" +
+                 $"{ltrSii.FechaExpedicionFactura}={factura.EmitidaEl.FechaCorta()}&" +
                  $"{ltrSii.TipoFactura}={tipoFacturaAeat}&" +
                  $"{ltrSii.CuotaTotal}={factura.TotalDeIva(contexto).Formatear(alineacion: false, separadorDecimal: ".")}&" +
                  $"{ltrSii.ImporteTotal}={factura.Bi(contexto) + factura.TotalDeIva(contexto).Formatear(alineacion: false, separadorDecimal: ".")}&" +
@@ -1196,6 +1196,9 @@ namespace GestorDeElementos.Extensores
             factura.Serie = factura.EsRectificativa ? ltrDeFacturaRectificada.Serie : tipoFactura.Serie;
             if (factura.FacturadaEl is not null)
             {
+                if (factura.FacturadaEl.Value.Date > factura.EmitidaEl.Value.Date)
+                    Emitir($"La fecha de devengo del servicio de la factura '{factura.Referencia}' ({factura.FacturadaEl.Value.Date:dd/MM/yyyy}) no puede ser posterior a la fecha de emisión ({factura.EmitidaEl.Value.Date:dd/MM/yyyy})");
+
                 factura.Ano = factura.FacturadaEl.Fecha().Year;
             }
             else

@@ -156,7 +156,7 @@ namespace ServicioXml
         {
             var vendedorNif = facturaEmt.Sociedad(contexto).NIFSinIsoEs;
             AjustarSetting(certificado, numeroDeInstalacion);
-            var invoice = new Invoice(facturaEmt.NumeroDeFactura, facturaEmt.FacturadaEl.Fecha(), vendedorNif)
+            var invoice = new Invoice(facturaEmt.NumeroDeFactura, facturaEmt.EmitidaEl.Fecha(), vendedorNif)
             {
                 SellerName = facturaEmt.Sociedad(contexto).RazonSocial,
             };
