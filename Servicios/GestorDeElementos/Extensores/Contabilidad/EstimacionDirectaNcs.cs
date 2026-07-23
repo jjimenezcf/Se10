@@ -7,7 +7,6 @@ using ServicioDeDatos.Gastos;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

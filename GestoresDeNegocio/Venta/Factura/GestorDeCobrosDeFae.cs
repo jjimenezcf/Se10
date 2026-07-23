@@ -195,7 +195,10 @@ namespace GestoresDeNegocio.Ventas
             if (parametros.Operacion == enumTipoOperacion.Insertar)
             {
                 cobro.TrasRealizarUnCobro(Contexto, new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } });
-                if (cobro.Clase == enumClaseDeCobro.Transferencia || cobro.Clase == enumClaseDeCobro.Contado)
+
+                var usaPreasientos = cobro.Sociedad(Contexto).UsaPreasientos(Contexto, enumNegocio.FacturaEmitida);
+
+                if (usaPreasientos && (cobro.Clase == enumClaseDeCobro.Transferencia || cobro.Clase == enumClaseDeCobro.Contado))
                 {
                     cobro.Preasiento(Contexto).IdReferenciado = cobro.Id;
                     cobro.Preasiento.ModificarComoAdministrador(Contexto);
