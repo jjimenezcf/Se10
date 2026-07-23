@@ -167,7 +167,7 @@ namespace ServicioXml
                 writer.WriteElementString("MsgId", $"{remesa.Referencia}");
                 writer.WriteElementString("CreDtTm", value: $"{generadaEl.ToString("s")}");
                 writer.WriteElementString("NbOfTxs", value: $"{remesa.Detalles<FacturaEmtDeUnaRemesaDtm>(contexto).Count.ToString().PadLeft(15, '0')}");
-                writer.WriteElementString("CtrlSum", value: $"{remesa.Total(contexto).ToString(CultureInfo.InvariantCulture)}");
+                writer.WriteElementString("CtrlSum", value: FormatearImporte(remesa.Total(contexto)));
                 writer.WriteStartElement("InitgPty");
                 writer.WriteElementString("Nm", $"{remesa.Sociedad(contexto).Expresion.Left(70)}");
                 writer.WriteStartElement("Id");
@@ -185,7 +185,7 @@ namespace ServicioXml
                 writer.WriteElementString("PmtInfId", remesa.Id.ToString().PadLeft(35, '0'));
                 writer.WriteElementString("PmtMtd", "DD");
                 writer.WriteElementString("NbOfTxs", value: $"{remesa.Detalles<FacturaEmtDeUnaRemesaDtm>(contexto).Count.ToString().PadLeft(15, '0')}");
-                writer.WriteElementString("CtrlSum", value: $"{remesa.Total(contexto).ToString(CultureInfo.InvariantCulture)}");
+                writer.WriteElementString("CtrlSum", value: FormatearImporte(remesa.Total(contexto)));
                 #region Prioridad de la instrucción (PmtTpInf)
                 writer.WriteStartElement("PmtTpInf");
                 writer.WriteStartElement("SvcLvl");
@@ -206,7 +206,7 @@ namespace ServicioXml
                 #region Cuenta del acreedor (CdtrAcct)
                 writer.WriteStartElement("CdtrAcct");
                 writer.WriteStartElement("Id");
-                writer.WriteElementString("IBAN", $"{remesa.CuentaDeAbono(contexto).Cuenta(contexto).NumeroIban}");
+                writer.WriteElementString("IBAN", LimpiarIban(remesa.CuentaDeAbono(contexto).Cuenta(contexto).NumeroIban));
                 writer.WriteEndElement();
                 writer.WriteEndElement();
                 #endregion
@@ -249,7 +249,7 @@ namespace ServicioXml
                     writer.WriteEndElement();
                     writer.WriteStartElement("InstdAmt");
                     writer.WriteAttributeString("Ccy", "EUR");
-                    writer.WriteValue(factura.APagar(contexto).ToString(CultureInfo.InvariantCulture));
+                    writer.WriteValue(FormatearImporte(factura.APagar(contexto)));
                     writer.WriteEndElement();
                     writer.WriteStartElement("DrctDbtTx");
                     writer.WriteStartElement("MndtRltdInf");
@@ -268,7 +268,7 @@ namespace ServicioXml
                     writer.WriteEndElement();
                     writer.WriteStartElement("DbtrAcct");
                     writer.WriteStartElement("Id");
-                    writer.WriteElementString("IBAN", value: factura.CuentaDeCargo(contexto).NumeroIban);
+                    writer.WriteElementString("IBAN", value: LimpiarIban(factura.CuentaDeCargo(contexto).NumeroIban));
                     writer.WriteEndElement();
                     writer.WriteEndElement();
                     writer.WriteStartElement("RmtInf");
@@ -282,6 +282,12 @@ namespace ServicioXml
                 writer.WriteEndDocument();
             }
         }
+
+        // IBAN2007Identifier no admite guiones ni espacios: [A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}
+        private static string LimpiarIban(string iban) => iban?.Replace("-", "").Replace(" ", "");
+
+        // Los bancos españoles exigen 2 decimales exactos en los importes SEPA, aunque el XSD admita hasta 5
+        private static string FormatearImporte(decimal importe) => importe.ToString("F2", CultureInfo.InvariantCulture);
 
         // PstlAdr (PostalAddress6) exige respetar el orden del XSD: StrtNm, PstCd, TwnNm, CtrySubDvsn, Ctry
         private static void EscribirDireccionPostal(XmlWriter writer, DireccionDto direccion, ContextoSe contexto)
@@ -326,7 +332,7 @@ namespace ServicioXml
                 writer.WriteElementString("MsgId", $"{remesa.Referencia}");
                 writer.WriteElementString("CreDtTm", value: $"{generadaEl.ToString("s")}");
                 writer.WriteElementString("NbOfTxs", value: $"{remesa.Detalles<PagoDeUnaRemesaDtm>(contexto).Count.ToString().PadLeft(15, '0')}");
-                writer.WriteElementString("CtrlSum", value: $"{remesa.Total(contexto).ToString(CultureInfo.InvariantCulture)}");
+                writer.WriteElementString("CtrlSum", value: FormatearImporte(remesa.Total(contexto)));
                 writer.WriteStartElement("InitgPty");
                 writer.WriteElementString("Nm", $"{remesa.Sociedad(contexto).Expresion.Left(70)}");
                 writer.WriteStartElement("Id");
@@ -345,7 +351,7 @@ namespace ServicioXml
                 writer.WriteElementString("PmtInfId", remesa.Id.ToString().PadLeft(35, '0'));
                 writer.WriteElementString("PmtMtd", "TRF");
                 writer.WriteElementString("NbOfTxs", value: $"{remesa.Detalles<PagoDeUnaRemesaDtm>(contexto).Count.ToString().PadLeft(15, '0')}");
-                writer.WriteElementString("CtrlSum", value: $"{remesa.Total(contexto).ToString(CultureInfo.InvariantCulture)}");
+                writer.WriteElementString("CtrlSum", value: FormatearImporte(remesa.Total(contexto)));
                 #region Prioridad de la instrucción (PmtTpInf)
                 writer.WriteStartElement("PmtTpInf");
                 writer.WriteStartElement("SvcLvl");
@@ -373,7 +379,7 @@ namespace ServicioXml
                 #region Información de la cuenta deudora (DbtrAcct)
                 writer.WriteStartElement("DbtrAcct");
                 writer.WriteStartElement("Id");
-                writer.WriteElementString("IBAN", $"{remesa.CuentaDePago(contexto).Cuenta(contexto).NumeroIban}");
+                writer.WriteElementString("IBAN", LimpiarIban(remesa.CuentaDePago(contexto).Cuenta(contexto).NumeroIban));
                 writer.WriteEndElement();
                 writer.WriteEndElement();
                 #endregion
@@ -413,7 +419,7 @@ namespace ServicioXml
                     writer.WriteStartElement("Amt");
                     writer.WriteStartElement("InstdAmt");
                     writer.WriteAttributeString("Ccy", "EUR");
-                    writer.WriteValue(pago.Importe.ToString(CultureInfo.InvariantCulture));
+                    writer.WriteValue(FormatearImporte(pago.Importe));
                     writer.WriteEndElement();
                     writer.WriteEndElement();
 
@@ -439,7 +445,7 @@ namespace ServicioXml
 
                     writer.WriteStartElement("CdtrAcct");
                     writer.WriteStartElement("Id");
-                    writer.WriteElementString("IBAN", value: cuentaDeAcreedor.NumeroIban);
+                    writer.WriteElementString("IBAN", value: LimpiarIban(cuentaDeAcreedor.NumeroIban));
                     writer.WriteEndElement();
                     writer.WriteEndElement();
 

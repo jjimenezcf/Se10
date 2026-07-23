@@ -7,11 +7,15 @@ https://console.cloud.google.com/welcome?project=sistema-de-elementos
 
 Correcciones y ampliaciones
 --------------------------------------------------------------------------------
+Si se edita un registro sin observacines, al editar el siguiente que si las tiene no lo muestra
+prompt de filtro de tareas, ajustar según json
+Modificar los literales cuando se envía el correo, en el asunto y cuerpo y añadir botón a edición
 Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo
 El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC
 Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
 Crear las remesas de pagos y gasto conforme a la nueva normativa
 Poder acceder al mapa desde el panel de control con todos los elementos activos
+Poder navegar del pago a la remesa bancaria que lo contiene, añadir un restrictor
 
 Prompt por definir de conteos
 -------------------------------------------------------------------------------
