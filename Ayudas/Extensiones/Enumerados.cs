@@ -1006,6 +1006,7 @@ namespace Utilidades
         CuerpoSoloConsulta,
         CuerpoCabecera,
         CuerpoDatos,
+        CuerpoDatosError,
         CuerpoDatosFiltro,
         CuerpoDatosGrid,
         CuerpoDatosFormulario,
@@ -2074,6 +2075,7 @@ namespace Utilidades
                 case enumCssCuerpo.CuerpoSoloConsulta: return "cuerpo-solo-consulta";
                 case enumCssCuerpo.CuerpoCabecera: return "cuerpo-cabecera";
                 case enumCssCuerpo.CuerpoDatos: return "cuerpo-datos";
+                case enumCssCuerpo.CuerpoDatosError: return "cuerpo-datos-error";
                 case enumCssCuerpo.CuerpoDatosFiltro: return "cuerpo-datos-filtro";
                 case enumCssCuerpo.CuerpoDatosFiltroBloque: return "cuerpo-datos-filtro-bloque";
                 case enumCssCuerpo.CuerpoDatosFiltroReferencias: return "cuerpo-datos-filtro-referencias";

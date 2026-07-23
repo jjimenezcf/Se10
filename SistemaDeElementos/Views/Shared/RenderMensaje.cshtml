@@ -3,6 +3,4 @@
     var mensaje = (string)ViewBag.Mensaje;
 }
 
-<div id="Vista-no-definida">
-    <h2>@mensaje</h2>
-</div>
+@Html.Raw(mensaje)

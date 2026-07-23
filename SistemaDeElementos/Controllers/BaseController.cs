@@ -64,7 +64,6 @@ namespace MVCSistemaDeElementos.Controllers
         {
             var partes = indice.Split(Simbolos.Guion);
             var clase = partes.Length != 3 ? indice : partes[2].Split(Simbolos.Punto)[0];
-            Contexto.RegistrarConEnvio($"Error al renderizar el crud de '{clase}'", e);
             ServicioDeCaches.EliminarElemento(CacheDe.RenderCrud, indice);
             return RenderMensaje(e.Message);
         }
@@ -75,10 +74,15 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 Contexto.RegistrarConEnvio($"Error al renderizar el elemento de la clase '{typeof(TElemento).Name}'", mensaje);
             }
-            catch
+            catch (Exception e2)
             {
+                mensaje = $"{mensaje}{Environment.NewLine}Error al enviar el correo{Environment.NewLine}{e2.Message}";
             }
-            ViewBag.Mensaje = mensaje;
+            var cuerpo = $@"
+                <div class='{enumCssCuerpo.CuerpoDatos.Render()} {enumCssCuerpo.CuerpoDatosError.Render()}' >
+                    <h2>{mensaje.Replace(Environment.NewLine, "<br>")}</h2>
+                </div>";
+            ViewBag.Mensaje = PanelDeControl.RenderPagina(Contexto, cuerpo);
             ViewBag.DatosDeConexion = DatosDeConexion;
             return View(nameof(RenderMensaje));
         }
@@ -1576,12 +1580,14 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 var destino = ApiController.PrepararDescriptor(this, ControllerContext, descriptor, Contexto, HttpContext);
+                descriptor.RenderControl();
                 ViewBag.DatosDeConexion = DatosDeConexion;
                 return base.View(destino, descriptor);
             }
             catch (Exception e)
             {
-                return RenderMensaje(e.Message);
+                var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{descriptor.Modo}-{descriptor.GetType().FullName}";
+                return (ViewResult)RenderizarErrorDe(indice, e);
             }
         }
 

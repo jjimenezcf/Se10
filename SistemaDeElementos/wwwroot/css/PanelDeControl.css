@@ -150,6 +150,14 @@
     overflow-y: auto;
 }
 
+.cuerpo-datos-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+}
+
 .pie {
     display: grid;
     grid-template-columns: 1fr;
