@@ -62,6 +62,8 @@
 
     export class CrudCreacionPago extends Crud.CrudCreacion {
 
+        public RegistroFar: any;
+
         constructor(crud: Crud.CrudMnt, idPanelCreacion: string) {
             super(crud, idPanelCreacion);
         }
@@ -93,19 +95,34 @@
                 if (clase.value === ltrValores.Gasto.Pago.Clase.Contado) {
                     this.BloquearBlanquearPagosDeContado(false, true);
                     this.BloquearBlanquearPagosPorRemesa(true);
-                    MapearAlControl.ProponerFechaEn(pagarEl, ltrPropiedades.Gasto.Pago.PagadoEl, 0);
+
+                    ApiControl.DesbloquearEditor(pagarEl);
+                    ApiControl.AsignarFecha(this.PanelDeCrear, ltrPropiedades.Gasto.Pago.PagarEl, this.ObtenerFechaDePago(this.RegistroFar));
                 }
                 else if (clase.value === ltrValores.Gasto.Pago.Clase.Transferencia) {
                     this.BloquearBlanquearCuentaTarjeta(false, true);
                     this.BloquearBlanquearPagosPorRemesa(false);
+                    ApiControl.DesbloquearEditor(pagarEl);
+                    ApiControl.AsignarFecha(this.PanelDeCrear, ltrPropiedades.Gasto.Pago.PagarEl, this.ObtenerFechaDePago(this.RegistroFar));
                     this.Tras_Seleccionar_Acreedor();
                 }
                 else {
                     this.BloquearBlanquearCuentaTarjeta(true, true);
                     this.BloquearBlanquearPagosPorRemesa(false);
+                    ApiControl.BlanquearFecha(pagarEl);
+                    ApiControl.BloquearInput(pagarEl);
                     this.Tras_Seleccionar_Acreedor();
                 }
             }
+        }
+
+        private ObtenerFechaDePago(registro: any): Date {
+            let venceEl: string = ObtenerPropiedad(registro, ltrPropiedades.Gasto.FacturaRec.VenceEl, '', true);
+            if (!EsFecha(venceEl)) {
+                venceEl = ObtenerPropiedad(registro, ltrPropiedades.Gasto.FacturaRec.FacturadaEl, '', true);
+            }
+            var fechaDePago = CrearFecha(venceEl);
+            return fechaDePago;
         }
 
         public Tras_Cambiar_Modo_De_Pago(): void {
@@ -177,9 +194,9 @@
         }
 
         private MapearDatosDeFacturas(peticion: ApiDeAjax.DescriptorAjax) {
-            let creador: CrudCreacionFacturaRec = peticion.llamador as CrudCreacionFacturaRec;
+            let creador: CrudCreacionPago = peticion.llamador as CrudCreacionPago;
+            creador.RegistroFar = peticion.resultado.datos;
             ApiDelCrud.MapearDatosSocietariosYDepartamentales(creador.PanelDeCrear, peticion.resultado.datos);
-
             let proveedor: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Gasto.FacturaRec.Proveedor, '', true);
             let idProveedor: number = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Gasto.FacturaRec.IdProveedor, 0, true);
             let proveedorLista: HTMLInputElement = ApiControl.BuscarControl(creador.PanelDeCrear, ltrPropiedades.Gasto.Pago.Proveedor, true) as HTMLInputElement;
@@ -199,23 +216,15 @@
             let totalRectificado: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Gasto.FacturaRec.TotalRectificado, '', true);
             let totalDevuelto: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Gasto.FacturaRec.TotalDevuelto, '', true);
             let esRectificativa: boolean = Numero( ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Gasto.FacturaRec.IdRectificada, 0)) > 0;
-            let venceEl: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Gasto.FacturaRec.VenceEl, '', true);
-            if (!EsFecha(venceEl)) {
-                venceEl = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Gasto.FacturaRec.FacturadaEl, '', true);
-            }
 
             var controlNombre = ApiControl.BuscarEditor(this.PanelDeCrear, ltrPropiedades.Elemento.Nombre);
             var controlImporte = ApiControl.BuscarEditor(this.PanelDeCrear, ltrPropiedades.Gasto.Pago.Importe);
             var controlDescri = ApiControl.BuscarAreaDeTexto(this.PanelDeCrear, ltrPropiedades.Elemento.Descripcion);
             controlNombre.value = `${(Numero(totalDelPago) < 0 ? "Abono" : "Pago")} de factura: ${numero} - ${referencia}`;
             controlDescri.value = `${nombre}`;
-            var fechaDePago = CrearFecha(venceEl);
-            ApiControl.AsignarFecha(this.PanelDeCrear, ltrPropiedades.Gasto.Pago.PagarEl, fechaDePago)
 
             var pagoMaximo = Numero(totalDelPago) - Math.abs(Numero(totalRectificado)) + Math.abs(Numero(totalDevuelto)) - (Numero(totalPagado) + Numero(totalPagosEnCurso));
-
             const esUnAbono = Numero(totalDelPago) < 0 && Numero(totalPagado) === 0 && Numero(totalPagosEnCurso) === 0;
-
 
             if (pagoMaximo <= 0 && !esUnAbono && !esRectificativa)
                 if (pagoMaximo <= 0) {
@@ -243,6 +252,7 @@
 
             let clase: HTMLSelectElement = ApiControl.BuscarListaDeValores(this.PanelDeCrear, ltrPropiedades.Gasto.Pago.Clase) as HTMLSelectElement;
             if (clase.value === ltrValores.Gasto.Pago.Clase.Contado) {
+                const fechaDePago = this.ObtenerFechaDePago(peticion.resultado.datos);
                 ApiControl.AsignarFecha(this.PanelDeCrear, ltrPropiedades.Gasto.Pago.PagadoEl, fechaDePago)
             }
 
