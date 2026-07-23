@@ -148,7 +148,13 @@ namespace MVCSistemaDeElementos.Descriptores
             {
                 var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{Modo}-{GetType().FullName}";
                 ServicioDeCaches.EliminarElemento(CacheDe.RenderCrud, indice);
-                contexto.RegistrarConEnvio(asunto: $"Error al renderizar {GetType().Name}", error: $"{indice}{Environment.NewLine}{renderCache}");
+                try
+                {
+                    contexto.RegistrarConEnvio(asunto: $"Error al renderizar {GetType().Name}", error: $"{indice}{Environment.NewLine}{renderCache}");
+                }
+                catch
+                {
+                }
                 throw new Exception(renderCache);
             }
 
@@ -704,6 +710,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 {
                     renderCrud = $@"<script src=¨../../js/{enumNameSpaceTs.Callejero}/GestorDeMapas.js?v={System.DateTime.Now.Ticks}¨></script>{Environment.NewLine}{renderCrud}";
                 }
+
                 return PanelDeControl.RenderPagina(Contexto, renderCrud, claseAdicional: SinEdicion && SinCreacion ? enumCssCuerpo.CuerpoSoloConGrid.Render(): null );
             }
             catch (Exception e)
@@ -711,14 +718,50 @@ namespace MVCSistemaDeElementos.Descriptores
                 var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{Modo}-{GetType().FullName}";
                 ServicioDeCaches.EliminarElemento(CacheDe.RenderCrud, indice);
                 _renderCache = null;
-
-                Contexto.RegistrarConEnvio($"Error al renderizar '{indice}'", e);
                 var error = GestorDeErrores.Detalle(e).Replace(Environment.NewLine, "<br>");
+                try
+                {
+                    Contexto.RegistrarConEnvio($"Error al renderizar '{indice}'", e);
+                }
+                catch(Exception e2)
+                {
+                    error = $"{error}{Environment.NewLine}{GestorDeErrores.Detalle(e2)}" .Replace(Environment.NewLine, "<br>");
+                }
                 return $@"<input id=error>{error}</input>";
             }
             finally
             {
                 BlanquearListaDeIds();
+            }
+        }
+
+        // Si generador() lanza, se captura aquí (igual que el RenderControl() base) para que el error no escape sin control hasta el pipeline de renderizado de la vista.
+        protected string RenderControlDelCrud(Func<string> generador)
+        {
+            var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{Modo}-{GetType().FullName}";
+
+            if (ServicioDeCaches.Obtener(CacheDe.RenderCrud).ContainsKey(indice))
+                return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
+
+            try
+            {
+                ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice] = generador().Render();
+                return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
+            }
+            catch (Exception e)
+            {
+                ServicioDeCaches.EliminarElemento(CacheDe.RenderCrud, indice);
+                _renderCache = null;
+                var error = GestorDeErrores.Detalle(e).Replace(Environment.NewLine, "<br>");
+                try
+                {
+                    Contexto.RegistrarConEnvio($"Error al renderizar '{indice}'", e);
+                }
+                catch (Exception e2)
+                {
+                    error = $"{error}{Environment.NewLine}{GestorDeErrores.Detalle(e2)}".Replace(Environment.NewLine, "<br>");
+                }
+                return $@"<input id=error>{error}</input>";
             }
         }
 

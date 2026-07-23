@@ -24,7 +24,6 @@ using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
-using SistemaDeElementos.Descriptores;
 using SistemaDeElementos.UtilidadesIu;
 using System;
 using System.Collections.Generic;
@@ -72,7 +71,13 @@ namespace MVCSistemaDeElementos.Controllers
 
         protected ViewResult RenderMensaje(string mensaje)
         {
-            Contexto.RegistrarConEnvio($"Error al renderizar el elemento de la clase '{typeof(TElemento).Name}'", mensaje);
+            try
+            {
+                Contexto.RegistrarConEnvio($"Error al renderizar el elemento de la clase '{typeof(TElemento).Name}'", mensaje);
+            }
+            catch
+            {
+            }
             ViewBag.Mensaje = mensaje;
             ViewBag.DatosDeConexion = DatosDeConexion;
             return View(nameof(RenderMensaje));

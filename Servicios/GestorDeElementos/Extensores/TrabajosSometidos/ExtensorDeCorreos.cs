@@ -117,7 +117,7 @@ namespace GestorDeElementos.Extensores
             var nombreDelSistemaDeCorreo = servicioDeCorreo[ltrAppSetting.ServidorDeCorreo.Sistema];
             if (nombreDelSistemaDeCorreo.IsNullOrEmpty())
             {
-                GestorDeErrores.Emitir($"Falta por definir el valor de '{servicioDeCorreo.Path}.{ltrAppSetting.ServidorDeCorreo.Sistema}' en la configuración");
+                GestorDeErrores.Emitir($"Falta por definir el valor de '{servicioDeCorreo.Path}' en la configuración");
             }
             var sistemaDeCorreo = ApiDeEnsamblados.ToEnumerado<enumSistemaDeCorreo>(nombreDelSistemaDeCorreo);
             try
