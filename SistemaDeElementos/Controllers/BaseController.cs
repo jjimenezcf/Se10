@@ -1259,14 +1259,18 @@ namespace MVCSistemaDeElementos.Controllers
                 JObject datos = parametros.LeerValor<JObject>(ltrParametrosEp.DatosPrincipales);
                 object objetoDto = datos.ToObject(tipoDto);
                 var gestor = negocio.CrearGestor(Contexto);
+                var idTransicion = Convert.ToInt32(parametros.LeerValor<long>(ltrParametrosEp.idTransicion));
+                var idEstadoDestino = negocio.ListaDeTransiciones(Contexto).First(x => x.Id == idTransicion).IdDestino;
+                var estadoDestino = negocio.Estado(Contexto, idEstadoDestino);
                 var elemento = gestor.PersistirElementoDto(objetoDto, new ParametrosDeNegocio(enumTipoOperacion.Modificar, new Dictionary<string, object>
                 {
                     {ltrParametrosNeg.Peticion,enumPeticion.epModificarPorId },
-                    {ltrParametrosNeg.EsUnaTransicion, true }
+                    {ltrParametrosNeg.EsUnaTransicion, true },
+                    {ltrParametrosNeg.EstadoDestino, estadoDestino }
                 }));
 
                 ObtenerIdDeTransicionDelIdEstadoDestino(negocio, (IElementoDeUnProcesoDto)elemento, parametros);
-                var transicionPendiente = negocio.Transicion(Contexto, Convert.ToInt32(parametros.LeerValor<long>(ltrParametrosEp.idTransicion)));
+                var transicionPendiente = negocio.Transicion(Contexto, idTransicion);
                 var origen = negocio.Estado(Contexto, transicionPendiente.IdOrigen);
                 if (!origen.Cancelado && !origen.Terminado)
                 {

@@ -264,7 +264,7 @@ namespace ServicioXml
                     writer.WriteEndElement();
                     writer.WriteStartElement("Dbtr");
                     writer.WriteElementString("Nm", value: factura.Cliente(contexto).Nombre.Left(70));
-                    EscribirDireccionPostal(writer, factura.DireccionFiscal(contexto, erroSiNoHay: false), contexto);
+                    EscribirDireccionPostal(writer, factura.DireccionFiscal(contexto), contexto);
                     writer.WriteEndElement();
                     writer.WriteStartElement("DbtrAcct");
                     writer.WriteStartElement("Id");
@@ -427,9 +427,14 @@ namespace ServicioXml
                     writer.WriteEndElement();
                     writer.WriteEndElement();
 
+                    var facturaRec = pago.FacturaRec(contexto, errorSiNoHay: false);
+                    var direccionDelAcreedor = facturaRec != null
+                        ? facturaRec.DireccionFiscal(contexto)
+                        : pago.Solicitante(contexto).DireccionFiscal(contexto);
+
                     writer.WriteStartElement("Cdtr");
                     writer.WriteElementString("Nm", value: pago.Solicitante(contexto).Nombre.Left(70));
-                    EscribirDireccionPostal(writer, pago.FacturaRec(contexto, errorSiNoHay: false)?.DireccionFiscal(contexto, errorSiNoHay: false), contexto);
+                    EscribirDireccionPostal(writer, direccionDelAcreedor, contexto);
                     writer.WriteEndElement();
 
                     writer.WriteStartElement("CdtrAcct");

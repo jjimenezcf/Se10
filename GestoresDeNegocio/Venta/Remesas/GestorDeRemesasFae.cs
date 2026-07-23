@@ -1,22 +1,23 @@
 ﻿using AutoMapper;
-using ServicioDeDatos;
-using GestorDeElementos;
-using Utilidades;
-using ModeloDeDto.Ventas;
-using System.Linq;
-using System.Collections.Generic;
-using ServicioDeDatos.Ventas;
-using GestorDeElementos.Extensores;
 using Gestor.Errores;
-using ServicioDeDatos.Elemento;
-using ServicioDeDatos.SistemaDocumental;
-using ServicioDeDatos.Terceros;
-using Microsoft.EntityFrameworkCore;
-using System;
+using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
 using GestoresDeNegocio.SistemaDocumental;
-using System.IO;
+using Microsoft.EntityFrameworkCore;
+using ModeloDeDto.Ventas;
+using ServicioDeDatos;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Gastos;
+using ServicioDeDatos.SistemaDocumental;
+using ServicioDeDatos.Terceros;
+using ServicioDeDatos.Ventas;
 using ServicioXml;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Utilidades;
 
 namespace GestoresDeNegocio.Ventas
 {
@@ -99,9 +100,6 @@ namespace GestoresDeNegocio.Ventas
 
             //Asigno nulo si inserto o retrocedo a cumplimentación, en el resto de casos lo que haya en BD
             rem.IdArchivo = parametros.Insertando
-                ? null
-                : parametros.Transitando && 
-                  enumEtapasDeRemesasFae.REM_Etapa_De_Cumplimentacion.Lista().Contains(parametros.Parametros.LeerValor<EstadoDtm>(nameof(ltrParametrosNeg.EstadoDestino)).Id)
                 ? null
                 : ((RemesaFaeDtm)parametros.registroEnBd).IdArchivo;
 
@@ -245,7 +243,9 @@ namespace GestoresDeNegocio.Ventas
 
             if (vinculado == enumNegocio.Archivos)
             {
-                if (remesa.IdArchivo.Entero() == entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado)))
+                var estaEnCumplimentacion = enumEtapasDeRemesasFae.REM_Etapa_De_Cumplimentacion.Lista().Contains(remesa.IdEstado);
+
+                if (!estaEnCumplimentacion && remesa.IdArchivo.Entero() == entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado)))
                 {
                     var archivo = entorno.Contexto.SeleccionarPorId<ArchivoDtm>(remesa.IdArchivo.Entero());
                     GestorDeErrores.Emitir($"No puede quitar de la {enumNegocio.RemesaFae.Singular(true)} '{remesa.Referencia}' el {enumNegocio.Archivos.Singular(true)} '{archivo.Nombre}' por ser el original de la emisión");

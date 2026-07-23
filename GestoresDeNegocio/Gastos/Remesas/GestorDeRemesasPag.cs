@@ -111,10 +111,7 @@ namespace GestoresDeNegocio.Gastos
 
             //Asigno nulo si inserto o retrocedo a cumplimentación, en el resto de casos lo que haya en BD
             remesa.IdArchivo = parametros.Insertando
-                ? null
-                : parametros.Transitando &&
-                  enumEtapasDeRemesasPag.REM_Etapa_De_Cumplimentacion.Lista().Contains(parametros.Parametros.LeerValor<EstadoDtm>(nameof(ltrParametrosNeg.EstadoDestino)).Id)
-                ? null
+                ? null                
                 : ((RemesaPagDtm)parametros.registroEnBd).IdArchivo;
 
             if (parametros.Insertando)
@@ -283,7 +280,9 @@ namespace GestoresDeNegocio.Gastos
 
             if (vinculado == enumNegocio.Archivos)
             {
-                if (remesa.IdArchivo.Entero() == entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado)))
+                var estaEnCumplimentacion = enumEtapasDeRemesasPag.REM_Etapa_De_Cumplimentacion.Lista().Contains(remesa.IdEstado);
+
+                if (!estaEnCumplimentacion && remesa.IdArchivo.Entero() == entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado)))
                 {
                     var archivo = entorno.Contexto.SeleccionarPorId<ArchivoDtm>(remesa.IdArchivo.Entero());
                     GestorDeErrores.Emitir($"No puede quitar de la {enumNegocio.RemesaPag.Singular(true)} '{remesa.Referencia}' el {enumNegocio.Archivos.Singular(true)} '{archivo.Nombre}' por ser el original de la emisión");

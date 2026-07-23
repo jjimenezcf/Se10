@@ -105,6 +105,7 @@ namespace GestorDeElementos.Extensores
         public static void DespuesDeAnularGeneracion(this RemesaPagDtm remesa, ContextoSe contexto, Dictionary<string, object> parametros)
         {
             var idArchivo = parametros.LeerValor<int?>(ltrDeUnaRemesaPag.IdArchivoSepa);
+            if (idArchivo.Entero() > 0)
             remesa.QuitarAnexado(contexto, idArchivo.Entero());
             remesa.CrearTraza(contexto, "Remesa retrocedida para corrección", $"Se ha retrocedido la remesa por el usuario '{contexto.DatosDeConexion.Login}'");
         }
