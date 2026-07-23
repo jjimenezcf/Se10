@@ -1400,7 +1400,7 @@ namespace GestorDeElementos.Extensores
         private static void ValidarFechaFactura(this FacturaEmtDtm factura, ContextoSe contexto)
         {
             var ultimaFactura = factura.Anterior(contexto);
-            if (ultimaFactura != null && ultimaFactura.FacturadaEl > factura.FacturadaEl)
+            if (ultimaFactura != null && ultimaFactura.FacturadaEl?.Date > factura.FacturadaEl?.Date)
             {
                 if (ultimaFactura.FacturadaEl.Fecha().Year - 1 == factura.FacturadaEl.Fecha().Year)
                 {
