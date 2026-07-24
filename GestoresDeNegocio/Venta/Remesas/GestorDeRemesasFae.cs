@@ -114,6 +114,8 @@ namespace GestoresDeNegocio.Ventas
                 if (rem.NifDelPresentador.IsNullOrEmpty()) rem.Presentador = rem.NifDelPresentador;
                 if (rem.SufijoPresentador.IsNullOrEmpty()) rem.Presentador = rem.SufijoPresentador;
                 var cuenta = Contexto.SeleccionarPorId<CuentaDeMiSociedadDtm>(rem.IdCuentaDeAbono, aplicarJoin: true);
+                if (cuenta.Clase != ServicioDeDatos.Contabilidad.enumClaseDeCuentaBancaria.Ingreso && cuenta.Clase != ServicioDeDatos.Contabilidad.enumClaseDeCuentaBancaria.Ambas)
+                    GestorDeErrores.Emitir($"La cuenta '{cuenta.Cuenta.NumeroIban}' no está marcada como cuenta de ingreso, no se puede usar para abonar la remesa de cobro '{rem.Referencia}'");
                 rem.Entidad = cuenta.Cuenta.Entidad;
                 rem.Oficina = cuenta.Cuenta.Oficina;
             }

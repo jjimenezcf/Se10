@@ -125,6 +125,8 @@ namespace GestoresDeNegocio.Gastos
                 if (remesa.NifDelPresentador.IsNullOrEmpty()) remesa.NifDelPresentador = remesa.NifDelDeudor;
                 if (remesa.SufijoPresentador.IsNullOrEmpty()) remesa.SufijoPresentador = remesa.SufijoDeudor;
                 var cuenta = Contexto.SeleccionarPorId<CuentaDeMiSociedadDtm>(remesa.IdCuentaDePago, aplicarJoin: true);
+                if (cuenta.Clase != ServicioDeDatos.Contabilidad.enumClaseDeCuentaBancaria.Pago && cuenta.Clase != ServicioDeDatos.Contabilidad.enumClaseDeCuentaBancaria.Ambas)
+                    GestorDeErrores.Emitir($"La cuenta '{cuenta.Cuenta.NumeroIban}' no está marcada como cuenta de pago, no se puede usar para emitir la remesa de pagos '{remesa.Referencia}'");
                 remesa.Entidad = cuenta.Cuenta.Entidad;
                 remesa.Oficina = cuenta.Cuenta.Oficina;
             }

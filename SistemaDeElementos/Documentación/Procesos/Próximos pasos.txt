@@ -16,6 +16,8 @@ Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
 Crear las remesas de pagos y gasto conforme a la nueva normativa
 Poder acceder al mapa desde el panel de control con todos los elementos activos
 Poder navegar del pago a la remesa bancaria que lo contiene, añadir un restrictor
+Aclarar lo de cuentas de ingreso (es la cuenta en la que le ingreso el pago al proveedor o solicitante)
+Aclarar lo de la cuenta de pago (es la cuenta de cuando giro recibos es donde ingresa dinero mi sociedad)
 
 Prompt por definir de conteos
 -------------------------------------------------------------------------------

@@ -23,13 +23,26 @@ namespace ServicioDeDatos.Contabilidad
         public static readonly string SinCertificado = "Sin certificado";
     }
 
+    /// <summary>
+    /// Clasifica una cuenta bancaria según el sentido del dinero para su TITULAR (no para la sociedad gestionada).
+    /// Regla única, válida tanto en cuentas de terceros (proveedor/trabajador/interlocutor/cliente)
+    /// como en las cuentas propias de la sociedad (CuentaDeMiSociedadDtm):
+    ///   - Ingreso: por esta cuenta ENTRA dinero a su titular.
+    ///     · Cuenta de un proveedor/trabajador/interlocutor: la usamos para PAGARLE (transferencia SEPA / RemesaPag).
+    ///     · Cuenta de un cliente: la usamos para ABONARLE (p.ej. un abono/devolución de una FacturaEmt).
+    ///     · Cuenta propia: es la cuenta donde se ingresan los cobros de una RemesaFae (CuentaDeAbono).
+    ///   - Pago: por esta cuenta SALE dinero de su titular.
+    ///     · Cuenta de un cliente: la usamos para COBRARLE por domiciliación (RemesaFae / adeudo SEPA).
+    ///     · Cuenta propia: es la cuenta de la que salen las transferencias de una RemesaPag (CuentaDePago).
+    ///     (No se usa "Pago" para proveedores/trabajadores/interlocutores: nunca se les domicilia un cobro).
+    /// </summary>
     public enum enumClaseDeCuentaBancaria
     {
-        [Description("Cuenta de ingreso")]
+        [Description("Cuenta de ingreso para el titular")]
         Ingreso = 1,
-        [Description("Cuenta de pago")]
+        [Description("Cuenta de pago para el titular")]
         Pago = 2,
-        [Description("Cuenta de ingreso y pago")]
+        [Description("Cuenta de ingreso y pago para el titular")]
         Ambas = 3
     }
 
