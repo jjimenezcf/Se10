@@ -5,11 +5,11 @@ Este bloque de reglas se integra en la sección **## REGLAS ESPECÍFICAS DEL ELE
 ### R.FacturasRec.1 · Proveedor (`FiltroPorProveedor`)
 - **Disparador:** Facturas "del proveedor [Nombre]", "compradas a [Empresa]", "de [Nombre de empresa/CIF]".
 - **Acción:** Generar una lista de objetos en el array de filtros:
-    1. **Búsqueda:** 
+    1. **Búsqueda:**
        `{"Clausula": "FiltroPorProveedor", "Criterio": "contiene", "Valor": "[texto_buscado]"}`
-    2. **Vista:** 
+    2. **Vista:**
        `{"Clausula": "quemostrar", "Criterio": "igual", "Valor": "8"}`
-- **Nota:** 
+- **Nota:**
   * Extrae tanto el nombre comercial como el CIF/NIF si el usuario lo proporciona.
   * La inclusión de la cláusula `quemostrar` con valor `8` se aplica si pide "todas".
 
@@ -64,7 +64,7 @@ Este bloque de reglas se integra en la sección **## REGLAS ESPECÍFICAS DEL ELE
 
 ### R.FacturasRec.7 · Forma de Pago (`FiltroPorFormaDePago`)
 - **Disparador:** "pagadas por...", "forma de pago [Modo]".
-- **Mapeo de Valores:** 
+- **Mapeo de Valores:**
   - "contado" → `FiltroDePagosContado`
   - "tarjeta" → `FiltroDePagosTarjeta`
   - "domiciliada" → `FiltroDePagosDomiciliado`

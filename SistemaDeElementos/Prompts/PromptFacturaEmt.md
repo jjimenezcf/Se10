@@ -209,3 +209,117 @@
   1. `{"Clausula": "VinculosAUnLote", "Criterio": "igual", "Valor": "6"}` (Representa SinRelacion).
 
 **Jerarquía:** Si se detecta una búsqueda por nombre (R.12.1), se omiten las reglas de situación (R.12.2 y R.12.3).
+
+### R.FacturasVenta.13 · Serie y Año de facturación (`Serie`, `Ano`)
+- **Disparador:** Facturas "de la serie [X]", "de la serie A", "del año [AAAA]", "de la serie A de 2025", "emitidas en la serie B".
+- **Acción para serie:** `{"Clausula": "Serie", "Criterio": "igual", "Valor": "A"}`
+- **Acción para año:** `{"Clausula": "Ano", "Criterio": "igual", "Valor": "2025"}`
+- **Nota:** Ambas pueden combinarse. `Serie` es sensible a mayúsculas (usar el valor exacto que indique el usuario).
+
+### R.FacturasVenta.14 · Creador de la factura (`idusuacrea`)
+- **Disparador:** Facturas "creadas por [usuario]", "que introdujo [nombre]", "dadas de alta por [login]", "que ha creado [nombre]".
+- **Acción:** Busca en `CONTEXTO DE DATOS :: Usuarios` y genera:
+  1. `{"Clausula": "idusuacrea", "Criterio": "igual", "Valor": "id_encontrado"}`
+  2. Si además pide un período: `{"Clausula": "fechacreacion", "Criterio": "entreFechas", "Valor": "inicio-fin"}`
+- **Nota:** No confundir con el cliente; "creador" o "introdujo" refieren siempre al usuario interno del sistema.
+
+### R.FacturasVenta.15 · Facturas rectificativas vs. facturas ordinarias
+**R.FacturasVenta.15.1 · Solo rectificativas (notas de abono)**
+- **Disparador:** "solo rectificativas", "notas de abono", "facturas correctoras", "abonos emitidos".
+- **Acción:** `{"Clausula": "EsRectificativa", "Criterio": "igual", "Valor": "true"}`
+
+**R.FacturasVenta.15.2 · Solo facturas ordinarias (no rectificativas)**
+- **Disparador:** "facturas normales", "no rectificativas", "sin nota de abono", "facturas ordinarias".
+- **Acción:** `{"Clausula": "EsRectificativa", "Criterio": "igual", "Valor": "false"}`
+
+### R.FacturasVenta.17 · Cantidad de Tareas relacionadas (`CantidadDeTareas`)
+- **Disparador:** Facturas "relacionadas con N tareas", "que tengan exactamente N tareas", "con más de N tareas", "con menos de N tareas", "vinculadas a N tareas", "que solo tengan N tareas".
+- **Acción:** Genera el objeto con el criterio adecuado:
+  - Exactamente N → `{"Clausula": "CantidadDeTareas", "Criterio": "igual", "Valor": "N"}`
+  - Más de N → `{"Clausula": "CantidadDeTareas", "Criterio": "mayor", "Valor": "N"}`
+  - Al menos N / N o más → `{"Clausula": "CantidadDeTareas", "Criterio": "mayorIgual", "Valor": "N"}`
+  - Menos de N → `{"Clausula": "CantidadDeTareas", "Criterio": "menor", "Valor": "N"}`
+  - Como mucho N / N o menos → `{"Clausula": "CantidadDeTareas", "Criterio": "menorIgual", "Valor": "N"}`
+- **Nota:** El sistema cuenta las tareas que tienen el campo `IdFacturaEmt` apuntando a la factura. Solo usa un número entero en `Valor`.
+- **Ejemplo:** "facturas que solo estén relacionadas con 4 tareas" → `{"Clausula": "CantidadDeTareas", "Criterio": "igual", "Valor": "4"}`
+
+### R.FacturasVenta.18 · Cantidad de Partes de Trabajo relacionados (`CantidadDePartesTr`)
+- **Disparador:** Facturas "relacionadas con N partes de trabajo", "que tengan exactamente N partes", "con más de N PTR", "con menos de N partes de trabajo", "vinculadas a N partes", "que solo tengan N partes de trabajo".
+- **Acción:** Genera el objeto con el criterio adecuado:
+  - Exactamente N → `{"Clausula": "CantidadDePartesTr", "Criterio": "igual", "Valor": "N"}`
+  - Más de N → `{"Clausula": "CantidadDePartesTr", "Criterio": "mayor", "Valor": "N"}`
+  - Al menos N / N o más → `{"Clausula": "CantidadDePartesTr", "Criterio": "mayorIgual", "Valor": "N"}`
+  - Menos de N → `{"Clausula": "CantidadDePartesTr", "Criterio": "menor", "Valor": "N"}`
+  - Como mucho N / N o menos → `{"Clausula": "CantidadDePartesTr", "Criterio": "menorIgual", "Valor": "N"}`
+- **Nota:** Cuenta los partes de trabajo (PTR) que tienen el campo `IdFacturaEmt` apuntando a la factura. Solo usa un número entero en `Valor`.
+- **Ejemplo:** "facturas relacionadas con más de 2 partes de trabajo" → `{"Clausula": "CantidadDePartesTr", "Criterio": "mayor", "Valor": "2"}`
+
+### R.FacturasVenta.19 · Cantidad de Planificaciones de Venta relacionadas (`CantidadDePlanificacionesDeVenta`)
+- **Disparador:** Facturas "relacionadas con N planificaciones", "que tengan exactamente N PLV", "con más de N planificaciones de venta", "con menos de N PLV", "vinculadas a N planificaciones", "que solo tengan N planificaciones".
+- **Acción:** Genera el objeto con el criterio adecuado:
+  - Exactamente N → `{"Clausula": "CantidadDePlanificacionesDeVenta", "Criterio": "igual", "Valor": "N"}`
+  - Más de N → `{"Clausula": "CantidadDePlanificacionesDeVenta", "Criterio": "mayor", "Valor": "N"}`
+  - Al menos N / N o más → `{"Clausula": "CantidadDePlanificacionesDeVenta", "Criterio": "mayorIgual", "Valor": "N"}`
+  - Menos de N → `{"Clausula": "CantidadDePlanificacionesDeVenta", "Criterio": "menor", "Valor": "N"}`
+  - Como mucho N / N o menos → `{"Clausula": "CantidadDePlanificacionesDeVenta", "Criterio": "menorIgual", "Valor": "N"}`
+- **Nota:** Cuenta las planificaciones de venta (PLV) que tienen el campo `IdFacturaEmt` apuntando a la factura. Solo usa un número entero en `Valor`.
+- **Ejemplo:** "facturas que tengan exactamente una planificación de venta" → `{"Clausula": "CantidadDePlanificacionesDeVenta", "Criterio": "igual", "Valor": "1"}`
+
+### R.FacturasVenta.21 · Facturas con o sin retención IRPF (`TieneIrpf`)
+- **Disparador con IRPF:** "con retención", "que tengan IRPF", "con IRPF", "sujetas a retención", "con retención de IRPF".
+  - **Acción:** `{"Clausula": "TieneIrpf", "Criterio": "igual", "Valor": "true"}`
+- **Disparador sin IRPF:** "sin retención", "que no tengan IRPF", "sin IRPF", "no sujetas a retención", "sin retención de IRPF".
+  - **Acción:** `{"Clausula": "TieneIrpf", "Criterio": "igual", "Valor": "false"}`
+- **Regla de agrupación:** Si el usuario pide "agrupar por porcentaje" o "por tipo de retención", usa la clave de agrupación `PorcentajeIrpf` (NO como filtro). El filtro `TieneIrpf=true` ya garantiza que solo aparezcan facturas con IRPF.
+- **Regla de importe retenido:** Si el usuario pide la suma o media de la retención, usa `calculado:ImporteIrpf` como campo de métrica.
+- **Ejemplo completo:** "cuántas facturas tienen IRPF y agrúpalas por porcentaje aplicado" →
+  ```json
+  {
+    "Filtros": [{"Clausula": "TieneIrpf", "Criterio": "igual", "Valor": "true"}],
+    "AgruparPor": ["PorcentajeIrpf"],
+    "Metricas": [{"Operacion": "Cuenta", "Campo": "", "Alias": "Facturas"}]
+  }
+  ```
+
+### R.FacturasVenta.22 · IVA exento (`TieneIvaExento`, `PorcentajeIva`, `BiIvaExento`)
+
+**R.FacturasVenta.22.1 · Filtro: facturas con o sin IVA exento**
+- **Disparador con exento:** "con IVA exento", "que tengan IVA al 0%", "exentas de IVA", "con líneas exentas".
+  - **Acción:** `{"Clausula": "TieneIvaExento", "Criterio": "igual", "Valor": "true"}`
+- **Disparador sin exento:** "sin IVA exento", "todas con IVA", "que no tengan exención".
+  - **Acción:** `{"Clausula": "TieneIvaExento", "Criterio": "igual", "Valor": "false"}`
+
+**R.FacturasVenta.22.2 · Agrupación por tipo de IVA**
+- **Disparador:** "agrúpalas por tipo de IVA", "por porcentaje de IVA", "distribución de IVA".
+- **Clave de agrupación:** `PorcentajeIva` (devuelve la combinación de porcentajes de la factura: "21 %", "Exento", "21 % / 10 %", etc.)
+
+**R.FacturasVenta.22.3 · Métrica: base imponible exenta**
+- **Disparador:** "qué media de BI tienen", "base imponible exenta", "cuánto representan en BI", "importe de la base exenta".
+- **Campo de métrica:** `calculado:BiIvaExento`
+
+**Ejemplo completo:** "cuántas facturas tienen IVA exento y qué media tienen de BI" →
+```json
+{
+  "Filtros": [{"Clausula": "TieneIvaExento", "Criterio": "igual", "Valor": "true"}],
+  "AgruparPor": [],
+  "Metricas": [
+    {"Operacion": "Cuenta",  "Campo": "",                   "Alias": "Facturas"},
+    {"Operacion": "Media",   "Campo": "calculado:BiIvaExento", "Alias": "Media BI exenta"}
+  ]
+}
+```
+
+### R.FacturasVenta.20 · Concepto de línea de factura (`ConceptoDeLinea`)
+- **Disparador:** Facturas "que en su detalle incluyan [servicio]", "cuyas líneas contengan [concepto]", "que facturen el servicio de [X]", "que hayan facturado [X] y [Y]", "que incluyan tanto [X] como [Y] en sus líneas".
+- **Criterios disponibles:**
+  - **`sonTodos` (AND):** Cuando el usuario exige que la factura incluya **todos** los conceptos mencionados (palabras clave como "y", "tanto … como", "también", "además"):
+    - `{"Clausula": "ConceptoDeLinea", "Criterio": "sonTodos", "Valor": "concepto1;concepto2"}`
+  - **`esAlgunoDe` (OR):** Cuando basta con que la factura incluya **alguno** de los conceptos (palabras clave como "o", "alguno de"):
+    - `{"Clausula": "ConceptoDeLinea", "Criterio": "esAlgunoDe", "Valor": "concepto1;concepto2"}`
+  - **`contiene` (único término):** Cuando el usuario menciona un único concepto:
+    - `{"Clausula": "ConceptoDeLinea", "Criterio": "contiene", "Valor": "limpieza"}`
+- **Nota:** Los términos van separados por `;`. El sistema busca coincidencia parcial (contiene) en el campo `Concepto` de cada línea de la factura.
+- **Ejemplos:**
+  - "facturas que en su detalle hayan facturado el servicio de limpieza y el de consultoría" → `{"Clausula": "ConceptoDeLinea", "Criterio": "sonTodos", "Valor": "limpieza;consultoría"}`
+  - "facturas que incluyan mantenimiento o reparación" → `{"Clausula": "ConceptoDeLinea", "Criterio": "esAlgunoDe", "Valor": "mantenimiento;reparación"}`
+  - "facturas de suministros" → `{"Clausula": "ConceptoDeLinea", "Criterio": "contiene", "Valor": "suministros"}`

@@ -38,6 +38,7 @@
 - **Nota:** Úsalo para fechas de entrega o vencimiento planificado.
 
 **Regla de Ambigüedad:** Si el usuario dice "tareas de marzo" sin especificar si es creación o planificación, prioriza `fechacreacion` (R5), a menos que el contexto sugiera agenda/vencimiento.
+
 ### R.Tareas.4 · Facturación de Tareas
 
 **R.Tareas.4.1 · Búsqueda por datos de factura (`facturasDeTareas`)**

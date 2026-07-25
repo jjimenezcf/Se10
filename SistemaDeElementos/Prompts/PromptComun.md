@@ -30,47 +30,61 @@ Si al generar la respuesta hay ambiguedad o contradición con las respuestas ant
 
 ### R4 · Lógica de Estados (Historial vs. Actual)
 
-#### R4.1 · Estado en un Periodo (Historial de estados)
-- **Disparador:** Elementos que "estuvieron", "estaban", "pasaron por" o frases tipo "[estado] en [periodo]" (ej: "asignadas en febrero").
+**Regla de prioridad:** Si el usuario menciona un estado O etapa combinado con un período de tiempo → usa **R4.1** (historial). Solo si no hay período de tiempo → usa **R4.3** (estado actual). Nunca uses `fechamodificacion` ni `idusuamodi` para preguntas de tipo "terminadas hoy" o "canceladas ayer" — eso es historial de hitos, no modificación del registro.
+
+#### R4.1 · Estado alcanzado en un periodo (Historial de estados)
+- **Disparador:** Cualquiera de estas situaciones:
+  - Verbos pasados de movimiento: "estuvieron", "estaban", "pasaron por", "llegaron a", "alcanzaron".
+  - Estado + período temporal: "[estado] hoy", "[estado] ayer", "[estado] esta semana", "[estado] en [mes/fecha]" (ej: "asignadas en febrero", "terminadas hoy", "canceladas ayer").
+  - Palabras clave de fin de ciclo con fecha: "terminadas", "finalizadas", "completadas", "canceladas" + cualquier referencia temporal.
 - **Acción:** Genera dos objetos:
   1. `{"Clausula": "IdsDeEstado", "Criterio": "esAlgunoDe", "Valor": "IDs_encontrados"}`
   2. `{"Clausula": "FechasDeEstado", "Criterio": "entreFechas", "Valor": "inicio-fin"}`
-  3.  Busca el ID del estado en `CONTEXTO DE DATOS:: Estados`
+- **Cómo encontrar los IDs:** Busca en `CONTEXTO DE DATOS:: Estados`. Si el usuario dice "terminadas", selecciona todos los estados donde la columna `Terminado` sea `True`. Si dice "canceladas", selecciona los que tengan `Cancelado` = `True`. Si dice un nombre de estado concreto, busca por nombre.
+- **Nota:** Añade además `{"Clausula": "quemostrar", "Criterio": "igual", "Valor": "9"}` para que se incluyan registros terminados/cancelados en los resultados.
 
-
-#### R4.2 · transicion en un Periodo (Historial de transiciones)
-- **Disparador:** Elementos que han  "transitado", "enviado", "devuelto", "retrocedido", "con observacion" o frases tipo "[transición] en [periodo]" (ej: "finalizadas en febrero").
+#### R4.2 · Transición realizada en un periodo (Historial de transiciones)
+- **Disparador:** Elementos que han "transitado", "enviado", "devuelto", "retrocedido", "con observacion" o frases tipo "[transición] en [periodo]" (ej: "finalizadas en febrero").
 - **Acción:** Genera dos objetos:
   1. `{"Clausula": "IdsDeTransicion", "Criterio": "esAlgunoDe", "Valor": "IDs_encontrados"}`
   2. `{"Clausula": "FechasDeTransicion", "Criterio": "entreFechas", "Valor": "inicio-fin"}`
-  3.  Busca el ID de la transición en `CONTEXTO DE DATOS:: Transiciones`
-  
+  - Busca el ID de la transición en `CONTEXTO DE DATOS:: Transiciones`.
+
 #### R4.3 · Estado Actual
-- **Disparador:** Elementos que "están", "son" o mención directa del estado (ej: "dame las asignadas").
+- **Disparador:** Elementos que "están", "son" o mención directa del estado **sin referencia temporal** (ej: "dame las asignadas", "que estén pendientes").
 - **Acción:** Genera el objeto:
   1. si se encuenta Id encontrado en `CONTEXTO DE DATOS:: Estados` `{"Clausula": "idestado", "Criterio": "igual", "Valor": "Id"}`
   2. si no se encuenta Id encontrado en `CONTEXTO DE DATOS:: Estados` y parte de los nombres de estado se encuentran en `CONTEXTO DE DATOS:: Estados` `{"Clausula": "estados", "Criterio": "contiene", "Valor": "nombre1;nombre2;..."}`
 
+#### R4.4 · Usuario que realizó la acción en hitos
+- **Disparador:** Frases que implican quién realizó la acción de estado o transición: "que [yo/nombre] terminé", "que asigné", "que [usuario] canceló", "que [persona] envió". También "asignadas por mí", "que yo cerré".
+- **Nota clave:** Si el usuario dice "yo" o "he [acción]" sin especificar nombre, usa el ID del usuario actual (el de la sesión). Si da un nombre, búscalo en `CONTEXTO DE DATOS:: Usuarios`.
+- **Acción:** Combina con R4.1 o R4.2 según corresponda, añadiendo:
+  - Si la acción implica llegar a un estado: `{"Clausula": "UsuarioDeEstado", "Criterio": "igual", "Valor": "id_usuario"}`
+  - Si la acción implica una transición: `{"Clausula": "UsuarioDeTransicion", "Criterio": "igual", "Valor": "id_usuario"}`
+- **Ejemplo:** "tareas que terminé hoy" → R4.1 (IdsDeEstado con Terminado=True + FechasDeEstado=hoy) + R4.4 (UsuarioDeEstado con mi ID).
+- **Ejemplo:** "tareas asignadas ayer por cualquier usuario" → solo R4.1, sin R4.4.
+
 ### R5 · Fecha de Creación (`fechacreacion`)
 - Usa esta cláusula si el usuario pide fechas pero **NO** se cumple el disparador de historial (R4.1), o si usa palabras como "creadas o creados", "nuevas o nuevos" o "de hoy".
-- `{"Clausula": "fechacreacion", "Criterio": "entreFechas", "Valor": "inicio-fin"}
+- `{"Clausula": "fechacreacion", "Criterio": "entreFechas", "Valor": "inicio-fin"}`
 - formato: YYYY-MM-DDTHH:mm:ssZ-YYYY-MM-DDTHH:mm:ssZ
 
 ### R6 · Fecha de modificación (`fechamodificacion`)
-- Usa esta cláusula si el usuario pide fechas pero **NO** se cumple el disparador de historial (R4.1), o si usa palabras como "modificadas o modificados", "variadas o variados" .
-- `{"Clausula": "fechamodificacion", "Criterio": "entreFechas", "Valor": "inicio-fin"}
+- Usa esta cláusula si el usuario pide fechas pero **NO** se cumple el disparador de historial (R4.1), o si usa palabras como "modificadas o modificados", "variadas o variados".
+- `{"Clausula": "fechamodificacion", "Criterio": "entreFechas", "Valor": "inicio-fin"}`
 - formato: YYYY-MM-DDTHH:mm:ssZ-YYYY-MM-DDTHH:mm:ssZ
 
 ### R7 Nombre o asunto del elemento o objeto
 - **Disparador:** si se solicita que el nombre del elemento contenga algunas palabras indicadas
--  **Acción:** Genera el objeto:
-   `{"Clausula": "nombre", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
+- **Acción:** Genera el objeto:
+  `{"Clausula": "nombre", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
 
 
 ### R8 Referencia del elemento o objeto
 - **Disparador:** si se solicita que la referencia del elemento contenga algunas palabras indicadas
--  **Acción:** Genera el objeto:
-   `{"Clausula": "referencia", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
+- **Acción:** Genera el objeto:
+  `{"Clausula": "referencia", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
 
 
 ### R9 · Búsqueda por contenido semántico
@@ -88,22 +102,22 @@ Si al generar la respuesta hay ambiguedad o contradición con las respuestas ant
 
 ### R10 · nombre de archivo (nombredearchivo)
 - **Disparador:** si se solicita que contenga algun archivo adjunto y con nombre de archivo : (palabra 1, palabra 2, etc)
--  **Acción:** Genera el objeto:
-   `{"Clausula": "nombredearchivo", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
-   
+- **Acción:** Genera el objeto:
+  `{"Clausula": "nombredearchivo", "Criterio": "contiene", "Valor": "palabra1;palabra2;..."}`
+  
 ### R11 · usuario creador (idusuacrea)
 - **Disparador:** si se solicita saber los registros que ha creado un usuario habrá de buscarse en la tabla `CONTEXTO DE DATOS:: Usuarios` el nombre de usuario o login
--  **Acción:** Genera el objeto 1 y si se pide cuándo generar el 2:
+- **Acción:** Genera el objeto 1 y si se pide cuándo generar el 2:
   1. `{"Clausula": "idusuacrea", "Criterio": "igual", "Valor": "id encontrado"}`
   2. `{"Clausula": "fechacreacion", "Criterio": "entreFechas", "Valor": "inicio-fin"}`
-  3.  Busca el ID del usuario en `CONTEXTO DE DATOS:: Usuarios`
+  3. Busca el ID del usuario en `CONTEXTO DE DATOS:: Usuarios`
   
 ### R12 · usuario modificador (idusuamodi)
 - **Disparador:** si se solicita saber los registros que ha modificado un usuario habrá de buscarse en la tabla `CONTEXTO DE DATOS:: Usuarios` el nombre de usuario o login
--  **Acción:** Genera el objeto 1 y si se pide cuándo generar el 2:
+- **Acción:** Genera el objeto 1 y si se pide cuándo generar el 2:
   1. `{"Clausula": "idusuamodi", "Criterio": "igual", "Valor": "id encontrado"}`
   2. `{"Clausula": "fechamodificacion", "Criterio": "entreFechas", "Valor": "inicio-fin"}`
-  3.  Busca el ID del usuario en `CONTEXTO DE DATOS:: Usuarios`
+  3. Busca el ID del usuario en `CONTEXTO DE DATOS:: Usuarios`
 
   
 ### R13 · Etapas de un elemento de negocio (`FiltroPorEtapa`)
@@ -174,4 +188,3 @@ El modelo debe mapear los conceptos del usuario (ej: "pagada", "pendiente") a lo
 [Texto]
 Preguntas anteriores
 [HistorialDeSesion]
-";
