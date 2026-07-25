@@ -36,7 +36,7 @@ namespace ModeloDeDto.Ventas
 
         [IUPropiedad(
             Etiqueta = "Cuenta de ingreso",
-            Ayuda = "seleccione la cuenta de ingreso",
+            Ayuda = "seleccione la cuenta de ingreso donde han de transferir el pago de la factura",
             TipoDeControl = enumTipoControl.ListaDeElemento,
             SeleccionarDe = typeof(CuentaDeMiSociedadDto),
             Controlador = nameof(enumControladoresTerceros.CuentasDeMiSociedad),
