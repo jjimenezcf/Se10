@@ -7,8 +7,8 @@ https://console.cloud.google.com/welcome?project=sistema-de-elementos
 
 Correcciones y ampliaciones
 --------------------------------------------------------------------------------
+prompt de filtro de tareas, ajustar según json (*) 25/07/2026
 Si se edita un registro sin observacines, al editar el siguiente que si las tiene no lo muestra
-prompt de filtro de tareas, ajustar según json
 Modificar los literales cuando se envía el correo, en el asunto y cuerpo y añadir botón a edición
 Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo
 El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC

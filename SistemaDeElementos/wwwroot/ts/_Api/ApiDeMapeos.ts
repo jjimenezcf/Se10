@@ -554,20 +554,11 @@ namespace MapearAlGrid {
             if (EsTrue(grid.getAttribute(atGridDeDetalle.CargarPorEvento)))
                 continue;
             let contenedorGrid = ApiControl.BuscarDivConClase(grid, ltrCss.Bloque.Contenedor)
-            if (Definido(contenedorGrid)) {
-                if (!ApiControl.EsVisible(contenedorGrid))
-                    continue;
-            }
-            else {
+            if (!Definido(contenedorGrid)) {
                 contenedorGrid = ApiControl.BuscarDivConClase(grid, ltrCss.Detalle.Contenedor)
                 if (!Definido(contenedorGrid))
                     MensajesSe.Advertencia(`No se ha podido localizar el contenedor del grid de detalle '${grid.id}''`);
-                if (!ApiControl.EsVisible(contenedorGrid))
-                    continue;
             }
-            //let espan: HTMLDivElement = grid.parentElement.parentElement.parentElement as HTMLDivElement;
-            //if (espan.classList.contains(ltrCss.Espan.noVisible))
-            //    continue;
 
             const campoRestrictor: string = grid.getAttribute(atGridDeDetalle.campoRestrictor);
             const idElemento = ObtenerCampoRestrictor(datos, campoRestrictor, literal.id);
