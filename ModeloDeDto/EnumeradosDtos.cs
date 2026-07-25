@@ -9,8 +9,10 @@ namespace ModeloDeDto
         public static string Estados = nameof(Estados).ToLower();
         public static string IdsDeEstado = nameof(IdsDeEstado).ToLower();
         public static string FechasDeEstado = nameof(FechasDeEstado).ToLower();
+        public static string UsuarioDeEstado = nameof(UsuarioDeEstado).ToLower();
         public static string IdsDeTransicion = nameof(IdsDeTransicion).ToLower();
         public static string FechasDeTransiciones = nameof(FechasDeTransiciones).ToLower();
+        public static string UsuarioDeTransicion = nameof(UsuarioDeTransicion).ToLower();
         public static string Id = nameof(Id).ToLower();
         public const string IdEditado = nameof(IdEditado);
         public static string filtro = nameof(filtro).ToLower();

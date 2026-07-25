@@ -11,7 +11,9 @@ namespace ServicioDeDatos.Elemento
 {
     public class TransicionAuditada
     {
-        public int idTransicion;
+        public int idTransicion;           // ID único (legacy)
+        public string idsDeTransiciones;   // IDs separados por coma: "3,4"
+        public string nombresDeTransiciones;// Nombre parcial de transición
         public string fechas;
     }
 

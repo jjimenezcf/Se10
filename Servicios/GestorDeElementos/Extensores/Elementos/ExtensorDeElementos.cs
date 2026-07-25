@@ -351,17 +351,29 @@ namespace GestorDeElementos.Extensores
             if (!ApiDeInterfaceDtm.ImplementaUsaFlujo(typeof(TRegistro)))
                 return hito;
 
-            if (filtro.Clausula == ltrEstados.IdEstadoAuditado && filtro.Valor.Entero() > 0)
+            if (filtro.Clausula == ltrEstados.IdEstadoAuditado && !filtro.Valor.IsNullOrEmpty())
             {
                 if (hito.estado == null) hito.estado = new EstadoAuditado();
-                hito.estado.idEstado = filtro.Valor.Entero();
+                var valorEstado = filtro.Valor.Trim();
+                if (valorEstado.Entero() > 0)
+                    hito.estado.idEstado = valorEstado.Entero();
+                else if (valorEstado.Split(',').All(v => int.TryParse(v.Trim(), out _)))
+                    hito.estado.idsDeEstados = valorEstado;
+                else
+                    hito.estado.nombresDeEstados = valorEstado;
                 filtro.Aplicado = true;
                 return hito;
             }
-            if (filtro.Clausula == ltrTransiciones.IdTransicionAuditada && filtro.Valor.Entero() > 0)
+            if (filtro.Clausula == ltrTransiciones.IdTransicionAuditada && !filtro.Valor.IsNullOrEmpty())
             {
                 if (hito.transicion == null) hito.transicion = new TransicionAuditada();
-                hito.transicion.idTransicion = filtro.Valor.Entero();
+                var valorTransicion = filtro.Valor.Trim();
+                if (valorTransicion.Entero() > 0)
+                    hito.transicion.idTransicion = valorTransicion.Entero();
+                else if (valorTransicion.Split(',').All(v => int.TryParse(v.Trim(), out _)))
+                    hito.transicion.idsDeTransiciones = valorTransicion;
+                else
+                    hito.transicion.nombresDeTransiciones = valorTransicion;
                 filtro.Aplicado = true;
                 return hito;
             }

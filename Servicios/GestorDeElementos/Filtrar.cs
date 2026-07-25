@@ -992,40 +992,86 @@ namespace GestorDeElementos
             (DateTime? desde, DateTime? hasta) fechas;
             if (hito.estado != null)
             {
-                //if (hito.estado.idEstado > 0 && hito.estado.fechas.IsNullOrEmpty() || hito.estado.idEstado == 0 && !hito.estado.fechas.IsNullOrEmpty())
-                //    GestorDeErrores.Emitir("Para filtrar por un estado auditado ha de indicar el estado y el periodo");
-
                 fechas = ClausulaDeFiltrado.ParsearFechas(hito.estado.fechas, errorSiNulo: false);
-                consulta = consulta.Where(r => negocio.Hitos(contexto).Any(x => x.IdElemento == r.Id
-                                           && x.IdEstado == hito.estado.idEstado
-                                           && x.Fecha >= (fechas.desde == null ? new DateTime(0) : fechas.desde)
-                                           && x.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)
-                ));
+
+                if (hito.estado.idEstado > 0)
+                {
+                    var idEstado = hito.estado.idEstado;
+                    consulta = consulta.Where(r => negocio.Hitos(contexto).Any(x => x.IdElemento == r.Id
+                        && x.IdEstado == idEstado
+                        && x.Fecha >= (fechas.desde == null ? new DateTime(0) : fechas.desde)
+                        && x.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)));
+                }
+                else if (!hito.estado.idsDeEstados.IsNullOrEmpty())
+                {
+                    var idsEstados = hito.estado.idsDeEstados.Split(',').Select(v => int.Parse(v.Trim())).ToList();
+                    consulta = consulta.Where(r => negocio.Hitos(contexto).Any(x => x.IdElemento == r.Id
+                        && idsEstados.Contains(x.IdEstado)
+                        && x.Fecha >= (fechas.desde == null ? new DateTime(0) : fechas.desde)
+                        && x.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)));
+                }
+                else if (!hito.estado.nombresDeEstados.IsNullOrEmpty())
+                {
+                    var palabras = hito.estado.nombresDeEstados.Split(',').Select(v => v.Trim().ToLowerInvariant()).ToList();
+                    var todosLosEstados = negocio.Estados(contexto);
+                    List<int> idsEstados;
+                    if (palabras.Count == 1 && (palabras[0].ToLower() == ltrFltPalbrasClave.Terminado || palabras[0].ToLower() == ltrFltPalbrasClave.Terminada))
+                        idsEstados = todosLosEstados.Where(e => e.Terminado).Select(e => e.Id).ToList();
+                    else if (palabras.Count == 1 && (palabras[0].ToLower() == ltrFltPalbrasClave.Cancelado || palabras[0].ToLower() == ltrFltPalbrasClave.Cancelada))
+                        idsEstados = todosLosEstados.Where(e => e.Cancelado).Select(e => e.Id).ToList();
+                    else
+                        idsEstados = todosLosEstados.Where(e => palabras.Any(p => e.Nombre.ToLowerInvariant().Contains(p))).Select(e => e.Id).ToList();
+
+                    if (idsEstados.Any())
+                        consulta = consulta.Where(r => negocio.Hitos(contexto).Any(x => x.IdElemento == r.Id
+                            && idsEstados.Contains(x.IdEstado)
+                            && x.Fecha >= (fechas.desde == null ? new DateTime(0) : fechas.desde)
+                            && x.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)));
+                }
+
                 parametros.AplicarFiltroQueMostrar = false;
             }
 
             if (hito.transicion == null) return consulta;
 
-            //if (hito.transicion.idTransicion > 0 && hito.transicion.fechas.IsNullOrEmpty() || hito.transicion.idTransicion == 0 && !hito.transicion.fechas.IsNullOrEmpty())
-            //    GestorDeErrores.Emitir("Para filtrar por una transición auditada ha de indicar la transición y el periodo");
-
             fechas = ClausulaDeFiltrado.ParsearFechas(hito.transicion.fechas, errorSiNulo: false);
 
-            consulta = consulta.Where(r => negocio.Hitos(contexto).Any(historia =>
-                                       historia.IdElemento == r.Id
-                                       && (fechas.desde == null || historia.Fecha >= fechas.desde)
-                                       && (fechas.hasta == null || historia.Fecha < fechas.hasta)
-                                       && historia.Id > negocio.Hitos(contexto)
-                                           .Where(th =>
-                                               th.IdElemento == historia.IdElemento
-                                               && th.IdTransicion != null
-                                               && th.IdTransicion == hito.transicion.idTransicion
-                                           )
-                                           .Select(th => th.Id)
-                                           .First()
-                                       )
-                                   );
-
+            if (hito.transicion.idTransicion > 0)
+            {
+                var idTransicion = hito.transicion.idTransicion;
+                consulta = consulta.Where(r => negocio.Hitos(contexto).Any(historia =>
+                    historia.IdElemento == r.Id
+                    && (fechas.desde == null || historia.Fecha >= fechas.desde)
+                    && (fechas.hasta == null || historia.Fecha < fechas.hasta)
+                    && historia.Id > negocio.Hitos(contexto)
+                        .Where(th => th.IdElemento == historia.IdElemento && th.IdTransicion != null && th.IdTransicion == idTransicion)
+                        .Select(th => th.Id)
+                        .First()));
+            }
+            else if (!hito.transicion.idsDeTransiciones.IsNullOrEmpty())
+            {
+                var idsTransiciones = hito.transicion.idsDeTransiciones.Split(',').Select(v => (int?)int.Parse(v.Trim())).ToList();
+                consulta = consulta.Where(r => negocio.Hitos(contexto).Any(historia =>
+                    historia.IdElemento == r.Id
+                    && (fechas.desde == null || historia.Fecha >= fechas.desde)
+                    && (fechas.hasta == null || historia.Fecha < fechas.hasta)
+                    && idsTransiciones.Contains(historia.IdTransicion)));
+            }
+            else if (!hito.transicion.nombresDeTransiciones.IsNullOrEmpty())
+            {
+                var palabrasT = hito.transicion.nombresDeTransiciones.Split(',').Select(v => v.Trim().ToLowerInvariant()).ToList();
+                var todasLasTransiciones = negocio.ListaDeTransiciones(contexto);
+                var idsTransiciones = todasLasTransiciones
+                    .Where(t => palabrasT.Any(p => t.Nombre.ToLowerInvariant().Contains(p)))
+                    .Select(t => (int?)t.Id)
+                    .ToList();
+                if (idsTransiciones.Any())
+                    consulta = consulta.Where(r => negocio.Hitos(contexto).Any(historia =>
+                        historia.IdElemento == r.Id
+                        && (fechas.desde == null || historia.Fecha >= fechas.desde)
+                        && (fechas.hasta == null || historia.Fecha < fechas.hasta)
+                        && idsTransiciones.Contains(historia.IdTransicion)));
+            }
 
             parametros.AplicarFiltroQueMostrar = false;
             return consulta;
@@ -1043,14 +1089,18 @@ namespace GestorDeElementos
             if (idsDeEstado is not null)
             {
                 var fechasDeEstados = filtros.FirstOrDefault(f => f.Aplicado == false && f.Clausula.ToLower() == ltrFiltros.FechasDeEstado && f.Criterio == enumCriteriosDeFiltrado.entreFechas);
+                var usuarioDeEstado = filtros.FirstOrDefault(f => f.Aplicado == false && f.Clausula.ToLower() == ltrFiltros.UsuarioDeEstado && f.Criterio == enumCriteriosDeFiltrado.igual);
                 var listaDeEstados = idsDeEstado.ToLista();
                 var fechas = fechasDeEstados is not null ? ClausulaDeFiltrado.ParsearFechas(fechasDeEstados.Valor, errorSiNulo: false) : (null, null);
+                var idUsuarioEstado = usuarioDeEstado is not null && int.TryParse(usuarioDeEstado.Valor, out var uEstado) ? (int?)uEstado : null;
                 consulta = consulta.Where(r => negocio.Hitos(contexto).Any(hito => hito.IdElemento == r.Id
                                            && listaDeEstados.Contains(hito.IdEstado)
                                            && hito.Fecha >= (fechas.desde == null ? new DateTime(0) : fechas.desde)
-                                           && hito.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)));
+                                           && hito.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)
+                                           && (idUsuarioEstado == null || hito.IdUsuario == idUsuarioEstado)));
                 idsDeEstado.Aplicado = true;
                 if (fechasDeEstados != null) fechasDeEstados.Aplicado = true;
+                if (usuarioDeEstado != null) usuarioDeEstado.Aplicado = true;
                 parametros.AplicarFiltroQueMostrar = false;
             }
 
@@ -1059,15 +1109,19 @@ namespace GestorDeElementos
             if (idsDeTransiciones is not null)
             {
                 var fechasDeTransiciones = filtros.FirstOrDefault(f => f.Aplicado == false && f.Clausula.ToLower() == ltrFiltros.FechasDeTransiciones && f.Criterio == enumCriteriosDeFiltrado.entreFechas);
+                var usuarioDeTransicion = filtros.FirstOrDefault(f => f.Aplicado == false && f.Clausula.ToLower() == ltrFiltros.UsuarioDeTransicion && f.Criterio == enumCriteriosDeFiltrado.igual);
                 var listaDeTransiciones = idsDeTransiciones.ToLista();
                 var fechas = fechasDeTransiciones is not null ? ClausulaDeFiltrado.ParsearFechas(fechasDeTransiciones.Valor, errorSiNulo: false) : (null, null);
+                var idUsuarioTransicion = usuarioDeTransicion is not null && int.TryParse(usuarioDeTransicion.Valor, out var uTrans) ? (int?)uTrans : null;
                 consulta = consulta.Where(r => negocio.Hitos(contexto).Any(hito => hito.IdElemento == r.Id
                                            && hito.IdTransicion != null
                                            && listaDeTransiciones.Contains((int)hito.IdTransicion)
                                            && hito.Fecha >= (fechas.desde == null ? new DateTime(0) : fechas.desde)
-                                           && hito.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)));
+                                           && hito.Fecha < (fechas.hasta == null ? DateTime.Now : fechas.hasta)
+                                           && (idUsuarioTransicion == null || hito.IdUsuario == idUsuarioTransicion)));
                 idsDeTransiciones.Aplicado = true;
                 if (fechasDeTransiciones != null) fechasDeTransiciones.Aplicado = true;
+                if (usuarioDeTransicion != null) usuarioDeTransicion.Aplicado = true;
                 parametros.AplicarFiltroQueMostrar = false;
             }
             return consulta;

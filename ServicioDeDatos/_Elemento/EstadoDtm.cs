@@ -11,7 +11,9 @@ namespace ServicioDeDatos.Elemento
 
     public class EstadoAuditado
     {
-        public int idEstado;
+        public int idEstado;           // ID único (legacy)
+        public string idsDeEstados;    // IDs separados por coma: "7,8,9"
+        public string nombresDeEstados;// Keyword o nombres: "terminado", "cancelado", nombre parcial
         public string fechas;
     }
 
@@ -20,6 +22,14 @@ namespace ServicioDeDatos.Elemento
         public static readonly string IdEstadoAuditado = nameof(IdEstadoAuditado).ToLower();
         public static readonly string FechaEstadoAuditado = nameof(FechaEstadoAuditado).ToLower();
         public const string EstadoNulo = Literal.Cero;
+    }
+
+    public class ltrFltPalbrasClave
+    {
+        public static readonly string Cancelada = nameof(Cancelada).ToLower();
+        public static readonly string Terminada = nameof(Terminada).ToLower();
+        public static readonly string Terminado = nameof(Terminado).ToLower();
+        public static readonly string Cancelado = nameof(Cancelado).ToLower();
     }
 
 
