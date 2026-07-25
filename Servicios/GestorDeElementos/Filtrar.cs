@@ -1060,7 +1060,7 @@ namespace GestorDeElementos
             else if (!hito.transicion.nombresDeTransiciones.IsNullOrEmpty())
             {
                 var palabrasT = hito.transicion.nombresDeTransiciones.Split(',').Select(v => v.Trim().ToLowerInvariant()).ToList();
-                var todasLasTransiciones = negocio.ListaDeTransiciones(contexto);
+                var todasLasTransiciones = negocio.Transiciones(contexto);
                 var idsTransiciones = todasLasTransiciones
                     .Where(t => palabrasT.Any(p => t.Nombre.ToLowerInvariant().Contains(p)))
                     .Select(t => (int?)t.Id)

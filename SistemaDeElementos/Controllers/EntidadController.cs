@@ -381,7 +381,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
                         var cgs = Contexto.SeleccionarTodos<CentroGestorDtm>(new List<ClausulaDeFiltrado> { new ClausulaDeFiltrado { Clausula = nameof(CentroGestorDtm.Baja), Criterio = enumCriteriosDeFiltrado.igual, Valor = false.ToString() } }).ToList();
                         var tipos = negocio.Tipos(Contexto).ToList();
                         var estados = negocio.Estados(Contexto).ToList();
-                        var transiciones = negocio.ListaDeTransiciones(Contexto).ToList();
+                        var transiciones = negocio.Transiciones(Contexto).ToList();
 
                         string listaDeCgs = $"{nameof(CentroGestorDtm.Id)}| {nameof(CentroGestorDtm.Nombre)}{Environment.NewLine}" + string.Join("\n", cgs.Select(cg => $"{cg.Id}|{cg.Nombre}"));
 

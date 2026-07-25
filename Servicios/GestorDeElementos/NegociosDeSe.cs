@@ -1376,7 +1376,7 @@ public static class NegociosDeSe
     }
 
     public static TransicionDtm Transicion(this enumNegocio negocio, ContextoSe contexto, int id, bool usarLaCache = true)
-    => negocio.ListaDeTransiciones(contexto).First(t => t.Id == id);
+    => negocio.Transiciones(contexto).First(t => t.Id == id);
     //(TransicionDtm)CrearGestorDeTransiciones(contexto, negocio).LeerRegistroPorId(id, true, usarLaCache);
 
     public static TransicionDtm Transicion(this enumNegocio negocio, ContextoSe contexto, string nombre, bool errorSiNoHay = true, bool errorSiHayMasDeUno = true)
@@ -1606,7 +1606,7 @@ public static class NegociosDeSe
 
     public static object ObtenerFlujoDeNegocio(ContextoSe contexto, enumNegocio negocio, int idEstado)
     {
-        var todasLasTransiciones = negocio.ListaDeTransiciones(contexto);
+        var todasLasTransiciones = negocio.Transiciones(contexto);
         var todosLosEstados = negocio.Estados(contexto);
 
         var estadosVisitados = new HashSet<int> { idEstado };

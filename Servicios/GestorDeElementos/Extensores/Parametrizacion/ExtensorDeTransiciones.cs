@@ -79,7 +79,7 @@ namespace GestorDeElementos.Extensores
         public static TransicionDtm TransicionPosible(this IElementoDeProcesoDtm elemento, ContextoSe contexto, Enum etapa, List<int> destinos, bool delSistema = true, bool emitirErrorSiNoHay = true)
         {
             var negocio = NegociosDeSe.ToEnumerado(NegociosDeSe.LeerNegocioPorDtm(elemento.GetType().FullName).Nombre);
-            var transiciones = negocio.ListaDeTransiciones(contexto).Where(x => x.DelSistema == delSistema && x.Activo && x.IdOrigen == elemento.IdEstado && destinos.Contains(x.IdDestino));
+            var transiciones = negocio.Transiciones(contexto).Where(x => x.DelSistema == delSistema && x.Activo && x.IdOrigen == elemento.IdEstado && destinos.Contains(x.IdDestino));
             if (transiciones.Count() != 1)
             {
                 if (transiciones.Count() == 0)
@@ -154,14 +154,11 @@ namespace GestorDeElementos.Extensores
         public static T TransitarAl<T>(this T elemento, ContextoSe contexto, string estadoDestino, Dictionary<string, object> parametros = null, bool erroSiNoTransita = true, bool errorSiMasDeUnaTransicion = true)
         where T : IElementoDeProcesoDtm
         {
-            var filtros = new Dictionary<string, object>();
-            filtros[nameof(TransicionDtm.Origen)] = elemento.IdEstado.ToString();
-            filtros[nameof(TransicionDtm.Destino)] = estadoDestino;
-
-            var transiciones = contexto.SeleccionarTodos<TransicionDtm>(filtros, NegociosDeSe.NegocioDeUnDtm(elemento.GetType()));
+            var negocio = NegociosDeSe.NegocioDeUnDtm(elemento.GetType());
+            var transiciones = negocio.Transiciones(contexto, elemento.IdEstado.ToString(), estadoDestino);
             if (transiciones.Count != 1)
             {
-                if (estadoDestino.EsNumero()) estadoDestino = NegociosDeSe.NegocioDeUnDtm(elemento.GetType()).Estado(contexto, estadoDestino.Entero()).Nombre;
+                if (estadoDestino.EsNumero()) estadoDestino = negocio.Estado(contexto, estadoDestino.Entero()).Nombre;
                 if (transiciones.Count == 0)
                     GestorDeErrores.Emitir($"No se ha definido ninguna transición entre el estado {elemento.Estado(contexto).Nombre} y el estado {estadoDestino}");
                 
@@ -211,7 +208,7 @@ namespace GestorDeElementos.Extensores
 
         public static IQueryable<TransicionDtm> Transiciones<T>(this ContextoSe contexto) where T : TransicionDtm => contexto.Set<T>().Cast<T>();
 
-        public static List<TransicionDtm> ListaDeTransiciones(this enumNegocio negocio, ContextoSe contexto)
+        public static List<TransicionDtm> Transiciones(this enumNegocio negocio, ContextoSe contexto)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Negocio_Transiciones);
             if (!cache.ContainsKey(negocio.ToString()))
@@ -382,15 +379,12 @@ namespace GestorDeElementos.Extensores
 
         public static TransicionDtm Transicion(this enumNegocio negocio, ContextoSe contexto, string estadoOrigen, string estadoDestino, bool errorSiNoHay = true, bool errorSiHayMasDeUno = true, bool? delSistema = null)
         {
-            var filtros = new Dictionary<string, object>();
-            filtros[nameof(TransicionDtm.Origen)] = estadoOrigen;
-            filtros[nameof(TransicionDtm.Destino)] = estadoDestino;
+            var transiciones = negocio.Transiciones(contexto, estadoOrigen, estadoDestino);
             if (delSistema != null)
             {
-                filtros[nameof(TransicionDtm.DelSistema)] = delSistema;
+                transiciones = transiciones.Where(t => t.DelSistema == delSistema).ToList();
             }
 
-            var transiciones = contexto.SeleccionarTodos<TransicionDtm>(filtros, negocio, aplicarJoin: true);
             if (errorSiNoHay && transiciones.Count == 0)
             {
                 if (estadoOrigen.Entero() > 0)
@@ -428,7 +422,7 @@ namespace GestorDeElementos.Extensores
 
         public static List<TransicionDtm> Transiciones(this enumNegocio negocio, ContextoSe contexto, string estadoOrigen, string estadoDestino)
         {
-            var transiciones = negocio.ListaDeTransiciones(contexto).AsEnumerable();
+            var transiciones = negocio.Transiciones(contexto).AsEnumerable();
 
             if (!estadoOrigen.IsNullOrEmpty())
             {
@@ -447,7 +441,7 @@ namespace GestorDeElementos.Extensores
 
         public static List<TransicionDtm> Transiciones(this enumNegocio negocio, ContextoSe contexto, int? idEstadoOrigen, int? idEstadoDestino)
         {
-            var transiciones = negocio.ListaDeTransiciones(contexto).AsEnumerable();
+            var transiciones = negocio.Transiciones(contexto).AsEnumerable();
 
             if (!idEstadoOrigen.Equals(default))
             {
@@ -464,7 +458,7 @@ namespace GestorDeElementos.Extensores
 
         public static List<TransicionDtm> TransicionesPorNombre(this enumNegocio negocio, ContextoSe contexto, string nombre, bool errorSiNoHay = true)
         {
-            var transiciones = negocio.ListaDeTransiciones(contexto).Where(t => t.Nombre.Equals(nombre, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            var transiciones = negocio.Transiciones(contexto).Where(t => t.Nombre.Equals(nombre, StringComparison.CurrentCultureIgnoreCase)).ToList();
             if (transiciones.Count == 0 && errorSiNoHay)
                 GestorDeErrores.Emitir($"No hay ninguna transición con el nombre indicado '{nombre}'");
 

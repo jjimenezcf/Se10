@@ -1260,7 +1260,7 @@ namespace MVCSistemaDeElementos.Controllers
                 object objetoDto = datos.ToObject(tipoDto);
                 var gestor = negocio.CrearGestor(Contexto);
                 var idTransicion = Convert.ToInt32(parametros.LeerValor<long>(ltrParametrosEp.idTransicion));
-                var idEstadoDestino = negocio.ListaDeTransiciones(Contexto).First(x => x.Id == idTransicion).IdDestino;
+                var idEstadoDestino = negocio.Transiciones(Contexto).First(x => x.Id == idTransicion).IdDestino;
                 var estadoDestino = negocio.Estado(Contexto, idEstadoDestino);
                 var elemento = gestor.PersistirElementoDto(objetoDto, new ParametrosDeNegocio(enumTipoOperacion.Modificar, new Dictionary<string, object>
                 {

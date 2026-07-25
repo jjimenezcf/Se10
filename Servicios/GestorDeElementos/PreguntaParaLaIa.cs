@@ -64,7 +64,7 @@ namespace GestorDeElementos
             // --- Cargar metadatos del negocio ---
             var tipos = negocio.UsaTipo() ? negocio.Tipos(contexto).ToList() : new List<ITipoDeElementoDtm>();
             var estados = negocio.UsaEstado() ? negocio.Estados(contexto).ToList() : new List<EstadoDtm>();
-            var transiciones = negocio.UsaEstado() ? negocio.ListaDeTransiciones(contexto).ToList() : new List<TransicionDtm>();
+            var transiciones = negocio.UsaEstado() ? negocio.Transiciones(contexto).ToList() : new List<TransicionDtm>();
             var etapas = negocio.ListaDeEtapas(erroSiNoHay: false);
             var cgs = negocio.UsaCg()
                 ? contexto.SeleccionarTodos<CentroGestorDtm>(new List<ClausulaDeFiltrado>())

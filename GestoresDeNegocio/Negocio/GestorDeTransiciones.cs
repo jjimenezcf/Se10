@@ -284,7 +284,7 @@ namespace GestoresDeNegocio.Negocio
             foreach (var permiso in permisosPorTransicion)
             {
                 var negocio = enumNegocio.Parse<enumNegocio>(permiso.Nombre.Split(".")[0], true);
-                var transicion = negocio.ListaDeTransiciones(contexto).First(x => x.IdPermiso == permiso.IdPermiso);
+                var transicion = negocio.Transiciones(contexto).First(x => x.IdPermiso == permiso.IdPermiso);
                 PermisosPorTransicionSql.Otorgar(contexto, negocio.IdNegocio(), transicion.Id, idUsuario, transicion.IdPermiso, calculado: true);
             }
 
@@ -293,7 +293,7 @@ namespace GestoresDeNegocio.Negocio
             foreach (var permiso in permisosDirectos)
             {
                 var negocio = enumNegocio.Parse<enumNegocio>(permiso.Nombre.Split(".")[0], true);
-                var transicion = negocio.ListaDeTransiciones(contexto).First(x => x.IdPermiso == permiso.IdPermiso);
+                var transicion = negocio.Transiciones(contexto).First(x => x.IdPermiso == permiso.IdPermiso);
                 PermisosPorTransicionSql.Otorgar(contexto, negocio.IdNegocio(), transicion.Id, idUsuario, transicion.IdPermiso, calculado: false);
             }
         }
