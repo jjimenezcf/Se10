@@ -216,12 +216,12 @@ namespace GestorDeElementos.Extensores
             var cache = ServicioDeCaches.Obtener(CacheDe.Negocio_Transiciones);
             if (!cache.ContainsKey(negocio.ToString()))
             {
-                cache[negocio.ToString()] = Transiciones(contexto, negocio).ToList();
+                cache[negocio.ToString()] = contexto.SetDeTransiciones(negocio).ToList();
             }
             return (List<TransicionDtm>)cache[negocio.ToString()];
         }
 
-        public static IQueryable<TransicionDtm> Transiciones(this ContextoSe contexto, enumNegocio negocio)
+        private static IQueryable<TransicionDtm> SetDeTransiciones(this ContextoSe contexto, enumNegocio negocio)
         {
             switch (negocio)
             {
@@ -265,7 +265,7 @@ namespace GestorDeElementos.Extensores
         where T : IElementoDeProcesoDtm
         {
             var negocio = NegociosDeSe.NegocioDeUnDtm(registro.GetType());
-            var transiciones = negocio.Transiciones(contexto, idEstadoOrigen: registro.IdEstado);
+            var transiciones = negocio.Transiciones(contexto, idEstadoOrigen: registro.IdEstado, idEstadoDestino: default(int?));
 
             bool b = true;
             var mensaje = "";
@@ -426,47 +426,54 @@ namespace GestorDeElementos.Extensores
             return transiciones.Count == 0 ? null : transiciones[0];
         }
 
-        public static List<TransicionDtm> Transiciones(this enumNegocio negocio, ContextoSe contexto, string estadoOrigen = null, string estadoDestino = null)
+        public static List<TransicionDtm> Transiciones(this enumNegocio negocio, ContextoSe contexto, string estadoOrigen, string estadoDestino)
         {
-            var filtros = new Dictionary<string, object>();
+            var transiciones = negocio.ListaDeTransiciones(contexto).AsEnumerable();
+
             if (!estadoOrigen.IsNullOrEmpty())
             {
-                filtros[nameof(TransicionDtm.Origen)] = estadoOrigen;
+                var idEstadoOrigen = negocio.ResolverIdDeEstado(contexto, estadoOrigen);
+                transiciones = idEstadoOrigen == null ? Enumerable.Empty<TransicionDtm>() : transiciones.Where(t => t.IdOrigen == idEstadoOrigen);
             }
 
             if (!estadoDestino.IsNullOrEmpty())
             {
-                filtros[nameof(TransicionDtm.Destino)] = estadoDestino;
+                var idEstadoDestino = negocio.ResolverIdDeEstado(contexto, estadoDestino);
+                transiciones = idEstadoDestino == null ? Enumerable.Empty<TransicionDtm>() : transiciones.Where(t => t.IdDestino == idEstadoDestino);
             }
 
-            return contexto.SeleccionarTodos<TransicionDtm>(filtros, negocio, aplicarJoin: true);
+            return transiciones.ToList();
         }
 
-        public static List<TransicionDtm> Transiciones(this enumNegocio negocio, ContextoSe contexto, int? idEstadoOrigen = default, int? idEstadoDestino = default)
+        public static List<TransicionDtm> Transiciones(this enumNegocio negocio, ContextoSe contexto, int? idEstadoOrigen, int? idEstadoDestino)
         {
-            var filtros = new Dictionary<string, object>();
+            var transiciones = negocio.ListaDeTransiciones(contexto).AsEnumerable();
+
             if (!idEstadoOrigen.Equals(default))
             {
-                filtros[nameof(TransicionDtm.Origen)] = idEstadoOrigen;
+                transiciones = transiciones.Where(t => t.IdOrigen == idEstadoOrigen);
             }
 
             if (!idEstadoDestino.Equals(default))
             {
-                filtros[nameof(TransicionDtm.Destino)] = idEstadoDestino;
+                transiciones = transiciones.Where(t => t.IdDestino == idEstadoDestino);
             }
 
-            return contexto.SeleccionarTodos<TransicionDtm>(filtros, negocio, true);
+            return transiciones.ToList();
         }
 
         public static List<TransicionDtm> TransicionesPorNombre(this enumNegocio negocio, ContextoSe contexto, string nombre, bool errorSiNoHay = true)
         {
-            var filtros = new Dictionary<string, object>() { { nameof(INombre.Nombre), nombre } };
-            var transiciones = contexto.SeleccionarTodos<TransicionDtm>(filtros, negocio, aplicarJoin: true);
+            var transiciones = negocio.ListaDeTransiciones(contexto).Where(t => t.Nombre.Equals(nombre, StringComparison.CurrentCultureIgnoreCase)).ToList();
             if (transiciones.Count == 0 && errorSiNoHay)
                 GestorDeErrores.Emitir($"No hay ninguna transición con el nombre indicado '{nombre}'");
 
             return transiciones;
         }
+
+        // Un estado en las transiciones se puede indicar por id o por nombre; si viene por nombre lo resolvemos usando la caché de estados.
+        private static int? ResolverIdDeEstado(this enumNegocio negocio, ContextoSe contexto, string estado)
+        => estado.EsEntero() ? estado.Entero() : negocio.Estado(contexto, estado, errorSiNoHay: false)?.Id;
 
 
     }

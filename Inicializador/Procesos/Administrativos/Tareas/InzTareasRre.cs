@@ -110,7 +110,7 @@ namespace Inicializador.Procesos
 
         private static void CancelarTarea(ContextoSe contexto)
         {
-            var transicionesParaDevolverElRegistro = enumNegocio.Registro.Transiciones(contexto, estadoDestino: InzRegistroEs.n_estado_ree_pdt_asignar).Select(x => x.Id).ToList();
+            var transicionesParaDevolverElRegistro = enumNegocio.Registro.Transiciones(contexto, estadoOrigen: null, estadoDestino: InzRegistroEs.n_estado_ree_pdt_asignar).Select(x => x.Id).ToList();
             var jsonTransicion = $@"[
    {{
      ""parametro"": ""IdsDeTransiciones"",
@@ -139,7 +139,7 @@ namespace Inicializador.Procesos
 
         private static void IniciarTarea(ContextoSe contexto)
         {
-            var transicionesQueLLevanElRegistroAEnResolucion = enumNegocio.Registro.Transiciones(contexto, estadoDestino: InzRegistroEs.n_estado_ree_en_resolucion);
+            var transicionesQueLLevanElRegistroAEnResolucion = enumNegocio.Registro.Transiciones(contexto, estadoOrigen: null, estadoDestino: InzRegistroEs.n_estado_ree_en_resolucion);
 
             var lista = transicionesQueLLevanElRegistroAEnResolucion.Select(x => x.Id).ToList();
 
