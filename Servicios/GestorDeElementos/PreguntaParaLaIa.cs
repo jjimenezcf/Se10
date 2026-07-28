@@ -24,11 +24,18 @@ namespace GestorDeElementos
     public static class PreguntaParaLaIa
     {
         // DTO interno para deserializar la respuesta de la IA
+        private class OrdenDeTotales
+        {
+            public string Campo { get; set; }         // nombre de propiedad de agruparPor o alias de métrica
+            public bool Ascendente { get; set; } = true;
+        }
+
         private class RespuestaDeConteo
         {
             public List<ClausulaDeFiltrado> Filtros { get; set; } = new();
             public List<string> AgruparPor { get; set; } = new();
             public List<MetricaDeTotales> Metricas { get; set; } = new();
+            public List<OrdenDeTotales> OrdenarPor { get; set; } = new();
         }
 
         // Cache de resolvers por negocio — se cargan por reflexión desde los metadatos la primera vez
@@ -112,6 +119,31 @@ namespace GestorDeElementos
 
                 // --- Batch load direcciones si la consulta agrupa por propiedades de dirección ---
                 var idElementos2 = registros.Select(r => r.Id).ToHashSet();
+
+                // --- Batch load hitos por fecha si la consulta agrupa por AnoMesDeEstado ---
+                Dictionary<int, string> cacheAnoMesDeEstado = null;
+                if (respuesta.AgruparPor.Any(p => p.Equals(IIaPromptConteo.ClaveAnoMesDeEstado, StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Extraer los IDs de estado del filtro IdsDeEstado para saber qué hitos buscar
+                    var idsEstadoParaMes = respuesta.Filtros
+                        .Where(f => f.Clausula.Equals("IdsDeEstado", StringComparison.OrdinalIgnoreCase))
+                        .SelectMany(f => f.Valor.Split(',').Select(s => int.TryParse(s.Trim(), out var i) ? i : 0).Where(i => i > 0))
+                        .ToHashSet();
+                    try
+                    {
+                        var hitosParaMes = negocio.Hitos(contexto)
+                            .Where(h => idElementos2.Contains(h.IdElemento)
+                                     && (idsEstadoParaMes.Count == 0 || idsEstadoParaMes.Contains(h.IdEstado)))
+                            .ToList();
+                        cacheAnoMesDeEstado = hitosParaMes
+                            .GroupBy(h => h.IdElemento)
+                            .ToDictionary(
+                                g => g.Key,
+                                g => g.OrderByDescending(h => h.Fecha).First().Fecha.ToString("yyyy-MM"));
+                    }
+                    catch { cacheAnoMesDeEstado = new Dictionary<int, string>(); }
+                }
+
                 Dictionary<int, List<DireccionDtm>> cacheDirecciones = null;
                 if (respuesta.AgruparPor.Any(EsPropiedadDeDireccion))
                 {
@@ -148,9 +180,9 @@ namespace GestorDeElementos
                     catch { /* si falla el batch-load, simplemente no hay resolver */ }
                 }
 
-                // Fusionar: primero el resolver de negocio, luego el de direcciones
+                // Fusionar: resolver de negocio + AnoMesDeEstado + direcciones
                 Func<string, ElementoDeProcesoDtm, string> resolverClaveVirtual = null;
-                if (resolverClavesNegocio != null || cacheDirecciones != null)
+                if (resolverClavesNegocio != null || cacheAnoMesDeEstado != null || cacheDirecciones != null)
                 {
                     resolverClaveVirtual = (prop, r) =>
                     {
@@ -159,6 +191,8 @@ namespace GestorDeElementos
                             var val = resolverClavesNegocio(prop, r);
                             if (val != null) return val;
                         }
+                        if (cacheAnoMesDeEstado != null && prop.Equals(IIaPromptConteo.ClaveAnoMesDeEstado, StringComparison.OrdinalIgnoreCase))
+                            return cacheAnoMesDeEstado.TryGetValue(r.Id, out var mes) ? mes : "—";
                         if (cacheDirecciones != null && EsPropiedadDeDireccion(prop))
                             return ResolverClaveDireccion(prop, r.Id, cacheDirecciones);
                         return null;
@@ -291,7 +325,7 @@ namespace GestorDeElementos
                         resolverCalculado,
                         resolverClaveVirtual)[0];
 
-                    resultado = FormatearOpcionB(bloque, respuesta.AgruparPor, respuesta.Metricas, resolverEtiqueta);
+                    resultado = FormatearOpcionB(bloque, respuesta.AgruparPor, respuesta.Metricas, resolverEtiqueta, respuesta.OrdenarPor);
                 }
 
                 contexto.AnotarTraza($"Respuesta:{Environment.NewLine}", resultado);
@@ -376,7 +410,7 @@ namespace GestorDeElementos
                 bloque.Filas.Add(fila);
             }
 
-            return FormatearOpcionB(bloque, new List<string> { "IdEstado" }, respuesta.Metricas, resolverEtiqueta);
+            return FormatearOpcionB(bloque, new List<string> { "IdEstado" }, respuesta.Metricas, resolverEtiqueta, respuesta.OrdenarPor);
         }
 
         // --- Opción A: sin agrupación — respuesta en una o pocas líneas ---
@@ -450,7 +484,8 @@ namespace GestorDeElementos
             BloqueDeTotales bloque,
             List<string> agruparPor,
             List<MetricaDeTotales> metricas,
-            Func<string, object, string> resolverEtiqueta)
+            Func<string, object, string> resolverEtiqueta,
+            List<OrdenDeTotales> ordenarPor = null)
         {
             const int anchoMaxClave = 45;
             const int anchoMinMet   = 6;
@@ -504,12 +539,39 @@ namespace GestorDeElementos
             var totalAncho = totalAnchoClave + sep.Length + anchos.Sum() + sep.Length * (metricas.Count - 1);
             sb.AppendLine(new string('-', totalAncho));
 
-            // Filas ordenadas por primera métrica descendente
-            var primera = metricas.First().Alias;
-            var indices = filas
-                .Select((f, i) => (f, i))
-                .OrderByDescending(x => x.f.Totales.ContainsKey(primera) ? Convert.ToDecimal(x.f.Totales[primera]) : 0m)
-                .Select(x => x.i).ToList();
+            // Ordenación: usa ordenarPor si la IA lo especificó; por defecto primera métrica descendente
+            IEnumerable<(FilaDeTotales f, int i)> ordenados = filas.Select((f, i) => (f, i));
+            if (ordenarPor != null && ordenarPor.Count > 0)
+            {
+                IOrderedEnumerable<(FilaDeTotales f, int i)> ord = null;
+                foreach (var (criterio, idx) in ordenarPor.Select((o, i) => (o, i)))
+                {
+                    // Determinar si el campo es una clave de agrupación (string) o una métrica (decimal)
+                    var propIdx = agruparPor.FindIndex(p => p.Equals(criterio.Campo, StringComparison.OrdinalIgnoreCase));
+                    if (propIdx >= 0)
+                    {
+                        // Clave de agrupación: ordenar por la etiqueta de texto
+                        Func<(FilaDeTotales f, int i), string> clave = x => etiquetasPorFila[x.i][propIdx];
+                        if (idx == 0) ord = criterio.Ascendente ? ordenados.OrderBy(clave) : ordenados.OrderByDescending(clave);
+                        else          ord = criterio.Ascendente ? ord.ThenBy(clave)         : ord.ThenByDescending(clave);
+                    }
+                    else
+                    {
+                        // Alias de métrica: ordenar por valor decimal
+                        Func<(FilaDeTotales f, int i), decimal> clave = x => x.f.Totales.ContainsKey(criterio.Campo) ? Convert.ToDecimal(x.f.Totales[criterio.Campo]) : 0m;
+                        if (idx == 0) ord = criterio.Ascendente ? ordenados.OrderBy(clave) : ordenados.OrderByDescending(clave);
+                        else          ord = criterio.Ascendente ? ord.ThenBy(clave)         : ord.ThenByDescending(clave);
+                    }
+                }
+                ordenados = ord ?? ordenados;
+            }
+            else
+            {
+                // Por defecto: primera métrica descendente
+                var primera = metricas.First().Alias;
+                ordenados = ordenados.OrderByDescending(x => x.f.Totales.ContainsKey(primera) ? Convert.ToDecimal(x.f.Totales[primera]) : 0m);
+            }
+            var indices = ordenados.Select(x => x.i).ToList();
 
             foreach (var idx in indices)
             {
@@ -589,6 +651,7 @@ namespace GestorDeElementos
 
         private static string NombreColumna(string prop) => prop.ToLowerInvariant() switch
         {
+            "anomesdeestado"        => "Mes",
             "idtipo"                => "Tipo",
             "idestado"              => "Estado",
             "idcg"                  => "Centro Gestor",
