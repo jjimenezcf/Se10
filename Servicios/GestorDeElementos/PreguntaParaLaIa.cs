@@ -582,7 +582,7 @@ namespace GestorDeElementos
                     return texto.Length > ancho ? texto[..(ancho - 1)] + "…" : texto.PadRight(ancho);
                 }));
 
-                var valores = string.Join(sep, valoresPorFila[idx].Select((v, i) => extCadenas.Centrar(v, anchos[i])));
+                var valores = string.Join(sep, valoresPorFila[idx].Select((v, i) => extCadenas.Alinear(v, anchos[i])));
                 sb.AppendLine($"{celdas}{sep}{valores}");
             }
 

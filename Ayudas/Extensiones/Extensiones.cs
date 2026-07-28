@@ -426,13 +426,41 @@ namespace Utilidades
             return text;
         }
 
-        public static string Centrar(string s, int ancho)
+        public enum enumAlineacion { Izquierda, Centrado, Derecha }
+
+        private static string AlinearIzquierda(string s, int ancho) =>
+            s.Length >= ancho ? s : s.PadRight(ancho);
+
+        private static string AlinearDerecha(string s, int ancho) =>
+            s.Length >= ancho ? s : s.PadLeft(ancho);
+
+        private static string Centrar(string s, int ancho)
         {
             if (s.Length >= ancho) return s;
             var pad = ancho - s.Length;
             var left = pad / 2;
             var right = pad - left;
             return new string(' ', left) + s + new string(' ', right);
+        }
+
+        public static string Alinear(string s, int ancho, enumAlineacion? alineacion = null)
+        {
+            if (alineacion != null)
+                return alineacion switch
+                {
+                    enumAlineacion.Izquierda => AlinearIzquierda(s, ancho),
+                    enumAlineacion.Derecha   => AlinearDerecha(s, ancho),
+                    _                        => Centrar(s, ancho)
+                };
+
+            // Detección automática: número o fecha → derecha; texto → izquierda
+            var trimmed = s.Trim();
+            if (decimal.TryParse(trimmed, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _) ||
+                decimal.TryParse(trimmed, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture, out _) ||
+                DateTime.TryParse(trimmed, out _))
+                return AlinearDerecha(s, ancho);
+
+            return AlinearIzquierda(s, ancho);
         }
 
     }
