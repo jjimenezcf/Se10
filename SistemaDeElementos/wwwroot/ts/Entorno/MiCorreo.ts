@@ -187,21 +187,21 @@
             var modal = peticion.DatosDeEntrada as HTMLDivElement;
 
             _idMsjInterno = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Id);
-            let idMensaje: number = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.IdMensaje);
-            let asunto = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Asunto);
-            let cuerpo = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Cuerpo);
-            let conAdjuntos = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.ConAdjuntos);
-            let emisor = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Emisor);
-            let fecha = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Fecha);
+            const idMensaje: number = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.IdMensaje);
+            const asunto = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Asunto);
+            const cuerpo = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Cuerpo);
+            const conAdjuntos = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.ConAdjuntos);
+            const emisor = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Emisor);
+            const fecha = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Fecha);
 
-            let match = emisor.match(/<(.*?)>/);
-            let nombre = `Correo incorporado de: ${((match && match.length > 1) ? match[1] : emisor)} `;
+            const match = emisor.match(/<(.*?)>/);
+            const nombre = asunto;
+            const origen = `Correo incorporado de: ${((match && match.length > 1) ? match[1] : emisor)}`
             ApiControl.MapearEditor(modal, ltrPropiedades.Elemento.Nombre, nombre);
 
-
-            let adjuntos = JSON.parse(ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Adjuntos));
-            let fileNames: string = Definido(adjuntos) ? adjuntos.map(e => e.Fichero).join(',') : '';
-            var textoCuerpo = `Enviado por: ${emisor}\nAsunto: ${asunto}\n\nCuerpo\n${(IsNullOrEmpty(cuerpo) ? '(sin cuerpo)' : cuerpo)}\n\nAdjuntos: ${fileNames} \n\nFecha de recepción: ${fecha} \nIdentificador: ${idMensaje}`
+            const adjuntos = JSON.parse(ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.MiCorreo.Adjuntos));
+            const fileNames: string = Definido(adjuntos) ? adjuntos.map(e => e.Fichero).join(',') : '';
+            var textoCuerpo = `${origen}\nCuerpo\n${(IsNullOrEmpty(cuerpo) ? '(sin cuerpo)' : cuerpo)}\n\nAdjuntos: ${fileNames} \n\nFecha de recepción: ${fecha} \nIdentificador: ${idMensaje}`
             var control = ApiControl.MapearAreaDeTexto(modal, ltrPropiedades.Elemento.Descripcion, textoCuerpo);
             ApiControl.BloquearAreaDeTexto(control);
 
