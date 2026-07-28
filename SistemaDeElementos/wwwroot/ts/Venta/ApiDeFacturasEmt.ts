@@ -112,7 +112,7 @@
         let modal: HTMLDivElement = editor.ModalDeCreacionDeCobros;
         let clase = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.Cobro.Clase) as HTMLSelectElement;
         let cuentaDeIngreso = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Venta.FacturaEmt.Cobro.CuentaDeIngreso) as HTMLSelectElement;
-        ApiControl.BloquearLaLista(cuentaDeIngreso, clase.value !== ltrValores.Venta.FacturasEmt.Cobro.Clase.Transferencia);
+        ApiControl.BloquearLaLista(cuentaDeIngreso, clase.value !== ltrValores.Venta.FacturasEmt.Cobro.Clase.Transferencia, true);
     }
 
     export function Fae_Tras_Cambiar_TipoDeLinea() {

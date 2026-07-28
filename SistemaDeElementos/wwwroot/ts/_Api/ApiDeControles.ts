@@ -671,7 +671,7 @@ namespace ApiControl {
 
     export function EstaBloqueadaLaLista(lista: HTMLSelectElement): boolean { return EsTrue(lista.getAttribute("readOnly")) || lista.disabled; }
 
-    export function BloquearLaLista(lista: HTMLSelectElement, bloquear: boolean): void {
+    export function BloquearLaLista(lista: HTMLSelectElement, bloquear: boolean, anularSeleccion: boolean = false): void {
         lista.disabled = bloquear;
         lista.setAttribute("readOnly", `${bloquear ? 'true' : 'false'}`);
         if (bloquear) {
@@ -684,6 +684,8 @@ namespace ApiControl {
         else {
             MapearAlControl.FijarElPrimero(lista);
         }
+
+        if (anularSeleccion) lista.selectedIndex = 0;
     }
 
     export function DesbloquearListaDeElemento(panel: HTMLDivElement, propiedad: string): boolean {
