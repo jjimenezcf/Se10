@@ -536,6 +536,7 @@ namespace ServicioDeDatos.Elemento
         public const string ERROR = nameof(ERROR);
         public const string FACTURA_JSON = nameof(FACTURA_JSON);
         public const string VALIDADOR_JSON = nameof(VALIDADOR_JSON);
+        public const string PRIORIDAD = nameof(PRIORIDAD);
 
 
         public const string ID_TRANSICION = nameof(ID_TRANSICION);

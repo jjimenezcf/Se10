@@ -11,6 +11,20 @@ namespace ModeloDeDto.Tarea
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
     public class TareaDto : ElementoDeUnProcesoDto,IUsaSolicitanteDto, IPuedeUsarResponsableDto
     {
+        //-------------------------------------------------------------------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "Prioridad",
+            Ayuda = "seleccione la prioridad de la tarea",
+            TipoDeControl = enumTipoControl.Enumerado,
+            Tipo = typeof(enumPrioridadDeTarea),
+            GuardarEn = nameof(Prioridad),
+            Fila = 0,
+            Columna = 1,
+            Posicion = 2,
+            EditableAlEditar = true
+          )
+        ]
+        public string Prioridad { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------
         [IUPropiedad(

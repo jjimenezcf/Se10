@@ -17,6 +17,18 @@ namespace ServicioDeDatos.Tarea
         Control
     }
 
+    public enum enumPrioridadDeTarea 
+    {
+        [Description("Urgente")]
+        Urgente,
+        [Description("Alta")]
+        Alta,
+        [Description("Media")]
+        Media,
+        [Description("Baja")]
+        Baja
+    }
+
 
     [Table(Tablas.TAREA + "_" + Sufijo.TIPO, Schema = Esquemas.TAREA)]
     public class TipoDeTareaDtm : TipoConFlujoDtm, IPermisoDeInterventor

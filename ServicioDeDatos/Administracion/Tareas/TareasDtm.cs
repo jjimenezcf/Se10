@@ -32,6 +32,7 @@ namespace ServicioDeDatos.Tarea
         public FacturaEmtDtm FacturaEmt { get; set; }
         public int? IdClaseDeElemento { get; set; }
         public ClaseDelNegocioDtm ClaseDeElemento { get; set; }
+        public enumPrioridadDeTarea? Prioridad { get; set; }
     }
 
     [Table(Tablas.TAREA + "_" + Sufijo.ESTADO, Schema = Esquemas.TAREA)]
@@ -140,6 +141,7 @@ namespace ServicioDeDatos.Tarea
             DefinirClaseDeTarea<TareaDtm>(modelBuilder);
             ApiDeElementoDtm.DefinirDependenciaDe<TareaDtm>(modelBuilder, nameof(TareaDtm.Archivador), nameof(TareaDtm.IdArchivador), ICampos.ID_ARCHIVADOR, requerido: false, unico: false);
             ApiDeElementoDtm.DefinirDependenciaDe<TareaDtm>(modelBuilder, nameof(TareaDtm.FacturaEmt), nameof(TareaDtm.IdFacturaEmt), ICampos.ID_FACTURA_EMT, requerido: false, unico: false);
+            modelBuilder.Entity<TareaDtm>().Property(nameof(TareaDtm.Prioridad)).HasColumnName(ICampos.PRIORIDAD).HasColumnType(IDominio.VARCHAR_15).IsRequired(false);
         }
 
         internal static void Trazas(ModelBuilder modelBuilder)
