@@ -15,27 +15,17 @@ Si se edita un registro sin observacines, al editar el siguiente que si las tien
 Al crear un cobro de una Fae, si cambio la clase de cobro a contado, blanquear cuenta de ingreso (*) 28/07/2026
 Modificar los literales cuando se envía el correo, en el asunto y cuerpo (*) 28/07/2026
 incluir el concepto prioridad a una tarea (*) 30/07/2026
-Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo (*) 30/07/2026
-El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC
-Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
+Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo 
+El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC  (*) 30/07/2026
+Al enviar un evento poner la descripción del evento en el cuerpo del mensaje (*) 30/07/2026
 Poder acceder al mapa desde el panel de control con todos los elementos activos
 Poder navegar del pago a la remesa bancaria que lo contiene, añadir un restrictor
 Incluir en metadatos el método ListaDeEtapas() genérico y quitarlo de los gestores de negocio (tarea.Lista())
-vaciar la cache al cambiar los correos de una sociedad
-
 
 Prompt por definir de conteos
 -------------------------------------------------------------------------------
 iva de facturas emitidas
 Pagos, expedientes, cobros, recibidas
-
-
-Facturas recibidas y emitidas (*) 2026-06-02
---------------------------------------------------------------------------------
-importar facturas xml y ubl tanto desde un fichero como desde la interface
-generar facturas ubl
-prompt para filtrar facturas emitidas
-prompt para filtrar facturas recibidas
 
 
 Caifantasia: presentación
@@ -3311,3 +3301,10 @@ La impresión de correos que sea usando htmltopdf para renderizar imágenes (*) 
 Poner ia para preguntar y agrupar la información en el panel de control (*) 2026-07-05
 Poder navegar tras la pregunta a al crud (*) 2026-07-07
 Poner en modo ficha el crud (*) 2026-07-08
+
+Facturas recibidas y emitidas (*) 2026-06-02
+--------------------------------------------------------------------------------
+importar facturas xml y ubl tanto desde un fichero como desde la interface
+generar facturas ubl
+prompt para filtrar facturas emitidas
+prompt para filtrar facturas recibidas

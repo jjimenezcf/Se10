@@ -154,6 +154,36 @@ namespace GestorDeElementos
             return refHtml;
         }
 
+        private static string ConsultaUrlPlana(this TipoDtoElmento elemento, string guid, bool errorSiNoConsulta = true)
+        {
+            var negocio = elemento.Negocio();
+            var permiteConsultas = negocio.PermiteConultasConGuid();
+            if (errorSiNoConsulta && !permiteConsultas)
+                throw new Exception($"El negocio '{elemento.Negocio()}' no permite la consulta de elementos.");
+            if (!errorSiNoConsulta && !permiteConsultas)
+                return string.Empty;
+
+            string rutaConsulta = $"{negocio.Controlador()}/{enumVistasSeguridad.Consultar}";
+            var builder = new UriBuilder(CacheDeVariable.Cfg_UrlBase);
+            string pathExistente = builder.Path.Trim('/');
+            builder.Path = string.IsNullOrEmpty(pathExistente) ? rutaConsulta : $"{pathExistente}/{rutaConsulta}";
+            builder.Query = $"guid={guid}&id={elemento.IdElemento}";
+            return builder.Uri.ToString();
+        }
+
+        public static string ConsultaUrlPlana(this TipoDtoElmento tipoDtoElemento, ContextoSe contexto)
+        {
+            var negocio = tipoDtoElemento.Negocio();
+            var permiteConsultas = negocio.PermiteConultasConGuid();
+            if (!permiteConsultas)
+                return string.Empty;
+
+            var elemento = contexto.SeleccionarElementoPorId(negocio.TipoDtm(), tipoDtoElemento.IdElemento);
+            var guid = elemento.RegistrarConsultaConGuid(contexto, caducaEl: DateTime.Now.AddMonths(1), maximoDeDescargas: null);
+
+            return ConsultaUrlPlana(tipoDtoElemento,guid, errorSiNoConsulta: true);
+        }
+
         public static string PatronUrl(this Type claseDto)
         {
             var ruta = ExtensionesDto.UrlBaseDeUnDto(claseDto, vista: "", errorSiMasDeUno: false);
