@@ -263,7 +263,6 @@ namespace GestoresDeNegocio.Gastos
             elemento.ImporteRemesa = remesa.Total(Contexto);
             elemento.Pagado = remesa.Pagado(Contexto);
             elemento.Incluidos = remesa.Detalles<PagoDeUnaRemesaDtm>(Contexto).Count();
-            elemento.Etapas = remesa.ListaDeEtapas();
         }
 
         private void GenerarSepaPain001(ContextoSe contexto, RemesaPagDtm remesa)

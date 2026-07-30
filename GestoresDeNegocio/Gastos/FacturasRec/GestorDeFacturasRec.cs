@@ -735,7 +735,6 @@ namespace GestoresDeNegocio.Gastos
                 elemento.EsInterventor = factura.EsInterventor<TipoDeFacturaRecDtm>(Contexto);
                 elemento.IdInterlocutor = factura.Proveedor(Contexto).IdInterlocutor;
                 elemento.Interlocutor = factura.Proveedor(Contexto).Interlocutor(Contexto).Expresion;
-                elemento.Etapas = factura.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
                 elemento.EsIncorporada = factura.EsIncorporada(Contexto);
                 elemento.Expediente = factura.Expediente(Contexto, errorSiNoHay: false)?.Expresion;
                 elemento.Contrato = factura.Contrato(Contexto, errorSiNoHay: false)?.Expresion;

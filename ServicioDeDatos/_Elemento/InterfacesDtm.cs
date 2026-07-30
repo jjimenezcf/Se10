@@ -41,6 +41,7 @@ namespace ServicioDeDatos.Elemento
     public interface IPrioridad
     {
         public enumPrioridad? Prioridad { get; set; }
+
     }
 
 

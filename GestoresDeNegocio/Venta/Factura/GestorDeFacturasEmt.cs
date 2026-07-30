@@ -575,7 +575,6 @@ namespace GestoresDeNegocio.Ventas
                 elemento.EstaComunicandose = factura.EstaComunicandose(Contexto);
 
                 elemento.EsInterventor = factura.EsInterventor<TipoDeFacturaEmtDtm>(Contexto);
-                elemento.Etapas = factura.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
                 elemento.EsPeriodica = factura.EsPeriodica(Contexto);
                 elemento.ConIrpf = factura.Ampliacion<IrpfEmtDtm>(Contexto, errorSiNoHay: false) is not null;
                 elemento.EsRectificativa = factura.ClaseRectificativa is not null;

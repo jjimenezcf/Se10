@@ -131,6 +131,11 @@ namespace ModeloDeDto
         public string Responsable { get; set; }
     }
     
+    public interface IPrioridadDto
+    {
+        public enumPrioridad Prioridad { get; set; }
+        public string PrioridadGrid { get; set; }
+    }
 
     public interface IUsaDescripcionDto
     {
@@ -267,6 +272,7 @@ namespace ModeloDeDto
         public static bool ImplementaInformacionRpt(this Type tipoElemento) => ApiDeEnsamblados.ImplementaInterface(tipoElemento, typeof(IInformacionRpt<object>).FullName);
         public static bool ImplementaUsaBloqueoDto(this Type tipoElemento) => ApiDeEnsamblados.ImplementaInterface(tipoElemento, typeof(IUsaBloqueoDto).FullName);
 
+        public static bool ImplementaPrioridadDto(this Type tipoElemento) => ApiDeEnsamblados.ImplementaInterface(tipoElemento, typeof(IPrioridadDto).FullName);
 
     }
 }

@@ -286,10 +286,8 @@ namespace GestoresDeNegocio.Tarea
             if (parametros.CargarLista)
                 return;
 
-            elemento.PrioridadGrid = tarea.PrioridadGridCss;
-
-
-
+            elemento.PrioridadGrid = tarea.PrioridadGridCss();
+            
             if (parametros.Peticion == enumPeticion.epLeerPorId)
             {
                 var expedientes = tarea.Vinculados<ExpedienteDtm>(Contexto);
@@ -302,9 +300,8 @@ namespace GestoresDeNegocio.Tarea
                 {
                     foreach (var expediente in expedientes) elemento.Expediente = elemento.Expediente.IsNullOrEmpty() ? $"{elemento.Expediente}" : $"{elemento.Expediente}, {expediente.Referencia}";
                 }
-                else elemento.Expediente = "";            
+                else elemento.Expediente = "";
 
-                elemento.Etapas = tarea.Lista();
                 elemento.Prioridad = tarea.Prioridad == null ? enumPrioridad.NoDefinida: ((enumPrioridad)tarea.Prioridad);
             }
 

@@ -53,6 +53,7 @@ namespace GestorDeElementos
         public Type TipoEtapas { get; set; }
 
         public Func<Enum, List<int>> EstadosDeLaEtapa;
+        public Func<object, List<string>> ListaDeEtapas;
         public Type TipoParametros { get; set; }
 
         public Type DescriptoDeConsultas { get; set; } = null;
@@ -295,6 +296,7 @@ namespace GestorDeElementos
             TipoEtapas = typeof(enumEtapasDeFacturasEmt),
             TipoParametros = typeof(enumParametrosDeFacturasEmt),
             EstadosDeLaEtapa = etapa => VariableDeFacturasEmt.Lista((enumEtapasDeFacturasEmt)etapa),
+            ListaDeEtapas = registro => ((FacturaEmtDtm)registro).ListaDeEtapas(),
             DireccionesDtm = typeof(DireccionDeUnaFacturaEmtDtm),
             PlantillasPorTipoDtm = typeof(PlantillaPorTipoDeFacturaEmtDtm),
             TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasEmt, emitirError: false)
@@ -314,6 +316,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeFacturasRec),
             TipoEtapas = typeof(enumEtapasDeFacturasRec),
             EstadosDeLaEtapa = etapa => VariableDeFacturasRec.Lista((enumEtapasDeFacturasRec)etapa),
+            ListaDeEtapas = registro => ((FacturaRecDtm)registro).ListaDeEtapas(),
             DireccionesDtm = typeof(DireccionDeUnaFacturaRecDtm),
             TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasRec, emitirError: false)
         };
@@ -365,6 +368,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeExpedientes),
             TipoEtapas = typeof(enumEtapasDeExpedientes),
             EstadosDeLaEtapa = etapa => ParametrosDeExpedientes.Lista((enumEtapasDeExpedientes)etapa),
+            ListaDeEtapas = registro => ((ExpedienteDtm)registro).Lista(),
             TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeExpedientes, emitirError: false)
         };
 
@@ -384,6 +388,7 @@ namespace GestorDeElementos
             TareasDtm = typeof(TareasDeUnPresupuestoDtm),
             TipoEtapas = typeof(enumEtapasDePpts),
             EstadosDeLaEtapa = etapa => VariableDePpts.Lista((enumEtapasDePpts)etapa),
+            ListaDeEtapas = registro => ((PresupuestoDtm)registro).ListaDeEtapas(),
             TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDePresupuestos, emitirError: false)
         };
 
@@ -418,6 +423,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeTareas),
             TipoEtapas = typeof(enumEtapasDeTareas),
             EstadosDeLaEtapa = etapa => VariablesDeTareas.Lista((enumEtapasDeTareas)etapa),
+            ListaDeEtapas = registro => ((TareaDtm)registro).ListaDeEtapas(),
             PlantillasPorTipoDtm = null,
             ClasesDelTipoDtm = typeof(ClaseDelTipoTareaDtm),
             DescriptoDeConsultas = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelSistemaDeElementos, ApiDeEnsamblados.DescriptorDeConsultaDeTareas, emitirError: false),
@@ -540,6 +546,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeRemesasFae),
             TipoEtapas = typeof(enumEtapasDeRemesasFae),
             EstadosDeLaEtapa = etapa => VariableDeRemesasFae.Lista((enumEtapasDeRemesasFae)etapa),
+            ListaDeEtapas = registro => ((RemesaFaeDtm)registro).ListaDeEtapas(),
             DireccionesDtm = null,
             PlantillasPorTipoDtm = null
         };
@@ -557,6 +564,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeRemesasPag),
             TipoEtapas = typeof(enumEtapasDeRemesasPag),
             EstadosDeLaEtapa = etapa => VariableDeRemesasPag.Lista((enumEtapasDeRemesasPag)etapa),
+            ListaDeEtapas = registro => ((RemesaPagDtm)registro).ListaDeEtapas(),
             DireccionesDtm = null,
             PlantillasPorTipoDtm = null
         };
@@ -574,6 +582,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDePagos),
             TipoEtapas = typeof(enumEtapasDePagos),
             EstadosDeLaEtapa = etapa => VariableDePagos.Lista((enumEtapasDePagos)etapa),
+            ListaDeEtapas = registro => ((PagoDtm)registro).ListaDeEtapas(),
             DireccionesDtm = null,
             PlantillasPorTipoDtm = null,
             TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDePagos, emitirError: false)

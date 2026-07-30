@@ -299,7 +299,6 @@ namespace GestoresDeNegocio.Presupuesto
                     }
                 }
 
-                elemento.Etapas = ppt.ListaDeEtapas();
                 if (!elemento.Etapas.Contains(enumEtapasDePpts.PPT_Etapa_Elaboracion.ToString()))
                 {
                     elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;

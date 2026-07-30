@@ -719,6 +719,8 @@ namespace ServicioDeDatos.Ventas
 
         public static string CadenaDeEtapas(this FacturaEmtDtm factura) => string.Join(Simbolos.separadorDeEtapas, factura.Etapas());
 
+        public static List<string> ListaDeEtapas(this FacturaEmtDtm factura) => factura.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
+
         public static enumEtapasDeFacturasEmt Etapa(this FacturaEmtDtm factura)
         {
             var etapas = factura.Etapas();

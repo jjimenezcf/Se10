@@ -391,6 +391,8 @@ Este bloque de reglas se integra en la sección **## REGLAS ESPECÍFICAS DEL ELE
 
         public static string CadenaDeEtapas(this FacturaRecDtm factura) => string.Join(Simbolos.separadorDeEtapas, factura.Etapas());
 
+        public static List<string> ListaDeEtapas(this FacturaRecDtm factura) => factura.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
+
         public static enumEtapasDeFacturasRec Etapa(this FacturaRecDtm factura)
         {
             var etapas = factura.Etapas();

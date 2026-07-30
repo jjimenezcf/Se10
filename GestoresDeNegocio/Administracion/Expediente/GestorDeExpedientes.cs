@@ -188,9 +188,6 @@ namespace GestoresDeNegocio.Expediente
             if (parametros.CargarLista == true)
                 return;
 
-            if (parametros.Parametros.ContainsKey(ltrParametrosNeg.Peticion) && (enumPeticion)parametros.Parametros[ltrParametrosNeg.Peticion] == enumPeticion.epLeerPorId)
-                elemento.Etapas = expediente.Lista();
-
             if (elemento.UsaTareas)
             {
                 var datos = expediente.Tiempos(Contexto);

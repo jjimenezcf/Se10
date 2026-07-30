@@ -27,6 +27,7 @@ using System.Linq.Dynamic.Core;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Utilidades;
+using static Utilidades.Ampliaciones;
 namespace GestorDeElementos
 {
 
@@ -1776,6 +1777,12 @@ namespace GestorDeElementos
                 ((IElementoDeUnProcesoDto)elemento).Tipo = ((ITipoDeElementoDtm)parametros.Parametros[nameof(TipoDeElementoDtm)]).Expresion;
                 ((IElementoDeUnProcesoDto)elemento).Estado = estado.Nombre;
                 ((IElementoDeUnProcesoDto)elemento).OrdenEstado = estado.Orden;
+
+                if (Metadatos?.ListaDeEtapas != null)
+                    ((IElementoDeUnProcesoDto)elemento).Etapas = Metadatos.ListaDeEtapas(registro);
+
+                if (registro.GetType().ImplementaPrioridad() && elemento.GetType().ImplementaPrioridadDto())
+                    ((IPrioridadDto)elemento).PrioridadGrid = ((IPrioridad)registro).PrioridadGridCss();
 
                 if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item =>
                           item == nameof(IElementoDeUnProcesoDto.TransitadoEl).ToLowerInvariant() ||

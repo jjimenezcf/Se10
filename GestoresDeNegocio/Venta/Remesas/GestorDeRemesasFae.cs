@@ -226,7 +226,6 @@ namespace GestoresDeNegocio.Ventas
             elemento.Pendiente = elemento.ImporteRemesa - elemento.Cobrado;
             elemento.Incluidas = remesa.Detalles<FacturaEmtDeUnaRemesaDtm>(Contexto).Count();
             elemento.Devueltas = remesa.Detalles<FacturaEmtDeUnaRemesaDtm>(Contexto).Where(x => x.DevueltoEl.HasValue).Count();
-            elemento.Etapas = remesa.ListaDeEtapas();
         }
 
         private void GenerarSepaPain008(ContextoSe contexto, RemesaFaeDtm remesa)

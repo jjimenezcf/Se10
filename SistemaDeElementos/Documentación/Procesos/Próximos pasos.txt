@@ -15,7 +15,7 @@ Si se edita un registro sin observacines, al editar el siguiente que si las tien
 Al crear un cobro de una Fae, si cambio la clase de cobro a contado, blanquear cuenta de ingreso (*) 28/07/2026
 Modificar los literales cuando se envía el correo, en el asunto y cuerpo (*) 28/07/2026
 incluir el concepto prioridad a una tarea (*) 30/07/2026
-Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo 
+Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo (*) 30/07/2026
 El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC  (*) 30/07/2026
 Al enviar un evento poner la descripción del evento en el cuerpo del mensaje (*) 30/07/2026
 Poder acceder al mapa desde el panel de control con todos los elementos activos

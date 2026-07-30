@@ -487,8 +487,6 @@ namespace GestoresDeNegocio.Gastos
             MapearDatosDeAcreedor(pago, elemento);
             if (parametros.Peticion == enumPeticion.epLeerPorId)
             {
-
-                elemento.Etapas = pago.ListaDeEtapas();
                 if (pago.IdCuentaDeAcreedor is not null)
                 {
                     MapearDatosDeLaCuentaAcreedora(pago, elemento);

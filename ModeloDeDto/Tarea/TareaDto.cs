@@ -9,7 +9,7 @@ using static ServicioDeDatos.Elemento.Enumerados;
 namespace ModeloDeDto.Tarea
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class TareaDto : ElementoDeUnProcesoDto, IUsaSolicitanteDto, IPuedeUsarResponsableDto
+    public class TareaDto : ElementoDeUnProcesoDto, IUsaSolicitanteDto, IPuedeUsarResponsableDto, IPrioridadDto
     {
         //-------------------------------------------------------------------------------------------------------
         [IUPropiedad(

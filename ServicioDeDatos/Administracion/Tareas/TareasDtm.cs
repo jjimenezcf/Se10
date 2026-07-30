@@ -36,25 +36,6 @@ namespace ServicioDeDatos.Tarea
         public ClaseDelNegocioDtm ClaseDeElemento { get; set; }
         public enumPrioridad? Prioridad { get; set; }
         
-        public string PrioridadGridCss
-        {
-            get
-            {
-                switch (Prioridad)
-                {
-                    case enumPrioridad.Urgente:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Urgente.Css()}";
-                    case enumPrioridad.Alta:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Alta.Css()}";
-                    case enumPrioridad.Media:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Media.Css()}";
-                    case enumPrioridad.Baja:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Baja.Css()}";
-                    default:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.NoDefinida.Css()}";
-                }
-            }
-        }
     }
 
     [Table(Tablas.TAREA + "_" + Sufijo.ESTADO, Schema = Esquemas.TAREA)]

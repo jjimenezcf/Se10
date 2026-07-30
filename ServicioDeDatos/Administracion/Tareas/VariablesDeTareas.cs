@@ -264,7 +264,7 @@ Ejemplos:
 
         public static List<int> Lista(this enumEtapasDeTareas etapa) => etapa.Estados().ToLista<int>(Simbolos.Coma);
 
-        public static List<string> Lista(this TareaDtm tarea) => tarea.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
+        public static List<string> ListaDeEtapas(this TareaDtm tarea) => tarea.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
 
         public static enumEtapasDeTareas Etapa(this TareaDtm tarea)
         {

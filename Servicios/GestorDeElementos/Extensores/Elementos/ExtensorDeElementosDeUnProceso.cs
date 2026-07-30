@@ -84,7 +84,7 @@ namespace GestorDeElementos.Extensores
             if (estados == null)
                 hitos = negocio.Hitos(contexto).Where(x => x.IdElemento == elemento.Id).OrderByDescending(x => x.Fecha);
             else
-                hitos = negocio.Hitos(contexto).Where(x => x.IdElemento == elemento.Id && estados.Contains(x.IdEstado)).OrderByDescending(x => x.Fecha); 
+                hitos = negocio.Hitos(contexto).Where(x => x.IdElemento == elemento.Id && estados.Contains(x.IdEstado)).OrderByDescending(x => x.Fecha);
             return hitos;
         }
 
@@ -359,7 +359,7 @@ namespace GestorDeElementos.Extensores
                 var suceso = new HistorialDto();
                 suceso.Id = sucesos.Count + 1;
                 suceso.IdRegistro = hito.Id;
-                suceso.Elemento = registro.Referencia; 
+                suceso.Elemento = registro.Referencia;
                 suceso.Clase = $"{ltrSucesosCss.suceso}{Simbolos.separadorCss}{ltrSucesosCss.hito}";
                 suceso.Suceso = i == 0
                 ? $"Se crea la {negocio.Singular(true)} en estado '{estado.Nombre}'"
@@ -395,7 +395,7 @@ namespace GestorDeElementos.Extensores
                 var suceso = new HistorialDto();
                 suceso.Id = sucesos.Count + 1;
                 suceso.IdRegistro = evento.Id;
-                suceso.Elemento = registro.Referencia(contexto); 
+                suceso.Elemento = registro.Referencia(contexto);
                 suceso.Clase = $"{ltrSucesosCss.suceso}{Simbolos.separadorCss}{ltrSucesosCss.evento}";
                 suceso.Suceso = evento.Nombre;
                 suceso.EstaCancelada = false;
@@ -616,6 +616,23 @@ namespace GestorDeElementos.Extensores
             }
         }
 
+
+        public static string PrioridadGridCss(this IPrioridad elemento)
+        { 
+            switch (elemento.Prioridad)
+            {
+                case enumPrioridad.Urgente:
+                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Urgente.Css()}";
+                case enumPrioridad.Alta:
+                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Alta.Css()}";
+                case enumPrioridad.Media:
+                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Media.Css()}";
+                case enumPrioridad.Baja:
+                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Baja.Css()}";
+                default:
+                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.NoDefinida.Css()}";
+            }
+        }
     }
 
     // Métodos compartidos para los resolvers de agrupación IA (Agrupados*.cs de cada negocio)
@@ -632,9 +649,9 @@ namespace GestorDeElementos.Extensores
 
             return prop.ToLowerInvariant() switch
             {
-                "idtipo"   => tipos  .FirstOrDefault(t => t.Id == idInt)?.Nombre ?? id.ToString(),
+                "idtipo" => tipos.FirstOrDefault(t => t.Id == idInt)?.Nombre ?? id.ToString(),
                 "idestado" => estados.FirstOrDefault(e => e.Id == idInt)?.Nombre ?? id.ToString(),
-                "idcg"     => cgs    .FirstOrDefault(c => c.Id == idInt)?.Nombre ?? id.ToString(),
+                "idcg" => cgs.FirstOrDefault(c => c.Id == idInt)?.Nombre ?? id.ToString(),
 
                 "idresponsable" or "idusuacrea" or "idusuamodi" =>
                     contexto.Set<UsuarioDtm>()
