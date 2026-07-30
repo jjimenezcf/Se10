@@ -167,6 +167,14 @@ namespace ServicioDeDatos.Tarea
 
 **Jerarquía:** Si se detecta una búsqueda por nombre o número (R.6.1), se omiten las reglas de situación (R.6.2 y R.6.3).
 
+### R.Tareas.7 · Prioridad de la Tarea (`PrioridadesDeTarea`)
+- **Disparador:** Tareas ""con prioridad [Valor]"", ""de prioridad [Valor1] y [Valor2]"", ""urgentes"", ""de alta prioridad"", ""prioridad baja/media/alta/urgente/no definida"".
+- **Acción:** Genera:
+  1. `{""Clausula"": ""PrioridadesDeTarea"", ""Criterio"": ""esAlgunoDe"", ""Valor"": ""Urgente;Alta""}`
+  2. `{""Clausula"": ""quemostrar"", ""Criterio"": ""igual"", ""Valor"": ""9""}` (Para incluir también las tareas terminadas/canceladas en la búsqueda por prioridad).
+- **Valores válidos:** `Urgente`, `Alta`, `Media`, `Baja`, `NoDefinida`. Usa EXACTAMENTE estos nombres (sin tildes ni espacios), separados por `;` si el usuario pide varias prioridades a la vez.
+- **Nota técnica:** El filtro compara directamente contra el enumerado `enumPrioridadDeTarea` de la tarea.
+
 ";
 
         internal static readonly string IA_Modelo_de_datos = $@"

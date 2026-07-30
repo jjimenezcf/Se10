@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Runtime.Serialization;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Expediente;
@@ -12,6 +7,12 @@ using ServicioDeDatos.Presupuesto;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Runtime.Serialization;
 using Utilidades;
 
 namespace ServicioDeDatos.Elemento
@@ -35,6 +36,13 @@ namespace ServicioDeDatos.Elemento
         public string Nombre { get; set; }
         public string Expresion { get; }
     }
+
+
+    public interface IPrioridad
+    {
+        public enumPrioridad? Prioridad { get; set; }
+    }
+
 
     public interface ISigla 
     {
@@ -557,6 +565,8 @@ namespace ServicioDeDatos.Elemento
         public static bool ImplementaNombre(this IRegistro registro) => registro.GetType().GetInterfaces().Contains(typeof(INombre));
         public static bool ImplementaRegistroDeParametrizacion(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(IRegistroDeParametrizacion).FullName);
         public static bool ImplementaNombre(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(INombre).FullName);
+        public static bool ImplementaPrioridad(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(IPrioridad).FullName);
+
         public static bool ImplementaSigla(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(ISigla).FullName);
         public static bool ImplemtaUnIDetalle(this Type tipoRegistro) => ApiDeEnsamblados.ImplementaInterface(tipoRegistro, typeof(IDetalle).FullName);
         public static bool ImplementaUnaRelacion(this IRegistro registro) => registro.GetType().GetInterfaces().Contains(typeof(IRelacion));

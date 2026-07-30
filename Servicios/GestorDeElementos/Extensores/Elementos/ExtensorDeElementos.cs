@@ -1099,6 +1099,11 @@ namespace GestorDeElementos.Extensores
                 var idClaseDeElemento = (int?)parametros.LeerValor<long?>(nameof(IUsaCalseDeElemento.IdClaseDeElemento), null);
                 ((IUsaCalseDeElemento)obj).IdClaseDeElemento = idClaseDeElemento == 0 || idClaseDeElemento == null ? null : idClaseDeElemento;
             }
+            if (T.ImplementaPrioridad())
+            {
+                var prioridad = (enumPrioridad)parametros.LeerValor<enumPrioridad>(nameof(IPrioridad.Prioridad), enumPrioridad.NoDefinida);
+                ((IPrioridad)obj).Prioridad = prioridad;
+            }
             return obj;
         }
 

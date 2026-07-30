@@ -167,6 +167,26 @@ namespace GestoresDeNegocio.Tarea
             return consulta;
         }
 
+        public static IQueryable<TareaDtm> FiltroPorPrioridad(this IQueryable<TareaDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.PrioridadesDeTarea.ToLower());
+            if (filtro != null)
+            {
+                var valores = filtro.Valor.Split(Simbolos.separadorDeCadenasDeFiltrado, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(v => ApiDeEnsamblados.ToEnumerado<enumPrioridad>(v.Trim(), errorSiNoEsValido: false))
+                    .Where(v => v != null)
+                    .Select(v => v.Value)
+                    .Distinct()
+                    .ToList();
+
+                if (valores.Count > 0)
+                    consulta = consulta.Where(tar => tar.Prioridad != null && valores.Contains(tar.Prioridad.Value));
+
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
         public static IQueryable<TareaDtm> FiltroDeVinculadosA(this IQueryable<TareaDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
         {
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrFiltros.VinculadosA.ToLower());

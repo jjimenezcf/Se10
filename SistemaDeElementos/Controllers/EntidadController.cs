@@ -6,8 +6,6 @@ using GestoresDeNegocio.SistemaDocumental;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ModeloDeDto;
-using ModeloDeDto.Expediente;
-using ModeloDeDto.Negocio;
 using MVCSistemaDeElementos.Descriptores;
 using Newtonsoft.Json;
 using ServicioDeDatos;
@@ -1067,8 +1065,12 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
         parametros.Add(ltrParametrosNeg.AplicarJoin, true);
         List<ClausulaDeFiltrado> filtros = filtro == null ? new List<ClausulaDeFiltrado>() : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtro);
         List<ClausulaDeOrdenacion> ordenes = orden == null ? new List<ClausulaDeOrdenacion>() : JsonConvert.DeserializeObject<List<ClausulaDeOrdenacion>>(orden);
-
-        if (ordenes.Count == 0 && ApiDeInterfaceDtm.ImplementaNombre(typeof(TRegistro)))
+        
+        if (ordenes.Count == 0 && ApiDeInterfaceDtm.ImplementaPrioridad(typeof(TRegistro)))
+        {
+            ordenes.Add(new ClausulaDeOrdenacion() { OrdenarPor = nameof(IPrioridad.Prioridad), Modo = ModoDeOrdenancion.ascendente });
+        }
+        else if (ordenes.Count == 0 && ApiDeInterfaceDtm.ImplementaNombre(typeof(TRegistro)))
         {
             ordenes.Add(new ClausulaDeOrdenacion() { OrdenarPor = nameof(RegistroConNombreDtm.Nombre), Modo = ModoDeOrdenancion.ascendente });
         }

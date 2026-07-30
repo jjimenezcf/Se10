@@ -366,7 +366,7 @@ namespace Utilidades
         Fae_Tras_Cambiar_Clase_De_Abono,
         Fae_InicializarModalParaCrearCobros,
         Fae_InicializarModalParaEditarCobros,
-        Fae_InicializarModalParaCrearAbonos, 
+        Fae_InicializarModalParaCrearAbonos,
         Fae_InicializarModalParaEditarAbonos,
         Fae_MapearFechaDeVencimiento,
         Fae_ProponerDatosDeLaFaeSeleccionada,
@@ -774,7 +774,7 @@ namespace Utilidades
         public const string Comun_Tamano_Del_Encolumnado = "tamano-del-encolumnado";
         public const string Comun_Cantidad_A_Leer = "cantidad-a-leer";
         public const string Comun_Tamano_Del_Visor = "tamano-del-visor";
-        public const string Comun_Mostrar_Visor_Al_iniciar = "MostrarVisorAlIniciar";        
+        public const string Comun_Mostrar_Visor_Al_iniciar = "MostrarVisorAlIniciar";
         public const string Comun_EliminarPlantillaCreacion = "eliminar-plantillas-creacion";
         public const string Comun_EliminarPlantillaFiltrado = "eliminar-plantillas-filtrado";
         public const string Comun_LeerDatosParaExportacion = "leer-datos-para-exportacion";
@@ -854,7 +854,7 @@ namespace Utilidades
         public const string Cli_PuestoDeTrabajo = "nuevo-puesto-trabajo";
         public const string Cli_NuevoClienteWeb = "nuevo-cliente-web";
         public const string Cli_AsociarClienteWeb = "vincular-cliente-web";
-        public const string Cli_ValidarNif = "validar-nif-aeat";              
+        public const string Cli_ValidarNif = "validar-nif-aeat";
 
         public const string Fae_CambiarVencimiento = "cambiar-vencimiento";
         public const string Fae_CopiarFae = "copiar-fae";
@@ -1972,7 +1972,7 @@ namespace Utilidades
                 case enumCssMnt.MenuDeMostrarDireccion: return "menu-de-mostrar-direccion";
                 case enumCssMnt.MenuDeMostrarDireccionInvisible: return "menu-de-mostrar-direccion-invisible";
 
-                    
+
 
                 case enumCssMnt.MenuFormulario: return "menu-formulario";
                 case enumCssMnt.DivVacioDeLaDerecha: return "div-vacio-derecha";
@@ -2152,7 +2152,7 @@ namespace Utilidades
 
         public const string NoEditablesMasJsonMasXml = ".xml, " + NoEditablesMasJson;
 
-        public const string Certificados = ".cer, .pfx, .p12" ;
+        public const string Certificados = ".cer, .pfx, .p12";
 
         public static readonly string xml = "." + enumExtensiones.xml.ToString();
 
@@ -2162,7 +2162,7 @@ namespace Utilidades
 
             if (errorSiNoEstaCatalogada && extension == null)
             {
-               throw new Exception("La extensión '" + extensionstring + "' no es una extensión de archivo válida");
+                throw new Exception("La extensión '" + extensionstring + "' no es una extensión de archivo válida");
             }
 
             //extension != ".jpg" && extension != ".jpeg" && extension != ".png" && extension != ".webp"
@@ -2170,9 +2170,9 @@ namespace Utilidades
             if (excluirSvg && extension.HasValue && extension == enumExtensiones.svg) return false;
 
             return extension.HasValue && (extension == enumExtensiones.png ||
-                extension == enumExtensiones.jpg || 
+                extension == enumExtensiones.jpg ||
                 extension == enumExtensiones.jpeg ||
-                extension == enumExtensiones.svg || 
+                extension == enumExtensiones.svg ||
                 extension == enumExtensiones.webp);
         }
 
@@ -2183,7 +2183,7 @@ namespace Utilidades
             {
                 throw new Exception("La extensión '" + extensionstring + "' no es una extensión de archivo válida");
             }
-            return extension.HasValue && extension == enumExtensiones.svg ;
+            return extension.HasValue && extension == enumExtensiones.svg;
         }
         public static string Render(this enumExtensiones extension) => $".{extension}";
 
@@ -2240,5 +2240,24 @@ namespace Utilidades
         Tarjeta,
         [Description("Banco")]
         Banco
+    }
+
+    public enum enumPrioridad
+    {
+        [Css("semaforo-violeta")]
+        [Description("Urgente")]
+        Urgente,
+        [Css("semaforo-rojo")]
+        [Description("Alta")]
+        Alta,
+        [Css("semaforo-azul")]
+        [Description("Media")]
+        Media,
+        [Css("semaforo-verde")]
+        [Description("Baja")]
+        Baja,
+        [Css("semaforo-amarillo")]
+        [Description("No definida")]
+        NoDefinida
     }
 }

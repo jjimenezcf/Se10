@@ -67,7 +67,8 @@ namespace GestoresDeNegocio.Tarea
 
         protected override IQueryable<TareaDtm> AplicarFiltros(IQueryable<TareaDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
-            if (filtros.Any(x => x.Clausula.ToLower() == ltrDeUnaTarea.IdFacturaEmt.ToLower() || (x.Clausula.ToLower() == ltrDeUnaTarea.Facturada.ToLower() && x.Valor.Entero() == ltrParametrosNeg.ConRelacion)))
+            if (filtros.Any(x => x.Clausula.ToLower() == ltrDeUnaTarea.IdFacturaEmt.ToLower() || (x.Clausula.ToLower() == ltrDeUnaTarea.Facturada.ToLower() && x.Valor.Entero() == ltrParametrosNeg.ConRelacion)
+                                  || x.Clausula.ToLower() == ltrDeUnaTarea.PrioridadesDeTarea.ToLower()))
             {
                 //var filtroEstado = filtros.FirstOrDefault(x => x.Clausula.Equals(ltrParametrosNeg.QueMostrar, StringComparison.InvariantCultureIgnoreCase));
                 //if (filtroEstado != null) filtroEstado.Valor = ltrParametrosNeg.MostrarTodos.ToString();
@@ -83,8 +84,9 @@ namespace GestoresDeNegocio.Tarea
             consulta = consulta.FiltroPorExpedientes(Contexto, filtros);
             consulta = consulta.FiltrosDeSolicitantes(Contexto, filtros);
             consulta = consulta.FiltrosDeResponsables(Contexto, filtros);
-            consulta = consulta.FiltrosDeFacturas(Contexto, filtros, parametros);   
+            consulta = consulta.FiltrosDeFacturas(Contexto, filtros, parametros);
             consulta = consulta.FiltroSiHayDependenciaDe(filtros, filtrarPor:ltrDeUnaTarea.IdResponsable, filtroDeAsociacion: ltrDeUnaTarea.Asignacion, parametros, aplicarFiltroDeEstado: true);
+            consulta = consulta.FiltroPorPrioridad(filtros);
             //consulta = consulta.FiltroPorEtapa(filtros);
             return consulta;
         }
@@ -303,7 +305,7 @@ namespace GestoresDeNegocio.Tarea
                 else elemento.Expediente = "";            
 
                 elemento.Etapas = tarea.Lista();
-                elemento.Prioridad = tarea.Prioridad == null ? enumPrioridadDeTarea.NoDefinida: ((enumPrioridadDeTarea)tarea.Prioridad);
+                elemento.Prioridad = tarea.Prioridad == null ? enumPrioridad.NoDefinida: ((enumPrioridad)tarea.Prioridad);
             }
 
             if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item => item == nameof(elemento.Durabilidad).ToLowerInvariant() ||

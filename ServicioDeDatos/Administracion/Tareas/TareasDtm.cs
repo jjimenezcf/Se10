@@ -14,7 +14,7 @@ namespace ServicioDeDatos.Tarea
 
 
     [Table(Tablas.TAREA, Schema = Esquemas.TAREA)]
-    public class TareaDtm : ElementoDeProcesoDtm, IUsaSolicitante, IPuedeUsarResponsable, IUsaCalseDeElemento, IUsaDirecciones
+    public class TareaDtm : ElementoDeProcesoDtm, IUsaSolicitante, IPuedeUsarResponsable, IUsaCalseDeElemento, IUsaDirecciones, IPrioridad
     {
         public enumClaseDeTarea ClaseDeTarea { get; set; }
         public int IdSolicitante { get; set; }
@@ -34,7 +34,7 @@ namespace ServicioDeDatos.Tarea
         public FacturaEmtDtm FacturaEmt { get; set; }
         public int? IdClaseDeElemento { get; set; }
         public ClaseDelNegocioDtm ClaseDeElemento { get; set; }
-        public enumPrioridadDeTarea? Prioridad { get; set; }
+        public enumPrioridad? Prioridad { get; set; }
         
         public string PrioridadGridCss
         {
@@ -42,16 +42,16 @@ namespace ServicioDeDatos.Tarea
             {
                 switch (Prioridad)
                 {
-                    case enumPrioridadDeTarea.Urgente:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Urgente.Css()}";
-                    case enumPrioridadDeTarea.Alta:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Alta.Css()}";
-                    case enumPrioridadDeTarea.Media:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Media.Css()}";
-                    case enumPrioridadDeTarea.Baja:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Baja.Css()}";
+                    case enumPrioridad.Urgente:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Urgente.Css()}";
+                    case enumPrioridad.Alta:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Alta.Css()}";
+                    case enumPrioridad.Media:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Media.Css()}";
+                    case enumPrioridad.Baja:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Baja.Css()}";
                     default:
-                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.NoDefinida.Css()}";
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.NoDefinida.Css()}";
                 }
             }
         }

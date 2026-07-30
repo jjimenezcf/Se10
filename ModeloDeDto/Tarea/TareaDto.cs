@@ -16,7 +16,7 @@ namespace ModeloDeDto.Tarea
             Etiqueta = "Prioridad",
             Ayuda = "seleccione la prioridad de la tarea",
             TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumPrioridadDeTarea),
+            Tipo = typeof(enumPrioridad),
             GuardarEn = nameof(Prioridad),
             Fila = 0,
             Columna = 1,
@@ -25,13 +25,15 @@ namespace ModeloDeDto.Tarea
             VisibleEnGrid = false
           )
         ]
-        public enumPrioridadDeTarea Prioridad { get; set; }
+        public enumPrioridad Prioridad { get; set; }
 
         //-------------------------------------------------------------------------------------------------------
         [IUPropiedad(
             TipoDeControl = enumTipoControl.CirculoEnCelda,
+            TamanoFijo = "2em",
             VisibleEnEdicion = false,
-            VisibleEnGrid = true
+            VisibleEnGrid = true,
+            OrdenarGridPor = nameof(Prioridad)
           )
         ]
         public string PrioridadGrid { get; set; }
