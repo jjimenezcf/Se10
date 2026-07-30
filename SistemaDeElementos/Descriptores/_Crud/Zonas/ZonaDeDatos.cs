@@ -288,6 +288,9 @@ namespace MVCSistemaDeElementos.Descriptores
                     columna.TamanoFijo = atributos.TamanoFijo;
                     columna.PorAnchoMnt = atributos.PorAnchoMnt;
                     columna.PorAnchoSel = atributos.PorAnchoSel == 0 ? atributos.PorAnchoMnt : atributos.PorAnchoSel;
+
+                    if (columna.TamanoFijo.IsNullOrEmpty() && atributos.TipoDeControlEnGrid == enumTipoControl.CirculoEnCelda)
+                        columna.TamanoFijo = "1em";
                 }
                 columna.Formato = atributos.Formato;
                 columna.EsFecha = atributos.EsFecha;

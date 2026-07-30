@@ -812,3 +812,33 @@ ul, ol {
         background: blue;
     }
 }
+
+/* Semáforo de prioridad pintado en el grid (enumTipoControl.SemaforoGrid).
+   El valor de la propiedad trae "semaforo-grid;semaforo-<Estado>" separado por ';',
+   así que la forma va en una clase base y el color en una clase por cada valor. */
+.semaforo-grid {
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.semaforo-violeta {
+    background-color: #8B0000; /* rojo fuerte */
+}
+
+.semaforo-rojo {
+    background-color: #E53935; /* rojo */
+}
+
+.semaforo-azul {
+    background-color: #1E88E5; /* azul */
+}
+
+.semaforo-verde {
+    background-color: #43A047; /* verde */
+}
+
+.semaforo-amarillo {
+    background-color: #FDD835; /* amarillo */
+}

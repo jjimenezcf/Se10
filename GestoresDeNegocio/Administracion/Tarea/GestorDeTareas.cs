@@ -284,6 +284,10 @@ namespace GestoresDeNegocio.Tarea
             if (parametros.CargarLista)
                 return;
 
+            elemento.PrioridadGrid = tarea.PrioridadGridCss;
+
+
+
             if (parametros.Peticion == enumPeticion.epLeerPorId)
             {
                 var expedientes = tarea.Vinculados<ExpedienteDtm>(Contexto);
@@ -296,11 +300,11 @@ namespace GestoresDeNegocio.Tarea
                 {
                     foreach (var expediente in expedientes) elemento.Expediente = elemento.Expediente.IsNullOrEmpty() ? $"{elemento.Expediente}" : $"{elemento.Expediente}, {expediente.Referencia}";
                 }
-                else elemento.Expediente = "";
-            }
+                else elemento.Expediente = "";            
 
-            if (parametros.Peticion == enumPeticion.epLeerPorId)
                 elemento.Etapas = tarea.Lista();
+                elemento.Prioridad = tarea.Prioridad == null ? enumPrioridadDeTarea.NoDefinida: ((enumPrioridadDeTarea)tarea.Prioridad);
+            }
 
             if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item => item == nameof(elemento.Durabilidad).ToLowerInvariant() ||
                                                         item == nameof(elemento.Planificada).ToLowerInvariant() ||

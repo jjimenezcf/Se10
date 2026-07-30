@@ -154,20 +154,15 @@ a {
 
 .div-con-mas-propiedades {
     width: 100%;
-    display: grid;
-    grid-template-rows: 1fr;
+    display: flex;
+    flex-flow: row nowrap;
     column-gap: 0.5em;
 }
 
     .div-con-mas-propiedades > div {
-        flex: 1 1 auto !important;
-        min-width: 45%; /* Ajusta este valor según tus necesidades */
+        flex: 1 1 0%;
+        min-width: 0;
     }
-
-.mostrar-solo-primer-control {
-    grid-template-columns: auto !important;
-    column-gap: 0em !important;
-}
 
 .div-con-contenido-en-derecha {
     place-content: end;

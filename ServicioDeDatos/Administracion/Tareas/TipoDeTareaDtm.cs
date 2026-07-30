@@ -19,14 +19,21 @@ namespace ServicioDeDatos.Tarea
 
     public enum enumPrioridadDeTarea 
     {
+        [Css("semaforo-violeta")]
         [Description("Urgente")]
         Urgente,
+        [Css("semaforo-rojo")]
         [Description("Alta")]
         Alta,
+        [Css("semaforo-azul")]
         [Description("Media")]
         Media,
+        [Css("semaforo-verde")]
         [Description("Baja")]
-        Baja
+        Baja,
+        [Css("semaforo-amarillo")]
+        [Description("No definida")]
+        NoDefinida
     }
 
 

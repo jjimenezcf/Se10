@@ -9,7 +9,7 @@ using static ServicioDeDatos.Elemento.Enumerados;
 namespace ModeloDeDto.Tarea
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class TareaDto : ElementoDeUnProcesoDto,IUsaSolicitanteDto, IPuedeUsarResponsableDto
+    public class TareaDto : ElementoDeUnProcesoDto, IUsaSolicitanteDto, IPuedeUsarResponsableDto
     {
         //-------------------------------------------------------------------------------------------------------
         [IUPropiedad(
@@ -21,10 +21,20 @@ namespace ModeloDeDto.Tarea
             Fila = 0,
             Columna = 1,
             Posicion = 2,
-            EditableAlEditar = true
+            EditableAlEditar = true,
+            VisibleEnGrid = false
           )
         ]
-        public string Prioridad { get; set; }
+        public enumPrioridadDeTarea Prioridad { get; set; }
+
+        //-------------------------------------------------------------------------------------------------------
+        [IUPropiedad(
+            TipoDeControl = enumTipoControl.CirculoEnCelda,
+            VisibleEnEdicion = false,
+            VisibleEnGrid = true
+          )
+        ]
+        public string PrioridadGrid { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------
         [IUPropiedad(
@@ -212,11 +222,11 @@ namespace ModeloDeDto.Tarea
         //-------------------------------------------------
         [IUPropiedad(Visible = false)]
         public bool EsFacturable { get; set; }
-        
+
         [IUPropiedad(Visible = false)]
         public decimal? Facturado { get; set; }
 
-        [IUPropiedad(Visible = false)] 
+        [IUPropiedad(Visible = false)]
         public enumDurabilidad? Medido { get; set; }
     }
 

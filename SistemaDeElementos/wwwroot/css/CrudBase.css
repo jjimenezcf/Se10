@@ -590,6 +590,20 @@ body.resizing-en-progreso * {
             grid-template-columns: 1fr !important;
         }
 
+        /* .div-con-mas-propiedades es flex (no grid); el equivalente para apilar sus
+           controles en móvil es forzar la dirección de la fila a columna. */
+        div[name="tr_lbl_propiedad"] .div-con-mas-propiedades {
+            flex-direction: column !important;
+        }
+
+            /* En columna, el flex-basis inline de cada control (p.ej. "flex: 0 0 50%")
+               pasaría a interpretarse como alto en vez de ancho; lo anulamos para que
+               cada control ocupe el 100% del ancho al apilarse. */
+            div[name="tr_lbl_propiedad"] .div-con-mas-propiedades > div {
+                flex: 1 1 auto !important;
+                width: 100% !important;
+            }
+
         /* 3. Anular el alineado a la derecha de los labels */
         /* Al poner text-align: left, sobreescribimos el comportamiento anterior */
         div[name="tr_lbl_propiedad"] .etiqueta-derecha-dto {

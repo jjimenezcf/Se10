@@ -7,17 +7,21 @@ https://console.cloud.google.com/welcome?project=sistema-de-elementos
 
 Correcciones y ampliaciones
 --------------------------------------------------------------------------------
+Crear las remesas de pagos y gasto conforme a la nueva normativa (*) 24/07/2026
+Aclarar lo de cuentas de ingreso (es la cuenta en la que le ingreso el pago al proveedor o solicitante) (*) 24/07/2026
+Aclarar lo de la cuenta de pago (es la cuenta de cuando giro recibos es donde ingresa dinero mi sociedad) (*) 24/07/2026
 prompt de filtro de tareas, ajustar según json (*) 25/07/2026
-Si se edita un registro sin observacines, al editar el siguiente que si las tiene no lo muestra
+Si se edita un registro sin observacines, al editar el siguiente que si las tiene no lo muestra (*) 25/07/2026
+Al crear un cobro de una Fae, si cambio la clase de cobro a contado, blanquear cuenta de ingreso (*) 28/07/2026
+incluir el concepto prioridad a una tarea (*) 30/07/2026
 Modificar los literales cuando se envía el correo, en el asunto y cuerpo y añadir botón a edición
 Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo
 El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC
 Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
-Crear las remesas de pagos y gasto conforme a la nueva normativa
 Poder acceder al mapa desde el panel de control con todos los elementos activos
 Poder navegar del pago a la remesa bancaria que lo contiene, añadir un restrictor
-Aclarar lo de cuentas de ingreso (es la cuenta en la que le ingreso el pago al proveedor o solicitante)
-Aclarar lo de la cuenta de pago (es la cuenta de cuando giro recibos es donde ingresa dinero mi sociedad)
+Incluir en metadatos el método ListaDeEtapas() genérico y quitarlo de los gestores de negocio (tarea.Lista())
+
 
 Prompt por definir de conteos
 -------------------------------------------------------------------------------

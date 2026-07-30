@@ -2816,6 +2816,17 @@ namespace Utilidades
         }
     }
 
+    public class CssAttribute : Attribute
+    {
+        public string Value { get; }
+
+        public CssAttribute(string value)
+        {
+            Value = value;
+        }
+    }
+
+
     public static class ExtensorDeEnum
     {
         public static string Descripcion(this Enum valorEnumerado, bool enMinusculas = false)
@@ -2850,6 +2861,21 @@ namespace Utilidades
                 }
             }
             return valorEnumerado.ToString();
+        }
+
+        public static string Css(this Enum cssEnumerado)
+        {
+            var type = cssEnumerado.GetType();
+            var memberInfo = type.GetMember(cssEnumerado.ToString());
+            if (memberInfo.Length > 0)
+            {
+                var attrs = memberInfo[0].GetCustomAttributes(typeof(CssAttribute), false);
+                if (attrs.Length > 0)
+                {
+                    return ((CssAttribute)attrs[0]).Value;
+                }
+            }
+            return cssEnumerado.ToString();
         }
 
         public static string ObtenerLaDescripcioDeUnEnumerado(Enum value)

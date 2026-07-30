@@ -1,15 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
+using System.ComponentModel.DataAnnotations.Schema;
 using Utilidades;
 
 namespace ServicioDeDatos.Tarea
 {
+
+
 
     [Table(Tablas.TAREA, Schema = Esquemas.TAREA)]
     public class TareaDtm : ElementoDeProcesoDtm, IUsaSolicitante, IPuedeUsarResponsable, IUsaCalseDeElemento, IUsaDirecciones
@@ -33,6 +35,26 @@ namespace ServicioDeDatos.Tarea
         public int? IdClaseDeElemento { get; set; }
         public ClaseDelNegocioDtm ClaseDeElemento { get; set; }
         public enumPrioridadDeTarea? Prioridad { get; set; }
+        
+        public string PrioridadGridCss
+        {
+            get
+            {
+                switch (Prioridad)
+                {
+                    case enumPrioridadDeTarea.Urgente:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Urgente.Css()}";
+                    case enumPrioridadDeTarea.Alta:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Alta.Css()}";
+                    case enumPrioridadDeTarea.Media:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Media.Css()}";
+                    case enumPrioridadDeTarea.Baja:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.Baja.Css()}";
+                    default:
+                        return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridadDeTarea.NoDefinida.Css()}";
+                }
+            }
+        }
     }
 
     [Table(Tablas.TAREA + "_" + Sufijo.ESTADO, Schema = Esquemas.TAREA)]

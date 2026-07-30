@@ -1,12 +1,11 @@
-﻿using System;
+﻿using GestorDeElementos;
+using GestoresDeNegocio.Entorno;
+using ModeloDeDto;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Utilidades;
-using ModeloDeDto;
-using GestoresDeNegocio.Entorno;
-using GestorDeElementos;
-using ServicioDeDatos;
-using Gestor.Errores;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -19,6 +18,8 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public DescriptorDeFila Fila { get; set; }
         public short NumeroColumna { get; set; }
+        public short PosicionDefinida { get; set; }
+
 
         internal string IdHtmlContenedor => $"{Fila.Tabla.IdHtml}-{Fila.NumeroFila}-{NumeroColumna}-crtl-{Atributos.Posicion}";
         internal string IdHtml => $"{Fila.Tabla.IdHtml}-{propiedad}";
@@ -80,9 +81,11 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             get
             {
-                for (short i = 0; i < NumeroDeControles; i++)
+                for (short i = 0; i <= PosicionMaxima; i++)
                 {
-                    var c = Controles[i];
+                    var c = ObtenerControlEnLaPosicion(i);
+                    if (c == null)
+                        continue;
                     if (c.Atributos.AutoSpan)
                         return AutoSpan;
                     if (c.Atributos.ColSpan > 0)
@@ -125,7 +128,7 @@ namespace MVCSistemaDeElementos.Descriptores
             get
             {
                 short i = 0;
-                while (i < NumeroDeControles)
+                while (i <= PosicionMaxima)
                 {
                     if (Controles.ContainsKey(i))
                     {
@@ -144,7 +147,7 @@ namespace MVCSistemaDeElementos.Descriptores
             get
             {
                 short i = 0;
-                while (i < NumeroDeControles)
+                while (i <= PosicionMaxima)
                 {
                     if (Controles.ContainsKey(i))
                     {
@@ -164,16 +167,11 @@ namespace MVCSistemaDeElementos.Descriptores
             NumeroColumna = indice;
         }
 
-        public void AnadirControl(short pos, PropertyInfo descriptor)
+        public void AnadirControl(short pos,short posicionDefinida, PropertyInfo descriptor)
         {
-
-            if (pos > Controles.Count)
-                //throw new Exception($"Para {descriptor.Name} se ha definido una posición mayor al nº de controles");
-                pos = (short)(Controles.Count);
-
             if (!Controles.ContainsKey(pos))
             {
-                Controles[pos] = new DescriptorDeControlDeLaTabla { Descriptor = descriptor, Fila = Fila, NumeroColumna = NumeroColumna };
+                Controles[pos] = new DescriptorDeControlDeLaTabla { Descriptor = descriptor, Fila = Fila, NumeroColumna = NumeroColumna, PosicionDefinida = posicionDefinida };
 
                 if (PosicionMaxima < pos)
                     PosicionMaxima = pos;
@@ -181,7 +179,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 NumeroDeControles = (short)(NumeroDeControles + 1);
             }
             else
-                AnadirControl((short)(pos + 1), descriptor);
+                AnadirControl((short)(pos + 1), posicionDefinida, descriptor);
 
         }
 
@@ -195,11 +193,13 @@ namespace MVCSistemaDeElementos.Descriptores
         public List<DescriptorDeControlDeLaTabla> ObtenerControles()
         {
             var l = new List<DescriptorDeControlDeLaTabla>();
-            for (var i = 0; i < NumeroDeControles; i++)
+            for (short i = 0; i <= PosicionMaxima; i++)
             {
-                l.Add(ObtenerControlEnLaPosicion((short)i));
+                var c = ObtenerControlEnLaPosicion(i);
+                if (c != null)
+                    l.Add(c);
             }
-            return l;
+            return l.OrderBy(c => c.PosicionDefinida).ToList();
         }
 
     }
@@ -328,7 +328,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 if (NumeroDeColumnas <= atributos.Columna)
                     NumeroDeColumnas = (short)(atributos.Columna + 1);
 
-                descriptorColumna.AnadirControl(atributos.Posicion, propiedad);
+                descriptorColumna.AnadirControl(atributos.Posicion, atributos.Posicion, propiedad);
             }
         }
 

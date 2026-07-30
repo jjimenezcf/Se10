@@ -46,7 +46,9 @@ namespace MVCSistemaDeElementos.Descriptores
             {
                 for (var t = j + 1; t < tabla.NumeroDeColumnas; t++)
                 {
-                    foreach (var c in tabla.ObtenerColumna(i, (short)(t)).ObtenerControles())
+                    var descriptorDeColumna = tabla.ObtenerColumna(i, (short)(t));
+                    var controles = descriptorDeColumna.ObtenerControles();
+                    foreach (var c in controles)
                     {
                         if (c.Atributos.MantenerHuecoDeLaIzquierda)
                         {
@@ -72,20 +74,18 @@ namespace MVCSistemaDeElementos.Descriptores
                      ";
             var celda = RenderControlesParaMapearLaCeldaDelTd(tabla, i, j);
             var rendercontroles = $@"
-                         <div id='{tabla.IdHtml}_{i}_{j}_celda' name='div-propiedad' [estiloCelda] class='div-propiedad [otraClase]'>
-                              {celda.html}
+                         <div id='{tabla.IdHtml}_{i}_{j}_celda' name='div-propiedad' class='div-propiedad [otraClase]'>
+                              {celda}
                          </div>";
 
             var columna = tabla.ObtenerFila(i).ObtenerColumna(j);
 
             if (HayMasDeUnControlVisibleEnLaColumna(tabla, columna))
             {
-                rendercontroles = rendercontroles.Replace("[estiloCelda]", $"style=¨{celda.estilo}¨");
                 rendercontroles = rendercontroles.Replace("[otraClase]", $" {enumCssDiv.DivConMasPropiedades.Render()} {(AlinearElContenidoALaDerecha(tabla, columna) ? enumCssDiv.DivConConteidoAlineadoALaDerecha.Render() : "")}");
             }
             else
             {
-                rendercontroles = rendercontroles.Replace("[estiloCelda]", "");
                 rendercontroles = rendercontroles.Replace("[otraClase]", $"{(cssDelDivDelaTd == enumCssDiv.Nulo ? "" : cssDelDivDelaTd.Render())}");
             }
 
@@ -106,14 +106,13 @@ namespace MVCSistemaDeElementos.Descriptores
             return (0,0);
         }
 
-        private static (string html, string estilo) RenderControlesParaMapearLaCeldaDelTd(DescriptorDeTabla tabla, short i, short j)
+        private static string RenderControlesParaMapearLaCeldaDelTd(DescriptorDeTabla tabla, short i, short j)
         {
             var porcentajeDeEtiqueta = (short)ApiDeAtributos.ValorDelAtributo(tabla.Tipo, nameof(IUDtoAttribute.AnchoEtiqueta));
             var pocentajeDeControl = 100 - porcentajeDeEtiqueta;
             var porcentajeDelSeparador = (short)ApiDeAtributos.ValorDelAtributo(tabla.Tipo, nameof(IUDtoAttribute.AnchoSeparador));
             var columna = tabla.ObtenerFila(i).ObtenerColumna(j);
             var htmlControles = "";
-            var estilo = "grid-template-columns: ";
             double anchoEtiqueta = columna.NumeroDeEtiquetasVisibles == 0 ? 0 : porcentajeDeEtiqueta / columna.NumeroDeEtiquetasVisibles;
             double anchoControl = columna.NumeroControlesVisibles == 0 ? 0 : (pocentajeDeControl - (porcentajeDelSeparador * (columna.NumeroControlesVisibles - 1))) / columna.NumeroControlesVisibles;
             bool anadirSeparador = false;
@@ -172,10 +171,13 @@ namespace MVCSistemaDeElementos.Descriptores
                             ancho = descriptorControl.Atributos.AnchoMaximoContenedor;
                         else if (!descriptorControl.Atributos.AnchoMaximo.IsNullOrEmpty())
                             ancho = descriptorControl.Atributos.AnchoMaximo;
-                        estilo = estilo + $" {ancho}";
+
+                        // Con flex, cada control fija su propio hueco en la fila; si no se
+                        // indicó un ancho concreto se deja el flex:1 1 auto por defecto del CSS.
+                        var estiloDelControl = ancho == "auto" ? "" : $"style=¨flex: 0 0 {ancho}¨";
+
                         htmlControles = htmlControles + Environment.NewLine +
-                        //style=¨width:{100/controlesVisibles}%¨
-                        $@"<div> 
+                        $@"<div {estiloDelControl}>
                             {htmlEtiqueta + Environment.NewLine + htmlControl + Environment.NewLine + htmlSeparador}
                            </div>";
                     }
@@ -184,11 +186,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 }
             }
 
-            if (!hayMasDeUnControl)
-            {
-                estilo = "";
-            }
-            return (htmlControles, estilo);
+            return htmlControles;
         }
 
         private static bool HayMasDeUnControlVisibleEnLaColumna(DescriptorDeTabla tabla, DescriptorDeColumna columna)

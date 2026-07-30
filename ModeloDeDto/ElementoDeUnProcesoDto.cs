@@ -105,7 +105,7 @@ namespace ModeloDeDto
             Columna = 1,
             Posicion = 1,
             VisibleEnGrid = false,
-            AnchoMaximoContenedor = "50%",
+            //AnchoMaximoContenedor = "50%",
             EsAlmacenable =true
           )
         ]

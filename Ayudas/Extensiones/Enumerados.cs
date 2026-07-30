@@ -1561,6 +1561,8 @@ namespace Utilidades
 
     public static class Css
     {
+        public const string SemaforoEnGrid = "semaforo-grid";
+
         public static string Render(this enumCssSelectorEnModal clase)
         {
             switch (clase)
