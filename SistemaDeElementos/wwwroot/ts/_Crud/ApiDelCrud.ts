@@ -314,6 +314,8 @@
         let panelHistorial = (document.getElementsByClassName(ltrCss.crud.PanelHistorial.historial)[0]) as HTMLDivElement;
         let crud = (document.getElementsByClassName(ltrCss.crud.cuerpo)[0]) as HTMLDivElement;
 
+        
+
         crud.classList.remove(ltrCss.crud.creando);
         crud.classList.remove(ltrCss.crud.editando);
         if (Definido(panelHistorial)) crud.classList.remove(ltrCss.crud.mostrandoHistorial);
@@ -322,7 +324,8 @@
             crud.classList.remove(ltrCss.crud.editarTrasCrear);
             ApiPanel.MostrarPanel(panelCabecera);
             ApiPanel.MostrarPanel(panelDatos);
-            ApiPanel.MostrarPanel(filtro);
+            if (!Crud.crudMnt.EstaElFiltroOculto())
+                ApiPanel.MostrarPanel(filtro);
             ApiPanel.MostrarPanel(grid);
             ApiPanel.MostrarPanel(panelPie);
             if (Definido(panelCreacion)) ApiPanel.OcultarPanel(panelCreacion);

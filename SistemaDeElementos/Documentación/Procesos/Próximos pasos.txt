@@ -13,9 +13,9 @@ Aclarar lo de la cuenta de pago (es la cuenta de cuando giro recibos es donde in
 prompt de filtro de tareas, ajustar según json (*) 25/07/2026
 Si se edita un registro sin observacines, al editar el siguiente que si las tiene no lo muestra (*) 25/07/2026
 Al crear un cobro de una Fae, si cambio la clase de cobro a contado, blanquear cuenta de ingreso (*) 28/07/2026
+Modificar los literales cuando se envía el correo, en el asunto y cuerpo (*) 28/07/2026
 incluir el concepto prioridad a una tarea (*) 30/07/2026
-Modificar los literales cuando se envía el correo, en el asunto y cuerpo y añadir botón a edición
-Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo
+Cuando vuelve de crear si el filtro está oculto, ocultarlo de nuevo (*) 30/07/2026
 El envío de un mensaje de evento de agenda ha de usar la hora actiual del servidor, no la de UTC
 Al enviar un evento poner la descripción del evento en el cuerpo del mensaje
 Poder acceder al mapa desde el panel de control con todos los elementos activos
