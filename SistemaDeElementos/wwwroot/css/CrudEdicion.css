@@ -904,10 +904,16 @@ div[propiedad="Dar de alta"] a[href^="javascript:Crud.EventosDeExpansores('dar-d
     /* La tarjeta blanca (Ventana) */
     .modal-mostrar-propiedad > div {
         background: white;
-        padding: 25px;
-        border-radius: 12px;
-        min-width: 350px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        padding: 16px;
+        border-radius: 8px;
+        width: 700px;
+        max-width: 96vw;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-sizing: border-box;
+        box-shadow: 0 8px 32px rgba(0,0,0,.22);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         transform: translateY(20px); /* Empieza un poco abajo */
         transition: transform 0.3s ease;
@@ -965,11 +971,6 @@ div[propiedad="Dar de alta"] a[href^="javascript:Crud.EventosDeExpansores('dar-d
             transform: scale(0.95);
         }
 
-
-.modal-footer-izquierda {
-    text-align: left; /* Cambiado de right a left */
-    margin-top: 25px;
-}
 
 .modal-body > textarea {
     width: 100%;

@@ -1180,7 +1180,7 @@ const ltrCss = {
         modal: {
             dinamica: 'modal-mostrar-propiedad',
             boton: 'btn-modal',
-            pie: 'modal-footer-izquierda',
+            pie: 'grafica-conteo-botones',
             cuerpo: 'modal-body',
             ContenedorDeHistorialIa: 'contenedor-historial-ia',
             LineaDelhistorialIa: 'item-historial-ia'
@@ -4152,34 +4152,36 @@ const ltrHtml = {
     },
     Modales: {
         PreguntasIa: `
-                 <div style="min-width: 500px; max-width: 600px;" id="modal-ia-container">
-                     <h2 style="margin-top: 0;">Asistente de Filtrado</h2>
-                     
+                 <div id="modal-ia-container">
+                     <div class="grafica-conteo-cabecera">
+                         <h2>Asistente de Filtrado</h2>
+                         <a id="link-ver-respuesta-ia" class="grafica-conteo-consultar" href="javascript:void(0);" style="display:none">Respuesta</a>
+                     </div>
+
                      <div id="vista-pregunta-ia">
                          <div class="${ltrCss.crud.modal.cuerpo}">
                              [htmlHistorial]
                              <p>¿Qué estás buscando? Cuéntamelo y generaré los filtros por ti:</p>
                              <textarea id="input-pregunta-ia" placeholder="Indícame nombre, tipo...">[pregunta]</textarea>
-                             <label style="display: flex; align-items: center; gap: 6px; margin-top: 8px; cursor: pointer;">
-                             <input type="checkbox" id="chk-nueva-pregunta" [nuevaconservacion] />
-                                  Nueva conversación
-                             </label>
                          </div>
-                         <div class="${ltrCss.crud.modal.pie}" style="display: flex; gap: 10px; margin-top: 15px;">
-                             <button class="${ltrCss.crud.modal.boton}" id="btn-ejecutar-pregunta" style="background-color: #28a745; color: white;">Preguntar</button>
-                             <button class="${ltrCss.crud.modal.boton}" id="btn-cerrar-dinamico">Cancelar</button>
-                             <button class="${ltrCss.crud.modal.boton}" id="btn-ver-respuesta-json" style="margin-left: auto; background-color: #007bff; color: white;">Respuesta</button>
+                         <div class="${ltrCss.crud.modal.pie}">
+                             <label class="grafica-conteo-misma-conv">
+                                 <input type="checkbox" id="chk-nueva-pregunta" [nuevaconservacion] />
+                                 Misma conversación
+                             </label>
+                             <button id="btn-cerrar-dinamico">Cerrar</button>
+                             <button id="btn-ejecutar-pregunta">Preguntar</button>
                          </div>
                      </div>
-                
+
                      <div id="vista-edicion-json" style="display: none;">
                          <div class="${ltrCss.crud.modal.cuerpo}">
                              <p>Configuración técnica del filtro (JSON):</p>
                              <textarea id="textarea-json-ia" style="width: 100%; height: 250px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; font-size: 12px; resize: vertical;"></textarea>
                          </div>
-                         <div class="${ltrCss.crud.modal.pie}" style="display: flex; gap: 10px; margin-top: 15px;">
-                             <button class="${ltrCss.crud.modal.boton}" id="btn-grabar-json" style="background-color: #28a745; color: white;">Grabar</button>
-                             <button class="${ltrCss.crud.modal.boton}" id="btn-volver-pregunta">Cerrar</button>
+                         <div class="${ltrCss.crud.modal.pie}">
+                             <button id="btn-volver-pregunta">Cerrar</button>
+                             <button id="btn-grabar-json">Grabar</button>
                          </div>
                      </div>
                  </div>`

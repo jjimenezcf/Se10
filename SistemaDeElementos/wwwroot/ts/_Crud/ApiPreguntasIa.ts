@@ -27,14 +27,13 @@ namespace ApiPreguntasIa {
             htmlHistorial = ltrHtml.Divs.PreguntasIa.replace('[PreguntasIa]', recientes.map(q => `<div class='${ltrCss.crud.modal.LineaDelhistorialIa}' title='${q.pregunta.replace(/"/g, '&quot;')}'>${q.pregunta}</div>`).join(''));
         }
 
+        const hayHistorial = historial.length > 0;
         modalOverlay.innerHTML = ltrHtml.Modales.PreguntasIa
             .replace('[htmlHistorial]', htmlHistorial)
-            .replace('[pregunta]', '');
+            .replace('[pregunta]', '')
+            .replace('[nuevaconservacion]', hayHistorial ? 'checked' : '');
+        crud.NuevaConversacion = !hayHistorial;
 
-        if (crud.NuevaConversacion === true || historial.length === 0) {
-            modalOverlay.innerHTML = modalOverlay.innerHTML.replace('[nuevaconservacion]', 'checked');
-            crud.NuevaConversacion = true;
-        }
         document.body.appendChild(modalOverlay);
 
         const vistaPregunta = modalOverlay.querySelector('#vista-pregunta-ia') as HTMLDivElement;
@@ -42,15 +41,22 @@ namespace ApiPreguntasIa {
         const txtInput = modalOverlay.querySelector('#input-pregunta-ia') as HTMLTextAreaElement;
         const txtJson = modalOverlay.querySelector('#textarea-json-ia') as HTMLTextAreaElement;
 
-        const btnRespuesta = modalOverlay.querySelector('#btn-ver-respuesta-json');
-        const btnVolver = modalOverlay.querySelector('#btn-volver-pregunta');
-        const btnGrabar = modalOverlay.querySelector('#btn-grabar-json');
-        const btnPreguntar = modalOverlay.querySelector('#btn-ejecutar-pregunta');
-        const btnCerrar = modalOverlay.querySelector('#btn-cerrar-dinamico');
+        const linkRespuesta = modalOverlay.querySelector('#link-ver-respuesta-ia') as HTMLAnchorElement;
+        linkRespuesta.style.display = '';
+        const btnVolver = modalOverlay.querySelector('#btn-volver-pregunta') as HTMLButtonElement;
+        const btnGrabar = modalOverlay.querySelector('#btn-grabar-json') as HTMLButtonElement;
+        const btnPreguntar = modalOverlay.querySelector('#btn-ejecutar-pregunta') as HTMLButtonElement;
+        const btnCerrar = modalOverlay.querySelector('#btn-cerrar-dinamico') as HTMLButtonElement;
 
-        btnRespuesta?.addEventListener('click', () => {
+        ApiControl.IncluirCss(btnCerrar, ltrCss.Modal.BotonSecundario);
+        ApiControl.IncluirCss(btnPreguntar, ltrCss.Modal.BotonPrincipal);
+        ApiControl.IncluirCss(btnVolver, ltrCss.Modal.BotonSecundario);
+        ApiControl.IncluirCss(btnGrabar, ltrCss.Modal.BotonPrincipal);
+
+        linkRespuesta?.addEventListener('click', () => {
             ApiPanel.OcultarPanel(vistaPregunta);
             ApiPanel.MostrarPanel(vistaJson);
+            linkRespuesta.style.display = 'none';
             const respuestaOriginal = crud.Preguntas.find(p => p.pregunta === txtInput.value)?.respuesta;
             ApiControl.MapearEnElAreaDeTextoUnJoson(txtJson, respuestaOriginal);
         });
@@ -58,6 +64,7 @@ namespace ApiPreguntasIa {
         btnVolver?.addEventListener('click', () => {
             ApiPanel.OcultarPanel(vistaJson);
             ApiPanel.MostrarPanel(vistaPregunta);
+            linkRespuesta.style.display = '';
         });
 
         btnGrabar?.addEventListener('click', () => {
@@ -89,15 +96,24 @@ namespace ApiPreguntasIa {
             }
         });
 
-        btnCerrar?.addEventListener('click', cerrar);
+        btnCerrar?.addEventListener('click', () => {
+            crud.Pregunta = null;
+            crud.CargarGrid();
+            const linkIA = document.getElementById('acceso-ia-preguntame');
+            if (linkIA) ApiControl.ExcluirCss(linkIA, ltrCss.modalesDeFiltro.conFiltro);
+            cerrar();
+        });
         modalOverlay.onclick = (e) => { if (e.target === modalOverlay) cerrar(); };
         setTimeout(() => txtInput.focus(), 100);
     }
 
     export function LanzarPregunta(crud: Crud.CrudMnt, texto: string): void {
         crud.Pregunta = texto;
-        crud.NuevaConversacion = (document.getElementById('chk-nueva-pregunta') as HTMLInputElement).checked;
-        crud.CargarGrid();
+        crud.NuevaConversacion = !(document.getElementById('chk-nueva-pregunta') as HTMLInputElement).checked;
+        crud.CargarGrid().then(() => {
+            const linkIA = document.getElementById('acceso-ia-preguntame');
+            if (linkIA) ApiControl.IncluirCss(linkIA, ltrCss.modalesDeFiltro.conFiltro);
+        });
     }
 
     // ─── Conteo IA desde el Panel de Control ────────────────────────────────
@@ -186,7 +202,6 @@ namespace ApiPreguntasIa {
         ApiControl.IncluirCss(btnCerrar,    'boton-modal');
         ApiControl.IncluirCss(btnCerrar,    'btn');
         ApiControl.IncluirCss(btnCerrar,    'btn-secondary');
-        ApiControl.IncluirCss(btnCerrar,    'boton-por-defecto');
         ApiControl.IncluirCss(btnPreguntar, 'boton-modal');
         ApiControl.IncluirCss(btnPreguntar, 'btn');
         ApiControl.IncluirCss(btnPreguntar, 'btn-primary');

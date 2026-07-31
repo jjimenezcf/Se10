@@ -1770,7 +1770,7 @@ a.deshabilitado {
 }
 
 .con-filtro {
-    color: indianred;
+    color: indianred !important;
 }
 
 .con-Contenido {
