@@ -12,6 +12,7 @@ namespace ModeloDeDto
         public const string UsaTotalizador = nameof(UsaTotalizador);
         public const string UsaDirecciones = nameof(UsaDirecciones);
         public const string PermitirFichas = nameof(PermitirFichas);
+        public const string UsaPrioridades = nameof(UsaPrioridades);
     }
 
     public interface IUsaNombreDto : IElementoDto

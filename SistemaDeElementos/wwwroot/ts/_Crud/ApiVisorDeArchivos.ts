@@ -565,16 +565,31 @@ namespace ApiVisorDeArchivos {
         const crud = Crud.crudMnt;
         if (!Definido(crud.ContenedorDeTablaConGraficos)) return false;
 
-        const contenedorPrincipalRect = crud.ContenedorDeTabla.parentElement.getBoundingClientRect();
+        const contenedorDeTabla = crud.ContenedorDeTabla;
+        const contenedorPrincipalRect = contenedorDeTabla.parentElement.getBoundingClientRect();
         const anchoTotal = contenedorPrincipalRect.width;
-        const nuevoAnchoTabla = contenedorPrincipalRect.width * 60 / 100;
         const anchoSplitter = 6;
+
+        let nuevoAnchoTabla: number;
+        if (crud.VistaDeFichasActiva) {
+            // El tablero de fichas no ocupa un 60% fijo: como mucho, la suma del ancho de
+            // sus encolumnados (su ancho de contenido real, vía scrollWidth). Solo si eso
+            // dejara menos de un 50% para datos/totales/documento, se limita al 50% (y el
+            // propio overflow-x:auto de div-vista-fichas muestra el scroll horizontal).
+            const anchoNatural = contenedorDeTabla.scrollWidth;
+            const anchoGraficosSiNatural = anchoTotal - anchoNatural - anchoSplitter;
+            nuevoAnchoTabla = anchoGraficosSiNatural >= anchoTotal * 0.5 ? anchoNatural : anchoTotal * 0.5;
+        }
+        else {
+            nuevoAnchoTabla = anchoTotal * 60 / 100;
+        }
+
         const nuevoAnchoGraficos = anchoTotal - nuevoAnchoTabla - anchoSplitter;
 
         const minWidth = 100;
         if (nuevoAnchoTabla < minWidth || nuevoAnchoGraficos < minWidth) return;
 
-        crud.ContenedorDeTabla.style.width = `${nuevoAnchoTabla}px`;
+        contenedorDeTabla.style.width = `${nuevoAnchoTabla}px`;
         crud.ContenedorDeGraficos.style.width = `${nuevoAnchoGraficos}px`;
         return true;
     }

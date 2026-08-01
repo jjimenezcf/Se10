@@ -115,6 +115,11 @@
             return this._permitirFichas;
         }
 
+        private _usaPrioridad: boolean
+        public get UsaPrioridad(): boolean {
+            return this._usaPrioridad;
+        }
+
         private _botonVistaDeFichas = null;
         public get BotonVistaDeFichas(): HTMLElement {
             if (!Definido(this._botonVistaDeFichas)) {
@@ -827,6 +832,8 @@
 
             if (this.PadreDelPanelDeTotales === this.PanelDeTotales.parentElement)
                 this.ContenedorDeGraficos.appendChild(this.PanelDeTotales);
+
+            ApiControl.ExcluirCss(this.ContenedorDeGraficos, ltrCss.crud.grid.ScrollHorizontalEnGraficos);
         }
 
 
@@ -847,6 +854,8 @@
                 this.ContenedorDeGraficos.appendChild(this.PanelDeArchivos);
             ApiControl.ExcluirCss(this.PanelDeArchivos, ltrCss.divNoVisible);
             this.crudDeEdicion.InicializarSoloArchivos(this.InfoSelector.IdsSeleccionados[0]);
+
+            ApiControl.ExcluirCss(this.ContenedorDeGraficos, ltrCss.crud.grid.ScrollHorizontalEnGraficos);
         }
 
         private PonerElDtoEnElVisorDeGraficos() {
@@ -864,6 +873,19 @@
                 ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarTotales);
             else
                 ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.ocultarDetalle);
+
+            this.ActualizarScrollHorizontalDeGraficos();
+        }
+
+        // table_propiedad es el contenedor que renderiza los datos del elemento seleccionado
+        // (DescriptorDeTabla.htmlRenderObjetoVacio). Si no cabe entero en div-graficos -p.ej.
+        // porque el tablero de fichas se quedó con el 50% del ancho- se activa scroll horizontal.
+        private ActualizarScrollHorizontalDeGraficos(): void {
+            const tablaPropiedad = this.ContenedorDeGraficos?.querySelector('[name="table_propiedad"]') as HTMLElement;
+            if (Definido(tablaPropiedad) && tablaPropiedad.scrollWidth > this.ContenedorDeGraficos.clientWidth)
+                ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.crud.grid.ScrollHorizontalEnGraficos);
+            else
+                ApiControl.ExcluirCss(this.ContenedorDeGraficos, ltrCss.crud.grid.ScrollHorizontalEnGraficos);
         }
 
         private PonerElDtoEnEdicion() {
@@ -1145,21 +1167,35 @@
         }
         private _contenedorDeFichas: HTMLDivElement = null;
 
+        // El botón alterna entre 3 estados: Tabla -> Fichas por Estado -> Fichas por Tipo -> Tabla.
+        // El paso Estado->Tipo no recarga del servidor, solo reagrupa la misma colección leída.
+        private _agruparFichasPorTipo: boolean = false;
+        private _ultimosRegistrosDeFichas: any[] = null;
+
         // detalle real (LeerPorIdParaEditar) del último elemento único leído vía
         // MostrarDatosPrincipales, tanto desde la tabla como desde una ficha; se usa para
         // habilitar bien los botones de transición aunque se cambie de vista entre medias
         private _detalleRealSeleccion: any = null;
 
         public AlternarVistaDeFichas(): void {
+            if (this._vistaDeFichasActiva && !this._agruparFichasPorTipo) {
+                // Fichas por Estado -> Fichas por Tipo: se repinta la misma colección ya leída
+                this._agruparFichasPorTipo = true;
+                this.PintarFichas(this._ultimosRegistrosDeFichas);
+                return;
+            }
+
             this._vistaDeFichasActiva = !this._vistaDeFichasActiva;
 
             if (this._vistaDeFichasActiva) {
+                this._agruparFichasPorTipo = false;
                 if (Definido(this.IconoVistaDeFichas)) ApiControl.IncluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
                 ApiControl.IncluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
                 if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
                 if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
                 this.CargarFichas();
             } else {
+                this._agruparFichasPorTipo = false;
                 if (Definido(this.IconoVistaDeFichas)) ApiControl.ExcluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
                 if (Definido(this._contenedorDeFichas)) ApiControl.IncluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
                 ApiControl.ExcluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
@@ -1201,7 +1237,8 @@
             let datosDeEntrada = new DatosPeticionNavegarGrid(this, atGrid.accion.buscar, 0);
             ApiDePeticiones.CargarGrid(this, this.Navegador.Controlador, atGrid.accion.buscar, 0, this.Navegador.Cantidad, datosDeEntrada, parametros)
                 .then((peticion) => {
-                    this.PintarFichas(peticion.resultado.datos.registros);
+                    this._ultimosRegistrosDeFichas = peticion.resultado.datos.registros;
+                    this.PintarFichas(this._ultimosRegistrosDeFichas);
                 })
                 .catch((peticion) => this.SiHayErrorAlCargarElGrid(peticion));
         }
@@ -1217,31 +1254,35 @@
             this._contenedorDeFichas.innerHTML = '';
             ApiControl.ExcluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
 
+            const propiedadDeAgrupacion = this._agruparFichasPorTipo ? 'tipo' : 'estado';
             const grupos = new Map<string, any[]>();
             registros.forEach((r) => {
-                const estado = ObtenerPropiedad(r, 'estado', '');
-                if (!grupos.has(estado)) grupos.set(estado, []);
-                grupos.get(estado).push(r);
+                const clave = ObtenerPropiedad(r, propiedadDeAgrupacion, '');
+                if (!grupos.has(clave)) grupos.set(clave, []);
+                grupos.get(clave).push(r);
             });
 
             const idsSeleccionados = this.InfoSelector.IdsSeleccionados;
 
-            // las columnas se ordenan por estado.DeProceso.OrdenEstado: las de orden menor
-            // quedan más a la izquierda. se toma el orden del primer registro de cada grupo,
-            // todos los de un mismo estado comparten el mismo valor.
+            // por Estado las columnas se ordenan por DeProceso.OrdenEstado (orden del flujo:
+            // las de orden menor quedan más a la izquierda); por Tipo, alfabéticamente.
             const gruposOrdenados = [...grupos.entries()].sort((a, b) => {
+                if (this._agruparFichasPorTipo) return a[0].localeCompare(b[0]);
                 const ordenA = Numero(ObtenerPropiedad(a[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
                 const ordenB = Numero(ObtenerPropiedad(b[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
                 return ordenA - ordenB;
             });
 
-            gruposOrdenados.forEach(([estado, tareas]) => {
+            let primeraTarjeta: HTMLDivElement = null;
+            let primerRegistro: any = null;
+
+            gruposOrdenados.forEach(([clave, tareas]) => {
                 const columna = document.createElement('div');
                 ApiControl.IncluirCss(columna, ltrCss.crud.grid.ColumnaFichas);
 
                 const cabecera = document.createElement('div');
                 ApiControl.IncluirCss(cabecera, ltrCss.crud.grid.CabeceraColumnaFichas);
-                cabecera.textContent = `${estado} (${tareas.length})`;
+                cabecera.textContent = `${clave} (${tareas.length})`;
                 columna.append(cabecera);
 
                 tareas.forEach((t) => {
@@ -1250,6 +1291,32 @@
                     const id = Numero(ObtenerPropiedad(t, 'id', 0));
                     tarjeta.dataset.id = String(id);
                     if (idsSeleccionados.indexOf(id) >= 0) ApiControl.IncluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada);
+
+                    if (!Definido(primeraTarjeta)) {
+                        primeraTarjeta = tarjeta;
+                        primerRegistro = t;
+                    }
+
+                    if (this._usaPrioridad) {
+                        const prioridadGrid: string = ObtenerPropiedad(t, 'PrioridadGrid', '');
+                        prioridadGrid.split(ltrSimbolos.separadorDeCss)
+                            .filter((clase) => clase && clase !== ltrCss.SemaforoEnGrid)
+                            // no se reutiliza tal cual la clase del semáforo (pintaría también el
+                            // fondo/forma del círculo del grid); solo se toma el color para el borde.
+                            .forEach((clase) => ApiControl.IncluirCss(tarjeta, `borde-${clase}`));
+                    }
+                    else {
+                        // el encolumnado ya muestra el criterio de agrupación (estado o tipo) en
+                        // la cabecera de la columna, así que el borde se colorea con el otro
+                        // criterio para no repetir la misma información.
+                        const idParaColor = this._agruparFichasPorTipo
+                            ? Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.IdEstado, 0))
+                            : Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0));
+                        if (idParaColor > 0) {
+                            const indice = (idParaColor % 20) + 1;
+                            ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indice}`);
+                        }
+                    }
 
                     // mismo title que ya recibe la fila equivalente en CrearCuerpoDeLaTabla
                     const detalle = ObtenerPropiedad(t, ltrPropiedades.Elemento.Descripcion, '');
@@ -1276,10 +1343,25 @@
             // aquí de forma incondicional para no depender de ese detalle.
             ApiVisorDeArchivos.OcultarContenedorDeGraficos();
 
-            // y si hay fichas seleccionadas (p.ej. venías de la tabla con algo seleccionado),
-            // reutiliza el mismo mecanismo que la selección de filas para mostrar
-            // splitter+gráficos, que reajustará el ancho de div-vista-fichas al 60%.
-            this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+            if (this.InfoSelector.Cantidad === 0) {
+                // si no quedó nada seleccionado (primera carga, o se filtró/recargó sin
+                // selección previa), se selecciona automáticamente la primera ficha de la
+                // primera columna, igual que si el usuario hubiera hecho click en ella
+                // (SeleccionarFicha ya se encarga de mostrar el panel correspondiente).
+                if (Definido(primeraTarjeta))
+                    this.SeleccionarFicha(primeraTarjeta, primerRegistro);
+            }
+            else {
+                // venías con selección de la tabla (una o varias): se muestra el panel con
+                // el mismo mecanismo robusto que usa una selección manual por click. Si se
+                // llamara directamente a EditarEnPanelDeGraficos con el visor oculto, este
+                // se limita a anotar internamente si tocaría totales y no lo despliega.
+                const visorOculto = !Definido(this.VisorDeDetalle) || this.VisorDeDetalle.classList.contains(ltrCss.crud.mostrarDetalle);
+                if (visorOculto)
+                    EventosDelMantenimiento(ltrEventos.Mnt.MostrarOcultarVisorDeDetalle, undefined);
+                else
+                    this.EditarEnPanelDeGraficos(true);
+            }
 
             // las tarjetas se han reconstruido de cero: si había fichas seleccionadas hay que
             // volver a insertarles los botones de transitar
@@ -1628,6 +1710,8 @@
             if (this._permitirFichas && Definido(this.BotonVistaDeFichas)) {
                 ApiControl.ExcluirCss(this.BotonVistaDeFichas, ltrCss.divNoVisible);
             }
+
+            this._usaPrioridad = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaPrioridades);
         }
 
         protected AplicarExpansores(estadosDelLosExpansores: Array<EstadoDeEspan>): void {

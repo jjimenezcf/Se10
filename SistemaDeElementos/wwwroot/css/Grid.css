@@ -48,6 +48,22 @@
     overflow-y: auto;
 }
 
+/* Cuando la ficha de datos (table_propiedad) no cabe entera en div-graficos -p.ej. porque
+   el tablero de fichas se quedó con el 50% y a datos le tocó menos sitio del habitual-,
+   se activa el scroll horizontal. Se quita en cuanto se muestran totales o documental. */
+.div-graficos.graficos-con-scroll-horizontal {
+    overflow-x: auto;
+}
+
+/* table_propiedad usa width:100% (.tabla-edicion), así que normalmente se encoge para
+   caber y nunca desborda por sí solo. Dentro de div-graficos (tanto si a su izquierda se
+   ve la tabla como el tablero de fichas) le damos un ancho mínimo legible, para que si el
+   hueco es más estrecho, desborde de verdad y aparezca el scroll horizontal de arriba. En
+   la vista de edición a pantalla completa no se toca: ahí ya cabía de sobra. */
+.div-graficos [name="table_propiedad"] {
+    min-width: 1000px;
+}
+
 /* En móvil el panel de gráficos nunca debe verse. Se fuerza por CSS (no por JS/clases)
    porque el media query se reevalúa solo con cada giro de pantalla; la visibilidad
    controlada por JS (div-no-visible) es una decisión puntual que no se repite al rotar,
@@ -133,6 +149,61 @@
     width: 20px;
     height: 20px;
 }
+
+/* Borde de la ficha coloreado según la prioridad. Son clases propias de la ficha
+   (borde-semaforo-*), no las del semáforo del grid, para no heredar su fondo/forma. */
+.tarjeta-ficha.borde-semaforo-violeta {
+    border-color: #8E24AA;
+    border-width: thick;
+    border-radius: 8px;
+}
+
+.tarjeta-ficha.borde-semaforo-rojo {
+    border-color: #E53935;
+    border-width: thick;
+    border-radius: 8px;
+}
+
+.tarjeta-ficha.borde-semaforo-azul {
+    border-color: #1E88E5;
+    border-width: thick;
+    border-radius: 8px;
+}
+
+.tarjeta-ficha.borde-semaforo-verde {
+    border-color: #43A047;
+    border-width: thick;
+    border-radius: 8px;
+}
+
+.tarjeta-ficha.borde-semaforo-amarillo {
+    border-color: #FDD835;
+    border-width: thick;
+    border-radius: 8px;
+}
+
+/* Cuando la ficha no usa prioridad, se colorea el borde con el mismo criterio y paleta
+   que usan las filas del grid (fila-estado-N: por Estado o, si no, por Tipo). */
+.tarjeta-ficha.fila-estado-1 { border-color: #2e7d32; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-2 { border-color: #827717; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-3 { border-color: #006064; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-4 { border-color: #1a237e; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-5 { border-color: #6a1b9a; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-6 { border-color: #795548; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-7 { border-color: #3e2723; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-8 { border-color: #263238; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-9 { border-color: #00796b; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-10 { border-color: #303f9f; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-11 { border-color: #7b1fa2; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-12 { border-color: #0288d1; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-13 { border-color: #e65100; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-14 { border-color: #4527a0; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-15 { border-color: #bf360c; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-16 { border-color: #01579b; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-17 { border-color: #004d40; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-18 { border-color: #1b5e20; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-19 { border-color: #33691e; border-width: thick; border-radius: 8px; }
+.tarjeta-ficha.fila-estado-20 { border-color: #880e4f; border-width: thick; border-radius: 8px; }
 
 .tarjeta-ficha.ficha-seleccionada {
     border-color: #2f7ed8;
@@ -824,7 +895,7 @@ ul, ol {
 }
 
 .semaforo-violeta {
-    background-color: #8B0000; /* rojo fuerte */
+    background-color: #8E24AA; /* violeta */
 }
 
 .semaforo-rojo {

@@ -1230,6 +1230,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
         indicadores.Add(IndCrud.UsaDirecciones, negocio != enumNegocio.No_Definido && negocio.UsaDirecciones());
 
         indicadores.Add(IndCrud.PermitirFichas, typeof(TRegistro).ImplementaElementoDeUnProceso());
+        indicadores.Add(IndCrud.UsaPrioridades, typeof(TRegistro).ImplementaPrioridad());
 
         return indicadores;
     }

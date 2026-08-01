@@ -1078,7 +1078,8 @@ const ltrCss = {
             TarjetaFichaSeleccionada: 'ficha-seleccionada',
             AccionesFicha: 'acciones-ficha',
             AccionesFichaGrupo: 'acciones-ficha-grupo',
-            BotonObservacionFicha: 'boton-observacion-ficha'
+            BotonObservacionFicha: 'boton-observacion-ficha',
+            ScrollHorizontalEnGraficos: 'graficos-con-scroll-horizontal'
         },
         dto: {
             tbody: 'dto-tbody',
@@ -1311,6 +1312,7 @@ const ltrCss = {
     contenedorConMasDeUnControl: 'div-con-mas-propiedades',
     mostrarSoloElPrimerControl: 'mostrar-solo-primer-control',
     controlOculto: 'control-oculto',
+    SemaforoEnGrid: 'semaforo-grid',
     Modal: {
         Boton: 'boton-modal',
         BotonPorDefecto: 'boton-por-defecto',
@@ -2458,7 +2460,8 @@ const ltrPropiedades = {
                 MostrarVisorAlIniciar: 'MostrarVisorAlIniciar',
                 UsaTotalizador: 'UsaTotalizador',
                 UsaDirecciones: 'UsaDirecciones',
-                PermitirFichas: 'PermitirFichas'
+                PermitirFichas: 'PermitirFichas',
+                UsaPrioridades: 'UsaPrioridades'
             }
         },
         seguridad: {
