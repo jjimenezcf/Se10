@@ -1066,7 +1066,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
         List<ClausulaDeFiltrado> filtros = filtro == null ? new List<ClausulaDeFiltrado>() : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtro);
         List<ClausulaDeOrdenacion> ordenes = orden == null ? new List<ClausulaDeOrdenacion>() : JsonConvert.DeserializeObject<List<ClausulaDeOrdenacion>>(orden);
         
-        if (ordenes.Count == 0 && ApiDeInterfaceDtm.ImplementaPrioridad(typeof(TRegistro)))
+        if (ordenes.Count == 0 && ApiDeInterfaceDtm.ImplementaPrioridad(typeof(TRegistro)) && _GestorDeElementos.Metadatos?.CalcularPrioridad == null)
         {
             ordenes.Add(new ClausulaDeOrdenacion() { OrdenarPor = nameof(IPrioridad.Prioridad), Modo = ModoDeOrdenancion.ascendente });
         }

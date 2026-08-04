@@ -54,6 +54,7 @@ namespace GestorDeElementos
 
         public Func<Enum, List<int>> EstadosDeLaEtapa;
         public Func<object, List<string>> ListaDeEtapas;
+        public Func<object, ContextoSe, enumPrioridad> CalcularPrioridad;
         public Type TipoParametros { get; set; }
 
         public Type DescriptoDeConsultas { get; set; } = null;
@@ -317,6 +318,7 @@ namespace GestorDeElementos
             TipoEtapas = typeof(enumEtapasDeFacturasRec),
             EstadosDeLaEtapa = etapa => VariableDeFacturasRec.Lista((enumEtapasDeFacturasRec)etapa),
             ListaDeEtapas = registro => ((FacturaRecDtm)registro).ListaDeEtapas(),
+            CalcularPrioridad = (registro, contexto) => ((FacturaRecDtm)registro).CalcularPrioridad(contexto),
             DireccionesDtm = typeof(DireccionDeUnaFacturaRecDtm),
             TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasRec, emitirError: false)
         };

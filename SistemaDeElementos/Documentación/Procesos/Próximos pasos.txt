@@ -32,6 +32,7 @@ Prompt por definir de conteos
 -------------------------------------------------------------------------------
 iva de facturas emitidas
 Pagos, expedientes, cobros, recibidas
+ordenar por prioridad --> fecha de vencimiento
 
 a
 Caifantasia: presentación

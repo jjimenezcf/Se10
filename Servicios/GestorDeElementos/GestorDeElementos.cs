@@ -1782,7 +1782,12 @@ namespace GestorDeElementos
                     ((IElementoDeUnProcesoDto)elemento).Etapas = Metadatos.ListaDeEtapas(registro);
 
                 if (registro.GetType().ImplementaPrioridad() && elemento.GetType().ImplementaPrioridadDto())
-                    ((IPrioridadDto)elemento).PrioridadGrid = ((IPrioridad)registro).PrioridadGridCss();
+                {
+                    var prioridad = Metadatos?.CalcularPrioridad != null
+                        ? Metadatos.CalcularPrioridad(registro, Contexto)
+                        : ((IPrioridad)registro).Prioridad ?? enumPrioridad.NoDefinida;
+                    ((IPrioridadDto)elemento).PrioridadGrid = prioridad.PrioridadGridCss();
+                }
 
                 if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item =>
                           item == nameof(IElementoDeUnProcesoDto.TransitadoEl).ToLowerInvariant() ||

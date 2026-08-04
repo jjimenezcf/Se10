@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using ServicioDeDatos.Negocio;
 using System.Linq;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Elemento;
 using GestorDeElementos;
 
 namespace MVCSistemaDeElementos.Descriptores
@@ -273,6 +274,9 @@ namespace MVCSistemaDeElementos.Descriptores
                 columna.Ayuda = atributos.Ayuda;
                 columna.Visible = atributos.EsVisible(enumModoDeTrabajo.Mantenimiento) && !atributos.Oculto;
                 columna.ConOrdenacion = !atributos.OrdenarGridPor.IsNullOrEmpty() ? true : atributos.Ordenar;
+                if (columna.ConOrdenacion && columna.Propiedad == nameof(IPrioridad.Prioridad) && !zonaDeDatos.EsHistorial
+                    && zonaDeDatos.Mnt.Crud.Negocio.ObtenerMetadatos()?.CalcularPrioridad != null)
+                    columna.ConOrdenacion = false;
                 columna.OrdenarPor = atributos.OrdenarGridPor;
                 columna.ColumnaOcultable = atributos.ColumnaOcultable;
                 columna.Alineada = atributos.Alineada == enumAliniacion.no_definida ? columna.Tipo.Alineada() : atributos.Alineada;

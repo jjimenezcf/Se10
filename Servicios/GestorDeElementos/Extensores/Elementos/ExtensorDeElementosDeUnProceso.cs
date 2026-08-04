@@ -617,9 +617,9 @@ namespace GestorDeElementos.Extensores
         }
 
 
-        public static string PrioridadGridCss(this IPrioridad elemento)
-        { 
-            switch (elemento.Prioridad)
+        public static string PrioridadGridCss(this enumPrioridad prioridad)
+        {
+            switch (prioridad)
             {
                 case enumPrioridad.Urgente:
                     return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Urgente.Css()}";

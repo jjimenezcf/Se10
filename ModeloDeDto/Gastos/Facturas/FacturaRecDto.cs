@@ -1,4 +1,5 @@
-﻿using ModeloDeDto.Contabilidad;
+﻿using DocumentFormat.OpenXml.Vml.Spreadsheet;
+using ModeloDeDto.Contabilidad;
 using ModeloDeDto.Expediente;
 using ModeloDeDto.Juridico;
 using ModeloDeDto.MaestrosTecnico;
@@ -26,7 +27,7 @@ namespace ModeloDeDto.Gastos
 
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class FacturaRecDto : ElementoDeUnProcesoDto
+    public class FacturaRecDto : ElementoDeUnProcesoDto, IPrioridadDto
     {
         [IUPropiedad(
           Etiqueta = "Factura proveedor",
@@ -696,6 +697,21 @@ namespace ModeloDeDto.Gastos
 
         [IUPropiedad(Visible = false)]
         public bool? EsIncorporada { get; set; }
+
+        //-------------------------------------------------------------------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public enumPrioridad Prioridad { get; set; }
+
+        //-------------------------------------------------------------------------------------------------------
+        [IUPropiedad(
+            TipoDeControl = enumTipoControl.CirculoEnCelda,
+            TamanoFijo = "2em",
+            VisibleEnEdicion = false,
+            VisibleEnGrid = true,
+            ColumnaOcultable = false
+          )
+        ]
+        public string PrioridadGrid { get; set; }
     }
 
 

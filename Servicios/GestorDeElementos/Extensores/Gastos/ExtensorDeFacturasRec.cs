@@ -445,6 +445,26 @@ namespace GestorDeElementos.Extensores
             return Math.Abs(importePdtDePago - pdtDeQueMeDevuelban) <= VariableDeFacturasRec.ToleranciaEnImportes();
         }
 
+        public static enumPrioridad CalcularPrioridad(this FacturaRecDtm factura, ContextoSe contexto)
+        {
+            var estado = factura.Estado(contexto);
+            if (estado.Terminado || estado.Cancelado || factura.EstaPagada(contexto))
+                return enumPrioridad.NoDefinida;
+
+            var diasParaVencer = (factura.VenceEl.Date - DateTime.Now.Date).Days;
+
+            if (diasParaVencer < 0)
+                return enumPrioridad.Urgente;
+
+            if (diasParaVencer < 7)
+                return enumPrioridad.Alta;
+
+            if (diasParaVencer < 14)
+                return enumPrioridad.Media;
+
+            return enumPrioridad.Baja;
+        }
+
 
         public static List<BiDelIvaPorNaturaleza> BiDelIvaPorNaturaleza(this FacturaRecDtm factura, ContextoSe contexto)
         {

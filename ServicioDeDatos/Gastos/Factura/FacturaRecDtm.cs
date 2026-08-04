@@ -16,7 +16,7 @@ namespace ServicioDeDatos.Gastos
 {
 
     [Table(Tablas.FACTURA_REC, Schema = Esquemas.GASTO)]
-    public class FacturaRecDtm : ElementoDeProcesoDtm, IUsaProveedor,IUsaArchivo, IUsaDirecciones, IUsaExpediente, IUsaPreasiento
+    public class FacturaRecDtm : ElementoDeProcesoDtm, IUsaProveedor,IUsaArchivo, IUsaDirecciones, IUsaExpediente, IUsaPreasiento,IPrioridad
     {
 
         public string Numero { get; set; }
@@ -61,6 +61,15 @@ namespace ServicioDeDatos.Gastos
         public int? IdPreasiento { get; set; }
 
         public PreasientoDtm Preasiento { get; set; }
+        
+        public enumPrioridad? Prioridad
+        { 
+            get
+            {
+                return enumPrioridad.NoDefinida;
+            }
+            set;
+        }
 
     }
 
@@ -139,6 +148,8 @@ namespace ServicioDeDatos.Gastos
 
         public static void FacturaRec(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<FacturaRecDtm>().Ignore(p => p.Prioridad);
+
             ApiDeElementoDtm.DefinirCamposDelElementoDtm<FacturaRecDtm>(modelBuilder);
             ApiDeElementoDtm.DefinirCampoCg<FacturaRecDtm>(modelBuilder, nameof(FacturaRecDtm.Cg));
             ApiDeElementoDtm.DefinirCampoTipo<FacturaRecDtm>(modelBuilder, nameof(FacturaRecDtm.Tipo));
