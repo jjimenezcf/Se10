@@ -205,6 +205,36 @@
 .tarjeta-ficha.fila-estado-19 { border-color: #33691e; border-width: thick; border-radius: 8px; }
 .tarjeta-ficha.fila-estado-20 { border-color: #880e4f; border-width: thick; border-radius: 8px; }
 
+/* Misma paleta que fila-estado-N, aplicada como color de texto a los campos Estado/Tipo
+   de la ficha (independiente del color del borde de la propia tarjeta). */
+.texto-fila-estado-1 { color: #2e7d32; }
+.texto-fila-estado-2 { color: #827717; }
+.texto-fila-estado-3 { color: #006064; }
+.texto-fila-estado-4 { color: #1a237e; }
+.texto-fila-estado-5 { color: #6a1b9a; }
+.texto-fila-estado-6 { color: #795548; }
+.texto-fila-estado-7 { color: #3e2723; }
+.texto-fila-estado-8 { color: #263238; }
+.texto-fila-estado-9 { color: #00796b; }
+.texto-fila-estado-10 { color: #303f9f; }
+.texto-fila-estado-11 { color: #7b1fa2; }
+.texto-fila-estado-12 { color: #0288d1; }
+.texto-fila-estado-13 { color: #e65100; }
+.texto-fila-estado-14 { color: #4527a0; }
+.texto-fila-estado-15 { color: #bf360c; }
+.texto-fila-estado-16 { color: #01579b; }
+.texto-fila-estado-17 { color: #004d40; }
+.texto-fila-estado-18 { color: #1b5e20; }
+.texto-fila-estado-19 { color: #33691e; }
+.texto-fila-estado-20 { color: #880e4f; }
+
+/* Misma paleta que borde-semaforo-*, aplicada como color de texto al campo Prioridad. */
+.texto-semaforo-violeta { color: #8E24AA; }
+.texto-semaforo-rojo { color: #E53935; }
+.texto-semaforo-azul { color: #1E88E5; }
+.texto-semaforo-verde { color: #43A047; }
+.texto-semaforo-amarillo { color: #FDD835; }
+
 .tarjeta-ficha.ficha-seleccionada {
     border-color: #2f7ed8;
     box-shadow: 0 0 0 2px rgba(47,126,216,.4);

@@ -285,9 +285,7 @@ namespace GestoresDeNegocio.Tarea
 
             if (parametros.CargarLista)
                 return;
-
-            elemento.PrioridadGrid = tarea.PrioridadGridCss();
-            
+                       
             if (parametros.Peticion == enumPeticion.epLeerPorId)
             {
                 var expedientes = tarea.Vinculados<ExpedienteDtm>(Contexto);

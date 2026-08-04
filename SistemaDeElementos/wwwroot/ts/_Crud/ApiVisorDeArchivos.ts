@@ -573,10 +573,19 @@ namespace ApiVisorDeArchivos {
         let nuevoAnchoTabla: number;
         if (crud.VistaDeFichasActiva) {
             // El tablero de fichas no ocupa un 60% fijo: como mucho, la suma del ancho de
-            // sus encolumnados (su ancho de contenido real, vía scrollWidth). Solo si eso
-            // dejara menos de un 50% para datos/totales/documento, se limita al 50% (y el
-            // propio overflow-x:auto de div-vista-fichas muestra el scroll horizontal).
+            // sus encolumnados (su ancho de contenido real). Solo si eso dejara menos de un
+            // 50% para datos/totales/documento, se limita al 50% (y el propio overflow-x:auto
+            // de div-vista-fichas muestra el scroll horizontal).
+            // El elemento todavía conserva el ancho (100%/60%/50%) que le dejó la última
+            // Ocultar/MostrarContenedorDeGraficos, así que su scrollWidth de por sí ya sale
+            // "estirado" a ese ancho aunque el contenido (p.ej. una sola columna) sea más
+            // estrecho; se fuerza brevemente a que se ajuste a su contenido para medir el
+            // ancho real, y se restaura antes de decidir el nuevo ancho.
+            const anchoPrevio = contenedorDeTabla.style.width;
+            contenedorDeTabla.style.width = 'max-content';
             const anchoNatural = contenedorDeTabla.scrollWidth;
+            contenedorDeTabla.style.width = anchoPrevio;
+
             const anchoGraficosSiNatural = anchoTotal - anchoNatural - anchoSplitter;
             nuevoAnchoTabla = anchoGraficosSiNatural >= anchoTotal * 0.5 ? anchoNatural : anchoTotal * 0.5;
         }

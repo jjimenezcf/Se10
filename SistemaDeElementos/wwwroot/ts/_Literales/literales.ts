@@ -1278,6 +1278,7 @@ const ltrCss = {
     filaCancelada: 'fila-cancelada',
     filaTerminada: 'fila-terminada',
     filaEstado: 'fila-estado',
+    textoFilaEstado: 'texto-fila-estado',
     tablaEdicion: 'tabla-edicion',
     cuerpoDeLaTabla: 'cuerpo-datos-tbody',
     cuerpoDeLaTablaGrid: 'cuerpo-datos-grid-tbody',

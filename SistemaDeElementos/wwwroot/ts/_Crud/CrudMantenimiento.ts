@@ -1223,6 +1223,7 @@
                     // se repinta la misma colección ya leída, sin recargar del servidor
                     this._propiedadDeAgrupacionDeFichas = siguiente;
                     this.PintarFichas(this._ultimosRegistrosDeFichas);
+                    this.ActualizarTituloDeVistaDeFichas();
                 }
                 else {
                     this.DesactivarVistaDeFichas();
@@ -1244,6 +1245,7 @@
             ApiControl.IncluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
             if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
             if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
+            this.ActualizarTituloDeVistaDeFichas();
             this.CargarFichas();
         }
 
@@ -1255,6 +1257,7 @@
             ApiControl.ExcluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
             if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
             if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
+            this.ActualizarTituloDeVistaDeFichas();
 
             // si se seleccionaron fichas estando en el tablero, sus filas en la tabla
             // todavía no están marcadas (la tabla no se repinta al cambiar de vista)
@@ -1268,6 +1271,43 @@
             if (EsDispositvoMovil())
                 return;
             this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+        }
+
+        // el title inicial ya lo renderiza el servidor con el plural correcto del negocio
+        // ("Ver <plural> en tablero por estado"); se reutiliza esa misma palabra para
+        // recomponer el title en cada cambio de modo, sin tener que exponerla aparte al cliente
+        private _pluralParaTituloDeFichas: string = undefined;
+        private ObtenerPluralParaTituloDeFichas(): string {
+            if (!Definido(this._pluralParaTituloDeFichas)) {
+                const tituloActual = Definido(this.BotonVistaDeFichas) ? this.BotonVistaDeFichas.getAttribute('title') : '';
+                const coincidencia = /^Ver (.+) en/.exec(tituloActual || '');
+                this._pluralParaTituloDeFichas = Definido(coincidencia) ? coincidencia[1] : '';
+            }
+            return this._pluralParaTituloDeFichas;
+        }
+
+        private TextoDePropiedadDeAgrupacion(propiedad: string): string {
+            switch (propiedad) {
+                case ttrModoPresentacion.tipo: return 'tipo';
+                case ttrModoPresentacion.prioridad: return 'prioridad';
+                case ttrModoPresentacion.proveedor: return 'proveedor';
+                default: return 'estado';
+            }
+        }
+
+        // el title del botón siempre anuncia a qué modo se pasará en la siguiente pulsación
+        private ActualizarTituloDeVistaDeFichas(): void {
+            if (!Definido(this.BotonVistaDeFichas)) return;
+
+            const siguiente = this._vistaDeFichasActiva
+                ? this.SiguientePropiedadDeAgrupacionDeFichas(this._propiedadDeAgrupacionDeFichas)
+                : ttrModoPresentacion.estado;
+
+            const plural = this.ObtenerPluralParaTituloDeFichas();
+            const titulo = Definido(siguiente)
+                ? `Ver ${plural} en tablero por ${this.TextoDePropiedadDeAgrupacion(siguiente)}`
+                : `Ver ${plural} en grid`;
+            this.BotonVistaDeFichas.setAttribute('title', titulo);
         }
 
         private SincronizarMarcasDeLaTablaConElInfoSelector(): void {
@@ -1294,6 +1334,19 @@
                     this.PintarFichas(this._ultimosRegistrosDeFichas);
                 })
                 .catch((peticion) => this.SiHayErrorAlCargarElGrid(peticion));
+        }
+
+        // índice (1-20) dentro de la paleta fila-estado-N / texto-fila-estado-N para un id de
+        // estado o de tipo; 0 si no hay id (no se pinta color)
+        private IndiceDeColorPorId(id: number): number {
+            return id > 0 ? (id % 20) + 1 : 0;
+        }
+
+        // clases de color (sin el prefijo borde-/texto-) que trae PrioridadGrid para el
+        // registro, ya sin la clase de forma/fondo del semáforo del grid
+        private ClasesDeColorDePrioridad(registro: any): string[] {
+            const prioridadGrid: string = ObtenerPropiedad(registro, 'PrioridadGrid', '');
+            return prioridadGrid.split(ltrSimbolos.separadorDeCss).filter((clase) => clase && clase !== ltrCss.SemaforoEnGrid);
         }
 
         public PintarFichas(registros: any[]): void {
@@ -1354,44 +1407,62 @@
                         primerRegistro = t;
                     }
 
+                    // se calculan una sola vez para reutilizarlos tanto en el borde de la
+                    // tarjeta como en el color del texto de los campos Estado/Tipo/Prioridad
+                    const indiceColorEstado = this.IndiceDeColorPorId(Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.IdEstado, 0)));
+                    const indiceColorTipo = this.IndiceDeColorPorId(Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0)));
+                    const clasesDeColorDePrioridad = this._usaPrioridad ? this.ClasesDeColorDePrioridad(t) : [];
+
                     if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) {
                         // el encolumnado ya agrupa por tipo/prioridad/proveedor, así que el
                         // borde siempre se colorea por el estado del registro.
-                        const idEstado = Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.IdEstado, 0));
-                        if (idEstado > 0) {
-                            const indice = (idEstado % 20) + 1;
-                            ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indice}`);
-                        }
+                        if (indiceColorEstado > 0) ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indiceColorEstado}`);
                     }
                     else if (this._usaPrioridad) {
-                        const prioridadGrid: string = ObtenerPropiedad(t, 'PrioridadGrid', '');
-                        prioridadGrid.split(ltrSimbolos.separadorDeCss)
-                            .filter((clase) => clase && clase !== ltrCss.SemaforoEnGrid)
-                            // no se reutiliza tal cual la clase del semáforo (pintaría también el
-                            // fondo/forma del círculo del grid); solo se toma el color para el borde.
-                            .forEach((clase) => ApiControl.IncluirCss(tarjeta, `borde-${clase}`));
+                        // no se reutiliza tal cual la clase del semáforo (pintaría también el
+                        // fondo/forma del círculo del grid); solo se toma el color para el borde.
+                        clasesDeColorDePrioridad.forEach((clase) => ApiControl.IncluirCss(tarjeta, `borde-${clase}`));
                     }
                     else {
                         // encolumnado por estado y sin prioridad: el borde se colorea por tipo.
-                        const idTipo = Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0));
-                        if (idTipo > 0) {
-                            const indice = (idTipo % 20) + 1;
-                            ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indice}`);
-                        }
+                        if (indiceColorTipo > 0) ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indiceColorTipo}`);
                     }
 
                     // mismo title que ya recibe la fila equivalente en CrearCuerpoDeLaTabla
                     const detalle = ObtenerPropiedad(t, ltrPropiedades.Elemento.Descripcion, '');
                     if (detalle) tarjeta.setAttribute('title', detalle);
 
+                    const cg = document.createElement('div');
+                    cg.textContent = `CG: ${ObtenerPropiedad(t, 'cg', '')}`;
+
+                    const tipo = document.createElement('div');
+                    tipo.textContent = `Tipo: ${ObtenerPropiedad(t, 'tipo', '')}`;
+                    if (indiceColorTipo > 0) ApiControl.IncluirCss(tipo, `${ltrCss.textoFilaEstado}-${indiceColorTipo}`);
+
+                    tarjeta.append(cg, tipo);
+
+                    // por Estado y por Tipo la cabecera de columna ya identifica el estado (o no
+                    // aplica); por Prioridad y por Proveedor no, así que se añade como campo propio.
+                    if (propiedadDeAgrupacion === ttrModoPresentacion.prioridad || propiedadDeAgrupacion === ttrModoPresentacion.proveedor) {
+                        const estado = document.createElement('div');
+                        estado.textContent = `Estado: ${ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.Estado, '')}`;
+                        if (indiceColorEstado > 0) ApiControl.IncluirCss(estado, `${ltrCss.textoFilaEstado}-${indiceColorEstado}`);
+                        tarjeta.append(estado);
+                    }
+
                     const nombre = document.createElement('div');
                     nombre.textContent = ObtenerPropiedad(t, 'nombre', '');
-                    const tipo = document.createElement('div');
-                    tipo.textContent = ObtenerPropiedad(t, 'tipo', '');
-                    const cg = document.createElement('div');
-                    cg.textContent = ObtenerPropiedad(t, 'cg', '');
+                    tarjeta.append(nombre);
 
-                    tarjeta.append(nombre, tipo, cg);
+                    // por Prioridad ya se agrupa por prioridad en la cabecera de columna, así que
+                    // no se repite; en el resto de agrupaciones se muestra bajo el nombre si aplica.
+                    if (this._usaPrioridad && propiedadDeAgrupacion !== ttrModoPresentacion.prioridad) {
+                        const prioridad = document.createElement('div');
+                        prioridad.textContent = `Prioridad: ${ObtenerPropiedad(t, 'Prioridad', '')}`;
+                        clasesDeColorDePrioridad.forEach((clase) => ApiControl.IncluirCss(prioridad, `texto-${clase}`));
+                        tarjeta.append(prioridad);
+                    }
+
                     tarjeta.addEventListener('click', (event: MouseEvent) => this.AlternarSeleccionDeFicha(tarjeta, t, event.ctrlKey));
                     columna.append(tarjeta);
                 });
