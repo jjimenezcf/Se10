@@ -204,6 +204,19 @@ namespace GestorDeElementos.Extensores
             }
         }
 
+        public static void Guardar_USU_Modo_De_Presentacion(this enumNegocio negocio, ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            var modoBd = negocio.LeerParametroDeUsuario<JObject>(contexto, enumParametrosDeUsuario.USU_Modo_De_Presentacion);
+            var modo = parametros.LeerValor<string>(ltrParametrosEp.datosPeticion);
+            JObject modoJson = JObject.FromObject(new { modoDePresentacion = modo });
+            if (modoBd is null || modoBd.ToString() != modoJson.ToString())
+            {
+                negocio.ResetearParametroDeUsuario(contexto, enumParametrosDeUsuario.USU_Modo_De_Presentacion, modoJson.ToString());
+                var indice = $"{contexto.DatosDeConexion.IdUsuario}-{ModoDescriptor.Mantenimiento}";
+                ServicioDeCaches.EliminarCachesDeDescriptores(indice);
+            }
+        }
+
         public static void Guardar_USU_Tamano_Del_Visor(this enumNegocio negocio, ContextoSe contexto, Dictionary<string, object> parametros)
         {
             var tamanoBd = negocio.LeerParametroDeUsuario<JObject>(contexto, enumParametrosDeUsuario.USU_Tamano_Del_Visor);

@@ -13,6 +13,7 @@ namespace ModeloDeDto
         public const string UsaDirecciones = nameof(UsaDirecciones);
         public const string PermitirFichas = nameof(PermitirFichas);
         public const string UsaPrioridades = nameof(UsaPrioridades);
+        public const string ModoDePresentacion = nameof(ModoDePresentacion);
     }
 
     public interface IUsaNombreDto : IElementoDto

@@ -709,6 +709,15 @@ namespace Utilidades
         public const string TrasSeleccionar = "tras-seleccionar";
         public const string OpcionSeleccionada = "opcion-seleccionar";
     }
+    public static class ModoDePresentacionCrud
+    {
+        public const string Grid = "grid";
+        public const string FichasPorEstado = "fichas-por-estado";
+        public const string FichasPorTipo = "fichas-por-tipo";
+        public const string FichasPorPrioridad = "fichas-por-prioridad";
+        public const string FichasPorProveedor = "fichas-por-proveedor";
+    }
+
     public static class eventosDeMf
     {
 
@@ -773,6 +782,7 @@ namespace Utilidades
         public const string Comun_Ordenacion_Del_Resultado = "ordenacion-del-resultado";
         public const string Comun_Tamano_Del_Encolumnado = "tamano-del-encolumnado";
         public const string Comun_Cantidad_A_Leer = "cantidad-a-leer";
+        public const string Comun_Modo_De_Presentacion = "modo-de-presentacion";
         public const string Comun_Tamano_Del_Visor = "tamano-del-visor";
         public const string Comun_Mostrar_Visor_Al_iniciar = "MostrarVisorAlIniciar";
         public const string Comun_EliminarPlantillaCreacion = "eliminar-plantillas-creacion";

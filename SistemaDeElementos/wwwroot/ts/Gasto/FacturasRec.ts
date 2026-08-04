@@ -98,6 +98,9 @@
             this._IdDeUnidadDeMedida = mapIndicadores.get(ltrPropiedades.Gasto.FacturaRec.Indicadores.UnidadDeMedida);
             this._IdDeNaturaleza = mapIndicadores.get(ltrPropiedades.Gasto.FacturaRec.Indicadores.Naturaleza);
             this._ComoTratarLaFechaDeRecepcion = mapIndicadores.get(ltrPropiedades.Gasto.FacturaRec.Indicadores.ComoTratarLaFechaDeRecepcion);
+            // TODO: forzado a true solo para probar el modo de fichas por proveedor; sustituir
+            // por el indicador real de servidor cuando se defina qué negocios usan proveedor.
+            this._usaProveedor = true;
         }
 
         public ProcesarOpcionMf(idNegocio: number, opcion: string, esContextual: boolean): void {

@@ -120,6 +120,11 @@
             return this._usaPrioridad;
         }
 
+        protected _usaProveedor: boolean = false;
+        public get UsaProveedor(): boolean {
+            return this._usaProveedor;
+        }
+
         private _botonVistaDeFichas = null;
         public get BotonVistaDeFichas(): HTMLElement {
             if (!Definido(this._botonVistaDeFichas)) {
@@ -1167,9 +1172,11 @@
         }
         private _contenedorDeFichas: HTMLDivElement = null;
 
-        // El botón alterna entre 3 estados: Tabla -> Fichas por Estado -> Fichas por Tipo -> Tabla.
-        // El paso Estado->Tipo no recarga del servidor, solo reagrupa la misma colección leída.
-        private _agruparFichasPorTipo: boolean = false;
+        // El botón alterna entre: Tabla -> Fichas por Estado -> Fichas por Tipo ->
+        // (si UsaPrioridad) Fichas por Prioridad -> (si UsaProveedor) Fichas por Proveedor -> Tabla.
+        // Los pasos entre agrupaciones de fichas no recargan del servidor, solo reagrupan la
+        // misma colección ya leída.
+        private _propiedadDeAgrupacionDeFichas: string = ttrModoPresentacion.estado;
         private _ultimosRegistrosDeFichas: any[] = null;
 
         // detalle real (LeerPorIdParaEditar) del último elemento único leído vía
@@ -1177,44 +1184,89 @@
         // habilitar bien los botones de transición aunque se cambie de vista entre medias
         private _detalleRealSeleccion: any = null;
 
+        // modo de presentación (grid, fichas por estado o fichas por tipo) guardado para
+        // este usuario y negocio; se lee al inicializar el crud y se aplica tras cargar los datos
+        private _modoDePresentacionGuardado: string = enumModoDePresentacion.Grid;
+
+        // secuencia de agrupaciones que recorre el botón de alternar vista de fichas
+        private static readonly _secuenciaDeAgrupacionesDeFichas = [
+            ttrModoPresentacion.estado,
+            ttrModoPresentacion.tipo,
+            ttrModoPresentacion.prioridad,
+            ttrModoPresentacion.proveedor
+        ];
+
+        private get ModoDePresentacionActual(): string {
+            if (!this._vistaDeFichasActiva) return enumModoDePresentacion.Grid;
+            switch (this._propiedadDeAgrupacionDeFichas) {
+                case ttrModoPresentacion.tipo: return enumModoDePresentacion.FichasPorTipo;
+                case ttrModoPresentacion.prioridad: return enumModoDePresentacion.FichasPorPrioridad;
+                case ttrModoPresentacion.proveedor: return enumModoDePresentacion.FichasPorProveedor;
+                default: return enumModoDePresentacion.FichasPorEstado;
+            }
+        }
+
+        // devuelve la siguiente propiedad de agrupación del ciclo de fichas, o null si toca
+        // volver a la tabla (fin del ciclo, o el negocio no soporta el siguiente paso)
+        private SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
+            if (actual === ttrModoPresentacion.estado) return ttrModoPresentacion.tipo;
+            if (actual === ttrModoPresentacion.tipo) return this._usaPrioridad ? ttrModoPresentacion.prioridad : null;
+            if (actual === ttrModoPresentacion.prioridad) return this._usaProveedor ? ttrModoPresentacion.proveedor : null;
+            return null;
+        }
+
         public AlternarVistaDeFichas(): void {
-            if (this._vistaDeFichasActiva && !this._agruparFichasPorTipo) {
-                // Fichas por Estado -> Fichas por Tipo: se repinta la misma colección ya leída
-                this._agruparFichasPorTipo = true;
-                this.PintarFichas(this._ultimosRegistrosDeFichas);
-                return;
-            }
-
-            this._vistaDeFichasActiva = !this._vistaDeFichasActiva;
-
             if (this._vistaDeFichasActiva) {
-                this._agruparFichasPorTipo = false;
-                if (Definido(this.IconoVistaDeFichas)) ApiControl.IncluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
-                ApiControl.IncluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
-                if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
-                if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
-                this.CargarFichas();
-            } else {
-                this._agruparFichasPorTipo = false;
-                if (Definido(this.IconoVistaDeFichas)) ApiControl.ExcluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
-                if (Definido(this._contenedorDeFichas)) ApiControl.IncluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
-                ApiControl.ExcluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
-                if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
-                if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
-
-                // si se seleccionaron fichas estando en el tablero, sus filas en la tabla
-                // todavía no están marcadas (la tabla no se repinta al cambiar de vista)
-                this.SincronizarMarcasDeLaTablaConElInfoSelector();
-
-                // ContenedorDeTabla ya resuelve de nuevo al div-grid-tabla real: primero lo deja
-                // al ancho máximo y luego, si había algo seleccionado (p.ej. veníamos de
-                // seleccionar una ficha), EditarEnPanelDeGraficos vuelve a mostrar
-                // splitter+gráficos con el 60/40 habitual.
-                ApiVisorDeArchivos.OcultarContenedorDeGraficos();
-                if (EsDispositvoMovil())
-                    return;
-                this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+                const siguiente = this.SiguientePropiedadDeAgrupacionDeFichas(this._propiedadDeAgrupacionDeFichas);
+                if (Definido(siguiente)) {
+                    // se repinta la misma colección ya leída, sin recargar del servidor
+                    this._propiedadDeAgrupacionDeFichas = siguiente;
+                    this.PintarFichas(this._ultimosRegistrosDeFichas);
+                }
+                else {
+                    this.DesactivarVistaDeFichas();
+                }
             }
+            else {
+                this.ActivarVistaDeFichas(ttrModoPresentacion.estado);
+            }
+            this.GuardarModoDePresentacion(this.ModoDePresentacionActual);
+        }
+
+        // activa la vista de fichas y carga los datos, agrupando desde el principio por la
+        // propiedad indicada; se usa tanto al pulsar el botón (siempre 'estado') como al
+        // aplicar, tras inicializar el crud, el modo guardado (que puede ser cualquiera)
+        private ActivarVistaDeFichas(propiedadDeAgrupacionInicial: string): void {
+            this._vistaDeFichasActiva = true;
+            this._propiedadDeAgrupacionDeFichas = propiedadDeAgrupacionInicial;
+            if (Definido(this.IconoVistaDeFichas)) ApiControl.IncluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
+            ApiControl.IncluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
+            if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
+            if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
+            this.CargarFichas();
+        }
+
+        private DesactivarVistaDeFichas(): void {
+            this._vistaDeFichasActiva = false;
+            this._propiedadDeAgrupacionDeFichas = ttrModoPresentacion.estado;
+            if (Definido(this.IconoVistaDeFichas)) ApiControl.ExcluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
+            if (Definido(this._contenedorDeFichas)) ApiControl.IncluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
+            ApiControl.ExcluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
+            if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
+            if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
+
+            // si se seleccionaron fichas estando en el tablero, sus filas en la tabla
+            // todavía no están marcadas (la tabla no se repinta al cambiar de vista)
+            this.SincronizarMarcasDeLaTablaConElInfoSelector();
+
+            // ContenedorDeTabla ya resuelve de nuevo al div-grid-tabla real: primero lo deja
+            // al ancho máximo y luego, si había algo seleccionado (p.ej. veníamos de
+            // seleccionar una ficha), EditarEnPanelDeGraficos vuelve a mostrar
+            // splitter+gráficos con el 60/40 habitual.
+            ApiVisorDeArchivos.OcultarContenedorDeGraficos();
+            if (EsDispositvoMovil())
+                return;
+            this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
         }
 
         private SincronizarMarcasDeLaTablaConElInfoSelector(): void {
@@ -1244,6 +1296,10 @@
         }
 
         public PintarFichas(registros: any[]): void {
+            // puede llegar null/undefined si se aplica el modo guardado al iniciar el crud y
+            // todavía no hay datos cargados (o si el negocio no tiene registros)
+            if (!Definido(registros)) registros = [];
+
             if (!Definido(this._contenedorDeFichas)) {
                 this._contenedorDeFichas = document.createElement('div');
                 ApiControl.IncluirCss(this._contenedorDeFichas, ltrCss.crud.grid.VistaFichas);
@@ -1254,7 +1310,7 @@
             this._contenedorDeFichas.innerHTML = '';
             ApiControl.ExcluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
 
-            const propiedadDeAgrupacion = this._agruparFichasPorTipo ? 'tipo' : 'estado';
+            const propiedadDeAgrupacion = this._propiedadDeAgrupacionDeFichas;
             const grupos = new Map<string, any[]>();
             registros.forEach((r) => {
                 const clave = ObtenerPropiedad(r, propiedadDeAgrupacion, '');
@@ -1265,9 +1321,9 @@
             const idsSeleccionados = this.InfoSelector.IdsSeleccionados;
 
             // por Estado las columnas se ordenan por DeProceso.OrdenEstado (orden del flujo:
-            // las de orden menor quedan más a la izquierda); por Tipo, alfabéticamente.
+            // las de orden menor quedan más a la izquierda); en el resto de agrupaciones, alfabéticamente.
             const gruposOrdenados = [...grupos.entries()].sort((a, b) => {
-                if (this._agruparFichasPorTipo) return a[0].localeCompare(b[0]);
+                if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) return a[0].localeCompare(b[0]);
                 const ordenA = Numero(ObtenerPropiedad(a[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
                 const ordenB = Numero(ObtenerPropiedad(b[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
                 return ordenA - ordenB;
@@ -1306,12 +1362,12 @@
                             .forEach((clase) => ApiControl.IncluirCss(tarjeta, `borde-${clase}`));
                     }
                     else {
-                        // el encolumnado ya muestra el criterio de agrupación (estado o tipo) en
-                        // la cabecera de la columna, así que el borde se colorea con el otro
-                        // criterio para no repetir la misma información.
-                        const idParaColor = this._agruparFichasPorTipo
-                            ? Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.IdEstado, 0))
-                            : Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0));
+                        // el encolumnado ya muestra el criterio de agrupación activo en la
+                        // cabecera de la columna, así que el borde se colorea con el otro
+                        // criterio (estado/tipo) para no repetir la misma información.
+                        const idParaColor = propiedadDeAgrupacion === ttrModoPresentacion.estado
+                            ? Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0))
+                            : Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.IdEstado, 0));
                         if (idParaColor > 0) {
                             const indice = (idParaColor % 20) + 1;
                             ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indice}`);
@@ -1712,6 +1768,32 @@
             }
 
             this._usaPrioridad = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaPrioridades);
+
+            let modoGuardado = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.ModoDePresentacion);
+            this._modoDePresentacionGuardado = Definido(modoGuardado) ? modoGuardado : enumModoDePresentacion.Grid;
+        }
+
+        // secuencia de modos que recorre el botón de alternar vista de fichas
+        private static readonly _secuenciaDeModosDePresentacion = [
+            enumModoDePresentacion.FichasPorEstado,
+            enumModoDePresentacion.FichasPorTipo,
+            enumModoDePresentacion.FichasPorPrioridad,
+            enumModoDePresentacion.FichasPorProveedor
+        ];
+
+        // aplica, tras cargar los datos del grid, el modo de presentación (fichas por estado,
+        // tipo, prioridad o proveedor) que el usuario tenía guardado para este negocio la
+        // última vez. Se activa la vista de fichas directamente en la agrupación objetivo (no
+        // simulando varias pulsaciones del botón: cada pulsación de estado->tipo->... repinta de
+        // forma síncrona la última colección leída, que todavía no existe la primera vez).
+        private AplicarModoDePresentacionAlIniciar(): void {
+            if (!this._permitirFichas || this._modoDePresentacionGuardado === enumModoDePresentacion.Grid)
+                return;
+
+            const pasos = CrudMnt._secuenciaDeModosDePresentacion.indexOf(this._modoDePresentacionGuardado);
+            if (pasos < 0) return;
+
+            this.ActivarVistaDeFichas(CrudMnt._secuenciaDeAgrupacionesDeFichas[pasos]);
         }
 
         protected AplicarExpansores(estadosDelLosExpansores: Array<EstadoDeEspan>): void {
@@ -1923,6 +2005,7 @@
                                 let miFiltro = ObtenerParametroUrl(ltrParametrosUrl.miFiltro, 0, false);
                                 this.CargarGrid().then(() => {
                                     this.ProcesarOpcionMf(this.IdNegocio, `${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}_${miFiltro}`, true);
+                                    this.AplicarModoDePresentacionAlIniciar();
                                 });
                             }
                             else if (parametros.find(p => p.clave === ltrParametrosUrl.origenDePeticion && p.valor?.toLowerCase() === 'paneldecontrol')) {
@@ -1931,7 +2014,7 @@
                                     const filtros = ApiPreguntasIa.LeerFiltrosPorGuid(guidParam.valor);
                                     if (filtros) this.FiltrosPrecomputados = filtros;
                                 }
-                                this.CargarGrid();
+                                this.CargarGrid().then(() => this.AplicarModoDePresentacionAlIniciar());
                             }
                             else {
                                 for (let i = 0; i < parametros.length; i++) {
@@ -1940,7 +2023,7 @@
                                         MapearAlControl.ListaDeValores(control, parametros[i].valor)
                                     }
                                 }
-                                this.CargarGrid();
+                                this.CargarGrid().then(() => this.AplicarModoDePresentacionAlIniciar());
                             }
                         }
                     }

@@ -2249,6 +2249,22 @@ const enumModoTrabajo = {
     historial: 'historial',
 };
 
+const enumModoDePresentacion = {
+    Grid: 'grid',
+    FichasPorEstado: 'fichas-por-estado',
+    FichasPorTipo: 'fichas-por-tipo',
+    FichasPorPrioridad: 'fichas-por-prioridad',
+    FichasPorProveedor: 'fichas-por-proveedor',
+};
+
+// propiedad por la que se agrupan las tarjetas dentro de la vista de fichas
+const ttrModoPresentacion = {
+    estado: 'estado',
+    tipo: 'tipo',
+    prioridad: 'prioridad',
+    proveedor: 'proveedor',
+};
+
 const ltrAccionesModal = {
     BloquearCg: 'bloquear-cg',
     ProponerCg: 'proponer-cg',
@@ -2461,7 +2477,8 @@ const ltrPropiedades = {
                 UsaTotalizador: 'UsaTotalizador',
                 UsaDirecciones: 'UsaDirecciones',
                 PermitirFichas: 'PermitirFichas',
-                UsaPrioridades: 'UsaPrioridades'
+                UsaPrioridades: 'UsaPrioridades',
+                ModoDePresentacion: 'ModoDePresentacion'
             }
         },
         seguridad: {
@@ -3842,6 +3859,7 @@ const ltrMenus = {
             GuardarDisposicionDeArchivos: 'guardar-disposicion-de-archivos',
             LeerDisposicionDeArchivos: 'leer-disposicion-de-archivos',
             CantidadALeeer: 'cantidad-a-leer',
+            ModoDePresentacion: 'modo-de-presentacion',
             TamanoDelVisor: ltrPropiedades.Entorno.Vista.Indicadores.TamanoDelVisor,
             TamanoDeGraficos: ltrPropiedades.Entorno.Vista.Indicadores.TamanoDeGraficos,
             MostrarVisorAlIniciar: ltrPropiedades.Entorno.Vista.Indicadores.MostrarVisorAlIniciar,

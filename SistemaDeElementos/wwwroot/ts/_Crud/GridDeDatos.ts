@@ -1581,6 +1581,25 @@
             return JSON.stringify(parametros);
         }
 
+        public async GuardarModoDePresentacion(modo: string) {
+            if (this.IdNegocio === 0)
+                return;
+
+            const params2 = {
+                [Ajax.Param.idNegocio]: Encriptar(literal.ClaveDeEncriptacion, this.IdNegocio),
+                [Ajax.Param.idVista]: Encriptar(literal.ClaveDeEncriptacion, this.IdVista),
+                [Ajax.Param.peticion]: Encriptar(literal.ClaveDeEncriptacion, ltrMenus.eventosDeMf.Comun.ModoDePresentacion)
+            };
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(Ajax.Param.datosPeticion, modo));
+            const url2 = `/${this.Controlador}/${Ajax.EndPoint.ProcesarPeticion}?${new URLSearchParams(params2)}`;
+            await fetch(url2, {
+                method: 'POST',
+                body: JSON.stringify(parametros),
+                keepalive: true
+            });
+        }
+
         public CompartirElemento() {
 
             if (this.InfoSelector.Cantidad != 1) {

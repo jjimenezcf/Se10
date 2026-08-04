@@ -362,11 +362,15 @@ namespace MVCSistemaDeElementos.Controllers
 
                 var mostrarVisor = (JObject)negocio.LeerParametroDeUsuario<JObject>(contexto, enumParametrosDeUsuario.USU_Mostrar_El_Visor_Al_Iniciar);
                 indicadores.Add(IndCrud.MostrarVisorAlIniciar, mostrarVisor.HasValues ? mostrarVisor[IndCrud.MostrarVisorAlIniciar].ToObject<bool>() : true);
+
+                var modoDePresentacion = (JObject)negocio.LeerParametroDeUsuario<JObject>(contexto, enumParametrosDeUsuario.USU_Modo_De_Presentacion);
+                indicadores.Add(IndCrud.ModoDePresentacion, modoDePresentacion.HasValues ? modoDePresentacion[ltrParametrosDeUsuarios.modoDePresentacion].ToObject<string>() : ModoDePresentacionCrud.Grid);
             }
             else
             {
                 indicadores.Add(eventosDeMf.Comun_Tamano_Del_Visor, 0);
                 indicadores.Add(IndCrud.MostrarVisorAlIniciar, true);
+                indicadores.Add(IndCrud.ModoDePresentacion, ModoDePresentacionCrud.Grid);
             }
             return indicadores;
         }
@@ -1217,6 +1221,10 @@ namespace MVCSistemaDeElementos.Controllers
                         vista.Guardar_USU_Cantidad_A_Leer(Contexto, parametros);
                     else
                         negocio.Guardar_USU_Cantidad_A_Leer(Contexto, parametros);
+                    return null;
+                case eventosDeMf.Comun_Modo_De_Presentacion:
+                    if (negocio != enumNegocio.No_Definido)
+                        negocio.Guardar_USU_Modo_De_Presentacion(Contexto, parametros);
                     return null;
                 case eventosDeMf.Comun_Tamano_Del_Visor:
                     negocio.Guardar_USU_Tamano_Del_Visor(Contexto, parametros);

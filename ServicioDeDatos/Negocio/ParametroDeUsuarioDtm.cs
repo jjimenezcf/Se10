@@ -23,6 +23,8 @@ namespace ServicioDeDatos.Negocio
         USU_Tamano_Del_Encolumnado,
         [Description("Información de la cantidad de registros por leer")]
         USU_Cantidad_A_Leer,
+        [Description("Modo de presentación del listado (grid, fichas por estado o fichas por tipo)")]
+        USU_Modo_De_Presentacion,
         [Description("Último tamaño del visor de archivos")]
         USU_Tamano_Del_Visor,
         [Description("Información sobre la disposición de los archivos")]
@@ -108,6 +110,7 @@ namespace ServicioDeDatos.Negocio
         public static readonly string tamanos = nameof(tamanos);
         public static readonly string cantidadPorLeer = nameof(cantidadPorLeer);
         public static readonly string tamanoDelVisor = nameof(tamanoDelVisor);
+        public static readonly string modoDePresentacion = nameof(modoDePresentacion);
     }
 
     public static partial class ModeloDeNegocio
