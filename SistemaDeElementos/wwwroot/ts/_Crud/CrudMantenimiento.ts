@@ -1176,7 +1176,7 @@
         // (si UsaPrioridad) Fichas por Prioridad -> (si UsaProveedor) Fichas por Proveedor -> Tabla.
         // Los pasos entre agrupaciones de fichas no recargan del servidor, solo reagrupan la
         // misma colección ya leída.
-        private _propiedadDeAgrupacionDeFichas: string = ttrModoPresentacion.estado;
+        protected _propiedadDeAgrupacionDeFichas: string = ttrModoPresentacion.estado;
         private _ultimosRegistrosDeFichas: any[] = null;
 
         // detalle real (LeerPorIdParaEditar) del último elemento único leído vía
@@ -1208,10 +1208,11 @@
 
         // devuelve la siguiente propiedad de agrupación del ciclo de fichas, o null si toca
         // volver a la tabla (fin del ciclo, o el negocio no soporta el siguiente paso)
-        private SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
-            if (actual === ttrModoPresentacion.estado) return ttrModoPresentacion.tipo;
-            if (actual === ttrModoPresentacion.tipo) return this._usaPrioridad ? ttrModoPresentacion.prioridad : null;
-            if (actual === ttrModoPresentacion.prioridad) return this._usaProveedor ? ttrModoPresentacion.proveedor : null;
+        protected SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
+            if (actual === ttrModoPresentacion.estado)
+                return ttrModoPresentacion.tipo;
+            if (actual === ttrModoPresentacion.tipo && this._usaPrioridad)
+                return ttrModoPresentacion.prioridad;
             return null;
         }
 

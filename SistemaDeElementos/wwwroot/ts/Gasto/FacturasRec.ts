@@ -175,6 +175,15 @@
             }
         }
 
+        protected SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
+            const siguiente = super.SiguientePropiedadDeAgrupacionDeFichas(this._propiedadDeAgrupacionDeFichas);
+            if (!Definido(siguiente)) {
+                if (actual === ttrModoPresentacion.tipo || actual === ttrModoPresentacion.prioridad)
+                    return ttrModoPresentacion.proveedor;
+            }
+            return siguiente;
+        }
+
         public ModalDePedirDatos_Aceptar(modal: HTMLDivElement) {
 
             let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
