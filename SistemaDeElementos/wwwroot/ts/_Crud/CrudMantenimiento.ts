@@ -1354,7 +1354,16 @@
                         primerRegistro = t;
                     }
 
-                    if (this._usaPrioridad) {
+                    if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) {
+                        // el encolumnado ya agrupa por tipo/prioridad/proveedor, así que el
+                        // borde siempre se colorea por el estado del registro.
+                        const idEstado = Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.IdEstado, 0));
+                        if (idEstado > 0) {
+                            const indice = (idEstado % 20) + 1;
+                            ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indice}`);
+                        }
+                    }
+                    else if (this._usaPrioridad) {
                         const prioridadGrid: string = ObtenerPropiedad(t, 'PrioridadGrid', '');
                         prioridadGrid.split(ltrSimbolos.separadorDeCss)
                             .filter((clase) => clase && clase !== ltrCss.SemaforoEnGrid)
@@ -1363,14 +1372,10 @@
                             .forEach((clase) => ApiControl.IncluirCss(tarjeta, `borde-${clase}`));
                     }
                     else {
-                        // el encolumnado ya muestra el criterio de agrupación activo en la
-                        // cabecera de la columna, así que el borde se colorea con el otro
-                        // criterio (estado/tipo) para no repetir la misma información.
-                        const idParaColor = propiedadDeAgrupacion === ttrModoPresentacion.estado
-                            ? Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0))
-                            : Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.IdEstado, 0));
-                        if (idParaColor > 0) {
-                            const indice = (idParaColor % 20) + 1;
+                        // encolumnado por estado y sin prioridad: el borde se colorea por tipo.
+                        const idTipo = Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0));
+                        if (idTipo > 0) {
+                            const indice = (idTipo % 20) + 1;
                             ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indice}`);
                         }
                     }
