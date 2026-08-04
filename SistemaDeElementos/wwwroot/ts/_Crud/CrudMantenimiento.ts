@@ -1434,16 +1434,18 @@
 
                     const cg = document.createElement('div');
                     cg.textContent = `CG: ${ObtenerPropiedad(t, 'cg', '')}`;
+                    tarjeta.append(cg);
 
-                    const tipo = document.createElement('div');
-                    tipo.textContent = `Tipo: ${ObtenerPropiedad(t, 'tipo', '')}`;
-                    if (indiceColorTipo > 0) ApiControl.IncluirCss(tipo, `${ltrCss.textoFilaEstado}-${indiceColorTipo}`);
+                    if (propiedadDeAgrupacion !== ttrModoPresentacion.tipo) {
+                        const tipo = document.createElement('div');
+                        tipo.textContent = `Tipo: ${ObtenerPropiedad(t, 'tipo', '')}`;
+                        if (indiceColorTipo > 0) ApiControl.IncluirCss(tipo, `${ltrCss.textoFilaEstado}-${indiceColorTipo}`);
+                        tarjeta.append(tipo);
+                    }
 
-                    tarjeta.append(cg, tipo);
-
-                    // por Estado y por Tipo la cabecera de columna ya identifica el estado (o no
+                    // por Estado la cabecera de columna ya identifica el estado (o no
                     // aplica); por Prioridad y por Proveedor no, así que se añade como campo propio.
-                    if (propiedadDeAgrupacion === ttrModoPresentacion.prioridad || propiedadDeAgrupacion === ttrModoPresentacion.proveedor) {
+                    if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) {
                         const estado = document.createElement('div');
                         estado.textContent = `Estado: ${ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.Estado, '')}`;
                         if (indiceColorEstado > 0) ApiControl.IncluirCss(estado, `${ltrCss.textoFilaEstado}-${indiceColorEstado}`);
