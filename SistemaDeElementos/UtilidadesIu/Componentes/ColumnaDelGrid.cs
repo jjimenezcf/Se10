@@ -68,6 +68,8 @@ namespace UtilidadesParaIu
 
         public HtmlDescriptorCabecera descriptor { get; set; }
         public string OrdenarPor { get; internal set; }
+        
+        public bool ColumnaOcultable { get; internal set; }        
 
         public enumCssGrid CssDeLaColumna { get; set; } = enumCssGrid.Nulo;
 

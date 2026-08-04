@@ -33,7 +33,8 @@ namespace ModeloDeDto.Tarea
             TamanoFijo = "2em",
             VisibleEnEdicion = false,
             VisibleEnGrid = true,
-            OrdenarGridPor = nameof(Prioridad)
+            OrdenarGridPor = nameof(Prioridad),
+            ColumnaOcultable = false
           )
         ]
         public string PrioridadGrid { get; set; }

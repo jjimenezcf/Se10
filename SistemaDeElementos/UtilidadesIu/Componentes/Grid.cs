@@ -120,6 +120,8 @@ namespace UtilidadesParaIu
                     renderizarTransicion = true;
             }
 
+            string spanColumnaOcultable = SpanColumnaOcultable(columna, renderizarIconos);
+
             var htmlTh = $@"{Environment.NewLine}
                           <div scope=¨col¨
                               id = ¨{columna.IdHtml}¨ 
@@ -142,10 +144,7 @@ namespace UtilidadesParaIu
                                              $"<img id='{columna.IdHtml}_menu' alt='copiar urls' class='fa-icono img-menu-chksel' onclick='ApiCrud.CopiarUrls()'>"
                                 )}
                               </div>
-                                {(columna.Propiedad.ToLower() == ltrColumnasDelGrid.chksel || !renderizarIconos ?
-                                             "" :
-                                             $"<span class='{enumCssGrid.OcultarColumna.Render()}' title='Ocultar columna'" +
-                                             $"onclick=¨Crud.EventosDelMantenimiento('{eventosDeMnt.OcultarMostrarColumnas}', '{columna.Propiedad.ToLower()}')¨></span>")}
+                                {spanColumnaOcultable}
                                 {(columna.Propiedad.ToLower() == ltrColumnasDelGrid.chksel || !renderizarIconos ?
                                              "" :
                                              $"<span class='{enumCssGrid.OrdenarColumna.Render()}{(!columna.ConOrdenacion ? $" {enumCssGrid.OrdenarColumnaNoPermitido.Render()}" : "")}'  title='{(!columna.ConOrdenacion ? "No permite ordenar por este campo" : "Ordenar")}' {(!columna.ConOrdenacion ? " disabled" : "")}" +
@@ -157,16 +156,17 @@ namespace UtilidadesParaIu
             return htmlTh;
         }
 
-        /*
-         
-                                {(columna.Propiedad.ToLower() == ltrColumnasDelGrid.chksel ? 
-                                             "": 
-                                             $"<span class='{enumCssGrid.OcultarColumna.Render()} " +
-                                             $"{(columna.Alineada == enumAliniacion.derecha ? enumCssGrid.OcultarColumnaDerecha.Render(): 
-                                                 columna.Alineada == enumAliniacion.izquierda ? enumCssGrid.OcultarColumnaIzquierda.Render(): enumCssGrid.OcultarColumnaCentrado.Render())}' " +
-                                             $"onclick=¨Crud.EventosDelMantenimiento('{eventosDeMnt.OcultarMostrarColumnas}', '{columna.Propiedad.ToLower()}')¨></span>")
-                                }
-         * */
+        private static string SpanColumnaOcultable(ColumnaDelGrid columna, bool renderizarIconos)
+        {
+            if (columna.Propiedad.ToLower() == ltrColumnasDelGrid.chksel || !renderizarIconos)
+                return "";
+            if (!columna.ColumnaOcultable)
+                return "";
+            return
+                $"<span class='{enumCssGrid.OcultarColumna.Render()}' title='Ocultar columna'" +
+                $"onclick=¨Crud.EventosDelMantenimiento('{eventosDeMnt.OcultarMostrarColumnas}', '{columna.Propiedad.ToLower()}')¨></span>";
+        }
+
 
         private static string RenderAccionOrdenar(dynamic padre, bool padreEsEditor, ColumnaDelGrid columna)
         {

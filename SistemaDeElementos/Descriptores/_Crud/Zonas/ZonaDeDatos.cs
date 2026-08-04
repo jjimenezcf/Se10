@@ -191,8 +191,8 @@ namespace MVCSistemaDeElementos.Descriptores
             if (expresionElemento != null)
                 mostrarExpresion = $"[{expresionElemento.GetValue(typeof(TElemento))}]";
             else
-            if (!ApiDeEnsamblados.HeredaDe(typeof(TElemento), typeof(ElementoDto)))
-                GestorDeErrores.Emitir($"Debe definir los campos que componen la 'exprexión del elemento' para el objeto {typeof(TElemento).Name}");
+                if (!ApiDeEnsamblados.HeredaDe(typeof(TElemento), typeof(ElementoDto)))
+                    GestorDeErrores.Emitir($"Debe definir los campos que componen la 'exprexión del elemento' para el objeto {typeof(TElemento).Name}");
 
 
             var idHtmlZonaFiltro = string.Empty;
@@ -274,6 +274,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 columna.Visible = atributos.EsVisible(enumModoDeTrabajo.Mantenimiento) && !atributos.Oculto;
                 columna.ConOrdenacion = !atributos.OrdenarGridPor.IsNullOrEmpty() ? true : atributos.Ordenar;
                 columna.OrdenarPor = atributos.OrdenarGridPor;
+                columna.ColumnaOcultable = atributos.ColumnaOcultable;
                 columna.Alineada = atributos.Alineada == enumAliniacion.no_definida ? columna.Tipo.Alineada() : atributos.Alineada;
                 columna.CssDeLaColumna = atributos.CssDeLaColumna;
                 var tamanoGuardado = tamanosDeColumnas.FirstOrDefault(t => t.Id.ToLower() == columna.Propiedad.ToLower());

@@ -161,6 +161,9 @@ namespace ModeloDeDto
         public short Posicion { get; set; } = 0;
         public object ValorPorDefecto { get; set; }
         public bool Ordenar { get; set; } = false;
+
+        public bool ColumnaOcultable { get; set; } = true;
+
         public bool EsFecha => TipoDeControl == enumTipoControl.SelectorDeFechaHora || TipoDeControl == enumTipoControl.SelectorDeFecha;
         public bool EsDecimal => Tipo == typeof(decimal) || Tipo == typeof(decimal?);
 

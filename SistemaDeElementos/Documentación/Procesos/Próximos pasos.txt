@@ -28,7 +28,7 @@ Prompt por definir de conteos
 iva de facturas emitidas
 Pagos, expedientes, cobros, recibidas
 
-
+a
 Caifantasia: presentación
 --------------------------------------------------------------------------------
 - Observación de parámetros no obligatoria
