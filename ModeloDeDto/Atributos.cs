@@ -202,6 +202,8 @@ namespace ModeloDeDto
         {
             get
             {
+                if (TipoDeControl == enumTipoControl.CirculoEnCelda && _alineada == enumAliniacion.no_definida)
+                    return enumAliniacion.centrada;
                 return Formato == enumFormato.Sin_Formato ? _alineada : _alineada != enumAliniacion.no_definida ? _alineada : enumAliniacion.derecha;
             }
             set { _alineada = value; }
