@@ -28,14 +28,14 @@ namespace GestoresDeNegocio.Tarea
         {
             var dll = Assembly.GetExecutingAssembly().GetName().Name;
             var clase = typeof(TrabajosDeTareas).FullName;
-            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosDeTareas.RecalcularPrioridad.Descripcion(), dll, clase, nameof(enumTrabajosDeTareas.RecalcularPrioridad), comunicarFin: true);
+            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosDeTareas.RecalcularPrioridad.Descripcion(), dll, clase, nameof(enumTrabajosDeTareas.RecalcularPrioridad), comunicarFin: false);
 
             var parametrosEntrada = new Dictionary<string, object> { };
 
             var datosDeCreacion = new Dictionary<string, object>
             {
                 { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() },
-                { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) },
+                { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddDays(1) },
             };
             return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion);
         }
