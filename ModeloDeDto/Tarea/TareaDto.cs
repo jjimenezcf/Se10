@@ -30,6 +30,7 @@ namespace ModeloDeDto.Tarea
         //-------------------------------------------------------------------------------------------------------
         [IUPropiedad(
             TipoDeControl = enumTipoControl.CirculoEnCelda,
+            Ayuda = "Prioridad asignada a la tarea",
             TamanoFijo = "2em",
             VisibleEnEdicion = false,
             VisibleEnGrid = true,

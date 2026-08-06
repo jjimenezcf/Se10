@@ -202,7 +202,7 @@ namespace ServicioDeDatos.Ventas
     }
 
     [Table(Tablas.FACTURA_EMT, Schema = Esquemas.VENTA)]
-    public class FacturaEmtDtm : ElementoDeProcesoDtm, IUsaCliente, IUsaArchivo, IUsaDirecciones, IUsaPreasiento, IUsaPresupuesto
+    public class FacturaEmtDtm : ElementoDeProcesoDtm, IUsaCliente, IUsaArchivo, IUsaDirecciones, IUsaPreasiento, IUsaPresupuesto, IPrioridad
     {
         public int? Ano { get; set; }
         public string Serie { get; set; }
@@ -265,6 +265,15 @@ namespace ServicioDeDatos.Ventas
 
         public PreasientoDtm Preasiento { get; set; }
         public VerifactuDtm Verifactu { get; set; }
+
+        public enumPrioridad? Prioridad
+        {
+            get
+            {
+                return enumPrioridad.NoDefinida;
+            }
+            set;
+        }
 
 
         public void ValidarIva(List<LineaDeUnaFaeDtm> lineas)
@@ -427,6 +436,7 @@ namespace ServicioDeDatos.Ventas
         {
 
             modelBuilder.Entity<FacturaEmtDtm>().Ignore(x => x.Periodo);
+            modelBuilder.Entity<FacturaEmtDtm>().Ignore(p => p.Prioridad);
 
             ApiDeElementoDtm.DefinirCamposDelElementoDtm<FacturaEmtDtm>(modelBuilder);
             ApiDeElementoDtm.DefinirCampoCg<FacturaEmtDtm>(modelBuilder, nameof(FacturaEmtDtm.Cg));

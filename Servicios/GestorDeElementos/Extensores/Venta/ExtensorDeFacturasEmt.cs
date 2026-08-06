@@ -1853,6 +1853,29 @@ namespace GestorDeElementos.Extensores
 
         public static bool EstaPendiente(this FacturaEmtDtm factura, ContextoSe contexto) => !factura.EstaCobrada(contexto);
 
+        public static enumPrioridad CalcularPrioridad(this FacturaEmtDtm factura, ContextoSe contexto)
+        {
+            var estado = factura.Estado(contexto);
+            if (estado.Terminado || estado.Cancelado || factura.EstaCobrada(contexto))
+                return enumPrioridad.NoDefinida;
+
+            if (factura.VenceEl is null)
+                return enumPrioridad.NoDefinida;
+
+            var diasParaVencer = (factura.VenceEl.Value.Date - DateTime.Now.Date).Days;
+
+            if (diasParaVencer < 0)
+                return enumPrioridad.Urgente;
+
+            if (diasParaVencer < 7)
+                return enumPrioridad.Alta;
+
+            if (diasParaVencer < 14)
+                return enumPrioridad.Media;
+
+            return enumPrioridad.Baja;
+        }
+
         public static decimal PendientePorCobrar(this FacturaEmtDtm factura, ContextoSe contexto)
         {
             if (factura.EsRectificativa)

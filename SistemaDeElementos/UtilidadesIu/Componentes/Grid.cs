@@ -134,14 +134,15 @@ namespace UtilidadesParaIu
                               formato = '{columna.Formato.Descripcion()}'
                               modo-ordenacion=¨{(columna.cssOrdenacion == enumCssOrdenacion.SinOrden ? $"{enumModoOrdenacion.sinOrden.Render()}" : $"{enumModoOrdenacion.ascendente.Render()}")}¨ 
                               {atributoTamano}
+                              {ayuda}
                               style = ¨{atributosDelEstilo}¨
                               alineacion=¨{columna.AlineacionCss}¨
                               ordenar-por = ¨{columna.OrdenarPor}¨>
-                              <div id ='{columna.IdHtml}_encabezado' {claseCssAlineacion}{ayuda}>
+                              <div id ='{columna.IdHtml}_encabezado' {claseCssAlineacion}>
                                 {htmlRef}
                                 {(columna.Propiedad.ToLower() != ltrColumnasDelGrid.chksel ?
                                              "" :
-                                             $"<img id='{columna.IdHtml}_menu' alt='copiar urls' class='fa-icono img-menu-chksel' onclick='ApiCrud.CopiarUrls()'>"
+                                             $"<img id='{columna.IdHtml}_menu' class='fa-icono img-menu-chksel'>"
                                 )}
                               </div>
                                 {spanColumnaOcultable}

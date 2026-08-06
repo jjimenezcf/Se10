@@ -298,6 +298,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeFacturasEmt),
             EstadosDeLaEtapa = etapa => VariableDeFacturasEmt.Lista((enumEtapasDeFacturasEmt)etapa),
             ListaDeEtapas = registro => ((FacturaEmtDtm)registro).ListaDeEtapas(),
+            CalcularPrioridad = (registro, contexto) => ((FacturaEmtDtm)registro).CalcularPrioridad(contexto),
             DireccionesDtm = typeof(DireccionDeUnaFacturaEmtDtm),
             PlantillasPorTipoDtm = typeof(PlantillaPorTipoDeFacturaEmtDtm),
             TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasEmt, emitirError: false)

@@ -15,7 +15,7 @@ namespace ModeloDeDto.Ventas
     }
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class FacturaEmtDto : ElementoDeUnProcesoDto
+    public class FacturaEmtDto : ElementoDeUnProcesoDto, IPrioridadDto
     {
         //-------------------------------------------------------------------------------------------------------------
         [IUPropiedad(
@@ -552,6 +552,21 @@ namespace ModeloDeDto.Ventas
         //[IUPropiedad(Visible = false)]
         //public decimal? ImportePorCobrar { get; set; }
 
+        //-------------------------------------------------------------------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public enumPrioridad Prioridad { get; set; }
+
+        //-------------------------------------------------------------------------------------------------------
+        [IUPropiedad(
+            TipoDeControl = enumTipoControl.CirculoEnCelda,
+            Ayuda = "Prioridad calculada en función de la fecha de vencimiento y cobros realizados",
+            TamanoFijo = "2em",
+            VisibleEnEdicion = false,
+            VisibleEnGrid = true,
+            ColumnaOcultable = false
+          )
+        ]
+        public string PrioridadGrid { get; set; }
 
     }
 

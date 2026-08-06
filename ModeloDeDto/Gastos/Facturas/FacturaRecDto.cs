@@ -705,6 +705,7 @@ namespace ModeloDeDto.Gastos
         //-------------------------------------------------------------------------------------------------------
         [IUPropiedad(
             TipoDeControl = enumTipoControl.CirculoEnCelda,
+            Ayuda = "Prioridad calculada en función de la fecha de vencimiento y pagos realizados",
             TamanoFijo = "2em",
             VisibleEnEdicion = false,
             VisibleEnGrid = true,
