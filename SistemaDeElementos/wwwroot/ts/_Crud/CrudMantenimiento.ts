@@ -120,11 +120,6 @@
             return this._usaPrioridad;
         }
 
-        protected _usaProveedor: boolean = false;
-        public get UsaProveedor(): boolean {
-            return this._usaProveedor;
-        }
-
         private _botonVistaDeFichas = null;
         public get BotonVistaDeFichas(): HTMLElement {
             if (!Definido(this._botonVistaDeFichas)) {
@@ -1193,7 +1188,8 @@
             ttrModoPresentacion.estado,
             ttrModoPresentacion.tipo,
             ttrModoPresentacion.prioridad,
-            ttrModoPresentacion.proveedor
+            ttrModoPresentacion.proveedor,
+            ttrModoPresentacion.cliente
         ];
 
         private get ModoDePresentacionActual(): string {
@@ -1202,12 +1198,13 @@
                 case ttrModoPresentacion.tipo: return enumModoDePresentacion.FichasPorTipo;
                 case ttrModoPresentacion.prioridad: return enumModoDePresentacion.FichasPorPrioridad;
                 case ttrModoPresentacion.proveedor: return enumModoDePresentacion.FichasPorProveedor;
+                case ttrModoPresentacion.cliente: return enumModoDePresentacion.FichasPorCliente;
                 default: return enumModoDePresentacion.FichasPorEstado;
             }
         }
 
         // devuelve la siguiente propiedad de agrupación del ciclo de fichas, o null si toca
-        // volver a la tabla (fin del ciclo, o el negocio no soporta el siguiente paso)
+        // volver a la tabla (fin del ciclo, o el negocio nusaproo soporta el siguiente paso)
         protected SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
             if (actual === ttrModoPresentacion.estado)
                 return ttrModoPresentacion.tipo;
@@ -1291,6 +1288,7 @@
                 case ttrModoPresentacion.tipo: return 'tipo';
                 case ttrModoPresentacion.prioridad: return 'prioridad';
                 case ttrModoPresentacion.proveedor: return 'proveedor';
+                case ttrModoPresentacion.cliente: return 'cliente';
                 default: return 'estado';
             }
         }
@@ -1857,7 +1855,8 @@
             enumModoDePresentacion.FichasPorEstado,
             enumModoDePresentacion.FichasPorTipo,
             enumModoDePresentacion.FichasPorPrioridad,
-            enumModoDePresentacion.FichasPorProveedor
+            enumModoDePresentacion.FichasPorProveedor,
+            enumModoDePresentacion.FichasPorCliente
         ];
 
         // aplica, tras cargar los datos del grid, el modo de presentación (fichas por estado,

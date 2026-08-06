@@ -2256,6 +2256,7 @@ const enumModoDePresentacion = {
     FichasPorTipo: 'fichas-por-tipo',
     FichasPorPrioridad: 'fichas-por-prioridad',
     FichasPorProveedor: 'fichas-por-proveedor',
+    FichasPorCliente: 'fichas-por-cliente'
 };
 
 // propiedad por la que se agrupan las tarjetas dentro de la vista de fichas
@@ -2264,6 +2265,7 @@ const ttrModoPresentacion = {
     tipo: 'tipo',
     prioridad: 'prioridad',
     proveedor: 'proveedor',
+    cliente: 'cliente',
 };
 
 const ltrAccionesModal = {

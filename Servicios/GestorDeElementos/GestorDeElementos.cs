@@ -271,13 +271,13 @@ namespace GestorDeElementos
             if (parametros.Operacion == enumTipoOperacion.Insertar)
                 Contexto.Add(registro);
             else
-            if (parametros.Operacion == enumTipoOperacion.Modificar)
-                Contexto.Update(registro);
-            else
-            if (parametros.Operacion == enumTipoOperacion.Eliminar)
-                Contexto.Remove(registro);
-            else
-                GestorDeErrores.Emitir($"Solo se pueden persistir operaciones del tipo {enumTipoOperacion.Insertar} o  {enumTipoOperacion.Modificar} o {enumTipoOperacion.Eliminar}");
+                if (parametros.Operacion == enumTipoOperacion.Modificar)
+                    Contexto.Update(registro);
+                else
+                    if (parametros.Operacion == enumTipoOperacion.Eliminar)
+                        Contexto.Remove(registro);
+                    else
+                        GestorDeErrores.Emitir($"Solo se pueden persistir operaciones del tipo {enumTipoOperacion.Insertar} o  {enumTipoOperacion.Modificar} o {enumTipoOperacion.Eliminar}");
             try
             {
                 Contexto.SaveChanges();
@@ -573,16 +573,16 @@ namespace GestorDeElementos
                     ((IAuditoria)registro).FechaCreacion = parametros.FechaDeCreacion == default ? DateTime.Now : parametros.FechaDeCreacion;
                 }
                 else
-                if (parametros.Operacion == enumTipoOperacion.Modificar)
-                {
-                    ((IAuditoria)registro).IdUsuaCrea = ((IAuditoria)parametros.registroEnBd).IdUsuaCrea;
-                    ((IAuditoria)registro).FechaCreacion = ((IAuditoria)parametros.registroEnBd).FechaCreacion;
-                    ((IAuditoria)registro).IdUsuaModi = Contexto.DatosDeConexion.IdUsuario;
-                    if (parametros.Parametros.LeerValor<DateTime>(ltrParametrosNeg.FechaDeTransicion, default) == default)
-                        ((IAuditoria)registro).FechaModificacion = DateTime.Now;
-                    else
-                        ((IAuditoria)registro).FechaModificacion = parametros.Parametros.LeerValor<DateTime>(ltrParametrosNeg.FechaDeTransicion, default);
-                }
+                    if (parametros.Operacion == enumTipoOperacion.Modificar)
+                    {
+                        ((IAuditoria)registro).IdUsuaCrea = ((IAuditoria)parametros.registroEnBd).IdUsuaCrea;
+                        ((IAuditoria)registro).FechaCreacion = ((IAuditoria)parametros.registroEnBd).FechaCreacion;
+                        ((IAuditoria)registro).IdUsuaModi = Contexto.DatosDeConexion.IdUsuario;
+                        if (parametros.Parametros.LeerValor<DateTime>(ltrParametrosNeg.FechaDeTransicion, default) == default)
+                            ((IAuditoria)registro).FechaModificacion = DateTime.Now;
+                        else
+                            ((IAuditoria)registro).FechaModificacion = parametros.Parametros.LeerValor<DateTime>(ltrParametrosNeg.FechaDeTransicion, default);
+                    }
             }
 
             if (registro.ImplementaUsaSolicitante())
@@ -793,7 +793,7 @@ namespace GestorDeElementos
             TRegistro registro;
             var parametros = new ParametrosDeNegocio(enumTipoOperacion.LeerSinBloqueo);
             if (opcionesDelMapeo != null) foreach (var opcion in opcionesDelMapeo)
-                    parametros.Parametros[opcion.Key] = opcion.Value;
+                parametros.Parametros[opcion.Key] = opcion.Value;
 
             if (opcionesDelMapeo.ContieneClave(ltrParametrosNeg.ErrorSiNoLoHay))
                 registro = LeerRegistroPorId(id, usarLaCache: opcionesDelMapeo.LeerValor(ltrParametrosNeg.UsarLaCache, true),
@@ -901,8 +901,8 @@ namespace GestorDeElementos
                     if (parametros == null)
                         parametros = new Dictionary<string, object>();
                     else
-                    if (parametros.ContainsKey(ltrParametrosNeg.ValidarPermisosDeConsulta) && !(bool)parametros[ltrParametrosNeg.ValidarPermisosDeConsulta])
-                        throw;
+                        if (parametros.ContainsKey(ltrParametrosNeg.ValidarPermisosDeConsulta) && !(bool)parametros[ltrParametrosNeg.ValidarPermisosDeConsulta])
+                            throw;
 
                     parametros[ltrParametrosNeg.ValidarPermisosDeConsulta] = false;
 
@@ -1351,8 +1351,8 @@ namespace GestorDeElementos
                 filtros.Add(new ClausulaDeFiltrado(ltrParametrosNeg.ExcluirTerminados, enumCriteriosDeFiltrado.igual, parametros.ExcluirTerminados));
             }
             else
-            if (parametros.Peticion == enumPeticion.epLeerDatosParaElGrid || parametros.EstoyExportando || parametros.EstoyTotalizando)
-                filtros.Add(new ClausulaDeFiltrado(ltrParametrosNeg.QueMostrar, enumCriteriosDeFiltrado.diferente, $"{ltrParametrosNeg.Cancelados};{ltrParametrosNeg.Terminados}"));
+                if (parametros.Peticion == enumPeticion.epLeerDatosParaElGrid || parametros.EstoyExportando || parametros.EstoyTotalizando)
+                    filtros.Add(new ClausulaDeFiltrado(ltrParametrosNeg.QueMostrar, enumCriteriosDeFiltrado.diferente, $"{ltrParametrosNeg.Cancelados};{ltrParametrosNeg.Terminados}"));
         }
 
         protected virtual IQueryable<TRegistro> AplicarSeguridad(IQueryable<TRegistro> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
@@ -1619,11 +1619,11 @@ namespace GestorDeElementos
             if (opciones.Operacion == enumTipoOperacion.Insertar)
                 AntesDeMapearElRegistroParaInsertar(elemento, opciones);
             else
-            if (opciones.Operacion == enumTipoOperacion.Modificar)
-                AntesDeMapearElRegistroParaModificar(elemento, opciones);
-            else
-            if (opciones.Operacion == enumTipoOperacion.Eliminar)
-                AntesDeMapearElRegistroParaEliminar(elemento, opciones);
+                if (opciones.Operacion == enumTipoOperacion.Modificar)
+                    AntesDeMapearElRegistroParaModificar(elemento, opciones);
+                else
+                    if (opciones.Operacion == enumTipoOperacion.Eliminar)
+                        AntesDeMapearElRegistroParaEliminar(elemento, opciones);
         }
 
         protected virtual void AntesDeMapearElRegistroParaEliminar(TElemento elemento, ParametrosDeNegocio opciones)
@@ -1783,9 +1783,12 @@ namespace GestorDeElementos
 
                 if (registro.GetType().ImplementaPrioridad() && elemento.GetType().ImplementaPrioridadDto())
                 {
-                    var prioridad = Metadatos?.CalcularPrioridad != null
-                        ? Metadatos.CalcularPrioridad(registro, Contexto)
-                        : ((IPrioridad)registro).Prioridad ?? enumPrioridad.NoDefinida;
+                    enumPrioridad prioridad = ((IPrioridad)registro).Prioridad ?? enumPrioridad.NoDefinida;
+                    if (Metadatos?.CalcularPrioridad != null)
+                    {
+                        prioridad =Metadatos.CalcularPrioridad(registro, Contexto);
+                        ((IPrioridadDto)elemento).Prioridad = prioridad;
+                    }
                     ((IPrioridadDto)elemento).PrioridadGrid = prioridad.PrioridadGridCss();
                 }
 

@@ -74,19 +74,21 @@
             let datosDeEntrada: Parametros = new Parametros(peticion.DatosDeEntrada as Parametro[]);
             let opcion = datosDeEntrada.ObtenerValorDeParametro(ltrMenus.opcion);
 
-            //if (opcion === ltrMenus.eventosDeMf.Venta.FacturasEmt.CopiarFae) {
-            //    this._faeSeleccionada = this.InfoSelector.Seleccionados.length === 1 ? this.InfoSelector.Seleccionados[0].Registro : null;
-            //    let idModal = this.IdCrud + '-' + opcion;
-            //    this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(idModal, this._faeSeleccionada === null ? 0 : this._faeSeleccionada.id);
-            //    return true;
-            //}
-
             if (opcion === ltrMenus.eventosDeMf.Comun.Totalizador_Mostrar) {
                 this.MostrarPanelDeTotales(ltrControladores.Venta.FacturasEmt);
                 return true;
             }
 
             return Venta.NavegarARelacionesDeFae(opcion, datosDeEntrada, ltrParametrosUrl.Venta.IdFactura);
+        }
+
+        protected SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
+            const siguiente = super.SiguientePropiedadDeAgrupacionDeFichas(this._propiedadDeAgrupacionDeFichas);
+            if (!Definido(siguiente)) {
+                if (actual === ttrModoPresentacion.prioridad)
+                    return ttrModoPresentacion.cliente;
+            }
+            return siguiente;
         }
 
         public ModalDePedirDatos_TrasAbrir(modal: HTMLDivElement): void {
