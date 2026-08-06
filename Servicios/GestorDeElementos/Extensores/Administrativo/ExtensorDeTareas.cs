@@ -49,6 +49,7 @@ namespace GestorDeElementos.Extensores
         public const string PresupuestosDeTareas = nameof(PresupuestosDeTareas);
         public const string PrioridadesDeTarea = nameof(PrioridadesDeTarea);
         public const string FiltroPorEtapa = nameof(FiltroPorEtapa);
+        public const string ConPrioridad = nameof(ConPrioridad);
 
 
         public const string IdFacturaEmt = nameof(IdFacturaEmt);

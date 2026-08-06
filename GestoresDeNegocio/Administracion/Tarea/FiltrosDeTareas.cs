@@ -200,5 +200,19 @@ namespace GestoresDeNegocio.Tarea
             }
             return consulta;
         }
+
+        public static IQueryable<TareaDtm> FiltroConPrioridad(this IQueryable<TareaDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.ConPrioridad.ToLower());
+            if (filtro != null)
+            {     
+                if (filtro.Valor.ToLower().EsTrue())
+                consulta = consulta.Where(t => t.Prioridad != null && t.Prioridad.Value != enumPrioridad.NoDefinida);
+                else if (filtro.Valor.ToLower().EsFalse())
+                    consulta = consulta.Where(t => t.Prioridad == null || t.Prioridad.Value == enumPrioridad.NoDefinida);
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
     }
 }

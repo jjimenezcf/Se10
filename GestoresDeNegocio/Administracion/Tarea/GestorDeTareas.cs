@@ -87,7 +87,7 @@ namespace GestoresDeNegocio.Tarea
             consulta = consulta.FiltrosDeFacturas(Contexto, filtros, parametros);
             consulta = consulta.FiltroSiHayDependenciaDe(filtros, filtrarPor:ltrDeUnaTarea.IdResponsable, filtroDeAsociacion: ltrDeUnaTarea.Asignacion, parametros, aplicarFiltroDeEstado: true);
             consulta = consulta.FiltroPorPrioridad(filtros);
-            //consulta = consulta.FiltroPorEtapa(filtros);
+            consulta = consulta.FiltroConPrioridad(filtros);
             return consulta;
         }
 

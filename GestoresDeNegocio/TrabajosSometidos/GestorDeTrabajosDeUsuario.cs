@@ -18,6 +18,7 @@ using GestoresDeNegocio.Entorno;
 using Microsoft.Data.SqlClient;
 using System.Threading;
 using GestorDeElementos.Extensores;
+using GestoresDeNegocio.Tarea;
 
 namespace GestoresDeNegocio.TrabajosSometidos
 {
@@ -246,6 +247,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             TrabajosDeEntorno.SometerGenerarSeguridad(cnx);
             TrabajosDeEntorno.SometerVaciarCache(cnx);
             TrabajosDeEntorno.SometerEliminarCorreos(cnx);
+            TrabajosDeTareas.SometerRecalcularPrioridad(cnx);
 
             return Task.FromResult(new ResultadoDelProceso(true, ""));
         }

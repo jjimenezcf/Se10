@@ -20,9 +20,9 @@ El envío de un mensaje de evento de agenda ha de usar la hora actiual del servi
 Al enviar un evento poner la descripción del evento en el cuerpo del mensaje (*) 30/07/2026
 Incluir en metadatos el método ListaDeEtapas() genérico y quitarlo de los gestores de negocio (tarea.Lista()) (*) 30/07/2026
 
-crear priorida por fecha de vencimiento
-fichas por cliente
-pintar los clores por estados cuando las acturadfichas van por priorida o proveedor
+crear priorida por fecha de vencimiento en facturas recibidas (*) 04/08/2026
+pintar los clores por estados cuando las acturadfichas van por priorida o proveedor (*) 04/08/2026
+trabajo sometido que camie prioridad en tareas (*) 06/08/2026
 
 Poder acceder al mapa desde el panel de control con todos los elementos activos
 Poder navegar del pago a la remesa bancaria que lo contiene, añadir un restrictor
@@ -33,6 +33,7 @@ Prompt por definir de conteos
 iva de facturas emitidas
 Pagos, expedientes, cobros, recibidas
 ordenar por prioridad --> fecha de vencimiento
+trabajo sometido que envíe mensajes de prioridad a pts.
 
 a
 Caifantasia: presentación
