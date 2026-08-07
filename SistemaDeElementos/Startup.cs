@@ -4,6 +4,7 @@ using GestoresDeNegocio;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -173,6 +174,19 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        // Sin esto, tras un proxy inverso HttpContext.Connection.RemoteIpAddress da la IP del proxy
+        // para todas las peticiones en lugar de la del cliente real (afecta, entre otros, al 2FA por IP de confianza).
+        // Se limpian KnownNetworks/KnownProxies porque no se conoce de antemano la IP del proxy (nube/contenedor);
+        // esto hace que la cabecera X-Forwarded-For sea de confianza para cualquier origen, así que Kestrel no debe
+        // quedar expuesto directamente a Internet.
+        var opcionesDeForwardedHeaders = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        };
+        opcionesDeForwardedHeaders.KnownIPNetworks.Clear();
+        opcionesDeForwardedHeaders.KnownProxies.Clear();
+        app.UseForwardedHeaders(opcionesDeForwardedHeaders);
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();

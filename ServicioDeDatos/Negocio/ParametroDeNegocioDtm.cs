@@ -91,13 +91,13 @@ namespace ServicioDeDatos.Negocio
 
         public static void Actualizar(int idNegocio, System.Enum parametro, string valor)
         {
-            string CrearParametro =
+            string actualizar =
                   $@"UPDATE {Esquemas.NEGOCIO}.{Tablas.PARAMETRO} 
                      SET {ICampos.VALOR} = @{ICampos.VALOR}
                      WHERE {ICampos.ID_NEGOCIO} = @{ICampos.ID_NEGOCIO} 
                       AND  {ICampos.NOMBRE} = @{ICampos.NOMBRE}";
             var valores = new Dictionary<string, object> { { $"@{ICampos.VALOR}", valor }, { $"@{ICampos.ID_NEGOCIO}", idNegocio }, { $"@{ICampos.NOMBRE}", parametro.ToString() } };
-            var sentencia = new ConsultaSql<ParametroDeNegocioDtm>(CrearParametro);
+            var sentencia = new ConsultaSql<ParametroDeNegocioDtm>(actualizar);
             sentencia.EjecutarSentencia(new DynamicParameters(valores));
 
             var negocio = NegocioSqls.LeerPorId(idNegocio);

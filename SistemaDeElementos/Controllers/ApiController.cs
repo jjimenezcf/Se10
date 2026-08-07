@@ -55,6 +55,22 @@ namespace MVCSistemaDeElementos.Controllers
                 $"Parámetros: {httpContext.Request.QueryString}");
         }
 
+        // Devuelve null para direcciones de loopback (::1, 127.0.0.1), que no identifican a un cliente real.
+        public static string ObtenerIpDelCliente(HttpContext httpContext)
+        {
+            var direccion = httpContext.Connection.RemoteIpAddress;
+            if (direccion == null)
+                return null;
+
+            if (direccion.IsIPv4MappedToIPv6)
+                direccion = direccion.MapToIPv4();
+
+            if (IPAddress.IsLoopback(direccion))
+                return null;
+
+            return direccion.ToString();
+        }
+
         public static bool HayUsuarioEnLaRequest(HttpContext httpContext)
         {
             if (httpContext == null || httpContext.User == null) return false;

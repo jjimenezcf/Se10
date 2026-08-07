@@ -66,7 +66,9 @@
             return;
         }
 
-        Gestor.Validar2F(codigo2F.value);
+        let dispositivoDeConfianza: HTMLInputElement = document.getElementById('dispositivoDeConfianza') as HTMLInputElement;
+
+        Gestor.Validar2F(codigo2F.value, dispositivoDeConfianza.checked);
     }
 
     export function AlPulsarReenviarCodigo() {
@@ -84,6 +86,9 @@
 
         let codigo2F: HTMLInputElement = document.getElementById('codigo2F') as HTMLInputElement;
         codigo2F.value = "";
+
+        let dispositivoDeConfianza: HTMLInputElement = document.getElementById('dispositivoDeConfianza') as HTMLInputElement;
+        dispositivoDeConfianza.checked = false;
 
         let divCodigo2F: HTMLDivElement = document.getElementById('div-codigo2F') as HTMLDivElement;
         divCodigo2F.style.display = 'none';
@@ -259,7 +264,7 @@
                 , url
                 , ApiDeAjax.TipoPeticion.Asincrona
                 , ApiDeAjax.ModoPeticion.Post
-                , this.MostrarPaso2F
+                , this.TrasValidarAcceso
                 , this.SiHayErrorTrasPeticionAjax
             );
 
@@ -272,7 +277,16 @@
             a.Ejecutar();
         }
 
-        public Validar2F(codigo2F: string) {
+        private TrasValidarAcceso(peticion: ApiDeAjax.DescriptorAjax) {
+            let gestor = peticion.llamador as GestorDeAcceso;
+            if (peticion.resultado.datos === true) {
+                gestor.MostrarPaso2F(peticion);
+            } else {
+                gestor.Conectar(peticion);
+            }
+        }
+
+        public Validar2F(codigo2F: string, esDispositivo2FA: boolean) {
             let url: string = `/Acceso/${Ajax.EpDeAcceso.Validar2F}`;
             let a = new ApiDeAjax.DescriptorAjax(this
                 , Ajax.EpDeAcceso.Validar2F
@@ -287,6 +301,7 @@
             let datosPost = new FormData();
             datosPost.append(Ajax.Param.login, this._login);
             datosPost.append(Ajax.Param.codigo2F, codigo2F);
+            datosPost.append(Ajax.Param.esDispositivo2FA, esDispositivo2FA.toString());
 
             a.DatosPost = datosPost;
             a.Ejecutar();

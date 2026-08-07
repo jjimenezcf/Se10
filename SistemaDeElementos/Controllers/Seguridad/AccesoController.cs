@@ -45,6 +45,7 @@ public class AccesoController : HomeController
     }
 
 
+
     //END-POINT: Desde Conectar.ts
     public JsonResult EpReferenciarFoto(string restrictor)
     {
@@ -130,10 +131,30 @@ public class AccesoController : HomeController
             Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
             password = HttpUtility.UrlDecode(password);
             var usuario = _gestordeUsuarios.ValidarUsuario(login, password);
-            GestorDeUsuarios.EnviarCodigo2F(Contexto, usuario.Id, usuario.eMail);
-            r.Datos = null;
+
+            var usar2F = bool.TryParse(Contexto.Configuracion[ltrAppSetting.Usar2F], out bool valor) && valor;
+            if (usar2F)
+            {
+                var ip = ApiController.ObtenerIpDelCliente(HttpContext);
+                if (ip != null)
+                {
+                    var dispositivos2FA = VariableDeUsuario.ObtenerDispositivos2FA(Contexto, usuario.Id);
+                    usar2F = !dispositivos2FA.Contains(ip);
+                }
+            }
+
+            if (usar2F)
+            {
+                GestorDeUsuarios.EnviarCodigo2F(Contexto, usuario.Id, usuario.eMail);
+                r.Mensaje = "Se ha enviado un código de verificación a su correo";
+            }
+            else
+            {
+                r.Mensaje = "usuario validado";
+            }
+
+            r.Datos = usar2F;
             r.Estado = enumEstadoPeticion.Ok;
-            r.Mensaje = "Se ha enviado un código de verificación a su correo";
         }
         catch (Exception e)
         {
@@ -151,7 +172,7 @@ public class AccesoController : HomeController
 
     //END-POINT: Desde Conectar.ts
     [HttpPost]
-    public JsonResult epValidar2F(string login, string codigo2F)
+    public JsonResult epValidar2F(string login, string codigo2F, bool esDispositivo2FA)
     {
         var r = new Resultado();
 
@@ -163,6 +184,14 @@ public class AccesoController : HomeController
                 Emitir("Usuario no válido");
 
             GestorDeUsuarios.Validar2F(usuario.Id, codigo2F);
+
+            if (esDispositivo2FA)
+            {
+                var ip = ApiController.ObtenerIpDelCliente(HttpContext);
+                if (ip != null)
+                    VariableDeUsuario.GuardarDispositivos2FA(Contexto, usuario.Id, ip);
+            }
+
             r.Datos = null;
             r.Estado = enumEstadoPeticion.Ok;
             r.Mensaje = "código validado";

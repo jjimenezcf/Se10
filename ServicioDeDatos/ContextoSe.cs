@@ -40,6 +40,7 @@ namespace ServicioDeDatos
         public const string Cero = "0";
         public const string Uno = "1";
         public const string True = "S";
+        public const string IpNula = "::1";
         public class Vista
         {
             internal static string Catalogo = "CatalogoDelSe";

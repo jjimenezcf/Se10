@@ -24,7 +24,7 @@ namespace SistemaDeElementos.Controllers.Venta
         [AllowAnonymous]
         public JsonResult epSolicitarFacturador(string nifEmisor, string apiKey, string peticion)
         {
-            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string ipAddress = ApiController.ObtenerIpDelCliente(HttpContext) ?? HttpContext.Connection.RemoteIpAddress?.ToString();
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             string referer = HttpContext.Request.Headers["Referer"].ToString();
             string validadorJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
@@ -81,7 +81,7 @@ Invoke-WebRequest -Method POST `
         [HttpPost]
         public JsonResult epCrearFactura(string nif, string apiKey)
         {
-            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string ipAddress = ApiController.ObtenerIpDelCliente(HttpContext) ?? HttpContext.Connection.RemoteIpAddress?.ToString();
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             string referer = HttpContext.Request.Headers["Referer"].ToString();
             string facturaJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
@@ -123,7 +123,7 @@ Invoke-WebRequest -Method POST `
         [HttpPost]
         public JsonResult epCrearFacturaConGuid(string nif, string guid)
         {
-            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string ipAddress = ApiController.ObtenerIpDelCliente(HttpContext) ?? HttpContext.Connection.RemoteIpAddress?.ToString();
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             string referer = HttpContext.Request.Headers["Referer"].ToString();
             string facturaJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();

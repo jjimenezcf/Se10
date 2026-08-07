@@ -56,7 +56,13 @@
                 <div class="opcioncontra"><a href="javascript:void(0)" onclick="Acceso.AlPulsarReenviarCodigo()">Reenviar código?</a></div>
                 <br>
                 <button class="btn btn-lg btn-primary btn-block btn-signin" id="BotonValidar2F" onclick="Acceso.AlPulsarValidarCodigo()">Validar</button>
-                <div class="opcioncontra"><a href="javascript:void(0)" onclick="Acceso.AlPulsarCancelar2F()">Cancelar</a></div>
+                <div class="d-flex justify-content-between align-items-center opcioncontra">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="dispositivoDeConfianza">
+                        <label class="form-check-label" for="dispositivoDeConfianza">Añadir dispositivo como de confianza</label>
+                    </div>
+                    <a href="javascript:void(0)" onclick="Acceso.AlPulsarCancelar2F()">Cancelar</a>
+                </div>
             </div>
         </div>
 

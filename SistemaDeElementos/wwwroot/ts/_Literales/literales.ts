@@ -1775,6 +1775,7 @@ const Ajax = {
         login: 'login',
         password: 'password',
         codigo2F: 'codigo2F',
+        esDispositivo2FA: 'esDispositivo2FA',
         nombreDeNegocio: literal.negocio,
         enumNegocio: literal.enumNegocio,
         idElemento: atControl.idElemento,

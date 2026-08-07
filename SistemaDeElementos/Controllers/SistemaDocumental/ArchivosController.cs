@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ModeloDeDto.SistemaDocumental;
+using MVCSistemaDeElementos.Controllers;
 using MVCSistemaDeElementos.UtilidadesIu;
 using Newtonsoft.Json;
 using NuGet.Protocol.Core.Types;
@@ -48,7 +49,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
     public ActionResult epDescargaConGuid(string guid, int id)
     {
         // Obtener información de la petición
-        string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        string ipAddress = ApiController.ObtenerIpDelCliente(HttpContext) ?? HttpContext.Connection.RemoteIpAddress?.ToString();
         string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
         string referer = HttpContext.Request.Headers["Referer"].ToString();
         var tran = Contexto.IniciarTransaccion();

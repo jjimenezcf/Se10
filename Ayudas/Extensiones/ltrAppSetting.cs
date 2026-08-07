@@ -5,6 +5,7 @@ namespace Utilidades
     public static class ltrAppSetting
     {
         public const string UsarBundle = nameof(UsarBundle);
+        public const string Usar2F = nameof(Usar2F);
         public static class ServidorDeCorreo
         {
             public const string Sistema = nameof(Sistema);
