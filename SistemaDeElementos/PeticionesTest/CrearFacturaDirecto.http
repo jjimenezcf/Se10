@@ -2,7 +2,7 @@
 
 //POST https://localhost:44396/Facturador/epCrearFactura
 
-POST https://biwe.femdek.com/Facturador/epCrearFactura?nif=00811725D&apiKey=[xxxxx]&guid={{facturadorGuid}}
+POST https://biwe.femdek.com/Facturador/epCrearFactura?nif=00811725D&apiKey=[xxxxx]
 Content-Type: application/json
 
 {

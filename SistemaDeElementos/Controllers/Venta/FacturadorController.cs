@@ -128,7 +128,7 @@ Invoke-WebRequest -Method POST `
             string referer = HttpContext.Request.Headers["Referer"].ToString();
             string facturaJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
             var tran = Contexto.IniciarTransaccion();
-            Contexto.IniciarTraza(nameof(epSolicitarFacturador));
+            Contexto.IniciarTraza(nameof(epCrearFacturaConGuid));
             var r = new Resultado();
             try
             {
