@@ -179,9 +179,13 @@ public class Startup
         // Se limpian KnownNetworks/KnownProxies porque no se conoce de antemano la IP del proxy (nube/contenedor);
         // esto hace que la cabecera X-Forwarded-For sea de confianza para cualquier origen, así que Kestrel no debe
         // quedar expuesto directamente a Internet.
+        // ForwardLimit a null porque en producción hay más de un proxy interno entre el cliente y Kestrel
+        // (la cadena real observada es "cliente, gateway-interno"); con el límite por defecto (1) se quedaba
+        // con la IP del gateway en lugar de la del cliente.
         var opcionesDeForwardedHeaders = new ForwardedHeadersOptions
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            ForwardLimit = null
         };
         opcionesDeForwardedHeaders.KnownIPNetworks.Clear();
         opcionesDeForwardedHeaders.KnownProxies.Clear();
