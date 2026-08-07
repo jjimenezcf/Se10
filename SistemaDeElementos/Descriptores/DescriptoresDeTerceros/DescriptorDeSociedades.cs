@@ -221,7 +221,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private void DescriptorDeFacturador()
         {
-            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-Facturador", "Datos de facturacion", true, "Información para la facturación de sociedades o series externas");
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-Facturador", "Facturadores", true, "Información de los facturadores de una sociedades");
             expansor.EsDetalle = true;
             Editor.Expanes.Insert(1, expansor);
 
