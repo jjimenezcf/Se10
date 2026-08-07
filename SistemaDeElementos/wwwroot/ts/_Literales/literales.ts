@@ -1716,6 +1716,8 @@ const Ajax = {
     EpDeAcceso: {
         ReferenciarFoto: 'epReferenciarFoto',
         ValidarAcceso: 'epValidarAcceso',
+        Validar2F: 'epValidar2F',
+        Reenviar2F: 'epReenviar2F',
         SolicitarNuevaContrasena: 'epSolicitarNuevaContrasena',
         ActualizarContrasena: 'epActualizarContrasena'
     },
@@ -1772,6 +1774,7 @@ const Ajax = {
         extensiones: 'extensionesValidas',
         login: 'login',
         password: 'password',
+        codigo2F: 'codigo2F',
         nombreDeNegocio: literal.negocio,
         enumNegocio: literal.enumNegocio,
         idElemento: atControl.idElemento,

@@ -53,6 +53,55 @@
         Gestor.ValidarAcceso(password.value);
     }
 
+    export function AlPulsarValidarCodigo() {
+        OcultarMensaje();
+        if (Gestor === undefined) {
+            MostrarMensaje("Debe indicar un usuario");
+            return;
+        }
+
+        let codigo2F: HTMLInputElement = document.getElementById('codigo2F') as HTMLInputElement;
+        if (IsNullOrEmpty(codigo2F.value)) {
+            MostrarMensaje("Debe indicar el código recibido por correo");
+            return;
+        }
+
+        Gestor.Validar2F(codigo2F.value);
+    }
+
+    export function AlPulsarReenviarCodigo() {
+        OcultarMensaje();
+        if (Gestor === undefined) {
+            MostrarMensaje("Debe indicar un usuario");
+            return;
+        }
+
+        Gestor.Reenviar2F();
+    }
+
+    export function AlPulsarCancelar2F() {
+        OcultarMensaje();
+
+        let codigo2F: HTMLInputElement = document.getElementById('codigo2F') as HTMLInputElement;
+        codigo2F.value = "";
+
+        let divCodigo2F: HTMLDivElement = document.getElementById('div-codigo2F') as HTMLDivElement;
+        divCodigo2F.style.display = 'none';
+
+        let login: HTMLInputElement = document.getElementById('login') as HTMLInputElement;
+        login.disabled = false;
+
+        let password: HTMLInputElement = document.getElementById('password') as HTMLInputElement;
+        password.disabled = false;
+        password.value = "";
+
+        let botonConectar: HTMLButtonElement = document.getElementById('IngresoLog') as HTMLButtonElement;
+        botonConectar.style.display = '';
+
+        let divOlvideContrasena: HTMLDivElement = document.getElementById('div-olvide-contrasena') as HTMLDivElement;
+        divOlvideContrasena.style.display = '';
+    }
+
     export function AlPulsarOlvideContrasena() {
         OcultarMensaje();
         if (Gestor === undefined) {
@@ -210,7 +259,7 @@
                 , url
                 , ApiDeAjax.TipoPeticion.Asincrona
                 , ApiDeAjax.ModoPeticion.Post
-                , this.Conectar
+                , this.MostrarPaso2F
                 , this.SiHayErrorTrasPeticionAjax
             );
 
@@ -221,6 +270,63 @@
 
             a.DatosPost = datosPost;
             a.Ejecutar();
+        }
+
+        public Validar2F(codigo2F: string) {
+            let url: string = `/Acceso/${Ajax.EpDeAcceso.Validar2F}`;
+            let a = new ApiDeAjax.DescriptorAjax(this
+                , Ajax.EpDeAcceso.Validar2F
+                , null
+                , url
+                , ApiDeAjax.TipoPeticion.Asincrona
+                , ApiDeAjax.ModoPeticion.Post
+                , this.Conectar
+                , this.SiHayErrorTrasPeticionAjax
+            );
+
+            let datosPost = new FormData();
+            datosPost.append(Ajax.Param.login, this._login);
+            datosPost.append(Ajax.Param.codigo2F, codigo2F);
+
+            a.DatosPost = datosPost;
+            a.Ejecutar();
+        }
+
+        public Reenviar2F() {
+            let url: string = `/Acceso/${Ajax.EpDeAcceso.Reenviar2F}`;
+            let a = new ApiDeAjax.DescriptorAjax(this
+                , Ajax.EpDeAcceso.Reenviar2F
+                , null
+                , url
+                , ApiDeAjax.TipoPeticion.Asincrona
+                , ApiDeAjax.ModoPeticion.Post
+                , (pet) => { MostrarMensaje(pet.resultado.mensaje, "alert-info"); }
+                , this.SiHayErrorTrasPeticionAjax
+            );
+
+            let datosPost = new FormData();
+            datosPost.append(Ajax.Param.login, this._login);
+            a.DatosPost = datosPost;
+            a.Ejecutar();
+        }
+
+        private MostrarPaso2F(peticion: ApiDeAjax.DescriptorAjax) {
+            MostrarMensaje(peticion.resultado.mensaje, "alert-info");
+
+            let botonConectar: HTMLButtonElement = document.getElementById('IngresoLog') as HTMLButtonElement;
+            botonConectar.style.display = 'none';
+
+            let divOlvideContrasena: HTMLDivElement = document.getElementById('div-olvide-contrasena') as HTMLDivElement;
+            divOlvideContrasena.style.display = 'none';
+
+            let login: HTMLInputElement = document.getElementById('login') as HTMLInputElement;
+            login.disabled = true;
+
+            let password: HTMLInputElement = document.getElementById('password') as HTMLInputElement;
+            password.disabled = true;
+
+            let divCodigo2F: HTMLDivElement = document.getElementById('div-codigo2F') as HTMLDivElement;
+            divCodigo2F.style.display = 'block';
         }
 
         public SolicitarNuevaContrasena() {

@@ -46,7 +46,18 @@
             </div>
             <br>
             <button class="btn btn-lg btn-primary btn-block btn-signin" id="IngresoLog" autofocus onclick="Acceso.AlPulsarConectar()">Conectar</button>
-            <div class="opcioncontra"><a href="javascript:void(0)" onclick="Acceso.AlPulsarOlvideContrasena()">Olvidaste tu contraseña?</a></div>
+            <div class="opcioncontra" id="div-olvide-contrasena"><a href="javascript:void(0)" onclick="Acceso.AlPulsarOlvideContrasena()">Olvidaste tu contraseña?</a></div>
+
+            <div id="div-codigo2F" style="display: none;">
+                <div class="input-group input-group-lg">
+                    <span class="label-icono"><i class="fas fa-shield-alt"></i></span>
+                    <input id="codigo2F" type="text" class="form-control" name="codigo2F" placeholder="código recibido por correo" maxlength="4" aria-describedby="sizing-addon1">
+                </div>
+                <div class="opcioncontra"><a href="javascript:void(0)" onclick="Acceso.AlPulsarReenviarCodigo()">Reenviar código?</a></div>
+                <br>
+                <button class="btn btn-lg btn-primary btn-block btn-signin" id="BotonValidar2F" onclick="Acceso.AlPulsarValidarCodigo()">Validar</button>
+                <div class="opcioncontra"><a href="javascript:void(0)" onclick="Acceso.AlPulsarCancelar2F()">Cancelar</a></div>
+            </div>
         </div>
 
         <div id="div-info-conexion" class="alert alert-danger d-flex flex-column align-items-center justify-content-center"

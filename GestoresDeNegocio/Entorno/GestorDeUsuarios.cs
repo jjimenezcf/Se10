@@ -3,7 +3,6 @@ using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Negocio;
-using GestoresDeNegocio.TrabajosSometidos;
 using ModeloDeDto.Entorno;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
@@ -113,6 +112,38 @@ namespace GestoresDeNegocio.Entorno
             {
                 contexto.AsignarUsuario(contexto.SeleccionarPorId<UsuarioDtm>(idUsuario));
             }
+        }
+
+        public static void Guardar2F(int idUsuario, string codigo2F)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Fija_Codigo2F);
+            cache[idUsuario.ToString()] = codigo2F;
+        }
+
+        public static void Validar2F(int idUsuario, string codigo2F)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Fija_Codigo2F);
+            if (!cache.ContainsKey(idUsuario.ToString()))
+                GestorDeErrores.Emitir("No se ha generado un código 2F para este usuario");
+            if ((string)cache[idUsuario.ToString()] != codigo2F)
+                GestorDeErrores.Emitir("El código 2F no es válido");
+        }
+
+        private static string GenerarCodigo2F()
+        {
+            const string letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var random = new Random();
+            return new string(Enumerable.Range(0, 4).Select(_ => letras[random.Next(letras.Length)]).ToArray());
+        }
+
+        public static void EnviarCodigo2F(ContextoSe contexto, int idUsuario, string eMail)
+        {
+            var codigo2F = GenerarCodigo2F();
+            Guardar2F(idUsuario, codigo2F);
+
+            contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { eMail }
+                , "Código de verificación"
+                , $"Su código de verificación es: <b>{codigo2F}</b>", esHtlm: true);
         }
 
         public static void CambiarPassword(ContextoSe contexto, int idUsuario, string actual, string nueva, string repetida)

@@ -129,15 +129,80 @@ public class AccesoController : HomeController
         {
             Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
             password = HttpUtility.UrlDecode(password);
-            _gestordeUsuarios.ValidarUsuario(login, password);
+            var usuario = _gestordeUsuarios.ValidarUsuario(login, password);
+            GestorDeUsuarios.EnviarCodigo2F(Contexto, usuario.Id, usuario.eMail);
             r.Datos = null;
             r.Estado = enumEstadoPeticion.Ok;
-            r.Mensaje = "usuario validado";
+            r.Mensaje = "Se ha enviado un código de verificación a su correo";
         }
         catch (Exception e)
         {
             r.Estado = enumEstadoPeticion.Error;
             ApiController.PrepararError(e, r, "Error al validar usuario");
+        }
+        finally
+        {
+            Contexto.QuitarUsuario();
+        }
+
+        return new JsonResult(r);
+    }
+
+
+    //END-POINT: Desde Conectar.ts
+    [HttpPost]
+    public JsonResult epValidar2F(string login, string codigo2F)
+    {
+        var r = new Resultado();
+
+        try
+        {
+            Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
+            var usuario = (UsuarioDtm)_gestordeUsuarios.LeerRegistro(nameof(UsuarioDtm.Login), login, errorSiNoHay: false);
+            if (usuario == null)
+                Emitir("Usuario no válido");
+
+            GestorDeUsuarios.Validar2F(usuario.Id, codigo2F);
+            r.Datos = null;
+            r.Estado = enumEstadoPeticion.Ok;
+            r.Mensaje = "código validado";
+        }
+        catch (Exception e)
+        {
+            r.Estado = enumEstadoPeticion.Error;
+            ApiController.PrepararError(e, r, "Error al validar el código");
+        }
+        finally
+        {
+            Contexto.QuitarUsuario();
+        }
+
+        return new JsonResult(r);
+    }
+
+
+    //END-POINT: Desde Conectar.ts
+    [HttpPost]
+    public JsonResult epReenviar2F(string login)
+    {
+        var r = new Resultado();
+
+        try
+        {
+            Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
+            var usuario = (UsuarioDtm)_gestordeUsuarios.LeerRegistro(nameof(UsuarioDtm.Login), login, errorSiNoHay: false);
+            if (usuario == null)
+                Emitir("Usuario no válido");
+
+            GestorDeUsuarios.EnviarCodigo2F(Contexto, usuario.Id, usuario.eMail);
+            r.Datos = null;
+            r.Estado = enumEstadoPeticion.Ok;
+            r.Mensaje = "Se ha reenviado el código de verificación a su correo";
+        }
+        catch (Exception e)
+        {
+            r.Estado = enumEstadoPeticion.Error;
+            ApiController.PrepararError(e, r, "Error al reenviar el código");
         }
         finally
         {

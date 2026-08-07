@@ -30,6 +30,7 @@ namespace Utilidades
         public static readonly string Fija_EsquemaDeTabla = nameof(Fija) + nameof(Fija_EsquemaDeTabla).Replace(nameof(Fija), "");
         public static readonly string Fija_NombreDeTabla = nameof(Fija) + nameof(Fija_NombreDeTabla).Replace(nameof(Fija), "");
         public static readonly string Fija_ExisteTabla = nameof(Fija) + nameof(Fija_ExisteTabla).Replace(nameof(Fija), "");
+        public static readonly string Fija_Codigo2F = nameof(Fija) + nameof(Fija_Codigo2F).Replace(nameof(Fija), "");
 
         public static readonly string Ia_Filtros =  nameof(Ia_Filtros);
 
@@ -83,7 +84,7 @@ namespace Utilidades
         public static readonly string Ent_Bloqueadores = nameof(Ent_Bloqueadores);
         public static readonly string Ent_Desbloqueadores = nameof(Ent_Desbloqueadores);
         public static readonly string Ent_AccesosRecientes = nameof(Ent_AccesosRecientes);
-        public static readonly string Ent_SeleccionarPorPropiedad = nameof(Ent_SeleccionarPorPropiedad);        
+        public static readonly string Ent_SeleccionarPorPropiedad = nameof(Ent_SeleccionarPorPropiedad);      
 
 
         public static readonly string ModoAcceso_AlNegocio = $"GestorDeElementos.LeerModoDeAccesoAlNegocio";
