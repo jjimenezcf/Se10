@@ -145,7 +145,7 @@ public class AccesoController : HomeController
 
             if (usar2F)
             {
-                GestorDeUsuarios.EnviarCodigo2F(Contexto, usuario.Id, usuario.eMail);
+                GestorDeUsuarios.Gestor(Contexto, Contexto.Mapeador).EnviarCodigo2FA(usuario.Id, usuario.eMail);
                 r.Mensaje = "Se ha enviado un código de verificación a su correo";
             }
             else
@@ -183,7 +183,7 @@ public class AccesoController : HomeController
             if (usuario == null)
                 Emitir("Usuario no válido");
 
-            GestorDeUsuarios.Validar2F(usuario.Id, codigo2F);
+            GestorDeUsuarios.Gestor(Contexto, Contexto.Mapeador).Validar2FA(usuario.Id, codigo2F);
 
             if (esDispositivo2FA)
             {
@@ -223,7 +223,7 @@ public class AccesoController : HomeController
             if (usuario == null)
                 Emitir("Usuario no válido");
 
-            GestorDeUsuarios.EnviarCodigo2F(Contexto, usuario.Id, usuario.eMail);
+            GestorDeUsuarios.Gestor(Contexto, Contexto.Mapeador).EnviarCodigo2FA(usuario.Id, usuario.eMail);
             r.Datos = null;
             r.Estado = enumEstadoPeticion.Ok;
             r.Mensaje = "Se ha reenviado el código de verificación a su correo";

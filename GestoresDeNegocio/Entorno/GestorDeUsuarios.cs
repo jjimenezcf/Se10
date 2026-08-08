@@ -114,36 +114,37 @@ namespace GestoresDeNegocio.Entorno
             }
         }
 
-        public static void Guardar2F(int idUsuario, string codigo2F)
+        public void Guardar2FA(int idUsuario, string codigo2FA)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Fija_Codigo2F);
-            cache[idUsuario.ToString()] = codigo2F;
+            cache[idUsuario.ToString()] = codigo2FA;
+            TrabajosDeEntorno.SometerEliminarCodigo2FA(Contexto, idUsuario, codigo2FA);
         }
 
-        public static void Validar2F(int idUsuario, string codigo2F)
+        public void Validar2FA(int idUsuario, string codigo2FA)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Fija_Codigo2F);
             if (!cache.ContainsKey(idUsuario.ToString()))
-                GestorDeErrores.Emitir("No se ha generado un código 2F para este usuario");
-            if ((string)cache[idUsuario.ToString()] != codigo2F)
-                GestorDeErrores.Emitir("El código 2F no es válido");
+                GestorDeErrores.Emitir("No se ha generado un código 2FA para este usuario");
+            if ((string)cache[idUsuario.ToString()] != codigo2FA)
+                GestorDeErrores.Emitir("El código 2FA no es válido");
         }
 
-        private static string GenerarCodigo2F()
+        private static string GenerarCodigo2FA()
         {
             const string letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             var random = new Random();
             return new string(Enumerable.Range(0, 4).Select(_ => letras[random.Next(letras.Length)]).ToArray());
         }
 
-        public static void EnviarCodigo2F(ContextoSe contexto, int idUsuario, string eMail)
+        public void EnviarCodigo2FA(int idUsuario, string eMail)
         {
-            var codigo2F = GenerarCodigo2F();
-            Guardar2F(idUsuario, codigo2F);
+            var codigo2FA = GenerarCodigo2FA();
+            Guardar2FA(idUsuario, codigo2FA);
 
-            contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { eMail }
+            Contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { eMail }
                 , "Código de verificación"
-                , $"Su código de verificación es: <b>{codigo2F}</b>", esHtlm: true);
+                , $"Su código de verificación es: <b>{codigo2FA}</b>", esHtlm: true);
         }
 
         public static void CambiarPassword(ContextoSe contexto, int idUsuario, string actual, string nueva, string repetida)

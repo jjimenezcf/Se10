@@ -23,6 +23,8 @@ namespace ServicioDeDatos.Entorno
         public const string Motivo_OlvidoDeContraseña = "1";
         public const string Motivo_ReglasDeContraseña = "2";
         public const string PasswordPorDefecto = "Se@12345678";
+        public const string Codigo2FA = nameof(Codigo2FA);
+        public const string IdUsuario = nameof(IdUsuario);
     }
 
     [Table(Tablas.USUARIO, Schema = Esquemas.ENTORNO)]

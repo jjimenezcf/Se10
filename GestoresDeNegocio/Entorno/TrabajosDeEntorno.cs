@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using GestorDeElementos;
+﻿using GestorDeElementos;
 using GestorDeElementos.Extensores;
+using GestoresDeNegocio.Gastos;
 using GestoresDeNegocio.Negocio;
 using GestoresDeNegocio.Seguridad;
 using GestoresDeNegocio.SistemaDocumental;
+using GestoresDeNegocio.Tarea;
 using GestoresDeNegocio.Terceros;
 using GestoresDeNegocio.TrabajosSometidos;
 using ModeloDeDto.Negocio;
@@ -16,6 +13,11 @@ using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.TrabajosSometidos;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using Utilidades;
 
 namespace GestoresDeNegocio.Entorno
@@ -24,6 +26,7 @@ namespace GestoresDeNegocio.Entorno
     {
         public const string ExportarExcell = "Exportar a excel";
         public const string SincronizarArchivador = "Sincronizar archivador";
+        public const string EliminarCodigo2FA = "Eliminar código 2FA";
     }
 
     public class TrabajosDeEntorno
@@ -35,6 +38,22 @@ namespace GestoresDeNegocio.Entorno
         private static string _trabajoDeGenerarSeguridadParaElUsuario = "Generar seguridad para el usuario";
         private static string _trabajoDeGenerarSeguridadParaLosUsuarios = "Generar seguridad para la lista de usuarios";
         private static string _TrabajoDeGenerarSeguridad = "Generar seguridad";
+
+        public static TrabajoDeUsuarioDtm SometerEliminarCodigo2FA(ContextoSe contexto, int idUsuario, string codigo2FA)
+        {
+            var dll = Assembly.GetExecutingAssembly().GetName().Name;
+            var clase = typeof(TrabajosDeEntorno).FullName;
+            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosSometidos.EliminarCodigo2FA, dll, clase, nameof(EliminarCodigo2FA), comunicarFin: false);
+
+            var parametrosEntrada = new Dictionary<string, object> { { ltrDeUnUsuario.IdUsuario, idUsuario }, { ltrDeUnUsuario.Codigo2FA, codigo2FA } };
+
+            var datosDeCreacion = new Dictionary<string, object>
+            {
+                { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() },
+                { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(2) },
+            };
+            return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion);
+        }
 
         public static TrabajoDeUsuarioDtm SometerSincronizarArchivadores(ContextoSe contexto)
         {
@@ -83,6 +102,19 @@ namespace GestoresDeNegocio.Entorno
             var ts = GestorDeTrabajosSometido.CrearObtener(contexto, _trabajoDeBorradoDeTrazas, dll, clase, nameof(BorrarTrazas), comunicarFin: false);
             GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, new Dictionary<string, object> { { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddDays(1) } });
         }
+
+        public static void EliminarCodigo2FA(EntornoDeTrabajo entorno)
+        {
+            Dictionary<string, object> parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
+
+            var idUsuario = Convert.ToInt32(parametros.LeerValor<long>(ltrDeUnUsuario.IdUsuario));
+            var codigo2FA = parametros.LeerValor<string>(ltrDeUnUsuario.Codigo2FA);
+
+            var cache = ServicioDeCaches.Obtener(CacheDe.Fija_Codigo2F);
+            if (cache.ContainsKey(idUsuario.ToString()) && (string)cache[idUsuario.ToString()] == codigo2FA)
+                cache.EliminarElemento(idUsuario.ToString());
+        }
+
         public static void BorrarTrazas(EntornoDeTrabajo entorno)
         {
             entorno.CrearTraza("Inicio del proceso");

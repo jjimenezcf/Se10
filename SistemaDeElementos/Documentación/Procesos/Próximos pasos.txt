@@ -24,6 +24,9 @@ crear priorida por fecha de vencimiento en facturas recibidas (*) 04/08/2026
 pintar los clores por estados cuando las acturadfichas van por priorida o proveedor (*) 04/08/2026
 trabajo sometido que camie prioridad en tareas (*) 06/08/2026
 
+Autenticar usando el 2Fa (*) 07/08/2026
+Borrar las cache de codigo 2F al minuto de enviarla
+
 Poder acceder al mapa desde el panel de control con todos los elementos activos
 Poder navegar del pago a la remesa bancaria que lo contiene, añadir un restrictor
 Crear una diercción desde el mapa, añadir un botón de + para crear una calle con el mapa
