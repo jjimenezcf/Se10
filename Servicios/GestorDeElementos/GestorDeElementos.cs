@@ -1783,13 +1783,13 @@ namespace GestorDeElementos
 
                 if (registro.GetType().ImplementaPrioridad() && elemento.GetType().ImplementaPrioridadDto())
                 {
-                    enumPrioridad prioridad = ((IPrioridad)registro).Prioridad ?? enumPrioridad.NoDefinida;
+                    ((IPrioridadDto)elemento).Prioridad = ((IPrioridad)registro).Prioridad ?? enumPrioridad.NoDefinida;
                     if (Metadatos?.CalcularPrioridad != null)
                     {
-                        prioridad =Metadatos.CalcularPrioridad(registro, Contexto);
+                        enumPrioridad prioridad = Metadatos.CalcularPrioridad(registro, Contexto);
                         ((IPrioridadDto)elemento).Prioridad = prioridad;
                     }
-                    ((IPrioridadDto)elemento).PrioridadGrid = prioridad.PrioridadGridCss();
+                    ((IPrioridadDto)elemento).PrioridadGrid = ((IPrioridadDto)elemento).Prioridad.PrioridadGridCss();
                 }
 
                 if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item =>

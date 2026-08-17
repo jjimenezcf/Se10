@@ -1904,6 +1904,11 @@
                 }
 
                 let celdaDelTd: HTMLDivElement = this.crearCelda(fila, columnaCabecera, numeroDeFila, j, valor);
+                if (columnaCabecera.tipo == ltrTipoControl.CirculoEnCelda) {
+                    const prioridad = ObtenerPropiedad(registro, ltrPropiedades.Elemento.ConPrioridad.Prioridad, undefined);
+                    if (prioridad)
+                        celdaDelTd.setAttribute('title', prioridad);
+                }
                 fila.append(celdaDelTd);
             }
 

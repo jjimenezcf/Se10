@@ -2719,6 +2719,10 @@ const ltrPropiedades = {
             IdTipo: literal.IdTipo,
             Tipo: literal.Tipo,
         },
+        ConPrioridad: {
+            Prioridad: 'Prioridad',
+            PrioridadGrid: 'PrioridadGrid',
+        },
         DeProceso: {
             IdEstado: 'idestado',
             Estado: 'estado',
