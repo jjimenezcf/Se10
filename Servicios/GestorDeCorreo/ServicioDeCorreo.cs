@@ -240,6 +240,10 @@ namespace ServicioDeCorreos
             catch (Exception ex)
             {
                 args = new AsyncCompletedEventArgs(ex, false, manejador);
+                // Sin manejador no hay a quién delegar el registro del error (ver DespuesDeEnviarElCorreo),
+                // así que en el envío directo (no encolado) hay que relanzarla para que el llamador se entere.
+                if (manejador == null)
+                    throw new Exception("Error en la parametrización del servidor de correo", ex);
             }
             finally
             {
