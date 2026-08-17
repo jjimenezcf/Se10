@@ -68,7 +68,7 @@ namespace ServicioDeDatos.Gastos
             {
                 return enumPrioridad.NoDefinida;
             }
-            set;
+            set { }
         }
 
     }

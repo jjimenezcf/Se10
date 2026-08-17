@@ -272,7 +272,7 @@ namespace ServicioDeDatos.Ventas
             {
                 return enumPrioridad.NoDefinida;
             }
-            set;
+            set { }
         }
 
 
