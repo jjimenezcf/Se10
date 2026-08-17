@@ -2210,7 +2210,7 @@ namespace GestorDeElementos.Extensores
             {
                 { "nif", facturaEmt.Sociedad(contexto).NIF.Replace(ltrIsoPaises.Spain, "") },
                 { "numserie", facturaEmt.NumeroDeFactura },
-                { "fecha", facturaEmt.FacturadaEl.Fecha().ToString("dd-MM-yyyy") }, // Formatear la fecha
+                { "fecha", facturaEmt.EmitidaEl.Fecha().ToString("dd-MM-yyyy") }, // Formatear la fecha
                 { "importe", (facturaEmt.BiConIva(contexto) - facturaEmt.Irpf(contexto)).Formatear(alineacion:false, separadorDecimal:Simbolos.Punto) } //} // Formatear el importe --ToString("F2", CultureInfo.InvariantCulture) 
             };
 

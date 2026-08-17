@@ -1498,9 +1498,10 @@ namespace GestoresDeNegocio.Ventas
             if (importeBd != importe)
                 throw new Exception($"La factura '{numeroFactura}' tiene un importe '{importeBd}' y es diferente al indicado '{importe}'");
 
-            var fechaBd = factura.FacturadaEl.Fecha().ToString("dd-MM-yyyy");
-            if (fechaBd.Fecha() != fecha.Fecha())
-                throw new Exception($"La factura '{numeroFactura}' se emitió el '{fechaBd}' y es diferente a la indicada '{fecha}'");
+            var fechaEmision = factura.EmitidaEl.Fecha().ToString("dd-MM-yyyy");
+            var fechaFactura = factura.FacturadaEl.Fecha().ToString("dd-MM-yyyy");
+            if (fechaEmision.Fecha() != fecha.Fecha() && fechaFactura.Fecha() != fecha.Fecha())
+                throw new Exception($"La factura '{numeroFactura}' se emitió el '{fechaEmision}' y es diferente a la indicada '{fecha}'");
 
             if (factura.Firma == null)
                 return $"La factura '{numeroFactura}' no fue firmada pero sus datos corresponden con los del sistema";
