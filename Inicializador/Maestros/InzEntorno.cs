@@ -36,7 +36,8 @@ namespace SistemaDeElementos.Inicializador.Datos
                 usuario.eMail = "jjimenezcf@gmail.com";
                 usuario.EsAdministrador = true;
                 var gestor = GestorDeUsuarios.Gestor(contexto, contexto.Mapeador);
-                gestor.PersistirRegistro(usuario, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
+                gestor.PersistirRegistro(usuario, new ParametrosDeNegocio(enumTipoOperacion.Insertar,
+                     parametros: new Dictionary<string, object> { { nameof(ltrDeUnUsuario.PasswordPorDefecto), ltrDeUnUsuario.PasswordPorDefecto } }));
                 contexto.AsignarUsuario(usuario);
                 var gestorDeNecocio = GestorDeNegocios.Gestor(contexto, contexto.Mapeador);
                 GestorDeNegocios.CrearNegocioSiNoExiste(gestorDeNecocio, enumNegocio.Variable, "Variables", typeof(VariableDtm), typeof(VariableDto), "cog-solid.svg", true, usaCg: false);

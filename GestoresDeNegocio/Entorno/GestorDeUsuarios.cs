@@ -283,21 +283,24 @@ namespace GestoresDeNegocio.Entorno
 
             if (parametros.Insertando)
             {
-                GestorDePassword.RegistraPassworDeConexion(Contexto, usuario.Id, VariableDeUsuario.PasswordPorDefecto());
+                var passwordInicial = parametros.Parametros.LeerValor(nameof(ltrDeUnUsuario.PasswordPorDefecto), string.Empty);
+                GestorDePassword.RegistraPassworDeConexion(Contexto, usuario.Id, passwordInicial == string.Empty ? VariableDeUsuario.PasswordPorDefecto(): passwordInicial);
+                if (passwordInicial == string.Empty)
+                {
+                    string urlBase = CacheDeVariable.Cfg_UrlBase;
 
-                string urlBase = CacheDeVariable.Cfg_UrlBase;
-
-                string cuerpoHtml = $@"Estimado {usuario.Nombre},<br><br>
+                    string cuerpoHtml = $@"Estimado {usuario.Nombre},<br><br>
                         Se le ha dado de alta en el 
                         <a href='{urlBase}' style='text-decoration: underline; color: blue;'>
                         sistema de elementos
                         </a> 
                         <br><br>Conétese con el usuario '{usuario.Login}' y la password que le indique su administrador";
 
-                Contexto.CrearCorreo(new List<string> {usuario.eMail}, "Alta de usuario en el sistema de elementos",
-                    cuerpo: cuerpoHtml,
-                    elementos: null,
-                    archivos: null);
+                    Contexto.CrearCorreo(new List<string> { usuario.eMail }, "Alta de usuario en el sistema de elementos",
+                        cuerpo: cuerpoHtml,
+                        elementos: null,
+                        archivos: null);
+                }
             }
 
             if (parametros.Modificando)
