@@ -848,7 +848,6 @@ GO
 
             #endregion
 
-
             migrationBuilder.CreateTable(
                 name: "ABOGADO_AUDITORIA",
                 schema: "TERCEROS",
@@ -2769,6 +2768,7 @@ GO
                     SC_COMPRA = table.Column<bool>(type: "BIT", nullable: false, defaultValue: false),
                     USA_TAREAS = table.Column<bool>(type: "BIT", nullable: false, defaultValue: true),
                     USA_PPTS = table.Column<bool>(type: "BIT", nullable: false, defaultValue: false),
+                    USA_DATOS_JURIDICOS = table.Column<bool>(type: "BIT", nullable: false, defaultValue: false),
                     NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
                     ID_PADRE = table.Column<int>(type: "INT", nullable: true),
                     ID_GESTOR = table.Column<int>(type: "INT", nullable: false),
@@ -6088,6 +6088,10 @@ GO
                     ID_AGENDA = table.Column<int>(type: "INT", nullable: false),
                     ID_CERTIFICADO = table.Column<int>(type: "INT", nullable: true),
                     ACTIVO = table.Column<bool>(type: "BIT", nullable: false, defaultValue: true),
+                    GUID = table.Column<Guid>(type: "UNIQUEIDENTIFIER", nullable: true),
+                    SOLICITADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
+                    FALLIDOS = table.Column<int>(type: "INT", nullable: false, defaultValue: 0),
+                    BLOQUEADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
                     NOMBRE = table.Column<string>(type: "VARCHAR(50)", nullable: false)
                 },
                 constraints: table =>
@@ -6144,6 +6148,42 @@ GO
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ARCHIVO_DESCARGA_GUID_ID_USUARIO",
+                        column: x => x.ID_USUARIO,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CONSULTA_CON_GUID",
+                schema: "NEGOCIO",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_NEGOCIO = table.Column<int>(type: "INT", nullable: false),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    GUID = table.Column<Guid>(type: "UNIQUEIDENTIFIER", nullable: false),
+                    ID_USUARIO = table.Column<int>(type: "INT", nullable: false),
+                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    DESCARGADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
+                    CADUCA_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
+                    MAXIMO_DESCARGAS = table.Column<int>(type: "INT", nullable: true),
+                    NUMERO = table.Column<int>(type: "INT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CONSULTA_CON_GUID", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_CONSULTA_CON_GUID_ID_NEGOCIO",
+                        column: x => x.ID_NEGOCIO,
+                        principalSchema: "NEGOCIO",
+                        principalTable: "NEGOCIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CONSULTA_CON_GUID_ID_USUARIO",
                         column: x => x.ID_USUARIO,
                         principalSchema: "ENTORNO",
                         principalTable: "USUARIO",
@@ -6220,6 +6260,31 @@ GO
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_FIRMADO_ID_USUARIO",
+                        column: x => x.ID_USUARIO,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IA_PREGUNTA",
+                schema: "ENTORNO",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GUID = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    ID_USUARIO = table.Column<int>(type: "INT", nullable: false),
+                    FECHA = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    PREGUNTA = table.Column<string>(type: "VARCHAR(2000)", nullable: false),
+                    RESPUESTA = table.Column<string>(type: "VARCHAR(MAX)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IA_PREGUNTA", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_IA_PREGUNTA_ID_USUARIO",
                         column: x => x.ID_USUARIO,
                         principalSchema: "ENTORNO",
                         principalTable: "USUARIO",
@@ -6605,6 +6670,7 @@ GO
                 {
                     ID = table.Column<int>(type: "INT", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_VISTA = table.Column<int>(type: "INT", nullable: true),
                     NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
                     VALOR = table.Column<string>(type: "VARCHAR(MAX)", nullable: false),
                     ID_NEGOCIO = table.Column<int>(type: "INT", nullable: false),
@@ -6626,6 +6692,13 @@ GO
                         column: x => x.ID_USUARIO,
                         principalSchema: "ENTORNO",
                         principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PLANTILLA_FILTRADO_ID_VISTA",
+                        column: x => x.ID_VISTA,
+                        principalSchema: "ENTORNO",
+                        principalTable: "VISTA_MVC",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -7582,6 +7655,46 @@ GO
                 });
 
             migrationBuilder.CreateTable(
+                name: "FACTURADOR",
+                schema: "TERCEROS",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    ID_TIPO_FACTURA = table.Column<int>(type: "INT", nullable: false),
+                    ID_CG = table.Column<int>(type: "INT", nullable: false),
+                    APIKEY = table.Column<string>(type: "VARCHAR(250)", nullable: false),
+                    MAPEOS_JSON = table.Column<string>(type: "VARCHAR(MAX)", nullable: false),
+                    ACTIVA = table.Column<bool>(type: "BIT", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FACTURADOR", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_FACTURADOR_ID_CG",
+                        column: x => x.ID_CG,
+                        principalSchema: "TERCEROS",
+                        principalTable: "CENTRO_GESTOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_FACTURADOR_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "SOCIEDAD",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_FACTURADOR_ID_TIPO_FACTURA",
+                        column: x => x.ID_TIPO_FACTURA,
+                        principalSchema: "VENTA",
+                        principalTable: "FACTURA_EMT_TIPO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PERMISO_POR_NEGOCIOS_CG",
                 schema: "SEGURIDAD",
                 columns: table => new
@@ -8200,6 +8313,38 @@ GO
                 });
 
             migrationBuilder.CreateTable(
+                name: "CIRCUITO_DOC_ACTIVIDAD_FORMATIVA",
+                schema: "SISDOC",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_RESPONSABLE = table.Column<int>(type: "INT", nullable: true),
+                    INICIO = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
+                    FIN = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
+                    COSTE = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: true),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "SISDOC",
+                        principalTable: "CIRCUITO_DOC",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_RESPONSABLE",
+                        column: x => x.ID_RESPONSABLE,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CIRCUITO_DOC_AGENDA_EVENTO",
                 schema: "SISDOC",
                 columns: table => new
@@ -8733,6 +8878,74 @@ GO
                 });
 
             migrationBuilder.CreateTable(
+                name: "CIRCUITO_DOC_INSCRITO",
+                schema: "SISDOC",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    ID_INSCRITO = table.Column<int>(type: "INT", nullable: false),
+                    ASISTIO = table.Column<bool>(type: "BIT", nullable: false),
+                    IMPORTE = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: true),
+                    ID_ARCHIVO = table.Column<int>(type: "INT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CIRCUITO_DOC_INSCRITO", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_CIRCUITO_DOC_INSCRITO_ID_ARCHIVO",
+                        column: x => x.ID_ARCHIVO,
+                        principalSchema: "SISDOC",
+                        principalTable: "ARCHIVO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CIRCUITO_DOC_INSCRITO_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "SISDOC",
+                        principalTable: "CIRCUITO_DOC",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CIRCUITO_DOC_INSCRITO_ID_INSCRITO",
+                        column: x => x.ID_INSCRITO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "INTERLOCUTOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CIRCUITO_DOC_VOLUNTARIO",
+                schema: "SISDOC",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    ID_INSCRITO = table.Column<int>(type: "INT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CIRCUITO_DOC_VOLUNTARIO", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_CIRCUITO_DOC_VOLUNTARIO_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "SISDOC",
+                        principalTable: "CIRCUITO_DOC",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CIRCUITO_DOC_VOLUNTARIO_ID_INSCRITO",
+                        column: x => x.ID_INSCRITO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "INTERLOCUTOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CLIENTE",
                 schema: "TERCEROS",
                 columns: table => new
@@ -9137,108 +9350,6 @@ GO
                         column: x => x.ID_MODIFICADOR,
                         principalSchema: "ENTORNO",
                         principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PROVEEDOR",
-                schema: "TERCEROS",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "INT", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    EMAIL = table.Column<string>(type: "VARCHAR(50)", nullable: false),
-                    TELEFONO = table.Column<string>(type: "VARCHAR(15)", nullable: false),
-                    BAJA = table.Column<bool>(type: "BIT", nullable: false, defaultValue: false),
-                    ID_INTERLOCUTOR = table.Column<int>(type: "INT", nullable: false),
-                    ID_CUENTA = table.Column<int>(type: "INT", nullable: false),
-                    CODIGO_CONTABLE = table.Column<decimal>(type: "DECIMAL(4,0)", nullable: true),
-                    ID_TIPO_FAR = table.Column<int>(type: "INT", nullable: true),
-                    ID_CG = table.Column<int>(type: "INT", nullable: true),
-                    ID_NATURALEZA = table.Column<int>(type: "INT", nullable: true),
-                    ID_UNIDAD = table.Column<int>(type: "INT", nullable: true),
-                    CONCEPTO = table.Column<string>(type: "VARCHAR(250)", nullable: true),
-                    ID_IVA_S = table.Column<int>(type: "INT", nullable: true),
-                    ID_IRPF = table.Column<int>(type: "INT", nullable: true),
-                    NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
-                    FECCRE = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
-                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
-                    FECMOD = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
-                    ID_MODIFICADOR = table.Column<int>(type: "INT", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PROVEEDOR", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_CG",
-                        column: x => x.ID_CG,
-                        principalSchema: "TERCEROS",
-                        principalTable: "CENTRO_GESTOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_CREADOR",
-                        column: x => x.ID_CREADOR,
-                        principalSchema: "ENTORNO",
-                        principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_CUENTA",
-                        column: x => x.ID_CUENTA,
-                        principalSchema: "CONTABILIDAD",
-                        principalTable: "CUENTA",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_INTERLOCUTOR",
-                        column: x => x.ID_INTERLOCUTOR,
-                        principalSchema: "TERCEROS",
-                        principalTable: "INTERLOCUTOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_IRPF",
-                        column: x => x.ID_IRPF,
-                        principalSchema: "CONTABILIDAD",
-                        principalTable: "IRPF",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_IVA_S",
-                        column: x => x.ID_IVA_S,
-                        principalSchema: "CONTABILIDAD",
-                        principalTable: "IVA_SOPORTADO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_MODIFICADOR",
-                        column: x => x.ID_MODIFICADOR,
-                        principalSchema: "ENTORNO",
-                        principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_NATURALEZA",
-                        column: x => x.ID_NATURALEZA,
-                        principalSchema: "MT",
-                        principalTable: "MT_NATURALEZA",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_TIPO_FAR",
-                        column: x => x.ID_TIPO_FAR,
-                        principalSchema: "GASTO",
-                        principalTable: "FACTURA_REC_TIPO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ID_UNIDAD",
-                        column: x => x.ID_UNIDAD,
-                        principalSchema: "MT",
-                        principalTable: "MT_UNIDAD",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -9806,6 +9917,126 @@ GO
                         column: x => x.ID_ELEMENTO,
                         principalSchema: "GASTO",
                         principalTable: "REMESA_PAG",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PROVEEDOR",
+                schema: "TERCEROS",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EMAIL = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    TELEFONO = table.Column<string>(type: "VARCHAR(15)", nullable: false),
+                    BAJA = table.Column<bool>(type: "BIT", nullable: false, defaultValue: false),
+                    ID_INTERLOCUTOR = table.Column<int>(type: "INT", nullable: false),
+                    ID_CUENTA = table.Column<int>(type: "INT", nullable: false),
+                    CODIGO_CONTABLE = table.Column<decimal>(type: "DECIMAL(4,0)", nullable: true),
+                    ID_TIPO_FAR = table.Column<int>(type: "INT", nullable: true),
+                    ID_CG = table.Column<int>(type: "INT", nullable: true),
+                    ID_NATURALEZA = table.Column<int>(type: "INT", nullable: true),
+                    ID_UNIDAD = table.Column<int>(type: "INT", nullable: true),
+                    CONCEPTO = table.Column<string>(type: "VARCHAR(250)", nullable: true),
+                    BI = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: true),
+                    ID_IVA_S = table.Column<int>(type: "INT", nullable: true),
+                    ID_IRPF = table.Column<int>(type: "INT", nullable: true),
+                    MODO = table.Column<string>(type: "VARCHAR(30)", nullable: true),
+                    ID_TARJETA = table.Column<int>(type: "INT", nullable: true),
+                    ID_CUENTA_CARGO = table.Column<int>(type: "INT", nullable: true),
+                    NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
+                    FECCRE = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
+                    FECMOD = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
+                    ID_MODIFICADOR = table.Column<int>(type: "INT", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PROVEEDOR", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_CG",
+                        column: x => x.ID_CG,
+                        principalSchema: "TERCEROS",
+                        principalTable: "CENTRO_GESTOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_CREADOR",
+                        column: x => x.ID_CREADOR,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_CUENTA",
+                        column: x => x.ID_CUENTA,
+                        principalSchema: "CONTABILIDAD",
+                        principalTable: "CUENTA",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_CUENTA_CARGO",
+                        column: x => x.ID_CUENTA_CARGO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "SOCIEDAD_CUENTA",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_INTERLOCUTOR",
+                        column: x => x.ID_INTERLOCUTOR,
+                        principalSchema: "TERCEROS",
+                        principalTable: "INTERLOCUTOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_IRPF",
+                        column: x => x.ID_IRPF,
+                        principalSchema: "CONTABILIDAD",
+                        principalTable: "IRPF",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_IVA_S",
+                        column: x => x.ID_IVA_S,
+                        principalSchema: "CONTABILIDAD",
+                        principalTable: "IVA_SOPORTADO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_MODIFICADOR",
+                        column: x => x.ID_MODIFICADOR,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_NATURALEZA",
+                        column: x => x.ID_NATURALEZA,
+                        principalSchema: "MT",
+                        principalTable: "MT_NATURALEZA",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_TARJETA",
+                        column: x => x.ID_TARJETA,
+                        principalSchema: "TERCEROS",
+                        principalTable: "SOCIEDAD_TARJETA",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_TIPO_FAR",
+                        column: x => x.ID_TIPO_FAR,
+                        principalSchema: "GASTO",
+                        principalTable: "FACTURA_REC_TIPO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ID_UNIDAD",
+                        column: x => x.ID_UNIDAD,
+                        principalSchema: "MT",
+                        principalTable: "MT_UNIDAD",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -10894,6 +11125,36 @@ GO
                 });
 
             migrationBuilder.CreateTable(
+                name: "EXPEDIENTE_CIRCUITO_DOC",
+                schema: "EXPEDIENTE",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO1 = table.Column<int>(type: "INT", nullable: false),
+                    ID_ELEMENTO2 = table.Column<int>(type: "INT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EXPEDIENTE_CIRCUITO_DOC", x => x.ID);
+                    table.UniqueConstraint("AK_EXPEDIENTE_CIRCUITO_DOC", x => new { x.ID_ELEMENTO1, x.ID_ELEMENTO2 });
+                    table.ForeignKey(
+                        name: "FK_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO1",
+                        column: x => x.ID_ELEMENTO1,
+                        principalSchema: "EXPEDIENTE",
+                        principalTable: "EXPEDIENTE",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO2",
+                        column: x => x.ID_ELEMENTO2,
+                        principalSchema: "SISDOC",
+                        principalTable: "CIRCUITO_DOC",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EXPEDIENTE_DIRECCION",
                 schema: "EXPEDIENTE",
                 columns: table => new
@@ -11406,7 +11667,7 @@ GO
                 });
 
             migrationBuilder.CreateTable(
-                name: "EXPEDIENTE_PLEITO",
+                name: "EXPEDIENTE_DATOS_JURIDICOS",
                 schema: "EXPEDIENTE",
                 columns: table => new
                 {
@@ -11415,34 +11676,40 @@ GO
                     ID_PROCURADOR = table.Column<int>(type: "INT", nullable: true),
                     ID_ABOGADO = table.Column<int>(type: "INT", nullable: true),
                     ID_JUZGADO = table.Column<int>(type: "INT", nullable: true),
+                    NIG = table.Column<string>(type: "VARCHAR(25)", nullable: true),
+                    REFERENCIA = table.Column<string>(type: "VARCHAR(50)", nullable: true),
+                    LITIGADO = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: true),
+                    COSTAS = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: true),
+                    SENTENCIADO = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: true),
+                    SENTENCIADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
                     ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EXPEDIENTE_PLEITO", x => x.ID);
+                    table.PrimaryKey("PK_EXPEDIENTE_DATOS_JURIDICOS", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_EXPEDIENTE_PLEITO_ID_ABOGADO",
+                        name: "FK_EXPEDIENTE_DATOS_JURIDICOS_ID_ABOGADO",
                         column: x => x.ID_ABOGADO,
                         principalSchema: "TERCEROS",
                         principalTable: "ABOGADO",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_EXPEDIENTE_PLEITO_ID_ELEMENTO",
+                        name: "FK_EXPEDIENTE_DATOS_JURIDICOS_ID_ELEMENTO",
                         column: x => x.ID_ELEMENTO,
                         principalSchema: "EXPEDIENTE",
                         principalTable: "EXPEDIENTE",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_EXPEDIENTE_PLEITO_ID_JUZGADO",
+                        name: "FK_EXPEDIENTE_DATOS_JURIDICOS_ID_JUZGADO",
                         column: x => x.ID_JUZGADO,
                         principalSchema: "TERCEROS",
                         principalTable: "JUZGADO",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_EXPEDIENTE_PLEITO_ID_PROCURADOR",
+                        name: "FK_EXPEDIENTE_DATOS_JURIDICOS_ID_PROCURADOR",
                         column: x => x.ID_PROCURADOR,
                         principalSchema: "TERCEROS",
                         principalTable: "PROCURADOR",
@@ -11741,289 +12008,6 @@ GO
                         column: x => x.ID_ELEMENTO,
                         principalSchema: "TERCEROS",
                         principalTable: "PROCURADOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PROVEEDOR_ARCHIVO",
-                schema: "TERCEROS",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "INT", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ID_ELEMENTO1 = table.Column<int>(type: "INT", nullable: false),
-                    ID_ELEMENTO2 = table.Column<int>(type: "INT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PROVEEDOR_ARCHIVO", x => x.ID);
-                    table.UniqueConstraint("AK_PROVEEDOR_ARCHIVO", x => new { x.ID_ELEMENTO1, x.ID_ELEMENTO2 });
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ARCHIVO_ID_ELEMENTO1",
-                        column: x => x.ID_ELEMENTO1,
-                        principalSchema: "TERCEROS",
-                        principalTable: "PROVEEDOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_ARCHIVO_ID_ELEMENTO2",
-                        column: x => x.ID_ELEMENTO2,
-                        principalSchema: "SISDOC",
-                        principalTable: "ARCHIVO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PROVEEDOR_CUENTA",
-                schema: "TERCEROS",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "INT", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
-                    CLASE = table.Column<string>(type: "VARCHAR(30)", nullable: false),
-                    ID_CUENTA = table.Column<int>(type: "INT", nullable: false),
-                    ID_ARCHIVO = table.Column<int>(type: "INT", nullable: true),
-                    ACTIVA = table.Column<bool>(type: "BIT", nullable: false, defaultValue: true),
-                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
-                    FECCRE = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
-                    ID_MODIFICADOR = table.Column<int>(type: "INT", nullable: true),
-                    FECMOD = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
-                    ALIAS = table.Column<string>(type: "VARCHAR(250)", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PROVEEDOR_CUENTA", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_CUENTA_ID_ARCHIVO",
-                        column: x => x.ID_ARCHIVO,
-                        principalSchema: "SISDOC",
-                        principalTable: "ARCHIVO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_CUENTA_ID_CREADOR",
-                        column: x => x.ID_CREADOR,
-                        principalSchema: "ENTORNO",
-                        principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_CUENTA_ID_CUENTA",
-                        column: x => x.ID_CUENTA,
-                        principalSchema: "CONTABILIDAD",
-                        principalTable: "CUENTA_BANCARIA",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_CUENTA_ID_ELEMENTO",
-                        column: x => x.ID_ELEMENTO,
-                        principalSchema: "TERCEROS",
-                        principalTable: "PROVEEDOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_CUENTA_ID_MODIFICADOR",
-                        column: x => x.ID_MODIFICADOR,
-                        principalSchema: "ENTORNO",
-                        principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PROVEEDOR_DIRECCION",
-                schema: "TERCEROS",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "INT", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
-                    CALIFICADOR = table.Column<string>(type: "VARCHAR(20)", nullable: false),
-                    ID_PAIS = table.Column<int>(type: "INT", nullable: false),
-                    ID_PROVINCIA = table.Column<int>(type: "INT", nullable: false),
-                    ID_MUNICIPIO = table.Column<int>(type: "INT", nullable: false),
-                    ID_CALLE = table.Column<int>(type: "INT", nullable: false),
-                    ID_ZONA = table.Column<int>(type: "INT", nullable: true),
-                    ID_BARRIO = table.Column<int>(type: "INT", nullable: true),
-                    ID_CP = table.Column<int>(type: "INT", nullable: true),
-                    NUMERO = table.Column<int>(type: "INT", nullable: true),
-                    ESCALERA = table.Column<string>(type: "VARCHAR(4)", nullable: true),
-                    PISO = table.Column<string>(type: "VARCHAR(4)", nullable: true),
-                    PUERTA = table.Column<string>(type: "VARCHAR(15)", nullable: true),
-                    OTROS = table.Column<string>(type: "VARCHAR(2000)", nullable: true),
-                    URL = table.Column<string>(type: "VARCHAR(2000)", nullable: true),
-                    ACTIVO = table.Column<bool>(type: "BIT", nullable: false),
-                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
-                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
-                    CREADOR = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PROVEEDOR_DIRECCION", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_BARRIO",
-                        column: x => x.ID_BARRIO,
-                        principalSchema: "CALLEJERO",
-                        principalTable: "BARRIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_CALLE",
-                        column: x => x.ID_CALLE,
-                        principalSchema: "CALLEJERO",
-                        principalTable: "CALLE",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_CP",
-                        column: x => x.ID_CP,
-                        principalSchema: "CALLEJERO",
-                        principalTable: "CODIGO_POSTAL",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_CREADOR",
-                        column: x => x.ID_CREADOR,
-                        principalSchema: "ENTORNO",
-                        principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_ELEMENTO",
-                        column: x => x.ID_ELEMENTO,
-                        principalSchema: "TERCEROS",
-                        principalTable: "PROVEEDOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_MUNICIPIO",
-                        column: x => x.ID_MUNICIPIO,
-                        principalSchema: "CALLEJERO",
-                        principalTable: "MUNICIPIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_PAIS",
-                        column: x => x.ID_PAIS,
-                        principalSchema: "CALLEJERO",
-                        principalTable: "PAIS",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_PROVINCIA",
-                        column: x => x.ID_PROVINCIA,
-                        principalSchema: "CALLEJERO",
-                        principalTable: "PROVINCIA",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_DIRECCION_ID_ZONA",
-                        column: x => x.ID_ZONA,
-                        principalSchema: "CALLEJERO",
-                        principalTable: "ZONA",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PROVEEDOR_OBSERVACION",
-                schema: "TERCEROS",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "INT", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
-                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
-                    DESCRIPCION = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true),
-                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
-                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
-                    CREADOR = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)"),
-                    ELEMENTO = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "TERCEROS.CC_PROVEEDOR_NOMBRE(ID_ELEMENTO)")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PROVEEDOR_OBSERVACION", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_OBSERVACION_ID_CREADOR",
-                        column: x => x.ID_CREADOR,
-                        principalSchema: "ENTORNO",
-                        principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_OBSERVACION_ID_ELEMENTO",
-                        column: x => x.ID_ELEMENTO,
-                        principalSchema: "TERCEROS",
-                        principalTable: "PROVEEDOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PROVEEDOR_TRAZA",
-                schema: "TERCEROS",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "INT", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
-                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
-                    DESCRIPCION = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true),
-                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
-                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
-                    CREADOR = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PROVEEDOR_TRAZA", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_TRAZA_ID_CREADOR",
-                        column: x => x.ID_CREADOR,
-                        principalSchema: "ENTORNO",
-                        principalTable: "USUARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PROVEEDOR_TRAZA_ID_ELEMENTO",
-                        column: x => x.ID_ELEMENTO,
-                        principalSchema: "TERCEROS",
-                        principalTable: "PROVEEDOR",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UNITARIO_TARIFA",
-                schema: "MT",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "INT", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
-                    ID_PROVEEDOR = table.Column<int>(type: "INT", nullable: false),
-                    REFERENCIA = table.Column<string>(type: "VARCHAR(50)", nullable: false),
-                    VALOR = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UNITARIO_TARIFA", x => x.ID);
-                    table.UniqueConstraint("AK_UNITARIO_TARIFA_ID_ELEMENTO_ID_PROVEEDOR", x => new { x.ID_ELEMENTO, x.ID_PROVEEDOR });
-                    table.ForeignKey(
-                        name: "FK_UNITARIO_TARIFA_ID_ELEMENTO",
-                        column: x => x.ID_ELEMENTO,
-                        principalSchema: "MT",
-                        principalTable: "UNITARIO",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_UNITARIO_TARIFA_ID_PROVEEDOR",
-                        column: x => x.ID_PROVEEDOR,
-                        principalSchema: "TERCEROS",
-                        principalTable: "PROVEEDOR",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -12847,6 +12831,289 @@ GO
                         column: x => x.ID_USUARIO,
                         principalSchema: "ENTORNO",
                         principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PROVEEDOR_ARCHIVO",
+                schema: "TERCEROS",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO1 = table.Column<int>(type: "INT", nullable: false),
+                    ID_ELEMENTO2 = table.Column<int>(type: "INT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PROVEEDOR_ARCHIVO", x => x.ID);
+                    table.UniqueConstraint("AK_PROVEEDOR_ARCHIVO", x => new { x.ID_ELEMENTO1, x.ID_ELEMENTO2 });
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ARCHIVO_ID_ELEMENTO1",
+                        column: x => x.ID_ELEMENTO1,
+                        principalSchema: "TERCEROS",
+                        principalTable: "PROVEEDOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_ARCHIVO_ID_ELEMENTO2",
+                        column: x => x.ID_ELEMENTO2,
+                        principalSchema: "SISDOC",
+                        principalTable: "ARCHIVO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PROVEEDOR_CUENTA",
+                schema: "TERCEROS",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    CLASE = table.Column<string>(type: "VARCHAR(30)", nullable: false),
+                    ID_CUENTA = table.Column<int>(type: "INT", nullable: false),
+                    ID_ARCHIVO = table.Column<int>(type: "INT", nullable: true),
+                    ACTIVA = table.Column<bool>(type: "BIT", nullable: false, defaultValue: true),
+                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
+                    FECCRE = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    ID_MODIFICADOR = table.Column<int>(type: "INT", nullable: true),
+                    FECMOD = table.Column<DateTime>(type: "DATETIME2(7)", nullable: true),
+                    ALIAS = table.Column<string>(type: "VARCHAR(250)", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PROVEEDOR_CUENTA", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_CUENTA_ID_ARCHIVO",
+                        column: x => x.ID_ARCHIVO,
+                        principalSchema: "SISDOC",
+                        principalTable: "ARCHIVO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_CUENTA_ID_CREADOR",
+                        column: x => x.ID_CREADOR,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_CUENTA_ID_CUENTA",
+                        column: x => x.ID_CUENTA,
+                        principalSchema: "CONTABILIDAD",
+                        principalTable: "CUENTA_BANCARIA",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_CUENTA_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "PROVEEDOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_CUENTA_ID_MODIFICADOR",
+                        column: x => x.ID_MODIFICADOR,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PROVEEDOR_DIRECCION",
+                schema: "TERCEROS",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    CALIFICADOR = table.Column<string>(type: "VARCHAR(20)", nullable: false),
+                    ID_PAIS = table.Column<int>(type: "INT", nullable: false),
+                    ID_PROVINCIA = table.Column<int>(type: "INT", nullable: false),
+                    ID_MUNICIPIO = table.Column<int>(type: "INT", nullable: false),
+                    ID_CALLE = table.Column<int>(type: "INT", nullable: false),
+                    ID_ZONA = table.Column<int>(type: "INT", nullable: true),
+                    ID_BARRIO = table.Column<int>(type: "INT", nullable: true),
+                    ID_CP = table.Column<int>(type: "INT", nullable: true),
+                    NUMERO = table.Column<int>(type: "INT", nullable: true),
+                    ESCALERA = table.Column<string>(type: "VARCHAR(4)", nullable: true),
+                    PISO = table.Column<string>(type: "VARCHAR(4)", nullable: true),
+                    PUERTA = table.Column<string>(type: "VARCHAR(15)", nullable: true),
+                    OTROS = table.Column<string>(type: "VARCHAR(2000)", nullable: true),
+                    URL = table.Column<string>(type: "VARCHAR(2000)", nullable: true),
+                    ACTIVO = table.Column<bool>(type: "BIT", nullable: false),
+                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
+                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    CREADOR = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PROVEEDOR_DIRECCION", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_BARRIO",
+                        column: x => x.ID_BARRIO,
+                        principalSchema: "CALLEJERO",
+                        principalTable: "BARRIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_CALLE",
+                        column: x => x.ID_CALLE,
+                        principalSchema: "CALLEJERO",
+                        principalTable: "CALLE",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_CP",
+                        column: x => x.ID_CP,
+                        principalSchema: "CALLEJERO",
+                        principalTable: "CODIGO_POSTAL",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_CREADOR",
+                        column: x => x.ID_CREADOR,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "PROVEEDOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_MUNICIPIO",
+                        column: x => x.ID_MUNICIPIO,
+                        principalSchema: "CALLEJERO",
+                        principalTable: "MUNICIPIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_PAIS",
+                        column: x => x.ID_PAIS,
+                        principalSchema: "CALLEJERO",
+                        principalTable: "PAIS",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_PROVINCIA",
+                        column: x => x.ID_PROVINCIA,
+                        principalSchema: "CALLEJERO",
+                        principalTable: "PROVINCIA",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_DIRECCION_ID_ZONA",
+                        column: x => x.ID_ZONA,
+                        principalSchema: "CALLEJERO",
+                        principalTable: "ZONA",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PROVEEDOR_OBSERVACION",
+                schema: "TERCEROS",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    DESCRIPCION = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true),
+                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
+                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    CREADOR = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)"),
+                    ELEMENTO = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "TERCEROS.CC_PROVEEDOR_NOMBRE(ID_ELEMENTO)")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PROVEEDOR_OBSERVACION", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_OBSERVACION_ID_CREADOR",
+                        column: x => x.ID_CREADOR,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_OBSERVACION_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "PROVEEDOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PROVEEDOR_TRAZA",
+                schema: "TERCEROS",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    DESCRIPCION = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true),
+                    ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
+                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    CREADOR = table.Column<string>(type: "VARCHAR(255)", nullable: true, computedColumnSql: "ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PROVEEDOR_TRAZA", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_TRAZA_ID_CREADOR",
+                        column: x => x.ID_CREADOR,
+                        principalSchema: "ENTORNO",
+                        principalTable: "USUARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PROVEEDOR_TRAZA_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "TERCEROS",
+                        principalTable: "PROVEEDOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UNITARIO_TARIFA",
+                schema: "MT",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ID_ELEMENTO = table.Column<int>(type: "INT", nullable: false),
+                    ID_PROVEEDOR = table.Column<int>(type: "INT", nullable: false),
+                    REFERENCIA = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    VALOR = table.Column<decimal>(type: "DECIMAL(18,6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UNITARIO_TARIFA", x => x.ID);
+                    table.UniqueConstraint("AK_UNITARIO_TARIFA_ID_ELEMENTO_ID_PROVEEDOR", x => new { x.ID_ELEMENTO, x.ID_PROVEEDOR });
+                    table.ForeignKey(
+                        name: "FK_UNITARIO_TARIFA_ID_ELEMENTO",
+                        column: x => x.ID_ELEMENTO,
+                        principalSchema: "MT",
+                        principalTable: "UNITARIO",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UNITARIO_TARIFA_ID_PROVEEDOR",
+                        column: x => x.ID_PROVEEDOR,
+                        principalSchema: "TERCEROS",
+                        principalTable: "PROVEEDOR",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -17387,6 +17654,41 @@ GO
                 });
 
             migrationBuilder.CreateTable(
+                name: "PETICION_DE_FACTURA_EMT",
+                schema: "VENTA",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "INT", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GUID = table.Column<Guid>(type: "UNIQUEIDENTIFIER", nullable: false),
+                    CREADO_EL = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
+                    PETICION = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    ID_FACTURADOR = table.Column<int>(type: "INT", nullable: false),
+                    FACTURA_JSON = table.Column<string>(type: "VARCHAR(MAX)", nullable: true),
+                    ID_FACTURA_EMT = table.Column<int>(type: "INT", nullable: true),
+                    ERROR = table.Column<string>(type: "VARCHAR(MAX)", nullable: true),
+                    VALIDADOR_JSON = table.Column<string>(type: "VARCHAR(MAX)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PETICION_DE_FACTURA_EMT", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_PETICION_DE_FACTURA_EMT_ID_FACTURADOR",
+                        column: x => x.ID_FACTURADOR,
+                        principalSchema: "TERCEROS",
+                        principalTable: "FACTURADOR",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PETICION_DE_FACTURA_EMT_ID_FACTURA_EMT",
+                        column: x => x.ID_FACTURA_EMT,
+                        principalSchema: "VENTA",
+                        principalTable: "FACTURA_EMT",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "REMESA_FAE_FACTURA_EMT",
                 schema: "VENTA",
                 columns: table => new
@@ -17455,6 +17757,7 @@ GO
                     ID_ARCHIVADOR = table.Column<int>(type: "INT", nullable: true),
                     ID_FACTURA_EMT = table.Column<int>(type: "INT", nullable: true),
                     ID_CLASE_ELEMENTO = table.Column<int>(type: "INT", nullable: true),
+                    PRIORIDAD = table.Column<string>(type: "VARCHAR(15)", nullable: true),
                     NOMBRE = table.Column<string>(type: "VARCHAR(250)", nullable: false),
                     FECCRE = table.Column<DateTime>(type: "DATETIME2(7)", nullable: false),
                     ID_CREADOR = table.Column<int>(type: "INT", nullable: false),
@@ -20443,6 +20746,19 @@ GO
                 column: "ID_TRANSICION");
 
             migrationBuilder.CreateIndex(
+                name: "I_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_ELEMENTO",
+                schema: "SISDOC",
+                table: "CIRCUITO_DOC_ACTIVIDAD_FORMATIVA",
+                column: "ID_ELEMENTO",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "I_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_RESPONSABLE",
+                schema: "SISDOC",
+                table: "CIRCUITO_DOC_ACTIVIDAD_FORMATIVA",
+                column: "ID_RESPONSABLE");
+
+            migrationBuilder.CreateIndex(
                 name: "I_CIRCUITO_DOC_AGENDA_EVENTO_ID_ELEMENTO1",
                 schema: "SISDOC",
                 table: "CIRCUITO_DOC_AGENDA_EVENTO",
@@ -20533,6 +20849,24 @@ GO
                 schema: "SISDOC",
                 table: "CIRCUITO_DOC_HISTORIA",
                 column: "ID_USUARIO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_CIRCUITO_DOC_INSCRITO_ID_ARCHIVO",
+                schema: "SISDOC",
+                table: "CIRCUITO_DOC_INSCRITO",
+                column: "ID_ARCHIVO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_CIRCUITO_DOC_INSCRITO_ID_ELEMENTO",
+                schema: "SISDOC",
+                table: "CIRCUITO_DOC_INSCRITO",
+                column: "ID_ELEMENTO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_CIRCUITO_DOC_INSCRITO_ID_INSCRITO",
+                schema: "SISDOC",
+                table: "CIRCUITO_DOC_INSCRITO",
+                column: "ID_INSCRITO");
 
             migrationBuilder.CreateIndex(
                 name: "I_CIRCUITO_DOC_OBSERVACION_ID_CREADOR",
@@ -20657,6 +20991,18 @@ GO
                 schema: "SISDOC",
                 table: "CIRCUITO_DOC_TRAZA",
                 column: "ID_ELEMENTO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_CIRCUITO_DOC_VOLUNTARIO_ID_ELEMENTO",
+                schema: "SISDOC",
+                table: "CIRCUITO_DOC_VOLUNTARIO",
+                column: "ID_ELEMENTO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_CIRCUITO_DOC_VOLUNTARIO_ID_INSCRITO",
+                schema: "SISDOC",
+                table: "CIRCUITO_DOC_VOLUNTARIO",
+                column: "ID_INSCRITO");
 
             migrationBuilder.CreateIndex(
                 name: "I_CLASE_ID_NEGOCIO",
@@ -20923,6 +21269,18 @@ GO
                 table: "CODIGO_POSTAL",
                 column: "CP",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "I_CONSULTA_CON_GUID_ID_NEGOCIO",
+                schema: "NEGOCIO",
+                table: "CONSULTA_CON_GUID",
+                column: "ID_NEGOCIO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_CONSULTA_CON_GUID_ID_USUARIO",
+                schema: "NEGOCIO",
+                table: "CONSULTA_CON_GUID",
+                column: "ID_USUARIO");
 
             migrationBuilder.CreateIndex(
                 name: "I_CONTRATO_ID_AGENDA",
@@ -21708,6 +22066,43 @@ GO
                 column: "ID_USUARIO");
 
             migrationBuilder.CreateIndex(
+                name: "I_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO1",
+                schema: "EXPEDIENTE",
+                table: "EXPEDIENTE_CIRCUITO_DOC",
+                column: "ID_ELEMENTO1");
+
+            migrationBuilder.CreateIndex(
+                name: "I_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO2",
+                schema: "EXPEDIENTE",
+                table: "EXPEDIENTE_CIRCUITO_DOC",
+                column: "ID_ELEMENTO2");
+
+            migrationBuilder.CreateIndex(
+                name: "I_EXPEDIENTE_DATOS_JURIDICOS_ID_ABOGADO",
+                schema: "EXPEDIENTE",
+                table: "EXPEDIENTE_DATOS_JURIDICOS",
+                column: "ID_ABOGADO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_EXPEDIENTE_DATOS_JURIDICOS_ID_ELEMENTO",
+                schema: "EXPEDIENTE",
+                table: "EXPEDIENTE_DATOS_JURIDICOS",
+                column: "ID_ELEMENTO",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "I_EXPEDIENTE_DATOS_JURIDICOS_ID_JUZGADO",
+                schema: "EXPEDIENTE",
+                table: "EXPEDIENTE_DATOS_JURIDICOS",
+                column: "ID_JUZGADO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_EXPEDIENTE_DATOS_JURIDICOS_ID_PROCURADOR",
+                schema: "EXPEDIENTE",
+                table: "EXPEDIENTE_DATOS_JURIDICOS",
+                column: "ID_PROCURADOR");
+
+            migrationBuilder.CreateIndex(
                 name: "AK_EXPEDIENTE_DIRECCION",
                 schema: "EXPEDIENTE",
                 table: "EXPEDIENTE_DIRECCION",
@@ -21909,31 +22304,6 @@ GO
                 table: "EXPEDIENTE_PLANTILLA_TIPO",
                 column: "NOMBRE",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "I_EXPEDIENTE_PLEITO_ID_ABOGADO",
-                schema: "EXPEDIENTE",
-                table: "EXPEDIENTE_PLEITO",
-                column: "ID_ABOGADO");
-
-            migrationBuilder.CreateIndex(
-                name: "I_EXPEDIENTE_PLEITO_ID_ELEMENTO",
-                schema: "EXPEDIENTE",
-                table: "EXPEDIENTE_PLEITO",
-                column: "ID_ELEMENTO",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "I_EXPEDIENTE_PLEITO_ID_JUZGADO",
-                schema: "EXPEDIENTE",
-                table: "EXPEDIENTE_PLEITO",
-                column: "ID_JUZGADO");
-
-            migrationBuilder.CreateIndex(
-                name: "I_EXPEDIENTE_PLEITO_ID_PROCURADOR",
-                schema: "EXPEDIENTE",
-                table: "EXPEDIENTE_PLEITO",
-                column: "ID_PROCURADOR");
 
             migrationBuilder.CreateIndex(
                 name: "I_EXPEDIENTE_REGISTRO_ID_ELEMENTO1",
@@ -23157,6 +23527,38 @@ GO
                 column: "ID_ELEMENTO");
 
             migrationBuilder.CreateIndex(
+                name: "I_FACTURADOR_ID_CG",
+                schema: "TERCEROS",
+                table: "FACTURADOR",
+                column: "ID_CG");
+
+            migrationBuilder.CreateIndex(
+                name: "I_FACTURADOR_ID_ELEMENTO",
+                schema: "TERCEROS",
+                table: "FACTURADOR",
+                column: "ID_ELEMENTO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_FACTURADOR_ID_ELEMENTO_APIKEY",
+                schema: "TERCEROS",
+                table: "FACTURADOR",
+                columns: new[] { "ID_ELEMENTO", "APIKEY" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "I_FACTURADOR_ID_ELEMENTO_ID_CG_ID_TIPO_FACTURA",
+                schema: "TERCEROS",
+                table: "FACTURADOR",
+                columns: new[] { "ID_ELEMENTO", "ID_CG", "ID_TIPO_FACTURA" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "I_FACTURADOR_ID_TIPO_FACTURA",
+                schema: "TERCEROS",
+                table: "FACTURADOR",
+                column: "ID_TIPO_FACTURA");
+
+            migrationBuilder.CreateIndex(
                 name: "I_FIRMADO_ID_CERTIFICADO",
                 schema: "SISDOC",
                 table: "FIRMADO",
@@ -23181,6 +23583,24 @@ GO
                 schema: "SISDOC",
                 table: "FIRMADO",
                 column: "ID_USUARIO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_IA_PREGUNTA_GUID",
+                schema: "ENTORNO",
+                table: "IA_PREGUNTA",
+                column: "GUID");
+
+            migrationBuilder.CreateIndex(
+                name: "I_IA_PREGUNTA_ID_USUARIO",
+                schema: "ENTORNO",
+                table: "IA_PREGUNTA",
+                column: "ID_USUARIO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_IA_PREGUNTA_PREGUNTA",
+                schema: "ENTORNO",
+                table: "IA_PREGUNTA",
+                column: "PREGUNTA");
 
             migrationBuilder.CreateIndex(
                 name: "I_INFANTE_ID_AGENDA",
@@ -25457,6 +25877,20 @@ GO
                 column: "ID_ELEMENTO");
 
             migrationBuilder.CreateIndex(
+                name: "I_PETICION_DE_FACTURA_EMT_ID_FACTURA_EMT",
+                schema: "VENTA",
+                table: "PETICION_DE_FACTURA_EMT",
+                column: "ID_FACTURA_EMT",
+                unique: true,
+                filter: "[ID_FACTURA_EMT] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "I_PETICION_DE_FACTURA_EMT_ID_FACTURADOR",
+                schema: "VENTA",
+                table: "PETICION_DE_FACTURA_EMT",
+                column: "ID_FACTURADOR");
+
+            migrationBuilder.CreateIndex(
                 name: "I_PLANIFICACION_VENTA_ID_CG",
                 schema: "VENTA",
                 table: "PLANIFICACION_VENTA",
@@ -26016,6 +26450,12 @@ GO
                 schema: "NEGOCIO",
                 table: "PLANTILLA_FILTRADO",
                 column: "ID_USUARIO");
+
+            migrationBuilder.CreateIndex(
+                name: "I_PLANTILLA_FILTRADO_ID_VISTA",
+                schema: "NEGOCIO",
+                table: "PLANTILLA_FILTRADO",
+                column: "ID_VISTA");
 
             migrationBuilder.CreateIndex(
                 name: "I_PLEITO_ID_ABOGADO",
@@ -27343,6 +27783,12 @@ GO
                 column: "ID_CUENTA");
 
             migrationBuilder.CreateIndex(
+                name: "I_PROVEEDOR_ID_CUENTA_CARGO",
+                schema: "TERCEROS",
+                table: "PROVEEDOR",
+                column: "ID_CUENTA_CARGO");
+
+            migrationBuilder.CreateIndex(
                 name: "I_PROVEEDOR_ID_INTERLOCUTOR",
                 schema: "TERCEROS",
                 table: "PROVEEDOR",
@@ -27372,6 +27818,12 @@ GO
                 schema: "TERCEROS",
                 table: "PROVEEDOR",
                 column: "ID_NATURALEZA");
+
+            migrationBuilder.CreateIndex(
+                name: "I_PROVEEDOR_ID_TARJETA",
+                schema: "TERCEROS",
+                table: "PROVEEDOR",
+                column: "ID_TARJETA");
 
             migrationBuilder.CreateIndex(
                 name: "I_PROVEEDOR_ID_TIPO_FAR",
@@ -30834,6 +31286,10 @@ GO
                 schema: "SISDOC");
 
             migrationBuilder.DropTable(
+                name: "CIRCUITO_DOC_ACTIVIDAD_FORMATIVA",
+                schema: "SISDOC");
+
+            migrationBuilder.DropTable(
                 name: "CIRCUITO_DOC_AGENDA_EVENTO",
                 schema: "SISDOC");
 
@@ -30854,11 +31310,19 @@ GO
                 schema: "SISDOC");
 
             migrationBuilder.DropTable(
+                name: "CIRCUITO_DOC_INSCRITO",
+                schema: "SISDOC");
+
+            migrationBuilder.DropTable(
                 name: "CIRCUITO_DOC_PERMISO",
                 schema: "SISDOC");
 
             migrationBuilder.DropTable(
                 name: "CIRCUITO_DOC_TRAZA",
+                schema: "SISDOC");
+
+            migrationBuilder.DropTable(
+                name: "CIRCUITO_DOC_VOLUNTARIO",
                 schema: "SISDOC");
 
             migrationBuilder.DropTable(
@@ -30892,6 +31356,10 @@ GO
             migrationBuilder.DropTable(
                 name: "CLIENTE_USUARIO",
                 schema: "TERCEROS");
+
+            migrationBuilder.DropTable(
+                name: "CONSULTA_CON_GUID",
+                schema: "NEGOCIO");
 
             migrationBuilder.DropTable(
                 name: "CONTRATO_ACCION",
@@ -31026,6 +31494,14 @@ GO
                 schema: "EXPEDIENTE");
 
             migrationBuilder.DropTable(
+                name: "EXPEDIENTE_CIRCUITO_DOC",
+                schema: "EXPEDIENTE");
+
+            migrationBuilder.DropTable(
+                name: "EXPEDIENTE_DATOS_JURIDICOS",
+                schema: "EXPEDIENTE");
+
+            migrationBuilder.DropTable(
                 name: "EXPEDIENTE_DIRECCION",
                 schema: "EXPEDIENTE");
 
@@ -31047,10 +31523,6 @@ GO
 
             migrationBuilder.DropTable(
                 name: "EXPEDIENTE_PLANTILLA_TIPO",
-                schema: "EXPEDIENTE");
-
-            migrationBuilder.DropTable(
-                name: "EXPEDIENTE_PLEITO",
                 schema: "EXPEDIENTE");
 
             migrationBuilder.DropTable(
@@ -31192,6 +31664,10 @@ GO
             migrationBuilder.DropTable(
                 name: "FIRMADO",
                 schema: "SISDOC");
+
+            migrationBuilder.DropTable(
+                name: "IA_PREGUNTA",
+                schema: "ENTORNO");
 
             migrationBuilder.DropTable(
                 name: "INFANTE_AGENDA_EVENTO",
@@ -31472,6 +31948,10 @@ GO
             migrationBuilder.DropTable(
                 name: "PERSONA_TRAZA",
                 schema: "TERCEROS");
+
+            migrationBuilder.DropTable(
+                name: "PETICION_DE_FACTURA_EMT",
+                schema: "VENTA");
 
             migrationBuilder.DropTable(
                 name: "PLANIFICACION_VENTA_ACCION",
@@ -32078,6 +32558,10 @@ GO
                 schema: "LOGISTICA");
 
             migrationBuilder.DropTable(
+                name: "FACTURADOR",
+                schema: "TERCEROS");
+
+            migrationBuilder.DropTable(
                 name: "PLANIFICACION_VENTA_OBSERVACION",
                 schema: "VENTA");
 
@@ -32238,10 +32722,6 @@ GO
                 schema: "GASTO");
 
             migrationBuilder.DropTable(
-                name: "SOCIEDAD_TARJETA",
-                schema: "TERCEROS");
-
-            migrationBuilder.DropTable(
                 name: "PAGO_TIPO",
                 schema: "GASTO");
 
@@ -32306,10 +32786,6 @@ GO
                 schema: "TERCEROS");
 
             migrationBuilder.DropTable(
-                name: "SOCIEDAD_CUENTA",
-                schema: "TERCEROS");
-
-            migrationBuilder.DropTable(
                 name: "PAGO_ESTADO",
                 schema: "GASTO");
 
@@ -32366,12 +32842,12 @@ GO
                 schema: "CONTABILIDAD");
 
             migrationBuilder.DropTable(
-                name: "FACTURA_REC_TIPO",
-                schema: "GASTO");
+                name: "SOCIEDAD_TARJETA",
+                schema: "TERCEROS");
 
             migrationBuilder.DropTable(
-                name: "CUENTA_BANCARIA",
-                schema: "CONTABILIDAD");
+                name: "FACTURA_REC_TIPO",
+                schema: "GASTO");
 
             migrationBuilder.DropTable(
                 name: "PLANIFICACION_VENTA_ESTADO",
@@ -32382,12 +32858,20 @@ GO
                 schema: "CALLEJERO");
 
             migrationBuilder.DropTable(
+                name: "SOCIEDAD_CUENTA",
+                schema: "TERCEROS");
+
+            migrationBuilder.DropTable(
                 name: "FACTURA_REC_ESTADO",
                 schema: "GASTO");
 
             migrationBuilder.DropTable(
                 name: "PAIS",
                 schema: "CALLEJERO");
+
+            migrationBuilder.DropTable(
+                name: "CUENTA_BANCARIA",
+                schema: "CONTABILIDAD");
 
             migrationBuilder.DropTable(
                 name: "USUARIO",

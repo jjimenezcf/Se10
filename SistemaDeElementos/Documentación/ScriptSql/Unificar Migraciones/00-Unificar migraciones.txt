@@ -3,10 +3,10 @@
 - copia de seguridad de SE_TEST
 
 - aplicar las migraciones a todas las bd (si es necesario) 
-  ejecutar el script: 'Migraciones aplicadas.Sql' para validar que todas las migraciones están aplicadas
+  ejecutar el script: '01-Migraciones aplicadas.Sql' para validar que todas las migraciones están aplicadas
 
 - hacer una copia de seguridad de la tabla de migraciones
-  ejecutar el script: 'BackUp de Migraciones.sql', la almacena en __Migraciones_Backup
+  ejecutar el script: '02-BackUp de Migraciones.sql', la almacena en __Migraciones_Backup
 
 - eliminar del proyecto todas las migraciones, incluida la inicial
 
@@ -22,17 +22,18 @@
 - Crear las funciones [ESQUEMA].[CC_TABLA_NOMBRE] de los nuevos negocios
 - crear la BD 
 - eljecutar en localhost
-- comparar las bd (CompareDatabases.sql)
+- comparar las bd, la de test y la de backup '03-Comparar dos DB.sql'
 
 - si todo es ok 
+  ejecutar '04-Indicar migración Inicial.sql'
   publicar 
   copiar prepublicación
   parar servicios
-  ejecutar el script 'Migraciones aplicadas.sql'
-  copiar valor de la bd: SE_TEST_BACK	20241010143448_InitialCreate	8.0.0
+  ejecutar el script '01-Migraciones aplicadas.sql'
+  copiar valor de la bd: SE_TEST_BACK	[fecha]_InitialCreate	8.0.0
   *****   Ajusta este valor según tu migración inicial
-  *****   DECLARE @MigracionInicial NVARCHAR(150) = '20240731185903_InitialCreate';
-  ejecutar el script 'Unificar Migraciones.sql'
-  ejecutar el script 'Migraciones aplicadas.sql'
+  *****   DECLARE @MigracionInicial NVARCHAR(150) = '[fecha]_InitialCreate';
+  ejecutar el script '05-Unificar Migraciones.sql'
+  ejecutar el script '01-Migraciones aplicadas.sql'
   verificar todo ok.
   arrancar servicios

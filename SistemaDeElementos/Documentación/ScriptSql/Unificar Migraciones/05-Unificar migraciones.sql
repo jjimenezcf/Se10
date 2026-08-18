@@ -2,7 +2,8 @@
 DECLARE @NombreBaseDatos NVARCHAR(128);
 DECLARE @SQL NVARCHAR(MAX);
 -- Ajusta este valor según tu migración inicial
-DECLARE @MigracionInicial NVARCHAR(150) = '20241010143448_InitialCreate'; 
+DECLARE @MigracionInicial NVARCHAR(150) = '20260818160748_InitialCreate'; 
+DECLARE @VersionEf NVARCHAR(150) = '10.0.7'; 
 
 -- Cursor para recorrer todas las bases de datos
 DECLARE db_cursor CURSOR FOR 
@@ -32,7 +33,7 @@ BEGIN
 
             -- Insertar el registro de la migración inicial
             INSERT INTO [ENTORNO].[__Migraciones] ([MigrationId], [ProductVersion])
-            VALUES (@MigracionInicial, ''8.0.0'');
+            VALUES (@MigracionInicial, @VersionEf);
 
             COMMIT TRANSACTION;
             PRINT ''Migración inicial insertada en la base de datos: ' + @NombreBaseDatos + ''';
@@ -47,7 +48,7 @@ BEGIN
         PRINT ''La tabla ENTORNO.__Migraciones no existe en la base de datos: ' + @NombreBaseDatos + ''';
     END';
 
-    EXEC sp_executesql @SQL, N'@MigracionInicial NVARCHAR(150)', @MigracionInicial;
+    EXEC sp_executesql @SQL, N'@MigracionInicial NVARCHAR(150), @VersionEf NVARCHAR(150)', @MigracionInicial, @VersionEf;
 
     FETCH NEXT FROM db_cursor INTO @NombreBaseDatos;
 END

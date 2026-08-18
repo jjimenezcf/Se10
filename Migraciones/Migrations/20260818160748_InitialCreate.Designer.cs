@@ -12,15 +12,15 @@ using ServicioDeDatos;
 namespace Migraciones.Migrations
 {
     [DbContext(typeof(ContextoSe))]
-    [Migration("20251225222950_rehacer todo")]
-    partial class rehacertodo
+    [Migration("20260818160748_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -2407,8 +2407,7 @@ namespace Migraciones.Migrations
                         .HasColumnType("DATETIME2(7)")
                         .HasColumnName("EXPIRA_EL");
 
-                    b.Property<int?>("IdArchivo")
-                        .IsRequired()
+                    b.Property<int>("IdArchivo")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ARCHIVO");
 
@@ -2549,6 +2548,56 @@ namespace Migraciones.Migrations
                     b.ToTable("AGENDA_EVENTO", "ENTORNO", t =>
                         {
                             t.HasTrigger("AGENDA_EVENTO_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Entorno.IaPreguntaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECHA");
+
+                    b.Property<string>("Guid")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(50)")
+                        .HasColumnName("GUID");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_USUARIO");
+
+                    b.Property<string>("Pregunta")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(2000)")
+                        .HasColumnName("PREGUNTA");
+
+                    b.Property<string>("Respuesta")
+                        .HasColumnType("VARCHAR(MAX)")
+                        .HasColumnName("RESPUESTA");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Guid")
+                        .HasDatabaseName("I_IA_PREGUNTA_GUID");
+
+                    b.HasIndex("IdUsuario")
+                        .HasDatabaseName("I_IA_PREGUNTA_ID_USUARIO");
+
+                    b.HasIndex("Pregunta")
+                        .HasDatabaseName("I_IA_PREGUNTA_PREGUNTA");
+
+                    b.ToTable("IA_PREGUNTA", "ENTORNO", t =>
+                        {
+                            t.HasTrigger("IA_PREGUNTA_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -3289,6 +3338,42 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Expediente.CircuitoDocDeUnExpedienteDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("idElemento1")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO1");
+
+                    b.Property<int>("idElemento2")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO2");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("idElemento1", "idElemento2")
+                        .HasName("AK_EXPEDIENTE_CIRCUITO_DOC");
+
+                    b.HasIndex("idElemento1")
+                        .HasDatabaseName("I_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO1");
+
+                    b.HasIndex("idElemento2")
+                        .HasDatabaseName("I_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO2");
+
+                    b.ToTable("EXPEDIENTE_CIRCUITO_DOC", "EXPEDIENTE", t =>
+                        {
+                            t.HasTrigger("EXPEDIENTE_CIRCUITO_DOC_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Expediente.DatosJuridicosDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -3930,8 +4015,7 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_ACCION");
 
-                    b.Property<int?>("IdArchivo")
-                        .IsRequired()
+                    b.Property<int>("IdArchivo")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ARCHIVO");
 
@@ -10217,8 +10301,7 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_ACCION");
 
-                    b.Property<int?>("IdArchivo")
-                        .IsRequired()
+                    b.Property<int>("IdArchivo")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ARCHIVO");
 
@@ -12783,6 +12866,67 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Negocio.ConsultaConGuidDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CaducaEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("CADUCA_EL");
+
+                    b.Property<DateTime>("CreadoEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("CREADO_EL");
+
+                    b.Property<DateTime?>("DescargadoEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("DESCARGADO_EL");
+
+                    b.Property<int?>("Descargas")
+                        .HasColumnType("INT")
+                        .HasColumnName("NUMERO");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("UNIQUEIDENTIFIER")
+                        .HasColumnName("GUID");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdNegocio")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_NEGOCIO");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_USUARIO");
+
+                    b.Property<int?>("MaximoDescargas")
+                        .HasColumnType("INT")
+                        .HasColumnName("MAXIMO_DESCARGAS");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdNegocio")
+                        .HasDatabaseName("I_CONSULTA_CON_GUID_ID_NEGOCIO");
+
+                    b.HasIndex("IdUsuario")
+                        .HasDatabaseName("I_CONSULTA_CON_GUID_ID_USUARIO");
+
+                    b.ToTable("CONSULTA_CON_GUID", "NEGOCIO", t =>
+                        {
+                            t.HasTrigger("CONSULTA_CON_GUID_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Negocio.LibroDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -13164,6 +13308,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_USUARIO");
 
+                    b.Property<int?>("IdVista")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_VISTA");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("VARCHAR(250)")
@@ -13186,6 +13334,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdUsuario")
                         .HasDatabaseName("I_PLANTILLA_FILTRADO_ID_USUARIO");
+
+                    b.HasIndex("IdVista")
+                        .HasDatabaseName("I_PLANTILLA_FILTRADO_ID_VISTA");
 
                     b.HasIndex("IdNegocio", "IdUsuario", "Nombre", "Vista")
                         .IsUnique()
@@ -13212,8 +13363,7 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_ACCION");
 
-                    b.Property<int?>("IdArchivo")
-                        .IsRequired()
+                    b.Property<int>("IdArchivo")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ARCHIVO");
 
@@ -16987,6 +17137,52 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.DatosDeActividadFormativaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Coste")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("COSTE");
+
+                    b.Property<DateTime?>("Fin")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FIN");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int?>("IdResponsable")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_RESPONSABLE");
+
+                    b.Property<DateTime?>("Inicio")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("INICIO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdElemento")
+                        .IsUnique()
+                        .HasDatabaseName("I_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_ELEMENTO");
+
+                    b.HasIndex("IdResponsable")
+                        .HasDatabaseName("I_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_RESPONSABLE");
+
+                    b.ToTable("CIRCUITO_DOC_ACTIVIDAD_FORMATIVA", "SISDOC", t =>
+                        {
+                            t.HasTrigger("CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.DescargaConGuidDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -17211,6 +17407,54 @@ namespace Migraciones.Migrations
                     b.ToTable("CIRCUITO_DOC_HISTORIA", "SISDOC", t =>
                         {
                             t.HasTrigger("CIRCUITO_DOC_HISTORIA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.InscritosEnActividadDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Asistio")
+                        .HasColumnType("BIT")
+                        .HasColumnName("ASISTIO");
+
+                    b.Property<int?>("IdArchivo")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ARCHIVO");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdInterlocutor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_INSCRITO");
+
+                    b.Property<decimal?>("Pagado")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("IMPORTE");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdArchivo")
+                        .HasDatabaseName("I_CIRCUITO_DOC_INSCRITO_ID_ARCHIVO");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_CIRCUITO_DOC_INSCRITO_ID_ELEMENTO");
+
+                    b.HasIndex("IdInterlocutor")
+                        .HasDatabaseName("I_CIRCUITO_DOC_INSCRITO_ID_INSCRITO");
+
+                    b.ToTable("CIRCUITO_DOC_INSCRITO", "SISDOC", t =>
+                        {
+                            t.HasTrigger("CIRCUITO_DOC_INSCRITO_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -17845,6 +18089,39 @@ namespace Migraciones.Migrations
                     b.ToTable("CIRCUITO_DOC_TRAZA", "SISDOC", t =>
                         {
                             t.HasTrigger("CIRCUITO_DOC_TRAZA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.VoluntarioDeActividadDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdInterlocutor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_INSCRITO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_CIRCUITO_DOC_VOLUNTARIO_ID_ELEMENTO");
+
+                    b.HasIndex("IdInterlocutor")
+                        .HasDatabaseName("I_CIRCUITO_DOC_VOLUNTARIO_ID_INSCRITO");
+
+                    b.ToTable("CIRCUITO_DOC_VOLUNTARIO", "SISDOC", t =>
+                        {
+                            t.HasTrigger("CIRCUITO_DOC_VOLUNTARIO_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -18616,6 +18893,10 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasColumnType("VARCHAR(250)")
                         .HasColumnName("NOMBRE");
+
+                    b.Property<string>("Prioridad")
+                        .HasColumnType("VARCHAR(15)")
+                        .HasColumnName("PRIORIDAD");
 
                     b.Property<string>("Referencia")
                         .IsRequired()
@@ -20151,8 +20432,7 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_GESTOR");
 
-                    b.Property<int?>("IdResponsable")
-                        .IsRequired()
+                    b.Property<int>("IdResponsable")
                         .HasColumnType("INT")
                         .HasColumnName("ID_RESPONSABLE");
 
@@ -27683,8 +27963,7 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_ACCION");
 
-                    b.Property<int?>("IdArchivo")
-                        .IsRequired()
+                    b.Property<int>("IdArchivo")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ARCHIVO");
 
@@ -29843,6 +30122,18 @@ namespace Migraciones.Migrations
                     b.Navigation("UsuarioModificador");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Entorno.IaPreguntaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_IA_PREGUNTA_ID_USUARIO");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Entorno.MenuDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Entorno.MenuDtm", "Padre")
@@ -30060,6 +30351,27 @@ namespace Migraciones.Migrations
                     b.Navigation("Expediente");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Expediente.CircuitoDocDeUnExpedienteDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Expediente.ExpedienteDtm", "Expediente")
+                        .WithMany()
+                        .HasForeignKey("idElemento1")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO1");
+
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.CircuitoDocDtm", "Circuito")
+                        .WithMany()
+                        .HasForeignKey("idElemento2")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_EXPEDIENTE_CIRCUITO_DOC_ID_ELEMENTO2");
+
+                    b.Navigation("Circuito");
+
+                    b.Navigation("Expediente");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Expediente.DatosJuridicosDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Terceros.AbogadoDtm", "Abogado")
@@ -30069,7 +30381,7 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_EXPEDIENTE_DATOS_JURIDICOS_ID_ABOGADO");
 
                     b.HasOne("ServicioDeDatos.Expediente.ExpedienteDtm", "Elemento")
-                        .WithOne("Pleito")
+                        .WithOne("DatosJuridicos")
                         .HasForeignKey("ServicioDeDatos.Expediente.DatosJuridicosDtm", "IdElemento")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
@@ -34146,6 +34458,27 @@ namespace Migraciones.Migrations
                     b.Navigation("Negocio");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Negocio.ConsultaConGuidDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Negocio.NegocioDtm", "Negocio")
+                        .WithMany()
+                        .HasForeignKey("IdNegocio")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CONSULTA_CON_GUID_ID_NEGOCIO");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CONSULTA_CON_GUID_ID_USUARIO");
+
+                    b.Navigation("Negocio");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Negocio.NegocioDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "Administrador")
@@ -34267,9 +34600,17 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_PLANTILLA_FILTRADO_ID_USUARIO");
 
+                    b.HasOne("ServicioDeDatos.Entorno.VistaMvcDtm", "VistaDtm")
+                        .WithMany()
+                        .HasForeignKey("IdVista")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PLANTILLA_FILTRADO_ID_VISTA");
+
                     b.Navigation("Negocio");
 
                     b.Navigation("Usuario");
+
+                    b.Navigation("VistaDtm");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Negocio.PlantillaDeNegocioDtm", b =>
@@ -35902,6 +36243,26 @@ namespace Migraciones.Migrations
                     b.Navigation("UsuarioModificador");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.DatosDeActividadFormativaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.CircuitoDocDtm", "Elemento")
+                        .WithOne("DatosActividadFormativa")
+                        .HasForeignKey("ServicioDeDatos.SistemaDocumental.DatosDeActividadFormativaDtm", "IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_ELEMENTO");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "Responsable")
+                        .WithMany()
+                        .HasForeignKey("IdResponsable")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_CIRCUITO_DOC_ACTIVIDAD_FORMATIVA_ID_RESPONSABLE");
+
+                    b.Navigation("Elemento");
+
+                    b.Navigation("Responsable");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.DescargaConGuidDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivoDtm", "Archivo")
@@ -35998,6 +36359,33 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CIRCUITO_DOC_HISTORIA_ID_USUARIO");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.InscritosEnActividadDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivoDtm", "Archivo")
+                        .WithMany()
+                        .HasForeignKey("IdArchivo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_CIRCUITO_DOC_INSCRITO_ID_ARCHIVO");
+
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.CircuitoDocDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIRCUITO_DOC_INSCRITO_ID_ELEMENTO");
+
+                    b.HasOne("ServicioDeDatos.Terceros.InterlocutorDtm", "Interlocutor")
+                        .WithMany()
+                        .HasForeignKey("IdInterlocutor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIRCUITO_DOC_INSCRITO_ID_INSCRITO");
+
+                    b.Navigation("Archivo");
+
+                    b.Navigation("Interlocutor");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.ObservacionesDeUnArchivadorDtm", b =>
@@ -36237,6 +36625,25 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CIRCUITO_DOC_TRAZA_ID_ELEMENTO");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.VoluntarioDeActividadDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.CircuitoDocDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIRCUITO_DOC_VOLUNTARIO_ID_ELEMENTO");
+
+                    b.HasOne("ServicioDeDatos.Terceros.InterlocutorDtm", "Interlocutor")
+                        .WithMany()
+                        .HasForeignKey("IdInterlocutor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIRCUITO_DOC_VOLUNTARIO_ID_INSCRITO");
+
+                    b.Navigation("Interlocutor");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Tarea.AccionesDeUnaTareaDtm", b =>
@@ -41002,7 +41409,7 @@ namespace Migraciones.Migrations
 
             modelBuilder.Entity("ServicioDeDatos.Expediente.ExpedienteDtm", b =>
                 {
-                    b.Navigation("Pleito");
+                    b.Navigation("DatosJuridicos");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Juridico.ContratoDtm", b =>
@@ -41063,6 +41470,11 @@ namespace Migraciones.Migrations
             modelBuilder.Entity("ServicioDeDatos.Seguridad.TipoPermisoDtm", b =>
                 {
                     b.Navigation("Permisos");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.SistemaDocumental.CircuitoDocDtm", b =>
+                {
+                    b.Navigation("DatosActividadFormativa");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Tarea.TareaDtm", b =>
