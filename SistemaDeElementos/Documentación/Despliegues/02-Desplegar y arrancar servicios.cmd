@@ -11,6 +11,7 @@ set DIR7=C:\inetpub\femdek
 set DIR8=C:\inetpub\futurines
 set DIR9=C:\inetpub\albertomartinez
 set DIR10=C:\inetpub\ceom
+set DIR11=C:\inetpub\jhm
 
 
 echo empezando la copia...
@@ -26,6 +27,7 @@ xcopy /s /e /y "%ORIGEN%" "%DIR7%" > C:\Prepublicacion\99-femdek.txt
 xcopy /s /e /y "%ORIGEN%" "%DIR8%" > C:\Prepublicacion\99-futurines.txt
 xcopy /s /e /y "%ORIGEN%" "%DIR9%" > C:\Prepublicacion\99-albertomartinez.txt
 xcopy /s /e /y "%ORIGEN%" "%DIR10%" > C:\Prepublicacion\99-ceom.txt
+xcopy /s /e /y "%ORIGEN%" "%DIR11%" > C:\Prepublicacion\99-jhm.txt
 
 
 echo analizando copias
@@ -39,6 +41,7 @@ findstr /i /c:"0 File(s) copied" /c:"Infracción al compartir" /c:"File not foun
 findstr /i /c:"0 File(s) copied" /c:"Infracción al compartir" /c:"File not found" /c:" cannot " /c:" error " C:\Prepublicacion\99-futurines.txt
 findstr /i /c:"0 File(s) copied" /c:"Infracción al compartir" /c:"File not found" /c:" cannot " /c:" error " C:\Prepublicacion\99-albertomartinez.txt
 findstr /i /c:"0 File(s) copied" /c:"Infracción al compartir" /c:"File not found" /c:" cannot " /c:" error " C:\Prepublicacion\99-ceom.txt
+findstr /i /c:"0 File(s) copied" /c:"Infracción al compartir" /c:"File not found" /c:" cannot " /c:" error " C:\Prepublicacion\99-jhm.txt
 
 echo Iniciando servicios..
 rem Start services
@@ -52,6 +55,7 @@ powershell -command "Start-WebSite femdek"
 powershell -command "Start-WebSite futurines"
 powershell -command "Start-WebSite albertomartinez"
 powershell -command "Start-WebSite ceom"
+powershell -command "Start-WebSite jhm"
 
 
 echo Arrancando grupo de aplicaciones...
@@ -65,13 +69,14 @@ powershell -command "Start-WebAppPool -Name femdek"
 powershell -command "Start-WebAppPool -Name futurines"
 powershell -command "Start-WebAppPool -Name albertomartinez"
 powershell -command "Start-WebAppPool -Name ceom"
+powershell -command "Start-WebAppPool -Name jhm"
 
 echo liberar colas
 
 
 set "SQLCMD=sqlcmd -S .\SQLEXPRESS -E"
 
-for %%D in (SE_ACROMUR SE_SECIFY  SE_ARKENOS SE_CAIFANTASIA SE_FEMDEK SE_FUTURINES AB_ALBERTO_MARTINEZ SE_CEOM SE_TEST SE_INTERIORISMO) do (
+for %%D in (SE_ACROMUR SE_SECIFY  SE_ARKENOS SE_CAIFANTASIA SE_FEMDEK SE_FUTURINES AB_ALBERTO_MARTINEZ SE_CEOM SE_TEST SE_INTERIORISMO SE_JHM) do (
     %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Desbloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
     type output_%%D.txt
     findstr /i "ERROR" output_%%D.txt > nul && goto :error

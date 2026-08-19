@@ -15,7 +15,7 @@ echo Ejecutando procedimientos almacenados...
 set "SQLCMD=sqlcmd -S .\SQLEXPRESS -E"
 
 :: Ejecución de procedimientos en bases de datos 
-for %%D in (SE_ACROMUR SE_TEST SE_ARKENOS SE_CAIFANTASIA SE_FEMDEK SE_SECIFY SE_FUTURINES AB_ALBERTO_MARTINEZ SE_CEOM SE_INTERIORISMO) do (
+for %%D in (SE_ACROMUR SE_TEST SE_ARKENOS SE_CAIFANTASIA SE_FEMDEK SE_SECIFY SE_FUTURINES AB_ALBERTO_MARTINEZ SE_CEOM SE_INTERIORISMO SE_JHM) do (
     echo Procesando base de datos: %%D
     %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Bloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
     type output_%%D.txt
@@ -64,13 +64,13 @@ if %errorlevel% neq 0 (
 
 echo Parando servicios y grupos de aplicaciones...
 
-set "SITIOS=Acromur secify arkenos caifantasia  femdek futurines albertomartinez ceom test.se interiorismo"
+set "SITIOS=Acromur secify arkenos caifantasia  femdek futurines albertomartinez ceom test.se interiorismo jhm"
 for %%S in (%SITIOS%) do (
     powershell -command "Stop-WebSite -Name '%%S'"
 )
 
 
-set "APPOOLS=acromur arkenos caifantasia femdek secify futurines albertomartinez ceom test.se interiorismo"
+set "APPOOLS=acromur arkenos caifantasia femdek secify futurines albertomartinez ceom test.se interiorismo jhm"
 
 for %%A in (%APPOOLS%) do (
     echo Configurando y parando grupo de aplicaciones: %%A

@@ -66,8 +66,8 @@ namespace SistemaDeElementos.Inicializador.Datos
             GestorDeVariables.CrearSiNoExiste(contexto, Variable.CTA_Cuenta_De_Proveedor, Descripciones.CTA_Cuenta_De_Cliente, ltrCuenta.ProveedorCodigo);
             GestorDeVariables.CrearSiNoExiste(contexto, Variable.CTA_Cuenta_De_Sueldos, Descripciones.CTA_Cuenta_De_Sueldos, ltrCuenta.SueldosCodigo);
             GestorDeVariables.CrearSiNoExiste(contexto, Variable.CTA_Cuenta_De_Consultoria, Descripciones.CTA_Cuenta_De_Consultoria, ltrCuenta.ConsultoriaCodigo);
-            enumParametrosDeContratos.CTR_Porcentaje_Aviso.CrearSiNoExiste("80");
-            enumParametrosDeContratos.CTR_Porcentaje_Aviso.CrearSiNoExiste("100");
+            //enumParametrosDeContratos.CTR_Porcentaje_Aviso.CrearSiNoExiste("80");
+            //enumParametrosDeContratos.CTR_Porcentaje_Bloqueo.CrearSiNoExiste("100");
         }
 
         public static void InicializarParametrosDeNegocio(ContextoSe contexto)
