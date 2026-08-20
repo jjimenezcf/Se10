@@ -118,7 +118,7 @@ namespace ServicioDeReportes.Ventas
                                 columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
                                 columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
                             });
-                            ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
+                            ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: string.Empty);
                         });
                     }
                     else if (qrSif != null)
@@ -131,15 +131,17 @@ namespace ServicioDeReportes.Ventas
                                 columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
                                 columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
                             });
+                            ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
                         });
                     }
-                    else if (esPrefactura && Factura.MostrarLogo)
+                    else if (esPrefactura)
                     {
                         ultimaColumna.Item().AlignRight().Column(columna =>
                         {
-                            columna.Item().AlignCenter().Text(Factura.Sociedad.Nif).FontSize(7).FontColor(Colors.Grey.Darken2);
-                            if (File.Exists(Factura.Logo))
+                            if (Factura.MostrarLogo)
                                 columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(Factura.Logo).FitArea();
+                            else
+                                columna.Item().AlignCenter().Text(Factura.Sociedad.Nif).FontSize(7).FontColor(Colors.Grey.Darken2);
                         });
                     }
                 });
