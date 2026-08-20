@@ -1079,7 +1079,8 @@ const ltrCss = {
             AccionesFicha: 'acciones-ficha',
             AccionesFichaGrupo: 'acciones-ficha-grupo',
             BotonObservacionFicha: 'boton-observacion-ficha',
-            ScrollHorizontalEnGraficos: 'graficos-con-scroll-horizontal'
+            ScrollHorizontalEnGraficos: 'graficos-con-scroll-horizontal',
+            divDeUnaColumna: 'div-de-columna'
         },
         dto: {
             tbody: 'dto-tbody',

@@ -296,7 +296,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-height: 72px;
-    min-height: 24px;
+    /*min-height: 24px;*/
     line-height: 24px;
     display: inline-table;
 }

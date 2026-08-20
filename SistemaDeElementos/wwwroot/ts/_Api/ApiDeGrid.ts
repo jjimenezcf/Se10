@@ -130,7 +130,7 @@
             var etiqueta = "";
             if (Definido(href)) etiqueta = href.textContent.trim();
             else {
-                var div = th.querySelector('.div-de-columna') as HTMLDivElement;
+                var div = th.querySelector('.' + ltrCss.crud.grid.divDeUnaColumna) as HTMLDivElement;
                 etiqueta = div.textContent.trim();
             }
 
@@ -601,7 +601,7 @@
     }
 
     function AsignarTamanoFijo(columnas: Array<HTMLDivElement>, ajustarAltura: boolean): void {
-        var alturaTr = (columnas[0].querySelector('.div-de-columna') as HTMLDivElement).getBoundingClientRect().height;
+        var alturaTr = (columnas[0].querySelector('.' + ltrCss.crud.grid.divDeUnaColumna) as HTMLDivElement).getBoundingClientRect().height;
         var cabecera = columnas[0].parentNode as HTMLTableRowElement;
         var anchoCabecera = cabecera.getBoundingClientRect().width;
         for (let i = 0; i < columnas.length; i++) {
@@ -623,7 +623,7 @@
             ApiDeGrid.ResetearWidthAlTh(columnas[i], `${tamano[0]}${tamano[1]}`);
             if (!ajustarAltura) continue;
             var anchoCelada = (columnas[i] as HTMLDivElement).getBoundingClientRect().width;
-            var div = columnas[i].querySelector('.div-de-columna') as HTMLDivElement;
+            var div = columnas[i].querySelector('.' + ltrCss.crud.grid.divDeUnaColumna) as HTMLDivElement;
             let intentos = 0;
             const maxIntentos = 20; // Previene bucles infinitos
             const anchoMaximo = 500; // O cualquier valor máximo razonable
