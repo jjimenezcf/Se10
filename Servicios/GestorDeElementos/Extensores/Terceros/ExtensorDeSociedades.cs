@@ -409,10 +409,10 @@ namespace GestorDeElementos.Extensores
             var certificadosDeUnaSociedad = GestorDeVinculos.RegistrosVinculados<CertificadoDtm>(contexto, enumNegocio.Sociedad, enumNegocio.Certificado, sociedad.Id);
 
             if (certificadosDeUnaSociedad.Count == 0)
-                GestorDeErrores.Emitir($"La sociedad '{sociedad.NIF}' no tiene instalado el certificado electrónico en el sistema");
+                GestorDeErrores.Emitir(msjCertificados.CertificadoNoInstalado.Replace("[Empresa]", sociedad.NIF));
 
             if (certificadosDeUnaSociedad[certificadosDeUnaSociedad.Count - 1].IdArchivo is null)
-                GestorDeErrores.Emitir($"No se ha indicado el archivo del certificado '{certificadosDeUnaSociedad[0].Nombre}' de la sociedad '{sociedad.NIF}'");
+                GestorDeErrores.Emitir(msjCertificados.ArchivoCertificadoNoEncontrado.Replace("[Certificado]", certificadosDeUnaSociedad[0].Nombre).Replace("[Empresa]", sociedad.NIF));
 
             return certificadosDeUnaSociedad[certificadosDeUnaSociedad.Count - 1];
         }

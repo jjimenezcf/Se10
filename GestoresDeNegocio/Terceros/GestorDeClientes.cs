@@ -9,6 +9,7 @@ using ModeloDeDto;
 using ModeloDeDto.Negocio;
 using ModeloDeDto.Terceros;
 using ServicioDeDatos;
+using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
@@ -70,13 +71,13 @@ namespace GestoresDeNegocio.Terceros
                     if (ApiDeTerceros.ValidarNif(filtro.Valor).IsNullOrEmpty())
                         consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.NIF.ToLower() == filtro.Valor);
                     else
-                    if (ApiDeTerceros.CifValido(filtro.Valor))
-                        consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Sociedad.NIF.ToLower() == filtro.Valor);
-                    else
-                    {
-                        consulta = consulta.Where(x => false);
-                        filtro.Aplicado = true;
-                    }
+                        if (ApiDeTerceros.CifValido(filtro.Valor))
+                            consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Sociedad.NIF.ToLower() == filtro.Valor);
+                        else
+                        {
+                            consulta = consulta.Where(x => false);
+                            filtro.Aplicado = true;
+                        }
                 }
 
                 if (filtro.Clausula.Equals(nameof(ClienteDto.Expresion), StringComparison.CurrentCultureIgnoreCase))
@@ -84,19 +85,19 @@ namespace GestoresDeNegocio.Terceros
                     if (ApiDeTerceros.ValidarNif(filtro.Valor).IsNullOrEmpty())
                         consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.NIF.ToLower() == filtro.Valor);
                     else
-                    if (ApiDeTerceros.CifValido(filtro.Valor))
-                        consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Sociedad.NIF.ToLower() == filtro.Valor);
-                    else if (filtro.Valor.EsEntero())
-                        consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.eMail.Contains(filtro.Valor)
-                                                                  || x.Interlocutor.Sociedad.eMail.Contains(filtro.Valor)
-                                                                  || x.Interlocutor.Persona.Telefono.Contains(filtro.Valor)
-                                                                  || x.Interlocutor.Sociedad.Telefono.Contains(filtro.Valor));
-                    else if (filtro.Valor.Contains("@"))
-                        consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.eMail.Contains(filtro.Valor)
-                                                                  || x.Interlocutor.Sociedad.eMail.Contains(filtro.Valor));
-                    else
-                        consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.Apellidos.Contains(filtro.Valor)
-                                                                       || x.Interlocutor.Sociedad.Nombre.Contains(filtro.Valor));
+                        if (ApiDeTerceros.CifValido(filtro.Valor))
+                            consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Sociedad.NIF.ToLower() == filtro.Valor);
+                        else if (filtro.Valor.EsEntero())
+                            consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.eMail.Contains(filtro.Valor)
+                                                                      || x.Interlocutor.Sociedad.eMail.Contains(filtro.Valor)
+                                                                      || x.Interlocutor.Persona.Telefono.Contains(filtro.Valor)
+                                                                      || x.Interlocutor.Sociedad.Telefono.Contains(filtro.Valor));
+                        else if (filtro.Valor.Contains("@"))
+                            consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.eMail.Contains(filtro.Valor)
+                                                                      || x.Interlocutor.Sociedad.eMail.Contains(filtro.Valor));
+                        else
+                            consulta = consulta.AplicarPredicado(filtro, x => x.Interlocutor.Persona.Apellidos.Contains(filtro.Valor)
+                                                                           || x.Interlocutor.Sociedad.Nombre.Contains(filtro.Valor));
                 }
 
                 if (filtro.Clausula.Equals(ltrFiltros.VincularCon, StringComparison.CurrentCultureIgnoreCase))
@@ -141,8 +142,20 @@ namespace GestoresDeNegocio.Terceros
                 cliente.CodigoContable = ((ClienteDtm)parametros.registroEnBd).CodigoContable;
             }
 
-           if (VariableDeFacturasEmt.Fae_Sii_Activo() && VariablesDeClientes.Cli_Validar_En_La_AEAT())
-                ValidarClienteEnAeat(inter.NIF(Contexto, quitarPrefijoEs: true), inter.RazonSocial(Contexto));
+            if (VariableDeFacturasEmt.Fae_Sii_Activo() && VariablesDeClientes.Cli_Validar_En_La_AEAT())
+                try
+                {
+                    ValidarClienteEnAeat(inter.NIF(Contexto, quitarPrefijoEs: true), inter.RazonSocial(Contexto));
+                }
+                catch (Exception e)
+                {
+                    if (e.Message.EndsWith(msjCertificados.CertificadoNoInstalado.Right(20)))
+                    {
+                        GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar modifique el parámetro '{enumParametrosDeCliente.CLI_Validar_Aeat }'");
+                    }
+                    else
+                        GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}");
+                }
 
             var direccion = cliente.DireccionFiscal(Contexto, errorSiNoHay: false);
             if (!cliente.VAT.IsNullOrEmpty())

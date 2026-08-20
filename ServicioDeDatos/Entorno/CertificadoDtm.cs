@@ -22,6 +22,8 @@ namespace ServicioDeDatos.Entorno
     public class msjCertificados
     {
         public static readonly string CertificadoCaducado = "No se puede realizar la operación solicitada por estar el certificado caducado de la empresa: [Empresa]";
+        public static readonly string CertificadoNoInstalado = "La sociedad '[Empresa]' no tiene instalado el certificado electrónico en el sistema";
+        public static readonly string ArchivoCertificadoNoEncontrado = "No se ha indicado el archivo del certificado '[Certificado]' de la sociedad '[Empresa]'";
     }
 
 
