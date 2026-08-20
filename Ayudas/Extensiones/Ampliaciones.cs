@@ -34,6 +34,7 @@
         public static class Sociedad
         {
             public static readonly string Parametros = nameof(Parametros);
+            public static readonly string SpanDeParametros = "Parámetros";
             public static readonly string DireccionAlCrear = Comunes.DireccionAlCrear;
         }
 

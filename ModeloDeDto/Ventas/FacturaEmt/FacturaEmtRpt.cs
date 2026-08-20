@@ -28,7 +28,7 @@ namespace ModeloDeDto.Ventas
         public SociedadDto Sociedad { get; set; }
         public ClienteDto Cliente { get; set; }
         public DireccionDto Direccion { get; set; }
-        public string Logo { get; set; }
+        public override string Logo { get; set; }
         public string InformacionFiscal { get; set; }
         public string PieDeFactura { get; set; }
         public string InscritoEn { get; set; }

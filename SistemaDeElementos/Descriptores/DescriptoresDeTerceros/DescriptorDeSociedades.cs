@@ -280,7 +280,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private void DescriptorDeParametrosDeMiSociedad()
         {
-            var parametros = new AmpliacionDeEdicion(Editor, Ampliaciones.Sociedad.Parametros, "Parámetros", new Dimension(2, 2), ayuda: "Parámetros de la sociedad");
+            var parametros = new AmpliacionDeEdicion(Editor, Ampliaciones.Sociedad.Parametros, Ampliaciones.Sociedad.SpanDeParametros, new Dimension(2, 2), ayuda: "Parámetros de la sociedad");
             parametros.Dto = typeof(ParametrosDeMiSociedadDto);
             parametros.Controlador = nameof(ParametrosDeMiSociedadController);
             Editor.Ampliaciones.Add(parametros);

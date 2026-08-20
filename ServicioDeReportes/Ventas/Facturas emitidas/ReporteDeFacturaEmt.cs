@@ -56,7 +56,17 @@ namespace ServicioDeReportes.Ventas
                             ? $"{(Factura.MostrarPalabraCopia ? "Copia" : "Factura")}: {Factura.Datos.NumeroFactura}"
                             : $"Factura: {Factura.Datos.NumeroFactura}");
 
-                    columna.Item().Text(tipoFacturaEmitida).FontSize(Factura.TamanoTitulo).SemiBold().FontColor(Factura.ColorTitulo);
+                    var tamanoTitulo = Factura.TamanoTitulo;
+                    if (Factura.AjustarReferencia)
+                    {
+                        // Ancho de la columna es 150 unidades; se estima ~0.55 unidades por carácter por punto de fuente
+                        const float anchoPorCaracter = 0.55f;
+                        const float anchoColumna = 150f;
+                        float anchoTexto = tipoFacturaEmitida.Length * tamanoTitulo * anchoPorCaracter;
+                        if (anchoTexto > anchoColumna)
+                            tamanoTitulo = anchoColumna / (tipoFacturaEmitida.Length * anchoPorCaracter);
+                    }
+                    columna.Item().Text(tipoFacturaEmitida).FontSize(tamanoTitulo).SemiBold().FontColor(Factura.ColorTitulo);
 
                     columna.Item().Text(text =>
                     {
@@ -74,7 +84,11 @@ namespace ServicioDeReportes.Ventas
                     }
                 });
 
-                if (!esPrefactura)
+                if (esPrefactura)
+                {
+                    cabecera.RelativeItem();
+                }
+                else
                 {
                     // Segunda columna: QR AEAT (centrada)
                     cabecera.RelativeItem().AlignCenter().Column(columna =>
@@ -90,24 +104,26 @@ namespace ServicioDeReportes.Ventas
                 }
 
                 // Última columna: QR SIF y logo; si hay logo el QR va antes, si no hay logo el logo (NIF) va antes
-                cabecera.ConstantItem(190).AlignRight().Row(fila =>
+                cabecera.ConstantItem(190).AlignRight().Column(ultimaColumna =>
                 {
                     byte[] qrSif = (!esPrefactura) ? GenerarCodigoQr(Factura.UrlSe) : null;
 
                     if (Factura.MostrarLogo && qrSif != null)
                     {
-                        fila.AutoItem().AlignCenter().PaddingRight(8).Column(columna =>
+                        ultimaColumna.Item().Row(fila =>
                         {
-                            columna.Item().AlignCenter().Text("QR del SIF:").FontSize(7).FontColor(Colors.Grey.Darken2);
-                            columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
-                            columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
+                            fila.AutoItem().AlignCenter().PaddingRight(8).Column(columna =>
+                            {
+                                columna.Item().AlignCenter().Text("QR del SIF:").FontSize(7).FontColor(Colors.Grey.Darken2);
+                                columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
+                                columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
+                            });
+                            ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
                         });
-                        ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
                     }
-                    else
+                    else if (qrSif != null)
                     {
-                        //ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
-                        if (qrSif != null)
+                        ultimaColumna.Item().Row(fila =>
                         {
                             fila.AutoItem().AlignCenter().PaddingLeft(8).Column(columna =>
                             {
@@ -115,7 +131,16 @@ namespace ServicioDeReportes.Ventas
                                 columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
                                 columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
                             });
-                        }
+                        });
+                    }
+                    else if (esPrefactura && Factura.MostrarLogo)
+                    {
+                        ultimaColumna.Item().AlignRight().Column(columna =>
+                        {
+                            columna.Item().AlignCenter().Text(Factura.Sociedad.Nif).FontSize(7).FontColor(Colors.Grey.Darken2);
+                            if (File.Exists(Factura.Logo))
+                                columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(Factura.Logo).FitArea();
+                        });
                     }
                 });
             });

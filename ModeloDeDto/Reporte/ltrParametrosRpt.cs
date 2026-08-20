@@ -19,6 +19,7 @@ namespace ModeloDeDto.Reporte
         public static string PaddingTopPie = nameof(PaddingTopPie);
         public static string TamanoPieDePagina = nameof(TamanoPieDePagina);
         public static string MostrarLogo = nameof(MostrarLogo);
+        public static string AjustarReferencia = nameof(AjustarReferencia);
 
         public static Dictionary<string,object> Parametros => new Dictionary<string, object> {
                 { IndicarFila, false },
@@ -34,7 +35,8 @@ namespace ModeloDeDto.Reporte
                 { PaddingMargenIzquierdo, 20F },
                 { PaddingTopPie, 25F },
                 { TamanoPieDePagina, 5F },
-                { MostrarLogo, true }
+                { MostrarLogo, true },
+                { AjustarReferencia, false }
             };
 
         public static string ParametrosPorDefecto()

@@ -1,4 +1,5 @@
-﻿using GestorDeElementos;
+﻿using Gestor.Errores;
+using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.SistemaDocumental;
 using ModeloDeDto;
@@ -62,7 +63,9 @@ namespace GestoresDeNegocio.Ventas
             if (informacionRpt.Logo == ApiDeArchivos.FicheroNoEncontrado)
                 informacionRpt.Logo = string.Empty;
 
-            var datosDeFactura = (ParametrosDeMiSociedadDtm)Factura.Sociedad(Contexto).SeleccionarAmpliacion(Contexto, typeof(ParametrosDeMiSociedadDtm));
+            var datosDeFactura = (ParametrosDeMiSociedadDtm)Factura.Sociedad(Contexto).SeleccionarAmpliacion(Contexto, typeof(ParametrosDeMiSociedadDtm), errorSiNoHay: false);
+            if (datosDeFactura is null)
+                GestorDeErrores.Emitir($"Ha de definir los '{Ampliaciones.Sociedad.SpanDeParametros}' de la sociedad '{Factura.Sociedad(Contexto).NIF}', edítela y defínalos");
 
             informacionRpt.InformacionFiscal = Factura.EstaEnLaEtapa(enumEtapasDeFacturasEmt.FAE_Etapa_Prefactura.Estados())
             ? Factura.InformacionFiscal.IsNullOrEmpty() 

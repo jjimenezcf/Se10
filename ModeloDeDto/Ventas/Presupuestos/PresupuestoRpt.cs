@@ -16,7 +16,7 @@ namespace ModeloDeDto.Presupuesto
         public SociedadDto Sociedad { get; set; }
         public InterlocutorDto Solicitante { get; set; }
         public DireccionDto Direccion { get; set; }
-        public string Logo { get; set; }
+        public override string Logo { get; set; }
         public string RazonSocialDelCliente { get; set; }
 
         public string PieDePresupuesto { get; set; }

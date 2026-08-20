@@ -5,13 +5,15 @@ using Newtonsoft.Json;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Negocio;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using Utilidades;
 
 namespace ModeloDeDto.Reporte
 {
-    public class InformacionBaseRpt<T> : IInformacionRpt<T>
+    public abstract class InformacionBaseRpt<T> : IInformacionRpt<T>
     {
+        public abstract string Logo { get; set; }
         public T Datos { get; set; }
         public Dictionary<string, object> Parametros { get; set; }
         public bool IndicarFila => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.IndicarFila, false);
@@ -27,7 +29,8 @@ namespace ModeloDeDto.Reporte
         public float TamanoTitulo => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoTitulo, 16);
         public float TamanoPieDePagina => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoPieDePagina, 5);
         public float TamanoEncabezado => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoEncabezado, 8);
-        public bool MostrarLogo => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarLogo, true);
+        public bool MostrarLogo => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarLogo, true) && File.Exists(Logo);
+        public bool AjustarReferencia => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.AjustarReferencia, true);
 
         public virtual bool VerificarVersionDeParametros()
         {
