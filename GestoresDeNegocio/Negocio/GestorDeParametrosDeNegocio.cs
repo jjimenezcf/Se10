@@ -47,7 +47,7 @@ namespace GestoresDeNegocio.Negocio
                     GestorDeErrores.Emitir($"No se puede crear y eliminar parámetros desde la interface");
             }
 
-            if (parametros.EsUnaPeticion && parametros.Modificando && parametro.Nombre.ToLower() == enumParametrosDeFacturasEmt.FAE_SII_Activo.ToString().ToLower())
+            if (parametros.EsUnaPeticion && parametros.Modificando && parametro.Nombre.ToLower() == enumParametrosDeFacturasEmt.FAE_SII_Activo.ToString().ToLower() && parametro.Valor.EsFalse())
                 GestorDeErrores.Emitir($"No se puede modificar el parámetro '{enumParametrosDeFacturasEmt.FAE_SII_Activo}' desde la interface, use la opción de menú en el mantenimiento de sociedades");
 
             if (parametros.EsUnaPeticion && parametros.Modificando && parametro.Nombre.ToLower() == enumParametrosDeFacturasEmt.FAE_SII_En_Productivo.ToString().ToLower())
