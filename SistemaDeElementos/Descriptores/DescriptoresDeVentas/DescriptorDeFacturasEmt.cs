@@ -684,6 +684,9 @@ namespace MVCSistemaDeElementos.Descriptores
                 return _renderCache;
 
             var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{Modo}-{GetType().FullName}";
+            if (ServicioDeCaches.Obtener(CacheDe.RenderCrud).ContainsKey(indice))
+                return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
+
             var render = base.RenderControl();
 
             render = render +
