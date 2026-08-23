@@ -292,3 +292,4 @@ SistemaDeElementos/wwwroot/lib/jar/xades/FirmaDss.jar
 # El JRE portable se regenera con jlink (ver README en wwwroot/lib/jar/xades)
 SistemaDeElementos/wwwroot/lib/jre/
 /Pruebas/Facturador/TestFacturador/config.json
+/SistemaDeElementos/Publicacion/TestFacturador/config.json
