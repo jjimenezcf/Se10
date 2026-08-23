@@ -1,5 +1,6 @@
 using System.Diagnostics;
-using System.Net.Http.Headers;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -18,6 +19,11 @@ Console.WriteLine();
 var config = Config.CargarOCrear();
 
 var urlBase = PedirUrlBase(config.UrlBase);
+var uriBase = new Uri(NormalizarUrlBase(urlBase));
+
+if (!await ComprobarUrlBaseAsync(uriBase))
+    return;
+
 var nif = Pedir("Nif del emisor", config.Nif);
 var apiKey = Pedir("ApiKey", config.ApiKey);
 
@@ -31,7 +37,7 @@ using var handler = new HttpClientHandler
     // Solo para pruebas: admite el certificado de desarrollo de localhost.
     ServerCertificateCustomValidationCallback = (_, _, _, _) => true
 };
-using var http = new HttpClient(handler) { BaseAddress = new Uri(NormalizarUrlBase(urlBase)) };
+using var http = new HttpClient(handler) { BaseAddress = uriBase };
 
 var factura = FacturaDeEjemplo.Construir();
 var cuerpo = JsonSerializer.Serialize(factura, jsonOpciones);
@@ -62,7 +68,7 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Error al llamar al servicio: {ex.Message}");
+    Console.WriteLine($"Error al llamar al servicio: {DescribirError(ex, uriBase)}");
     return;
 }
 
@@ -129,6 +135,38 @@ while (true)
     }
 }
 
+static async Task<bool> ComprobarUrlBaseAsync(Uri uriBase)
+{
+    try
+    {
+        await Dns.GetHostAddressesAsync(uriBase.Host);
+        return true;
+    }
+    catch (Exception)
+    {
+        Console.WriteLine();
+        Console.WriteLine($"La url '{uriBase}' no existe: no se puede resolver el host '{uriBase.Host}'.");
+        return false;
+    }
+}
+
+static string DescribirError(Exception ex, Uri uri)
+{
+    for (var actual = ex; actual != null; actual = actual.InnerException)
+    {
+        if (actual is SocketException socketEx)
+        {
+            if (socketEx.SocketErrorCode is SocketError.HostNotFound or SocketError.TryAgain or SocketError.NoData)
+                return $"La url '{uri}' no existe: no se puede resolver el host '{uri.Host}'.";
+            if (socketEx.SocketErrorCode == SocketError.ConnectionRefused)
+                return $"No se puede conectar con '{uri}': conexión rechazada (¿está el servicio arrancado en ese puerto?).";
+            if (socketEx.SocketErrorCode == SocketError.TimedOut)
+                return $"No se puede conectar con '{uri}': ha caducado el tiempo de espera.";
+        }
+    }
+    return ex.Message;
+}
+
 static string NormalizarUrlBase(string urlBase)
 {
     var sinBarraFinal = urlBase.TrimEnd('/');
@@ -185,7 +223,7 @@ static async Task DescargarDocumentoAsync(HttpClient http, string nif, string ap
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error al solicitar el documento: {ex.Message}");
+        Console.WriteLine($"Error al solicitar el documento: {DescribirError(ex, http.BaseAddress!)}");
         return;
     }
 
@@ -227,7 +265,7 @@ static async Task DescargarDocumentoAsync(HttpClient http, string nif, string ap
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error al descargar el fichero: {ex.Message}");
+        Console.WriteLine($"Error al descargar el fichero: {DescribirError(ex, http.BaseAddress!)}");
     }
 }
 
