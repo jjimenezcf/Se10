@@ -6,6 +6,7 @@ using GestoresDeNegocio.Terceros;
 using GestoresDeNegocio.Venta.Factura;
 using ModeloDeDto.Ventas;
 using ServicioDeDatos;
+using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
 using System;
@@ -45,6 +46,8 @@ namespace GestoresDeNegocio.Ventas
             if (parametros.Insertando)
             {
                 peticion.Guid = Guid.NewGuid();
+                peticion.GuidDeConsultaPdf = Guid.NewGuid();
+                peticion.GuidDeConsultaXml = Guid.NewGuid();
                 peticion.SolicitadaEl = DateTime.Now;
             }
         }
@@ -55,11 +58,12 @@ namespace GestoresDeNegocio.Ventas
             elemento.Id = peticion.Id;
             elemento.Facturador = peticion.Facturador(Contexto).Nombre(Contexto);
             elemento.NumeroFactura = peticion.Factura(Contexto)?.NumeroDeFactura;
+            if (peticion.IdFactura != null)
+                elemento.UrlDeLaFactura = enumNegocio.FacturaEmitida.ComponerUrlPorId(Contexto, peticion.IdFactura.Value).ToString();
         }
 
-        public static PeticionDeFacturaEmtDtm ObtenerFacturador(ContextoSe contexto, string nifEmisor, string apiKey, enumOperacionFacturador operacion, string validadorJson = null)
+        private static FacturadorDeSociedadDtm ValidarFacturador(ContextoSe contexto, string nifEmisor, string apiKey)
         {
-
             var sociedad = contexto.SeleccionarPorPropiedad<SociedadDtm>(nameof(SociedadDtm.NIF), nifEmisor, errorSiNoHay: false);
             if (sociedad is null)
                 GestorDeErrores.Emitir($"La sociedad '{nifEmisor}' no está dada de alta o no está activa en la BD");
@@ -71,6 +75,13 @@ namespace GestoresDeNegocio.Ventas
 
             GestorDeFacturadorDeSociedades.ValidarApiKey(facturador.IdElemento, facturador.IdCg, facturador.IdTipoDeFactura, apiKey);
 
+            return facturador;
+        }
+
+        public static PeticionDeFacturaEmtDtm ObtenerFacturador(ContextoSe contexto, string nifEmisor, string apiKey, enumOperacionFacturador operacion, string validadorJson = null)
+        {
+            var facturador = ValidarFacturador(contexto, nifEmisor, apiKey);
+
             var peticion = new PeticionDeFacturaEmtDtm
             {
                 IdFacturador = facturador.Id,
@@ -79,6 +90,65 @@ namespace GestoresDeNegocio.Ventas
             }.Insertar(contexto);
 
             return peticion;
+        }
+
+        public static string ObtenerUrlDeDescargaDeDocumento(ContextoSe contexto, string nifEmisor, string apiKey, string numeroFactura, string guid, enumOperacionFacturador operacion)
+        {
+            var facturadorDeSociedad = ValidarFacturador(contexto, nifEmisor, apiKey);
+
+            var peticion = contexto.Set<PeticionDeFacturaEmtDtm>()
+                .Where(p => p.IdFacturador == facturadorDeSociedad.Id && p.IdFactura != null)
+                .ToList()
+                .FirstOrDefault(p => contexto.SeleccionarPorId<FacturaEmtDtm>(p.IdFactura.Value, usarLaCache: false)?.NumeroDeFactura == numeroFactura);
+
+            if (peticion is null)
+                GestorDeErrores.Emitir($"No se ha encontrado ninguna factura con el número '{numeroFactura}' para el facturador indicado");
+
+            var guidEsperado = operacion == enumOperacionFacturador.SolicitarPdf ? peticion.GuidDeConsultaPdf : peticion.GuidDeConsultaXml;
+            if (guidEsperado == null || guidEsperado.ToString() != guid)
+                GestorDeErrores.Emitir($"El guid proporcionado no corresponde con la factura número '{numeroFactura}'");
+
+            // Se lee sin caché: esta petición puede llegar mucho después de haberse creado/firmado la factura,
+            // en una llamada http distinta a la que la emitió, y la caché de elementos podría tener una copia
+            // desactualizada (p.ej. sin el IdArchivo asociado al firmar/generar el documento).
+            var factura = contexto.SeleccionarPorId<FacturaEmtDtm>(peticion.IdFactura.Value, usarLaCache: false);
+            var esImpresa = factura.ClaseDeEmision == enumClaseDeEmision.Impresa;
+            ArchivoDtm archivo;
+            if (operacion == enumOperacionFacturador.SolicitarXml)
+            {
+                if (esImpresa)
+                    GestorDeErrores.Emitir($"La factura '{factura.Referencia}' es de clase '{enumClaseDeEmision.Impresa.Descripcion()}', no tiene un xml asociado, solicite el pdf");
+
+                archivo = factura.IdArchivo != null ? contexto.SeleccionarPorId<ArchivoDtm>(factura.IdArchivo.Value, errorSiNoHay: false) : null;
+                if (archivo is null)
+                    GestorDeErrores.Emitir($"No se tiene un xml de la factura '{factura.Referencia}'");
+            }
+            else
+            {
+                if (esImpresa)
+                {
+                    archivo = factura.IdArchivo != null ? contexto.SeleccionarPorId<ArchivoDtm>(factura.IdArchivo.Value, errorSiNoHay: false) : null;
+                    if (archivo is null)
+                        GestorDeErrores.Emitir($"No se tiene un pdf de la factura '{factura.Referencia}'");
+                }
+                else
+                {
+                    var archivos = GestorDeVinculos.RegistrosVinculados<ArchivoDtm>(contexto, enumNegocio.FacturaEmitida, enumNegocio.Archivos, factura.Id);
+                    archivo = archivos.FirstOrDefault(a => a.Nombre.Contains($"copia-{factura.Referencia}", StringComparison.OrdinalIgnoreCase) && a.Nombre.Contains("firmado", StringComparison.OrdinalIgnoreCase) && a.Nombre.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                           ?? archivos.FirstOrDefault(a => a.Nombre.Contains($"copia-{factura.Referencia}", StringComparison.OrdinalIgnoreCase) && a.Nombre.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase));
+                    if (archivo is null)
+                        GestorDeErrores.Emitir($"Para la factura '{numeroFactura}' hay '{archivos.Count}' archivo/s, ninguno de ellos tiene en el nombre la referencia '{factura.Referencia}' y es de tipo pdf");
+                }
+            }
+
+            var guidDeDescarga = archivo.RegistrarDescargaConGuid(contexto, DateTime.Now.AddHours(1), null);
+
+            var uri = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+            {
+                Path = $"/{nameof(enumControladoresSistemaDocumental.Archivos)}/{ltrEndPoint.epDescargaConGuid}",
+                Query = $"guid={guidDeDescarga}&id={archivo.Id}"
+            };
+            return uri.ToString();
         }
 
 

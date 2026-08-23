@@ -1,0 +1,11 @@
+//GET https://biwe.femdek.com/Facturador/epSolicitarXml
+
+//GET https://localhost:44396/Facturador/epSolicitarXml
+
+### Solicitar la URL de descarga del XML de una factura ya emitida
+GET https://biwe.femdek.com/Facturador/epSolicitarXml?nif=00811725D&apiKey=[xxxxx]&numeroFactura=F2026%2F00123&guid=[GuidDeConsultaXml]
+
+###
+
+// La respuesta trae en "Datos" una URL de descarga válida 1 hora, por ejemplo:
+// GET https://biwe.femdek.com/Archivos/epDescargaConGuid?guid=...&id=...

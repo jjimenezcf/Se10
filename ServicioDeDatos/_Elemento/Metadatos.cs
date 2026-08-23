@@ -298,6 +298,8 @@ namespace ServicioDeDatos.Elemento
         internal const string DESCRIPCION = nameof(DESCRIPCION);
         internal const string AUDITORIA = nameof(AUDITORIA);
         internal const string GUID = nameof(GUID);
+        internal const string GUID_PDF = nameof(GUID_PDF);
+        internal const string GUID_XML = nameof(GUID_XML);
         internal const string APIKEY = nameof(APIKEY);
 
         internal const string REFERENCIA = nameof(REFERENCIA);

@@ -27,10 +27,26 @@ El GUID:
 
 Ambas acaban llamando al mismo método interno `Facturador.CrearFactura(...)` en el backend.
 
+En la respuesta de creación de la factura (ambos modos), además de `NumeroFactura` y `Mensaje`, se reciben tres campos pensados para consultas posteriores:
+
+- `GuidDeConsultaPdf` / `GuidDeConsultaXml`: guids permanentes (no caducan) que hay que guardar para poder pedir después el PDF o el XML de esa factura.
+- `UrlDeLaFactura`: URL informativa a la vista de la factura dentro de Se10, solo útil para quien tenga usuario y contraseña de la aplicación.
+
+## Consulta de PDF / XML de una factura ya emitida
+
+Una vez creada la factura, se puede pedir su PDF o su XML en cualquier momento usando el `apiKey`, el número de factura y el guid correspondiente (`GuidDeConsultaPdf` o `GuidDeConsultaXml`) recibido al crearla. Estos guids **no caducan y se pueden usar tantas veces como se quiera**.
+
+`GET /Facturador/epSolicitarPdf?nif={nif}&apiKey={apiKey}&numeroFactura={numeroFactura}&guid={guidDeConsultaPdf}`
+`GET /Facturador/epSolicitarXml?nif={nif}&apiKey={apiKey}&numeroFactura={numeroFactura}&guid={guidDeConsultaXml}`
+
+Si los datos coinciden, el backend **no devuelve el fichero directamente**: devuelve una URL de descarga válida durante **1 hora**. Con esa URL (que ya incluye su propio guid de descarga) se obtiene el fichero, sin necesidad de `apiKey`. Pasada la hora, o si ya se agotó, hay que volver a llamar a `epSolicitarPdf`/`epSolicitarXml` para obtener una URL nueva.
+
+Ver el detalle en el [Anexo 3](#anexo-3--consulta-de-pdf--xml-de-una-factura).
+
 ## Resumen del backend
 
 1. **Autenticación**: `apiKey` se valida contra uno generado a partir de `IdSociedad + IdCg + IdTipoDeFactura`. Si no coincide → error.
-2. **Registro de la petición**: se crea una fila en `PeticionDeFacturaEmtDtm` con GUID propio, timestamp de solicitud y el tipo de operación (`enumOperacionFacturador`: `CrearFactura`, `AnularFactura`, `SolicitarPdf`, `SolicitarXml` — solo `CrearFactura` está implementada por ahora).
+2. **Registro de la petición**: se crea una fila en `PeticionDeFacturaEmtDtm` con GUID propio, timestamp de solicitud y el tipo de operación (`enumOperacionFacturador`: `CrearFactura`, `AnularFactura`, `SolicitarPdf`, `SolicitarXml`). Al crearla también se generan `GuidDeConsultaPdf` y `GuidDeConsultaXml`, permanentes, para consultas futuras del documento.
 3. **Creación de la prefactura**: se parsea el JSON recibido (cliente, líneas, etc.) y se crea la prefactura.
 4. **Transición a "Emitida"**: la prefactura pasa a la etapa `FAE_Etapa_Emitida`.
 5. **Envío a la AEAT (Verifactu)**: si la sociedad usa Verifactu y está activo, se envía la factura — el mensaje de resultado indica si se sometió el envío individual o en lote. Si no usa Verifactu, simplemente se genera el PDF.
@@ -115,7 +131,10 @@ Content-Type: application/json
     "Peticion": "CrearFactura",
     "Facturador": "Nombre del facturador",
     "NumeroFactura": "F2026/00123",
-    "Mensaje": "Factura emitida y sometido su envío"
+    "Mensaje": "Factura emitida y sometido su envío",
+    "GuidDeConsultaPdf": "6f9619ff-8b86-d011-b42d-00c04fc964ff",
+    "GuidDeConsultaXml": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "UrlDeLaFactura": "https://biwe.femdek.com/FacturaEmt/Consultar?id=456"
   },
   "Estado": "Ok",
   "Consola": "Factura emitida y sometido su envío"
@@ -234,7 +253,10 @@ Respuesta (ejemplo):
     "Peticion": "CrearFactura",
     "Facturador": "Nombre del facturador",
     "NumeroFactura": "F2026/00123",
-    "Mensaje": "Factura emitida y sometido su envío"
+    "Mensaje": "Factura emitida y sometido su envío",
+    "GuidDeConsultaPdf": "6f9619ff-8b86-d011-b42d-00c04fc964ff",
+    "GuidDeConsultaXml": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "UrlDeLaFactura": "https://biwe.femdek.com/FacturaEmt/Consultar?id=456"
   },
   "Estado": "Ok",
   "Consola": "Factura emitida y sometido su envío"
@@ -245,3 +267,52 @@ Respuesta (ejemplo):
 
 - Si pasa más de 1 minuto entre el paso 1 y el paso 2, el GUID caduca y hay que solicitar uno nuevo.
 - Si el GUID ya se usó anteriormente, el paso 2 devuelve un error indicando la factura ya asociada a ese GUID.
+
+---
+
+## Anexo 3 — Consulta de PDF / XML de una factura
+
+Una vez creada la factura (Anexo 1 o Anexo 2), se recibieron en la respuesta `GuidDeConsultaPdf` y `GuidDeConsultaXml`. Guárdalos: son la llave para pedir el documento más adelante, tantas veces como se necesite (no caducan).
+
+### Pedir el PDF
+
+```
+GET https://biwe.femdek.com/Facturador/epSolicitarPdf?nif=00811725D&apiKey=XXXXXXXX&numeroFactura=F2026%2F00123&guid=6f9619ff-8b86-d011-b42d-00c04fc964ff
+```
+
+### Pedir el XML
+
+```
+GET https://biwe.femdek.com/Facturador/epSolicitarXml?nif=00811725D&apiKey=XXXXXXXX&numeroFactura=F2026%2F00123&guid=7c9e6679-7425-40de-944b-e07fc1f90ae7
+```
+
+Parámetros de la URL (ambos endpoints):
+
+- `nif`: NIF de la sociedad emisora.
+- `apiKey`: clave de API asignada al facturador de esa sociedad.
+- `numeroFactura`: número de la factura tal como se recibió en `NumeroFactura` al crearla.
+- `guid`: `GuidDeConsultaPdf` (para `epSolicitarPdf`) o `GuidDeConsultaXml` (para `epSolicitarXml`).
+
+Respuesta (ejemplo):
+
+```json
+{
+  "Datos": "https://biwe.femdek.com/Archivos/epDescargaConGuid?guid=9b2e1a34-...&id=789",
+  "Estado": "Ok",
+  "Consola": "Url de descarga generada correctamente"
+}
+```
+
+### Descargar el fichero
+
+El valor de `Datos` es una URL de descarga directa (no requiere `apiKey`, ya lleva su propio guid de un solo sistema de descarga genérico). Basta con hacer un `GET` a esa URL para obtener el fichero.
+
+```
+GET https://biwe.femdek.com/Archivos/epDescargaConGuid?guid=9b2e1a34-...&id=789
+```
+
+### Notas
+
+- La URL de descarga es válida durante **1 hora** desde que se genera. Pasado ese tiempo, o si el enlace ya no es válido, hay que volver a llamar a `epSolicitarPdf`/`epSolicitarXml` para obtener uno nuevo.
+- `GuidDeConsultaPdf`/`GuidDeConsultaXml` no caducan ni se consumen: se pueden reutilizar todas las veces que haga falta.
+- Si el documento solicitado aún no existe (por ejemplo, el XML antes de que la factura se envíe a la AEAT), la respuesta viene con `Estado: "Error"` y el mensaje lo indica.

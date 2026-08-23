@@ -157,5 +157,44 @@ Invoke-WebRequest -Method POST `
             return new JsonResult(r);
         }
 
+        [AllowAnonymous]
+        public JsonResult epSolicitarPdf(string nif, string apiKey, string numeroFactura, string guid)
+        {
+            return SolicitarDocumento(nif, apiKey, numeroFactura, guid, enumOperacionFacturador.SolicitarPdf);
+        }
+
+        [AllowAnonymous]
+        public JsonResult epSolicitarXml(string nif, string apiKey, string numeroFactura, string guid)
+        {
+            return SolicitarDocumento(nif, apiKey, numeroFactura, guid, enumOperacionFacturador.SolicitarXml);
+        }
+
+        private JsonResult SolicitarDocumento(string nif, string apiKey, string numeroFactura, string guid, enumOperacionFacturador operacion)
+        {
+            var tran = Contexto.IniciarTransaccion();
+            Contexto.IniciarTraza(nameof(SolicitarDocumento));
+            var r = new Resultado();
+            try
+            {
+                Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
+                r.Datos = Facturador.ObtenerUrlDeDescargaDeDocumento(Contexto, nif, apiKey, numeroFactura, guid, operacion);
+                r.Consola = "Url de descarga generada correctamente";
+                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error en la solicitud.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+                Contexto.QuitarUsuario();
+            }
+            return new JsonResult(r);
+        }
+
     }
 }

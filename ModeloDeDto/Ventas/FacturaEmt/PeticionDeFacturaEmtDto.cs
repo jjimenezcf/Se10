@@ -50,5 +50,15 @@ namespace ModeloDeDto.Ventas
         //----------------------------------------------
         [IUPropiedad(Visible = false)]
         public string Mensaje { get; set; }
+
+        //----------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public Guid? GuidDeConsultaPdf { get; set; }
+
+        [IUPropiedad(Visible = false)]
+        public Guid? GuidDeConsultaXml { get; set; }
+
+        [IUPropiedad(Visible = false)]
+        public string UrlDeLaFactura { get; set; }
     }
 }

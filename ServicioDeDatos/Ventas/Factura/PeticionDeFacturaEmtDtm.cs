@@ -32,6 +32,8 @@ namespace ServicioDeDatos.Ventas
     public class PeticionDeFacturaEmtDtm : RegistroDtm
     {
         public Guid Guid { get; set; }
+        public Guid? GuidDeConsultaPdf { get; set; }
+        public Guid? GuidDeConsultaXml { get; set; }
         public DateTime SolicitadaEl { get; set; }
         public enumOperacionFacturador Peticion { get; set; }
         public int IdFacturador { get; set; }
@@ -50,6 +52,8 @@ namespace ServicioDeDatos.Ventas
         {
             ApiDeRegistroDtm.DefinirCampoIdDtm<PeticionDeFacturaEmtDtm>(modelBuilder);
             modelBuilder.Entity<PeticionDeFacturaEmtDtm>().Property(x => x.Guid).HasColumnName(ICampos.GUID).HasColumnType(IDominio.UNIQUEIDENTIFIER).IsRequired(true);
+            modelBuilder.Entity<PeticionDeFacturaEmtDtm>().Property(x => x.GuidDeConsultaPdf).HasColumnName(ICampos.GUID_PDF).HasColumnType(IDominio.UNIQUEIDENTIFIER).IsRequired(false);
+            modelBuilder.Entity<PeticionDeFacturaEmtDtm>().Property(x => x.GuidDeConsultaXml).HasColumnName(ICampos.GUID_XML).HasColumnType(IDominio.UNIQUEIDENTIFIER).IsRequired(false);
             modelBuilder.Entity<PeticionDeFacturaEmtDtm>().Property(nameof(PeticionDeFacturaEmtDtm.SolicitadaEl)).HasColumnName(ICampos.CREADO_EL).HasColumnType(IDominio.DATETIME_2).IsRequired(true);
             modelBuilder.Entity<PeticionDeFacturaEmtDtm>().Property(nameof(PeticionDeFacturaEmtDtm.Peticion)).HasColumnName(ICampos.PETICION).HasColumnType(IDominio.VARCHAR_50).IsRequired(true);
             ApiDeRegistroDtm.DefinirCampoFk<PeticionDeFacturaEmtDtm>(modelBuilder, nameof(PeticionDeFacturaEmtDtm.Facturador), nameof(PeticionDeFacturaEmtDtm.IdFacturador), ICampos.ID_FACTURADOR, requerida: true, unico: false);
