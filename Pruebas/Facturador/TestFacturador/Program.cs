@@ -22,7 +22,11 @@ var urlBase = PedirUrlBase(config.UrlBase);
 var uriBase = new Uri(NormalizarUrlBase(urlBase));
 
 if (!await ComprobarUrlBaseAsync(uriBase))
+{
+    Console.WriteLine("Url Base no válida, pulsa cualquier tecla para salir.");
+    Console.ReadKey();
     return;
+}
 
 var nif = Pedir("Nif del emisor", config.Nif);
 var apiKey = Pedir("ApiKey", config.ApiKey);
