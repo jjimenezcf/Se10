@@ -16,7 +16,9 @@ namespace ServicioDeDatos.Ventas
         [Description("Solicitar pdf")]
         SolicitarPdf,
         [Description("Solicitar Xml")]
-        SolicitarXml
+        SolicitarXml,
+        [Description("Rectificar por datos erróneos")]
+        RectificarPorDe
     }
 
     public static class ltrFacturador

@@ -152,41 +152,53 @@ namespace GestoresDeNegocio.Ventas
         }
 
 
+        private static PeticionDeFacturaEmtDto EmitirYObtenerResultado(ContextoSe contexto, PeticionDeFacturaEmtDtm facturador, FacturaEmtDtm prefactura)
+        {
+            try
+            {
+                var factura = prefactura.TransitarALaEtapa(contexto, enumEtapasDeFacturasEmt.FAE_Etapa_Emitida.EstadosDeLaEtapa(), new System.Collections.Generic.Dictionary<string, object>());
+                facturador.IdFactura = factura.Id;
+                var resultado = facturador.MapearDto<PeticionDeFacturaEmtDto>(contexto);
+
+                if (factura.UsaVerifactu(contexto) && GeneradorSii.VerifactuActivo(contexto, factura))
+                {
+                    var envioDeFactura = GestorDeFacturasEmt.EnviarFacturaAeat(contexto, factura.Id, someterEnvio: true);
+                    resultado.Mensaje = envioDeFactura ? ltrFacturador.SometidoEnvioDeFactura : ltrFacturador.SometidoLoteDeEnvio;
+                }
+                else
+                {
+                    GestorDeFacturasEmt.EmitirPdfFactura(contexto, factura.MapearDto<FacturaEmtDto>(contexto));
+                }
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                facturador.IdFactura = prefactura.Id;
+                throw new Exception($"Creada prefactura '{prefactura.Referencia}' pero no se ha emitido por:{Environment.NewLine}{ex.MensajeCompleto()}");
+            }
+        }
+
+        private static PeticionDeFacturaEmtDto RegistrarResultado(ContextoSe contexto, PeticionDeFacturaEmtDtm facturador, PeticionDeFacturaEmtDto resultado)
+        {
+            facturador.Error = resultado.Mensaje.Contains(ltrFacturador.SometidoEnvioDeFactura) ||
+                resultado.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
+                resultado.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
+                ? null
+                : resultado.Mensaje;
+
+            facturador.Modificar(contexto);
+            return resultado;
+        }
+
         public static PeticionDeFacturaEmtDto CrearFactura(ContextoSe contexto, PeticionDeFacturaEmtDtm facturador, string facturaJson)
         {
-
             facturador.FacturaJson = facturaJson;
 
             PeticionDeFacturaEmtDto resultado = null;
             try
             {
                 var prefactura = ExtensorDeFacturasEmt.CrearPrefacturaDeUnJson(contexto, facturador.Facturador(contexto), facturaJson);
-                try
-                {
-                    var factura = prefactura.TransitarALaEtapa(contexto, enumEtapasDeFacturasEmt.FAE_Etapa_Emitida.EstadosDeLaEtapa(), new System.Collections.Generic.Dictionary<string, object>());
-                    facturador.IdFactura = factura.Id;
-                    resultado = facturador.MapearDto<PeticionDeFacturaEmtDto>(contexto);
-
-                    if (factura.UsaVerifactu(contexto) && GeneradorSii.VerifactuActivo(contexto, factura))
-                    {
-                        var envioDeFactura = GestorDeFacturasEmt.EnviarFacturaAeat(contexto, factura.Id, someterEnvio: true);
-                        if (envioDeFactura)
-                        {
-                            resultado.Mensaje = ltrFacturador.SometidoEnvioDeFactura;
-                        }
-                        else
-                            resultado.Mensaje = ltrFacturador.SometidoLoteDeEnvio;
-                    }
-                    else
-                    {
-                        GestorDeFacturasEmt.EmitirPdfFactura(contexto, factura.MapearDto<FacturaEmtDto>(contexto));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    facturador.IdFactura = prefactura.Id;
-                    throw new Exception($"Creada prefactura '{prefactura.Referencia}' pero no se ha emitido por:{Environment.NewLine}{ex.MensajeCompleto()}");
-                }
+                resultado = EmitirYObtenerResultado(contexto, facturador, prefactura);
             }
             catch (Exception ex)
             {
@@ -197,14 +209,55 @@ namespace GestoresDeNegocio.Ventas
                 resultado.Mensaje = ex.MensajeCompleto();
             }
 
-            facturador.Error = resultado.Mensaje.Contains(ltrFacturador.SometidoEnvioDeFactura) ||
-                resultado.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
-                resultado.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
-                ? null
-                : resultado.Mensaje;
+            return RegistrarResultado(contexto, facturador, resultado);
+        }
 
-            facturador = facturador.Modificar(contexto);
-            return resultado;
+        public static FacturaEmtDtm ObtenerFacturaPorNumero(ContextoSe contexto, string numeroFactura)
+        {
+            var partes = numeroFactura?.Split('-');
+            int ano = 0, numero = 0;
+            string serie = null;
+            if (partes == null || partes.Length != 3 || !int.TryParse(partes[0], out ano) || !int.TryParse(partes[2], out numero))
+                GestorDeErrores.Emitir($"El número de factura '{numeroFactura}' no tiene el formato esperado 'Año-Serie-Número'");
+            else
+                serie = partes[1];
+
+            var facturas = contexto.Set<FacturaEmtDtm>().Where(f => f.Ano == ano && f.Serie == serie && f.Numero == numero).ToList();
+
+            if (facturas.Count == 0)
+                GestorDeErrores.Emitir($"No existe ninguna factura con el número '{numeroFactura}'");
+            if (facturas.Count > 1)
+                GestorDeErrores.Emitir($"Hay más de una factura con el número '{numeroFactura}', no se puede determinar de forma unívoca a qué sociedad pertenece");
+
+            return facturas[0];
+        }
+
+        public static PeticionDeFacturaEmtDto RectificarPorDe(ContextoSe contexto, PeticionDeFacturaEmtDtm facturador, FacturaEmtDtm facturaOriginal, string motivo)
+        {
+            PeticionDeFacturaEmtDto resultado = null;
+            try
+            {
+                var parametros = new System.Collections.Generic.Dictionary<string, object>
+                {
+                    { nameof(HacerRectificativaDto.ClaseRectificativa), enumClaseDeRectificativa.OR.ToString() },
+                    { nameof(HacerRectificativaDto.Motivo), enumMotivoDeRectificacion.DatosErroneos.ToString() },
+                    { nameof(HacerRectificativaDto.MotivoDeRectificacion), motivo },
+                    { ltrParametrosNeg.Copiando, true }
+                };
+
+                var prefactura = facturaOriginal.CrearRectificativa(contexto, parametros);
+                resultado = EmitirYObtenerResultado(contexto, facturador, prefactura);
+            }
+            catch (Exception ex)
+            {
+                if (resultado is null)
+                {
+                    resultado = facturador.MapearDto<PeticionDeFacturaEmtDto>(contexto);
+                }
+                resultado.Mensaje = ex.MensajeCompleto();
+            }
+
+            return RegistrarResultado(contexto, facturador, resultado);
         }
 
         public static PeticionDeFacturaEmtDto CrearFactura(ContextoSe contexto, string nifEmisor, string guid, string facturaJson)

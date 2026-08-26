@@ -43,10 +43,21 @@ Si los datos coinciden, el backend **no devuelve el fichero directamente**: devu
 
 Ver el detalle en el [Anexo 3](#anexo-3--consulta-de-pdf--xml-de-una-factura).
 
+## Rectificar una factura por datos erróneos
+
+Si una factura ya emitida tiene datos incorrectos, se puede anular mediante una **rectificativa total por datos erróneos**: se crea automáticamente una factura rectificativa (con las mismas líneas en negativo), se asocia a la original y se emite, sin intervención manual.
+
+`POST /Facturador/epRectificarPorDe?apiKey={apiKey}&numeroFactura={numeroFactura}`
+Body: texto libre con el motivo de la rectificación.
+
+No hace falta indicar `nif`: el sistema localiza la factura original por su número, obtiene la sociedad a la que pertenece y valida el `apiKey` contra esa sociedad — igual que en el modo directo de creación.
+
+Ver el detalle en el [Anexo 4](#anexo-4--rectificar-una-factura-por-datos-erróneos).
+
 ## Resumen del backend
 
 1. **Autenticación**: `apiKey` se valida contra uno generado a partir de `IdSociedad + IdCg + IdTipoDeFactura`. Si no coincide → error.
-2. **Registro de la petición**: se crea una fila en `PeticionDeFacturaEmtDtm` con GUID propio, timestamp de solicitud y el tipo de operación (`enumOperacionFacturador`: `CrearFactura`, `AnularFactura`, `SolicitarPdf`, `SolicitarXml`). Al crearla también se generan `GuidDeConsultaPdf` y `GuidDeConsultaXml`, permanentes, para consultas futuras del documento.
+2. **Registro de la petición**: se crea una fila en `PeticionDeFacturaEmtDtm` con GUID propio, timestamp de solicitud y el tipo de operación (`enumOperacionFacturador`: `CrearFactura`, `AnularFactura`, `SolicitarPdf`, `SolicitarXml`, `RectificarPorDe`). Al crearla también se generan `GuidDeConsultaPdf` y `GuidDeConsultaXml`, permanentes, para consultas futuras del documento.
 3. **Creación de la prefactura**: se parsea el JSON recibido (cliente, líneas, etc.) y se crea la prefactura.
 4. **Transición a "Emitida"**: la prefactura pasa a la etapa `FAE_Etapa_Emitida`.
 5. **Envío a la AEAT (Verifactu)**: si la sociedad usa Verifactu y está activo, se envía la factura — el mensaje de resultado indica si se sometió el envío individual o en lote. Si no usa Verifactu, simplemente se genera el PDF.
@@ -316,3 +327,54 @@ GET https://biwe.femdek.com/Archivos/epDescargaConGuid?guid=9b2e1a34-...&id=789
 - La URL de descarga es válida durante **1 hora** desde que se genera. Pasado ese tiempo, o si el enlace ya no es válido, hay que volver a llamar a `epSolicitarPdf`/`epSolicitarXml` para obtener uno nuevo.
 - `GuidDeConsultaPdf`/`GuidDeConsultaXml` no caducan ni se consumen: se pueden reutilizar todas las veces que haga falta.
 - Si el documento solicitado aún no existe (por ejemplo, el XML antes de que la factura se envíe a la AEAT), la respuesta viene con `Estado: "Error"` y el mensaje lo indica.
+
+---
+
+## Anexo 4 — Rectificar una factura por datos erróneos
+
+Este modo anula totalmente una factura ya emitida, creando y emitiendo automáticamente su rectificativa (líneas iguales a la original, en negativo).
+
+### Petición
+
+```
+POST https://biwe.femdek.com/Facturador/epRectificarPorDe?apiKey=XXXXXXXX&numeroFactura=F2026%2F00123
+Content-Type: text/plain
+
+Se ha detectado un error en el NIF del cliente
+```
+
+### Parámetros de la URL
+
+- `apiKey`: clave de API asignada al facturador de la sociedad emisora (no hace falta indicar `nif`, se obtiene de la propia factura).
+- `numeroFactura`: número de la factura original a rectificar, tal como se recibió en `NumeroFactura` al crearla.
+
+### Body
+
+Texto libre con el motivo de la rectificación. Se guarda como detalle del motivo (`enumMotivoDeRectificacion.DatosErroneos`, rectificación de clase "Total").
+
+### Respuesta (ejemplo)
+
+```json
+{
+  "Datos": {
+    "SolicitadaEl": "2026-08-25T09:30:00",
+    "Peticion": "RectificarPorDe",
+    "Facturador": "Nombre del facturador",
+    "NumeroFactura": "F2026/00456",
+    "Mensaje": "Factura emitida y sometido su envío",
+    "GuidDeConsultaPdf": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+    "GuidDeConsultaXml": "0f1e2d3c-4b5a-6978-fedc-ba0987654321",
+    "UrlDeLaFactura": "https://biwe.femdek.com/FacturaEmt/Consultar?id=789"
+  },
+  "Estado": "Ok",
+  "Consola": "Factura emitida y sometido su envío"
+}
+```
+
+`NumeroFactura`, `GuidDeConsultaPdf`, `GuidDeConsultaXml` y `UrlDeLaFactura` corresponden a la **rectificativa recién creada**, no a la original — se pueden usar igual que con cualquier otra factura (Anexo 3) para descargar su PDF/XML.
+
+### Notas
+
+- Si el número de factura indicado no existe, o hay más de una factura con ese número (caso ambiguo entre sociedades), la petición falla con `Estado: "Error"`.
+- Si la factura original ya estaba rectificada, la petición falla indicando qué rectificativa la sustituyó.
+- Igual que al crear una factura: si la sociedad usa Verifactu, la rectificativa se envía a la AEAT; si no, simplemente se genera su PDF.

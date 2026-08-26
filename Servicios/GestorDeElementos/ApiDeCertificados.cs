@@ -171,7 +171,7 @@ namespace GestorDeElementos
                     .SetCertificationLevel(AccessPermissions.NO_CHANGES_PERMITTED)
                     .SetReason("Firma de Factura - " + ParametrosDeArchivadores.SistemaInformaticoQueFirma)
                     .SetLocation(ParametrosDeArchivadores.LugarDeFirma)
-                    .SetFieldName("Firma_" + usuario);
+                    .SetFieldName("Firma_" + usuario.Replace(".", "_"));
 
                 if (visible)
                 {

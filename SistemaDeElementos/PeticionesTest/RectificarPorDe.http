@@ -1,0 +1,15 @@
+//POST https://biwe.femdek.com/Facturador/epRectificarPorDe
+
+//POST https://localhost:44396/Facturador/epRectificarPorDe
+
+### Rectificar totalmente una factura ya emitida, por datos erróneos
+POST https://localhost:44396/Facturador/epRectificarPorDe?apiKey=[xxxxx]&numeroFactura=2026-S-13
+Content-Type: text/plain
+
+Se ha detectado un error en el NIF del cliente
+
+###
+
+// La respuesta trae en "Datos" el PeticionDeFacturaEmtDto de la RECTIFICATIVA
+// (NumeroFactura, GuidDeConsultaPdf, GuidDeConsultaXml, UrlDeLaFactura),
+// no de la factura original.

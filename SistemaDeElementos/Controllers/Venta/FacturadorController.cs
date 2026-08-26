@@ -158,6 +158,52 @@ Invoke-WebRequest -Method POST `
         }
 
         [AllowAnonymous]
+        [HttpPost]
+        public JsonResult epRectificarPorDe(string apiKey, string numeroFactura)
+        {
+            string motivo = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
+            var tran = Contexto.IniciarTransaccion();
+            Contexto.IniciarTraza(nameof(epRectificarPorDe));
+            var r = new Resultado();
+            try
+            {
+                Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
+                var facturaOriginal = Facturador.ObtenerFacturaPorNumero(Contexto, numeroFactura);
+                var nif = facturaOriginal.Cg(Contexto).Sociedad(Contexto).NIF;
+                PeticionDeFacturaEmtDtm facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.RectificarPorDe);
+                try
+                {
+                    var resultado = Facturador.RectificarPorDe(Contexto, facturador, facturaOriginal, motivo);
+                    r.Datos = resultado;
+                    r.Consola = resultado.Mensaje;
+                    r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                    r.Estado = resultado.Mensaje.Contains(ltrFacturador.SometidoEnvioDeFactura) ||
+                               resultado.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
+                               resultado.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
+                               ? enumEstadoPeticion.Ok : enumEstadoPeticion.Error;
+                    Contexto.Commit(tran);
+                }
+                catch (Exception e)
+                {
+                    Contexto.Rollback(tran);
+                    ApiController.PrepararError(e, r, "Error en la solicitud.");
+                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
+                }
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error en la solicitud.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+                Contexto.QuitarUsuario();
+            }
+            return new JsonResult(r);
+        }
+
+        [AllowAnonymous]
         public JsonResult epSolicitarPdf(string nif, string apiKey, string numeroFactura, string guid)
         {
             return SolicitarDocumento(nif, apiKey, numeroFactura, guid, enumOperacionFacturador.SolicitarPdf);
