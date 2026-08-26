@@ -106,6 +106,7 @@ while (true)
     Console.WriteLine("1. Descargar XML");
     Console.WriteLine("2. Descargar PDF");
     Console.WriteLine("3. Acceder a la factura");
+    Console.WriteLine("4. Rectificar por datos erroneos");
     Console.WriteLine("0. Salir");
     Console.Write("Opción: ");
     var opcion = Console.ReadLine();
@@ -128,6 +129,10 @@ while (true)
 
         case "3":
             AbrirEnNavegador(facturaCreada.UrlDeLaFactura);
+            break;
+
+        case "4":
+            await RectificarPorDeAsync(http, apiKey, facturaCreada.NumeroFactura, jsonOpciones);
             break;
 
         case "0":
@@ -271,6 +276,61 @@ static async Task DescargarDocumentoAsync(HttpClient http, string nif, string ap
     {
         Console.WriteLine($"Error al descargar el fichero: {DescribirError(ex, http.BaseAddress!)}");
     }
+}
+
+static async Task RectificarPorDeAsync(HttpClient http, string apiKey, string? numeroFacturaSugerido, JsonSerializerOptions jsonOpciones)
+{
+    var numeroFactura = Pedir("Número de factura a rectificar", numeroFacturaSugerido ?? "");
+    var motivo = Pedir("Motivo de la rectificación", "Datos erróneos");
+
+    var rutaRelativa = $"Facturador/epRectificarPorDe?apiKey={Uri.EscapeDataString(apiKey)}&numeroFactura={Uri.EscapeDataString(numeroFactura)}";
+
+    Console.WriteLine();
+    Console.WriteLine("Se va a ejecutar la siguiente petición:");
+    Console.WriteLine();
+    Console.WriteLine($"POST {new Uri(http.BaseAddress!, rutaRelativa)}");
+    Console.WriteLine("Content-Type: text/plain");
+    Console.WriteLine();
+    Console.WriteLine(motivo);
+    Console.WriteLine();
+
+    if (!Confirmar("¿Deseas ejecutarla?"))
+    {
+        Console.WriteLine("Cancelado.");
+        return;
+    }
+
+    Resultado? resultado;
+    try
+    {
+        using var respuesta = await http.PostAsync(rutaRelativa, new StringContent(motivo, Encoding.UTF8, "text/plain"));
+        var contenido = await respuesta.Content.ReadAsStringAsync();
+        MostrarRespuesta(contenido, jsonOpciones);
+        resultado = JsonSerializer.Deserialize<Resultado>(contenido, jsonOpciones);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al llamar al servicio: {DescribirError(ex, http.BaseAddress!)}");
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Estado: {resultado?.Estado}");
+    Console.WriteLine($"Mensaje: {resultado?.Mensaje ?? resultado?.Consola}");
+
+    if (resultado is null || !resultado.EsOk || resultado.Datos.ValueKind != JsonValueKind.Object)
+        return;
+
+    var rectificativa = resultado.Datos.Deserialize<FacturaCreada>(jsonOpciones);
+    if (rectificativa is null)
+        return;
+
+    Console.WriteLine();
+    Console.WriteLine("Datos de la rectificativa creada:");
+    Console.WriteLine($"Número de factura : {rectificativa.NumeroFactura}");
+    Console.WriteLine($"GuidDeConsultaPdf  : {rectificativa.GuidDeConsultaPdf}");
+    Console.WriteLine($"GuidDeConsultaXml  : {rectificativa.GuidDeConsultaXml}");
+    Console.WriteLine($"UrlDeLaFactura     : {rectificativa.UrlDeLaFactura}");
 }
 
 static void AbrirEnNavegador(string? url)
