@@ -602,7 +602,11 @@
         if (tipo === undefined || usaClase === null) {
             var negocio = tipoctrl.getAttribute(atControl.negocio);
             var idTipo = Numero(tipoctrl.getAttribute(atListasDinamicas.idSeleccionado));
-            if (idTipo === 0) return;
+            if (idTipo === 0) {
+                if (EstoyEditando())
+                    Crud.crudMnt.crudDeEdicion.Tipo = null;
+                return;
+            }
 
             let parametros: Array<Parametro> = new Array<Parametro>();
             if (Definido(Crud.Consultor)) {
@@ -649,6 +653,9 @@
     }
 
     function AplicarTipo(contenedor: HTMLDivElement, tipo: any) {
+        if (EstoyEditando()) {
+            Crud.crudMnt.crudDeEdicion.Tipo = tipo;
+        }
         var marcador = ObtenerPropiedad(tipo, ltrPropiedades.TipoDeElemento.Marcador);
         if (Definido(marcador)) {
             var nombrectrl = ApiControl.BuscarEditor(contenedor, ltrPropiedades.Elemento.Nombre);
@@ -842,5 +849,26 @@
         var url = `${window.location.origin}/${ltrUrls.Ventas.FacturasEmt}?id=${id}`;
         EntornoSe.AbrirPestana(url);
     }
+    function UsandoUnCrud(): boolean {
+        const estaElModuloCargado = typeof Crud !== 'undefined';
+        if (estaElModuloCargado && Definido(Crud.crudMnt)) {
+            return true;
+        }
+        return false;
+    }
+    function EstoyEditando(): boolean {
+        
+        if (UsandoUnCrud() && Definido(Crud.crudMnt.crudDeEdicion) && Crud.crudMnt.EstoyEditando) {
+            return true;
+        }
+        return false;
+    }
 
+    function EstoyCreando(): boolean {
+        
+        if (UsandoUnCrud() && Definido(Crud.crudMnt.crudDeCreacion) && Crud.crudMnt.EstoyCreando) {
+            return true;
+        }
+        return false;
+    }
 }

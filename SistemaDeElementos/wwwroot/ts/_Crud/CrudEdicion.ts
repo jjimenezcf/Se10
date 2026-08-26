@@ -35,6 +35,14 @@
         }
 
 
+        private _tipo: any = null;
+        public get Tipo(): any {
+            return this._tipo;
+        }
+        public set Tipo(tipo:any) {
+            this._tipo = tipo;
+        }
+
         public get IdTipo(): number {
             return ObtenerPropiedad(this._registro, ltrPropiedades.Elemento.ConTipo.IdTipo, 0, false);
         }

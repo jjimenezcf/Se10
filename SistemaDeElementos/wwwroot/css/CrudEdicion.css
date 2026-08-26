@@ -378,6 +378,12 @@
     border: 0px !important;
 }
 
+.dto-tr .td-propiedad[colspan="2"] { grid-column: span 2; }
+.dto-tr .td-propiedad[colspan="3"] { grid-column: span 3; }
+.dto-tr .td-propiedad[colspan="4"] { grid-column: span 4; }
+.dto-tr .td-propiedad[colspan="5"] { grid-column: span 5; }
+.dto-tr .td-propiedad[colspan="6"] { grid-column: span 6; }
+
 .div-td.dto-td.td-propiedad:has(a.formulario-selector-archivo.etiqueta-dto) {
     padding-top: 12px !important;
 }

@@ -697,11 +697,13 @@ namespace ApiControl {
         return false;
     }
 
-    export function BloquearListaDeValores(panel: HTMLDivElement, propiedad: string): boolean {
+    export function BloquearListaDeValores(panel: HTMLDivElement, propiedad: string, anularSeleccion: boolean = false): boolean {
         let lista: HTMLSelectElement = BuscarListaDeValores(panel, propiedad, atControl.propiedad);
         if (!NoDefinido(lista)) {
             lista.disabled = true;
             lista.setAttribute("readOnly", "true");
+            if (anularSeleccion)
+                lista.selectedIndex = 0;
             return true;
         }
         return false;

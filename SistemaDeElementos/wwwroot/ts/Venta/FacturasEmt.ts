@@ -113,7 +113,7 @@
 
                 ApiPanel.MapearListaDinamica(this.ModalCambiarDatos, editor.Registro, ltrPropiedades.Venta.FacturaEmt.Contrato, editor.IdParteTr > 0, false);
                 ApiPanel.MapearListaDinamica(this.ModalCambiarDatos, editor.Registro, ltrPropiedades.Venta.FacturaEmt.Presupuesto, false, false);
-            }            
+            }
             else if (modal.id === this.ModalCopiarFae.id) {
                 if (this.InfoSelector.Seleccionados.length === 1) {
                     this.Fae_ProponerFacturaParaCopiar(modal, this.InfoSelector.Seleccionados[0].Registro);
@@ -124,8 +124,7 @@
                 let idFactura = ObtenerPropiedad(editor.Registro, literal.id);
                 let factura = ObtenerPropiedad(editor.Registro, ltrPropiedades.Elemento.Expresion);
                 MapearAlControl.ListaDinamica(lista, idFactura, factura, true);
-                if (modal.id === this.ModalHacerRectificativa.id)
-                {
+                if (modal.id === this.ModalHacerRectificativa.id) {
                     let clase = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.ClaseRectificativa);
                     MapearAlControl.ListaDeValores(clase, ltrValores.Venta.FacturasEmt.Rectificativas.Clase.Total);
                 }
@@ -394,7 +393,7 @@
             if (this.EstaCancelada || this._estaComunicandose || this._esRectificativa || this._esPrefactura)
                 return false;
 
-            return true; 
+            return true;
         }
 
         private get _esAbonable(): boolean {
@@ -424,9 +423,9 @@
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.concepto);
                     ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.unitario);
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.precio);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase);
-                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza);
-                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad);
+                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, true);
+                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza, true);
+                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad, true);
                     break;
                 }
                 case 1: {
@@ -436,14 +435,34 @@
                     ApiControl.DesbloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad);
+
+                    let lista: HTMLSelectElement = undefined;
+                    const idnaturaleza = ObtenerPropiedad(this.Tipo, ltrPropiedades.Venta.FacturaEmt.tipo.idNaturalezaDefecto);
+                    if (Numero(idnaturaleza) > 0) {
+                        lista = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza, atControl.propiedad);
+                        MapearAlControl.FijarEnListaDeElementos(lista, idnaturaleza);
+                    }
+
+                    const idunidad = ObtenerPropiedad(this.Tipo, ltrPropiedades.Venta.FacturaEmt.tipo.idUnidadDefecto);
+                    if (Numero(idunidad) > 0) {
+                        lista = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad, atControl.propiedad);
+                        MapearAlControl.FijarEnListaDeElementos(lista, idunidad);
+                    }
+
+                    const clase = ObtenerPropiedad(this.Tipo, ltrPropiedades.Venta.FacturaEmt.tipo.claseDefecto);
+                    if (Definido(clase)) {
+                        lista = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, atControl.propiedad);
+                        MapearAlControl.FijarEnListaDeValores(lista, clase);
+                    }
+
                     break;
                 }
                 case 2: {
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.unitario);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase);
-                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza);
-                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad);
+                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, true);
+                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza, true);
+                    ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad, true);
                     ocultar = true;
                     break;
                 }
@@ -453,7 +472,7 @@
                 }
             }
             var postFijo = this.EstaCreandoUnaLinea ? 'nuevo' : 'edicion';
-            var filaDeLaModal: string = 'table-lineadeunafaedto'; 
+            var filaDeLaModal: string = 'table-lineadeunafaedto';
             if (ocultar) {
                 document.getElementById(`${filaDeLaModal}-${postFijo}-3`).classList.add(ltrCss.divNoVisible);
                 document.getElementById(`${filaDeLaModal}-${postFijo}-4`).classList.add(ltrCss.divNoVisible);

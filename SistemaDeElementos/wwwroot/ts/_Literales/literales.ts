@@ -3406,6 +3406,11 @@ const ltrPropiedades = {
             CentroAdministrativo: 'CentroAdministrativo',
             IdCentroAdministrativo: 'IdCentroAdministrativo',
             EstaComunicandose: 'EstaComunicandose',
+            tipo: {
+                claseDefecto: 'ClaseDefecto',
+                idNaturalezaDefecto: 'IdNaturalezaDefecto',
+                idUnidadDefecto: 'IdUnidadDefecto'
+            },
             linea: {
                 orden: 'orden',
                 tipoDeLinea: 'TipoDeLinea',
@@ -3423,7 +3428,9 @@ const ltrPropiedades = {
                 cantidad: 'cantidad',
                 clase: 'Clase',
                 naturaleza: 'Naturaleza',
+                idNaturaleza: 'Naturaleza',
                 unidad: 'Unidad',
+                idUnidad: 'Unidad',
                 iva: 'iva'
             },
             Irpf: {

@@ -375,6 +375,10 @@
         return restrictorFijo;
     }
 
+    export function FijarEnListaDeValores(lista: HTMLSelectElement, opcion: string): boolean {
+        return SeleccionarOpcion(lista, opcion);
+    }
+
     export function FijarEnListaDeElementos(lista: HTMLSelectElement, id: number): boolean {
 
         if (EsTrue(lista.getAttribute(atListas.yaCargado))) {
@@ -800,6 +804,23 @@
         return control;
     }
 
+    function SeleccionarOpcion(lista: HTMLSelectElement, opcion: string): boolean {
+
+        let fijado: boolean = false;
+
+        for (var j = 0; j < lista.options.length; j++) {
+            if (lista.options[j].value.toLowerCase() === opcion.toLowerCase()) {
+                lista.selectedIndex = j;
+                fijado = true;
+            }
+        }
+
+        let accion = lista.getAttribute(atListasDeValores.OnChange);
+        if (Definido(accion))
+            Evaluar('MapearAlControl.SeleccionarOpcion.OnChange', accion, accion.includes('this') ? lista : undefined);
+
+        return fijado
+    }
 
     function fijarValorEnLista(lista: HTMLSelectElement, id: number): boolean {
 
