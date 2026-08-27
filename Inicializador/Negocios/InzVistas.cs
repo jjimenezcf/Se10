@@ -160,6 +160,9 @@ namespace SistemaDeElementos.Inicializador
             public static readonly string TipoDePedido = $"Tipos de {enumNegocio.Pedido.Singular().ToLower()}";
             public static readonly string MaestrosDePedidos = $"Maestros de {enumNegocio.Pedido.Plural().ToLower()}";
             public static readonly string Pedidos = enumNegocio.Pedido.Plural();
+            public static readonly string TipoDeAlmacen = $"Tipos de {enumNegocio.Almacen.Singular().ToLower()}";
+            public static readonly string MaestrosDeAlmacenes = $"Maestros de {enumNegocio.Almacen.Plural().ToLower()}";
+            public static readonly string Almacenes = enumNegocio.Almacen.Plural();
         }
 
 
@@ -375,6 +378,10 @@ namespace SistemaDeElementos.Inicializador
 
         private static void CrearVistasDelModuloDeLogistica(GestorDeVistaMvc gestor)
         {
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MaestrosDeAlmacenes, enumControladoresLogistica.Almacenes, enumVistasLogisticas.MaestrosDeAlmacenes, true, null);
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.TipoDeAlmacen, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.Almacen), true, typeof(TipoDeAlmacenDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.Almacenes, enumControladoresLogistica.Almacenes, enumVistasLogisticas.CrudAlmacenes, false, typeof(AlmacenDto).FullName);
+
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MaestrosDePedidos, enumControladoresLogistica.Pedidos, enumVistasLogisticas.MaestrosDePedidos, true, null);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.TipoDePedido, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.Pedido), true, typeof(TipoDePedidoDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.Pedidos, enumControladoresLogistica.Pedidos, enumVistasLogisticas.CrudPedidos, false, typeof(PedidoDto).FullName);

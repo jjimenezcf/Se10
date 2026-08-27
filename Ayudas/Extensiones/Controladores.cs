@@ -285,6 +285,8 @@ namespace Utilidades
                     return enumVistasGastos.TiposDeFacturaRec;
                 case enumNegocio.Pedido:
                     return enumVistasLogisticas.TiposDePedido;
+                case enumNegocio.Almacen:
+                    return enumVistasLogisticas.TiposDeAlmacen;
                 case enumNegocio.Preasiento:
                     return enumVistasContables.TiposDePreasiento;
             }
@@ -486,6 +488,9 @@ namespace Utilidades
         public const string TiposDePedido = nameof(TiposDePedido);
         public const string CrudPedidos = nameof(CrudPedidos);
         public const string MaestrosDePedidos = nameof(MaestrosDePedidos);
+        public const string TiposDeAlmacen = nameof(TiposDeAlmacen);
+        public const string CrudAlmacenes = nameof(CrudAlmacenes);
+        public const string MaestrosDeAlmacenes = nameof(MaestrosDeAlmacenes);
     }
 
     public static class enumVistasGastos

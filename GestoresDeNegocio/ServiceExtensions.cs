@@ -23,16 +23,6 @@ namespace GestoresDeNegocio;
 public static class ServiceExtensions
 {
 
-    //public static ServiceCollection Servicios()
-    //{
-    //    var (configuracion, cadenaConexion) = ContextoSe.ObtenerDatosDeConexion();
-    //    var servicios = new ServiceCollection();
-    //    servicios.AddSingleton<IConfiguration>(configuracion);
-    //    servicios.ConfigureGestoresDeNegocio();
-    //    ContextoSe.IncluirServiciosParaElCorreo(servicios);
-    //    return servicios;
-    //}
-
     public static void ConfigureGestoresDeNegocio(this IServiceCollection services)
     {
         services.ConfigureEntorno();
@@ -286,6 +276,7 @@ public static class ServiceExtensions
     {
         services.AddScoped<GestorDePedidos>();
         services.AddScoped<GestorDeLineasDeUnPedido>();
+        services.AddScoped<GestorDeAlmacenes>();
     }
 
     public static void ConfigureGuarderias(this IServiceCollection services)

@@ -130,6 +130,7 @@ namespace SistemaDeElementos.Inicializador
                     GestorDeNegocios.CrearNegocioSiNoExiste(gestor, enumNegocio.FacturaRecibida, enumNegocio.FacturaRecibida.Plural(), typeof(FacturaRecDtm), typeof(FacturaRecDto), enumNegocio.FacturaRecibida.Icono(), esDeParametrizacion: false, usaCg: true, usaSeguridad: true);
 
                     //Módulo de gestión de logística
+                    GestorDeNegocios.CrearNegocioSiNoExiste(gestor, enumNegocio.Almacen, enumNegocio.Almacen.Plural(), typeof(AlmacenDtm), typeof(AlmacenDto), enumNegocio.Almacen.Icono(), esDeParametrizacion: false, usaCg: true, usaSeguridad: true);
                     GestorDeNegocios.CrearNegocioSiNoExiste(gestor, enumNegocio.Pedido, enumNegocio.Pedido.Plural(), typeof(PedidoDtm), typeof(PedidoDto), enumNegocio.Pedido.Icono(), esDeParametrizacion: false, usaCg: true, usaSeguridad: true);
 
                     //Módulo de gestión contable

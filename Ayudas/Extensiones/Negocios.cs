@@ -39,6 +39,7 @@ namespace Utilidades
                 case enumNegocio.Pago: return enMinusculas ? "pagos" : "Pagos";
                 case enumNegocio.FacturaRecibida: return enMinusculas ? "facturas recibida" : "Facturas recibidas";
                 case enumNegocio.Pedido: return enMinusculas ? "pedidos" : "Pedidos";
+                case enumNegocio.Almacen: return enMinusculas ? "almacenes" : "Almacenes";
                 case enumNegocio.Preasiento: return enMinusculas ? "preasientos" : "Preasientos";
                 case enumNegocio.RemesaPag: return enMinusculas ? "remesas de pagos" : "Remesas de pagos";
                 case enumNegocio.CentroGestor:return enMinusculas ? "centros gestores" : "Centros gestores";
@@ -88,6 +89,7 @@ namespace Utilidades
                 case enumNegocio.Pago: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.FacturaRecibida: return $"de la {negocio.Singular(enMinusculas)}";
                 case enumNegocio.Pedido: return $"del {negocio.Singular(enMinusculas)}";
+                case enumNegocio.Almacen: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.Preasiento: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.RemesaPag: return $"de la {negocio.Singular(enMinusculas)}";
                 case enumNegocio.Sociedad: return $"de la {negocio.Singular(enMinusculas)}";
@@ -140,6 +142,7 @@ namespace Utilidades
                 case enumNegocio.RemesaPag: return enumControladoresGastos.RemesasPag.ToString();
                 case enumNegocio.FacturaRecibida: return enumControladoresGastos.FacturasRec.ToString();
                 case enumNegocio.Pedido: return enumControladoresLogistica.Pedidos.ToString();
+                case enumNegocio.Almacen: return enumControladoresLogistica.Almacenes.ToString();
                 case enumNegocio.Preasiento: return enumControladoresContables.Preasientos.ToString();
                 case enumNegocio.Infante: return enumControladoresGuarderias.Infantes.ToString();
                 case enumNegocio.CursoDeGuarderia: return enumControladoresGuarderias.CursosDeGuarderia.ToString();
@@ -302,7 +305,9 @@ namespace Utilidades
         [Description("Pedido")]
         Pedido,
         [Description("Preasiento")]
-        Preasiento
+        Preasiento,
+        [Description("Almacén")]
+        Almacen
     }
 
     public enum enumMenuDeConfiguaracion

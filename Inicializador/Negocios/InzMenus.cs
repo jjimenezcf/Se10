@@ -364,7 +364,14 @@ namespace SistemaDeElementos.Inicializador
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: ModuloDeLogistica, descripcion: "Módulo de logística", icono: "ModuloDeLogistica.svg", padre: null, vista: "", orden: 32);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Configuracion, descripcion: "Configuración logística", icono: "configuration-menu.svg", padre: ModuloDeLogistica, vista: "", orden: 1);
 
+            // Almacenes va por delante de Pedidos: detrás de Pedidos se añadirá más adelante Albaranes.
+            MenusDeConfiguracionDeProceso(gestor, enumNegocio.Almacen, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeAlmacen, enumVistas.Logistica.MaestrosDeAlmacenes, orden: 5);
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Pedido, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDePedido, enumVistas.Logistica.MaestrosDePedidos, orden: 10);
+
+            GestorDeMenus.CrearMenuSiNoExiste(gestor
+                , nombre: enumVistas.Logistica.Almacenes
+                , descripcion: $"Gestión de {enumNegocio.Almacen.Plural()}"
+                , icono: enumNegocio.Almacen.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Almacenes, orden: 40);
 
             GestorDeMenus.CrearMenuSiNoExiste(gestor
                 , nombre: enumVistas.Logistica.Pedidos

@@ -78,6 +78,8 @@ namespace ServicioDeDatos
 
             DefinirTablasDePedidos(modelBuilder);
 
+            DefinirTablasDeAlmacen(modelBuilder);
+
             DefinirTablasDeGuarderias(modelBuilder);
 
         }
@@ -125,6 +127,25 @@ namespace ServicioDeDatos
             ModeloDePedido.Archivadores(modelBuilder);
 
             ModeloDePedido.DatosDeLineaDeUnaPedido(modelBuilder);
+        }
+
+
+        private void DefinirTablasDeAlmacen(ModelBuilder modelBuilder)
+        {
+            ModeloDeAlmacen.EstadosDeUnAlmacen(modelBuilder);
+            ModeloDeAlmacen.TransicionesDeUnAlmacen(modelBuilder);
+            ModeloDeAlmacen.AccionesDeUnAlmacen(modelBuilder);
+            ModeloDeAlmacen.TipoDeAlmacen(modelBuilder);
+
+            ModeloDeAlmacen.Almacen(modelBuilder);
+            ModeloDeAlmacen.Trazas(modelBuilder);
+            ModeloDeAlmacen.Auditoria(modelBuilder);
+            ModeloDeAlmacen.Archivos(modelBuilder);
+            ModeloDeAlmacen.Observaciones(modelBuilder);
+            ModeloDeAlmacen.Permisos(modelBuilder);
+            ModeloDeAlmacen.Direcciones(modelBuilder);
+            ModeloDeAlmacen.Historia(modelBuilder);
+            ModeloDeAlmacen.Archivadores(modelBuilder);
         }
 
         private static void DefinirEsquemaDeSeguridad(ModelBuilder modelBuilder)

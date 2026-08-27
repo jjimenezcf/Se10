@@ -9,7 +9,6 @@ using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Terceros;
-using Utilidades;
 
 namespace ServicioDeDatos.Elemento
 {

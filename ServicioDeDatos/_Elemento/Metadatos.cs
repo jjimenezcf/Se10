@@ -243,7 +243,8 @@ namespace ServicioDeDatos.Elemento
         internal const string REMESA_PAG = nameof(REMESA_PAG);
         internal const string FACTURA_REC = nameof(FACTURA_REC);
         internal const string PEDIDO = nameof(PEDIDO);
-        
+        internal const string ALMACEN = nameof(ALMACEN);
+
 
         internal const string AULA = nameof(AULA);
         internal const string INFANTE = nameof(INFANTE);
@@ -637,6 +638,7 @@ namespace ServicioDeDatos.Elemento
         internal const string IRPF = nameof(IRPF);
         internal const string DESCUENTO = nameof(DESCUENTO);
         internal const string TIPO_LINEA = nameof(TIPO_LINEA);
+        internal const string CALCULO = nameof(CALCULO);
         internal const string ID_UNITARIO = nameof(ID_UNITARIO);
         internal const string ID_IVA_R = nameof(ID_IVA_R);
         internal const string ID_IVA_S = nameof(ID_IVA_S);
