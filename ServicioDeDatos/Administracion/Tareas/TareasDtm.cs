@@ -5,12 +5,23 @@ using ServicioDeDatos.Negocio;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using Utilidades;
 
 namespace ServicioDeDatos.Tarea
 {
-
+    public enum enumTareaReferenciadaComo
+    {
+        [Description("Seleccionar")]
+        Seleccionar,
+        [Description("Copiada de")]
+        Copia,
+        [Description("Siguiente")]
+        Siguiente,
+        [Description("Anterior")]
+        Anterior
+    }
 
 
     [Table(Tablas.TAREA, Schema = Esquemas.TAREA)]

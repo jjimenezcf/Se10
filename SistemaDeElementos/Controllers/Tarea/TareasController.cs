@@ -142,8 +142,6 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
-
-
         [HttpPost]
         public async Task<JsonResult> epTotales(int posicion, int cantidad)
         {

@@ -85,7 +85,7 @@ namespace GestoresDeNegocio.Tarea
             consulta = consulta.FiltrosDeSolicitantes(Contexto, filtros);
             consulta = consulta.FiltrosDeResponsables(Contexto, filtros);
             consulta = consulta.FiltrosDeFacturas(Contexto, filtros, parametros);
-            consulta = consulta.FiltroSiHayDependenciaDe(filtros, filtrarPor:ltrDeUnaTarea.IdResponsable, filtroDeAsociacion: ltrDeUnaTarea.Asignacion, parametros, aplicarFiltroDeEstado: true);
+            consulta = consulta.FiltroSiHayDependenciaDe(filtros, filtrarPor: ltrDeUnaTarea.IdResponsable, filtroDeAsociacion: ltrDeUnaTarea.Asignacion, parametros, aplicarFiltroDeEstado: true);
             consulta = consulta.FiltroPorPrioridad(filtros);
             consulta = consulta.FiltroConPrioridad(filtros);
             return consulta;
@@ -130,7 +130,7 @@ namespace GestoresDeNegocio.Tarea
             {
                 var idExpediente = parametros.Parametros.LeerValor(ltrDeUnaTarea.VincularAlExpediente, 0);
 
-                if (idExpediente == 0)  
+                if (idExpediente == 0)
                 {
                     var idExpedienteVinculado = parametros.Parametros.LeerValor<int?>(ltrDeUnaTarea.IdExpediente, null);
                     if (idExpedienteVinculado.Entero() > 0)
@@ -285,7 +285,7 @@ namespace GestoresDeNegocio.Tarea
 
             if (parametros.CargarLista)
                 return;
-                       
+
             if (parametros.Peticion == enumPeticion.epLeerPorId)
             {
                 var expedientes = tarea.Vinculados<ExpedienteDtm>(Contexto);
@@ -300,7 +300,7 @@ namespace GestoresDeNegocio.Tarea
                 }
                 else elemento.Expediente = "";
 
-                elemento.Prioridad = tarea.Prioridad == null ? enumPrioridad.NoDefinida: ((enumPrioridad)tarea.Prioridad);
+                elemento.Prioridad = tarea.Prioridad == null ? enumPrioridad.NoDefinida : ((enumPrioridad)tarea.Prioridad);
             }
 
             if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item => item == nameof(elemento.Durabilidad).ToLowerInvariant() ||
@@ -436,7 +436,8 @@ namespace GestoresDeNegocio.Tarea
                 .SoloConRelacionada(t => t.Planificacion(Contexto, errorSiNoHay: false), plf => (plf.EnJornadas() ?? 0) > 0)
                 .AgruparPorRelacionada(t => t.Solicitante(Contexto), s => s.Nombre)
                 .AsEnumerable()
-                .Select(g => new {
+                .Select(g => new
+                {
                     Nombre = g.Key,
                     Tareas = g.Count(),
                     TotalJornadas = g.Sum(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m),
@@ -485,7 +486,8 @@ namespace GestoresDeNegocio.Tarea
                 .SoloConRelacionada(t => t.Planificacion(Contexto, errorSiNoHay: false), plf => (plf.EnJornadas() ?? 0) > 0)
                 .AgruparPorRelacionada(t => t.Responsable(Contexto), u => u.Login)
                 .AsEnumerable()
-                .Select(g => new {
+                .Select(g => new
+                {
                     Login = g.Key,
                     Tareas = g.Count(),
                     TotalJornadas = g.Sum(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m),
@@ -518,7 +520,7 @@ namespace GestoresDeNegocio.Tarea
                     $"{login.PadRight(anchoLogin)}" +
                     $"{grupo.Tareas.ToString().PadLeft(anchoNum)}" +
                     $"{grupo.TotalJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}" +
-                    $"{grupo.MediaJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}" 
+                    $"{grupo.MediaJornadas.Formatear(alineacion: false).PadLeft(anchoJornadas)}"
                 );
             }
 
@@ -537,22 +539,31 @@ namespace GestoresDeNegocio.Tarea
             var idTareaOrigen = (int)(long)parametros[nameof(CopiarTareaDto.IdElemento)];
             var tarea = contexto.SeleccionarPorId<TareaDtm>(idTareaOrigen);
             var tareaNueva = tarea.Copiar(contexto, parametros);
-            tareaNueva.CrearObservacion(contexto, "Copiada de", enumNegocio.Tarea.ComponerUrlPorId(contexto, idTareaOrigen).ToString(), new Dictionary<string, object>
+
+            if (parametros.ContieneClave(nameof(CopiarTareaDto.ReferenciadaComo)))
             {
-                { ltrDeObservaciones.CreadaPorAdminSe, true }
-            });
+                var referenciadaComo = parametros.LeerValor(nameof(CopiarTareaDto.ReferenciadaComo), enumTareaReferenciadaComo.Seleccionar);
+                if (referenciadaComo != enumTareaReferenciadaComo.Seleccionar)
+                    tareaNueva.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, idTareaOrigen).ToString(), new Dictionary<string, object>
+                    {
+                        { ltrDeObservaciones.CreadaPorAdminSe, true }
+                    });
+            }
+
+
             return tareaNueva.Id;
         }
 
         private string FormatearTotalesPorExpediente(List<TareaDtm> tareas)
         {
-            if (!tareas.Any()) 
+            if (!tareas.Any())
                 return string.Empty;
 
             var grupos = tareas
                 .SoloConRelacionada(t => t.Planificacion(Contexto, errorSiNoHay: false), plf => (plf.EnJornadas() ?? 0) > 0)
                 .AgruparPorVinculos(t => t.Vinculados<ExpedienteDtm>(Contexto), e => e.Referencia)
-                .Select(g => new {
+                .Select(g => new
+                {
                     Referencia = g.Key,
                     Tareas = g.Count(),
                     TotalJornadas = g.Sum(t => t.Planificacion(Contexto, errorSiNoHay: false)?.EnJornadas() ?? 0m),

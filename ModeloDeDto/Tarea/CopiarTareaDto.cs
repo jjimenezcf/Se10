@@ -2,8 +2,8 @@
 using ModeloDeDto.Negocio;
 using ModeloDeDto.Terceros;
 using ServicioDeDatos.Seguridad;
+using ServicioDeDatos.Tarea;
 using ServicioDeDatos.Terceros;
-using System;
 using Utilidades;
 
 namespace ModeloDeDto.Tarea
@@ -198,9 +198,9 @@ namespace ModeloDeDto.Tarea
            VisibleEnGrid = false,
            Obligatorio = false,
            Fila = 6,
-           Columna = 0,
+           Columna = 1,
            TipoDeControl = enumTipoControl.Check,
-           css = enumCssControles.CheckApilado,
+           css = enumCssControles.CheckEnLinea,
            ValorPorDefecto = false,
            VisibleAlCrear = true,
            VisibleAlEditar = false,
@@ -209,7 +209,19 @@ namespace ModeloDeDto.Tarea
            )]
         public bool EnlazarArchivos { get; set; }
 
-
-
+        //----------------------------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "La tarea original es:",
+            Ayuda = "Indica cómo actua la tarea original seleccionada",
+            TipoDeControl = enumTipoControl.Enumerado,
+            Tipo = typeof(enumTareaReferenciadaComo),
+            GuardarEn = nameof(ReferenciadaComo),
+            EditableAlEditar = false,
+            EditableAlCrear = true,
+            Fila = 6,
+            Columna = 0
+            )
+        ]
+        public string ReferenciadaComo { get; set; }
     }
 }
