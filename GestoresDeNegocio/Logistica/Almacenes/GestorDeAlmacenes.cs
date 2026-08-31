@@ -1,10 +1,10 @@
 using AutoMapper;
 using ServicioDeDatos;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using Utilidades;
 using System.Linq;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
@@ -63,8 +63,8 @@ namespace GestoresDeNegocio.Logistica
 
         protected override IQueryable<AlmacenDtm> AplicarFiltros(IQueryable<AlmacenDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
-            // TODO: completar los filtros propios del negocio de almacenes
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
+            consulta = consulta.FiltrarParaRegularizar(filtros);
             return consulta;
         }
 
@@ -104,6 +104,14 @@ namespace GestoresDeNegocio.Logistica
         protected override AlmacenDtm AntesDeTransitar(AlmacenDtm almacen, TransicionDtm transicion, Dictionary<string, object> parametros)
         {
             almacen = base.AntesDeTransitar(almacen, transicion, parametros);
+
+            if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Cancelado.Estados()))
+                almacen.AntesDeCancelar(Contexto);
+            else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Cerrado.Estados()))
+                almacen.AntesDeCerrar(Contexto);
+            else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_En_Inventario.Estados()))
+                almacen.AntesDeRecontar(Contexto);
+
             return almacen;
         }
 

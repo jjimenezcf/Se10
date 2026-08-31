@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServicioDeDatos;
 
@@ -11,9 +12,11 @@ using ServicioDeDatos;
 namespace Migraciones.Migrations
 {
     [DbContext(typeof(ContextoSe))]
-    partial class ContextoSeModelSnapshot : ModelSnapshot
+    [Migration("20260827184156_movimientos de almacenes")]
+    partial class movimientosdealmacenes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -11452,64 +11455,6 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.AccionesDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("BIT")
-                        .HasColumnName("ACTIVO");
-
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("VARCHAR(2000)")
-                        .HasColumnName("DESCRIPCION");
-
-                    b.Property<int>("IdAccion")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ACCION");
-
-                    b.Property<int>("IdTransicion")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_TRANSICION");
-
-                    b.Property<string>("Momento")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(1)")
-                        .HasColumnName("MOMENTO");
-
-                    b.Property<int>("Orden")
-                        .HasColumnType("INT")
-                        .HasColumnName("ORDEN");
-
-                    b.Property<string>("Parametros")
-                        .HasColumnType("VARCHAR(2000)")
-                        .HasColumnName("PARAMETROS");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdAccion")
-                        .HasDatabaseName("I_REGULARIZACION_ACCION_ID_ACCION");
-
-                    b.HasIndex("IdTransicion")
-                        .HasDatabaseName("I_REGULARIZACION_ACCION_ID_TRANSICION");
-
-                    b.HasIndex("IdTransicion", "Momento", "Orden")
-                        .IsUnique()
-                        .HasDatabaseName("I_ACCION_POR_ORDEN");
-
-                    b.ToTable("REGULARIZACION_ACCION", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_ACCION_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.AgendaDeUnPedidoDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -11708,42 +11653,6 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivadoresDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("idElemento1")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO1");
-
-                    b.Property<int>("idElemento2")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO2");
-
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("idElemento1", "idElemento2")
-                        .HasName("AK_REGULARIZACION_ARCHIVADOR");
-
-                    b.HasIndex("idElemento1")
-                        .HasDatabaseName("I_REGULARIZACION_ARCHIVADOR_ID_ELEMENTO1");
-
-                    b.HasIndex("idElemento2")
-                        .HasDatabaseName("I_REGULARIZACION_ARCHIVADOR_ID_ELEMENTO2");
-
-                    b.ToTable("REGULARIZACION_ARCHIVADOR", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_ARCHIVADOR_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivosDeUnAlmacenDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -11811,42 +11720,6 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_ARCHIVO", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_ARCHIVO_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivosDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("idElemento1")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO1");
-
-                    b.Property<int>("idElemento2")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO2");
-
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("idElemento1", "idElemento2")
-                        .HasName("AK_REGULARIZACION_ARCHIVO");
-
-                    b.HasIndex("idElemento1")
-                        .HasDatabaseName("I_REGULARIZACION_ARCHIVO_ID_ELEMENTO1");
-
-                    b.HasIndex("idElemento2")
-                        .HasDatabaseName("I_REGULARIZACION_ARCHIVO_ID_ELEMENTO2");
-
-                    b.ToTable("REGULARIZACION_ARCHIVO", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_ARCHIVO_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -11941,53 +11814,6 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_AUDITORIA", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_AUDITORIA_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.AuditoriaDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AuditadoEl")
-                        .HasColumnType("DATETIME2(7)")
-                        .HasColumnName("AUDITADO_EL");
-
-                    b.Property<int>("IdElemento")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO");
-
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_USUARIO");
-
-                    b.Property<string>("Operacion")
-                        .IsRequired()
-                        .HasColumnType("CHAR(1)")
-                        .HasColumnName("OPERACION");
-
-                    b.Property<string>("registroJson")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(MAX)")
-                        .HasColumnName("REGISTRO");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdElemento")
-                        .HasDatabaseName("I_REGULARIZACION_AUDITORIA_ID_ELEMENTO");
-
-                    b.HasIndex("IdUsuario")
-                        .HasDatabaseName("I_REGULARIZACION_AUDITORIA_ID_USUARIO");
-
-                    b.ToTable("REGULARIZACION_AUDITORIA", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_AUDITORIA_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -12357,58 +12183,6 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Cancelado")
-                        .HasColumnType("BIT")
-                        .HasColumnName("CANCELADO");
-
-                    b.Property<int>("IdPermiso")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_PERMISO");
-
-                    b.Property<bool>("Inicial")
-                        .HasColumnType("BIT")
-                        .HasColumnName("INICIAL");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("NOMBRE");
-
-                    b.Property<int>("Orden")
-                        .HasColumnType("INT")
-                        .HasColumnName("ORDEN");
-
-                    b.Property<bool>("Terminado")
-                        .HasColumnType("BIT")
-                        .HasColumnName("TERMINADO");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdPermiso")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_ESTADO_ID_PERMISO");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_ESTADO_NOMBRE");
-
-                    b.ToTable("REGULARIZACION_ESTADO", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_ESTADO_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.HitosDeUnAlmacenDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -12528,68 +12302,6 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_HISTORIA", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_HISTORIA_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.HitosDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("DATETIME2(7)")
-                        .HasColumnName("FECHA");
-
-                    b.Property<int>("IdElemento")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO");
-
-                    b.Property<int>("IdEstado")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ESTADO");
-
-                    b.Property<int?>("IdObservacion")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_OBSERVACION");
-
-                    b.Property<int?>("IdTransicion")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_TRANSICION");
-
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_USUARIO");
-
-                    b.Property<long?>("Tiempo")
-                        .HasColumnType("BIGINT")
-                        .HasColumnName("TIEMPO");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdElemento")
-                        .HasDatabaseName("I_REGULARIZACION_HISTORIA_ID_ELEMENTO");
-
-                    b.HasIndex("IdEstado")
-                        .HasDatabaseName("I_REGULARIZACION_HISTORIA_ID_ESTADO");
-
-                    b.HasIndex("IdObservacion")
-                        .HasDatabaseName("I_REGULARIZACION_HISTORIA_ID_OBSERVACION");
-
-                    b.HasIndex("IdTransicion")
-                        .HasDatabaseName("I_REGULARIZACION_HISTORIA_ID_TRANSICION");
-
-                    b.HasIndex("IdUsuario")
-                        .HasDatabaseName("I_REGULARIZACION_HISTORIA_ID_USUARIO");
-
-                    b.ToTable("REGULARIZACION_HISTORIA", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_HISTORIA_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -12931,65 +12643,6 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.ObservacionesDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreadaEl")
-                        .HasColumnType("DATETIME2(7)")
-                        .HasColumnName("CREADO_EL");
-
-                    b.Property<string>("Creador")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("VARCHAR(255)")
-                        .HasColumnName("CREADOR")
-                        .HasComputedColumnSql("ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)");
-
-                    b.Property<string>("Descripcion")
-                        .HasMaxLength(2000)
-                        .HasColumnType("VARCHAR")
-                        .HasColumnName("DESCRIPCION");
-
-                    b.Property<string>("Elemento")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("VARCHAR(255)")
-                        .HasColumnName("ELEMENTO")
-                        .HasComputedColumnSql("LOGISTICA.CC_REGULARIZACION_NOMBRE(ID_ELEMENTO)");
-
-                    b.Property<int>("IdCreador")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_CREADOR");
-
-                    b.Property<int>("IdElemento")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("NOMBRE");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdCreador")
-                        .HasDatabaseName("I_REGULARIZACION_OBSERVACION_ID_CREADOR");
-
-                    b.HasIndex("IdElemento")
-                        .HasDatabaseName("I_REGULARIZACION_OBSERVACION_ID_ELEMENTO");
-
-                    b.ToTable("REGULARIZACION_OBSERVACION", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_OBSERVACION_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.PedidoDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -13139,57 +12792,6 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.PermisoDeLaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdAdministrador")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ADM");
-
-                    b.Property<int>("IdConsultor")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_CONSULTOR");
-
-                    b.Property<int>("IdElemento")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO");
-
-                    b.Property<int>("IdGestor")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_GESTOR");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdAdministrador")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_PERMISO_ID_ADM");
-
-                    b.HasIndex("IdConsultor")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_PERMISO_ID_CONSULTOR");
-
-                    b.HasIndex("IdElemento")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_PERMISO_ID_ELEMENTO");
-
-                    b.HasIndex("IdGestor")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_PERMISO_ID_GESTOR");
-
-                    b.ToTable("REGULARIZACION_PERMISO", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_PERMISO_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.PermisoDelAlmacenDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -13287,103 +12889,6 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_PERMISO", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_PERMISO_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.RegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descripcion")
-                        .HasMaxLength(2000)
-                        .HasColumnType("VARCHAR")
-                        .HasColumnName("DESCRIPCION");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("DATETIME2(7)")
-                        .HasColumnName("FECCRE");
-
-                    b.Property<DateTime?>("FechaModificacion")
-                        .HasColumnType("DATETIME2(7)")
-                        .HasColumnName("FECMOD");
-
-                    b.Property<int>("IdAlmacen")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ALMACEN");
-
-                    b.Property<int>("IdCg")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_CG");
-
-                    b.Property<int>("IdEstado")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ESTADO");
-
-                    b.Property<int>("IdTipo")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_TIPO");
-
-                    b.Property<int>("IdUsuaCrea")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_CREADOR");
-
-                    b.Property<int?>("IdUsuaModi")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_MODIFICADOR");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("NOMBRE");
-
-                    b.Property<string>("Referencia")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("VARCHAR")
-                        .HasColumnName("REFERENCIA");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdAlmacen")
-                        .HasDatabaseName("I_REGULARIZACION_ID_ALMACEN");
-
-                    b.HasIndex("IdCg")
-                        .HasDatabaseName("I_REGULARIZACION_ID_CG");
-
-                    b.HasIndex("IdEstado")
-                        .HasDatabaseName("I_REGULARIZACION_ID_ESTADO");
-
-                    b.HasIndex("IdTipo")
-                        .HasDatabaseName("I_REGULARIZACION_ID_TIPO");
-
-                    b.HasIndex("IdUsuaCrea")
-                        .HasDatabaseName("I_REGULARIZACION_ID_CREADOR");
-
-                    b.HasIndex("IdUsuaModi")
-                        .HasDatabaseName("I_REGULARIZACION_ID_MODIFICADOR");
-
-                    b.HasIndex("Nombre")
-                        .HasDatabaseName("I_REGULARIZACION_NOMBRE");
-
-                    b.HasIndex("Referencia")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_REFERENCIA");
-
-                    b.ToTable("REGULARIZACION", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -13642,127 +13147,6 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.TipoDeRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("BIT")
-                        .HasColumnName("ACTIVO");
-
-                    b.Property<string>("ClaseDeLibro")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
-                        .HasColumnName("CLASE_DE_LIBRO");
-
-                    b.Property<string>("ClaseDeRegularizacion")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
-                        .HasColumnName("CLASE_REGULARIZACION");
-
-                    b.Property<bool>("EditarTrasCrear")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("BIT")
-                        .HasDefaultValue(true)
-                        .HasColumnName("EDITAR_TRAS_CREAR");
-
-                    b.Property<int>("IdEstado")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ESTADO");
-
-                    b.Property<int?>("IdPadre")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_PADRE");
-
-                    b.Property<int>("IdPermisoDeAdministrador")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ADM");
-
-                    b.Property<int>("IdPermisoDeConsultor")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_CONSULTOR");
-
-                    b.Property<int>("IdPermisoDeGestor")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_GESTOR");
-
-                    b.Property<string>("Marcador")
-                        .HasColumnType("VARCHAR(255)")
-                        .HasColumnName("MARCADOR");
-
-                    b.Property<string>("Mascara")
-                        .HasColumnType("VARCHAR(255)")
-                        .HasColumnName("MASCARA");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("NOMBRE");
-
-                    b.Property<bool>("NombreModificable")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("BIT")
-                        .HasDefaultValue(true)
-                        .HasColumnName("NOMBRE_MODIFICABLE");
-
-                    b.Property<bool>("PermiteCrear")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("BIT")
-                        .HasDefaultValue(true)
-                        .HasColumnName("PERMITE_CREAR");
-
-                    b.Property<string>("Sigla")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(5)")
-                        .HasColumnName("SIGLA");
-
-                    b.Property<string>("TipoDtm")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("TIPO_DTM");
-
-                    b.Property<string>("TipoDto")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("TIPO_DTO");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdEstado")
-                        .HasDatabaseName("I_REGULARIZACION_TIPO_ID_ESTADO");
-
-                    b.HasIndex("IdPadre")
-                        .HasDatabaseName("I_REGULARIZACION_TIPO_ID_PADRE");
-
-                    b.HasIndex("IdPermisoDeAdministrador")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_TIPO_ID_ADM");
-
-                    b.HasIndex("IdPermisoDeConsultor")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_TIPO_ID_CONSULTOR");
-
-                    b.HasIndex("IdPermisoDeGestor")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_TIPO_ID_GESTOR");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_TIPO_NOMBRE");
-
-                    b.ToTable("REGULARIZACION_TIPO", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_TIPO_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.TipoMovimientoDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -13946,81 +13330,6 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.TransicionesDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("BIT")
-                        .HasColumnName("ACTIVO");
-
-                    b.Property<string>("Asunto")
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("ASUNTO");
-
-                    b.Property<bool>("ConObservacion")
-                        .HasColumnType("BIT")
-                        .HasColumnName("CON_OBSERVACION");
-
-                    b.Property<bool>("DelSistema")
-                        .HasColumnType("BIT")
-                        .HasColumnName("DEL_SISTEMA");
-
-                    b.Property<int>("IdDestino")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_DESTINO");
-
-                    b.Property<int>("IdOrigen")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ORIGEN");
-
-                    b.Property<int>("IdPermiso")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_PERMISO");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("NOMBRE");
-
-                    b.Property<bool>("PorDefecto")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("BIT")
-                        .HasDefaultValue(false)
-                        .HasColumnName("POR_DEFECCTO");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdDestino")
-                        .HasDatabaseName("I_REGULARIZACION_TRANSICION_ID_DESTINO");
-
-                    b.HasIndex("IdOrigen")
-                        .HasDatabaseName("I_REGULARIZACION_TRANSICION_ID_ORIGEN");
-
-                    b.HasIndex("IdPermiso")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_TRANSICION_ID_PERMISO");
-
-                    b.HasIndex("Nombre")
-                        .HasDatabaseName("I_REGULARIZACION_TRANSICION_NOMBRE");
-
-                    b.HasIndex("Nombre", "IdOrigen", "IdDestino")
-                        .IsUnique()
-                        .HasDatabaseName("I_REGULARIZACION_TRANSICION_NOMBRE_ID_ORIGEN_ID_DESTINO");
-
-                    b.ToTable("REGULARIZACION_TRANSICION", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_TRANSICION_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.TrazasDeUnAlmacenDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -14122,59 +13431,6 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_TRAZA", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_TRAZA_Trigger");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.TrazasDeUnaRegularizacionDtm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INT")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreadaEl")
-                        .HasColumnType("DATETIME2(7)")
-                        .HasColumnName("CREADO_EL");
-
-                    b.Property<string>("Creador")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("VARCHAR(255)")
-                        .HasColumnName("CREADOR")
-                        .HasComputedColumnSql("ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)");
-
-                    b.Property<string>("Descripcion")
-                        .HasMaxLength(2000)
-                        .HasColumnType("VARCHAR")
-                        .HasColumnName("DESCRIPCION");
-
-                    b.Property<int>("IdCreador")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_CREADOR");
-
-                    b.Property<int>("IdElemento")
-                        .HasColumnType("INT")
-                        .HasColumnName("ID_ELEMENTO");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(250)")
-                        .HasColumnName("NOMBRE");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdCreador")
-                        .HasDatabaseName("I_REGULARIZACION_TRAZA_ID_CREADOR");
-
-                    b.HasIndex("IdElemento")
-                        .HasDatabaseName("I_REGULARIZACION_TRAZA_ID_ELEMENTO");
-
-                    b.ToTable("REGULARIZACION_TRAZA", "LOGISTICA", t =>
-                        {
-                            t.HasTrigger("REGULARIZACION_TRAZA_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -35657,23 +34913,6 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_PEDIDO_ACCION_ID_TRANSICION");
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.AccionesDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Entorno.AccionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdAccion")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ACCION_ID_ACCION");
-
-                    b.HasOne("ServicioDeDatos.Logistica.TransicionesDeUnaRegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdTransicion")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ACCION_ID_TRANSICION");
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.AgendaDeUnPedidoDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.PedidoDtm", "Pedido")
@@ -35784,27 +35023,6 @@ namespace Migraciones.Migrations
                     b.Navigation("Pedido");
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivadoresDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", "Regularizacion")
-                        .WithMany()
-                        .HasForeignKey("idElemento1")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ARCHIVADOR_ID_ELEMENTO1");
-
-                    b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivadorDtm", "Archivador")
-                        .WithMany()
-                        .HasForeignKey("idElemento2")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ARCHIVADOR_ID_ELEMENTO2");
-
-                    b.Navigation("Archivador");
-
-                    b.Navigation("Regularizacion");
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivosDeUnAlmacenDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.AlmacenDtm", "Almacen")
@@ -35845,27 +35063,6 @@ namespace Migraciones.Migrations
                     b.Navigation("Archivo");
 
                     b.Navigation("Pedido");
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivosDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", "Regularizacion")
-                        .WithMany()
-                        .HasForeignKey("idElemento1")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ARCHIVO_ID_ELEMENTO1");
-
-                    b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivoDtm", "Archivo")
-                        .WithMany()
-                        .HasForeignKey("idElemento2")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ARCHIVO_ID_ELEMENTO2");
-
-                    b.Navigation("Archivo");
-
-                    b.Navigation("Regularizacion");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.DireccionDeUnAlmacenDtm", b =>
@@ -36014,16 +35211,6 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_PEDIDO_ESTADO_ID_PERMISO");
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdPermiso")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ESTADO_ID_PERMISO");
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.HitosDeUnAlmacenDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.AlmacenDtm", null)
@@ -36094,42 +35281,6 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_HISTORIA_ID_USUARIO");
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.HitosDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdElemento")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_HISTORIA_ID_ELEMENTO");
-
-                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdEstado")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_HISTORIA_ID_ESTADO");
-
-                    b.HasOne("ServicioDeDatos.Logistica.ObservacionesDeUnaRegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdObservacion")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_REGULARIZACION_HISTORIA_ID_OBSERVACION");
-
-                    b.HasOne("ServicioDeDatos.Logistica.TransicionesDeUnaRegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdTransicion")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_REGULARIZACION_HISTORIA_ID_TRANSICION");
-
-                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdUsuario")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_HISTORIA_ID_USUARIO");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.LineaDeUnPedidoDtm", b =>
@@ -36274,23 +35425,6 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_PEDIDO_OBSERVACION_ID_ELEMENTO");
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.ObservacionesDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdCreador")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_OBSERVACION_ID_CREADOR");
-
-                    b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdElemento")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_OBSERVACION_ID_ELEMENTO");
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.PedidoDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivoDtm", "Archivo")
@@ -36371,37 +35505,6 @@ namespace Migraciones.Migrations
                     b.Navigation("UsuarioModificador");
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.PermisoDeLaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdAdministrador")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_PERMISO_ID_ADM");
-
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdConsultor")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_PERMISO_ID_CONSULTOR");
-
-                    b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdElemento")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_PERMISO_ID_ELEMENTO");
-
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdGestor")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_PERMISO_ID_GESTOR");
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.PermisoDelAlmacenDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
@@ -36462,62 +35565,6 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_PERMISO_ID_GESTOR");
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.RegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Logistica.AlmacenDtm", "Almacen")
-                        .WithMany()
-                        .HasForeignKey("IdAlmacen")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ID_ALMACEN");
-
-                    b.HasOne("ServicioDeDatos.Terceros.CentroGestorDtm", "Cg")
-                        .WithMany()
-                        .HasForeignKey("IdCg")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ID_CG");
-
-                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", "Estado")
-                        .WithMany()
-                        .HasForeignKey("IdEstado")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ID_ESTADO");
-
-                    b.HasOne("ServicioDeDatos.Logistica.TipoDeRegularizacionDtm", "Tipo")
-                        .WithMany()
-                        .HasForeignKey("IdTipo")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ID_TIPO");
-
-                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
-                        .WithMany()
-                        .HasForeignKey("IdUsuaCrea")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_ID_CREADOR");
-
-                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioModificador")
-                        .WithMany()
-                        .HasForeignKey("IdUsuaModi")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_REGULARIZACION_ID_MODIFICADOR");
-
-                    b.Navigation("Almacen");
-
-                    b.Navigation("Cg");
-
-                    b.Navigation("Estado");
-
-                    b.Navigation("Tipo");
-
-                    b.Navigation("UsuarioCreador");
-
-                    b.Navigation("UsuarioModificador");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.TipoDeAlmacenDtm", b =>
@@ -36632,53 +35679,6 @@ namespace Migraciones.Migrations
                     b.Navigation("PermisoDeInterventor");
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.TipoDeRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", "Estado")
-                        .WithMany()
-                        .HasForeignKey("IdEstado")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TIPO_ID_ESTADO");
-
-                    b.HasOne("ServicioDeDatos.Logistica.TipoDeRegularizacionDtm", "Padre")
-                        .WithMany()
-                        .HasForeignKey("IdPadre")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_REGULARIZACION_TIPO_ID_PADRE");
-
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeAdministrador")
-                        .WithMany()
-                        .HasForeignKey("IdPermisoDeAdministrador")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TIPO_ID_ADM");
-
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeConsultor")
-                        .WithMany()
-                        .HasForeignKey("IdPermisoDeConsultor")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TIPO_ID_CONSULTOR");
-
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeGestor")
-                        .WithMany()
-                        .HasForeignKey("IdPermisoDeGestor")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TIPO_ID_GESTOR");
-
-                    b.Navigation("Estado");
-
-                    b.Navigation("Padre");
-
-                    b.Navigation("PermisoDeAdministrador");
-
-                    b.Navigation("PermisoDeConsultor");
-
-                    b.Navigation("PermisoDeGestor");
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.TransicionesDeUnAlmacenDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnAlmacenDtm", null)
@@ -36727,30 +35727,6 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_PEDIDO_TRANSICION_ID_PERMISO");
                 });
 
-            modelBuilder.Entity("ServicioDeDatos.Logistica.TransicionesDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdDestino")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TRANSICION_ID_DESTINO");
-
-                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdOrigen")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TRANSICION_ID_ORIGEN");
-
-                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdPermiso")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TRANSICION_ID_PERMISO");
-                });
-
             modelBuilder.Entity("ServicioDeDatos.Logistica.TrazasDeUnAlmacenDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", null)
@@ -36783,23 +35759,6 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_TRAZA_ID_ELEMENTO");
-                });
-
-            modelBuilder.Entity("ServicioDeDatos.Logistica.TrazasDeUnaRegularizacionDtm", b =>
-                {
-                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdCreador")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TRAZA_ID_CREADOR");
-
-                    b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", null)
-                        .WithMany()
-                        .HasForeignKey("IdElemento")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_REGULARIZACION_TRAZA_ID_ELEMENTO");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.MaestrosTecnico.NaturalezaDtm", b =>

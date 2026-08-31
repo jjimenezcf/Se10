@@ -1,17 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using AutoMapper;
-using Utilidades;
+﻿using AutoMapper;
+using Gestor.Errores;
+using GestorDeElementos;
+using GestorDeElementos.Extensores;
+using GestoresDeNegocio.Seguridad;
+using Microsoft.EntityFrameworkCore;
+using ModeloDeDto;
 using ModeloDeDto.Entorno;
 using ServicioDeDatos;
 using ServicioDeDatos.Entorno;
-using Gestor.Errores;
 using ServicioDeDatos.Seguridad;
-using GestorDeElementos;
-using GestoresDeNegocio.Seguridad;
-using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Dynamic.Core;
-using ModeloDeDto;
+using Utilidades;
 
 namespace GestoresDeNegocio.Entorno
 {
@@ -65,7 +66,7 @@ namespace GestoresDeNegocio.Entorno
                 return CrearVistaMvc(nombre, controlador.ToString(), vista, modal, elementoDto);
 
             var v = vistas[0];
-            if (v.Controlador != controlador.ToString().Replace(ltrEndPoint.Controller, "") || v.Accion != vista || v.MostrarEnModal != modal || v.ElementoDto != elementoDto)
+            if (v.Nombre != nombre || v.Controlador != controlador.ToString().Replace(ltrEndPoint.Controller, "") || v.Accion != vista || v.MostrarEnModal != modal || v.ElementoDto != elementoDto)
             {
                 v.Nombre = nombre;
                 v.Controlador = controlador.ToString().Replace(ltrEndPoint.Controller, "");
@@ -210,41 +211,41 @@ namespace GestoresDeNegocio.Entorno
             return $"{nombreDelControlador}.{nombreDeLaVista}";
         }
 
-        protected override void AntesDePersistir(VistaMvcDtm registro, ParametrosDeNegocio parametros)
+        protected override void AntesDePersistir(VistaMvcDtm vista, ParametrosDeNegocio parametros)
         {
-            base.AntesDePersistir(registro, parametros);
+            base.AntesDePersistir(vista, parametros);
 
-            if (!registro.ElementoDto.IsNullOrEmpty())
-                ExtensionesDto.ObtenerTypoDto(registro.ElementoDto);
+            if (!vista.ElementoDto.IsNullOrEmpty())
+                ExtensionesDto.ObtenerTypoDto(vista.ElementoDto);
 
             if (parametros.Operacion == enumTipoOperacion.Insertar)
             {
-                var permiso = GestorDePermisos.CrearObtener(Contexto, registro.Nombre, enumClaseDePermiso.Vista);
-                registro.IdPermiso = permiso.Id;
+                var permiso = GestorDePermisos.CrearObtener(Contexto, vista.Nombre, enumClaseDePermiso.Vista);
+                vista.IdPermiso = permiso.Id;
             }
             if (parametros.Operacion == enumTipoOperacion.Modificar)
             {
-                registro.IdPermiso = ((VistaMvcDtm)parametros.registroEnBd).IdPermiso;
+                vista.IdPermiso = ((VistaMvcDtm)parametros.registroEnBd).IdPermiso;
             }
         }
 
-        protected override void DespuesDePersistir(VistaMvcDtm registro, ParametrosDeNegocio parametros)
+        protected override void DespuesDePersistir(VistaMvcDtm vista, ParametrosDeNegocio parametros)
         {
-            base.DespuesDePersistir(registro, parametros);
-            var RegistroEnBD = ((VistaMvcDtm)parametros.registroEnBd);
+            base.DespuesDePersistir(vista, parametros);
+            var vistaEnBd = ((VistaMvcDtm)parametros.registroEnBd);
 
-            if (parametros.Operacion == enumTipoOperacion.Modificar && RegistroEnBD.Nombre != registro.Nombre)
-                GestorDePermisos.ModificarPermisoFuncional(Contexto, Mapeador, RegistroEnBD.Permiso, registro.Nombre, enumClaseDePermiso.Vista);
+            if (parametros.Operacion == enumTipoOperacion.Modificar && vistaEnBd.Nombre != vista.Nombre)
+                GestorDePermisos.ModificarPermisoFuncional(Contexto, Mapeador, vistaEnBd.Permiso(Contexto), vista.Nombre, enumClaseDePermiso.Vista);
 
             if (parametros.Operacion == enumTipoOperacion.Eliminar)
             {
-                if (RegistroEnBD.Permiso == null)
-                    RegistroEnBD.Permiso = Contexto.SeleccionarPorId<PermisoDtm>(RegistroEnBD.IdPermiso);
-                GestorDePermisos.Eliminar(Contexto, Mapeador, RegistroEnBD.Permiso);
+                if (vistaEnBd.Permiso == null)
+                    vistaEnBd.Permiso = Contexto.SeleccionarPorId<PermisoDtm>(vistaEnBd.IdPermiso);
+                GestorDePermisos.Eliminar(Contexto, Mapeador, vistaEnBd.Permiso);
             }
 
-            ServicioDeCaches.EliminarElemento(nameof(LeerVistaMvc), $"{registro.Controlador}.{registro.Accion}");
-            ServicioDeCaches.EliminarElementos(nameof(ExtensionesDto.UrlBaseDeUnDto), patron: registro.ElementoDto);
+            ServicioDeCaches.EliminarElemento(nameof(LeerVistaMvc), $"{vista.Controlador}.{vista.Accion}");
+            ServicioDeCaches.EliminarElementos(nameof(ExtensionesDto.UrlBaseDeUnDto), patron: vista.ElementoDto);
 
             GestorDeArbolDeMenu.LimpiarCacheDeArbolDeMenu();
         }

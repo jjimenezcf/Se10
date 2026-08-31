@@ -44,6 +44,7 @@ namespace GestorDeElementos.Extensores
             if (typeof(EstadoDeUnPedidoDtm) == tipo) return enumNegocio.Pedido;
             if (typeof(EstadoDeUnPreasientoDtm) == tipo) return enumNegocio.Preasiento;
             if (typeof(EstadoDeUnAlmacenDtm) == tipo) return enumNegocio.Almacen;
+            if (typeof(EstadoDeUnaRegularizacionDtm) == tipo) return enumNegocio.Regularizacion;
 
             throw new Exception($"No se ha definido cual es el negocio para la clase estado {tipo.Name}");
         }
@@ -183,6 +184,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<EstadoDeUnPagoDtm>().Cast<EstadoDtm>();
                 case enumNegocio.Almacen:
                     return contexto.Set<EstadoDeUnAlmacenDtm>().Cast<EstadoDtm>();
+                case enumNegocio.Regularizacion:
+                    return contexto.Set<EstadoDeUnaRegularizacionDtm>().Cast<EstadoDtm>();
                 default:
                     throw new Exception($"Se debe indicar como obtener el dbSet de los estados del negocio: {negocio}");
             }

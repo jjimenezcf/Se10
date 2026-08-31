@@ -3,6 +3,7 @@ using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Gastos;
+using ServicioDeDatos.Logistica;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
@@ -774,6 +775,53 @@ namespace GestorDeElementos.Extensores
             }.InsertarComoAdministrador(contexto);
 
             return pago;
+        }
+
+        public static MovimientoDeAlmacenDtm Preasentar(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            var almacen = movimiento.Almacen ?? contexto.SeleccionarPorId<AlmacenDtm>(movimiento.IdAlmacen);
+
+            if (almacen.Sociedad(contexto).Autonomo)
+                return movimiento;
+
+            if (almacen.EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Cancelado) || almacen.EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Cerrado))
+                GestorDeErrores.Emitir($"El almacén '{almacen.Referencia}' está en la etapa '{almacen.Etapas().First()}' y no se pueden preasentar movimientos de almacén");
+
+            if (!almacen.Sociedad(contexto).UsaPreasientos(contexto, enumNegocio.Almacen))
+                return movimiento;
+
+            var clase = movimiento.TipoMovimiento?.ClaseMovimiento ?? contexto.SeleccionarPorId<TipoMovimientoDtm>(movimiento.IdTipoMovimiento).ClaseMovimiento;
+
+            switch (clase)
+            {
+                case enumClaseDeMovimiento.Entrada: movimiento.PreasentarEntradaDeAlmacen(contexto); break;
+                case enumClaseDeMovimiento.Salida: movimiento.PreasentarSalidaDelmacen(contexto); break;
+                case enumClaseDeMovimiento.Inicial: movimiento.PreasentarStockInicial(contexto); break;
+                case enumClaseDeMovimiento.Ajuste: movimiento.PreasentarNuevoPrecioDeUnitario(contexto); break;
+                case enumClaseDeMovimiento.Regularizacion: movimiento.PreasentarRegularizacion(contexto); break;
+            }
+
+            return movimiento;
+        }
+
+        public static void PreasentarEntradaDeAlmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+        }
+
+        public static void PreasentarSalidaDelmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+        }
+
+        public static void PreasentarStockInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+        }
+
+        public static void PreasentarNuevoPrecioDeUnitario(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+        }
+
+        public static void PreasentarRegularizacion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
         }
 
         public static IUsaPreasiento Referenciado(this PreasientoDtm spr, ContextoSe contexto, bool errorSiNoHay = true)

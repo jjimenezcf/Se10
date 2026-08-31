@@ -546,6 +546,16 @@ namespace GestorDeElementos.Extensores
             }
         }
 
+        public static void ValidarMismoTipoMismoCg(this IElementoDeProcesoDtm elemento, ParametrosDeNegocio parametros)
+        {
+            if (!parametros.Modificando) return;
+
+            if (elemento.PropiedadCambiada<int>(nameof(IUsaTipo.IdTipo), parametros))
+                GestorDeErrores.Emitir($"No se puede modificar el tipo de '{elemento.Referencia}' una vez creado");
+
+            if (elemento.PropiedadCambiada<int>(nameof(IUsaCg.IdCg), parametros))
+                GestorDeErrores.Emitir($"No se puede modificar el centro gestor de '{elemento.Referencia}' una vez creado");
+        }
 
         public static void ValidarQueEstaActivo<T>(this T elemento, ContextoSe contexto, string posfijoMensajeError = "")
         where T : ElementoDeProcesoDtm

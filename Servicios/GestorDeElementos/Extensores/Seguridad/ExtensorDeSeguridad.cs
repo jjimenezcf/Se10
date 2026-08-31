@@ -3,6 +3,7 @@ using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos;
 using System.Collections.Generic;
+using ServicioDeDatos.Entorno;
 
 namespace GestorDeElementos.Extensores
 {
@@ -24,6 +25,14 @@ namespace GestorDeElementos.Extensores
             return permisosDeUnRol;
         }
 
+        public static PermisoDtm Permiso(this VistaMvcDtm vista, ContextoSe contexto)
+        {
+            if (vista.Permiso != null && vista.Permiso.Id == vista.IdPermiso)
+                return vista.Permiso;
+
+            vista.Permiso  = contexto.SeleccionarPorId<PermisoDtm>(vista.IdPermiso, aplicarJoin: true);
+            return vista.Permiso;
+        }
 
 
     }

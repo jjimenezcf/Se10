@@ -367,6 +367,7 @@ namespace SistemaDeElementos.Inicializador
             // Almacenes va por delante de Pedidos: detrás de Pedidos se añadirá más adelante Albaranes.
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Almacen, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeAlmacen, enumVistas.Logistica.MaestrosDeAlmacenes, orden: 5);
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Pedido, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDePedido, enumVistas.Logistica.MaestrosDePedidos, orden: 10);
+            MenusDeConfiguracionDeProceso(gestor, enumNegocio.Regularizacion, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeRegularizacion, enumVistas.Logistica.MaestrosDeRegularizaciones, orden: 15);
 
             GestorDeMenus.CrearMenuSiNoExiste(gestor
                 , nombre: enumVistas.Logistica.Almacenes
@@ -377,6 +378,17 @@ namespace SistemaDeElementos.Inicializador
                 , nombre: enumVistas.Logistica.Pedidos
                 , descripcion: $"Gestión de {enumNegocio.Pedido.Plural()}"
                 , icono: enumNegocio.Pedido.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Pedidos, orden: 45);
+
+            // Regularizaciones va detrás de Pedidos y por delante de los movimientos de almacén.
+            GestorDeMenus.CrearMenuSiNoExiste(gestor
+                , nombre: enumVistas.Logistica.Regularizaciones
+                , descripcion: $"Gestión de {enumNegocio.Regularizacion.Plural()}"
+                , icono: enumNegocio.Regularizacion.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Regularizaciones, orden: 47);
+
+            GestorDeMenus.CrearMenuSiNoExiste(gestor
+                , nombre: enumVistas.Logistica.MovimientosDeAlmacen
+                , descripcion: "Consulta de movimientos de almacén"
+                , icono: "MovimientosDeAlmacen.svg", padre: ModuloDeLogistica, vista: enumVistas.Logistica.MovimientosDeAlmacen, orden: 90);
         }
 
         private static void MenusDeGuarderias(GestorDeMenus gestor)

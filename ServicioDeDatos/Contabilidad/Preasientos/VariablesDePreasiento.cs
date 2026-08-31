@@ -80,7 +80,9 @@ namespace ServicioDeDatos.Contabilidad
         [Description("Indica si ha de generar asientos de cobros")]
         SPR_Generar_Preasiento_De_Cobro,
         [Description("Indica el concepto de gatos en la Estimación Directa de NCS")]
-        SPR_NCS_Conceptos_De_Gasto
+        SPR_NCS_Conceptos_De_Gasto,
+        [Description("Indica si ha de generar asientos de movimientos de almacén, por defecto no se generan")]
+        SPR_Generar_Preasiento_De_Almacen
     }
 
     internal class CtaContablePorCtaBancaria
@@ -621,15 +623,20 @@ namespace ServicioDeDatos.Contabilidad
         {
             var parametro = negocio == enumNegocio.Pago
                    ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Pago
-                   : negocio == enumNegocio.FacturaEmitida 
+                   : negocio == enumNegocio.FacturaEmitida
                    ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaEmitida
                    : negocio == enumNegocio.FacturaRecibida
                    ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaRecibida
+                   : negocio == enumNegocio.Almacen
+                   ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen
                    : enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Cobro;
 
             var json = enumNegocio.Preasiento.Parametro(parametro, crearParametro: true, valorPorDefecto: _jsonDeSPR_Genera_Preasiento).Valor;
             if (json == _jsonDeSPR_Genera_Preasiento)
             {
+                if (negocio == enumNegocio.Almacen)
+                    return false;
+
                 GestorDeErrores.Emitir($"Ha de indicar en el parámetro '{parametro}' si se generan preasientos para la sociedad '{sociedad.Id}'");
             }
             var relaciones = ParsearUsaPreasiento(json);
@@ -637,7 +644,12 @@ namespace ServicioDeDatos.Contabilidad
             var relacion = relaciones.FirstOrDefault(x => x.IdSociedad == sociedad.Id);
 
             if (relacion == null)
+            {
+                if (negocio == enumNegocio.Almacen)
+                    return false;
+
                 GestorDeErrores.Emitir($"Ha de configurar el parámetro '{parametro}' para el id de sociedad '{sociedad.Id}'");
+            }
 
             if (relacion.Valor != "S" && relacion.Valor != "N")
                 GestorDeErrores.Emitir($"El valor asignado en el parámetro '{parametro}' para el id de sociedad '{sociedad.Id}' no es válido, ha de ser o 'S' o 'N'");

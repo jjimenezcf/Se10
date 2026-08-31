@@ -6,12 +6,12 @@ using ModeloDeDto.Logistica;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
-    public class DescriptorDeAlmacenes : DescriptorDeCrud<AlmacenDto>
+    public class DescriptorDeRegularizaciones : DescriptorDeCrud<RegularizacionDto>
     {
-        public DescriptorDeAlmacenes(ContextoSe contexto, ModoDescriptor modo)
+        public DescriptorDeRegularizaciones(ContextoSe contexto, ModoDescriptor modo)
         : base(contexto
-               , nameof(AlmacenesController)
-               , nameof(AlmacenesController.CrudAlmacenes)
+               , nameof(RegularizacionesController)
+               , nameof(RegularizacionesController.CrudRegularizaciones)
                , modo
                , rutaBase: enumNameSpaceTs.Logistica)
         {
@@ -27,10 +27,10 @@ namespace MVCSistemaDeElementos.Descriptores
 
             render = render +
                    $@"<script src='../../js/{RutaBase}/ApiDeLogistica.js?v={System.DateTime.Now.Ticks}'></script>
-                      <script src=¨../../js/{RutaBase}/Almacenes.js?v={System.DateTime.Now.Ticks}¨></script>
+                      <script src=¨../../js/{RutaBase}/Regularizaciones.js?v={System.DateTime.Now.Ticks}¨></script>
                       <script>
                          try {{
-                           {RutaBase}.CrearCrudDeAlmacenes('{Mnt.IdHtml}', '{Creador.IdHtml}', '{Editor.IdHtml}', '{Borrado.IdHtml}')
+                           {RutaBase}.CrearCrudDeRegularizaciones('{Mnt.IdHtml}', '{Creador.IdHtml}', '{Editor.IdHtml}', '{Borrado.IdHtml}')
                          }}
                          catch(error) {{
                             MensajesSe.Error('Creando el crud', error.message);

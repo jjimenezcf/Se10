@@ -163,6 +163,10 @@ namespace SistemaDeElementos.Inicializador
             public static readonly string TipoDeAlmacen = $"Tipos de {enumNegocio.Almacen.Singular().ToLower()}";
             public static readonly string MaestrosDeAlmacenes = $"Maestros de {enumNegocio.Almacen.Plural().ToLower()}";
             public static readonly string Almacenes = enumNegocio.Almacen.Plural();
+            public static readonly string MovimientosDeAlmacen = ltrVistasTitulos.CrudDeMovimientosDeAlmacen;
+            public static readonly string TipoDeRegularizacion = $"Tipos de {enumNegocio.Regularizacion.Singular().ToLower()}";
+            public static readonly string MaestrosDeRegularizaciones = $"Maestros de {enumNegocio.Regularizacion.Plural().ToLower()}";
+            public static readonly string Regularizaciones = enumNegocio.Regularizacion.Plural();
         }
 
 
@@ -381,10 +385,15 @@ namespace SistemaDeElementos.Inicializador
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MaestrosDeAlmacenes, enumControladoresLogistica.Almacenes, enumVistasLogisticas.MaestrosDeAlmacenes, true, null);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.TipoDeAlmacen, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.Almacen), true, typeof(TipoDeAlmacenDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.Almacenes, enumControladoresLogistica.Almacenes, enumVistasLogisticas.CrudAlmacenes, false, typeof(AlmacenDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MovimientosDeAlmacen, enumControladoresLogistica.MovimientosDeAlmacen, enumVistasLogisticas.CrudMovimientosDeAlmacen, false, typeof(MovimientoDeAlmacenDto).FullName);
 
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MaestrosDePedidos, enumControladoresLogistica.Pedidos, enumVistasLogisticas.MaestrosDePedidos, true, null);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.TipoDePedido, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.Pedido), true, typeof(TipoDePedidoDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.Pedidos, enumControladoresLogistica.Pedidos, enumVistasLogisticas.CrudPedidos, false, typeof(PedidoDto).FullName);
+
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MaestrosDeRegularizaciones, enumControladoresLogistica.Regularizaciones, enumVistasLogisticas.MaestrosDeRegularizaciones, true, null);
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.TipoDeRegularizacion, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.Regularizacion), true, typeof(TipoDeRegularizacionDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.Regularizaciones, enumControladoresLogistica.Regularizaciones, enumVistasLogisticas.CrudRegularizaciones, false, typeof(RegularizacionDto).FullName);
         }
 
         private static void CrearVistasDelModuloDeGastos(GestorDeVistaMvc gestor)

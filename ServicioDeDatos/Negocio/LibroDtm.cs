@@ -37,6 +37,8 @@ namespace ServicioDeDatos.Negocio
         ALCT,
         [Description("Anular estimación directa")]
         AETD,
+        [Description("Persistir movimientos de almacén: {Referencia}")]
+        PMA,
     }
 
     [Table(Tablas.LIBRO, Schema = Esquemas.NEGOCIO)]

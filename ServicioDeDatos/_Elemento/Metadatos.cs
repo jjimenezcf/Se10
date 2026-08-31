@@ -244,6 +244,9 @@ namespace ServicioDeDatos.Elemento
         internal const string FACTURA_REC = nameof(FACTURA_REC);
         internal const string PEDIDO = nameof(PEDIDO);
         internal const string ALMACEN = nameof(ALMACEN);
+        internal const string ALMACEN_TIPO_MOVIMIENTO = nameof(ALMACEN_TIPO_MOVIMIENTO);
+        internal const string ALMACEN_MOVIMIENTO = nameof(ALMACEN_MOVIMIENTO);
+        internal const string REGULARIZACION = nameof(REGULARIZACION);
 
 
         internal const string AULA = nameof(AULA);
@@ -552,6 +555,7 @@ namespace ServicioDeDatos.Elemento
 
         internal const string CLASE_ES = nameof(CLASE_ES);
         internal const string CLASE_TAREA = nameof(CLASE_TAREA);
+        internal const string CLASE_REGULARIZACION = nameof(CLASE_REGULARIZACION);
         internal const string ID_TIPO_ENTRADA = nameof(ID_TIPO_ENTRADA);
         internal const string ID_TIPO_SALIDA = nameof(ID_TIPO_SALIDA);
         internal const string ID_TIPO_INTERNO = nameof(ID_TIPO_INTERNO);
@@ -640,6 +644,14 @@ namespace ServicioDeDatos.Elemento
         internal const string TIPO_LINEA = nameof(TIPO_LINEA);
         internal const string CALCULO = nameof(CALCULO);
         internal const string ID_UNITARIO = nameof(ID_UNITARIO);
+        internal const string ID_ALMACEN = nameof(ID_ALMACEN);
+        internal const string ID_TIPO_MOVIMIENTO = nameof(ID_TIPO_MOVIMIENTO);
+        internal const string STOCK = nameof(STOCK);
+        internal const string REALIZADO_EL = nameof(REALIZADO_EL);
+        internal const string ID_MOVIMIENTO = nameof(ID_MOVIMIENTO);
+        internal const string ID_LINEA_ALBARAN = nameof(ID_LINEA_ALBARAN);
+        internal const string ID_LINEA_DEVOLUCION = nameof(ID_LINEA_DEVOLUCION);
+        internal const string ID_LINEA_INVENTARIO = nameof(ID_LINEA_INVENTARIO);
         internal const string ID_IVA_R = nameof(ID_IVA_R);
         internal const string ID_IVA_S = nameof(ID_IVA_S);
         internal const string ID_IRPF = nameof(ID_IRPF);

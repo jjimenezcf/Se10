@@ -763,6 +763,23 @@ END
 
 GO
 
+/****** Object:  UserDefinedFunction [LOGISTICA].[CC_REGULARIZACION_NOMBRE]    Script Date: 31/08/2026 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [LOGISTICA].[CC_REGULARIZACION_NOMBRE] (@id_elemento int)
+RETURNS VarChar(250)
+AS
+begin
+  declare @resultado VARCHAR(250)
+
+  select @resultado = NOMBRE from LOGISTICA.REGULARIZACION where id = @id_elemento
+  return @resultado
+END
+
+GO
+
 "
             );
 

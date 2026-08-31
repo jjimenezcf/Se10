@@ -5,7 +5,6 @@ using GestorDeElementos.Extensores.Elementos;
 using GestoresDeNegocio.Negocio;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using ModeloDeDto;
 using ModeloDeDto.Negocio;
 using Newtonsoft.Json;
@@ -27,7 +26,6 @@ using System.Linq.Dynamic.Core;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Utilidades;
-using static Utilidades.Ampliaciones;
 namespace GestorDeElementos
 {
 
@@ -553,6 +551,11 @@ namespace GestorDeElementos
             }
 
             if (ApiDeInterfaceDtm.ImplementaUsaCg(typeof(TRegistro))) ExtensorDeElementos.AntesDePersistirValidarCg(Contexto, (IUsaCg)registro, parametros);
+
+            if (typeof(TRegistro).ImplementaElementoDeUnProceso() && parametros.Modificando)
+            {
+                ((IElementoDeProcesoDtm)registro).ValidarMismoTipoMismoCg(parametros);
+            }
 
             if (typeof(TRegistro).ImplementaUsaReferencia())
             {

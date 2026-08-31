@@ -188,6 +188,9 @@ namespace GestorDeElementos
                 case enumNegocio.Almacen:
                     metadatos = MetadatosDeAlmacenes();
                     break;
+                case enumNegocio.Regularizacion:
+                    metadatos = MetadatosDeRegularizaciones();
+                    break;
                 case enumNegocio.Preasiento:
                     metadatos = MetadatosDePreasientos();
                     break;
@@ -356,6 +359,23 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeAlmacenes),
             TipoEtapas = typeof(enumEtapasDeAlmacen),
             EstadosDeLaEtapa = etapa => VariableDeAlmacenes.Lista((enumEtapasDeAlmacen)etapa),
+            PlantillasPorTipoDtm = null
+        };
+
+        public static Metadatos MetadatosDeRegularizaciones() => new Metadatos
+        {
+            TipoDto = typeof(TipoDeRegularizacionDto),
+            TipoDtm = typeof(TipoDeRegularizacionDtm),
+            EstadoDtm = typeof(EstadoDeUnaRegularizacionDtm),
+            HitosDtm = typeof(HitosDeUnaRegularizacionDtm),
+            ObservacionesDtm = typeof(ObservacionesDeUnaRegularizacionDtm),
+            TrazaDtm = typeof(TrazasDeUnaRegularizacionDtm),
+            ArchivadoresDtm = typeof(ArchivadoresDeUnaRegularizacionDtm),
+            ArchivosDtm = typeof(ArchivosDeUnaRegularizacionDtm),
+            DireccionesDtm = null,
+            TipoParametros = typeof(enumParametrosDeRegularizaciones),
+            TipoEtapas = typeof(enumEtapasDeRegularizacion),
+            EstadosDeLaEtapa = etapa => VariableDeRegularizaciones.Lista((enumEtapasDeRegularizacion)etapa),
             PlantillasPorTipoDtm = null
         };
 

@@ -80,6 +80,8 @@ namespace ServicioDeDatos
 
             DefinirTablasDeAlmacen(modelBuilder);
 
+            DefinirTablasDeRegularizaciones(modelBuilder);
+
             DefinirTablasDeGuarderias(modelBuilder);
 
         }
@@ -136,8 +138,10 @@ namespace ServicioDeDatos
             ModeloDeAlmacen.TransicionesDeUnAlmacen(modelBuilder);
             ModeloDeAlmacen.AccionesDeUnAlmacen(modelBuilder);
             ModeloDeAlmacen.TipoDeAlmacen(modelBuilder);
+            ModeloDeAlmacen.TipoDeMovimiento(modelBuilder);
 
             ModeloDeAlmacen.Almacen(modelBuilder);
+            ModeloDeAlmacen.Movimiento(modelBuilder);
             ModeloDeAlmacen.Trazas(modelBuilder);
             ModeloDeAlmacen.Auditoria(modelBuilder);
             ModeloDeAlmacen.Archivos(modelBuilder);
@@ -146,6 +150,23 @@ namespace ServicioDeDatos
             ModeloDeAlmacen.Direcciones(modelBuilder);
             ModeloDeAlmacen.Historia(modelBuilder);
             ModeloDeAlmacen.Archivadores(modelBuilder);
+        }
+
+        private static void DefinirTablasDeRegularizaciones(ModelBuilder modelBuilder)
+        {
+            ModeloDeRegularizacion.EstadosDeUnaRegularizacion(modelBuilder);
+            ModeloDeRegularizacion.TransicionesDeUnaRegularizacion(modelBuilder);
+            ModeloDeRegularizacion.AccionesDeUnaRegularizacion(modelBuilder);
+            ModeloDeRegularizacion.TipoDeRegularizacion(modelBuilder);
+
+            ModeloDeRegularizacion.Regularizacion(modelBuilder);
+            ModeloDeRegularizacion.Trazas(modelBuilder);
+            ModeloDeRegularizacion.Auditoria(modelBuilder);
+            ModeloDeRegularizacion.Archivos(modelBuilder);
+            ModeloDeRegularizacion.Observaciones(modelBuilder);
+            ModeloDeRegularizacion.Permisos(modelBuilder);
+            ModeloDeRegularizacion.Historia(modelBuilder);
+            ModeloDeRegularizacion.Archivadores(modelBuilder);
         }
 
         private static void DefinirEsquemaDeSeguridad(ModelBuilder modelBuilder)

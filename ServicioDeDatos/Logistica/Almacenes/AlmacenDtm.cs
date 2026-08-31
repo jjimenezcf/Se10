@@ -8,6 +8,11 @@ using Utilidades;
 namespace ServicioDeDatos.Logistica
 {
 
+    public static class ltrDeUnAlmacen
+    {
+        public const string FiltrarParaRegularizar = nameof(FiltrarParaRegularizar);
+    }
+
     [Table(Tablas.ALMACEN, Schema = Esquemas.LOGISTICA)]
     public class AlmacenDtm : ElementoDeProcesoDtm, IUsaDirecciones
     {
