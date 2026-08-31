@@ -186,6 +186,8 @@ namespace ServicioDeDatos.Expediente
 ";
 
         public static readonly string Actividades = "Actividades";
+         
+        public static readonly string ProcedimientosJudiciales = ltrVistasTitulos.CrudProcedimientosJudiciales;
 
         public static int IdDelTipoParaActividades(bool errorSiNoEstaDefinido = true)
         {

@@ -121,10 +121,14 @@ namespace GestorDeElementos
             var cantidades = ElementoDeProcesoSql.ObtenerCantidadDeElementosPorTipoYEstado(contexto, negocio.TipoDtm());
 
             var idActividades = VariablesDeExpedientes.IdDelTipoParaActividades(errorSiNoEstaDefinido: false);
-            var idsEspeciales = new HashSet<int>(new[] { idActividades }.Where(id => id > 0));
+            var idsProcedimientosJudiciales = VariablesDeExpedientes.IdDelTipoParaProcedimientosJudiciales(errorSiNoEstaDefinido: false);
+            var idsEspeciales = new HashSet<int>(new[] { idActividades }.Concat(idsProcedimientosJudiciales).Where(id => id > 0));
 
             var grupo = AgregarGrupo(contexto, negocio, VariablesDeExpedientes.Actividades, $"{enumNegocio.Expediente}_Actividades", tipos.FirstOrDefault(t => t.Id == idActividades), cantidades, enumVistasAdministrativo.CrudActividades);
             if (grupo != null) resultado.Add(grupo);
+
+            var tiposProcedimientosJudiciales = tipos.Where(t => idsProcedimientosJudiciales.Contains(t.Id)).ToList();
+            LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, enumVistasAdministrativo.CrudExpedientes, tiposProcedimientosJudiciales, cantidades, VariablesDeExpedientes.ProcedimientosJudiciales, $"{enumNegocio.Expediente}_ProcedimientosJudiciales", $"clase={enumClaseDeExpediente.juridico}");
 
             var tiposResto = tipos.Where(t => !idsEspeciales.Contains(t.Id)).ToList();
             LeerInformacionConjuntaDeNegocio(contexto, resultado, negocio, enumVistasAdministrativo.CrudExpedientes, tiposResto, cantidades);
@@ -155,7 +159,7 @@ namespace GestorDeElementos
             if (grupo != null) resultado.Add(grupo);
         }
 
-        private static void LeerInformacionConjuntaDeNegocio(ContextoSe contexto, List<object> resultado, enumNegocio negocio, string vista, List<TipoConFlujoDtm> tiposResto, List<ElementoDeProcesoSql.CantidadPorTipoYEstado> cantidades)
+        private static void LeerInformacionConjuntaDeNegocio(ContextoSe contexto, List<object> resultado, enumNegocio negocio, string vista, List<TipoConFlujoDtm> tiposResto, List<ElementoDeProcesoSql.CantidadPorTipoYEstado> cantidades, string nombre = null, string enumerado = null, string parametros = null)
         {
             if (tiposResto.Any())
             {
@@ -177,14 +181,14 @@ namespace GestorDeElementos
                         if (cantidadesAgregadas.Sum(c => c.Cantidad) > 0)
                             resultado.Add(new
                             {
-                                nombre = negocio.Singular(),
-                                enumerado = negocio.ToString(),
+                                nombre = nombre ?? negocio.Singular(),
+                                enumerado = enumerado ?? negocio.ToString(),
                                 numTipos = tiposResto.Count,
                                 numEstados = estadosResto.Count,
                                 tipos = tiposResto,
                                 estados = estadosResto,
-                                cantidades = cantidades.Where(c => idsResto.Contains(c.IdTipo) && idsEstadosResto.Contains(c.IdEstado)).ToList(),
-                                url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{vista}', null,event);"
+                                cantidades = cantidadesAgregadas,
+                                url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{vista}', {(parametros == null ? "null" : $"'{parametros}'")},event);"
                             });
                     }
                 }
