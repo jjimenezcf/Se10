@@ -110,7 +110,7 @@ namespace ServicioDeDatos.Negocio
             if (CacheDeVariable.Cfg_CrearEtapa)
                 return negocio.Definir(etapa, valor);
 
-            throw new Exception($"No se ha definido la etapa '{etapa}'");
+            throw Excepciones.Emitir($"No se ha definido la etapa '{etapa}', y la variable del sitema '{nameof(CacheDeVariable.Cfg_CrearEtapa)}' indica que no se definan automáticamente");
         }
 
         public static string Definir(this enumNegocio negocio, System.Enum parametro, string valor)

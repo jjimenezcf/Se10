@@ -60,7 +60,13 @@ namespace GestoresDeNegocio.Negocio
         protected override void DespuesDePersistir(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)
         {
             base.DespuesDePersistir(parametro, parametros);
+        }
+
+        protected override void EliminarCaches(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)
+        {
+            base.EliminarCaches(parametro, parametros);
             ServicioDeCaches.EliminarElemento(CacheDe.Negocio_ParametrosDeNegocio, $"{NegociosDeSe.ToEnumerado(parametro.IdNegocio)}-{parametro.Nombre}");
+
             if (parametro.Nombre == enumParametrosDeNegocio.CFG_Permite_Subir_Archivos_Desde_El_Movil.ToString())
                 ServicioDeCaches.EliminarCache(CacheDe.ListasDeNegocios);
             else if (parametro.Nombre == enumParametrosDeNegocio.IA_Prompt_Filtro.ToString())

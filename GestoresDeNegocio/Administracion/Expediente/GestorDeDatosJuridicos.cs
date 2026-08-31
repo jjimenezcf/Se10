@@ -25,7 +25,7 @@ namespace GestoresDeNegocio.Expediente
         public class MapearDatosJuridicos : Profile
         {
             public MapearDatosJuridicos()
-            {                
+            {
                 CreateMap<DatosJuridicosDtm, DatosJuridicosDto>()
                 .ForMember(dto => dto.Juzgado, dtm => dtm.MapFrom(dtm => dtm.Juzgado == null ? "" : dtm.Juzgado.Expresion))
                 .ForMember(dto => dto.Abogado, dtm => dtm.MapFrom(dtm => dtm.Abogado == null ? "" : dtm.Abogado.Expresion))
@@ -51,7 +51,7 @@ namespace GestoresDeNegocio.Expediente
 
         protected override IQueryable<DatosJuridicosDtm> AplicarJoins(IQueryable<DatosJuridicosDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
-            consulta= base.AplicarJoins(consulta, filtros, parametros);
+            consulta = base.AplicarJoins(consulta, filtros, parametros);
             consulta = consulta.Include(x => x.Procurador);
             consulta = consulta.Include(x => x.Abogado);
             consulta = consulta.Include(x => x.Juzgado);
@@ -67,7 +67,10 @@ namespace GestoresDeNegocio.Expediente
         {
             base.AntesDePersistir(datos, parametros);
 
-            // 1. Validación de Obligatoriedad según Etapa 
+            if (parametros.Insertando)
+                return;
+
+
             bool estaEnJuzgado = datos.AmpliacionDe<ExpedienteDtm>(Contexto).EstaEnLaEtapa(enumEtapasDeExpedientes.EXP_Etapa_En_Juzgado);
 
             if ((datos.NIG.IsNullOrEmpty() || datos.Procedimiento.IsNullOrEmpty()) && estaEnJuzgado)
@@ -77,7 +80,7 @@ namespace GestoresDeNegocio.Expediente
 
             if (!ParametrosJuridicos.ExpresionRegularDeUnNIG.IsNullOrEmpty() && !datos.NIG.IsNullOrEmpty())
             {
-                if (parametros.Insertando || datos.PropiedadCambiada<string>(nameof(DatosJuridicosDtm.NIG), parametros))
+                if (datos.PropiedadCambiada<string>(nameof(DatosJuridicosDtm.NIG), parametros))
                 {
                     if (!Regex.IsMatch(datos.NIG, ParametrosJuridicos.ExpresionRegularDeUnNIG))
                     {
@@ -88,7 +91,7 @@ namespace GestoresDeNegocio.Expediente
 
             if (!ParametrosJuridicos.ExpresionRegularDeUnProcedimiento.IsNullOrEmpty() && !datos.Procedimiento.IsNullOrEmpty())
             {
-                if (parametros.Insertando || datos.PropiedadCambiada<string>(nameof(DatosJuridicosDtm.Procedimiento), parametros))
+                if (datos.PropiedadCambiada<string>(nameof(DatosJuridicosDtm.Procedimiento), parametros))
                 {
                     if (!Regex.IsMatch(datos.Procedimiento, ParametrosJuridicos.ExpresionRegularDeUnProcedimiento))
                     {
@@ -96,6 +99,7 @@ namespace GestoresDeNegocio.Expediente
                     }
                 }
             }
+
         }
 
         protected override void AntesDeMapearElElemento(DatosJuridicosDtm registro, ParametrosDeNegocio parametros)

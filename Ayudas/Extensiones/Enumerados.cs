@@ -445,6 +445,9 @@ namespace Utilidades
         Ped_InicializarModalParaCrearLineas,
         Ped_InicializarModalParaEditarLineas,
 
+        Ral_Tras_Seleccionar_Almacen,
+        Ral_Tras_Blanquear_Almacen,
+
         Neg_ProcesarOpcionDeMenuLista,
 
         Expotacion_AlCambiar_Plantilla,

@@ -38,6 +38,13 @@ namespace MVCSistemaDeElementos.Controllers
                 indicadores.Add(IndExpediente.IdTipoActividad, idTipo);
                 indicadores.Add(IndExpediente.TipoActividad, contexto.SeleccionarPorId<TipoDeExpedienteDtm>(idTipo).Nombre);
             }
+
+            if (parametros.LeerValor(ltrParametrosEp.TituloVista, string.Empty) == ltrVistasTitulos.CrudProcedimientosJudiciales)
+            {
+                var idTipos = VariablesDeExpedientes.IdDelTipoParaProcedimientosJudiciales(errorSiNoEstaDefinido: true);
+                indicadores.Add(IndExpediente.IdTiposDeProcedimientos, idTipos);
+            }
+
             return indicadores;
         }
 

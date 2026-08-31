@@ -28,7 +28,13 @@
 
     export class CrudDeExpedientes extends Crud.CrudMnt {
         private _clase: enumClaseDeExpediente;
-        public get ClaseDeExpediente(): enumClaseDeExpediente { return this._clase; }
+        public get ClaseDeExpediente(): enumClaseDeExpediente {
+            return this._clase;
+        }
+
+        public TiposDeProcedimientos: Array<Parametro>;
+
+
         public get ModalImputarFacturas(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Juridico.Contratos.ImputarFacturas) as HTMLDivElement; }
         constructor(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string, claseDeExpediente: string) {
             super(idPanelMnt, idModalBorrar);
@@ -41,6 +47,11 @@
             this.crudDeEdicion = new CrudEdicionExpediente(this, idPanelEdicion);
         }
 
+        protected DespuesDeInicializarCrud(modoAccesoAlNegocio: ModoAcceso.enumModoDeAccesoDeDatos) {
+            super.DespuesDeInicializarCrud(modoAccesoAlNegocio);
+            let valor = this.MapIndicadores.get(ltrPropiedades.Juridico.Procedimientos.Indicadores.IdTiposDeProcedimientos);
+            this.TiposDeProcedimientos = valor ? [valor] : [];
+        }
 
         protected FiltrosExpecificosParaCargarElGrid(operacion: string, clausulas: ClausulaDeFiltrado[]): ClausulaDeFiltrado[] {
             clausulas = super.FiltrosExpecificosParaCargarElGrid(operacion, clausulas);
@@ -101,6 +112,10 @@
             return document.getElementById(this.IdModalDeCrearDetalle(ltrEspanes.Expedientes.CrearValoracion)) as HTMLDivElement;
         }
 
+        public get EsUnProcedimientoJudicial(): boolean {
+            return (this.CrudDeMnt as CrudDeExpedientes).TiposDeProcedimientos.length > 0 && (this.CrudDeMnt as CrudDeExpedientes).TiposDeProcedimientos.some(t => this.IdTipo);
+        }
+
         constructor(crud: Crud.CrudMnt, idPanelEdicion: string) {
             super(crud, idPanelEdicion);
         }
@@ -119,10 +134,10 @@
             ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.apuntes), peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
             ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.facturasRec), peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
             ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.facturasEmt), peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
-            //if ((this.CrudDeMnt as CrudDeExpedientes).ClaseDeExpediente === enumClaseDeExpediente.juridico) {
-            ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsVenta), peticion.resultado.datos, ltrPropiedades.Expediente.scDeVenta);
-            ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsCompra), peticion.resultado.datos, ltrPropiedades.Expediente.scDeCompra);
-            //}
+            if ((this.CrudDeMnt as CrudDeExpedientes).ClaseDeExpediente === enumClaseDeExpediente.juridico && !this.EsUnProcedimientoJudicial) {
+                ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsVenta), peticion.resultado.datos, ltrPropiedades.Expediente.scDeVenta);
+                ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsCompra), peticion.resultado.datos, ltrPropiedades.Expediente.scDeCompra);
+            }
 
         }
 
@@ -138,12 +153,13 @@
             let ocultar = !EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_Tareas);
             ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.tareas, ltrEspanes.Opcion.crearRef), ocultar);
             ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.tareas, ltrEspanes.Opcion.vincular), ocultar);
+            if (!this.EsUnProcedimientoJudicial) {
+                if (!EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_SC_Compra))
+                    ApiControl.BloquearReferenciaPostDeCreacion(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsCompra));
 
-            if (!EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_SC_Compra))
-                ApiControl.BloquearReferenciaPostDeCreacion(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsCompra));
-
-            if (!EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_SC_Venta))
-                ApiControl.BloquearReferenciaPostDeCreacion(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsVenta));
+                if (!EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_SC_Venta))
+                    ApiControl.BloquearReferenciaPostDeCreacion(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsVenta));
+            }
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {

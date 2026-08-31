@@ -1,30 +1,32 @@
-﻿using ServicioDeDatos;
-using MVCSistemaDeElementos.Controllers;
-using UtilidadesParaIu;
-using Utilidades;
-using ModeloDeDto.Expediente;
-using ModeloDeDto;
-using System.Collections.Generic;
-using GestorDeElementos;
-using ServicioDeDatos.Elemento;
-using ModeloDeDto.RegistroEs;
-using ServicioDeDatos.RegistroEs;
-using ModeloDeDto.Tarea;
-using ServicioDeDatos.Seguridad;
-using ModeloDeDto.Presupuesto;
-using ModeloDeDto.Entorno;
-using ModeloDeDto.Terceros;
+﻿using GestorDeElementos;
 using GestorDeElementos.Extensores;
+using ModeloDeDto;
+using ModeloDeDto.Entorno;
+using ModeloDeDto.Expediente;
+using ModeloDeDto.Gastos;
 using ModeloDeDto.Juridico;
+using ModeloDeDto.Presupuesto;
+using ModeloDeDto.RegistroEs;
+using ModeloDeDto.Tarea;
+using ModeloDeDto.Terceros;
+using ModeloDeDto.Ventas;
+using MVCSistemaDeElementos.Controllers;
+using ServicioDeDatos;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Expediente;
+using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Juridico;
 using ServicioDeDatos.Presupuesto;
-using ServicioDeDatos.Expediente;
+using ServicioDeDatos.RegistroEs;
+using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Tarea;
-using System.Linq;
-using ModeloDeDto.Gastos;
-using ServicioDeDatos.Gastos;
-using ModeloDeDto.Ventas;
 using ServicioDeDatos.Ventas;
+using System.Collections.Generic;
+using System.Linq;
+using Utilidades;
+using UtilidadesParaIu;
+using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
+using static Utilidades.Ampliaciones;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -49,7 +51,7 @@ namespace MVCSistemaDeElementos.Descriptores
             if (clase == enumClaseDeExpediente.juridico.ToString())
             {
                 _clase = ApiDeEnsamblados.ToEnumerado<enumClaseDeExpediente>(clase);
-                Mnt.Etiqueta = "Procedimientos judiciales";
+                Mnt.Etiqueta = ltrVistasTitulos.CrudProcedimientosJudiciales;
                 Creador.Etiqueta = "Procedimiento";
                 Editor.Etiqueta = "Procedimiento";
             }
@@ -507,6 +509,9 @@ namespace MVCSistemaDeElementos.Descriptores
                 return _renderCache;
 
             var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{Modo}-{GetType().FullName}";
+            var clase =  _clase != null ? _clase.ToString() : ltrDeUnExpediente.ExpedieteNoJuridico;
+            indice = $"{indice}-{clase}";
+
             if (ServicioDeCaches.Obtener(CacheDe.RenderCrud).ContainsKey(indice))
                 return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
 

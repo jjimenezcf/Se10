@@ -30,6 +30,7 @@
         public static readonly string urlAccedida = nameof(urlAccedida);        
         public static readonly string HayCambios = nameof(HayCambios);
         public static readonly string Descriptor = nameof(Descriptor).ToLower();
+        public static readonly string TituloVista = "Vista";
         public static readonly string Vista = "vistaMvc";
         public static readonly string IdVista = "idVista";
         public static readonly string Controlador = nameof(Controlador);

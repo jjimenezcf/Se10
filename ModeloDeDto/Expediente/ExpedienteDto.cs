@@ -9,6 +9,8 @@ namespace ModeloDeDto.Expediente
     {
         public const string IdTipoActividad = nameof(IdTipoActividad);
         public const string TipoActividad = nameof(TipoActividad);
+        public const string IdTiposDeProcedimientos = nameof(IdTiposDeProcedimientos);
+        public const string TiposDeProcedimientos = nameof(TiposDeProcedimientos);
     }
 
 

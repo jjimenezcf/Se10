@@ -36,6 +36,8 @@ namespace ServicioDeDatos.Expediente
         EXP_Tipos_Para_Comunicar_Responsable_Tras_Anexar,
         [Description("Indica el tipo de expediente para actividades formativas")]
         EXP_Tipos_Para_Actividades,
+        [Description("Indica la lista de tipos de procedimientos judiciales")]
+        EXP_Tipos_Para_Procedimientos,
         [Description("Indica la expresión regular de como validar un NIG")]
         JUR_Expresion_Regular_De_Un_NIG,
         [Description("Indica la expresión regular de como validar el nº del Procedimiento")]
@@ -52,6 +54,7 @@ namespace ServicioDeDatos.Expediente
         private static string etapaDeTerminacion => enumNegocio.Expediente.Parametro(enumEtapasDeExpedientes.EXP_Etapa_Terminada, valorPorDefecto: 0).Valor;
         private static string etapaDeCancelacion => enumNegocio.Expediente.Parametro(enumEtapasDeExpedientes.EXP_Etapa_Cancelada, valorPorDefecto: 0).Valor;
         private static string etapaDeInicio => enumNegocio.Expediente.Parametro(enumEtapasDeExpedientes.EXP_Etapa_Inicial, valorPorDefecto: 0).Valor;
+        private static string etapaDeJuzgado => enumNegocio.Expediente.Parametro(enumEtapasDeExpedientes.EXP_Etapa_En_Juzgado, valorPorDefecto: 0).Valor;
 
         public static string Estados(this enumEtapasDeExpedientes etapa)
         {
@@ -66,6 +69,7 @@ namespace ServicioDeDatos.Expediente
                 case enumEtapasDeExpedientes.EXP_Etapa_Terminada: estados = etapaDeTerminacion; break;
                 case enumEtapasDeExpedientes.EXP_Etapa_Cancelada: estados = etapaDeCancelacion; break;
                 case enumEtapasDeExpedientes.EXP_Etapa_Inicial: estados = etapaDeInicio; break;
+                case enumEtapasDeExpedientes.EXP_Etapa_En_Juzgado: estados = etapaDeJuzgado; break;
             }
 
             return estados.IsNullOrEmpty() ? enumNegocio.Expediente.DefinirEtapaSiLoIndicaConfiguracion(etapa, ltrEstados.EstadoNulo) : estados;
@@ -185,14 +189,26 @@ namespace ServicioDeDatos.Expediente
 
         public static int IdDelTipoParaActividades(bool errorSiNoEstaDefinido = true)
         {
-            var idtipoCad = enumNegocio.Expediente.Parametro(enumParametrosDeExpedientes.EXP_Tipos_Para_Actividades, valorPorDefecto: Literal.Cero).Valor.Entero();
+            var dTipos = enumNegocio.Expediente.Parametro(enumParametrosDeExpedientes.EXP_Tipos_Para_Actividades, valorPorDefecto: Literal.Cero).Valor.Entero();
 
-            if (errorSiNoEstaDefinido && idtipoCad == 0)
+            if (errorSiNoEstaDefinido && dTipos == 0)
             {
                 enumNegocio.Expediente.IndicarQueFaltaDefinirElParámetro(enumParametrosDeExpedientes.EXP_Tipos_Para_Actividades);
             }
 
-            return idtipoCad;
+            return dTipos;
+        }
+
+        public static List<int> IdDelTipoParaProcedimientosJudiciales(bool errorSiNoEstaDefinido = true)
+        {
+            var idTipos = enumNegocio.Expediente.Parametro(enumParametrosDeExpedientes.EXP_Tipos_Para_Procedimientos, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
+
+            if (errorSiNoEstaDefinido && (idTipos.Count == 0 || ( idTipos.Count == 1 && idTipos[0] == 0)))
+            {
+                enumNegocio.Expediente.IndicarQueFaltaDefinirElParámetro(enumParametrosDeExpedientes.EXP_Tipos_Para_Procedimientos);
+            }
+
+            return idTipos;
         }
 
     }
