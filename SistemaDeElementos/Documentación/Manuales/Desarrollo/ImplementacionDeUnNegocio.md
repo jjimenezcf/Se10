@@ -220,6 +220,13 @@ caso del nuevo negocio en:
   - `Negocio(this Type tipo)` y `SetDeTransiciones(this ContextoSe, enumNegocio)`, análogos.
 - `Servicios/GestorDeElementos/Extensores/Parametrizacion/ExtensorDeAccionesDeTrn.cs`
   - `Negocio(this Type tipo)`, análogo.
+- `Servicios/GestorDeElementos/Extensores/Elementos/ExtensorDeHitos.cs`
+  - `Negocio(Type tipo)` — mapea `HitosDeUnXxxDtm` → `enumNegocio.Xxx`.
+  - `Hitos(this enumNegocio negocio, ContextoSe contexto)` — mapea `enumNegocio.Xxx` →
+    `contexto.Set<HitosDeUnXxxDtm>().Cast<HitoDtm>()`. Es el mismo patrón de los tres anteriores
+    (reverse-lookup por `Type` + forward-lookup por `enumNegocio`) pero para el histórico de hitos del
+    flujo; se olvida fácilmente porque no está en el mismo fichero que Estados/Transiciones/Acciones —
+    conviene añadir los cuatro extensores a la vez, no solo los tres primeros.
 
 ## 6. Enganchar el modelo en el `DbContext`
 
@@ -549,7 +556,7 @@ cosas no son mecánicas y quedan fuera:
 | 3 | `ModeloDeDto/<Área>/Xxxs/XxxDto.cs` / `TipoDeXxxDto.cs` | Dtos |
 | 4 | `Ayudas/Extensiones/Negocios.cs` | Valor de `enumNegocio`, `Plural`/`ConArticulo`/`Controlador` si hace falta |
 | 4 | `Ayudas/Extensiones/Controladores.cs` | Valor en `enumControladores<Área>` si falta |
-| 5 | `ExtensorDeEstados.cs` / `ExtensorDeTransiciones.cs` / `ExtensorDeAccionesDeTrn.cs` | Caso del negocio en cada `switch`/`if` |
+| 5 | `ExtensorDeEstados.cs` / `ExtensorDeTransiciones.cs` / `ExtensorDeAccionesDeTrn.cs` / `ExtensorDeHitos.cs` | Caso del negocio en cada `switch`/`if` |
 | 6 | `ServicioDeDatos/CreadorDelMd.cs` | `DefinirTablasDeXxx` + llamada desde `OnModelCreating` |
 | 7 | `Servicios/GestorDeElementos/MetadatosDelNegocio.cs` | `MetadatosDeXxxs()` + caso en el `switch` |
 | 8 | `GestoresDeNegocio/<Área>/Xxxs/GestorDeTiposDeXxx.cs` / `GestorDeXxx.cs` | Gestores |
@@ -593,3 +600,5 @@ paso:
 - JSON de layout: `AlmacenDto.json` y `TipoDeAlmacenDto.json` en `wwwroot/Json/`, con el override de
   `Tipo` (`SeleccionarDe: TipoDeAlmacenDto`, `Negocio: Almacen`, `VistaDondeNavegar: TiposDeAlmacen`) —
   sin ellos, el mantenimiento de Almacenes fallaba al renderizar el control de "Tipo".
+- `ExtensorDeHitos.cs`: caso `HitosDeUnAlmacenDtm`/`enumNegocio.Almacen` añadido en `Negocio(Type)` y en
+  `Hitos(this enumNegocio, ContextoSe)` — se había quedado fuera al hacer el paso 5 la primera vez.
