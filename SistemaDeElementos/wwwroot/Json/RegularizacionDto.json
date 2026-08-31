@@ -1,0 +1,36 @@
+[
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Logistica.TipoDeRegularizacionDto",
+    "VistaDondeNavegar": "TiposDeRegularizacion",
+    "RestrictorFijo": "Negocio;Regularizacion;Gestor",
+    "Negocio": "Regularizacion",
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "TamanoFijo": "10em",
+    "colspan": 2
+  },
+  {
+    "propiedad": "Almacen",
+    "ordenarGridPor": "Almacen.Nombre",
+    "PosicionEnGrid": 5,
+    "PorAnchoMnt": 30
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 6,
+    "PorAnchoMnt": 30
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 20
+  }
+]

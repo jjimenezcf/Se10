@@ -1,0 +1,74 @@
+[
+  {
+    "propiedad": "Negocio",
+    "posicion": {
+      "fila": 0,
+      "columna": 0
+    }
+  },
+  {
+    "propiedad": "IdPadre",
+    "posicion": {
+      "fila": 0,
+      "columna": 1
+    }
+  },
+  {
+    "propiedad": "Padre",
+    "posicion": {
+      "fila": 0,
+      "columna": 1
+    }
+  },
+  {
+    "propiedad": "Nombre",
+    "posicion": {
+      "fila": 0,
+      "columna": 2
+    }
+  },
+  {
+    "propiedad": "Sigla",
+    "posicion": {
+      "fila": 1,
+      "columna": 0
+    }
+  },
+  {
+    "propiedad": "ClaseDeLibro",
+    "posicion": {
+      "fila": 1,
+      "columna": 1
+    }
+  },
+  {
+    "propiedad": "Estado",
+    "posicion": {
+      "fila": 1,
+      "columna": 2
+    }
+  },
+  {
+    "propiedad": "ClaseDeRegularizacion",
+    "posicion": {
+      "fila": 1,
+      "columna": 3
+    }
+  },
+  {
+    "propiedad": "PermiteCrear",
+    "posicion": {
+      "fila": 13,
+      "columna": 0
+    },
+    "css": "CheckEnLinea"
+  },
+  {
+    "propiedad": "Activo",
+    "posicion": {
+      "fila": 14,
+      "columna": 0
+    },
+    "css": "CheckEnLinea"
+  }
+]

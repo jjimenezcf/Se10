@@ -479,6 +479,9 @@ const ltrModalDeCrearRelacion = {
 const ltrVistas = {
     Entorno: {
         Conectar: 'Conectar',
+    },
+    Juridicas: {
+        Procedimientos: 'Procedimientos judiciales'
     }
 }
 
@@ -3102,6 +3105,11 @@ const ltrPropiedades = {
         },
     },
     Juridico: {
+        Procedimientos: {
+            Indicadores: {
+                IdTiposDeProcedimientos: 'IdTiposDeProcedimientos'
+            }
+        },
         CopiarPlfDeVenta: {
             ClaseDeContrato: 'ClaseDeContrato',
             Planificador: 'Planificador',
@@ -3248,6 +3256,10 @@ const ltrPropiedades = {
         RenombraPedido: {
             IdElemento: 'idElemento',
             Nombre: literal.nombre
+        },
+        Regularizacion: {
+            IdAlmacen: 'idalmacen',
+            Almacen: 'almacen'
         },
     },
     Venta: {
