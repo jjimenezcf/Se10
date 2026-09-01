@@ -5,7 +5,7 @@ using GestoresDeNegocio.Terceros;
 using GestoresDeNegocio.TrabajosSometidos;
 using ModeloDeDto.Callejero;
 using ModeloDeDto.MaestrosTecnico;
-using ModeloDeDto.Terceros;
+using ImportarJuzgadosDto = ModeloDeDto.Terceros.ImportarJuzgados;
 using OfficeOpenXml;
 using ServicioDeDatos;
 using ServicioDeDatos.Callejero;
@@ -300,8 +300,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
             var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosDeMaestros.ImportarJuzgados.Descripcion(), dll, clase, nameof(enumTrabajosDeMaestros.ImportarJuzgados), comunicarFin: true);
 
             var parametrosEntrada = new Dictionary<string, object> {
-                { nameof(ImportarCatalogoDeJuzgadosDto.IdArchivo), idArchivo },
-                { nameof(ImportarCatalogoDeJuzgadosDto.IdProvincia), idProvincia }
+                { nameof(ImportarJuzgadosDto.IdArchivo), idArchivo },
+                { nameof(ImportarJuzgadosDto.IdProvincia), idProvincia }
             };
             var datosDeCreacion = new Dictionary<string, object>
             {
@@ -319,8 +319,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
         {
             var contexto = entorno.contextoDelProceso;
             Dictionary<string, object> parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
-            var idArchivo = (int)parametros.LeerValor<long>(nameof(ImportarCatalogoDeJuzgadosDto.IdArchivo));
-            var idProvincia = (int?)parametros.LeerValor<long?>(nameof(ImportarCatalogoDeJuzgadosDto.IdProvincia), valorPorDefecto: (long?)null);
+            var idArchivo = (int)parametros.LeerValor<long>(nameof(ImportarJuzgadosDto.IdArchivo));
+            var idProvincia = (int?)parametros.LeerValor<long?>(nameof(ImportarJuzgadosDto.IdProvincia), valorPorDefecto: (long?)null);
 
             contexto.IniciarTraza(nameof(enumTrabajosDeMaestros.ImportarJuzgados));
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
