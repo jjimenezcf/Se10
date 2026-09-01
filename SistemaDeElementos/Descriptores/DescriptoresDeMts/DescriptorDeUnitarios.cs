@@ -4,7 +4,6 @@ using UtilidadesParaIu;
 using Utilidades;
 using ServicioDeDatos.Seguridad;
 using ModeloDeDto.MaestrosTecnico;
-using ModeloDeDto.Juridico;
 using ModeloDeDto;
 using System.Collections.Generic;
 using ServicioDeDatos.MaestrosTecnico;
@@ -22,6 +21,9 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Mnt.OrdenacionInicial = @$"{nameof(UnitarioDto.Referencia)}:{nameof(UnitarioDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
             DescriptorDeTarifas();
+
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ImportarCatalogoDeUnitariosDto), eventosDeMf.Uni_ImportarCatalogo, "Seleccionar catálogo a importar"));
+            Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Uni_ImportarCatalogo}' accion-menu='{eventosDeMf.Uni_ImportarCatalogo}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Importar catálogo</li>");
         }
 
 

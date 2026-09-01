@@ -1632,6 +1632,11 @@ const Ajax = {
                 Copiar: 'epCopiarArchivador'
             }
         },
+        MaestrosTecnico: {
+            Unitario: {
+                ImportarCatalogo: 'epImportarCatalogo'
+            }
+        },
         Administracion: {
             Tarea: {
                 Copiar: 'epCopiarUnaTarea',
@@ -1694,6 +1699,9 @@ const Ajax = {
             },
             CG: {
                 LeerDireccion: 'epLeerDireccion'
+            },
+            Juzgado: {
+                ImportarCatalogo: 'epImportarCatalogo'
             }
         },
         MaestrosTecnicos: {
@@ -4066,6 +4074,16 @@ const ltrMenus = {
                 CancelarPreasientos: 'cancelar-preasientos'
             }
 
+        },
+        MaestrosTecnico: {
+            Unitario: {
+                ImportarCatalogo: 'importar-catalogo-unitarios'
+            }
+        },
+        Terceros: {
+            Juzgado: {
+                ImportarCatalogo: 'importar-catalogo-juzgados'
+            }
         },
         Venta: {
             FacturasEmt: {
