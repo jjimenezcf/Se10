@@ -472,6 +472,7 @@ namespace MVCSistemaDeElementos.Descriptores
             <textarea {atributosComunesDeUnControlDto} 
                    placeholder =¨[Placeholder]¨
                    valor-de-defecto=¨[ValorPorDefecto]¨
+                   [informativa]
                    value=¨¨>
             </textarea>
         </div>

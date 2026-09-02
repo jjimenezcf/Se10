@@ -639,6 +639,7 @@ const atControl = {
     esAlmacenable: 'es-almacenable',
     title: 'title',
     NombreDeAccion: 'NombreDeAccion',
+    informativa: 'Informativa',
     eventoJs: {
         onclick: 'onclick'
     }

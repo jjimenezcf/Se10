@@ -5,7 +5,7 @@ using GestoresDeNegocio.Terceros;
 using GestoresDeNegocio.TrabajosSometidos;
 using ModeloDeDto.Callejero;
 using ModeloDeDto.MaestrosTecnico;
-using ImportarJuzgadosDto = ModeloDeDto.Terceros.ImportarJuzgados;
+using ModeloDeDto.Terceros;
 using OfficeOpenXml;
 using ServicioDeDatos;
 using ServicioDeDatos.Callejero;

@@ -128,6 +128,8 @@ namespace ModeloDeDto
 
         private bool _editableAlCrear = true;
         private bool _editableAlEditar = true;
+        public bool AreaInformativa { get; set; } = false;
+
         public bool EditableAlCrear { get { return _visibleAlCrear && _editableAlCrear; } set { _editableAlCrear = value; } }
         public bool EditableAlEditar { get { return _visibleAlEditar && _editableAlEditar; } set { _editableAlEditar = value; } }
 

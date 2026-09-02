@@ -802,7 +802,10 @@ namespace MVCSistemaDeElementos.Descriptores
             valores["Estilos"] = $"{valores["Estilos"]}{$" height: {alto}"}";
 
             var htmlArea = PlantillasHtml.Render(PlantillasHtml.AreaDeTextoDto, valores);
-           if (!atributos.OnClick.IsNullOrEmpty())
+
+            htmlArea = htmlArea.Replace($"[informativa]", atributos.AreaInformativa ? $"informativa='true'" : "");
+
+            if (!atributos.OnClick.IsNullOrEmpty())
             {
                 htmlArea = htmlArea + $@"<div class=¨contenedor-etiqueta-ref-test-area-dto¨>
                                          <a href=¨#¨ id=¨{descriptorControl.IdHtml}-etiqueta-ref¨ class=¨etiqueta-ref-test-area-dto¨ onclick=¨{atributos.OnClick}¨>{atributos.EtiquetaRef}</a>

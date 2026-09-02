@@ -374,7 +374,10 @@ namespace MapearALaListaDeParametros {
 
 
     export function Textos(panel: HTMLDivElement, parametros: Array<Parametro>): void {
-        let areas: NodeListOf<HTMLTextAreaElement> = panel.querySelectorAll(`textarea[${atControl.tipo}="${ltrTipoControl.AreaDeTexto}"]`) as NodeListOf<HTMLTextAreaElement>;
+        let areas: NodeListOf<HTMLTextAreaElement> = panel.querySelectorAll(
+            `textarea[${atControl.tipo}="${ltrTipoControl.AreaDeTexto}"]:not([${atControl.informativa}="true"])`
+        ) as NodeListOf<HTMLTextAreaElement>;
+
         for (let i = 0; i < areas.length; i++) {
             Texto(areas[i], parametros);
         }

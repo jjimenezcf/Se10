@@ -15,6 +15,7 @@ namespace ModeloDeDto.MaestrosTecnico
             NumeroDeFilas = 8,
             Obligatorio = false,
             EditableAlCrear = false,
+            AreaInformativa = true,
             Fila = 0,
             Columna = 0,
             AutoSpan = true,

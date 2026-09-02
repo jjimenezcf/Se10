@@ -43,7 +43,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 alSeleccionarBlanquearControl: "");
             listaMunicipio.LongitudMinimaParaBuscar = 1;
 
-            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ImportarJuzgados), eventosDeMf.Juz_ImportarCatalogo, "Seleccionar juzgados a importar"));
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ImportarJuzgadosDto), eventosDeMf.Juz_ImportarCatalogo, "Seleccionar juzgados a importar"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Juz_ImportarCatalogo}' accion-menu='{eventosDeMf.Juz_ImportarCatalogo}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Importar juzgados</li>");
         }
 
