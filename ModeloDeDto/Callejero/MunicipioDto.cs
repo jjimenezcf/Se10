@@ -70,7 +70,7 @@ namespace ModeloDeDto.Callejero
         //----------------------------------------------
         [IUPropiedad(
             Etiqueta = "DC",
-            Ayuda = "Dígito postal",
+            Ayuda = "Código INE del municipio dentro de la provincia (CMUN, 3 dígitos) seguido del dígito de control (1 dígito). P.ej. Yecla es el municipio 043 de Murcia con dígito de control 4, por lo que su DC es '0434'",
             Tipo = typeof(string),
             Fila = 1,
             Columna = 1,

@@ -32,6 +32,36 @@
             this.crudDeEdicion = new CrudEdicionMunicipio(this, idPanelEdicion);
         }
 
+        public get ModalImportarCatalogo(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Callejero.Municipio.ImportarCatalogo) as HTMLDivElement; }
+
+        public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
+            if (super.DespuesDeProcesarOpcionMf(peticion))
+                return true;
+
+            let opcion: string = ObtenerPropiedad(peticion.DatosDeEntrada, ltrMenus.opcion);
+            if (opcion === ltrMenus.eventosDeMf.Callejero.Municipio.ImportarCatalogo) {
+                this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(this.ModalImportarCatalogo.id, 0);
+                return true;
+            }
+            return false;
+        }
+
+        public ModalDePedirDatos_Aceptar(modal: HTMLDivElement) {
+            if (modal.id === this.ModalImportarCatalogo.id) {
+                let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
+                let parametros: Array<Parametro> = new Array<Parametro>();
+                ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
+
+                ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Callejero.Municipio.ImportarCatalogo, parametros, datosDeEntrada)
+                    .then((peticion) => {
+                        super.ModalDePedirDatos_Cerrar(modal);
+                        MensajesSe.Info(peticion.resultado.consola);
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+            }
+            else super.ModalDePedirDatos_Aceptar(modal);
+        }
+
         public DespuesDeAplicarUnRestrictor(restrictor: Tipos.Restrictor) {
             super.DespuesDeAplicarUnRestrictor(restrictor);
 

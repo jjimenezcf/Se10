@@ -57,10 +57,10 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                if (!parametros.ContieneClave(nameof(ImportarJuzgados.IdArchivo))) throw new Exception("Debe indicar el fichero del catálogo a importar");
+                if (!parametros.ContieneClave(nameof(ImportarJuzgadosDto.IdArchivo))) throw new Exception("Debe indicar el fichero del catálogo a importar");
 
-                var idArchivo = (int)parametros.LeerValor<long>(nameof(ImportarJuzgados.IdArchivo));
-                var idProvincia = (int?)parametros.LeerValor<long?>(nameof(ImportarJuzgados.IdProvincia), valorPorDefecto: (long?)null);
+                var idArchivo = (int)parametros.LeerValor<long>(nameof(ImportarJuzgadosDto.IdArchivo));
+                var idProvincia = (int?)parametros.LeerValor<long?>(nameof(ImportarJuzgadosDto.IdProvincia), valorPorDefecto: (long?)null);
 
                 var trabajo = TrabajosParaMaestros.SometerImportarJuzgados(Contexto, idArchivo, idProvincia);
 

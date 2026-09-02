@@ -1705,6 +1705,11 @@ const Ajax = {
                 ImportarCatalogo: 'epImportarCatalogo'
             }
         },
+        Callejero: {
+            Municipio: {
+                ImportarCatalogo: 'epImportarCatalogo'
+            }
+        },
         MaestrosTecnicos: {
             Tarifa: {
                 LeerTarifa: 'epLeerTarifa'
@@ -4084,6 +4089,11 @@ const ltrMenus = {
         Terceros: {
             Juzgado: {
                 ImportarCatalogo: 'importar-catalogo-juzgados'
+            }
+        },
+        Callejero: {
+            Municipio: {
+                ImportarCatalogo: 'importar-catalogo-municipios'
             }
         },
         Venta: {

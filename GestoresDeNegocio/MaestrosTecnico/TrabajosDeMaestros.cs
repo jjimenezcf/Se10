@@ -30,13 +30,17 @@ namespace GestoresDeNegocio.MaestrosTecnico
         [Description("Importar catálogo de unitarios desde Excel")]
         ImportarCatalogoDeUnitarios,
         [Description("Importar juzgados desde Excel")]
-        ImportarJuzgados
+        ImportarJuzgados,
+        [Description("Importar municipios desde Excel")]
+        ImportarMunicipios
     }
 
     public class ResumenDeImportacionDeCatalogo
     {
         public int TotalFilas { get; set; }
         public int Creados { get; set; }
+        public int Actualizados { get; set; }
+        public int SinCambios { get; set; }
         public int Descartados { get; set; }
         public List<string> Errores { get; } = new List<string>();
     }
@@ -130,7 +134,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
                     try
                     {
                         var siglaUnidad = Texto(hoja, fila, columnas["Unidad"]);
-                        var unidad = contexto.Set<UnidadDtm>().FirstOrDefault(u => u.Sigla == siglaUnidad);
+                        var unidad = contexto.Set<UnidadDtm>().FirstOrDefault(u => u.Sigla.ToUpper() == siglaUnidad.ToUpper());
                         if (unidad == null)
                             throw new Exception($"la unidad de sigla '{siglaUnidad}' no existe");
 
@@ -236,13 +240,13 @@ namespace GestoresDeNegocio.MaestrosTecnico
             if (sigla.IsNullOrEmpty())
                 throw new Exception("no se ha indicado la sigla de la naturaleza");
 
-            var porSigla = contexto.Set<NaturalezaDtm>().FirstOrDefault(n => n.Sigla == sigla);
+            var porSigla = contexto.Set<NaturalezaDtm>().FirstOrDefault(n => n.Sigla.ToUpper() == sigla.ToUpper());
             if (porSigla != null) return porSigla;
 
             if (nombre.IsNullOrEmpty())
                 throw new Exception($"la sigla de naturaleza '{sigla}' no existe y no se ha indicado el nombre de la naturaleza para poder crearla");
 
-            var porNombre = contexto.Set<NaturalezaDtm>().FirstOrDefault(n => n.Nombre == nombre);
+            var porNombre = contexto.Set<NaturalezaDtm>().FirstOrDefault(n => n.Nombre.ToUpper() == nombre.ToUpper());
             if (porNombre != null)
                 throw new Exception($"la sigla de naturaleza '{sigla}' no existe, pero sí existe una naturaleza con el nombre '{nombre}' (con sigla '{porNombre.Sigla}'); corrija la sigla en el Excel");
 
@@ -263,7 +267,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
         private static CuentaDtm BuscarCuenta(ContextoSe contexto, string codigo)
         {
             if (codigo.IsNullOrEmpty()) return null;
-            var cuenta = contexto.Set<CuentaDtm>().FirstOrDefault(c => c.Codigo == codigo);
+            var cuenta = contexto.Set<CuentaDtm>().FirstOrDefault(c => c.Codigo.ToUpper() == codigo.ToUpper());
             if (cuenta == null)
                 throw new Exception($"no existe la cuenta contable con código '{codigo}'");
             return cuenta;
@@ -329,10 +333,11 @@ namespace GestoresDeNegocio.MaestrosTecnico
                 var resumen = ImportarJuzgadosInterno(contexto, idArchivo, idProvincia);
 
                 var traza = $"Importación finalizada: {resumen.TotalFilas} filas leídas, {resumen.Creados} creados, {resumen.Descartados} descartados";
-                if (resumen.Errores.Count > 0)
-                    traza += Environment.NewLine + string.Join(Environment.NewLine, resumen.Errores);
-
                 entorno.CrearTraza(traza);
+                foreach (var errores in resumen.Errores)
+                {
+                    entorno.CrearTraza(errores);
+                }
             }
             catch (Exception e)
             {
@@ -396,14 +401,14 @@ namespace GestoresDeNegocio.MaestrosTecnico
                         if (provinciaDtm == null)
                             throw new Exception($"la provincia '{provincia}' no existe");
 
-                        var municipioDtm = contexto.Set<MunicipioDtm>().FirstOrDefault(m => m.IdProvincia == provinciaDtm.Id && m.Nombre == municipio);
+                        var municipioDtm = contexto.Set<MunicipioDtm>().FirstOrDefault(m => m.IdProvincia == provinciaDtm.Id && m.Nombre.ToUpper() == municipio.ToUpper());
                         if (municipioDtm == null)
                             throw new Exception($"el municipio '{municipio}' de la provincia '{provincia}' no existe");
 
                         var claseDto = GestorDeClasesDeJuzgado.CrearClaseDto(contexto, claseTexto);
                         var municipioDto = municipioDtm.MapearDto<MunicipioDto>(contexto);
 
-                        var nombre = $"{claseDto.Nombre} {calificador} de {municipioDto.Nombre}";
+                        var nombre = GestorDeJuzgados.ComponerNombre(claseDto, calificador, municipioDto);
                         var existente = contexto.SeleccionarPorPropiedad<JuzgadoDtm>(nameof(JuzgadoDtm.Nombre), nombre, errorSiNoHay: false);
                         if (existente != null)
                         {
@@ -475,6 +480,205 @@ namespace GestoresDeNegocio.MaestrosTecnico
             if (columna <= 0) return null;
             var valor = hoja.Cells[fila, columna].Text;
             return valor.IsNullOrEmpty() ? null : valor.Trim();
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Sometimiento del job de importación de municipios
+        //-------------------------------------------------------------------------------------------------------------
+        public static TrabajoDeUsuarioDtm SometerImportarMunicipios(ContextoSe contexto, int idArchivo, int? idProvincia)
+        {
+            var dll = Assembly.GetExecutingAssembly().GetName().Name;
+            var clase = typeof(TrabajosParaMaestros).FullName;
+            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosDeMaestros.ImportarMunicipios.Descripcion(), dll, clase, nameof(enumTrabajosDeMaestros.ImportarMunicipios), comunicarFin: true);
+
+            var parametrosEntrada = new Dictionary<string, object> {
+                { nameof(ImportarMunicipiosDto.IdArchivo), idArchivo },
+                { nameof(ImportarMunicipiosDto.IdProvincia), idProvincia }
+            };
+            var datosDeCreacion = new Dictionary<string, object>
+            {
+                { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() },
+                { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
+            };
+
+            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion);
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Punto de entrada del job (invocado por el motor de trabajos sometidos)
+        //-------------------------------------------------------------------------------------------------------------
+        public static void ImportarMunicipios(EntornoDeTrabajo entorno)
+        {
+            var contexto = entorno.contextoDelProceso;
+            Dictionary<string, object> parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
+            var idArchivo = (int)parametros.LeerValor<long>(nameof(ImportarMunicipiosDto.IdArchivo));
+            var idProvincia = (int?)parametros.LeerValor<long?>(nameof(ImportarMunicipiosDto.IdProvincia), valorPorDefecto: (long?)null);
+
+            contexto.IniciarTraza(nameof(enumTrabajosDeMaestros.ImportarMunicipios));
+            var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
+            try
+            {
+                var resumen = ImportarMunicipiosInterno(contexto, idArchivo, idProvincia);
+
+                var traza = $"Importación finalizada: {resumen.TotalFilas} filas leídas, {resumen.Creados} creados, {resumen.Actualizados} actualizados, {resumen.SinCambios} sin cambios, {resumen.Descartados} descartados";
+                entorno.CrearTraza(traza);
+                foreach (var errores in resumen.Errores)
+                {
+                    entorno.CrearTraza(errores);
+                }
+            }
+            catch (Exception e)
+            {
+                entorno.AnotarError(e);
+            }
+            finally
+            {
+                if (otorgado) entorno.Ejecutor.AnularAdministrador(contexto, otorgado);
+                contexto.CerrarTraza();
+            }
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Lógica de importación: descarta (con rollback) cualquier fila que falle, sin abortar el resto del catálogo
+        // Formato esperado: el fichero oficial del INE ("Relación de municipios y códigos por provincias"), con una
+        // hoja por provincia y columnas CPRO (código de provincia) | CMUN (código de municipio en la provincia)
+        // | DC (dígito de control) | NOMBRE (nombre del municipio). Se recorren todas las hojas con datos.
+        // La provincia (CPRO) debe existir ya en el callejero (Callejero.Provincia.Codigo); si no existe se rechaza la fila.
+        // El DC del municipio se compone como CMUN (3 dígitos) + DC (1 dígito). Si el municipio ya existe en esa
+        // provincia se actualiza su DC cuando sea distinto; si no existe se crea.
+        // Si se indica idProvincia, se descartan (sin contabilizar) las filas de otra provincia
+        //-------------------------------------------------------------------------------------------------------------
+        public static ResumenDeImportacionDeCatalogo ImportarMunicipiosInterno(ContextoSe contexto, int idArchivo, int? idProvincia)
+        {
+            var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            var fichero = ApiDeArchivos.ObtenerRutaArchivo(archivo);
+            var resumen = new ResumenDeImportacionDeCatalogo();
+
+            var codigoProvinciaFiltro = idProvincia.HasValue
+                ? contexto.SeleccionarPorId<ProvinciaDtm>(idProvincia.Value).Codigo
+                : null;
+
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+            using (var libro = new ExcelPackage(new FileInfo(fichero)))
+            {
+                var hojas = libro.Workbook.Worksheets.Where(h => h.Dimension != null).ToList();
+                if (hojas.Count == 0)
+                    GestorDeErrores.Emitir("El fichero no contiene ninguna hoja con datos");
+
+                foreach (var hoja in hojas)
+                {
+                    var columnas = LocalizarColumnasDeMunicipios(hoja, out int filaCabecera);
+                    if (columnas == null)
+                        continue; // hoja sin las columnas esperadas (p.ej. una portada), se ignora
+
+                    for (int fila = filaCabecera + 1; fila <= hoja.Dimension.End.Row; fila++)
+                    {
+                        var cpro = Texto(hoja, fila, columnas["CPRO"]);
+                        var cmun = Texto(hoja, fila, columnas["CMUN"]);
+                        var dc = Texto(hoja, fila, columnas["DC"]);
+                        var nombre = Texto(hoja, fila, columnas["NOMBRE"]);
+                        if (cpro.IsNullOrEmpty() && cmun.IsNullOrEmpty() && dc.IsNullOrEmpty() && nombre.IsNullOrEmpty())
+                            continue; // fila en blanco, no cuenta como fila de datos
+
+                        var cproNormalizado = cpro?.Trim().PadLeft(2, '0');
+                        if (codigoProvinciaFiltro != null && !codigoProvinciaFiltro.Equals(cproNormalizado, StringComparison.OrdinalIgnoreCase))
+                            continue; // fila de otra provincia, se descarta sin contabilizar
+
+                        resumen.TotalFilas++;
+                        var tran = contexto.IniciarTransaccion();
+                        try
+                        {
+                            if (cpro.IsNullOrEmpty())
+                                throw new Exception("no se ha indicado el código de provincia (CPRO)");
+                            if (cmun.IsNullOrEmpty())
+                                throw new Exception("no se ha indicado el código de municipio (CMUN)");
+                            if (dc.IsNullOrEmpty())
+                                throw new Exception("no se ha indicado el dígito de control (DC)");
+                            if (nombre.IsNullOrEmpty())
+                                throw new Exception("no se ha indicado el nombre del municipio");
+
+                            var provinciaDtm = contexto.SeleccionarPorPropiedad<ProvinciaDtm>(nameof(ProvinciaDtm.Codigo), cproNormalizado, errorSiNoHay: false);
+                            if (provinciaDtm == null)
+                                throw new Exception($"la provincia de código '{cproNormalizado}' no existe");
+
+                            var codigoDeMunicipio = $"{cmun.Trim().PadLeft(3, '0')}{dc.Trim()}";
+
+                            var municipioDtm = contexto.Set<MunicipioDtm>().FirstOrDefault(m => m.IdProvincia == provinciaDtm.Id && m.Nombre.ToUpper() == nombre.ToUpper());
+                            if (municipioDtm == null)
+                            {
+                                municipioDtm = new MunicipioDtm();
+                                municipioDtm.Nombre = nombre;
+                                municipioDtm.DC = codigoDeMunicipio;
+                                municipioDtm.IdProvincia = provinciaDtm.Id;
+                                municipioDtm.Insertar(contexto);
+                                contexto.Commit(tran);
+                                resumen.Creados++;
+                            }
+                            else if (municipioDtm.DC != codigoDeMunicipio)
+                            {
+                                municipioDtm.DC = codigoDeMunicipio;
+                                municipioDtm.Modificar(contexto);
+                                contexto.Commit(tran);
+                                resumen.Actualizados++;
+                            }
+                            else
+                            {
+                                contexto.Rollback(tran);
+                                resumen.SinCambios++;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            contexto.Rollback(tran);
+                            resumen.Descartados++;
+                            resumen.Errores.Add($"Hoja '{hoja.Name}', fila {fila}: {e.Message}");
+                        }
+                    }
+                }
+            }
+
+            return resumen;
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Localización de la cabecera y de las columnas por nombre (no por posición). Devuelve null si la hoja no
+        // contiene una cabecera reconocible (para poder ignorarla sin abortar el resto del fichero).
+        //-------------------------------------------------------------------------------------------------------------
+        private static Dictionary<string, int> LocalizarColumnasDeMunicipios(ExcelWorksheet hoja, out int filaCabecera)
+        {
+            var clavesBuscadas = new Dictionary<string, string>
+            {
+                { "CPRO", "cpro" },
+                { "CMUN", "cmun" },
+                { "DC", "dc" },
+                { "NOMBRE", "nombre" }
+            };
+            var obligatorias = new[] { "CPRO", "CMUN", "DC", "NOMBRE" };
+
+            var filasAExplorar = Math.Min(20, hoja.Dimension.End.Row);
+            for (int fila = 1; fila <= filasAExplorar; fila++)
+            {
+                var columnas = new Dictionary<string, int>();
+                for (int columna = 1; columna <= hoja.Dimension.End.Column; columna++)
+                {
+                    var texto = hoja.Cells[fila, columna].Text?.Trim().ToLowerInvariant();
+                    if (texto.IsNullOrEmpty()) continue;
+
+                    foreach (var clave in clavesBuscadas)
+                        if (!columnas.ContainsKey(clave.Key) && texto == clave.Value)
+                            columnas[clave.Key] = columna;
+                }
+
+                var faltantes = obligatorias.Where(o => !columnas.ContainsKey(o)).ToList();
+                if (faltantes.Count == 0)
+                {
+                    filaCabecera = fila;
+                    return columnas;
+                }
+            }
+
+            filaCabecera = 0;
+            return null;
         }
     }
 }

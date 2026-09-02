@@ -43,9 +43,14 @@ namespace GestoresDeNegocio.Terceros
         }
 
 
+        public static string ComponerNombre(ClaseDeJuzgadoDto clase, string calificador, MunicipioDto municipio)
+        {
+            return $"{clase.Nombre} {calificador} de {municipio.Nombre}";
+        }
+
         public static JuzgadoDto CrearJuzgado(ContextoSe contexto, ClaseDeJuzgadoDto clase, string calificador, MunicipioDto municipio)
         {
-            var nombre = $"{clase.Nombre} {calificador} de {municipio.Nombre}";
+            var nombre = ComponerNombre(clase, calificador, municipio);
             var contacto = CrearJuzgado(contexto, nombre, clase.Id, municipio.Id, calificador);
             return contacto.MapearDto<JuzgadoDto>(contexto);
         }

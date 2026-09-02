@@ -5,6 +5,7 @@ using UtilidadesParaIu;
 using ModeloDeDto;
 using System.Collections.Generic;
 using ServicioDeDatos.Callejero;
+using ServicioDeDatos.Seguridad;
 using Utilidades;
 
 namespace MVCSistemaDeElementos.Descriptores
@@ -94,6 +95,9 @@ namespace MVCSistemaDeElementos.Descriptores
                 , propiedadQueRestringe: nameof(MunicipioDto.Id)
                 , propiedadRestrictora: nameof(CpsDeUnMunicipioDto.IdMunicipio)
                 , "Añadir puestos al usuario seleccionado");
+
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ImportarMunicipiosDto), eventosDeMf.Mun_ImportarCatalogo, "Seleccionar municipios a importar"));
+            Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Mun_ImportarCatalogo}' accion-menu='{eventosDeMf.Mun_ImportarCatalogo}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Importar municipios</li>");
 
             RecolocarControl(Mnt.Filtro.FiltroDeNombre, new Posicion(1, 0), "Municipio", "Buscar por nombre de municipio");
             Mnt.OrdenacionInicial = @$"{nameof(MunicipioDto.Pais)}:provincia.pais.nombre:{enumModoOrdenacion.ascendente.Render()};
