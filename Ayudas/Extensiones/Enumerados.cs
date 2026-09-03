@@ -834,6 +834,7 @@ namespace Utilidades
 
         public const string Tar_IrAPartesTr = IrAPartesTr;
         public const string Tar_CopiarTarea = "copiar-tarea";
+        public const string Tar_CuandoRealizar = "cuando-realizar";
 
         public const string Exp_VincularRegistroEntrada = "vincular-re";
         public const string Exp_IrATareas = IrATareas;
@@ -935,6 +936,12 @@ namespace Utilidades
         public const string Spr_CrearLoteConUnPreasiento = "contabilizar-preasiento";
         public const string Spr_RegenerarPreasiento = "regenerar-preasiento";
         public const string Spr_AnularEstimacionDirecta = "anular-estimacion";
+
+        public const string Uni_ImportarCatalogo = "importar-catalogo-unitarios";
+
+        public const string Juz_ImportarCatalogo = "importar-catalogo-juzgados";
+
+        public const string Mun_ImportarCatalogo = "importar-catalogo-municipios";
     }
     public static class enumParaQueNavegar
     {

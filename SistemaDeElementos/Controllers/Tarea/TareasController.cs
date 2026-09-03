@@ -92,6 +92,8 @@ namespace MVCSistemaDeElementos.Controllers
                     return null;
                 case eventosDeMf.Tar_CopiarTarea:
                     return null;
+                case eventosDeMf.Tar_CuandoRealizar:
+                    return null;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -138,6 +140,27 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 ApiController.PrepararError(e, r, "Error al copiar la tarea.");
+            }
+            return new JsonResult(r);
+        }
+
+        public JsonResult epCuandoRealizar()
+        {
+            var body = ApiController.LeerBody(HttpContext);
+            var r = new Resultado();
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                GestorDeTareas.CuandoRealizar(Contexto, body.parametros);
+                r.Mensaje = "Observaciones creadas";
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error al indicar cuándo se ha de realizar la tarea.");
             }
             return new JsonResult(r);
         }

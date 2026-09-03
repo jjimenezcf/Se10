@@ -537,21 +537,108 @@ namespace GestoresDeNegocio.Tarea
             if (!parametros.ContieneClave(nameof(CopiarTareaDto.Descripcion))) GestorDeErrores.Emitir("No se ha indicado la descripción de la tarea");
 
             var idTareaOrigen = (int)(long)parametros[nameof(CopiarTareaDto.IdElemento)];
-            var tarea = contexto.SeleccionarPorId<TareaDtm>(idTareaOrigen);
-            var tareaNueva = tarea.Copiar(contexto, parametros);
+            var t1 = contexto.SeleccionarPorId<TareaDtm>(idTareaOrigen);
+            var t2 = t1.Copiar(contexto, parametros);
 
             if (parametros.ContieneClave(nameof(CopiarTareaDto.ReferenciadaComo)))
             {
                 var referenciadaComo = parametros.LeerValor(nameof(CopiarTareaDto.ReferenciadaComo), enumTareaReferenciadaComo.Seleccionar);
                 if (referenciadaComo != enumTareaReferenciadaComo.Seleccionar)
-                    tareaNueva.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, idTareaOrigen).ToString(), new Dictionary<string, object>
+                {
+                    if (referenciadaComo == enumTareaReferenciadaComo.Copia)
                     {
-                        { ltrDeObservaciones.CreadaPorAdminSe, true }
-                    });
+                        t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> {{ ltrDeObservaciones.CreadaPorAdminSe, true }});
+                    }
+                    //else
+                    //if (referenciadaComo == enumTareaReferenciadaComo.Anterior)
+                    //{
+                    //    t1.CrearObservacion(contexto, enumTareaReferenciadaComo.Despues.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t2.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                    //    t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                    //}
+                    //else
+                    //if (referenciadaComo == enumTareaReferenciadaComo.Despues)
+                    //{
+                    //    t1.CrearObservacion(contexto, enumTareaReferenciadaComo.Anterior.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t2.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                    //    t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                    //}
+                }
             }
 
 
-            return tareaNueva.Id;
+            return t2.Id;
+        }
+
+        public static void CuandoRealizar(ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            if (!parametros.ContieneClave(nameof(CuandoRealizarDto.IdTareaEditada))) GestorDeErrores.Emitir("No se ha indicado la tarea editada");
+            if (!parametros.ContieneClave(nameof(CuandoRealizarDto.IdElemento))) GestorDeErrores.Emitir("No se ha indicado la tarea seleccionada");
+            if (!parametros.ContieneClave(nameof(CuandoRealizarDto.CuandoRealizar))) GestorDeErrores.Emitir("No se ha indicado cuándo se ha de realizar la tarea");
+
+            var idTareaEditada = (int)(long)parametros[nameof(CuandoRealizarDto.IdTareaEditada)];
+            var idTareaSeleccionada = (int)(long)parametros[nameof(CuandoRealizarDto.IdElemento)];
+
+            var tareaEditada = contexto.SeleccionarPorId<TareaDtm>(idTareaEditada);
+            var tareaSeleccionada = contexto.SeleccionarPorId<TareaDtm>(idTareaSeleccionada);
+
+            if (!tareaEditada.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeTareas> { enumEtapasDeTareas.TAR_Etapa_Inicial, enumEtapasDeTareas.TAR_Etapa_Asignada, enumEtapasDeTareas.TAR_Etapa_En_Espera }))
+                GestorDeErrores.Emitir($"Sólo las tareas en etapa '{enumEtapasDeTareas.TAR_Etapa_Inicial.Nombre(minusculas:true)}', '{enumEtapasDeTareas.TAR_Etapa_Asignada.Nombre(minusculas: true)}' o en '{enumEtapasDeTareas.TAR_Etapa_En_Espera.Nombre(minusculas: true)}' pueden indicar cuándo se han de realizar");
+
+            var cuandoRealizar = parametros.LeerValor(nameof(CuandoRealizarDto.CuandoRealizar), enumCuandoRealizar.Seleccionar);
+            if (cuandoRealizar == enumCuandoRealizar.Seleccionar) return;
+
+            string nombreEnLaTareaEditada;
+            string nombreEnLaTareaSeleccionada;
+            if (cuandoRealizar == enumCuandoRealizar.Anterior)
+            {
+                nombreEnLaTareaEditada = enumCuandoRealizar.Anterior.Descripcion();
+                nombreEnLaTareaSeleccionada = enumCuandoRealizar.Despues.Descripcion();
+            }
+            else
+            {
+                nombreEnLaTareaEditada = enumCuandoRealizar.Despues.Descripcion();
+                nombreEnLaTareaSeleccionada = enumCuandoRealizar.Anterior.Descripcion();
+            }
+
+            var tareaAnterior = cuandoRealizar == enumCuandoRealizar.Anterior ? tareaEditada : tareaSeleccionada;
+            var tareaPosterior = cuandoRealizar == enumCuandoRealizar.Anterior ? tareaSeleccionada : tareaEditada;
+
+            if (tareaPosterior.ArbolDeEjecucion(contexto).Any(t => t.Id == tareaAnterior.Id))
+                GestorDeErrores.Emitir($"No se puede indicar que la tarea '{tareaAnterior.Referencia}' se ha de ejecutar antes que '{tareaPosterior.Referencia}' porque se entraría en una secuencia recursiva de ejecución");
+
+            var cuerpoEnLaTareaEditada = enumNegocio.Tarea.ComponerUrlPorId(contexto, tareaSeleccionada.Id).ToString();
+            var cuerpoEnLaTareaSeleccionada = enumNegocio.Tarea.ComponerUrlPorId(contexto, tareaEditada.Id).ToString();
+
+            CrearOCorregirObservacionDeSecuencia(contexto, tareaEditada, nombreEnLaTareaEditada, cuerpoEnLaTareaEditada);
+            CrearOCorregirObservacionDeSecuencia(contexto, tareaSeleccionada, nombreEnLaTareaSeleccionada, cuerpoEnLaTareaSeleccionada);
+        }
+
+        // Si ya existe, para la misma tarea y el mismo cuerpo, una observación con el asunto opuesto (Anterior/Despues), se corrige esa
+        // observación en lugar de crear una nueva; esto cubre el caso de haberse equivocado al definir la secuencia de ejecución.
+        private static void CrearOCorregirObservacionDeSecuencia(ContextoSe contexto, TareaDtm tarea, string nombre, string cuerpo)
+        {
+            var nombreOpuesto = nombre == enumCuandoRealizar.Anterior.Descripcion()
+                ? enumCuandoRealizar.Despues.Descripcion()
+                : enumCuandoRealizar.Anterior.Descripcion();
+
+            var observacionACorregir = enumNegocio.Tarea.Observaciones(contexto)
+                .FirstOrDefault(o => o.IdElemento == tarea.Id && o.Descripcion == cuerpo && o.Nombre == nombreOpuesto);
+
+            if (observacionACorregir != null)
+            {
+                observacionACorregir.Nombre = nombre;
+                observacionACorregir.ModificarObservacion(contexto, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true }, { ltrDeObservaciones.ModificarAsunto, true } });
+                return;
+            }
+
+            ValidarQueNoExisteLaSecuencialidad(contexto, tarea, nombre);
+            tarea.CrearObservacion(contexto, nombre, cuerpo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true }, { ltrDeObservaciones.CreandoSecuencia, true } });
+        }
+
+        private static void ValidarQueNoExisteLaSecuencialidad(ContextoSe contexto, TareaDtm tarea, string nombreDeLaObservacion)
+        {
+            var yaExiste = enumNegocio.Tarea.Observaciones(contexto).Any(o => o.IdElemento == tarea.Id && o.Nombre == nombreDeLaObservacion);
+            if (yaExiste)
+                GestorDeErrores.Emitir($"La tarea '{tarea.Referencia}' ya tiene definida la secuencialidad de realización");
         }
 
         private string FormatearTotalesPorExpediente(List<TareaDtm> tareas)

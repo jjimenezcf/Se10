@@ -212,7 +212,7 @@ namespace ModeloDeDto.Tarea
         //----------------------------------------------------------------
         [IUPropiedad(
             Etiqueta = "La tarea original es:",
-            Ayuda = "Indica cómo actua la tarea original seleccionada",
+            Ayuda = "Indica cómo actua la tarea original seleccionada, como anterior, como siguiente o como copia",
             TipoDeControl = enumTipoControl.Enumerado,
             Tipo = typeof(enumTareaReferenciadaComo),
             GuardarEn = nameof(ReferenciadaComo),

@@ -13,14 +13,24 @@ namespace ServicioDeDatos.Tarea
 {
     public enum enumTareaReferenciadaComo
     {
-        [Description("Seleccionar")]
+        [Description("Seleccionar...")]
         Seleccionar,
+        //[Description("Antes que")]
+        //Anterior,
         [Description("Copiada de")]
         Copia,
-        [Description("Siguiente")]
-        Siguiente,
-        [Description("Anterior")]
-        Anterior
+        //[Description("Después de")]
+        //Despues
+    }
+
+    public enum enumCuandoRealizar
+    {
+        [Description("Seleccionar...")]
+        Seleccionar,
+        [Description("Antes que")]
+        Anterior,
+        [Description("Después de")]
+        Despues
     }
 
 

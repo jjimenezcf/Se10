@@ -14,6 +14,7 @@ using ServicioDeDatos.Ventas;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Utilidades;
 using static Gestor.Errores.GestorDeErrores;
 using static ServicioDeDatos.Elemento.Enumerados;
@@ -547,6 +548,48 @@ namespace GestorDeElementos.Extensores
             }
         }
         private static string DescripcioEvento(this TareaDtm tarea) => $"Se ha de realizar la tarea: {tarea.Expresion}";
+
+        // Devuelve, de forma recursiva, todas las tareas que se han de ejecutar después de la indicada (según las observaciones
+        // de secuencia creadas por 'Cuando realizar'), sin repetir tareas aunque se llegue a ellas por más de un camino.
+        public static List<TareaDtm> ArbolDeEjecucion(this TareaDtm tarea, ContextoSe contexto)
+        {
+            var arbol = new List<TareaDtm>();
+            var visitadas = new HashSet<int> { tarea.Id };
+            tarea.AgregarTareasSiguientesAlArbol(contexto, arbol, visitadas);
+            return arbol;
+        }
+
+        private static void AgregarTareasSiguientesAlArbol(this TareaDtm tarea, ContextoSe contexto, List<TareaDtm> arbol, HashSet<int> visitadas)
+        {
+            foreach (var siguiente in tarea.TareasSiguientesDirectas(contexto))
+            {
+                if (!visitadas.Add(siguiente.Id)) continue;
+                arbol.Add(siguiente);
+                siguiente.AgregarTareasSiguientesAlArbol(contexto, arbol, visitadas);
+            }
+        }
+
+        private static List<TareaDtm> TareasSiguientesDirectas(this TareaDtm tarea, ContextoSe contexto)
+        {
+            var nombreAntesQue = enumCuandoRealizar.Anterior.Descripcion();
+
+            var cuerposDeLasObservaciones = enumNegocio.Tarea.Observaciones(contexto)
+                .Where(o => o.IdElemento == tarea.Id && o.Nombre == nombreAntesQue)
+                .Select(o => o.Descripcion)
+                .ToList();
+
+            return cuerposDeLasObservaciones
+                .Select(cuerpo => cuerpo.IdDeLaTareaEnlazada())
+                .Where(id => id > 0)
+                .Select(id => contexto.SeleccionarPorId<TareaDtm>(id))
+                .ToList();
+        }
+
+        private static int IdDeLaTareaEnlazada(this string cuerpoDeLaObservacion)
+        {
+            var coincidencia = Regex.Match(cuerpoDeLaObservacion ?? "", @"[?&]id=(\d+)");
+            return coincidencia.Success ? int.Parse(coincidencia.Groups[1].Value) : 0;
+        }
 
     }
 }

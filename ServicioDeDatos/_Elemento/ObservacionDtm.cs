@@ -9,10 +9,12 @@ using Utilidades;
 namespace ServicioDeDatos.Elemento
 {
 
-    public class ltrDeObservaciones 
-    { 
+    public class ltrDeObservaciones
+    {
         public const string CreadaPorAdminSe = nameof(CreadaPorAdminSe);
         public const string PermitirSiTerminado = nameof(PermitirSiTerminado);
+        public const string ModificarAsunto = nameof(ModificarAsunto);
+        public const string CreandoSecuencia = nameof(CreandoSecuencia);
     }
 
     public class ObservacionDtm : RegistroConNombreDtm, IObservacion
@@ -162,15 +164,19 @@ namespace ServicioDeDatos.Elemento
             return registros;
         }
 
-        public static void Modificar(ContextoSe contexto, string esquemaTabla, int id, string descripcion)
+        public static void Modificar(ContextoSe contexto, string esquemaTabla, int id, string descripcion, string nombre = null)
         {
-            var sentencia = $@"update {esquemaTabla} 
+            var modificarAsunto = nombre != null;
+
+            var sentencia = $@"update {esquemaTabla}
                                set {ICampos.DESCRIPCION} = @{ICampos.DESCRIPCION}
+                                   {(modificarAsunto ? $", {ICampos.NOMBRE} = @{ICampos.NOMBRE}" : "")}
                                where {ICampos.ID} = @{ICampos.ID}";
 
             var parametrosSql = new Dictionary<string, object>();
             parametrosSql.Add($"@{ICampos.ID}", id);
             parametrosSql.Add($"@{ICampos.DESCRIPCION}", descripcion);
+            if (modificarAsunto) parametrosSql.Add($"@{ICampos.NOMBRE}", nombre);
 
             var consulta = new ConsultaSql<ObservacionDtm>(contexto, sentencia);
             consulta.EjecutarSentencia(new DynamicParameters(parametrosSql));

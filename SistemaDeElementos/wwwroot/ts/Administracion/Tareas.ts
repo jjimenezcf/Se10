@@ -31,6 +31,8 @@
 
         public get ModalCopiarTarea(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Administracion.Tareas.CopiarTarea) as HTMLDivElement; }
 
+        public get ModalCuandoRealizar(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Administracion.Tareas.CuandoRealizar) as HTMLDivElement; }
+
         constructor(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string) {
             super(idPanelMnt, idModalBorrar);
             this.crudDeCreacion = new CrudCreacionTarea(this, idPanelCreacion);
@@ -80,6 +82,14 @@
                     })
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
             }
+            else if (modal.id === this.ModalCuandoRealizar.id) {
+                ApiDePeticiones.EjecutarPeticionPost(this, this.Controlador, Ajax.EndPoint.Administracion.Tarea.CuandoRealizar, parametros, datosDeEntrada)
+                    .then((peticion) => {
+                        super.ModalDePedirDatos_Aceptar(modal);
+                        MensajesSe.Info(peticion.resultado.mensaje);
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+            }
             else super.ModalDePedirDatos_Aceptar(modal);
         }
 
@@ -89,6 +99,11 @@
             if (modal.id === this.ModalCopiarTarea.id) {
                 if (this.InfoSelector.Seleccionados.length === 1)
                     this.Tar_ProponerTareaParaCopiar(modal, this.InfoSelector.Seleccionados[0].Registro);
+            }
+            else if (modal.id === this.ModalCuandoRealizar.id) {
+                let idTareaEditada = ObtenerPropiedad(this.crudDeEdicion.Registro, literal.id);
+                let editorIdTareaEditada = ApiControl.BuscarEditor(modal, ltrPropiedades.Tarea.CuandoRealizar.IdTareaEditada) as HTMLInputElement;
+                editorIdTareaEditada.value = idTareaEditada.toString();
             }
         }
 
@@ -185,11 +200,29 @@
             ApiControl.ColSpan(this.PanelDeEditar, ltrPropiedades.Tarea.IdExpediente, idFactura === 0 ? 2 : 0);
             ApiControl.ColSpan(this.PanelDeEditar, ltrPropiedades.Tarea.Responsable, incColSpanDeResponsable);
 
+            if (this.EsGestor) {
+                let etapasDeLaTarea: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Tarea.Etapas);
+                let puedeIndicarCuandoRealizar =
+                    EstaElEnumerado(etapasDeLaTarea, enumEtapasDeTareas, enumEtapasDeTareas.TAR_Etapa_Inicial) ||
+                    EstaElEnumerado(etapasDeLaTarea, enumEtapasDeTareas, enumEtapasDeTareas.TAR_Etapa_Asignada) ||
+                    EstaElEnumerado(etapasDeLaTarea, enumEtapasDeTareas, enumEtapasDeTareas.TAR_Etapa_En_Espera);
+                ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Administracion.Tareas.CuandoRealizar, ltrMenus.enumOrigen.edicion, puedeIndicarCuandoRealizar);
+            }
         }
 
         public Expansor_TrasCargarAmpliacion(ampliacion: HTMLDivElement): void {
             super.Expansor_TrasCargarAmpliacion(ampliacion);
             if (this.EsLaAmpliacionDe(ampliacion, ltrAmpliaciones.tareas.planificacion)) this.Ampliaciones_BloquearControlesDePlanificacion();
+        }
+
+        public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
+            let datosDeEntrada: Parametros = new Parametros(peticion.DatosDeEntrada as Parametro[]);
+            let opcion = datosDeEntrada.ObtenerValorDeParametro(ltrMenus.opcion);
+            if (opcion === ltrMenus.eventosDeMf.Administracion.Tareas.CuandoRealizar) {
+                this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDeTareas).ModalCuandoRealizar.id, 0);
+                return true;
+            }
+            return super.DespuesDeProcesarOpcionMf(peticion);
         }
 
         private Ampliaciones_BloquearControlesDePlanificacion() {

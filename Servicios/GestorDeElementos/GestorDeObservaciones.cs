@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using Gestor.Errores;
 using GestorDeElementos.Extensores;
-using Microsoft.Win32;
 using ModeloDeDto.Negocio;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.SistemaDocumental;
+using ServicioDeDatos.Tarea;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -101,10 +101,10 @@ namespace GestorDeElementos
                 GestorDeErrores.Emitir($"La propiedad '{nameof(ObservacionDtm.Nombre)}' tiene una longitud de '{registro.Nombre.Length}', y ésta excede de '{IDominio.Longitud(IDominio.VARCHAR_250)}', longitud permitida en la base de datos.");
 
         }
-        protected override void Persistir(ObservacionDtm registro, ParametrosDeNegocio parametros)
+        protected override void Persistir(ObservacionDtm observacion, ParametrosDeNegocio parametros)
         {
             var idUsuario = parametros.Parametros.LeerValor(ltrDeObservaciones.CreadaPorAdminSe, false) ? Contexto.Administrador().Id : Contexto.DatosDeConexion.IdUsuario;
-            var elemento = (IElementoDtm)Negocio.LeerRegistro(Contexto, registro.IdElemento);
+            var elemento = (IElementoDtm)Negocio.LeerRegistro(Contexto, observacion.IdElemento);
             var idTipo = Negocio.UsaTipo() ? ((IUsaTipo)elemento).IdTipo : 0;
             var permitirSiTerminado = parametros.Parametros.LeerValor(ltrDeObservaciones.PermitirSiTerminado, false) || Negocio.PermitirObservacionesSiTerminado(idTipo, Contexto);
             if (Negocio.UsaEstado() && !permitirSiTerminado)
@@ -134,23 +134,30 @@ namespace GestorDeElementos
 
             if (parametros.Operacion == enumTipoOperacion.Insertar)
             {
-                var ultimaCreada = ObservacionSql.UltimaCreada(Contexto, _Tabla, registro.IdElemento);
-                if (ultimaCreada != null && registro.Nombre == ultimaCreada.Nombre && ultimaCreada.Descripcion == registro.Descripcion)
+                if (Negocio == enumNegocio.Tarea
+                    && !parametros.Parametros.LeerValor(ltrDeObservaciones.CreandoSecuencia, false)
+                    && (observacion.Nombre == enumCuandoRealizar.Anterior.Descripcion() || observacion.Nombre == enumCuandoRealizar.Despues.Descripcion()))
+                    GestorDeErrores.Emitir("La información de secuencia sólo se puede indicar usando la opción de menú 'Cuando realizar'");
+
+                var ultimaCreada = ObservacionSql.UltimaCreada(Contexto, _Tabla, observacion.IdElemento);
+                if (ultimaCreada != null && observacion.Nombre == ultimaCreada.Nombre && ultimaCreada.Descripcion == observacion.Descripcion)
                 {
                     GestorDeErrores.Emitir($"Ya ha creado con fecha '{ultimaCreada.CreadaEl.ToString(extFechas.DiaHora)}' una observación para el mismo elemento con la misma información");
                 }
-                registro.Id = ObservacionSql.Insertar(Contexto, _Tabla, registro.IdElemento, registro.Nombre, registro.Descripcion, idUsuario).Id;
+                observacion.Id = ObservacionSql.Insertar(Contexto, _Tabla, observacion.IdElemento, observacion.Nombre, observacion.Descripcion, idUsuario).Id;
                 return;
             }
             if (parametros.Operacion == enumTipoOperacion.Modificar)
             {
-                if (registro.IdCreador != Contexto.DatosDeConexion.IdUsuario)
+                if (observacion.IdCreador != idUsuario)
                     GestorDeErrores.Emitir("No se pueden modificar las observaciones no añadidas por Ud.");
 
-                if (Negocio.UsaTrazas()) parametros.registroEnBd = ObservacionSql.LeerPorId(Contexto, _Tabla, registro.Id);
-                ObservacionSql.Modificar(Contexto, _Tabla, registro.Id, registro.Descripcion);
+                if (Negocio.UsaTrazas()) parametros.registroEnBd = ObservacionSql.LeerPorId(Contexto, _Tabla, observacion.Id);
 
-                if (Negocio.UsaTrazas()) GestorDeTrazas.ObservacionModificada(Contexto, Negocio, registro, (ObservacionDtm)parametros.registroEnBd);
+                var modificarAsunto = parametros.Parametros.LeerValor(ltrDeObservaciones.ModificarAsunto, false);
+                ObservacionSql.Modificar(Contexto, _Tabla, observacion.Id, observacion.Descripcion, modificarAsunto ? observacion.Nombre : null);
+
+                if (Negocio.UsaTrazas()) GestorDeTrazas.ObservacionModificada(Contexto, Negocio, observacion, (ObservacionDtm)parametros.registroEnBd);
                 return;
             }
             GestorDeErrores.Emitir($"La operacion {parametros.Operacion} no está permitida para las observaciones del negocio {Negocio.ToNombre()}");

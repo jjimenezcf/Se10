@@ -61,6 +61,9 @@ namespace MVCSistemaDeElementos.Descriptores
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CopiarTareaDto), eventosDeMf.Tar_CopiarTarea, "Seleccionar tarea a copiar"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Tar_CopiarTarea}' accion-menu='{eventosDeMf.Tar_CopiarTarea}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Copiar tarea</li>");
 
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CuandoRealizarDto), eventosDeMf.Tar_CuandoRealizar, "Cuándo realizar la tarea"));
+            Editor.IncluirMfIndividual("Cuándo realizar", eventosDeMf.Tar_CuandoRealizar, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
+
             modalesParaPedirDatos.Add(new ModalDeTotales(this, typeof(TotalesDeTareas), eventosDeMf.Totalizador_Mostrar, $"Mostrar los totales de la selección"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Totalizador_Mostrar}' accion-menu='{eventosDeMf.Totalizador_Mostrar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Mostrar totales</li>");
 

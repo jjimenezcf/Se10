@@ -1641,7 +1641,8 @@ const Ajax = {
         Administracion: {
             Tarea: {
                 Copiar: 'epCopiarUnaTarea',
-                Renombrar: 'epRenombarUnaFar'
+                Renombrar: 'epRenombarUnaFar',
+                CuandoRealizar: 'epCuandoRealizar'
             }
         },
         Gasto: {
@@ -3098,6 +3099,9 @@ const ltrPropiedades = {
         },
         VinculadoA: {
             IdExpediente: 'IdExpediente'
+        },
+        CuandoRealizar: {
+            IdTareaEditada: 'IdTareaEditada'
         }
     },
     Expediente: {
@@ -4007,6 +4011,7 @@ const ltrMenus = {
             Tareas: {
                 IrAPartesTr: 'ir-a-partes-trabajo',
                 CopiarTarea: 'copiar-tarea',
+                CuandoRealizar: 'cuando-realizar',
             },
             Expedientes: {
                 VincularRegistroEntrada: 'vincular-re',

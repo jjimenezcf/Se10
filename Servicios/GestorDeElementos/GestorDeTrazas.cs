@@ -129,16 +129,24 @@ namespace GestorDeElementos
 
         internal static void ObservacionModificada(ContextoSe contexto, enumNegocio negocio, ObservacionDtm nueva, ObservacionDtm anterior)
         {
-            if (anterior.Descripcion != nueva.Descripcion)
+            var asuntoModificado = anterior.Nombre != nueva.Nombre;
+            var cuerpoModificado = anterior.Descripcion != nueva.Descripcion;
+
+            if (!asuntoModificado && !cuerpoModificado) return;
+
+            var queSeHaModificado = asuntoModificado && cuerpoModificado
+                ? "el asunto y el cuerpo"
+                : asuntoModificado
+                ? "el asunto"
+                : "el cuerpo";
+
+            var traza = new TrazaDtm
             {
-                var traza = new TrazaDtm
-                {
-                    IdElemento = nueva.IdElemento,
-                    Nombre = "Observación modificada",
-                    Descripcion = $@"Asunto: {anterior.Nombre}{Environment.NewLine}Descripción: {anterior.Descripcion}"
-                };
-                Gestor(contexto, negocio).PersistirRegistro(traza, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
-            }
+                IdElemento = nueva.IdElemento,
+                Nombre = "Observación modificada",
+                Descripcion = $@"Se ha modificado {queSeHaModificado}{Environment.NewLine}Asunto: {anterior.Nombre}{Environment.NewLine}Descripción: {anterior.Descripcion}"
+            };
+            Gestor(contexto, negocio).PersistirRegistro(traza, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
         }
         internal static void Bloquear(ContextoSe contexto, enumNegocio negocio, IRegistro registro)
         {
