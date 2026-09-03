@@ -148,7 +148,7 @@ namespace Utilidades
                 while ((bool)trazasAbiertas.ContainsKey(rutaFichero))
                 {
                     contadorEspera += 1;
-                    rutaFichero = $"{Path.GetDirectoryName(rutaFichero)}\\{Path.GetFileNameWithoutExtension(rutaFichero)}_{contadorEspera}{Path.GetExtension(rutaFichero)}";
+                    rutaFichero = Path.Combine(Path.GetDirectoryName(rutaFichero), $"{Path.GetFileNameWithoutExtension(rutaFichero)}_{contadorEspera}{Path.GetExtension(rutaFichero)}");
                 }
             }
             while (!trazasAbiertas.TryAdd(rutaFichero, true));
@@ -165,7 +165,7 @@ namespace Utilidades
                 catch
                 {
                     contadorEspera += 1;
-                    rutaFichero = $"{Path.GetDirectoryName(rutaFichero)}\\{Path.GetFileNameWithoutExtension(rutaFichero)}_{contadorEspera}{Path.GetExtension(rutaFichero)}";
+                    rutaFichero = Path.Combine(Path.GetDirectoryName(rutaFichero), $"{Path.GetFileNameWithoutExtension(rutaFichero)}_{contadorEspera}{Path.GetExtension(rutaFichero)}");
                     System.Threading.Thread.Sleep(5);
                 }
             }

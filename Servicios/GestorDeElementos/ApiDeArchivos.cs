@@ -61,8 +61,8 @@ namespace GestorDeElementos
 
         public static string UrlDeArchivo(string archivo)
         {
-            var rutaUrlBase = _rutaDeDescarga.Replace(@".\wwwroot\", "/"); // --> "/Archivos"
-            string urlArchivoRelativa = $@"{rutaUrlBase}/{Path.GetFileName(archivo)}";
+            var rutaUrlBase = $"/{Path.GetFileName(_rutaDeDescarga)}"; // --> "/archivos"
+            string urlArchivoRelativa = $"{rutaUrlBase}/{Path.GetFileName(archivo)}";
             return urlArchivoRelativa;
         }
 
@@ -157,11 +157,12 @@ namespace GestorDeElementos
         {
             var sinc = ArchivoSincronizadoSql.Leer(contexto, archivo.Id, errorSiNoHay: false);
             var rutaConFichero = Path.Combine(directorio, archivo.Nombre);
+            var rutaOrigen = Path.Combine(archivo.AlmacenadoEn, $"{archivo.Id}.{enumExtensiones.se}");
             var copiado = false;
-            if (File.Exists($@"{archivo.AlmacenadoEn}\{archivo.Id}.se"))
+            if (File.Exists(rutaOrigen))
                 try
                 {
-                    File.Copy($@"{archivo.AlmacenadoEn}\{archivo.Id}.se", rutaConFichero, true);
+                    File.Copy(rutaOrigen, rutaConFichero, true);
                     copiado = true;
                     var info = ObtenerInformacionDelFichero(archivo.Id, rutaConFichero);
                     info.Propietario = contexto.DatosDeConexion.Login;
@@ -267,7 +268,9 @@ namespace GestorDeElementos
             if (!rutaDeDescarga.IsNullOrEmpty() && !Directory.Exists(rutaDeDescarga))
                 Directory.CreateDirectory(rutaDeDescarga);
 
-            var ficheroParaDescargar = $@"{(rutaDeDescarga.IsNullOrEmpty() ? _rutaDeDescarga : rutaDeDescarga)}\{(incluirTick ? DateTime.Now.Ticks : "")}{Path.GetFileName(ficheroConRutaEnLaGd)}";
+            var directorioDestino = rutaDeDescarga.IsNullOrEmpty() ? _rutaDeDescarga : rutaDeDescarga;
+            var nombreConTick = $"{(incluirTick ? DateTime.Now.Ticks : "")}{Path.GetFileName(ficheroConRutaEnLaGd)}";
+            var ficheroParaDescargar = Path.Combine(directorioDestino, nombreConTick);
 
             if (!File.Exists(ficheroConRutaEnLaGd))
                 return _noEncontrado;
@@ -344,7 +347,7 @@ namespace GestorDeElementos
 
         private static string PdfToImagen(ContextoSe contexto, string rutaConFichero, string almacenadoEn, int idArchivo)
         {
-            var ficheroPng = $@"{almacenadoEn}\{idArchivo}.png";
+            var ficheroPng = Path.Combine(almacenadoEn, $"{idArchivo}.png");
             try
             {
                 var settings = new MagickReadSettings();
@@ -776,7 +779,7 @@ namespace GestorDeElementos
 
             elemento.Archivo = contexto.SeleccionarPorId<ArchivoDtm>((int)elemento.IdArchivo, aplicarJoin);
 
-            var fichero = $@"{elemento.Archivo.AlmacenadoEn}\{elemento.IdArchivo}.se";
+            var fichero = Path.Combine(elemento.Archivo.AlmacenadoEn, $"{elemento.IdArchivo}.{enumExtensiones.se}");
             if (!File.Exists(fichero))
                 GestorDeErrores.Emitir($"Elemento '{(typeof(T).ImplementaUsaReferencia() ? ((IUsaReferencia)elemento).Referencia : ((INombre)elemento).Nombre)}' no se ha localizado en la ruta '{elemento.Archivo.AlmacenadoEn}'");
 

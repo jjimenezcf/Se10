@@ -1058,7 +1058,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             }
 
             ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
-            var rutaConFichero = $@"{GestorDeVariables.RutaDeDescarga}\{fichero.FileName}";
+            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, fichero.FileName);
 
             using (var stream = new FileStream(rutaConFichero, FileMode.Create))
             {
@@ -1122,7 +1122,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             }
 
             ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
-            var filePath = $@"{GestorDeVariables.RutaDeDescarga}\{file.FileName}";
+            var filePath = Path.Combine(GestorDeVariables.RutaDeDescarga, file.FileName);
 
             await using (var stream = new FileStream(filePath, FileMode.Create))
             {
@@ -1163,7 +1163,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
 
     private IActionResult GetFileStreamResult(int id, ArchivoDtm file)
     {
-        var filePath = $@"{file.AlmacenadoEn}\{id}.se";
+        var filePath = Path.Combine(file.AlmacenadoEn, $"{id}.se");
         if (!System.IO.File.Exists(filePath))
         {
             return NotFound();

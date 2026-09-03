@@ -58,7 +58,8 @@ public class FirmadorXadesService
         }
 
         // Configuración de argumentos usando el Classpath para cargar el JAR y la carpeta externa 'lib/*'
-        string classPath = "\"FirmaDss.jar;lib/*\"";
+        // Path.PathSeparator es ';' en Windows y ':' en Linux/Mac
+        string classPath = $"\"FirmaDss.jar{Path.PathSeparator}lib/*\"";
         string argumentos = $"-cp {classPath} Main \"{xmlOrigen}\" \"{xmlDestino}\" \"{rutaCertificado}\" \"{passwordCertificado}\"";
 
         ProcessStartInfo startInfo = new ProcessStartInfo

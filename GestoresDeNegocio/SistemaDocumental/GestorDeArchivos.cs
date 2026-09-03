@@ -193,7 +193,7 @@ namespace GestoresDeNegocio.SistemaDocumental
 
         private void DespuesDeEliminarArchivo(ArchivoDtm archivo, ParametrosDeNegocio parametros)
         {
-            if (File.Exists($@"{archivo.AlmacenadoEn}\{archivo.Id}.se"))
+            if (File.Exists(Path.Combine(archivo.AlmacenadoEn, $"{archivo.Id}.{enumExtensiones.se}")))
                 ServidorDocumental.EliminarArchivo(Contexto, archivo.Id, $"{archivo.AlmacenadoEn}");
 
             if (!((string)parametros.Parametros.LeerValor(nameof(ArchivoSincronizadoDtm.Ruta), "")).IsNullOrEmpty())

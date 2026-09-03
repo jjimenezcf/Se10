@@ -237,13 +237,13 @@ namespace GestoresDeNegocio.SistemaDocumental
                 {
                     if (nodo.Id == carpeta.IdPadre)
                     {
-                        nombre = $"{nodo.Nombre}\\{nombre}";
+                        nombre = Path.Combine(nodo.Nombre, nombre);
                         carpeta = nodo;
                         break;
                     }
                 }
             }
-            return $"{rutaBase}\\{nombre}";
+            return Path.Combine(rutaBase, nombre);
         }
         internal static string ObtenerRuta(ContextoSe contexto, string rutaBase, CarpetaDtm carpeta)
         {
@@ -251,10 +251,10 @@ namespace GestoresDeNegocio.SistemaDocumental
             while (carpeta.IdPadre != null)
             {
                 var padre = LeerRegistroPorId(contexto, (int)carpeta.IdPadre);
-                nombre = $"{padre.Nombre}\\{nombre}";
+                nombre = Path.Combine(padre.Nombre, nombre);
                 carpeta = padre;
             }
-            return $"{rutaBase}\\{nombre}";
+            return Path.Combine(rutaBase, nombre);
         }
 
         private static int CrearObtenerCarpeta(GestorDeCarpetas gestor, int idArchivador, int idCarpetaPadre, string directorio)

@@ -35,7 +35,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             if (ruta.IsNullOrEmpty()) ruta = GestorDeVariables.RutaDeDescarga;
             if (!Directory.Exists(ruta))
                 Directory.CreateDirectory(ruta);
-            var rutaConFichero = $@"{ruta}\{nombre}";
+            var rutaConFichero = Path.Combine(ruta, nombre);
             //if (File.Exists(Path.Combine(ruta, nombre)))
             //    throw new Exception($"El {rutaConFichero} fichero ya existe");
             var file = File.Create(rutaConFichero);
@@ -305,7 +305,7 @@ namespace GestoresDeNegocio.SistemaDocumental
         {
             try
             {
-                File.Delete($@"{almacenadoEn}\{id}.se");
+                File.Delete(Path.Combine(almacenadoEn, $"{id}.se"));
             }
             catch (Exception exc)
             {
@@ -400,7 +400,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             var contador = 1;
             while (true)
             {
-                var nuevoNombre = Path.Combine($@"{ruta}\{nombre}_{contador}{ext}");
+                var nuevoNombre = Path.Combine(ruta, $"{nombre}_{contador}{ext}");
                 if (!File.Exists(nuevoNombre) && anexados.Where(x => x.Nombre.Equals($@"{nombre}_{contador}{ext}", StringComparison.CurrentCultureIgnoreCase)).Count() == 0)
                 {
                     File.Move(rutaConFichero, nuevoNombre);
@@ -805,7 +805,7 @@ namespace GestoresDeNegocio.SistemaDocumental
         {
             string ruta = GestorDeVariables.RutaDeExportaciones;
             var fecha = DateTime.Now;
-            string rutaDeExportacion = $@"{ruta}\{fecha.Year}-{fecha.Month}-{fecha.Day}\{contexto.DatosDeConexion.Login}";
+            string rutaDeExportacion = Path.Combine(ruta, $"{fecha.Year}-{fecha.Month}-{fecha.Day}", contexto.DatosDeConexion.Login);
             if (!Directory.Exists(rutaDeExportacion))
                 Directory.CreateDirectory(rutaDeExportacion);
             return rutaDeExportacion;

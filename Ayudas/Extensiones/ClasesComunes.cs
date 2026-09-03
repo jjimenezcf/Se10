@@ -197,7 +197,7 @@ namespace Utilidades
                 }
 
                 cache[tipo.FullName] = new List<PropiedaJson>();
-                var nombre = $@"{rutaFichero}\{tipo.Name}.json";
+                var nombre = Path.Combine(rutaFichero, $"{tipo.Name}.json");
 
                 if (File.Exists(nombre))
                 {
