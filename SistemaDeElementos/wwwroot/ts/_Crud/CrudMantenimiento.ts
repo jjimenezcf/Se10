@@ -1167,6 +1167,12 @@
         }
         private _contenedorDeFichas: HTMLDivElement = null;
 
+        // si splitter/div-graficos ya estaban visibles (selección con detalle abierto) antes
+        // de pulsar por primera vez el botón de fichas. Al volver a la tabla: si esto es false
+        // se fuerza a ocultarlos de nuevo (aunque EditarEnPanelDeGraficos los haya vuelto a
+        // mostrar por haber una ficha seleccionada); si es true, se dejan como estén.
+        private _graficosVisiblesAntesDeAlternarFichas: boolean = false;
+
         // El botón alterna entre: Tabla -> Fichas por Estado -> Fichas por Tipo ->
         // (si UsaPrioridad) Fichas por Prioridad -> (si UsaProveedor) Fichas por Proveedor -> Tabla.
         // Los pasos entre agrupaciones de fichas no recargan del servidor, solo reagrupan la
@@ -1239,6 +1245,12 @@
             this._vistaDeFichasActiva = true;
             this._propiedadDeAgrupacionDeFichas = propiedadDeAgrupacionInicial;
             if (Definido(this.IconoVistaDeFichas)) ApiControl.IncluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
+
+            // snapshot de cómo estaban splitter/div-graficos justo antes de entrar en fichas,
+            // para poder restaurar ese estado al volver a la tabla (ver DesactivarVistaDeFichas)
+            this._graficosVisiblesAntesDeAlternarFichas = Definido(this.ContenedorDeGraficos)
+                && !this.ContenedorDeGraficos.classList.contains(ltrCss.divNoVisible);
+
             ApiControl.IncluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
             if (Definido(this.Splitter)) ApiControl.IncluirCss(this.Splitter, ltrCss.divNoVisible);
             if (Definido(this.ContenedorDeGraficos)) ApiControl.IncluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
@@ -1268,6 +1280,17 @@
             if (EsDispositvoMovil())
                 return;
             this.EditarEnPanelDeGraficos(this.InfoSelector.Cantidad > 0);
+
+            // si splitter/div-graficos no estaban visibles antes de entrar en fichas, se
+            // fuerza a que sigan ocultos aunque EditarEnPanelDeGraficos los haya mostrado por
+            // haber una ficha seleccionada; si sí estaban visibles, se dejan como han quedado.
+            // Se reutiliza OcultarPanelDeGraficos (no un ocultado manual) porque además de
+            // esconder splitter/graficos y recalcular el ancho, sincroniza el botón
+            // menu-de-detalle (quita menu-de-detalle-visible, pone menu-de-detalle-oculto) para
+            // que no se quede mostrando "visible" mientras el panel está realmente oculto.
+            if (!this._graficosVisiblesAntesDeAlternarFichas) {
+                this.OcultarPanelDeGraficos();
+            }
         }
 
         // el title inicial ya lo renderiza el servidor con el plural correcto del negocio
