@@ -232,6 +232,35 @@ namespace ModeloDeDto.Tarea
 
         [IUPropiedad(Visible = false)]
         public enumDurabilidad? Medido { get; set; }
+
+        //------------------------------------------------------------------------------------------------------
+        [IUPropiedad(
+           TamanoFijo = "14em"
+         , Etiqueta = "Realizar la tarea seleccionada despues de la indicada"
+         , EtiquetaGrid = "Después de"
+         , VisibleEnEdicion = false
+         , TipoDeControl = enumTipoControl.Referencia
+         , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_AbrirTareaAnterior) + "(numeroDeFila)"
+         , Alineada = enumAliniacion.izquierda)]
+        public string DespesDe { get; set; }
+
+        [IUPropiedad(Etiqueta = "Id de la tarea anterior", Visible = false)]
+        public int? IdTareaAnterior { get; set; }
+
+
+        //------------------------------------------------------------------------------------------------------
+        [IUPropiedad(
+           TamanoFijo = "14em"
+         , Etiqueta = "Realizar la tarea seleccionada antes que la indicada"
+         , EtiquetaGrid = "Antes que"
+         , VisibleEnEdicion = false
+         , TipoDeControl = enumTipoControl.Referencia
+         , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_AbrirTareaPosterior) + "(numeroDeFila)"
+         , Alineada = enumAliniacion.izquierda)]
+        public string AntesQue { get; set; }
+
+        [IUPropiedad(Etiqueta = "Id de la tarea posterior", Visible = false)]
+        public int? IdTareaPosterior { get; set; }
     }
 
 

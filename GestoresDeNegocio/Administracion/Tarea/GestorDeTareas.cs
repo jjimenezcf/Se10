@@ -88,6 +88,8 @@ namespace GestoresDeNegocio.Tarea
             consulta = consulta.FiltroSiHayDependenciaDe(filtros, filtrarPor: ltrDeUnaTarea.IdResponsable, filtroDeAsociacion: ltrDeUnaTarea.Asignacion, parametros, aplicarFiltroDeEstado: true);
             consulta = consulta.FiltroPorPrioridad(filtros);
             consulta = consulta.FiltroConPrioridad(filtros);
+            consulta = consulta.FiltroPorEtapa(filtros);
+            consulta = consulta.ExcluirCuandoRealizar(Contexto, filtros);
             return consulta;
         }
 
@@ -286,7 +288,7 @@ namespace GestoresDeNegocio.Tarea
             if (parametros.CargarLista)
                 return;
 
-            if (parametros.Peticion == enumPeticion.epLeerPorId)
+            if (parametros.LeerPorId)
             {
                 var expedientes = tarea.Vinculados<ExpedienteDtm>(Contexto);
                 if (expedientes.Count == 1)
@@ -302,21 +304,40 @@ namespace GestoresDeNegocio.Tarea
 
                 elemento.Prioridad = tarea.Prioridad == null ? enumPrioridad.NoDefinida : ((enumPrioridad)tarea.Prioridad);
             }
-
-            if (parametros.LeerDatosParaElGridOParaExportar && parametros.ColumnasDelGrid.Any(item => item == nameof(elemento.Durabilidad).ToLowerInvariant() ||
-                                                        item == nameof(elemento.Planificada).ToLowerInvariant() ||
-                                                        item == nameof(elemento.Ejecutada).ToLowerInvariant()))
-
+            else if (parametros.LeerDatosParaElGridOParaExportar)
             {
-                var planificacion = elemento.UsaPlanificacion ? tarea.Planificacion(Contexto, errorSiNoHay: false) : null;
-                if (planificacion is not null)
+
+                var tareaAnterior = tarea.TareasAnteriores(Contexto)?.FirstOrDefault();
+                if (tareaAnterior != null)
                 {
-                    elemento.Planificada = planificacion.PlfDeInicio?.ToString("dd-MM-yyyy") + " - " + planificacion.PlfDeFin?.ToString("dd-MM-yyyy");
-                    elemento.Ejecutada = planificacion.Iniciada?.ToString("dd-MM-yyyy") + " - " + planificacion.Finalizada?.ToString("dd-MM-yyyy");
-                    elemento.Durabilidad = planificacion.Duracion?.Formatear() + " - " + planificacion.MedidoEn?.ToString();
+                    elemento.DespesDe = tareaAnterior.Referencia;
+                    elemento.IdTareaAnterior = tareaAnterior.Id;
                 }
 
+                var tareaPosterior = tarea.TareasPosteriores(Contexto)?.FirstOrDefault();
+                if (tareaPosterior != null)
+                {
+                    elemento.AntesQue = tareaPosterior.Referencia;
+                    elemento.IdTareaPosterior = tareaPosterior.Id;
+                }
+
+
+                if (parametros.ColumnasDelGrid.Any(item => item == nameof(elemento.Durabilidad).ToLowerInvariant() ||
+                                            item == nameof(elemento.Planificada).ToLowerInvariant() ||
+                                            item == nameof(elemento.Ejecutada).ToLowerInvariant()))
+
+                {
+                    var planificacion = elemento.UsaPlanificacion ? tarea.Planificacion(Contexto, errorSiNoHay: false) : null;
+                    if (planificacion is not null)
+                    {
+                        elemento.Planificada = planificacion.PlfDeInicio?.ToString("dd-MM-yyyy") + " - " + planificacion.PlfDeFin?.ToString("dd-MM-yyyy");
+                        elemento.Ejecutada = planificacion.Iniciada?.ToString("dd-MM-yyyy") + " - " + planificacion.Finalizada?.ToString("dd-MM-yyyy");
+                        elemento.Durabilidad = planificacion.Duracion?.Formatear() + " - " + planificacion.MedidoEn?.ToString();
+                    }
+
+                }
             }
+
 
             if (parametros.CargarGridDeRelacion && parametros.Filtros.Any(x => x.Clausula == ltrDeUnaTarea.IdFacturaEmt) && tarea.IdFacturaEmt.HasValue)
             {
@@ -547,7 +568,7 @@ namespace GestoresDeNegocio.Tarea
                 {
                     if (referenciadaComo == enumTareaReferenciadaComo.Copia)
                     {
-                        t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> {{ ltrDeObservaciones.CreadaPorAdminSe, true }});
+                        t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
                     }
                     //else
                     //if (referenciadaComo == enumTareaReferenciadaComo.Anterior)
@@ -571,74 +592,134 @@ namespace GestoresDeNegocio.Tarea
         public static void CuandoRealizar(ContextoSe contexto, Dictionary<string, object> parametros)
         {
             if (!parametros.ContieneClave(nameof(CuandoRealizarDto.IdTareaEditada))) GestorDeErrores.Emitir("No se ha indicado la tarea editada");
-            if (!parametros.ContieneClave(nameof(CuandoRealizarDto.IdElemento))) GestorDeErrores.Emitir("No se ha indicado la tarea seleccionada");
-            if (!parametros.ContieneClave(nameof(CuandoRealizarDto.CuandoRealizar))) GestorDeErrores.Emitir("No se ha indicado cuándo se ha de realizar la tarea");
 
-            var idTareaEditada = (int)(long)parametros[nameof(CuandoRealizarDto.IdTareaEditada)];
-            var idTareaSeleccionada = (int)(long)parametros[nameof(CuandoRealizarDto.IdElemento)];
+            var idTareaEditada = parametros.LeerValor<int>(nameof(CuandoRealizarDto.IdTareaEditada));
+            var idTareaAnterior = parametros.LeerValor(nameof(CuandoRealizarDto.IdTareaAnterior), 0);
+            var idTareaPosterior = parametros.LeerValor(nameof(CuandoRealizarDto.IdTareaPosterior), 0);
+
+            if (idTareaAnterior <= 0 && idTareaPosterior <= 0)
+                GestorDeErrores.Emitir("No se ha indicado ninguna tarea anterior ni posterior");
+
+            if (idTareaAnterior > 0 && idTareaAnterior == idTareaPosterior)
+                GestorDeErrores.Emitir("No se puede indicar la misma tarea como anterior y como posterior");
 
             var tareaEditada = contexto.SeleccionarPorId<TareaDtm>(idTareaEditada);
-            var tareaSeleccionada = contexto.SeleccionarPorId<TareaDtm>(idTareaSeleccionada);
 
             if (!tareaEditada.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeTareas> { enumEtapasDeTareas.TAR_Etapa_Inicial, enumEtapasDeTareas.TAR_Etapa_Asignada, enumEtapasDeTareas.TAR_Etapa_En_Espera }))
-                GestorDeErrores.Emitir($"Sólo las tareas en etapa '{enumEtapasDeTareas.TAR_Etapa_Inicial.Nombre(minusculas:true)}', '{enumEtapasDeTareas.TAR_Etapa_Asignada.Nombre(minusculas: true)}' o en '{enumEtapasDeTareas.TAR_Etapa_En_Espera.Nombre(minusculas: true)}' pueden indicar cuándo se han de realizar");
+                GestorDeErrores.Emitir($"Sólo las tareas en etapa '{enumEtapasDeTareas.TAR_Etapa_Inicial.Nombre(minusculas: true)}', '{enumEtapasDeTareas.TAR_Etapa_Asignada.Nombre(minusculas: true)}' o en '{enumEtapasDeTareas.TAR_Etapa_En_Espera.Nombre(minusculas: true)}' pueden indicar cuándo se han de realizar");
 
-            var cuandoRealizar = parametros.LeerValor(nameof(CuandoRealizarDto.CuandoRealizar), enumCuandoRealizar.Seleccionar);
-            if (cuandoRealizar == enumCuandoRealizar.Seleccionar) return;
+            if (idTareaAnterior > 0)
+                EnlazarSecuencia(contexto, contexto.SeleccionarPorId<TareaDtm>(idTareaAnterior), tareaEditada);
 
-            string nombreEnLaTareaEditada;
-            string nombreEnLaTareaSeleccionada;
-            if (cuandoRealizar == enumCuandoRealizar.Anterior)
-            {
-                nombreEnLaTareaEditada = enumCuandoRealizar.Anterior.Descripcion();
-                nombreEnLaTareaSeleccionada = enumCuandoRealizar.Despues.Descripcion();
-            }
-            else
-            {
-                nombreEnLaTareaEditada = enumCuandoRealizar.Despues.Descripcion();
-                nombreEnLaTareaSeleccionada = enumCuandoRealizar.Anterior.Descripcion();
-            }
+            if (idTareaPosterior > 0)
+                EnlazarSecuencia(contexto, tareaEditada, contexto.SeleccionarPorId<TareaDtm>(idTareaPosterior));
+        }
 
-            var tareaAnterior = cuandoRealizar == enumCuandoRealizar.Anterior ? tareaEditada : tareaSeleccionada;
-            var tareaPosterior = cuandoRealizar == enumCuandoRealizar.Anterior ? tareaSeleccionada : tareaEditada;
-
-            if (tareaPosterior.ArbolDeEjecucion(contexto).Any(t => t.Id == tareaAnterior.Id))
+        // Enlaza 'tareaAnterior' y 'tareaPosterior' como secuencia de ejecución, creando la observación correspondiente en cada una.
+        private static void EnlazarSecuencia(ContextoSe contexto, TareaDtm tareaAnterior, TareaDtm tareaPosterior)
+        {
+            if (tareaPosterior.ArbolDeRealizacionPosterior(contexto).Any(t => t.Id == tareaAnterior.Id))
                 GestorDeErrores.Emitir($"No se puede indicar que la tarea '{tareaAnterior.Referencia}' se ha de ejecutar antes que '{tareaPosterior.Referencia}' porque se entraría en una secuencia recursiva de ejecución");
 
-            var cuerpoEnLaTareaEditada = enumNegocio.Tarea.ComponerUrlPorId(contexto, tareaSeleccionada.Id).ToString();
-            var cuerpoEnLaTareaSeleccionada = enumNegocio.Tarea.ComponerUrlPorId(contexto, tareaEditada.Id).ToString();
+            var cuerpoEnLaAnterior = enumNegocio.Tarea.ComponerUrlPorId(contexto, tareaPosterior.Id).ToString();
+            var cuerpoEnLaPosterior = enumNegocio.Tarea.ComponerUrlPorId(contexto, tareaAnterior.Id).ToString();
 
-            CrearOCorregirObservacionDeSecuencia(contexto, tareaEditada, nombreEnLaTareaEditada, cuerpoEnLaTareaEditada);
-            CrearOCorregirObservacionDeSecuencia(contexto, tareaSeleccionada, nombreEnLaTareaSeleccionada, cuerpoEnLaTareaSeleccionada);
+            CrearOCorregirObservacionDeSecuencia(contexto, tareaAnterior, tareaPosterior, enumCuandoRealizar.Anterior.Descripcion(), cuerpoEnLaAnterior);
+            CrearOCorregirObservacionDeSecuencia(contexto, tareaPosterior, tareaAnterior, enumCuandoRealizar.Despues.Descripcion(), cuerpoEnLaPosterior);
+
+            IgualarPrioridadDeLaAnteriorSiLaPosteriorEsMasUrgente(contexto, tareaAnterior, tareaPosterior);
+        }
+
+        // Si la tarea posterior tiene una prioridad más urgente que la anterior, la anterior ha de ejecutarse con esa misma
+        // urgencia para no retrasarla; por eso se le iguala la prioridad (enumPrioridad ordena de más a menos urgente).
+        private static void IgualarPrioridadDeLaAnteriorSiLaPosteriorEsMasUrgente(ContextoSe contexto, TareaDtm tareaAnterior, TareaDtm tareaPosterior)
+        {
+            var prioridadAnterior = tareaAnterior.Prioridad ?? enumPrioridad.NoDefinida;
+            var prioridadPosterior = tareaPosterior.Prioridad ?? enumPrioridad.NoDefinida;
+
+            if ((int)prioridadPosterior >= (int)prioridadAnterior) return;
+
+            tareaAnterior.Prioridad = prioridadPosterior;
+            tareaAnterior.Modificar(contexto, esUnaAccion: true);
         }
 
         // Si ya existe, para la misma tarea y el mismo cuerpo, una observación con el asunto opuesto (Anterior/Despues), se corrige esa
         // observación en lugar de crear una nueva; esto cubre el caso de haberse equivocado al definir la secuencia de ejecución.
-        private static void CrearOCorregirObservacionDeSecuencia(ContextoSe contexto, TareaDtm tarea, string nombre, string cuerpo)
+        private static void CrearOCorregirObservacionDeSecuencia(ContextoSe contexto, TareaDtm tarea1, TareaDtm tarea2, string cuandoResolver, string cuerpo)
         {
-            var nombreOpuesto = nombre == enumCuandoRealizar.Anterior.Descripcion()
+            var cuandoNoResolver = cuandoResolver == enumCuandoRealizar.Anterior.Descripcion()
                 ? enumCuandoRealizar.Despues.Descripcion()
                 : enumCuandoRealizar.Anterior.Descripcion();
 
-            var observacionACorregir = enumNegocio.Tarea.Observaciones(contexto)
-                .FirstOrDefault(o => o.IdElemento == tarea.Id && o.Descripcion == cuerpo && o.Nombre == nombreOpuesto);
+            var observacionACorregir = enumNegocio.Tarea.Observaciones(contexto).FirstOrDefault(o => o.IdElemento == tarea1.Id && o.Descripcion == cuerpo && o.Nombre == cuandoNoResolver);
 
             if (observacionACorregir != null)
             {
-                observacionACorregir.Nombre = nombre;
+                observacionACorregir.Nombre = cuandoResolver;
                 observacionACorregir.ModificarObservacion(contexto, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true }, { ltrDeObservaciones.ModificarAsunto, true } });
                 return;
             }
 
-            ValidarQueNoExisteLaSecuencialidad(contexto, tarea, nombre);
-            tarea.CrearObservacion(contexto, nombre, cuerpo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true }, { ltrDeObservaciones.CreandoSecuencia, true } });
+            ValidarQueNoExisteLaSecuencialidad(contexto, tarea1, tarea2, cuandoResolver);
+            tarea1.CrearObservacion(contexto, cuandoResolver, cuerpo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true }, { ltrDeObservaciones.CreandoSecuencia, true } });
         }
 
-        private static void ValidarQueNoExisteLaSecuencialidad(ContextoSe contexto, TareaDtm tarea, string nombreDeLaObservacion)
+        private static void ValidarQueNoExisteLaSecuencialidad(ContextoSe contexto, TareaDtm tarea1, TareaDtm tarea2, string cuandoResolver)
         {
-            var yaExiste = enumNegocio.Tarea.Observaciones(contexto).Any(o => o.IdElemento == tarea.Id && o.Nombre == nombreDeLaObservacion);
-            if (yaExiste)
-                GestorDeErrores.Emitir($"La tarea '{tarea.Referencia}' ya tiene definida la secuencialidad de realización");
+            var observaciones = enumNegocio.Tarea.Observaciones(contexto).Where(o => o.IdElemento == tarea1.Id && o.Nombre == cuandoResolver);
+            foreach (var observacion in observaciones)
+            {
+                var tareaReferenciada = observacion.TareaEnlazada(contexto);
+                if (tareaReferenciada != null && tareaReferenciada.Id == tarea2.Id)
+                    GestorDeErrores.Emitir($"La tarea '{tarea1.Referencia}' ya se le ha indicado que '{cuandoResolver}' la '{tareaReferenciada.Referencia}'");
+            }
+        }
+
+        public static void EliminarCuandoRealizar(ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            if (!parametros.ContieneClave(nameof(CuandoRealizarDto.IdTareaEditada))) GestorDeErrores.Emitir("No se ha indicado la tarea editada");
+
+            var idTareaEditada = parametros.LeerValor<int>(nameof(CuandoRealizarDto.IdTareaEditada));
+            var tareaEditada = contexto.SeleccionarPorId<TareaDtm>(idTareaEditada);
+
+            if (!tareaEditada.EsInterventor(contexto))
+                GestorDeErrores.Emitir($"Sólo un interventor de la tarea '{tareaEditada.Referencia}' puede eliminar su secuencia de ejecución");
+
+            var teniaAnteriores = EliminarSecuencia(contexto, tareaEditada, enumCuandoRealizar.Despues.Descripcion());
+            var teniaPosteriores = EliminarSecuencia(contexto, tareaEditada, enumCuandoRealizar.Anterior.Descripcion());
+
+            if (!teniaAnteriores && !teniaPosteriores)
+                GestorDeErrores.Emitir($"La tarea '{tareaEditada.Referencia}' no tiene definida ninguna secuencia de ejecución anterior ni posterior");
+        }
+
+        // Elimina, para 'tareaEditada', las observaciones de secuencia con nombre 'cuandoResolver' (Antes que/Después de) y, en cada
+        // tarea a la que hacían referencia, la observación recíproca que apuntaba de vuelta a 'tareaEditada'.
+        private static bool EliminarSecuencia(ContextoSe contexto, TareaDtm tareaEditada, string cuandoResolver)
+        {
+            var cuandoResolverOpuesto = cuandoResolver == enumCuandoRealizar.Anterior.Descripcion()
+                ? enumCuandoRealizar.Despues.Descripcion()
+                : enumCuandoRealizar.Anterior.Descripcion();
+
+            var observaciones = enumNegocio.Tarea.Observaciones(contexto).Where(o => o.IdElemento == tareaEditada.Id && o.Nombre == cuandoResolver).ToList();
+            if (!observaciones.Any()) return false;
+
+            var cuerpoDeLaEditada = enumNegocio.Tarea.ComponerUrlPorId(contexto, tareaEditada.Id).ToString();
+            var parametrosDeBorrado = new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true }, { ltrDeObservaciones.PermitirEliminar, true } };
+
+            foreach (var observacion in observaciones)
+            {
+                var tareaReferenciada = observacion.TareaEnlazada(contexto);
+
+                var observacionReciproca = enumNegocio.Tarea.Observaciones(contexto)
+                    .FirstOrDefault(o => o.IdElemento == tareaReferenciada.Id && o.Nombre == cuandoResolverOpuesto && o.Descripcion == cuerpoDeLaEditada);
+
+                if (observacionReciproca != null)
+                    observacionReciproca.EliminarObservacion(contexto, parametrosDeBorrado);
+
+                observacion.EliminarObservacion(contexto, parametrosDeBorrado);
+            }
+
+            return true;
         }
 
         private string FormatearTotalesPorExpediente(List<TareaDtm> tareas)

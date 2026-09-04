@@ -362,7 +362,20 @@
         let clausula: ClausulaDeFiltrado = new ClausulaDeFiltrado(buscarPor, criterio, valor);
         filtros.push(clausula);
         //}
+
+        let otrosParametrosDeFiltrado: string = input.getAttribute(atListasDinamicas.OtrosParametrosDeFiltrado);
+        if (!IsNullOrEmpty(otrosParametrosDeFiltrado)) {
+            let otrasClausulas = EvaluarOtrasClausulasDeFiltrado(otrosParametrosDeFiltrado, input);
+            for (let i = 0; i < otrasClausulas.length; i++)
+                filtros.push(otrasClausulas[i]);
+        }
+
         return filtros;
+    }
+
+    function EvaluarOtrasClausulasDeFiltrado(accion: string, lista: HTMLInputElement): Array<ClausulaDeFiltrado> {
+        let resultado = Evaluar('DefinirFiltroListaDinamica', accion, accion.includes('this') ? lista : undefined);
+        return Definido(resultado) ? resultado : [];
     }
 
     function AnadirRestrictoresDeVinculacion(input: HTMLInputElement, filtros: Array<ClausulaDeFiltrado>): void {

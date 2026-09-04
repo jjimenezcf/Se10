@@ -201,6 +201,21 @@ namespace GestoresDeNegocio.Tarea
             return consulta;
         }
 
+        // Excluye de las candidatas las tareas que ya son anteriores o posteriores de la indicada en el filtro,
+        // para que no se puedan volver a seleccionar como nuevo enlace de secuencia (p.ej. en 'Cuándo realizar').
+        public static IQueryable<TareaDtm> ExcluirCuandoRealizar(this IQueryable<TareaDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.ExcluirCuandoRealizar.ToLower() && !x.Aplicado);
+            if (filtro == null) return consulta;
+
+            var tarea = contexto.SeleccionarPorId<TareaDtm>(filtro.Valor.Entero());
+            var idsRelacionadas = tarea.IdsDeTareasAnteriores(contexto).Concat(tarea.IdsDeTareasPosteriores(contexto)).ToList();
+
+            consulta = consulta.Where(t => !idsRelacionadas.Contains(t.Id));
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
         public static IQueryable<TareaDtm> FiltroConPrioridad(this IQueryable<TareaDtm> consulta, List<ClausulaDeFiltrado> filtros)
         {
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.ConPrioridad.ToLower());

@@ -1899,3 +1899,7 @@ a.deshabilitado {
     .contenedor-check-on-off span {
         margin-left: 2px;
     }
+
+.fila-auto-fr {
+    grid-template-columns: auto 1fr !important;
+}

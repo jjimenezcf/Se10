@@ -50,6 +50,26 @@
                 let id = this.InfoSelector.Seleccionados.length === 0 ? 0 : this.InfoSelector.Seleccionados[0].Id;
                 this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(idModal, id);
             }
+            else if (opcion === ltrMenus.eventosDeMf.Administracion.Tareas.CuandoRealizar) {
+                let id = this.InfoSelector.Seleccionados.length === 0 ? 0 : this.InfoSelector.Seleccionados[0].Id;
+                this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(this.ModalCuandoRealizar.id, id);
+            }
+            else if (opcion === ltrMenus.eventosDeMf.Administracion.Tareas.EliminarCuandoRealizar) {
+                let idTareaEditada = this.EstoyEditandoConsultando
+                    ? Numero(ObtenerPropiedad(this.crudDeEdicion.Registro, literal.id))
+                    : this.InfoSelector.Seleccionados[0].Id;
+
+                Tar_EliminarCuandoRealizar(this, this.Controlador, idTareaEditada)
+                    .then((peticion) => {
+                        MensajesSe.Info(peticion.resultado.mensaje);
+                        this.CargarGrid();
+                        if (this.EstoyEditandoConsultando) {
+                            this.crudDeEdicion.RecargarGridDeObservaciones();
+                            this.crudDeEdicion.RecargarGridDeTrazas();
+                        }
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+            }
             else
                 super.ProcesarOpcionMf(idNegocio, opcion, esContextual);
         }
@@ -101,7 +121,9 @@
                     this.Tar_ProponerTareaParaCopiar(modal, this.InfoSelector.Seleccionados[0].Registro);
             }
             else if (modal.id === this.ModalCuandoRealizar.id) {
-                let idTareaEditada = ObtenerPropiedad(this.crudDeEdicion.Registro, literal.id);
+                let idTareaEditada = this.EstoyEditandoConsultando
+                    ? Numero(ObtenerPropiedad(this.crudDeEdicion.Registro, literal.id))
+                    : this.InfoSelector.Seleccionados[0].Id;
                 let editorIdTareaEditada = ApiControl.BuscarEditor(modal, ltrPropiedades.Tarea.CuandoRealizar.IdTareaEditada) as HTMLInputElement;
                 editorIdTareaEditada.value = idTareaEditada.toString();
             }
@@ -222,6 +244,18 @@
                 this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDeTareas).ModalCuandoRealizar.id, 0);
                 return true;
             }
+            if (opcion === ltrMenus.eventosDeMf.Administracion.Tareas.EliminarCuandoRealizar) {
+                let idTareaEditada = Numero(ObtenerPropiedad(this.Registro, literal.id));
+                Tar_EliminarCuandoRealizar(this, this.Controlador, idTareaEditada)
+                    .then((peticion) => {
+                        MensajesSe.Info(peticion.resultado.mensaje);
+                        this.CrudDeMnt.CargarGrid();
+                        this.RecargarGridDeObservaciones();
+                        this.RecargarGridDeTrazas();
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+                return true;
+            }
             return super.DespuesDeProcesarOpcionMf(peticion);
         }
 
@@ -268,6 +302,13 @@
         return ApiDePeticiones.EjecutarPeticionPost(llamador, controlador, Ajax.EndPoint.Administracion.Tarea.Copiar, parametros, datosDeEntrada);
     }
 
+    export function Tar_EliminarCuandoRealizar(llamador: any, controlador: string, idTareaEditada: number): Promise<ApiDeAjax.DescriptorAjax> {
+        let parametros: Array<Parametro> = new Array<Parametro>();
+        let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
+        parametros.push(new Parametro(ltrPropiedades.Tarea.CuandoRealizar.IdTareaEditada, idTareaEditada));
+        return ApiDePeticiones.EjecutarPeticionPost(llamador, controlador, Ajax.EndPoint.Administracion.Tarea.EliminarCuandoRealizar, parametros, datosDeEntrada);
+    }
+
     export function Tar_ProponerDatosDelaTareaSeleccionada() {
         let modal = (Crud.crudMnt as CrudDeTareas).ModalCopiarTarea;
         let tarea: HTMLInputElement = ApiControl.BuscarControl(modal, ltrPropiedades.Selector.Elemento, true) as HTMLInputElement;
@@ -283,6 +324,36 @@
     export function Tar_InicializarModalDeCopiado() {
         let modal = (Crud.crudMnt as CrudDeTareas).ModalCopiarTarea;
         ApiPanel.BlanquearControlesDeIU(modal);
+    }
+
+    export function Tar_AbrirTareaAnterior(numeroDeFila: number) {
+        let id = Numero(ApiDeGrid.ObtenerValorDeLaFilaParaLaPropiedad(Crud.crudMnt.Tabla, numeroDeFila, ltrPropiedades.Tarea.CuandoRealizar.IdTareaAnterior));
+        if (id === 0) return;
+        let url = `${window.location.origin}/${ltrUrls.Administracion.Tareas}?${ltrParametrosUrl.id}=${id}`;
+        EntornoSe.AbrirPestana(url);
+    }
+
+    export function Tar_AbrirTareaPosterior(numeroDeFila: number) {
+        let id = Numero(ApiDeGrid.ObtenerValorDeLaFilaParaLaPropiedad(Crud.crudMnt.Tabla, numeroDeFila, ltrPropiedades.Tarea.CuandoRealizar.IdTareaPosterior));
+        if (id === 0) return;
+        let url = `${window.location.origin}/${ltrUrls.Administracion.Tareas}?${ltrParametrosUrl.id}=${id}`;
+        EntornoSe.AbrirPestana(url);
+    }
+
+    export function Tar_FiltrosParaCuandoRealizar(lista: HTMLInputElement): Array<ClausulaDeFiltrado> {
+        let clausulas: Array<ClausulaDeFiltrado> = new Array<ClausulaDeFiltrado>();
+
+
+        let modal = (Crud.crudMnt as CrudDeTareas).ModalCuandoRealizar;
+
+        let editorIdTareaEditada = ApiControl.BuscarEditor(modal, ltrPropiedades.Tarea.CuandoRealizar.IdTareaEditada) as HTMLInputElement;
+        let idTareaEditada = Numero(editorIdTareaEditada.value);
+        if (idTareaEditada > 0) {
+            clausulas.push(new ClausulaDeFiltrado(literal.id, atCriterio.diferente, idTareaEditada.toString()));
+            clausulas.push(new ClausulaDeFiltrado(ltrPropiedades.Tarea.CuandoRealizar.ExcluirCuandoRealizar, atCriterio.igual, idTareaEditada.toString()));
+        }
+
+        return clausulas;
     }
 
 

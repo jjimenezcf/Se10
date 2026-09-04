@@ -15,6 +15,7 @@ namespace ServicioDeDatos.Elemento
         public const string PermitirSiTerminado = nameof(PermitirSiTerminado);
         public const string ModificarAsunto = nameof(ModificarAsunto);
         public const string CreandoSecuencia = nameof(CreandoSecuencia);
+        public const string PermitirEliminar = nameof(PermitirEliminar);
     }
 
     public class ObservacionDtm : RegistroConNombreDtm, IObservacion
@@ -177,6 +178,18 @@ namespace ServicioDeDatos.Elemento
             parametrosSql.Add($"@{ICampos.ID}", id);
             parametrosSql.Add($"@{ICampos.DESCRIPCION}", descripcion);
             if (modificarAsunto) parametrosSql.Add($"@{ICampos.NOMBRE}", nombre);
+
+            var consulta = new ConsultaSql<ObservacionDtm>(contexto, sentencia);
+            consulta.EjecutarSentencia(new DynamicParameters(parametrosSql));
+        }
+
+        public static void Eliminar(ContextoSe contexto, string esquemaTabla, int id)
+        {
+            var sentencia = $@"delete from {esquemaTabla}
+                               where {ICampos.ID} = @{ICampos.ID}";
+
+            var parametrosSql = new Dictionary<string, object>();
+            parametrosSql.Add($"@{ICampos.ID}", id);
 
             var consulta = new ConsultaSql<ObservacionDtm>(contexto, sentencia);
             consulta.EjecutarSentencia(new DynamicParameters(parametrosSql));

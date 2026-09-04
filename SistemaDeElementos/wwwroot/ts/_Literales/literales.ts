@@ -895,6 +895,7 @@ const atListasDinamicas = {
     cantidad: atControl.cantidadPorLeer,
     RestringidoPor: atListas.RestringidoPor,
     RestrictorFijo: atListas.RestrictorFijo,
+    OtrosParametrosDeFiltrado: 'otros-parametros-de-filtrado',
     SoloEnAlta: 'solo-en-alta',
     PropiedadRestrictora: atControl.propiedadRestrictora,
     ContenidoEn: atListas.ContenidoEn,
@@ -973,7 +974,8 @@ const atCriterio = {
     restringido: 'igual',
     noEstaRelacionado: 'noEstaRelacionado',
     esAlgunoDe: 'esAlgunoDe',
-    sonTodos: 'sonTodos'
+    sonTodos: 'sonTodos',
+    diferente: 'diferente',
 };
 
 const atNavegar = {
@@ -1642,7 +1644,8 @@ const Ajax = {
             Tarea: {
                 Copiar: 'epCopiarUnaTarea',
                 Renombrar: 'epRenombarUnaFar',
-                CuandoRealizar: 'epCuandoRealizar'
+                CuandoRealizar: 'epCuandoRealizar',
+                EliminarCuandoRealizar: 'epEliminarCuandoRealizar'
             }
         },
         Gasto: {
@@ -3101,7 +3104,10 @@ const ltrPropiedades = {
             IdExpediente: 'IdExpediente'
         },
         CuandoRealizar: {
-            IdTareaEditada: 'IdTareaEditada'
+            IdTareaEditada: 'IdTareaEditada',
+            IdTareaAnterior: 'IdTareaAnterior',
+            IdTareaPosterior: 'IdTareaPosterior',
+            ExcluirCuandoRealizar: 'ExcluirCuandoRealizar'
         }
     },
     Expediente: {
@@ -4012,6 +4018,7 @@ const ltrMenus = {
                 IrAPartesTr: 'ir-a-partes-trabajo',
                 CopiarTarea: 'copiar-tarea',
                 CuandoRealizar: 'cuando-realizar',
+                EliminarCuandoRealizar: 'eliminar-cuando-realizar',
             },
             Expedientes: {
                 VincularRegistroEntrada: 'vincular-re',

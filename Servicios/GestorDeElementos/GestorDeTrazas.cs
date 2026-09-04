@@ -148,6 +148,17 @@ namespace GestorDeElementos
             };
             Gestor(contexto, negocio).PersistirRegistro(traza, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
         }
+
+        internal static void ObservacionEliminada(ContextoSe contexto, enumNegocio negocio, ObservacionDtm observacion)
+        {
+            var traza = new TrazaDtm
+            {
+                IdElemento = observacion.IdElemento,
+                Nombre = "Observación eliminada",
+                Descripcion = $@"Se ha eliminado la observación{Environment.NewLine}Asunto: {observacion.Nombre}{Environment.NewLine}Descripción: {observacion.Descripcion}"
+            };
+            Gestor(contexto, negocio).PersistirRegistro(traza, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
+        }
         internal static void Bloquear(ContextoSe contexto, enumNegocio negocio, IRegistro registro)
         {
             if (negocio == enumNegocio.No_Definido) return;

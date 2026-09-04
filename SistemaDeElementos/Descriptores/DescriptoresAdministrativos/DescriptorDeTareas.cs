@@ -63,6 +63,10 @@ namespace MVCSistemaDeElementos.Descriptores
 
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CuandoRealizarDto), eventosDeMf.Tar_CuandoRealizar, "Cuándo realizar la tarea"));
             Editor.IncluirMfIndividual("Cuándo realizar", eventosDeMf.Tar_CuandoRealizar, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
+            DescriptorDeEdicion<TareaDto>.IncluirMfIndividual(Mnt.OpcionesPorElemento, $"<li id='{menuIndividual}.{eventosDeMf.Tar_CuandoRealizar}' accion-menu='{eventosDeMf.Tar_CuandoRealizar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Cuándo realizar</li>");
+
+            Editor.IncluirMfIndividual("Eliminar cuándo realizar", eventosDeMf.Tar_EliminarCuandoRealizar, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
+            DescriptorDeEdicion<TareaDto>.IncluirMfIndividual(Mnt.OpcionesPorElemento, $"<li id='{menuIndividual}.{eventosDeMf.Tar_EliminarCuandoRealizar}' accion-menu='{eventosDeMf.Tar_EliminarCuandoRealizar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor, false)}>Eliminar cuándo realizar</li>");
 
             modalesParaPedirDatos.Add(new ModalDeTotales(this, typeof(TotalesDeTareas), eventosDeMf.Totalizador_Mostrar, $"Mostrar los totales de la selección"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Totalizador_Mostrar}' accion-menu='{eventosDeMf.Totalizador_Mostrar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Mostrar totales</li>");

@@ -27,9 +27,9 @@ namespace ServicioDeDatos.Tarea
     {
         [Description("Seleccionar...")]
         Seleccionar,
-        [Description("Antes que")]
+        [Description("Realizar antes que")]
         Anterior,
-        [Description("Después de")]
+        [Description("Realizar después de")]
         Despues
     }
 

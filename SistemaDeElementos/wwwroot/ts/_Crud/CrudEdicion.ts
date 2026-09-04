@@ -1081,6 +1081,13 @@
             MapearAlGrid.MapearGridDeDetalle(trazas, this.CrudDeMnt.IdNegocio, Numero(ObtenerPropiedad(this.Registro, literal.id)), this.CrudDeMnt.Guid);
         }
 
+        public RecargarGridDeObservaciones() {
+            var observaciones = this.GridDeObservaciones;
+            if (!Definido(observaciones))
+                return;
+            MapearAlGrid.MapearGridDeDetalle(observaciones, this.CrudDeMnt.IdNegocio, Numero(ObtenerPropiedad(this.Registro, literal.id)), this.CrudDeMnt.Guid);
+        }
+
         public RecargarGridDeArchivadores() {
             var archivadores = this.GridDeArchivadores;
             if (archivadores.classList.contains(ltrCss.crud.contenedorDatosPrincipales))

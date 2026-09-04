@@ -160,6 +160,13 @@ namespace GestorDeElementos
                 if (Negocio.UsaTrazas()) GestorDeTrazas.ObservacionModificada(Contexto, Negocio, observacion, (ObservacionDtm)parametros.registroEnBd);
                 return;
             }
+            if (parametros.Operacion == enumTipoOperacion.Eliminar && parametros.Parametros.LeerValor(ltrDeObservaciones.PermitirEliminar, false))
+            {
+                ObservacionSql.Eliminar(Contexto, _Tabla, observacion.Id);
+
+                if (Negocio.UsaTrazas()) GestorDeTrazas.ObservacionEliminada(Contexto, Negocio, observacion);
+                return;
+            }
             GestorDeErrores.Emitir($"La operacion {parametros.Operacion} no está permitida para las observaciones del negocio {Negocio.ToNombre()}");
         }
 
@@ -181,6 +188,8 @@ namespace GestorDeElementos
                 string refHtml = elemento.CrearHref(Contexto);
                 var asunto = parametros.Insertando
                 ? $"Registro de observación en {Negocio.Singular()}. {observacion.Nombre}"
+                : parametros.Eliminando
+                ? $"Eliminación de observación en {Negocio.Singular()}. {observacion.Nombre}"
                 : $"Modificación de observación en {Negocio.Singular()}. {observacion.Nombre}";
                 Contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { receptor.eMail },
                     asunto,
@@ -198,6 +207,18 @@ namespace GestorDeElementos
                 archivo.Nombre = NombreDeFicheroAsociado(observacion) + $"{ext}";
                 archivo.ModificarComoAdministrador(Contexto, accionQueSeEjecuta: ltrDeUnArchivo.Accion_Permitir_Modificar_Nombre);
                 GestorDeVinculos.Vincular(Contexto, Negocio, enumNegocio.Archivos, observacion.IdElemento, (int)idArchivo, new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDePersistencia, false } });
+            }
+        }
+
+        protected override void EliminarCaches(ObservacionDtm registro, ParametrosDeNegocio parametros)
+        {
+            base.EliminarCaches(registro, parametros);
+
+            if (Negocio == enumNegocio.Tarea
+                && (registro.Nombre == enumCuandoRealizar.Anterior.Descripcion() || registro.Nombre == enumCuandoRealizar.Despues.Descripcion()))
+            {
+                ServicioDeCaches.EliminarCache(CacheDe.Tar_RealizarDespuesDe);
+                ServicioDeCaches.EliminarCache(CacheDe.Tar_RealizarAntesQue);
             }
         }
 

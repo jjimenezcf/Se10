@@ -58,6 +58,15 @@ namespace GestorDeElementos.Extensores
             return gestor.PersistirRegistro((ObservacionDtm)observacion, new ParametrosDeNegocio(enumTipoOperacion.Modificar) { Parametros = parametros });
         }
 
+        public static IObservacion EliminarObservacion(this IObservacion observacion, ContextoSe contexto, Dictionary<string, object> parametros = null)
+        {
+            if (parametros == null) parametros = new Dictionary<string, object>();
+
+            var gestor = GestorDeObservaciones.Gestor(contexto, observacion.Negocio);
+
+            return gestor.PersistirRegistro((ObservacionDtm)observacion, new ParametrosDeNegocio(enumTipoOperacion.Eliminar) { Parametros = parametros });
+        }
+
 
         private static ObservacionDtm Nueva(enumNegocio negocio)
         {

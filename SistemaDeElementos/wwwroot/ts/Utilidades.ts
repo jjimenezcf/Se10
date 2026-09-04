@@ -1473,7 +1473,7 @@ function SepararCadenaEnNumeroYUnidad(cadena: string): [number, string] {
     }
 }
 
-function Evaluar(origen: string, accion: string, elementoThis?: any) {
+function Evaluar(origen: string, accion: string, elementoThis?: any): any {
     try {
         // 1. Limpiar
         let accionLimpia = accion.trim();
@@ -1488,7 +1488,7 @@ function Evaluar(origen: string, accion: string, elementoThis?: any) {
 
         if (!match) {
             MensajesSe.Error(origen, 'Acción no válida', `La cadena de acción no tiene el formato esperado: '${accion}'`);
-            return;
+            return undefined;
         }
 
         const nombreCompleto = match[1];
@@ -1542,18 +1542,20 @@ function Evaluar(origen: string, accion: string, elementoThis?: any) {
         const modulo = (window as any)[nombreModulo];
         if (!modulo) {
             MensajesSe.Error(origen, `Módulo no cargado: '${nombreModulo}'`);
-            return;
+            return undefined;
         }
 
         const funcion = modulo[nombreFuncion];
         if (typeof funcion === 'function') {
-            funcion.apply(modulo, args);
+            return funcion.apply(modulo, args);
         } else {
             MensajesSe.Error(origen, `Función inexistente: '${nombreFuncion}' en ${nombreModulo}`);
+            return undefined;
         }
 
     } catch (error: any) {
         MensajesSe.Error(origen, `Error al evaluar: '${accion}'`, error.message);
+        return undefined;
     }
 }
 

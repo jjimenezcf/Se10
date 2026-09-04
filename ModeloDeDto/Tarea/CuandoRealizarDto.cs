@@ -5,47 +5,60 @@ using Utilidades;
 namespace ModeloDeDto.Tarea
 {
     [IUDto(MostrarExpresion = nameof(IUsaNombreDto.Nombre))]
-    public class CuandoRealizarDto : ISelectorDto
+    public class CuandoRealizarDto
     {
         //-------------------------------------------------------------------------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la tarea editada", Oculto = true, Fila = 1, Columna = 0)]
         public int IdTareaEditada { get; set; }
 
-        //----------------------------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Cuándo realizar",
-            Ayuda = "Indica si la tarea editada se ha de ejecutar antes o después de la tarea seleccionada",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumCuandoRealizar),
-            GuardarEn = nameof(CuandoRealizar),
-            Obligatorio = true,
-            Fila = 0,
-            Columna = 0
-            )
-        ]
-        public string CuandoRealizar { get; set; }
-
         //-------------------------------------------------------------------------------------------------------------
-        [IUPropiedad(Etiqueta = "Id de la tarea seleccionada", Visible = false)]
-        public int IdElemento { get; set; }
+        [IUPropiedad(Etiqueta = "Id de la tarea anterior", Visible = false)]
+        public int IdTareaAnterior { get; set; }
 
         [IUPropiedad(
-            Etiqueta = "Tarea",
-            Ayuda = "Tarea con la que se relaciona la tarea editada",
+            Etiqueta = "Tarea anterior",
+            Ayuda = "Tarea que se ha de ejecutar antes que la tarea editada",
             TipoDeControl = enumTipoControl.ListaDinamica,
-            GuardarEn = nameof(IdElemento),
+            GuardarEn = nameof(IdTareaAnterior),
             Controlador = nameof(enumControladoresAdministrativos.Tareas),
             SeleccionarDe = typeof(TareaDto),
             VistaDondeNavegar = enumVistasAdministrativo.CrudTareas,
-            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor),
+            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + "|" +
+                             ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial),
+            OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
             Negocio = enumNegocio.Tarea,
             LongitudMinimaParaBuscar = 1,
             MostrarExpresion = nameof(TareaDto.Expresion),
             Tipo = typeof(string),
-            Obligatorio = true,
+            Obligatorio = false,
+            Fila = 0,
+            Columna = 0)
+        ]
+        public string TareaAnterior { get; set; }
+
+        //-------------------------------------------------------------------------------------------------------------
+        [IUPropiedad(Etiqueta = "Id de la tarea posterior", Visible = false)]
+        public int IdTareaPosterior { get; set; }
+
+        [IUPropiedad(
+            Etiqueta = "Tarea posterior",
+            Ayuda = "Tarea que se ha de ejecutar después que la tarea editada",
+            TipoDeControl = enumTipoControl.ListaDinamica,
+            GuardarEn = nameof(IdTareaPosterior),
+            Controlador = nameof(enumControladoresAdministrativos.Tareas),
+            SeleccionarDe = typeof(TareaDto),
+            VistaDondeNavegar = enumVistasAdministrativo.CrudTareas,
+            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + "|" +
+                             ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial),
+            OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
+            Negocio = enumNegocio.Tarea,
+            LongitudMinimaParaBuscar = 1,
+            MostrarExpresion = nameof(TareaDto.Expresion),
+            Tipo = typeof(string),
+            Obligatorio = false,
             Fila = 0,
             Columna = 1)
         ]
-        public string Elemento { get; set; }
+        public string TareaPosterior { get; set; }
     }
 }

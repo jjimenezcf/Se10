@@ -17,9 +17,16 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var fila = tabla.ObtenerFila(i);
             var htmlColumnas = "";
-            var estilo = "grid-template-columns:";
+
+            // Si el primer control de la fila (posición 0,0) define una clase css para la fila, se usa esa clase
+            // y no se calcula el grid-template-columns en base a la visibilidad de cada columna.
+            var primerControl = fila.ObtenerColumna(0).ObtenerControlEnLaPosicion(0);
+            var cssDeLaFila = primerControl != null ? primerControl.Atributos.CssDeLaFila : enumCssGrid.Nulo;
+            var usarCssDeLaFila = cssDeLaFila != enumCssGrid.Nulo;
+
+            var estilo = usarCssDeLaFila ? "" : "grid-template-columns:";
             var htmlFila =
-                    $@"<div id='{fila.IdHtml}' name='tr_lbl_propiedad' class='{enumCssDiv.Tr.Render()} {enumCssEdicion.Tr.Render()} tr-propiedad' style='[grid-template-columns];'>
+                    $@"<div id='{fila.IdHtml}' name='tr_lbl_propiedad' class='{enumCssDiv.Tr.Render()} {enumCssEdicion.Tr.Render()} tr-propiedad {cssDeLaFila.Render()}' style='[grid-template-columns];'>
                          htmlColumnas
                        </div>
                       ";
@@ -29,17 +36,18 @@ namespace MVCSistemaDeElementos.Descriptores
             for (short j = 0; j < tabla.NumeroDeColumnas; j++)
             {
                 var info = RenderColumnaParaElDto(tabla, i, j, anchoColumna);
-                var htmlColumna = info.Item1;
-                estilo = estilo + " " + (info.Item2 ? "1fr" : "0px");
-                if (info.Item2) filaVisible = true;
+                var htmlColumna = info.renderTd;
+                if (!usarCssDeLaFila)
+                    estilo = estilo + " " + (info.visible ? "1fr" : "0px");
+                if (info.visible) filaVisible = true;
                 htmlColumnas = htmlColumnas + htmlColumna;
             }
-            if (!filaVisible) 
+            if (!filaVisible)
                 estilo = estilo + "; " + "grid-template-rows=0px";
             return htmlFila.Replace("htmlColumnas", $"{htmlColumnas}").Replace("[grid-template-columns]", estilo);
         }
 
-        private static (string, bool) RenderColumnaParaElDto(DescriptorDeTabla tabla, short i, short j, double anchoColumna)
+        private static (string renderTd, bool visible) RenderColumnaParaElDto(DescriptorDeTabla tabla, short i, short j, double anchoColumna)
         {
             var visible = tabla.ObtenerFila(i).ObtenerColumna(j).NumeroControlesVisibles > 0;
             if (!visible && tabla.NumeroDeColumnas >= j + 1)
@@ -66,7 +74,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var cssDelDivDelaTd = tabla.ObtenerFila(i).ObtenerColumna(j).CssDelDivDeLaCelda;
             var colspan = tabla.ObtenerFila(i).ObtenerColumna(j).ColSpan;
             var estilo = visible ? $"" : "display:none";
-            var td = $@"<div id='{tabla.IdHtml}_{i}_{j}' 
+            var renderTd = $@"<div id='{tabla.IdHtml}_{i}_{j}' 
                             name='td-propiedad' 
                             class='{enumCssDiv.Td.Render()} {enumCssEdicion.Td.Render()} td-propiedad' >
                             [renderControles]
@@ -89,9 +97,9 @@ namespace MVCSistemaDeElementos.Descriptores
                 rendercontroles = rendercontroles.Replace("[otraClase]", $"{(cssDelDivDelaTd == enumCssDiv.Nulo ? "" : cssDelDivDelaTd.Render())}");
             }
 
-            td = td.Replace("[renderControles]", rendercontroles);
+            renderTd = renderTd.Replace("[renderControles]", rendercontroles);
 
-            return (td, visible);
+            return (renderTd, visible);
         }
 
         private static (int pos, int colspan) UltimoColSpanIndicado(DescriptorDeTabla tabla, short i, short j)
@@ -477,6 +485,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             valores["ordenarPor"] = atributos.OrdenarListaDinamicaPor;
             valores[nameof(IUPropiedadAttribute.RestrictorFijo)] = atributos.RestrictorFijo;
+            valores[nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)] = atributos.OtrosParametrosDeFiltrado;
             valores[nameof(IUPropiedadAttribute.SoloEnAlta)] = atributos.SoloEnAlta;
 
             valores[nameof(IUPropiedadAttribute.ParametrosParaNavegar)] = atributos.ParametrosParaNavegar;

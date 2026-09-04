@@ -124,6 +124,7 @@ namespace MVCSistemaDeElementos.Descriptores
                                          criterio-de-filtro=¨[CriterioDeFiltro]¨
                                          restringido-por=¨[RestringidoPor]¨
                                          restrictor-fijo=¨[{nameof(IUPropiedadAttribute.RestrictorFijo)}]¨
+                                         otros-parametros-de-filtrado=¨[{nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)}]¨
                                          solo-en-alta=¨[{nameof(IUPropiedadAttribute.SoloEnAlta)}]¨
                                          propiedad-restrictora=¨[PropiedadRestrictora]¨
                                          contenido-en=¨[ContenidoEn]¨

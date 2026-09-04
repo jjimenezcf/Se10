@@ -213,6 +213,9 @@ namespace Utilidades
 
         public static readonly string Exp_Tareas = nameof(Exp_Tareas);
 
+        public static readonly string Tar_RealizarDespuesDe = nameof(Tar_RealizarDespuesDe);
+        public static readonly string Tar_RealizarAntesQue = nameof(Tar_RealizarAntesQue);
+
         public static readonly string epLeerElementos = nameof(epLeerElementos);
         public static readonly string elemento_HitoAnterior_AlActual = nameof(elemento_HitoAnterior_AlActual);
         public static readonly string elemento_HitoAnterior_AlPrimero = nameof(elemento_HitoAnterior_AlPrimero);

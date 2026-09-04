@@ -94,6 +94,8 @@ namespace MVCSistemaDeElementos.Controllers
                     return null;
                 case eventosDeMf.Tar_CuandoRealizar:
                     return null;
+                case eventosDeMf.Tar_EliminarCuandoRealizar:
+                    return null;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -161,6 +163,27 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 Contexto.Rollback(tran);
                 ApiController.PrepararError(e, r, "Error al indicar cuándo se ha de realizar la tarea.");
+            }
+            return new JsonResult(r);
+        }
+
+        public JsonResult epEliminarCuandoRealizar()
+        {
+            var body = ApiController.LeerBody(HttpContext);
+            var r = new Resultado();
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                GestorDeTareas.EliminarCuandoRealizar(Contexto, body.parametros);
+                r.Mensaje = "Secuencia de ejecución eliminada";
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error al eliminar cuándo se ha de realizar la tarea.");
             }
             return new JsonResult(r);
         }

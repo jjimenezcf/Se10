@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Gestor.Errores;
+using Microsoft.Win32;
 using ModeloDeDto.Gastos;
 using ModeloDeDto.Tarea;
 using ServicioDeDatos;
@@ -51,6 +52,7 @@ namespace GestorDeElementos.Extensores
         public const string PrioridadesDeTarea = nameof(PrioridadesDeTarea);
         public const string FiltroPorEtapa = nameof(FiltroPorEtapa);
         public const string ConPrioridad = nameof(ConPrioridad);
+        public const string ExcluirCuandoRealizar = nameof(ExcluirCuandoRealizar);
 
 
         public const string IdFacturaEmt = nameof(IdFacturaEmt);
@@ -107,7 +109,7 @@ namespace GestorDeElementos.Extensores
 
                     return consulta;
                 }
-                
+
                 filtro = filtros.FirstOrDefault(f => f.Clausula.ToLower() == ltrDeUnaTarea.VinculosATareas.ToLower());
                 if (filtro != null)
                 {
@@ -203,7 +205,7 @@ namespace GestorDeElementos.Extensores
             var eventos = contexto.SeleccionarEventos(responsable.IdAgenda, tarea.Id, ltrDeUnaTarea.EventoDePlanificacion.Replace($"[{nameof(PlanificacionDeVentaDtm.Referencia)}]", tarea.Referencia));
             var p = new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } };
             foreach (var evento in eventos) if (evento.EsDelSistema)
-                    tarea.Desvincular(contexto, evento, p);
+                tarea.Desvincular(contexto, evento, p);
         }
 
         public static void AntesDeComenzar(this TareaDtm tarea, ContextoSe contexto, Dictionary<string, object> parametros)
@@ -350,7 +352,7 @@ namespace GestorDeElementos.Extensores
             if (plf.PlfDeInicio is null)
             {
                 var p = new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } };
-                tarea.Desvincular(contexto, evento,p );
+                tarea.Desvincular(contexto, evento, p);
                 return;
             }
 
@@ -393,7 +395,7 @@ namespace GestorDeElementos.Extensores
             planificacion.ValidarDatosDeDurabilidad(tarea);
         }
 
-        public static void ValidarDatosPorEtapas(this PlfDeTareaDtm planificacion, ContextoSe contexto, PlfDeTareaDtm anterior, Dictionary<string,object> parametros)
+        public static void ValidarDatosPorEtapas(this PlfDeTareaDtm planificacion, ContextoSe contexto, PlfDeTareaDtm anterior, Dictionary<string, object> parametros)
         {
             var tarea = planificacion.AmpliacionDe<TareaDtm>(contexto);
 
@@ -423,7 +425,7 @@ namespace GestorDeElementos.Extensores
                         planificacion.Duracion = default;
                         planificacion.MedidoEn = default;
                     }
-                    else 
+                    else
                         Emitir($"La fecha de fin, duración o medida en, de la tarea {tarea.Referencia}, no deben tener valor hasta que no se inicie");
                 }
             }
@@ -551,7 +553,7 @@ namespace GestorDeElementos.Extensores
 
         // Devuelve, de forma recursiva, todas las tareas que se han de ejecutar después de la indicada (según las observaciones
         // de secuencia creadas por 'Cuando realizar'), sin repetir tareas aunque se llegue a ellas por más de un camino.
-        public static List<TareaDtm> ArbolDeEjecucion(this TareaDtm tarea, ContextoSe contexto)
+        public static List<TareaDtm> ArbolDeRealizacionPosterior(this TareaDtm tarea, ContextoSe contexto)
         {
             var arbol = new List<TareaDtm>();
             var visitadas = new HashSet<int> { tarea.Id };
@@ -571,18 +573,53 @@ namespace GestorDeElementos.Extensores
 
         private static List<TareaDtm> TareasSiguientesDirectas(this TareaDtm tarea, ContextoSe contexto)
         {
-            var nombreAntesQue = enumCuandoRealizar.Anterior.Descripcion();
+            return tarea.IdsDeTareasPosteriores(contexto).Select(id => contexto.SeleccionarPorId<TareaDtm>(id)).ToList();
+        }
 
-            var cuerposDeLasObservaciones = enumNegocio.Tarea.Observaciones(contexto)
-                .Where(o => o.IdElemento == tarea.Id && o.Nombre == nombreAntesQue)
-                .Select(o => o.Descripcion)
-                .ToList();
+        // Ids de las tareas que se han de ejecutar después de la indicada (observaciones 'Antes que' de la propia tarea).
+        // Se cachean para no recalcular el árbol de ejecución consultando repetidamente las mismas observaciones.
+        public static List<int> IdsDeTareasPosteriores(this TareaDtm tarea, ContextoSe contexto)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Tar_RealizarAntesQue);
+            var clave = tarea.Id.ToString();
+            if (!cache.ContainsKey(clave))
+            {
+                var nombreAntesQue = enumCuandoRealizar.Anterior.Descripcion();
 
-            return cuerposDeLasObservaciones
-                .Select(cuerpo => cuerpo.IdDeLaTareaEnlazada())
-                .Where(id => id > 0)
-                .Select(id => contexto.SeleccionarPorId<TareaDtm>(id))
-                .ToList();
+                var ids = enumNegocio.Tarea.Observaciones(contexto)
+                    .Where(o => o.IdElemento == tarea.Id && o.Nombre == nombreAntesQue)
+                    .Select(o => o.Descripcion)
+                    .ToList()
+                    .Select(cuerpo => cuerpo.IdDeLaTareaEnlazada())
+                    .Where(id => id > 0)
+                    .ToList();
+
+                cache[clave] = ids;
+            }
+            return (List<int>)cache[clave];
+        }
+
+        // Ids de las tareas que se han de ejecutar antes de la indicada (observaciones 'Después de' de la propia tarea).
+        // Se cachean para no recalcular en cada mapeo del elemento cuáles son las tareas anteriores a una dada.
+        public static List<int> IdsDeTareasAnteriores(this TareaDtm tarea, ContextoSe contexto)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Tar_RealizarDespuesDe);
+            var clave = tarea.Id.ToString();
+            if (!cache.ContainsKey(clave))
+            {
+                var nombreDespuesDe = enumCuandoRealizar.Despues.Descripcion();
+
+                var ids = enumNegocio.Tarea.Observaciones(contexto)
+                    .Where(o => o.IdElemento == tarea.Id && o.Nombre == nombreDespuesDe)
+                    .Select(o => o.Descripcion)
+                    .ToList()
+                    .Select(cuerpo => cuerpo.IdDeLaTareaEnlazada())
+                    .Where(id => id > 0)
+                    .ToList();
+
+                cache[clave] = ids;
+            }
+            return (List<int>)cache[clave];
         }
 
         private static int IdDeLaTareaEnlazada(this string cuerpoDeLaObservacion)
@@ -591,5 +628,38 @@ namespace GestorDeElementos.Extensores
             return coincidencia.Success ? int.Parse(coincidencia.Groups[1].Value) : 0;
         }
 
+        public static TareaDtm TareaEnlazada(this ObservacionDtm observacion, ContextoSe contexto)
+        {
+            var coincidencia = Regex.Match(observacion.Descripcion ?? "", @"[?&]id=(\d+)");
+            var id = coincidencia.Success ? int.Parse(coincidencia.Groups[1].Value) : 0;
+
+            if (id == 0)
+                GestorDeErrores.Emitir($"No se ha localizado la tarea en el cuerpo de la observación, '{observacion.Nombre}' de la tarea '{contexto.SeleccionarPorId<TareaDtm>(observacion.IdElemento).Referencia}'");
+
+            return contexto.SeleccionarPorId<TareaDtm>(id);
+        }
+
+        public static List<TareaDtm> TareasAnteriores(this TareaDtm tarea, ContextoSe contexto)
+        {
+            var idsAnteriores = tarea.IdsDeTareasAnteriores(contexto);
+            if (idsAnteriores.Count == 0)
+                return null;
+
+            var tareas = contexto.SeleccionarTodos<TareaDtm>(new List<ClausulaDeFiltrado> { new ClausulaDeFiltrado { Clausula = nameof(TareaDtm.Id), Criterio = enumCriteriosDeFiltrado.esAlgunoDe, Valor = string.Join(Simbolos.separadorDeEnteros, idsAnteriores) } });
+
+            return tareas;
+        }
+
+
+        public static List<TareaDtm> TareasPosteriores(this TareaDtm tarea, ContextoSe contexto)
+        {
+            var idsTareasSiguienetes = tarea.IdsDeTareasPosteriores(contexto);
+            if (idsTareasSiguienetes.Count == 0)
+                return null;
+
+            var tareas = contexto.SeleccionarTodos<TareaDtm>(new List<ClausulaDeFiltrado> { new ClausulaDeFiltrado { Clausula = nameof(TareaDtm.Id), Criterio = enumCriteriosDeFiltrado.esAlgunoDe, Valor = string.Join(Simbolos.separadorDeEnteros, idsTareasSiguienetes) } });
+
+            return tareas;
+        }
     }
 }

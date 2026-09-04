@@ -333,6 +333,13 @@ namespace ModeloDeDto
         public string RestrictorFijo { get; set; } = "";
 
         /// <summary>
+        /// En una lista dinámica, referencia (en formato 'javascript:Modulo.Funcion(lista)') a una función de typescript que, dado
+        /// el propio control de la lista dinámica, devuelve cláusulas de filtrado adicionales a las ya montadas en
+        /// ApiListaDinamica.DefinirFiltroListaDinamica, por ejemplo para excluir de la búsqueda el elemento que se está editando.
+        /// </summary>
+        public string OtrosParametrosDeFiltrado { get; set; } = "";
+
+        /// <summary>
         /// Parámetros de navegación que se han de añadir a las url de los navegadores, por ejemplo para navegar a un contrato se añade a la url la clase "clase=venta"
         /// </summary>
         public string ParametrosParaNavegar { get; set; } = "";
@@ -393,6 +400,7 @@ namespace ModeloDeDto
 
         public enumCssDiv CssDelDivDeLaTd { get; set; } = enumCssDiv.Nulo;
 
+        public enumCssGrid CssDeLaFila { get; set; } = enumCssGrid.Nulo;
         public enumCssGrid CssDeLaColumna { get; set; } = enumCssGrid.Nulo;
 
         public int LimiteEnByte { get; set; } = 3000000;
