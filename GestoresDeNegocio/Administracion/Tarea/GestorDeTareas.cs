@@ -90,8 +90,7 @@ namespace GestoresDeNegocio.Tarea
             consulta = consulta.FiltroConPrioridad(filtros);
             consulta = consulta.FiltroPorEtapa(filtros);
             consulta = consulta.ExcluirCuandoRealizar(Contexto, filtros);
-            consulta = consulta.FiltroPorTareasAnterioresA(Contexto, filtros);
-            consulta = consulta.FiltroPorTareasPosterioresA(Contexto, filtros);
+            consulta = consulta.FiltroPorTareasEnSecuenciaDeRealizacion(Contexto, filtros);
             return consulta;
         }
 
