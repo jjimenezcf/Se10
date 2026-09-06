@@ -23,7 +23,7 @@ namespace ModeloDeDto.Presupuesto
             Controlador = nameof(enumControladoresVentas.Presupuestos),
             SeleccionarDe = typeof(PresupuestoDto),
             VistaDondeNavegar = enumVistasVentas.CrudPresupuestos,
-            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Presupuesto) + ";" + nameof(enumModoDeAccesoDeDatos.Gestor) + "|" +
+            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Presupuesto) + ";" + nameof(enumModoDeAccesoDeDatos.Gestor) + Simbolos.separadorDeRestrictoresFijos +
                              ltrDeUnPresupuesto.DependeDeExpediente + ";" + ltrFiltros.SinRelacion,
             OrdenarListaDinamicaPor = nameof(PresupuestoDtm.Referencia),
             Negocio = enumNegocio.Presupuesto,

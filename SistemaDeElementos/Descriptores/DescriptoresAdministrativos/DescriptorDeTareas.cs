@@ -62,7 +62,7 @@ namespace MVCSistemaDeElementos.Descriptores
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Tar_CopiarTarea}' accion-menu='{eventosDeMf.Tar_CopiarTarea}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Copiar tarea</li>");
 
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CuandoRealizarDto), eventosDeMf.Tar_CuandoRealizar, "Cuándo realizar la tarea"));
-            Editor.IncluirMfIndividual("Cuándo realizar", eventosDeMf.Tar_CuandoRealizar, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
+            Editor.IncluirMfIndividual("Cuándo realizar", eventosDeMf.Tar_CuandoRealizar, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             DescriptorDeEdicion<TareaDto>.IncluirMfIndividual(Mnt.OpcionesPorElemento, $"<li id='{menuIndividual}.{eventosDeMf.Tar_CuandoRealizar}' accion-menu='{eventosDeMf.Tar_CuandoRealizar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Cuándo realizar</li>");
 
             Editor.IncluirMfIndividual("Eliminar cuándo realizar", eventosDeMf.Tar_EliminarCuandoRealizar, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);

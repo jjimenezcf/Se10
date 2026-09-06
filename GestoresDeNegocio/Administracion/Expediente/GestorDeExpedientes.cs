@@ -78,6 +78,8 @@ namespace GestoresDeNegocio.Expediente
 
             FiltrosDeExpedientes.FiltrarPorTipoDeExpedienteSegunDescriptor(Contexto, filtros, parametros.Parametros);
 
+            consulta = consulta.AplicarFiltroPorEtapas(filtros);
+
             foreach (var filtro in filtros)
             {
                 if (filtro.Aplicado) continue;

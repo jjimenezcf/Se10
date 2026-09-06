@@ -282,16 +282,7 @@ namespace GestoresDeNegocio.Juridico
         public static IQueryable<ContratoDtm> AplicarFiltroPorEtapas(this IQueryable<ContratoDtm> consulta, List<ClausulaDeFiltrado> filtros)
         {
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnContrato.FiltroPorEtapas.ToLower() && !x.Aplicado);
-            if (filtro != null)
-            {
-                var etapas = filtro.Valor.Split(Simbolos.separadorDeEtapas);
-                var estados = ApiDeEnsamblados.ToEnumerado<enumEtapasDeContratos>(etapas[0]).Estados();
-                for (var i = 1; i < etapas.Length; i++) estados = estados + Simbolos.Coma + ApiDeEnsamblados.ToEnumerado<enumEtapasDeContratos>(etapas[i]).Estados();
-                var filtroPorEstados = new ClausulaDeFiltrado(nameof(IUsaEstado.IdEstado), enumCriteriosDeFiltrado.esAlgunoDe, estados);
-                consulta = consulta.AplicarFiltroPorEntero(filtroPorEstados);
-                filtro.Aplicado = true;
-            }
-            return consulta;
+            return filtro != null ? consulta.FiltrosPorEtapa(filtro) : consulta;
         }
 
         public static IQueryable<ContratoDtm> AplicarFiltroPorEtapaDePlanificaciones(this IQueryable<ContratoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)

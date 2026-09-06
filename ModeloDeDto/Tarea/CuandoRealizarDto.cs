@@ -23,8 +23,8 @@ namespace ModeloDeDto.Tarea
             Controlador = nameof(enumControladoresAdministrativos.Tareas),
             SeleccionarDe = typeof(TareaDto),
             VistaDondeNavegar = enumVistasAdministrativo.CrudTareas,
-            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + "|" +
-                             ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial),
+            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + Simbolos.separadorDeRestrictoresFijos +
+                             ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeTareas.TAR_Etapa_Asignada),
             OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
             Negocio = enumNegocio.Tarea,
             LongitudMinimaParaBuscar = 1,
@@ -48,8 +48,8 @@ namespace ModeloDeDto.Tarea
             Controlador = nameof(enumControladoresAdministrativos.Tareas),
             SeleccionarDe = typeof(TareaDto),
             VistaDondeNavegar = enumVistasAdministrativo.CrudTareas,
-            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + "|" +
-                             ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial),
+            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + Simbolos.separadorDeRestrictoresFijos +
+                             ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeTareas.TAR_Etapa_Asignada),
             OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
             Negocio = enumNegocio.Tarea,
             LongitudMinimaParaBuscar = 1,

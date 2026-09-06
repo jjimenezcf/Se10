@@ -343,7 +343,6 @@
     export function Tar_FiltrosParaCuandoRealizar(lista: HTMLInputElement): Array<ClausulaDeFiltrado> {
         let clausulas: Array<ClausulaDeFiltrado> = new Array<ClausulaDeFiltrado>();
 
-
         let modal = (Crud.crudMnt as CrudDeTareas).ModalCuandoRealizar;
 
         let editorIdTareaEditada = ApiControl.BuscarEditor(modal, ltrPropiedades.Tarea.CuandoRealizar.IdTareaEditada) as HTMLInputElement;

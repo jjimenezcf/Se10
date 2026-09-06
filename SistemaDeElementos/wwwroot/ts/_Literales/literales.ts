@@ -14,7 +14,10 @@ const ltrSimbolos = {
     separadorDeEnteros: ',',
     ArchivoCancelado: '(_)',
     subrayado: '_',
-    igual: '='
+    igual: '=',
+    separadorDeRestrictoresFijos: '~',
+    separadorDeEtapas: '|',
+    separadorDentroDeUnRestrictorFijo:';'
 };
 
 enum enumNegocio {
@@ -382,6 +385,9 @@ const ltrEspanes = {
     Logistica: {
         Pedidos: {
             Lineas: 'lineasdeunpedido'
+        },
+        Regularizaciones: {
+            Lineas: 'lineasdeunaregularizacion'
         }
     },
     Venta: {
@@ -472,6 +478,9 @@ const ltrModalDeCrearRelacion = {
     Logistica: {
         Pedidos: {
             Lineas: ltrEspanes.Logistica.Pedidos.Lineas
+        },
+        Regularizaciones: {
+            Lineas: ltrEspanes.Logistica.Regularizaciones.Lineas
         }
     }
 };
@@ -3283,7 +3292,14 @@ const ltrPropiedades = {
         },
         Regularizacion: {
             IdAlmacen: 'idalmacen',
-            Almacen: 'almacen'
+            Almacen: 'almacen',
+            linea: {
+                orden: 'orden',
+                unitario: 'unitario',
+                cantidad: 'cantidad',
+                precio: 'precio',
+                total: 'total'
+            }
         },
     },
     Venta: {

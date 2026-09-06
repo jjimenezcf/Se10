@@ -415,13 +415,13 @@
     }
 
     function IncluirRestrictoresFijos(restrictoresFijos: string, input: HTMLInputElement, filtros: ClausulaDeFiltrado[]) {
-        let restrictores = restrictoresFijos.split('|');
+        let restrictores = restrictoresFijos.split(ltrSimbolos.separadorDeRestrictoresFijos);
         for (let i: number = 0; i < restrictores.length; i++)
             IncluirRestrictorFijo(restrictores[i], input, filtros);
     }
 
     function IncluirRestrictorFijo(restrictorFijo: string, input: HTMLInputElement, filtros: ClausulaDeFiltrado[]) {
-        let partes = restrictorFijo.split(';');
+        let partes = restrictorFijo.split(ltrSimbolos.separadorDentroDeUnRestrictorFijo);
         if (partes.length < 2) {
             MensajesSe.EmitirMensajeDeExcepcion("IncluirRestrictorFijo",
                 `Un filtro fijo en una lista dinámica se define como una cadena de dos partes, separadas por ; el nombre del filtro, y los restrictores. Corrija la lista ${input.id}`);

@@ -51,7 +51,8 @@ namespace Utilidades
         public static string separadorDeFechas => Guion;
         public static string separadorDeCtaban => Guion;
         public static string separadorDePartesHorarias => DosPuntos;
-        public static string separadorDeEtapas => Pipe;
+        public const string separadorDeEtapas = Pipe;
+        public const string separadorDeRestrictoresFijos = "~";
         public static string separadorDeColumnas => "#";
         public static string separadorDeValores => Pipe;
         public static string separadorParaMostrarEncolumnado => $" {Pipe} ";

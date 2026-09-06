@@ -93,7 +93,7 @@ namespace ModeloDeDto.Ventas
             GuardarEn = nameof(IdContrato),
             Controlador = nameof(enumControladoresJuridicos.Contratos),
             ParametrosParaNavegar = nameof(ltrParametrosEp.Clase) + Simbolos.Igual + nameof(enumClaseDeContrato.Venta),
-            RestrictorFijo = ltrDeUnContrato.SelectorParaUnaFacturaEmt + Simbolos.PuntoComa + nameof(enumEtapasDeContratos.CTR_Etapa_Vigente) + Simbolos.PuntoComa + nameof(enumEtapasDeContratos.CTR_Etapa_Finalizacion),
+            RestrictorFijo = ltrDeUnContrato.SelectorParaUnaFacturaEmt + Simbolos.PuntoComa + nameof(enumEtapasDeContratos.CTR_Etapa_Vigente) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeContratos.CTR_Etapa_Finalizacion),
             RestringidoPorControl = nameof(Cliente),
             SeleccionarDe = typeof(ContratoDto),
             VistaDondeNavegar = enumVistasJuridicos.CrudContratos,

@@ -209,7 +209,7 @@ namespace ModeloDeDto.Ventas
             TipoDeControl = enumTipoControl.ListaDeElemento,
             SeleccionarDe = typeof(CentroAdministrativoDtm),
             Controlador = nameof(enumControladoresTerceros.CentrosAdministrativos),
-            RestrictorFijo = ltrInterlocutor.BuscarPorContactoCliente + Simbolos.PuntoComa + nameof(enumNegocio.Cliente) + Simbolos.Pipe +
+            RestrictorFijo = ltrInterlocutor.BuscarPorContactoCliente + Simbolos.PuntoComa + nameof(enumNegocio.Cliente) + Simbolos.separadorDeRestrictoresFijos +
                              ltrFiltros.enumNegocio + Simbolos.PuntoComa + nameof(enumNegocio.Cliente),
             RestringidoPorControl = nameof(IdCliente),
             GuardarEn = nameof(IdCentroAdministrativo),

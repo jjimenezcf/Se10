@@ -50,13 +50,7 @@ namespace GestoresDeNegocio.Ventas
             if (filtro != null)
             {
                 consulta = consulta.Where(x => x.ClaseDePresupuesto == enumClaseDePresupuesto.venta);
-                var etapas = filtro.Valor.Split(Simbolos.separadorDeEtapas);
-                var estados = ApiDeEnsamblados.ToEnumerado<enumEtapasDePpts>(etapas[0]).Estados();
-                for (var i = 1; i < etapas.Length; i++) estados = estados + Simbolos.Coma + ApiDeEnsamblados.ToEnumerado<enumEtapasDePpts>(etapas[i]).Estados();
-                var filtroPorEstados = new ClausulaDeFiltrado(nameof(IUsaEstado.IdEstado), enumCriteriosDeFiltrado.esAlgunoDe, estados);
-                consulta = consulta.AplicarFiltroPorEntero(filtroPorEstados);
-
-                filtro.Aplicado = true;
+                consulta = consulta.FiltrosPorEtapa(filtro);
             }
             return consulta;
         }

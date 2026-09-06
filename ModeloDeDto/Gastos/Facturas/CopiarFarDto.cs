@@ -232,7 +232,7 @@ namespace ModeloDeDto.Gastos
             Controlador = nameof(enumControladoresJuridicos.Contratos),
             VistaDondeNavegar = enumVistasJuridicos.CrudContratos,
             ParametrosParaNavegar = nameof(ltrParametrosEp.Clase) + Simbolos.Igual + nameof(enumClaseDeContrato.Compra),
-            RestrictorFijo = ltrDeUnContrato.SelectorParaUnaFacturaRec + Simbolos.PuntoComa + nameof(enumEtapasDeContratos.CTR_Etapa_Vigente) + Simbolos.PuntoComa + nameof(enumEtapasDeContratos.CTR_Etapa_Finalizacion),
+            RestrictorFijo = ltrDeUnContrato.SelectorParaUnaFacturaRec + Simbolos.PuntoComa + nameof(enumEtapasDeContratos.CTR_Etapa_Vigente) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeContratos.CTR_Etapa_Finalizacion),
             RestringidoPorControl = nameof(IdSociedadDelCg),
             PropiedadRestrictora = nameof(IdSociedadDelCg),
             Fila = 5,

@@ -23,7 +23,7 @@ namespace ModeloDeDto.Ventas
             Controlador = nameof(enumControladoresVentas.PartesTr),
             SeleccionarDe = typeof(ParteTrDto),
             VistaDondeNavegar = enumVistasVentas.CrudPartesDeTrabajo,
-            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.ParteDeTrabajo) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + "|" +
+            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.ParteDeTrabajo) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + Simbolos.separadorDeRestrictoresFijos +
                              ltrDeUnParteTr.FiltroPorEtapa + ";" + nameof(enumEtapasDePartesTr.PTR_Etapa_Pdt_Facturar),
             OrdenarListaDinamicaPor = nameof(ParteTrDtm.Referencia),
             Negocio = enumNegocio.ParteDeTrabajo,

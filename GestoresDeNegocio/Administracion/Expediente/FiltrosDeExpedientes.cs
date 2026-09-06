@@ -15,6 +15,14 @@ namespace GestoresDeNegocio.Expediente
 {
     internal static class FiltrosDeExpedientes
     {
+        public static IQueryable<ExpedienteDtm> AplicarFiltroPorEtapas(this IQueryable<ExpedienteDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => !x.Aplicado &&
+                                                     (x.Clausula.Equals(ltrDeUnExpediente.SelectorParaUnaFacturaRec, StringComparison.CurrentCultureIgnoreCase) ||
+                                                      x.Clausula.Equals(ltrDeUnExpediente.SelectorParaUnPedido, StringComparison.CurrentCultureIgnoreCase)));
+            return filtro != null ? consulta.FiltrosPorEtapa(filtro) : consulta;
+        }
+
         public static IQueryable<ExpedienteDtm> SeleccionarParaAsociarAUnPpt(this IQueryable<ExpedienteDtm> consulta, ClausulaDeFiltrado filtro)
         {
             if (filtro.Clausula.Equals(ltrDeUnPresupuesto.AsociarExpediente, StringComparison.CurrentCultureIgnoreCase))

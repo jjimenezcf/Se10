@@ -24,7 +24,7 @@ namespace ModeloDeDto.Gastos
             Controlador = nameof(enumControladoresGastos.FacturasRec),
             SeleccionarDe = typeof(FacturaRecDto),
             VistaDondeNavegar = enumVistasGastos.CrudFacturasRec,
-            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.FacturaRecibida) + ";" + nameof(enumModoDeAccesoDeDatos.Gestor) + "|" +
+            RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.FacturaRecibida) + ";" + nameof(enumModoDeAccesoDeDatos.Gestor) + Simbolos.separadorDeRestrictoresFijos +
                        ltrDeUnaFacturaRec.AsociadaAUnElemento + ";" + ltrFiltros.SinRelacion,
             OrdenarListaDinamicaPor = nameof(FacturaRecDtm.Referencia),
             Negocio = enumNegocio.FacturaRecibida,
