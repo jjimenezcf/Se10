@@ -376,9 +376,31 @@
         let idCg: number = ObtenerPropiedad(datos, literal.idCg, 0, true);
         let cg: string = ObtenerPropiedad(datos, literal.Cg, "", true);
         let cgLista: HTMLInputElement = ApiControl.BuscarListaDinamicaPorPropiedad(panel, literal.Cg) as HTMLInputElement;
-        ApiListaDinamica.AsignarValor(cgLista, idCg, cg);
+        if (cgLista) {
+            ApiListaDinamica.AsignarValor(cgLista, idCg, cg);
+        }
+        else {
+            MapearCgOculto(panel, idCg, cg);
+        }
         MapearDatosSocietarios(panel, datos);
     }
+
+
+    export function MapearCgOculto(panel: HTMLDivElement, idCg: number, cg: string): void {
+        let idCgOculto = ApiControl.BuscarEditor(panel, ltrPropiedades.Elemento.ConCg.IdCg) as HTMLInputElement;
+        let cgOculto = ApiControl.BuscarEditor(panel, ltrPropiedades.Elemento.ConCg.Cg) as HTMLInputElement;
+        idCgOculto.value = idCg.toString();
+        cgOculto.value = cg;
+    }
+
+    export function BlanquearCgOculto(panel: HTMLDivElement): void {
+        let idCgOculto = ApiControl.BuscarEditor(panel, ltrPropiedades.Elemento.ConCg.IdCg) as HTMLInputElement;
+        let cgOculto = ApiControl.BuscarEditor(panel, ltrPropiedades.Elemento.ConCg.Cg) as HTMLInputElement;
+        idCgOculto.value = "";
+        cgOculto.value = "";
+        Neg_Tras_Blanquear_CG(undefined);
+    }
+
 
     export function Neg_Tras_Blanquear_CG(idLista: string): void {
         if (Crud.ModoTrabajo() === enumModoTrabajo.creando) {
@@ -386,8 +408,6 @@
         }
     }
     export function Neg_Tras_Seleccionar_CG(idLista: string): void {
-
-
         if (Crud.ModoTrabajo() === enumModoTrabajo.creando) {
             Crud.crudMnt.crudDeCreacion.TrasBlanquearCg();
             Crud.crudMnt.crudDeCreacion.TrasSeleccionarCg(idLista);

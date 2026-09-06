@@ -11,10 +11,12 @@ namespace ModeloDeDto.Logistica
     {
 
         //--------------------------------------------
-        [IUPropiedad(Visible = false)]
+        [IUPropiedad(Etiqueta = "", Oculto = true, Obligatorio = false, VisibleEnGrid = false, Fila = 0, Columna = 0, Posicion = 0)]
+        public new int IdCg { get; set; }
+
+        [IUPropiedad(Etiqueta = "", Oculto = true, Obligatorio = false, VisibleEnGrid = false, Fila = 0, Columna = 0, Posicion = 0)]
         public new string Cg { get; set; }
 
-        //--------------------------------------------
         [IUPropiedad(
             Etiqueta = "Id del almacén",
             Visible = false

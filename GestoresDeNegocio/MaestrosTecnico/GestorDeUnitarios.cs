@@ -16,12 +16,6 @@ namespace GestoresDeNegocio.MaestrosTecnico
     {
         public override enumNegocio Negocio => enumNegocio.Unitario;
 
-        public class ltrDeUnUnitario
-        {
-            internal const string PreciosDelLote = nameof(PreciosDelLote);
-            internal const string IdPlanificador = nameof(IdPlanificador);            
-        }
-
         public class MapearUnitario : Profile
         {
             public MapearUnitario()
@@ -60,29 +54,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
         protected override IQueryable<UnitarioDtm> AplicarFiltros(IQueryable<UnitarioDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
-            var soloLosDelLote = filtros.Where(x => x.Clausula.Equals(nameof(UnitariosDeUnLoteDtm.IdLote),System.StringComparison.InvariantCultureIgnoreCase) && x.Criterio == enumCriteriosDeFiltrado.igual).FirstOrDefault();
-            if (soloLosDelLote != null)
-            {
-                var idLote = soloLosDelLote.Valor.Entero();
-                var idPlanificador = (int)parametros.Parametros.LeerValor<long>(ltrDeUnUnitario.IdPlanificador, 0);
-                var unitariosDelLote = Contexto.Set<UnitariosDeUnLoteDtm>().Where(x => x.IdLote == idLote);
-                var lineasPlanificadas = Contexto.Set<LineaDeUnPlfVentaDtm>().Where(x => x.IdElemento == idPlanificador);
-                consulta = consulta.Where(x => unitariosDelLote.Any(y => y.IdUnitario == x.Id) && lineasPlanificadas.All(y => y.IdUnitario != x.Id));
-                soloLosDelLote.Aplicado = true;
-                parametros.Parametros[ltrDeUnUnitario.PreciosDelLote] = idLote;
-            }
-
-            var noEstanEnElLote = filtros.Where(x => x.Clausula.Equals(nameof(UnitariosDeUnLoteDtm.IdLote), System.StringComparison.InvariantCultureIgnoreCase) 
-            && (x.Criterio == enumCriteriosDeFiltrado.noEstaRelacionado|| x.Criterio == enumCriteriosDeFiltrado.diferente)).FirstOrDefault();
-            if (noEstanEnElLote != null)
-            {
-                var idLote = noEstanEnElLote.Valor.Entero();
-                var unitariosDelLote = Contexto.Set<UnitariosDeUnLoteDtm>().Where(x => x.IdLote == idLote);
-                consulta = consulta.Where(x => unitariosDelLote.All(y => y.IdUnitario != x.Id));
-
-                noEstanEnElLote.Aplicado = true;
-            }
-
+            consulta = consulta.FiltrarPorLote(Contexto, filtros, parametros);
+            consulta = consulta.FiltrarPorClaseDeUnitario(filtros);
             return consulta;
         }
 

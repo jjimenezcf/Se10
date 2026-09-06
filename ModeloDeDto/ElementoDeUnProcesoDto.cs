@@ -13,15 +13,7 @@ namespace ModeloDeDto
     public class ElementoDeUnProcesoDto : ElmentoAuditadoDto, IElementoDeUnProcesoDto
     {
         //----------------------------------------------
-        [IUPropiedad(
-         Etiqueta = "",
-         Oculto = true,
-         Obligatorio = false,
-         VisibleEnGrid = false,
-         Fila = 0,
-         Columna = 0,
-         Posicion = 0
-         )]
+        [IUPropiedad(Etiqueta = "", Oculto = true, Obligatorio = false,VisibleEnGrid = false,  Fila = 0,Columna = 0, Posicion = 0  )]
         public int? IdSociedadDelCg { get; set; }
 
         [IUPropiedad(Etiqueta = "Id del Cg", Visible = false)]

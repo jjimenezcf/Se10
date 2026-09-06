@@ -433,6 +433,9 @@ namespace Utilidades
 
         Tar_ProponerDatosDelaTareaSeleccionada,
         Tar_InicializarModalDeCopiado,
+        Tar_AbrirTareaAnterior,
+        Tar_AbrirTareaPosterior,
+        Tar_FiltrosParaCuandoRealizar,
 
         Utilidades_Totalizar_Editor,
 
@@ -447,6 +450,11 @@ namespace Utilidades
 
         Ral_Tras_Seleccionar_Almacen,
         Ral_Tras_Blanquear_Almacen,
+        Ral_Tras_Seleccionar_Unitario,
+        Ral_Tras_Blanquear_Unitario,
+        Ral_InicializarModalParaCrearLineas,
+        Ral_CalcularImportesDeLinea,
+        Ral_FiltrosPorClaseDeUnitario,
 
         Neg_ProcesarOpcionDeMenuLista,
 
@@ -835,6 +843,7 @@ namespace Utilidades
         public const string Tar_IrAPartesTr = IrAPartesTr;
         public const string Tar_CopiarTarea = "copiar-tarea";
         public const string Tar_CuandoRealizar = "cuando-realizar";
+        public const string Tar_EliminarCuandoRealizar = "eliminar-cuando-realizar";
 
         public const string Exp_VincularRegistroEntrada = "vincular-re";
         public const string Exp_IrATareas = IrATareas;
@@ -1176,7 +1185,9 @@ namespace Utilidades
         ContenedorDeLaTablaConGraficos,
         ContenedorDelGridConElDivDeLaTabla,
         ContenedorDelGridConElDivDeGraficos,
-        Splitter
+        Splitter,
+        filaAutoFr,
+        fila200pxFr,
     }
 
     public enum enumCssHistorial
@@ -2083,6 +2094,8 @@ namespace Utilidades
                 case enumCssGrid.ContenedorDeLaTablaConGraficos: return "contenedor-tabla-con-graficos";
                 case enumCssGrid.ContenedorDelGridConElDivDeLaTabla: return "div-grid-tabla";
                 case enumCssGrid.ContenedorDelGridConElDivDeGraficos: return "div-graficos";
+                case enumCssGrid.filaAutoFr: return "fila-auto-fr";
+                case enumCssGrid.fila200pxFr: return "fila-200px-fr";
                 case enumCssGrid.Splitter: return "splitter-tabla";
             }
             throw new Exception($"No se ha definido que renderizar para la clase {clase}");

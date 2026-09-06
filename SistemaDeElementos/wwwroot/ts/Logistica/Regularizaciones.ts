@@ -29,6 +29,22 @@ namespace Logistica {
 
     export class CrudEdicionRegularizacion extends Crud.CrudEdicion {
 
+        public get ModalDeCreacionDeLineas(): HTMLDivElement {            
+            return this.ModalParaCrearRelacion(ltrModalDeCrearRelacion.Logistica.Regularizaciones.Lineas);
+        }
+
+        public get ModalDeEdicionDeLineas(): HTMLDivElement {
+            return this.ModalParaEditarRelacion(ltrEspanes.Logistica.Regularizaciones.Lineas);
+        }
+
+        public get GridDeLineas(): HTMLDivElement {
+            return document.getElementById('grid-de-detalle-lineasdeunaregularizacion-tabla') as HTMLDivElement;
+        }
+
+        public get EstaCreandoUnaLinea(): boolean {
+            return ApiPanel.ModalAbierta(this.ModalDeCreacionDeLineas);
+        }
+
         constructor(crud: Crud.CrudMnt, idPanelEdicion: string) {
             super(crud, idPanelEdicion);
         }

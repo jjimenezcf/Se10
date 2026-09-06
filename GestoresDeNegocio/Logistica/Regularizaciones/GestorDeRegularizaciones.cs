@@ -100,7 +100,9 @@ namespace GestoresDeNegocio.Logistica
 
             if (parametros.Insertando)
             {
-                regularizacion.Almacen(Contexto).ValidarQueNoHayaRegularizacionViva(Contexto);
+                var almacen = regularizacion.Almacen(Contexto);
+                almacen.ValidarQueNoHayaRegularizacionViva(Contexto);
+                almacen.TransitarALaEtapa(Contexto, enumEtapasDeAlmacen.ALM_Etapa_En_Inventario.EstadosDeLaEtapa(), delSistema: true);
             }
         }
 
@@ -108,11 +110,6 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDePersistir(regularizacion, parametros);
 
-            if (parametros.Insertando)
-            {
-                var almacen = regularizacion.Almacen(Contexto);
-                almacen.TransitarALaEtapa(Contexto, enumEtapasDeAlmacen.ALM_Etapa_En_Inventario.EstadosDeLaEtapa(), delSistema: true);
-            }
         }
 
         protected override RegularizacionDtm AntesDeTransitar(RegularizacionDtm regularizacion, TransicionDtm transicion, Dictionary<string, object> parametros)

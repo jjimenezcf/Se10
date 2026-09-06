@@ -2555,7 +2555,8 @@ const ltrPropiedades = {
             clase: 'Clase',
             idnaturaleza: 'IdNaturaleza',
             idunidad: 'IdUnidad',
-            nombre: 'nombre'
+            nombre: 'nombre',
+            FiltrosPorClaseDeUnitario: 'FiltrosPorClaseDeUnitario'
         },
         Tarifa: {
             IdElemento: 'IdElemento',
@@ -3293,6 +3294,9 @@ const ltrPropiedades = {
         Regularizacion: {
             IdAlmacen: 'idalmacen',
             Almacen: 'almacen',
+            tipo: {
+                Clase: 'ClaseDeRegularizacion'
+            },
             linea: {
                 orden: 'orden',
                 unitario: 'unitario',
@@ -3708,6 +3712,18 @@ const ltrValores = {
             Paises:
             {
                 Espana: 'España'
+            }
+        },
+        Unitario: {
+            Clase: {
+                Material: 'Material'
+            }
+        }
+    },
+    Logistica: {
+        Regularizacion: {
+            Clase: {
+                Inicial: 'Inicial'
             }
         }
     },

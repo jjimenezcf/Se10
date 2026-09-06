@@ -167,6 +167,8 @@ namespace ServicioDeDatos
             ModeloDeRegularizacion.Permisos(modelBuilder);
             ModeloDeRegularizacion.Historia(modelBuilder);
             ModeloDeRegularizacion.Archivadores(modelBuilder);
+
+            ModeloDeRegularizacion.DatosDeLineaDeUnaRegularizacion(modelBuilder);
         }
 
         private static void DefinirEsquemaDeSeguridad(ModelBuilder modelBuilder)

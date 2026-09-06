@@ -22,6 +22,8 @@ namespace ServicioDeDatos.Logistica
 
     public enum enumParametrosDeRegularizaciones
     {
+        [Description("Indica el incremento al enumerar las filas")]
+        RAL_IncrementarOrdenEn
     }
 
     public static class VariableDeRegularizaciones

@@ -1903,3 +1903,7 @@ a.deshabilitado {
 .fila-auto-fr {
     grid-template-columns: auto 1fr !important;
 }
+
+.fila-200px-fr {
+    grid-template-columns: 200px 1fr !important;
+}

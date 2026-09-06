@@ -1,11 +1,7 @@
 ﻿using Gestor.Errores;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ServicioDeDatos;
 using ServicioDeDatos.Logistica;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Utilidades;
 
 namespace GestorDeElementos.Extensores
@@ -32,6 +28,14 @@ namespace GestorDeElementos.Extensores
             if (hayRegularizacionViva)
                 GestorDeErrores.Emitir($"No se puede crear la regularización porque el almacén '{almacen.Referencia}' ya tiene una regularización en curso");
 
+        }
+
+        public static int IncrementarOrdenEn(ContextoSe contexto)
+        {
+            var incremento = enumNegocio.Regularizacion.LeerCrearParametro(contexto, enumParametrosDeRegularizaciones.RAL_IncrementarOrdenEn, "10");
+            if (incremento is null || incremento.Valor.Entero() == 0)
+                GestorDeErrores.Emitir($"Ha de definir el parámetro '{enumParametrosDeRegularizaciones.RAL_IncrementarOrdenEn}' del negocio de '{enumNegocio.Regularizacion.Singular()}' con un valor mayor de 0");
+            return incremento.Valor.Entero();
         }
 
         public static AlmacenDtm Almacen(this RegularizacionDtm regularizacion, ContextoSe contexto)

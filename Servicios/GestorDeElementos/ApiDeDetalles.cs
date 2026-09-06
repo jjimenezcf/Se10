@@ -6,6 +6,7 @@ using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Guarderias;
 using ServicioDeDatos.Juridico;
+using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
 using System;
@@ -185,6 +186,7 @@ namespace GestorDeElementos
                 case enumNegocio.Interlocutor: return tipoDetalle == typeof(CuentaDeInterlocutorDtm);
                 case enumNegocio.Sociedad: return tipoDetalle == typeof(CuentaDeMiSociedadDtm) || tipoDetalle == typeof(TarjetaDeMiSociedadDtm) || tipoDetalle == typeof(FacturadorDeSociedadDtm);
                 case enumNegocio.CursoDeGuarderia: return tipoDetalle == typeof(ProfeDeCursoDeGuarderiaDtm) || tipoDetalle == typeof(InfanteDeUnCursoDtm);
+                case enumNegocio.Regularizacion: return tipoDetalle == typeof(LineasDeUnaRegularizacionDtm);
             }
             return false;
         }
