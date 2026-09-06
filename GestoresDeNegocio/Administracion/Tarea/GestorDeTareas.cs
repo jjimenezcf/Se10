@@ -90,6 +90,8 @@ namespace GestoresDeNegocio.Tarea
             consulta = consulta.FiltroConPrioridad(filtros);
             consulta = consulta.FiltroPorEtapa(filtros);
             consulta = consulta.ExcluirCuandoRealizar(Contexto, filtros);
+            consulta = consulta.FiltroPorTareasAnterioresA(Contexto, filtros);
+            consulta = consulta.FiltroPorTareasPosterioresA(Contexto, filtros);
             return consulta;
         }
 
@@ -604,20 +606,42 @@ namespace GestoresDeNegocio.Tarea
                 GestorDeErrores.Emitir("No se puede indicar la misma tarea como anterior y como posterior");
 
             var tareaEditada = contexto.SeleccionarPorId<TareaDtm>(idTareaEditada);
+            var tareaAnterior = idTareaAnterior > 0 ? contexto.SeleccionarPorId<TareaDtm>(idTareaAnterior) : null;
+            var tareaPosterior = idTareaPosterior > 0 ? contexto.SeleccionarPorId<TareaDtm>(idTareaPosterior) : null;
 
             if (!tareaEditada.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeTareas> { enumEtapasDeTareas.TAR_Etapa_Inicial, enumEtapasDeTareas.TAR_Etapa_Asignada, enumEtapasDeTareas.TAR_Etapa_En_Espera }))
-                GestorDeErrores.Emitir($"Sólo las tareas en etapa '{enumEtapasDeTareas.TAR_Etapa_Inicial.Nombre(minusculas: true)}', '{enumEtapasDeTareas.TAR_Etapa_Asignada.Nombre(minusculas: true)}' o en '{enumEtapasDeTareas.TAR_Etapa_En_Espera.Nombre(minusculas: true)}' pueden indicar cuándo se han de realizar");
+                GestorDeErrores.Emitir($"Para establecer secuencialidad de resolución no se admiten tareas canceladas, terminadas o pendientes de validación; la tarea '{tareaEditada.Referencia}' está en etapa '{tareaEditada.Etapa().Nombre(minusculas: true)}'");
 
-            if (idTareaAnterior > 0)
-                EnlazarSecuencia(contexto, contexto.SeleccionarPorId<TareaDtm>(idTareaAnterior), tareaEditada);
+            ValidarEsInterventorDeLaSecuencia(contexto, tareaEditada);
+            if (tareaAnterior != null) ValidarEsInterventorDeLaSecuencia(contexto, tareaAnterior);
+            if (tareaPosterior != null) ValidarEsInterventorDeLaSecuencia(contexto, tareaPosterior);
 
-            if (idTareaPosterior > 0)
-                EnlazarSecuencia(contexto, tareaEditada, contexto.SeleccionarPorId<TareaDtm>(idTareaPosterior));
+            if (tareaAnterior != null)
+                EnlazarSecuencia(contexto, tareaAnterior, tareaEditada);
+
+            if (tareaPosterior != null)
+                EnlazarSecuencia(contexto, tareaEditada, tareaPosterior);
+        }
+
+        // El usuario ha de poder modificar (como interventor) las tres tareas implicadas, ya que la creación/borrado de las
+        // observaciones de secuencia se hace en cada una de ellas y, sin ese permiso, esa persistencia fallaría.
+        private static void ValidarEsInterventorDeLaSecuencia(ContextoSe contexto, TareaDtm tarea)
+        {
+            if (!tarea.EsInterventor(contexto))
+                GestorDeErrores.Emitir($"Sólo un interventor de la tarea '{tarea.Referencia}' puede establecer su secuencia de ejecución");
         }
 
         // Enlaza 'tareaAnterior' y 'tareaPosterior' como secuencia de ejecución, creando la observación correspondiente en cada una.
         private static void EnlazarSecuencia(ContextoSe contexto, TareaDtm tareaAnterior, TareaDtm tareaPosterior)
         {
+            var etapasNoPermitidas = new List<enumEtapasDeTareas> { enumEtapasDeTareas.TAR_Etapa_Validacion, enumEtapasDeTareas.TAR_Etapa_Terminada, enumEtapasDeTareas.TAR_Etapa_Cancelado };
+
+            if (tareaAnterior.EstaEnAlgunaDeLasEtapa(etapasNoPermitidas))
+                GestorDeErrores.Emitir($"La tarea '{tareaAnterior.Referencia}' no puede formar parte de una secuencia de ejecución por estar en etapa '{tareaAnterior.Etapa().Nombre(minusculas: true)}'");
+
+            if (tareaPosterior.EstaEnAlgunaDeLasEtapa(etapasNoPermitidas))
+                GestorDeErrores.Emitir($"La tarea '{tareaPosterior.Referencia}' no puede formar parte de una secuencia de ejecución por estar en etapa '{tareaPosterior.Etapa().Nombre(minusculas: true)}'");
+
             if (tareaPosterior.ArbolDeRealizacionPosterior(contexto).Any(t => t.Id == tareaAnterior.Id))
                 GestorDeErrores.Emitir($"No se puede indicar que la tarea '{tareaAnterior.Referencia}' se ha de ejecutar antes que '{tareaPosterior.Referencia}' porque se entraría en una secuencia recursiva de ejecución");
 

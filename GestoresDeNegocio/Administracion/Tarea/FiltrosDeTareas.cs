@@ -216,6 +216,39 @@ namespace GestoresDeNegocio.Tarea
             return consulta;
         }
 
+        // Muestra las tareas que, según la secuencia definida en 'Cuándo realizar', se han de ejecutar antes que
+        // la tarea indicada por su referencia (se usa la referencia, y no el nombre, porque este puede ser muy largo
+        // y no tendría sentido encadenar "las anteriores a" más de una tarea con nombre).
+        public static IQueryable<TareaDtm> FiltroPorTareasAnterioresA(this IQueryable<TareaDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.TareasAnterioresA.ToLower() && !x.Aplicado);
+            if (filtro == null) return consulta;
+
+            var referencia = filtro.Valor.ToLower();
+            var tareaDeReferencia = contexto.Set<TareaDtm>().FirstOrDefault(t => t.Referencia.ToLower() == referencia);
+            var ids = tareaDeReferencia != null ? tareaDeReferencia.IdsDeTareasAnteriores(contexto) : new List<int>();
+
+            consulta = consulta.Where(t => ids.Contains(t.Id));
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
+        // Muestra las tareas que, según la secuencia definida en 'Cuándo realizar', se han de ejecutar después de
+        // (siguientes a) la tarea indicada por su referencia.
+        public static IQueryable<TareaDtm> FiltroPorTareasPosterioresA(this IQueryable<TareaDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.TareasPosterioresA.ToLower() && !x.Aplicado);
+            if (filtro == null) return consulta;
+
+            var referencia = filtro.Valor.ToLower();
+            var tareaDeReferencia = contexto.Set<TareaDtm>().FirstOrDefault(t => t.Referencia.ToLower() == referencia);
+            var ids = tareaDeReferencia != null ? tareaDeReferencia.IdsDeTareasPosteriores(contexto) : new List<int>();
+
+            consulta = consulta.Where(t => ids.Contains(t.Id));
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
         public static IQueryable<TareaDtm> FiltroConPrioridad(this IQueryable<TareaDtm> consulta, List<ClausulaDeFiltrado> filtros)
         {
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.ConPrioridad.ToLower());

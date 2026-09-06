@@ -113,3 +113,21 @@
   2. `{"Clausula": "quemostrar", "Criterio": "igual", "Valor": "9"}` (Para incluir también las tareas terminadas/canceladas en la búsqueda por prioridad).
 - **Valores válidos:** `Urgente`, `Alta`, `Media`, `Baja`, `NoDefinida`. Usa EXACTAMENTE estos nombres (sin tildes ni espacios), separados por `;` si el usuario pide varias prioridades a la vez.
 - **Nota técnica:** El filtro compara directamente contra el enumerado `enumPrioridadDeTarea` de la tarea.
+
+### R.Tareas.8 · Secuencia de ejecución ("Cuándo realizar") respecto a una tarea de referencia
+
+**R.Tareas.8.1 · Tareas anteriores a realizar (`TareasAnterioresA`)**
+- **Disparador:** "tareas anteriores a realizar a [Referencia]", "qué hay que hacer antes que [Referencia]", "muéstrame las tareas previas a [Referencia]".
+- **Acción:** Genera:
+  1. `{"Clausula": "TareasAnterioresA", "Criterio": "igual", "Valor": "REF-0001"}`
+  2. `{"Clausula": "quemostrar", "Criterio": "igual", "Valor": "9"}` (Para incluir también terminadas/canceladas).
+
+**R.Tareas.8.2 · Tareas posteriores/siguientes a realizar (`TareasPosterioresA`)**
+- **Disparador:** "tareas posteriores a realizar a [Referencia]", "tareas siguientes a [Referencia]", "qué hay que hacer después de [Referencia]".
+- **Acción:** Genera:
+  1. `{"Clausula": "TareasPosterioresA", "Criterio": "igual", "Valor": "REF-0001"}`
+  2. `{"Clausula": "quemostrar", "Criterio": "igual", "Valor": "9"}` (Para incluir también terminadas/canceladas).
+
+- **Nota técnica:** `Valor` debe ser la **referencia** de la tarea (no su nombre ni su Id): el nombre puede ser muy largo y ambiguo, y no tiene sentido pedir las "siguientes a" más de una tarea a la vez, así que solo se admite una única referencia por filtro.
+- **Regla de extracción:** Si el usuario da un nombre en vez de una referencia, usa el texto tal cual como `Valor` (el filtro se resuelve por referencia exacta en servidor); no inventes ni completes una referencia que el usuario no haya mencionado.
+- **Exclusión:** No combines `TareasAnterioresA` y `TareasPosterioresA` en la misma consulta salvo que el usuario pida explícitamente ambos sentidos a la vez.

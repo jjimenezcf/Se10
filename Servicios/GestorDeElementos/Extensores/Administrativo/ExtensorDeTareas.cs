@@ -53,6 +53,8 @@ namespace GestorDeElementos.Extensores
         public const string FiltroPorEtapa = nameof(FiltroPorEtapa);
         public const string ConPrioridad = nameof(ConPrioridad);
         public const string ExcluirCuandoRealizar = nameof(ExcluirCuandoRealizar);
+        public const string TareasAnterioresA = nameof(TareasAnterioresA);
+        public const string TareasPosterioresA = nameof(TareasPosterioresA);
 
 
         public const string IdFacturaEmt = nameof(IdFacturaEmt);
