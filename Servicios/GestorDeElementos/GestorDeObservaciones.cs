@@ -71,7 +71,7 @@ namespace GestorDeElementos
             }
 
             var registros = LeerRegistros(idElemento, posicion, cantidad);
-            return MapearElementos(registros.ToList());
+            return MapearElementos(registros.ToList(), parametros: new ParametrosDeNegocio(enumTipoOperacion.LeerSinBloqueo) { Parametros = parametros });
         }
 
         protected override void DespuesDeMapearElRegistro(ObservacionDto elemento, ObservacionDtm registro, ParametrosDeNegocio opciones)
@@ -235,6 +235,13 @@ namespace GestorDeElementos
             elemento.ModoDeAcceso = Contexto.DatosDeConexion.IdUsuario == elemento.IdCreador ?
                 ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Gestor :
                 ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Consultor;
+
+
+            if (Negocio == enumNegocio.Tarea && (observacion.Nombre == enumCuandoRealizar.Anterior.Descripcion() || observacion.Nombre == enumCuandoRealizar.Despues.Descripcion()) || observacion.Nombre == enumTareaReferenciadaComo.Copia.Descripcion())
+            {
+                var tareaEnlazada = observacion.TareaEnlazada(Contexto);
+                elemento.Nombre = elemento.Nombre + ": (" + tareaEnlazada.Referencia + ") "  + tareaEnlazada.Nombre ;
+            }
 
             if (parametros.LeerPorIdParaEditar)
             {
