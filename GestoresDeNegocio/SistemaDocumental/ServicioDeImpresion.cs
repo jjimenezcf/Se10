@@ -80,11 +80,12 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
 
             var detalles = new DetallesDelObjeto(Contexto, Elemento);
+            var maestros = new GestorDeMaestros(Contexto, Elemento);
 
             File.Copy(pltPlantilla, pltResultado, overwrite: true);
             try
             {
-                GenerarDocumentoDocx(pltResultado, datosDelPa, datosDelObjeto, detalles);
+                GenerarDocumentoDocx(Contexto, pltResultado, datosDelPa, datosDelObjeto, detalles, maestros.Maestros);
                 return pltResultado;
             }
             catch
@@ -94,10 +95,11 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
         }
 
-        private static void GenerarDocumentoDocx(string pltResultado
+        private static void GenerarDocumentoDocx(ContextoSe contexto, string pltResultado
             , (Dictionary<string, string> formulas, Dictionary<string, Dictionary<string, string>> datos, Dictionary<string, List<Dictionary<string, string>>> filas, Dictionary<string, Dictionary<string, string>> mapeos) datos
             , Dictionary<string, Dictionary<string, object>> datosDelObjeto
-            , DetallesDelObjeto detalles)
+            , DetallesDelObjeto detalles
+            , Dictionary<string, DatosDeUnMaestro> maestros)
         {
             using (var fileStream = new FileStream(pltResultado, FileMode.Open, FileAccess.ReadWrite))
             {
@@ -115,10 +117,15 @@ namespace GestoresDeNegocio.SistemaDocumental
                             ApiDePlantillas.ProcesarMapeosDeExtensiones(cuerpo, detalles.Hitos, enumEncabezadosDeTablas.Hitos);
                             ApiDePlantillas.ProcesarMapeosDeExtensiones(cuerpo, detalles.Observaciones, enumEncabezadosDeTablas.Observaciones);
                             ApiDePlantillas.ProcesarMapeosDeExtensiones(cuerpo, detalles.Direcciones, enumEncabezadosDeTablas.Direcciones);
+                            ApiDePlantillas.ProcesarEtiquetasDeMaestros(cuerpo, maestros, contexto);
                         }
 
                         var pie = documento?.FooterParts.FirstOrDefault();
-                        if (pie != null) ApiDePlantillas.ProcesarParte(pie.Footer, datos.formulas, datos.datos, datosDelObjeto);
+                        if (pie != null)
+                        {
+                            ApiDePlantillas.ProcesarParte(pie.Footer, datos.formulas, datos.datos, datosDelObjeto);
+                            ApiDePlantillas.ProcesarEtiquetasDeMaestros(pie.Footer, maestros, contexto);
+                        }
                     }
                 }
             }

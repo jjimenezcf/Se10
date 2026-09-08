@@ -11,7 +11,7 @@ using Utilidades;
 namespace ServicioDeDatos.Terceros
 {
     [Table(Tablas.PROVEEDOR, Schema = Esquemas.TERCEROS)]
-    public class ProveedorDtm : ElementoDtm, IUsaTraza, IUsaBaja, IDatosDeContacto, IUsaDirecciones, ITerceroContable
+    public class ProveedorDtm : ElementoDtm, IUsaTraza, IUsaBaja, IDatosDeContacto, IUsaDirecciones, ITerceroContable, IEsInterlocutor
     {
         public string eMail { get; set; }
         public string Telefono { get; set; }

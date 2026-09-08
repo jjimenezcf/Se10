@@ -12,6 +12,7 @@ using GestorDeElementos;
 using ServicioDeDatos.SistemaDocumental;
 using ModeloDeDto;
 using ModeloDeDto.Negocio;
+using ModeloDeDto.Terceros;
 
 namespace ServicioDeReportes.Base
 {
@@ -86,6 +87,7 @@ namespace ServicioDeReportes.Base
             var etiquetas = ObtenerEtiquetas(tipoDtm);
             var tablasDto = DefinirTablasDto(tipoDtm);
             var etiquetasDeTablas = EtiquetasDeTablas(tipoDtm);
+            var etiquetasDeMaestros = EtiquetasDeMaestros();
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(fichero, WordprocessingDocumentType.Document))
             {
                 MainDocumentPart mainPart = wordDocument.AddMainDocumentPart();
@@ -119,6 +121,7 @@ namespace ServicioDeReportes.Base
                 }
 
                 foreach (var etiqueta in etiquetasDeTablas) mainPart.Document.Body.AppendLabel(etiqueta);
+                foreach (var etiqueta in etiquetasDeMaestros) mainPart.Document.Body.AppendLabel(etiqueta);
             }
             return fichero;
         }
@@ -298,6 +301,76 @@ namespace ServicioDeReportes.Base
                     etiquetas.Add(propiedad.Name);
                 }
             }
+
+            return etiquetas;
+        }
+
+        /// <summary>
+        /// Etiquetas {{{maestro.<clave>....}}} (ver ApiDePlantillas.ProcesarEtiquetasDeMaestros y
+        /// GestoresDeNegocio.SistemaDocumental.DefinicionesDeMaestros.Registro): datos de Cliente, Proveedor,
+        /// Solicitante, Centro Gestor y Sociedad emisora, disponibles en CUALQUIER negocio sin que el
+        /// procedimiento almacenado tenga que traerlos -- solo si el elemento implementa la interfaz de la
+        /// que sale cada uno (IUsaCliente/IPuedeUsarCliente, IUsaProveedor/IPuedeUsarProveedor,
+        /// IUsaSolicitante, IUsaCg). Si mañana se añade un maestro nuevo al registro (Iva, Irpf, Unitario,
+        /// Juzgado...), añadir aquí su bloque correspondiente.
+        /// </summary>
+        private static List<string> EtiquetasDeMaestros()
+        {
+            var etiquetas = new List<string>
+            {
+                Environment.NewLine,
+                "Etiquetas de datos maestros (disponibles en cualquier negocio, sin tocar el procedimiento almacenado)",
+                "------------------------------------------------------------------------------"
+            };
+
+            void AgregarMaestro(string clave, Type tipoDatosPrincipales, Type tipoCuentaBancaria)
+            {
+                etiquetas.Add(" ");
+                etiquetas.Add($"Etiquetas de: maestro.{clave}");
+                etiquetas.Add("---------------------------------------------------");
+                foreach (var propiedad in tipoDatosPrincipales.GetProperties())
+                {
+                    if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
+                    etiquetas.Add($"maestro.{clave}.{propiedad.Name}");
+                }
+
+                etiquetas.Add($"maestro.{clave}.direccion.<Campo>  (la primera dirección de la lista)");
+                etiquetas.Add($"maestro.{clave}.direccion.[fiscal].Expresion");
+                etiquetas.Add("  <Campo> de una dirección puede ser cualquiera de estos:");
+                foreach (var propiedad in typeof(DireccionDto).GetProperties())
+                {
+                    if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
+                    etiquetas.Add("  " + propiedad.Name);
+                }
+
+                if (tipoCuentaBancaria is null) return;
+
+                etiquetas.Add($"maestro.{clave}.cuentabancaria.<Campo>  (la primera cuenta de la lista)");
+                etiquetas.Add($"maestro.{clave}.cuentabancaria.[Ingreso].Cuenta");
+                etiquetas.Add("  <Campo> de una cuenta bancaria puede ser cualquiera de estos:");
+                foreach (var propiedad in tipoCuentaBancaria.GetProperties())
+                {
+                    if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
+                    etiquetas.Add("  " + propiedad.Name);
+                }
+            }
+
+            AgregarMaestro("cliente", typeof(ClienteDto), typeof(CuentaDeClienteDto));
+            AgregarMaestro("proveedor", typeof(ProveedorDto), typeof(CuentaDeProveedorDto));
+            AgregarMaestro("solicitante", typeof(InterlocutorDto), typeof(CuentaDeInterlocutorDto));
+
+            // MiCg no tiene direcciones ni cuentas propias -- las suyas son las de MiSociedad. Se trata aparte
+            // porque no sigue el patrón DatosPrincipales+direccion+cuentabancaria de los otros cuatro.
+            etiquetas.Add(" ");
+            etiquetas.Add("Etiquetas de: maestro.MiCg");
+            etiquetas.Add("---------------------------------------------------");
+            foreach (var propiedad in typeof(CentroGestorDto).GetProperties())
+            {
+                if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
+                etiquetas.Add($"maestro.MiCg.{propiedad.Name}");
+            }
+
+            AgregarMaestro("MiSociedad", typeof(SociedadDto), typeof(CuentaDeMiSociedadDto));
 
             return etiquetas;
         }

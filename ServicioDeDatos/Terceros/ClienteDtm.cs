@@ -25,7 +25,7 @@ namespace ServicioDeDatos.Terceros
 
 
     [Table(Tablas.CLIENTE, Schema = Esquemas.TERCEROS)]
-    public class ClienteDtm : ElementoDtm, IUsaBaja, IDatosDeContacto, IUsaTraza, IUsaDirecciones, ITerceroContable
+    public class ClienteDtm : ElementoDtm, IUsaBaja, IDatosDeContacto, IUsaTraza, IUsaDirecciones, ITerceroContable, IEsInterlocutor
     {
         public string eMail { get; set; }
         public string Telefono { get; set; }

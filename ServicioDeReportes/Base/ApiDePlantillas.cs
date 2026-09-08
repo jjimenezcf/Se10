@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml;
 using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using Utilidades;
 using DocumentFormat.OpenXml.Packaging;
+using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using System.Text.RegularExpressions;
 using System.Reflection;
@@ -66,6 +67,117 @@ namespace ServicioDeReportes.Base
                     filaMarcador?.Remove();
                 }
             }
+        }
+
+        // {{{maestro.<clave>.<campo>}}}                                    -> propiedad directa de DatosPrincipales
+        // {{{maestro.<clave>.direccion.<campo>}}}                          -> <campo> de la primera dirección
+        // {{{maestro.<clave>.direccion.[<calificador>].<campo>}}}          -> <campo> de la primera dirección cuyo Calificador coincida
+        // {{{maestro.<clave>.cuentabancaria.<campo>}}}                     -> <campo> de la primera cuenta bancaria
+        // {{{maestro.<clave>.cuentabancaria.[<clase>].<campo>}}}           -> <campo> de la primera cuenta bancaria cuya Clase coincida
+        private static readonly Regex PatronDeEtiquetaDeMaestro = new Regex(
+            @"^maestro\.(?<clave>\w+)\.(?:(?<coleccion>direccion|cuentabancaria)\.(?:\[(?<filtro>[^\]]+)\]\.)?(?<campo>\w+)|(?<campoplano>\w+))$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        /// <summary>
+        /// Sustituye las etiquetas {{{maestro....}}} con los datos de DatosMaestros (Cliente/Proveedor/Solicitante
+        /// del elemento que se imprime, y los que se vayan añadiendo a DefinicionesDeMaestros.Registro). Si una
+        /// etiqueta no se puede resolver (alias, colección, filtro o campo no encontrados) se deja tal cual en el
+        /// documento -- igual que el resto de etiquetas del sistema -- y se anota en la traza para poder revisarlo,
+        /// sin bloquear la generación del documento.
+        /// </summary>
+        public static void ProcesarEtiquetasDeMaestros(OpenXmlCompositeElement parte, Dictionary<string, DatosDeUnMaestro> maestros, ContextoSe contexto)
+        {
+            var textos = parte.Descendants<Text>().ToList();
+            for (int i = 0; i < textos.Count; i++)
+            {
+                if (!textos[i].Text.ToLowerInvariant().Contains(Simbolos.PltInicio + "maestro.")) continue;
+
+                var (textoCompleto, finIndex) = ObtenerTextoCompleto(textos, i);
+                if (string.IsNullOrEmpty(textoCompleto)) continue;
+
+                // Un mismo bloque de texto (tras juntar los Text que comparten una etiqueta partida en varios
+                // <w:t>) puede contener más de una etiqueta {{{...}}} -- p.ej. "{{{maestro.x.a}}} - {{{maestro.x.b}}}"
+                // va en un único <w:t> si se escribió del tirón. Se recorren TODAS las ocurrencias de esa pasada,
+                // no solo la primera.
+                var resultado = new StringBuilder();
+                var pos = 0;
+                while (true)
+                {
+                    var posInicio = textoCompleto.IndexOf(Simbolos.PltInicio, pos, StringComparison.OrdinalIgnoreCase);
+                    if (posInicio < 0) { resultado.Append(textoCompleto, pos, textoCompleto.Length - pos); break; }
+
+                    var posCierre = textoCompleto.IndexOf(Simbolos.PltCierre, posInicio);
+                    if (posCierre < 0) { resultado.Append(textoCompleto, pos, textoCompleto.Length - pos); break; }
+
+                    resultado.Append(textoCompleto, pos, posInicio - pos);
+                    var etiqueta = textoCompleto.Substring(posInicio + Simbolos.PltInicio.Length, posCierre - posInicio - Simbolos.PltInicio.Length).Trim();
+
+                    if (etiqueta.StartsWith("maestro.", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var match = PatronDeEtiquetaDeMaestro.Match(etiqueta);
+                        var (encontrado, valor) = match.Success ? ResolverEtiquetaDeMaestro(maestros, match) : (false, (object)null);
+                        if (encontrado)
+                        {
+                            resultado.Append(FormatearValorDeMaestro(valor));
+                        }
+                        else
+                        {
+                            contexto.AnotarTraza(nameof(ProcesarEtiquetasDeMaestros), $"No se ha localizado el valor de la etiqueta '{Simbolos.PltInicio}{etiqueta}{Simbolos.PltCierre}'");
+                            resultado.Append(Simbolos.PltInicio).Append(etiqueta).Append(Simbolos.PltCierre);
+                        }
+                    }
+                    else
+                        resultado.Append(Simbolos.PltInicio).Append(etiqueta).Append(Simbolos.PltCierre);
+
+                    pos = posCierre + Simbolos.PltCierre.Length;
+                }
+
+                textos[i].Text = resultado.ToString();
+                for (int j = i + 1; j <= finIndex; j++) textos[j].Text = string.Empty;
+                i = finIndex;
+            }
+        }
+
+        private static string FormatearValorDeMaestro(object valor)
+        {
+            if (valor is null || valor.EsCadena()) return $"{valor}";
+            if (valor.EsEntero()) return ((int)valor).ToString();
+            if (valor.EsDecimal()) return ((decimal)valor).ToString();
+            if (valor.EsFecha()) return ((DateTime)valor).ToString();
+            if (valor.EsBooleano()) return (bool)valor ? "Si" : "No";
+            if (valor.EsEnumerado()) return ((Enum)valor).Descripcion();
+            return $"{valor}";
+        }
+
+        private static (bool encontrado, object valor) ResolverEtiquetaDeMaestro(Dictionary<string, DatosDeUnMaestro> maestros, Match match)
+        {
+            var clave = match.Groups["clave"].Value;
+            if (!maestros.TryGetValue(clave, out var maestro)) return (false, null);
+
+            if (match.Groups["campoplano"].Success)
+                return BuscarCampo(maestro.DatosPrincipales, match.Groups["campoplano"].Value);
+
+            var esDireccion = match.Groups["coleccion"].Value.Equals("direccion", StringComparison.OrdinalIgnoreCase);
+            var lista = esDireccion ? maestro.Direcciones : maestro.CuentasBancarias;
+            var campoDeFiltro = esDireccion ? "Calificador" : "Clase";
+            var campo = match.Groups["campo"].Value;
+
+            Dictionary<string, object> item;
+            if (match.Groups["filtro"].Success)
+            {
+                var filtro = match.Groups["filtro"].Value;
+                item = lista.FirstOrDefault(d => BuscarCampo(d, campoDeFiltro) is (true, var v) && $"{v}".Equals(filtro, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+                item = lista.FirstOrDefault();
+
+            return item is null ? (false, null) : BuscarCampo(item, campo);
+        }
+
+        private static (bool encontrado, object valor) BuscarCampo(Dictionary<string, object> datos, string campo)
+        {
+            var entrada = datos.FirstOrDefault(kv => kv.Key.Equals(campo, StringComparison.OrdinalIgnoreCase));
+            return entrada.Key is null ? (false, null) : (true, entrada.Value);
         }
 
         public static void ProcesarMapeosDeDetalles(OpenXmlCompositeElement parte, DetallesDelObjeto detalles)
