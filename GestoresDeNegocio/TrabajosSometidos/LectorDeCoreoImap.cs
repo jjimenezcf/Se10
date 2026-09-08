@@ -648,7 +648,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
         }
         private BodyPartBasic BuscarAdjunto(IMessageSummary eMail, Adjunto adjunto)
         {
-            // Primero, buscar en los adjuntos directos
+            // Primero, buscar en los adjuntos directos (comportamiento histórico, por Content-ID)
             if (eMail.Attachments != null)
             {
                 foreach (var attachment in eMail.Attachments)
@@ -660,10 +660,21 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 }
             }
 
-            // Si no se encuentra en los adjuntos directos, buscar en el cuerpo
+            // Si no se encuentra en los adjuntos directos, buscar en el cuerpo (también por Content-ID)
             if (eMail.Body != null)
             {
-                return BuscarAdjuntoEnBodyPart(eMail.Body, adjunto);
+                var porContentId = BuscarAdjuntoEnBodyPart(eMail.Body, adjunto);
+                if (porContentId != null)
+                    return porContentId;
+            }
+
+            // Cuando el remitente no incluye Content-ID en el adjunto (habitual en adjuntos no
+            // incrustados), el emparejamiento anterior nunca puede coincidir con el GUID generado
+            // al listar. En ese caso recurrimos al PartSpecifier, estable para un mensaje ya
+            // entregado, que es lo que se guardó como IdParte al listar los adjuntos.
+            if (!string.IsNullOrEmpty(adjunto.IdParte) && eMail.Body != null)
+            {
+                return BuscarAdjuntoPorParte(eMail.Body, adjunto.IdParte);
             }
 
             return null;
@@ -688,6 +699,27 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 {
                     return basic;
                 }
+            }
+
+            return null;
+        }
+
+        private BodyPartBasic BuscarAdjuntoPorParte(BodyPart bodyPart, string idParte)
+        {
+            if (bodyPart is BodyPartMultipart multipart)
+            {
+                foreach (var subPart in multipart.BodyParts)
+                {
+                    var result = BuscarAdjuntoPorParte(subPart, idParte);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+            else if (bodyPart is BodyPartBasic basic && basic.PartSpecifier == idParte)
+            {
+                return basic;
             }
 
             return null;
