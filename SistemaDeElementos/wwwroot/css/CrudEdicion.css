@@ -590,6 +590,19 @@ div[propiedad="Editar"] a[href^="javascript:Crud.EventosDeExpansores('abrir-moda
 }
 
 
+div[propiedad="Editar"] a[href^="javascript:Formulario.EventosDeExpansores('abrir-modal-editar-relacion'"] {
+    font-size: 0;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url('/images/menu/Editar.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
 div[propiedad="Destino"] a[href^="javascript:Crud.EventosDeExpansores('navegar-a-editar'"] {
     font-size: 0;
     display: inline-block;
