@@ -278,6 +278,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Documentación\Plantillas\Alberto\" />
 		<Folder Include="wwwroot\js\" />
 		<Folder Include="wwwroot\js\_Api\" />
 		<Folder Include="wwwroot\Plantillas\" />
