@@ -190,6 +190,9 @@ namespace Utilidades
         Negocio_IrAlCliente,
         Negocio_IrALaFactura,
 
+
+        ApiDePeticiones_DescargarEtiquetasDeNegocio,
+
         BlanquearDatosDeCalle,
 
         Persona_CrearInterlocutor_Change,

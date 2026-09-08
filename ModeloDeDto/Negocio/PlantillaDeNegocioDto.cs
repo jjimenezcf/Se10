@@ -114,7 +114,7 @@ namespace ModeloDeDto.Negocio
             TipoDeControl = enumTipoControl.Referencia,
             css = enumCssControles.ReferenciaCentradaEnTd,
             VisibleAlCrear = false,
-            AccionRef = "javascript:" + nameof(enumNameSpaceTs.Negocio) + "." + nameof(enumFunctionTs.Negocio_DescargarEtiquetasDeNegocio) + "([" + nameof(IdNegocio) + "])"
+            AccionRef = "javascript:" + nameof(enumNameSpaceTs.ApiDePeticiones) + "." + nameof(enumFunctionTs.ApiDePeticiones_DescargarEtiquetasDeNegocio) + "([" + nameof(IdNegocio) + "])"
             )
         ]
         public string Etiquetas { get; set; }

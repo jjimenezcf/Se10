@@ -55,7 +55,8 @@ namespace Utilidades
         Gasto,
         Logistica,
         PanelDeControl,
-        ArbolDeMenu
+        ArbolDeMenu,
+        ApiDePeticiones
     }
 
     public static class enumFicheroDeApi

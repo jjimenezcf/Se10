@@ -7,7 +7,6 @@ using ModeloDeDto.SistemaDocumental;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
-using ServicioDeDatos.Juridico;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeReportes.Base;
 using System;

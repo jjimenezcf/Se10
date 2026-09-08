@@ -2277,6 +2277,16 @@ namespace ApiDePeticiones {
     }
 
 
+    export function ApiDePeticiones_DescargarEtiquetasDeNegocio(idNegocio: number) {
+        let parametros = `idNegocio=${idNegocio}`;
+        let descargar: string = `/${ltrControladores.Negocio.PlantillasDeNegocio}/${Ajax.EndPoint.Negocio.PlantillasDeNegocio.DescargarEtiquetas}?${parametros}`;
+        try {
+            EntornoSe.AbrirPestana(descargar);
+        }
+        finally {
+            MensajesSe.Info("Descarga realizada")
+        }
+    }
 
 
 }

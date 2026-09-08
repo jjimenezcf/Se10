@@ -5,8 +5,8 @@ namespace ModeloDeDto
 {
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5)]
-    public class PlantillaPorTipoDto: ElementoDto
-    {       
+    public class PlantillaPorTipoDto : ElementoDto
+    {
         //--------------------------------------------
         [IUPropiedad(
             Etiqueta = "Negocio",
@@ -42,7 +42,7 @@ namespace ModeloDeDto
 
         [IUPropiedad(Visible = false)]
         public string Tipo { get; set; }
-        
+
         //------------------------------------------------------------------------------------------------------
         [IUPropiedad(
             Etiqueta = "Nombre",
@@ -110,14 +110,30 @@ namespace ModeloDeDto
             Obligatorio = false,
             Fila = 3,
             Columna = 0,
+            Posicion = 0,
             TipoDeControl = enumTipoControl.Referencia,
             css = enumCssControles.ReferenciaCentradaEnTd,
             VisibleAlCrear = false,
-            AccionRef = "javascript:" + nameof(enumNameSpaceTs.Negocio) + "." + nameof(enumFunctionTs.Negocio_DescargarPlantillaPorTipo) + "(["+nameof(IdArchivo)+"])",
-            Posicion = 1
+            AccionRef = "javascript:" + nameof(enumNameSpaceTs.Negocio) + "." + nameof(enumFunctionTs.Negocio_DescargarPlantillaPorTipo) + "([" + nameof(IdArchivo) + "])"
             )
         ]
         public string Plantilla { get; set; }
+
+        //----------------------------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "Etiquetas disponibles",
+            Ayuda = "Descarga las etiquetas disponibles para confeccionar una plantilla",
+            Obligatorio = false,
+            Fila = 3,
+            Columna = 0,
+            Posicion = 1,
+            TipoDeControl = enumTipoControl.Referencia,
+            css = enumCssControles.ReferenciaCentradaEnTd,
+            VisibleAlCrear = false,
+            AccionRef = "javascript:" + nameof(enumNameSpaceTs.ApiDePeticiones) + "." + nameof(enumFunctionTs.ApiDePeticiones_DescargarEtiquetasDeNegocio) + "([" + nameof(IdNegocio) + "])"
+            )
+        ]
+        public string Etiquetas { get; set; }
 
         //------------------------------------------------------------------------
         [IUPropiedad(
