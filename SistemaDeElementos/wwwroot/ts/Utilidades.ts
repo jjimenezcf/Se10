@@ -1160,7 +1160,7 @@ function CopiarUrlAlPortapapeles(url: string, mensaje: string = undefined): void
                 MensajesSe.Info(Definido(mensaje) ? mensaje : 'La URL para descargar el archivo se ha copiado al porta-papeles con validez de 1 hora');
         })
         .catch((err) => {
-            MensajesSe.MostrarExcepcion('DespuesDeRegistrarDescargaConGuid', err);
+            MensajesSe.MostrarExcepcion('CopiarUrlAlPortapapeles', err);
         });
 }
 

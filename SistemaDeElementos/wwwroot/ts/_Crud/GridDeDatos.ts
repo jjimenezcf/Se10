@@ -1809,7 +1809,6 @@
 
         private CrearCuerpoDeLaTabla(grid: GridDeDatos, registros: any): HTMLDivElement {
 
-
             if (EsDispositvoMovil() && this.IdNegocio > 0)
                 grid.FilaCabecara = ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil(grid.Tabla)
             else if (!Definido(grid.FilaCabecara))
@@ -1851,11 +1850,10 @@
         }
 
         private AnadirCuerpoALaTabla(grid: GridDeDatos, cuerpoDeLaTabla: HTMLDivElement) {
-            let tabla: HTMLDivElement = grid.Grid.querySelector(".div-tabla");
+            let tabla: HTMLDivElement = grid.Grid.querySelector('.' + ltrCss.crud.tabla);
             tabla.append(cuerpoDeLaTabla);
             grid.DatosDelGrid.PaginaActual = grid.Navegador.NumeroDePaginaDelGrid;
         }
-
 
         private crearFila(filaCabecera: ApiDeGrid.PropiedadesDeLaFila[], registro: any, numeroDeFila: number): HTMLDivElement {
             let fila = document.createElement("div");
@@ -1891,11 +1889,6 @@
                 let columnaCabecera: ApiDeGrid.PropiedadesDeLaFila = filaCabecera[j];
 
                 let valor: any = ObtenerPropiedad(registro, columnaCabecera.propiedad, "", false);
-
-                //if (EsDispositvoMovil() && columnaCabecera.propiedad === literal.nombre && this.IdNegocio > 0) {
-                //    const estado: any = ObtenerPropiedad(registro, ltrPropiedades.Elemento.DeProceso.Estado, "", false);
-                //    if (estado) valor = valor + '\n' + estado;
-                //}
 
                 if (columnaCabecera.propiedad === atControl.id) {
                     idDelElemento = Numero(valor);

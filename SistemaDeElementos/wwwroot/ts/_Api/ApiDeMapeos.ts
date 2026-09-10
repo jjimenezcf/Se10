@@ -992,8 +992,6 @@ namespace MapearAlGrid {
             ? ApiControl.CrearRef(ltrPropiedades.Elemento.DarDeBaja, accion.replace(ltrEventos.ModalEdicion.DarDeAlta, ltrEventos.ModalEdicion.DarDeBaja), false)
             : ApiControl.CrearRef(mostrar == 'propiedad' ? columnaCabecera.propiedad : valor, accion, false);
         if (Definido(a)) {
-            //a.style.setProperty("textAlign", celdaDelTd.style.textAlign, "important");
-
             a.style.textAlign = celdaDelTd.style.textAlign;
             celdaDelTd.append(a);
         }

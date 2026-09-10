@@ -1382,30 +1382,28 @@
             const textoTitle = fila.getAttribute("title");
             if (!textoTitle) return;
 
-            // Expresión regular para buscar la primera URL que empiece por http o https
-            const regexUrl = /(https?:\/\/[^\s]+)/g;
-            const coincidencias = textoTitle.match(regexUrl);
-
-            // Si no hay coincidencias de URL, salimos
-            if (!coincidencias || coincidencias.length === 0) {
-                return;
-            }
-
-            const urlEncontrada = coincidencias[0]; // Tomamos la primera encontrada
-
             const selector = `input[propiedad="${propiedadDestino}"]`;
             const inputOriginal = fila.querySelector(selector) as HTMLInputElement;
+            if (!inputOriginal) return;
 
-            if (inputOriginal) {
+            const crearAnchor = (): HTMLAnchorElement => {
                 const anchor = document.createElement("a");
-
                 anchor.textContent = inputOriginal.value;
                 anchor.className = inputOriginal.className;
                 anchor.style.textDecoration = "underline";
                 anchor.style.color = "#0056b3";
                 anchor.style.textAlign = "left";
                 anchor.style.width = "100%";
+                return anchor;
+            };
 
+            // Expresión regular para buscar la primera URL que empiece por http o https
+            const regexUrl = /(https?:\/\/[^\s]+)/g;
+            const coincidencias = textoTitle.match(regexUrl);
+
+            if (coincidencias && coincidencias.length > 0) {
+                const urlEncontrada = coincidencias[0]; // Tomamos la primera encontrada
+                const anchor = crearAnchor();
                 const urlObj = new URL(urlEncontrada);
 
                 if (urlObj.origin === window.location.origin) {
@@ -1428,6 +1426,25 @@
                 }
 
                 // Reemplazo en el DOM
+                inputOriginal.parentNode?.replaceChild(anchor, inputOriginal);
+                return;
+            }
+
+            // Expresión regular para detectar una ruta de Windows: unidad ("C:\...") o UNC ("\\servidor\recurso")
+            const regexRutaWindows = /^[a-zA-Z]:\\.+|^\\\\.+/;
+            const rutaEncontrada = textoTitle.trim();
+
+            if (regexRutaWindows.test(rutaEncontrada)) {
+                // Los navegadores bloquean la navegación a file:// desde páginas http(s), así que
+                // en vez de enlazar la ruta, al pulsar la copiamos al portapapeles.
+                const anchor = crearAnchor();
+                anchor.href = "";
+                anchor.title = "Haga clic para copiar la ruta al portapapeles";
+                anchor.onclick = (event) => {
+                    event.preventDefault();
+                    CopiarUrlAlPortapapeles(rutaEncontrada, `Ruta '${rutaEncontrada}' copiada al portapapeles`);
+                };
+
                 inputOriginal.parentNode?.replaceChild(anchor, inputOriginal);
             }
         }
