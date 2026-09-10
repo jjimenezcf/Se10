@@ -140,6 +140,18 @@
         editor.fae_CalcularImportesDeLinea_interno(modal);
     }
 
+    export function Fae_Tras_Cambiar_ElPrecioIncluyeElIva() {
+        var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionFacturaEmt);
+        let modal: HTMLDivElement = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
+        let check = ApiControl.BuscarCheck(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+        if (!Definido(check))
+            return;
+
+        let marcado = check.checked;
+        ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.precio, marcado);
+        ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ImporteDeLinea, !marcado);
+    }
+
     export function Fae_Tras_Mapear_Filtro_IdContrato(control: HTMLElement) {
         let idContrato = Numero(control.getAttribute(atListasDinamicas.idSeleccionado));
         if (idContrato == 0)
@@ -313,6 +325,12 @@
         clase.selectedIndex = 0;
         naturaleza.selectedIndex = 0;
         unidad.selectedIndex = 0;
+
+        let elPrecioIncluyeElIva = ApiControl.BuscarCheck(panel, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+        if (Definido(elPrecioIncluyeElIva)) {
+            elPrecioIncluyeElIva.checked = false;
+            ApiControl.BloquearEditorPorPropiedad(panel, ltrPropiedades.Venta.FacturaEmt.linea.ImporteDeLinea, true);
+        }
     }
 }
 

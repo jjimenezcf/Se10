@@ -426,6 +426,8 @@
                     ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad, true);
+                    ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva, true, false, true);
+                    ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ImporteDeLinea, true);
                     break;
                 }
                 case 1: {
@@ -435,6 +437,7 @@
                     ApiControl.DesbloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad);
+                    ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva, false, false);
 
                     let lista: HTMLSelectElement = undefined;
                     const idnaturaleza = ObtenerPropiedad(this.Tipo, ltrPropiedades.Venta.FacturaEmt.tipo.idNaturalezaDefecto);
@@ -463,6 +466,8 @@
                     ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad, true);
+                    ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva, true, false, true);
+                    ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ImporteDeLinea, true);
                     ocultar = true;
                     break;
                 }
@@ -491,21 +496,45 @@
 
         public fae_CalcularImportesDeLinea_interno(modal: HTMLDivElement) {
             let cantidad = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.cantidad).value);
-            let precio = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.precio).value);
+            let precioHtml = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.precio) as HTMLInputElement;
+            let descuento = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.descuentoPorLinea).value);
+            let iva = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.ivaPorLinea).value);
 
             let impSinDto = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.ImporteSinDto) as HTMLInputElement;
             let impDeDto = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.ImporteDeDto) as HTMLInputElement;
             let ImporteDeIva = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.ImporteDeIva) as HTMLInputElement;
             let ImporteDeLinea = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.ImporteDeLinea) as HTMLInputElement;
 
+            let elPrecioIncluyeElIva = ApiControl.BuscarCheck(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+            if (Definido(elPrecioIncluyeElIva) && elPrecioIncluyeElIva.checked) {
+                let importeDeLinea = Numero(ImporteDeLinea.value);
+                let divisor = cantidad * (1 - descuento / 100) * (1 + iva / 100);
+                if (importeDeLinea !== 0 && divisor !== 0) {
+                    let precio = importeDeLinea / divisor;
+                    AsignarValor(precioHtml, precio.toString());
+
+                    let importeSinDescuento = cantidad * precio;
+                    AsignarValor(impSinDto, importeSinDescuento.toString());
+                    AsignarValor(impDeDto, (importeSinDescuento * descuento / 100).toString());
+                    let impConElDto = importeSinDescuento - (importeSinDescuento * descuento / 100);
+                    AsignarValor(ImporteDeIva, (importeDeLinea - impConElDto).toString());
+                }
+                else {
+                    precioHtml.value = "";
+                    impSinDto.value = "";
+                    impDeDto.value = "";
+                    ImporteDeIva.value = "";
+                }
+                return;
+            }
+
+            let precio = Numero(precioHtml.value);
             let importeSinDescuento: number = cantidad * precio;
             if (importeSinDescuento !== 0) {
-                let descuento = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.descuentoPorLinea).value);
                 AsignarValor(impSinDto, importeSinDescuento.toString());
                 AsignarValor(impDeDto, (importeSinDescuento * descuento / 100).toString());
                 let impConElDto = importeSinDescuento - (importeSinDescuento * descuento / 100);
 
-                let iva = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.linea.ivaPorLinea).value);
                 let elIva = impConElDto * iva / 100;
                 AsignarValor(ImporteDeIva, elIva.toString());
                 AsignarValor(ImporteDeLinea, (impConElDto + elIva).toString());

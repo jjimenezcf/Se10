@@ -144,6 +144,24 @@ namespace ModeloDeDto.Ventas
 
         //--------------------------------------------
         [IUPropiedad(
+           Etiqueta = "El precio incluye el Iva",
+            Ayuda = "al seleccionar se debe indicar en el campo importe el precio total con el iva incluido",
+           TipoDeControl = enumTipoControl.Check,
+           ValorPorDefecto = false,
+           OnChange = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Fae_Tras_Cambiar_ElPrecioIncluyeElIva) + "()",
+           EditableAlCrear = true,
+           EditableAlEditar = false,
+           VisibleAlCrear = true,
+           VisibleAlEditar = false,
+           VisibleEnGrid = false,
+           Obligatorio = false,
+           Fila = 4,
+           Columna = 0)
+        ]
+        public bool ElPrecioIncluyeElIva { get; set; }
+
+        //--------------------------------------------
+        [IUPropiedad(
            Etiqueta = "Cantidad",
            Tipo = typeof(decimal),
            Ayuda = "cantidad facturada",
@@ -286,7 +304,8 @@ namespace ModeloDeDto.Ventas
            Ayuda = "importe de la línea",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
-           EditableAlCrear = false,
+           OnBlur = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Fae_CalcularImportesDeLinea) + "()",
+           EditableAlCrear = true,
            EditableAlEditar = false,
            Obligatorio = false,
            Formato = enumFormato.Moneda,

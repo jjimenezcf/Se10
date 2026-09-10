@@ -360,6 +360,7 @@ namespace Utilidades
         Fae_Tras_Seleccionar_Unitario,
         Fae_Tras_Blanquear_Unitario,
         Fae_CalcularImportesDeLinea,
+        Fae_Tras_Cambiar_ElPrecioIncluyeElIva,
         Fae_IvaRepercutidoCambiado,
         Fae_TrasCargarIvas,
         Fae_InicializarModalParaCrearLineas,
