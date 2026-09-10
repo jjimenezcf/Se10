@@ -220,32 +220,61 @@
                     ApiDelCrud.RenderClasePorTipo(modal, undefined);
             }).
             catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+
+        let elPrecioIncluyeElIva = ApiControl.BuscarCheck(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+        if (Definido(elPrecioIncluyeElIva)) {
+            elPrecioIncluyeElIva.checked = false;
+            ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea, true);
+        }
     }
 
     export function Exp_CalcularValoracion() {
         var modal = (Crud.crudMnt.crudDeEdicion as CrudEdicionExpediente).ModalCrearValoraciones;
         let cantidad = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.cantidad).value);
-        let precio = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.precio).value);
+        let precioHtml = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.precio) as HTMLInputElement;
+        let descuento = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.descuentoPorLinea).value);
 
         let ImporteDeLinea = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea) as HTMLInputElement;
 
-        let importeSinDescuento: number = cantidad * precio;
-        let impConElDto = importeSinDescuento
-
-        if (importeSinDescuento > 0) {
-            let descuento = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.descuentoPorLinea).value);
-            impConElDto = importeSinDescuento - (importeSinDescuento * descuento / 100);
-        }
-
         let selectorIvaR = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Venta.Presupuesto.linea.selectorDeIvaR);
         let objeto = OpcionesDeLasListas.ObtenerObjeto(selectorIvaR);
+        let porcentajeIva: number = Definido(objeto) ? Numero(ObtenerPropiedad(objeto, ltrPropiedades.Maestros.Contabilidad.IvaR.Porcentaje)) : 0;
+
+        let elPrecioIncluyeElIva = ApiControl.BuscarCheck(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+        if (Definido(elPrecioIncluyeElIva) && elPrecioIncluyeElIva.checked) {
+            let importeDeLinea = Numero(ImporteDeLinea.value);
+            let divisor = cantidad * (1 - descuento / 100) * (1 + porcentajeIva / 100);
+            if (importeDeLinea > 0 && divisor !== 0)
+                AsignarValor(precioHtml, (importeDeLinea / divisor).toString());
+            else
+                precioHtml.value = "";
+            return;
+        }
+
+        let precio = Numero(precioHtml.value);
+        let importeSinDescuento: number = cantidad * precio;
+        let impConElDto = importeSinDescuento;
+
+        if (importeSinDescuento > 0)
+            impConElDto = importeSinDescuento - (importeSinDescuento * descuento / 100);
+
         if (Definido(objeto)) {
-            let porcentaje = ObtenerPropiedad(objeto, ltrPropiedades.Maestros.Contabilidad.IvaR.Porcentaje);
-            let elIva = impConElDto * porcentaje / 100;
+            let elIva = impConElDto * porcentajeIva / 100;
             AsignarValor(ImporteDeLinea, (impConElDto + elIva).toString());
         }
         else
             AsignarValor(ImporteDeLinea, '0');
+    }
+
+    export function Exp_Tras_Cambiar_ElPrecioIncluyeElIva() {
+        var modal = (Crud.crudMnt.crudDeEdicion as CrudEdicionExpediente).ModalCrearValoraciones;
+        let check = ApiControl.BuscarCheck(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+        if (!Definido(check))
+            return;
+
+        let marcado = check.checked;
+        ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.precio, marcado);
+        ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea, !marcado);
     }
 
 

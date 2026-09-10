@@ -103,6 +103,25 @@ namespace ModeloDeDto.Presupuesto
 
         //--------------------------------------------
         [IUPropiedad(
+           Etiqueta = "El precio incluye el Iva",
+           Ayuda = "al seleccionar se debe indicar en el campo importe el precio total con el iva incluido",
+           TipoDeControl = enumTipoControl.Check,
+           css = enumCssControles.CheckApilado,
+           ValorPorDefecto = false,
+           OnChange = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Exp_Tras_Cambiar_ElPrecioIncluyeElIva) + "()",
+           EditableAlCrear = true,
+           EditableAlEditar = false,
+           VisibleAlCrear = true,
+           VisibleAlEditar = false,
+           VisibleEnGrid = false,
+           Obligatorio = false,
+           Fila = 4,
+           Columna = 0)
+        ]
+        public bool ElPrecioIncluyeElIva { get; set; }
+
+        //--------------------------------------------
+        [IUPropiedad(
            Etiqueta = "Cantidad",
            Tipo = typeof(decimal),
            Ayuda = "cantidad presupuestada",
@@ -110,7 +129,7 @@ namespace ModeloDeDto.Presupuesto
            Alineada = enumAliniacion.derecha,
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Exp_CalcularValoracion) + "()",
            Formato = enumFormato.Numero_6,
-           Fila = 4,
+           Fila = 5,
            Columna = 0)
         ]
         public decimal Cantidad { get; set; }
@@ -124,7 +143,7 @@ namespace ModeloDeDto.Presupuesto
            Alineada = enumAliniacion.derecha,
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Exp_CalcularValoracion) + "()",
            Formato = enumFormato.Numero_6,
-           Fila = 4,
+           Fila = 5,
            Columna = 1)
         ]
         public decimal Precio { get; set; }
@@ -139,7 +158,7 @@ namespace ModeloDeDto.Presupuesto
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Exp_CalcularValoracion) + "()",
            Obligatorio = false,
            Formato = enumFormato.Porcentaje,
-           Fila = 4,
+           Fila = 5,
            Columna = 2)
         ]
         public decimal? Descuento { get; set; }
@@ -156,7 +175,7 @@ namespace ModeloDeDto.Presupuesto
             Controlador = nameof(enumControladoresContables.IvasRepercutido),
             GuardarEn = nameof(IdIvaR),
             OnBlur = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Exp_CalcularValoracion) + "()",
-            Fila = 4,
+            Fila = 5,
             Columna = 3
             )
         ]
@@ -169,11 +188,12 @@ namespace ModeloDeDto.Presupuesto
            Ayuda = "importe total",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
-           EditableAlCrear = false,
+           OnBlur = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Exp_CalcularValoracion) + "()",
+           EditableAlCrear = true,
            Obligatorio = false,
            MantenerHuecoDeLaIzquierda = true,
            Formato = enumFormato.Moneda,
-           Fila = 4,
+           Fila = 5,
            Columna = 5)
         ]
         public decimal? ImporteDeLinea { get; set; }
@@ -186,7 +206,7 @@ namespace ModeloDeDto.Presupuesto
             Tipo = typeof(int),
             TipoDeControl = enumTipoControl.SelectorDeUnArchivo,
             ExtensionesValidas = "." + nameof(enumExtensiones.docx) + ", ." + nameof(enumExtensiones.pdf) + ", ." + nameof(enumExtensiones.xlsx),
-            Fila = 5,
+            Fila = 7,
             Columna = 0,
             AutoSpan = true)]
         public int? IdArchivo { get; set; }

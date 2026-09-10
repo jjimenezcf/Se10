@@ -287,6 +287,8 @@
                     ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.Presupuesto.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.unidad);
+                    ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva, true, false, true);
+                    ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea, true);
                     break;
                 }
                 case 1: {
@@ -296,6 +298,7 @@
                     ApiControl.DesbloquearListaDeValores(modal, ltrPropiedades.Venta.Presupuesto.linea.clase);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.naturaleza);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.unidad);
+                    ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva, false, false);
                     if (this.EstaCreandoUnaLinea) {
                         if ((this.CrudDeMnt as CrudDePresupuestos).Naturaleza > 0) {
                             var SelectorNaturaleza = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Venta.Presupuesto.linea.naturaleza);
@@ -318,6 +321,8 @@
                     ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.Presupuesto.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.unidad);
+                    ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva, true, false, true);
+                    ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea, true);
                     ocultar = true;
                     break;
                 }
@@ -346,21 +351,45 @@
 
         public ppt_CalcularImportesDeLinea_interno(modal: HTMLDivElement) {
             let cantidad = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.cantidad).value);
-            let precio = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.precio).value);
+            let precioHtml = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.precio) as HTMLInputElement;
+            let descuento = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.descuentoPorLinea).value);
+            let iva = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.ivaPorLinea).value);
 
             let impSinDto = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteSinDto) as HTMLInputElement;
             let impDeDto = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeDto) as HTMLInputElement;
             let ImporteDeIva = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeIva) as HTMLInputElement;
             let ImporteDeLinea = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea) as HTMLInputElement;
 
+            let elPrecioIncluyeElIva = ApiControl.BuscarCheck(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+            if (Definido(elPrecioIncluyeElIva) && elPrecioIncluyeElIva.checked) {
+                let importeDeLinea = Numero(ImporteDeLinea.value);
+                let divisor = cantidad * (1 - descuento / 100) * (1 + iva / 100);
+                if (importeDeLinea > 0 && divisor !== 0) {
+                    let precio = importeDeLinea / divisor;
+                    AsignarValor(precioHtml, precio.toString());
+
+                    let importeSinDescuento = cantidad * precio;
+                    AsignarValor(impSinDto, importeSinDescuento.toString());
+                    AsignarValor(impDeDto, (importeSinDescuento * descuento / 100).toString());
+                    let impConElDto = importeSinDescuento - (importeSinDescuento * descuento / 100);
+                    AsignarValor(ImporteDeIva, (importeDeLinea - impConElDto).toString());
+                }
+                else {
+                    precioHtml.value = "";
+                    impSinDto.value = "";
+                    impDeDto.value = "";
+                    ImporteDeIva.value = "";
+                }
+                return;
+            }
+
+            let precio = Numero(precioHtml.value);
             let importeSinDescuento: number = cantidad * precio;
             if (importeSinDescuento > 0) {
-                let descuento = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.descuentoPorLinea).value);
                 AsignarValor(impSinDto, importeSinDescuento.toString());
                 AsignarValor(impDeDto, (importeSinDescuento * descuento / 100).toString());
                 let impConElDto = importeSinDescuento - (importeSinDescuento * descuento / 100);
 
-                let iva = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.Presupuesto.linea.ivaPorLinea).value);
                 let elIva = impConElDto * iva / 100;
                 AsignarValor(ImporteDeIva, elIva.toString());
                 AsignarValor(ImporteDeLinea, (impConElDto + elIva).toString());
@@ -444,6 +473,18 @@
         editor.ppt_CalcularImportesDeLinea_interno(modal);
     }
 
+    export function Ppt_Tras_Cambiar_ElPrecioIncluyeElIva() {
+        var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionPresupuesto);
+        let modal: HTMLDivElement = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
+        let check = ApiControl.BuscarCheck(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+        if (!Definido(check))
+            return;
+
+        let marcado = check.checked;
+        ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.precio, marcado);
+        ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea, !marcado);
+    }
+
     export function Ppt_IvaRepercutidoCambiado() {
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPresupuesto;
         let selectorIvaR = editor.SelectorDeIvaActivo;
@@ -524,6 +565,12 @@
         clase.selectedIndex = 0;
         naturaleza.selectedIndex = 0;
         unidad.selectedIndex = 0;
+
+        let elPrecioIncluyeElIva = ApiControl.BuscarCheck(panel, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva) as HTMLInputElement;
+        if (Definido(elPrecioIncluyeElIva)) {
+            elPrecioIncluyeElIva.checked = false;
+            ApiControl.BloquearEditorPorPropiedad(panel, ltrPropiedades.Venta.Presupuesto.linea.ImporteDeLinea, true);
+        }
     }
 
     function ppt_MapearPorcentajes(modal: HTMLDivElement) {

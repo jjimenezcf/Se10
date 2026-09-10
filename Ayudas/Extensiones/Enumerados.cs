@@ -301,11 +301,13 @@ namespace Utilidades
 
         Exp_TrasAbrirModalDeCrearValoracion,
         Exp_CalcularValoracion,
+        Exp_Tras_Cambiar_ElPrecioIncluyeElIva,
         Exp_InicializarModalParaCrearApuntes,
         Exp_InicializarModalParaEditarApuntes,
 
 
         Ppt_CalcularImportesDeLinea,
+        Ppt_Tras_Cambiar_ElPrecioIncluyeElIva,
         Ppt_TrasCargarIvas,
         Ppt_InicializarModalParaCrearLineas,
         Ppt_InicializarModalParaEditarLineas,

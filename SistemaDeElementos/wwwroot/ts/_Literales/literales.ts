@@ -3343,6 +3343,7 @@ const ltrPropiedades = {
                 ImporteDeDto: 'ImporteDeDto',
                 ImporteDeIva: 'ImporteDeIva',
                 ImporteDeLinea: 'ImporteDeLinea',
+                ElPrecioIncluyeElIva: 'ElPrecioIncluyeElIva',
                 selectorDeIvaR: 'IvaRepercutido',
                 precio: 'precio',
                 cantidad: 'cantidad',
