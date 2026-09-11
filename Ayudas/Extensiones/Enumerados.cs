@@ -372,6 +372,7 @@ namespace Utilidades
         Fae_Tras_Cambiar_Clase_De_Abono,
         Fae_InicializarModalParaCrearCobros,
         Fae_InicializarModalParaEditarCobros,
+        Fae_TrasCrearCobro,
         Fae_InicializarModalParaCrearAbonos,
         Fae_InicializarModalParaEditarAbonos,
         Fae_MapearFechaDeVencimiento,
@@ -898,6 +899,7 @@ namespace Utilidades
         public const string Fae_GenerarPreasiento = "generar-preasiento";
         public const string Fae_GenerarUbl = "generar-ubl";
         public const string Fae_SincronizarConAeat = "sicronizar-con-la-aeat";
+        public const string Fae_AnadirCobro = "anadir-cobro-mf";
 
 
         public const string Rem_Fae_Cargar = "cargar-remesa";

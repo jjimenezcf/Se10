@@ -65,6 +65,8 @@ namespace MVCSistemaDeElementos.Descriptores
             Mnt.IncluirMfDeRelacion($"<li id='{menuDeRelaciones}.{enumNegocio.Presupuesto}' accion-menu='{eventosDeMf.Fae_IrAPpts}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>{enumNegocio.Presupuesto.Plural()}</li>");
             Mnt.IncluirMfDeRelacion($"<li id='{menuDeRelaciones}.{enumNegocio.Contrato}' accion-menu='{eventosDeMf.Fae_IrAContrato}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>{enumNegocio.Contrato.Plural()}</li>");
 
+            DescriptorDeEdicion<FacturaEmtDto>.IncluirMfIndividual(Mnt.OpcionesPorElemento, $"<li id='{menuIndividual}.{eventosDeMf.Fae_AnadirCobro}' accion-menu='{eventosDeMf.Fae_AnadirCobro}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Añadir cobro</li>");
+
             Editor.IncluirMfIndividual("Hacer rectificativa", eventosDeMf.Fae_Rectificativa, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Cambiar vencimiento", eventosDeMf.Fae_CambiarVencimiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Facturar tareas", eventosDeMf.Fae_FacturarTareas, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
@@ -582,7 +584,7 @@ namespace MVCSistemaDeElementos.Descriptores
             modalDeCreacion.AccionTrasAbrirModal = $"javascript: {enumNameSpaceTs.Venta}.{enumFunctionTs.Fae_InicializarModalParaCrearCobros}()";
 
             var modalDeEdicion = expansor.DescriptorDeEditarRelaciones(Editor.Crud.Contexto, typeof(CobroDeFaeDto), typeof(CobrosDeFaeController), "Consultar cobro", soloConsulta: true);
-            //modalDeEdicion.AccionTrasAbrirModal = $"javascript: {enumNameSpaceTs.Venta}.{enumFunctionTs.Fae_InicializarModalParaEditarCobros}();";
+            modalDeEdicion.AccionTrasAbrirModal = $"javascript: {enumNameSpaceTs.Venta}.{enumFunctionTs.Fae_InicializarModalParaEditarCobros}();";
         }
 
         private void DescriptorDeAbonosDeFae()

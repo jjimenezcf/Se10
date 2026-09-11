@@ -24,15 +24,16 @@
     export function Fae_InicializarModalParaCrearCobros() {
         var editor = (Crud.crudMnt.crudDeEdicion as Venta.CrudEdicionFacturaEmt);
         let modal: HTMLDivElement = editor.ModalDeCreacionDeCobros;
-        let tabla: HTMLDivElement = editor.TablaDeCobros;
-        let pagado: number = 0;
-        let tablarows = tabla.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila);
-        for (let i = 1; i < tablarows.length; i++) {
-            let pagadoHtml = tablarows[i].querySelector(`input[propiedad='${ltrPropiedades.Venta.FacturaEmt.Cobro.Cobrado}']`) as HTMLInputElement;
-            pagado = pagado + Importe(pagadoHtml.value, false);
-        }
+        let estaEnMantenimiento = Crud.crudMnt.ModoTrabajo === enumModoTrabajo.mantenimiento;
 
-        let totalPendiente = Numero(ObtenerPropiedad(editor.Registro, ltrPropiedades.Venta.FacturaEmt.Cobro.Pendiente));
+        let totalPendiente: number;
+        if (estaEnMantenimiento) {
+            let seleccionada = Crud.crudMnt.InfoSelector.Seleccionados[0].Registro;
+            totalPendiente = Numero(ObtenerPropiedad(seleccionada, ltrPropiedades.Venta.FacturaEmt.Cobro.Pendiente));
+        }
+        else {
+            totalPendiente = Numero(ObtenerPropiedad(editor.Registro, ltrPropiedades.Venta.FacturaEmt.Cobro.Pendiente));
+        }
 
         let pendienteHtml = ApiControl.BuscarEditor(modal, ltrPropiedades.Venta.FacturaEmt.Cobro.Pendiente) as HTMLInputElement;
         AsignarValor(pendienteHtml, totalPendiente.toFixed(2).toString());
@@ -50,6 +51,14 @@
 
         let fechaHtml: HTMLInputElement = ApiControl.BuscarSelectorDeFechaHora(modal, ltrPropiedades.Venta.FacturaEmt.Cobro.CobradoEl) as HTMLInputElement;
         MapearAlControl.FechaDate(fechaHtml, new Date());
+
+        ApiControl.BuscarEtiqueta(modal, 'idelemento').innerText = 'Factura';
+    }
+
+    export function Fae_InicializarModalParaEditarCobros() {
+        var editor = (Crud.crudMnt.crudDeEdicion as Venta.CrudEdicionFacturaEmt);
+        let modal: HTMLDivElement = editor.ModalDeEdicionDeCobros;
+        ApiControl.BuscarEtiqueta(modal, 'idelemento').innerText = 'Factura';
     }
 
     export function Fae_InicializarModalParaCrearAbonos() {

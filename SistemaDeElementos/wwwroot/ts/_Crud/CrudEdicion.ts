@@ -39,7 +39,7 @@
         public get Tipo(): any {
             return this._tipo;
         }
-        public set Tipo(tipo:any) {
+        public set Tipo(tipo: any) {
             this._tipo = tipo;
         }
 
@@ -2302,10 +2302,16 @@
                 this.RecargarGridDeRelacion(grid, edicion.CrudDeMnt.IdNegocio, ObtenerCampoRestrictor(edicion.ElementoEditado.Registro, campoRestrictor));
             }
 
-            if (peticion.nombre === Ajax.EndPoint.CrearRelacion) {
+            if (peticion.nombre === Ajax.EndPoint.CrearRelacion || peticion.nombre === Ajax.EndPoint.CrearRelacionPost) {
                 let accion = modal.getAttribute(atModal.trasAceptar);
                 if (Definido(accion))
                     Evaluar('CrudEdicion.DespuesVincular', accion, accion.includes('this') ? modal : undefined);
+
+                if (Crud.crudMnt.ModoTrabajo !== enumModoTrabajo.mantenimiento)
+                    return;
+                Crud.crudMnt.MenuGrid_DeselecionarTodasLasFilas(Crud.crudMnt);
+                Crud.crudMnt.CargarGrid();
+
             }
 
             //si no hay que seguir creando cerrar la ventana modal
@@ -2331,11 +2337,16 @@
                     Evaluar('CrudEdicion.DespuesDeModificarRelacion', accion, accion.includes('this') ? modal : undefined);
             }
 
+            if (Crud.crudMnt.ModoTrabajo === enumModoTrabajo.mantenimiento) {
+                Crud.crudMnt.MenuGrid_DeselecionarTodasLasFilas(Crud.crudMnt);
+                Crud.crudMnt.CargarGrid();
+                return;
+            }
+
             //recargar grid de archivos si se ha modificado
             if (peticion.Url.includes(ltrControladores.Comunes.Observaciones) && Numero(peticion.DatosDeEntrada['idarchivo']) > 0) {
                 ApiDeArchivos.MostrarArchivosAnexados(edicion.PanelDeArchivos.id, edicion.CrudDeMnt.NombreDeNegocio, edicion.Id);
             }
-
             //recargar el grid de relaciones del expansor
             let idGrid: string = modal.getAttribute(atGridDeDetalle.gridDeRelacionAsociado);
             let grid: HTMLDivElement = document.getElementById(idGrid) as HTMLDivElement;

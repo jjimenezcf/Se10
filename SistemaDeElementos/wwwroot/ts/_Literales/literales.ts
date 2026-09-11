@@ -4157,7 +4157,8 @@ const ltrMenus = {
                 Rectificativa: 'rectificativa',
                 GenerarPreasieto: 'generar-preasiento',
                 GenerarUbl: 'generar-ubl',
-                CambiarDatos: 'cambiar-datos-fae'
+                CambiarDatos: 'cambiar-datos-fae',
+                AnadirCobro: 'anadir-cobro-mf'
             },
             RemesasFae: {
                 Imprimir: 'abrir-imprimir',

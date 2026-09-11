@@ -63,6 +63,10 @@
                 let id = this.InfoSelector.Seleccionados.length === 0 ? 0 : this.InfoSelector.Seleccionados[0].Id;
                 this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(idModal, id);
             }
+            else if (opcion === ltrMenus.eventosDeMf.Venta.FacturasEmt.AnadirCobro) {
+                let editor = this.crudDeEdicion as CrudEdicionFacturaEmt;
+                editor.Expansor_AbrirModalDeRelacionParaCrear(editor.ModalDeCreacionDeCobros.id, atControl.idElemento.toLowerCase());
+            }
             else
                 super.ProcesarOpcionMf(idNegocio, opcion, esContextual);
         }
@@ -80,6 +84,35 @@
             }
 
             return Venta.NavegarARelacionesDeFae(opcion, datosDeEntrada, ltrParametrosUrl.Venta.IdFactura);
+        }
+
+        protected DespuesDeLeerFilaSeleccionada(peticion: ApiDeAjax.DescriptorAjax): any {
+            super.DespuesDeLeerFilaSeleccionada(peticion);
+
+            if (this.InfoSelector.Cantidad !== 1) return;
+            this.ActualizarOpcionAnadirCobro(peticion.resultado.datos);
+        }
+
+        public AplicarModoAccesoAlElemento(elemento: Elemento): void {
+            super.AplicarModoAccesoAlElemento(elemento);
+
+            // al deseleccionar una fila y quedar solo una seleccionada, el elemento restante ya
+            // tiene su detalle en caché (_registrosLeidos) y no vuelve a pasar por
+            // DespuesDeLeerFilaSeleccionada, así que hay que reevaluar la opción aquí también
+            if (this.InfoSelector.Cantidad !== 1) return;
+            this.ActualizarOpcionAnadirCobro(elemento.Registro);
+        }
+
+        private ActualizarOpcionAnadirCobro(elemento: any) {
+            const estaCancelada: boolean = ObtenerPropiedad(elemento, ltrPropiedades.Elemento.EstaCancelada, false);
+            const estaComunicandose: boolean = ObtenerPropiedad(elemento, ltrPropiedades.Venta.FacturaEmt.EstaComunicandose, false);
+            const esRectificativa: boolean = ObtenerPropiedad(elemento, ltrPropiedades.Venta.FacturaEmt.EsRectificativa, false);
+            const etapas: Array<string> = ObtenerPropiedad(elemento, ltrPropiedades.Venta.FacturaEmt.Etapas, false);
+            const esPrefactura: boolean = EstaElEnumerado(etapas, enumEtapasDeFacturaEmt, enumEtapasDeFacturaEmt.FAE_Etapa_Prefactura);
+            const esCobrable: boolean = !estaCancelada && !estaComunicandose && !esRectificativa && !esPrefactura;
+            const hayPendiente: boolean = ObtenerPropiedad(elemento, ltrPropiedades.Venta.FacturaEmt.Cobro.Pendiente, 0) > 0;
+
+            ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenuIndividual, ltrMenus.eventosDeMf.Venta.FacturasEmt.AnadirCobro, ltrMenus.enumOrigen.crud, !(esCobrable && hayPendiente));
         }
 
         protected SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
