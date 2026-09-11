@@ -122,7 +122,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 mfDeEdicion.Add($"<li id='{DescriptorDeCrud<ElementoDto>.menuEdicion}.observaciones' accion-menu='{eventosDeMf.CrearObservacion}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Añadir observación</li>");
 
             if (Negocio.UsaAgenda())
-                mfDeEdicion.Add($"<li id='{DescriptorDeCrud<ElementoDto>.menuEdicion}.agenda' accion-menu='{eventosDeMf.ModalDeCrearEvento}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Añadir evento</li>");
+                mfDeEdicion.Add($"<li id='{DescriptorDeCrud<ElementoDto>.menuEdicion}.agenda' accion-menu='{eventosDeMf.ModalDeCrearEvento}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Añadir evento</li>");
 
             if (Negocio.UsaDirecciones())
                 mfDeEdicion.Add($"<li id='{DescriptorDeCrud<ElementoDto>.menuEdicion}.direcciones' accion-menu='{eventosDeMf.ModalDeCrearDirecciones}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Añadir dirección</li>");
