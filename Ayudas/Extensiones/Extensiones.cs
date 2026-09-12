@@ -1080,7 +1080,7 @@ namespace Utilidades
             return alineacion ? resultado.PadLeft(longitud) : resultado;
         }
 
-        public static string Moneda(this decimal? numero, decimal? valorPorDefecto = null, string formato = "C", int longitud = 12, int decimales = 2, bool alineacion = true, CultureInfo cultura = null)
+        public static string Moneda(this decimal? numero, decimal? valorPorDefecto = null, string formato = "C", int longitud = 12, int decimales = 2, bool alineacion = true, CultureInfo cultura = null, bool mostrarUltimoDecimal =false)
         {
             if (cultura is null) cultura = new CultureInfo("es-ES");
 
@@ -1088,7 +1088,7 @@ namespace Utilidades
                 return "";
 
             decimal valor = (numero is null) ? ((decimal)valorPorDefecto) : ((decimal)numero);
-            return valor.Moneda(formato, longitud, decimales, alineacion, cultura);
+            return valor.Moneda(formato, longitud, decimales, alineacion, cultura, mostrarUltimoDecimal);
         }
 
         public static string ToMoneda(this decimal numero, string formato = "C", int longitud = 12, int decimales = 2, bool mostrarUltimoDecimal = true)
