@@ -90,7 +90,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             if (HayMasDeUnControlVisibleEnLaColumna(tabla, columna))
             {
-                rendercontroles = rendercontroles.Replace("[otraClase]", $" {enumCssDiv.DivConMasPropiedades.Render()} {(AlinearElContenidoALaDerecha(tabla, columna) ? enumCssDiv.DivConConteidoAlineadoALaDerecha.Render() : "")}");
+                rendercontroles = rendercontroles.Replace("[otraClase]", $" {(cssDelDivDelaTd == enumCssDiv.Nulo ? "" : cssDelDivDelaTd.Render())} {enumCssDiv.DivConMasPropiedades.Render()} {(AlinearElContenidoALaDerecha(tabla, columna) ? enumCssDiv.DivConConteidoAlineadoALaDerecha.Render() : "")}");
             }
             else
             {

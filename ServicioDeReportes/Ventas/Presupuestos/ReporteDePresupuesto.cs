@@ -118,7 +118,7 @@ namespace ServicioDeReportes.Ventas
                 column.Item().PaddingRight(5).AlignRight().Text($"Base imponible: {Presupuesto.Datos.TotalSinIva.Moneda()}").SemiBold();
 
                 foreach (var iva in Presupuesto.Ivas)
-                    column.Item().PaddingRight(5).AlignRight().Text($"{iva.Tipo}: {iva.Importe.Moneda()}");
+                    column.Item().PaddingRight(5).AlignRight().Text($"{iva.Tipo}: {iva.Importe.Moneda(mostrarUltimoDecimal:false)}");
 
                 column.Item().PaddingRight(5).AlignRight().Text($"Total a pagar: {Presupuesto.Datos.TotalConIva.Moneda()}").SemiBold();
             });

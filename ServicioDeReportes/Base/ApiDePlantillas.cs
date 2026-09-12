@@ -41,16 +41,109 @@ namespace ServicioDeReportes.Base
 
         public static void ProcesarParte(OpenXmlCompositeElement parte, pltFormulasDePlantilla formulasDePlantilla, Dictionary<string, pltDatosDePlantilla> datosDePlantilla, Dictionary<string, Dictionary<string, object>> datosDelObjeto)
         {
+            ProcesarFormatosDeDto(parte, datosDelObjeto);
             ProcesarEtiquetasDeUnPa(parte, datosDePlantilla);
             ProcesarEtiquetasDelDto(parte, datosDelObjeto);
             ProcesarFormulas(parte, formulasDePlantilla);
+        }
+
+        // {{{Prefijo.Campo,N}}} -> si el valor de esa propiedad del Dto/ampliación es numérico (int/decimal/
+        // float/double) y N es un entero >= 0, se sustituye por el valor redondeado a N decimales (con la
+        // cultura del servidor). Si el valor NO es numérico, o N no es un entero válido, la etiqueta se deja
+        // tal cual -- no se sustituye "a medias" ni con un número sin redondear.
+        private static readonly Regex PatronDeEtiquetaConFormato = new Regex(
+            @"^(?<prefijo>\w+)\.(?<campo>\w+)\s*,\s*(?<decimales>[^,}]*)$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        /// <summary>
+        /// Pasada independiente de ProcesarEtiquetasDelDto (que no toca): resuelve el sufijo ",N" de formato
+        /// numérico sobre las mismas etiquetas {{{Prefijo.Campo}}} del propio elemento y sus ampliaciones
+        /// (ver 4.a del manual). Se ejecuta primero para que, si el formato no aplica (valor no numérico o N
+        /// inválido), la etiqueta quede intacta y sea ProcesarEtiquetasDelDto quien decida qué hacer con ella
+        /// (de hecho no la tocará tampoco, porque ",N" no es ni "." ni "}}}" tras la clave -- se queda tal
+        /// cual, que es exactamente lo pedido).
+        /// </summary>
+        private static void ProcesarFormatosDeDto(OpenXmlCompositeElement parte, Dictionary<string, Dictionary<string, object>> datosDelObjeto)
+        {
+            var textos = parte.Descendants<Text>().ToList();
+            for (int i = 0; i < textos.Count; i++)
+            {
+                if (!textos[i].Text.Contains('{')) continue;
+
+                var (textoCompleto, finIndex) = ObtenerTextoCompletoParaMaestros(textos, i);
+                if (string.IsNullOrEmpty(textoCompleto)) continue;
+
+                var resultado = new StringBuilder();
+                var pos = 0;
+                var huboSustituciones = false;
+                while (true)
+                {
+                    var posInicio = textoCompleto.IndexOf(Simbolos.PltInicio, pos, StringComparison.OrdinalIgnoreCase);
+                    if (posInicio < 0) { resultado.Append(textoCompleto, pos, textoCompleto.Length - pos); break; }
+
+                    var posCierre = textoCompleto.IndexOf(Simbolos.PltCierre, posInicio);
+                    if (posCierre < 0) { resultado.Append(textoCompleto, pos, textoCompleto.Length - pos); break; }
+
+                    resultado.Append(textoCompleto, pos, posInicio - pos);
+                    var etiqueta = textoCompleto.Substring(posInicio + Simbolos.PltInicio.Length, posCierre - posInicio - Simbolos.PltInicio.Length).Trim();
+
+                    if (ResolverEtiquetaConFormato(datosDelObjeto, etiqueta, out var textoFormateado))
+                    {
+                        resultado.Append(textoFormateado);
+                        huboSustituciones = true;
+                    }
+                    else
+                        resultado.Append(Simbolos.PltInicio).Append(etiqueta).Append(Simbolos.PltCierre);
+
+                    pos = posCierre + Simbolos.PltCierre.Length;
+                }
+
+                if (huboSustituciones)
+                {
+                    textos[i].Text = resultado.ToString();
+                    for (int j = i + 1; j <= finIndex; j++) textos[j].Text = string.Empty;
+                }
+                i = finIndex;
+            }
+        }
+
+        private static bool ResolverEtiquetaConFormato(Dictionary<string, Dictionary<string, object>> datosDelObjeto, string etiqueta, out string textoFormateado)
+        {
+            textoFormateado = null;
+
+            var match = PatronDeEtiquetaConFormato.Match(etiqueta);
+            if (!match.Success) return false;
+
+            if (!int.TryParse(match.Groups["decimales"].Value.Trim(), out var decimales) || decimales < 0)
+                return false;
+
+            var prefijo = match.Groups["prefijo"].Value;
+            var entrada = datosDelObjeto.FirstOrDefault(kv => kv.Key.Equals(prefijo, StringComparison.OrdinalIgnoreCase));
+            if (entrada.Key is null) return false;
+
+            var campo = match.Groups["campo"].Value;
+            var propiedad = entrada.Value.FirstOrDefault(kv => kv.Key.Equals(campo, StringComparison.OrdinalIgnoreCase));
+            if (propiedad.Key is null) return false;
+
+            decimal numero;
+            switch (propiedad.Value)
+            {
+                case decimal d: numero = d; break;
+                case int n: numero = n; break;
+                case float f: numero = (decimal)f; break;
+                case double db: numero = (decimal)db; break;
+                default: return false; // null, string, bool, enum, fecha... no es un número
+            }
+
+            textoFormateado = numero.ToString("N" + decimales);
+            return true;
         }
 
         public static void ProcesarMapeosDeTablasDelPa(OpenXmlCompositeElement parte, Dictionary<string, pltMapeosDeTabla> descriptorDeMapeos, Dictionary<string, List<pltFilaDeTabla>> filasDeTablas)
         {
             foreach (var descriptor in descriptorDeMapeos)
             {
-                var texto = parte.Descendants<Text>().FirstOrDefault(t => t.Text.ToLower().Equals(Simbolos.PltInicio + descriptor.Key + Simbolos.PltCierre));
+                var texto = BuscarMarcadoresFusionados(parte.Descendants<Text>().ToList(), descriptor.Key).FirstOrDefault();
                 if (texto == null) continue;
                 var elemento = texto.Parent;
                 TableRow? filaMarcador = null;
@@ -90,9 +183,13 @@ namespace ServicioDeReportes.Base
             var textos = parte.Descendants<Text>().ToList();
             for (int i = 0; i < textos.Count; i++)
             {
-                if (!textos[i].Text.ToLowerInvariant().Contains(Simbolos.PltInicio + "maestro.")) continue;
+                // Disparador de un único carácter "{" -- ni siquiera basta con buscar "{{{" completo:
+                // Word puede partir el delimitador en fragmentos de 1-2 caracteres ("{" + "{{"), así que
+                // "{{{maestro...}}}" puede no aparecer entero en NINGÚN <w:t> individual. Con cualquier
+                // "{" ya merece la pena fusionar hasta el final del párrafo y comprobar qué hay.
+                if (!textos[i].Text.Contains('{')) continue;
 
-                var (textoCompleto, finIndex) = ObtenerTextoCompleto(textos, i);
+                var (textoCompleto, finIndex) = ObtenerTextoCompletoParaMaestros(textos, i);
                 if (string.IsNullOrEmpty(textoCompleto)) continue;
 
                 // Un mismo bloque de texto (tras juntar los Text que comparten una etiqueta partida en varios
@@ -136,6 +233,51 @@ namespace ServicioDeReportes.Base
                 for (int j = i + 1; j <= finIndex; j++) textos[j].Text = string.Empty;
                 i = finIndex;
             }
+        }
+
+        /// <summary>
+        /// Fusiona el texto desde "inicio" hasta el final del párrafo que lo contiene. No basta con ir
+        /// buscando "{{{"/"}}}" completos nodo a nodo: Word puede partir el propio delimitador en
+        /// fragmentos de 1-2 caracteres ("{" + "{{"), así que "{{{...}}}" puede no aparecer entero en
+        /// NINGÚN &lt;w:t&gt; individual, ni siquiera parcialmente reconocible hasta fusionar. El límite de
+        /// párrafo es seguro porque ninguna etiqueta lo cruza (lo escribe siempre quien diseña la
+        /// plantilla dentro de una misma línea/celda).
+        /// </summary>
+        private static (string textoCompleto, int finIndex) ObtenerTextoCompletoParaMaestros(List<Text> textos, int inicio)
+        {
+            var finIndex = inicio;
+            var parrafo = textos[inicio].Ancestors<Paragraph>().FirstOrDefault();
+            var ultimoTextoDelParrafo = parrafo?.Descendants<Text>().LastOrDefault();
+            if (ultimoTextoDelParrafo != null)
+            {
+                var indice = textos.IndexOf(ultimoTextoDelParrafo);
+                if (indice >= inicio) finIndex = indice;
+            }
+
+            var sb = new StringBuilder();
+            for (int j = inicio; j <= finIndex; j++) sb.Append(textos[j].Text);
+            return (sb.ToString(), finIndex);
+        }
+
+        /// <summary>
+        /// Localiza el/los Text cuyo contenido, una vez fusionados los &lt;w:t&gt; partidos (ver
+        /// ObtenerTextoCompletoParaMaestros), forma exactamente "{{{clave}}}" -- el mismo caso que rompía
+        /// ProcesarEtiquetasDeMaestros pero para los marcadores de tabla ({{{lineasdefactura}}}, {{{Hitos}}},
+        /// {{{LineaDeUnaFae}}}...), que antes se buscaban con una igualdad exacta sobre un único nodo y por
+        /// eso no se encontraban si Word había partido el marcador en varios &lt;w:t&gt; (le pasa con
+        /// frecuencia a nombres largos o con mayúsculas raras, tipo "LineaDeUnaFae").
+        /// </summary>
+        private static List<Text> BuscarMarcadoresFusionados(List<Text> textos, string clave)
+        {
+            var objetivo = (Simbolos.PltInicio + clave + Simbolos.PltCierre).ToLowerInvariant();
+            var encontrados = new List<Text>();
+            for (int i = 0; i < textos.Count; i++)
+            {
+                if (!textos[i].Text.Contains('{')) continue;
+                var (textoCompleto, _) = ObtenerTextoCompletoParaMaestros(textos, i);
+                if (textoCompleto.Trim().ToLowerInvariant() == objetivo) encontrados.Add(textos[i]);
+            }
+            return encontrados;
         }
 
         private static string FormatearValorDeMaestro(object valor)
@@ -186,7 +328,7 @@ namespace ServicioDeReportes.Base
             {
                 var textos = parte.Descendants<Text>().ToList();
                 if (textos is null || textos.Count == 0) return;
-                var encabezados = textos.Where(t => t.Text.ToLower() == $"{Simbolos.PltInicio}{informacionDeDetalle.Key.ToLower()}{Simbolos.PltCierre}").ToList();
+                var encabezados = BuscarMarcadoresFusionados(textos, informacionDeDetalle.Key);
                 foreach (var item in encabezados)
                 {
                     ProcesarItemSiEsTabla(item, informacionDeDetalle.Value);
@@ -198,7 +340,7 @@ namespace ServicioDeReportes.Base
         {
             var textos = parte.Descendants<Text>().ToList();
             if (textos is null || textos.Count == 0) return;
-            var encabezados = textos.Where(t => t.Text == $"{Simbolos.PltInicio}{encabezado}{Simbolos.PltCierre}").ToList();
+            var encabezados = BuscarMarcadoresFusionados(textos, encabezado.ToString());
             foreach (var item in encabezados)
             {
                 ProcesarItemSiEsTabla(item, detalles);
@@ -298,22 +440,75 @@ namespace ServicioDeReportes.Base
         }
 
 
+        /// <summary>
+        /// {{{alias.campo}}} del PA (punto 4.b del manual). Reescrito para fusionar primero los &lt;w:t&gt;
+        /// partidos por Word (igual que ProcesarFormatosDeDto/ProcesarEtiquetasDeMaestros, vía
+        /// ObtenerTextoCompletoParaMaestros) en vez de aplicar una expresión regular directamente sobre
+        /// parte.InnerXml: si Word partía el delimitador "{{{alias.campo}}}" en varios &lt;w:t&gt; --algo
+        /// habitual con el corrector ortográfico, sobre todo con alias largos o con mayúsculas poco
+        /// frecuentes-- la etiqueta nunca aparecía contigua en el XML y la sustitución no se producía NUNCA,
+        /// aunque el alias y el campo estuvieran bien escritos. Es el mismo fallo que describe el punto 4.g
+        /// del manual para las etiquetas {{{maestro...}}}, pero aquí no estaba corregido todavía. De paso,
+        /// alias y campo se comparan sin distinguir mayúsculas de minúsculas (el diccionario de valores
+        /// guarda el nombre de columna del SELECT siempre en minúsculas, ExtensorDePlantillas.MapearCampoDatos).
+        /// </summary>
         private static void ProcesarEtiquetasDeUnPa(OpenXmlCompositeElement parte, Dictionary<string, pltDatosDePlantilla> datosDePlantilla)
         {
-            string pattern = Simbolos.PltInicio + @"(" + string.Join("|", datosDePlantilla.Keys.Select(k => Regex.Escape(k.ToLower()))) + @")\.(\w+)" + Simbolos.PltCierre;
-            foreach (var agrupacion in datosDePlantilla)
+            var textos = parte.Descendants<Text>().ToList();
+            for (int i = 0; i < textos.Count; i++)
             {
-                string lowerKey = agrupacion.Key.ToLower();
-                var informacionParaRemplazar = datosDePlantilla[agrupacion.Key];
-                parte.InnerXml = Regex.Replace(parte.InnerXml, pattern, m =>
+                if (!textos[i].Text.Contains('{')) continue;
+
+                var (textoCompleto, finIndex) = ObtenerTextoCompletoParaMaestros(textos, i);
+                if (string.IsNullOrEmpty(textoCompleto)) continue;
+
+                var resultado = new StringBuilder();
+                var pos = 0;
+                var huboSustituciones = false;
+                while (true)
                 {
-                    if (m.Groups[1].Value.ToLower() == lowerKey && informacionParaRemplazar.ContainsKey(m.Groups[2].Value))
+                    var posInicio = textoCompleto.IndexOf(Simbolos.PltInicio, pos, StringComparison.OrdinalIgnoreCase);
+                    if (posInicio < 0) { resultado.Append(textoCompleto, pos, textoCompleto.Length - pos); break; }
+
+                    var posCierre = textoCompleto.IndexOf(Simbolos.PltCierre, posInicio);
+                    if (posCierre < 0) { resultado.Append(textoCompleto, pos, textoCompleto.Length - pos); break; }
+
+                    resultado.Append(textoCompleto, pos, posInicio - pos);
+                    var etiqueta = textoCompleto.Substring(posInicio + Simbolos.PltInicio.Length, posCierre - posInicio - Simbolos.PltInicio.Length).Trim();
+
+                    if (ResolverEtiquetaDeUnPa(datosDePlantilla, etiqueta, out var valor))
                     {
-                        return m.Groups[0].Value.ToLower().Replace($"{Simbolos.PltInicio}{agrupacion.Key}.{m.Groups[2].Value}{Simbolos.PltCierre}".ToLower(), informacionParaRemplazar[m.Groups[2].Value]);
+                        resultado.Append(valor);
+                        huboSustituciones = true;
                     }
-                    return m.Groups[0].Value;
-                });
+                    else
+                        resultado.Append(Simbolos.PltInicio).Append(etiqueta).Append(Simbolos.PltCierre);
+
+                    pos = posCierre + Simbolos.PltCierre.Length;
+                }
+
+                if (huboSustituciones)
+                {
+                    textos[i].Text = resultado.ToString();
+                    for (int j = i + 1; j <= finIndex; j++) textos[j].Text = string.Empty;
+                }
+                i = finIndex;
             }
+        }
+
+        private static bool ResolverEtiquetaDeUnPa(Dictionary<string, pltDatosDePlantilla> datosDePlantilla, string etiqueta, out string valor)
+        {
+            valor = null;
+            var posPunto = etiqueta.IndexOf('.');
+            if (posPunto < 0) return false;
+
+            var alias = etiqueta.Substring(0, posPunto);
+            var campo = etiqueta.Substring(posPunto + 1).Trim().ToLowerInvariant();
+
+            var entrada = datosDePlantilla.FirstOrDefault(kv => kv.Key.Equals(alias, StringComparison.OrdinalIgnoreCase));
+            if (entrada.Key is null) return false;
+
+            return entrada.Value.TryGetValue(campo, out valor);
         }
 
         private static void ProcesarEtiquetasDelDto(OpenXmlCompositeElement parte, Dictionary<string, Dictionary<string, object>> datosDelObjeto)
@@ -481,7 +676,14 @@ namespace ServicioDeReportes.Base
                 var cells = nuevaFila.Elements<TableCell>().ToList();
                 foreach (TableCell celda in cells)
                 {
-                    var texto = celda.GetFirstChild<Paragraph>()?.GetFirstChild<Run>()?.GetFirstChild<Text>();
+                    // Ojo: si Word ha partido la etiqueta de la celda en varios <w:t> (le pasa con
+                    // frecuencia a nombres largos tipo "BaseImponible"), coger solo el primer Run/Text
+                    // (como se hacía antes) deja el resto de fragmentos sin tocar, mostrando basura tipo
+                    // "733,88 €BaseImponible}}}". Se cogen TODOS los Text de la celda; si su unión coincide
+                    // con la etiqueta buscada, se fusionan en el primero (para que SustituirEtiqueta encuentre
+                    // el texto completo) y se vacían los demás.
+                    var textosDeLaCelda = celda.Descendants<Text>().ToList();
+                    var texto = textosDeLaCelda.FirstOrDefault();
                     if (texto == null) continue;
                     foreach (PropertyInfo propiedad in detalle.GetType().GetProperties())
                     {
@@ -489,7 +691,9 @@ namespace ServicioDeReportes.Base
                         if (celda.InnerText.ToLower() == sustituir)
                         {
                             var valor = propiedad.GetValue(detalle);
+                            texto.Text = celda.InnerText;
                             SustituirEtiqueta(texto, sustituir, valor is null ? "" : valor);
+                            for (int k = 1; k < textosDeLaCelda.Count; k++) textosDeLaCelda[k].Text = string.Empty;
                             break;
                         }
                     }
@@ -536,8 +740,13 @@ namespace ServicioDeReportes.Base
         {
             if (!linea.ContainsKey(mapeo.Value)) return;
 
-            var texto = celda.GetFirstChild<Paragraph>()?.GetFirstChild<Run>()?.GetFirstChild<Text>();
-            if (texto != null) texto.Text = linea[mapeo.Value];
+            // Mismo caso que en CrearFilasEnLaTabla: si la celda ("{{{col0}}}"...) llegó partida en varios
+            // <w:t>, escribir solo en el primero y no vaciar el resto deja fragmentos sueltos en el resultado.
+            var textosDeLaCelda = celda.Descendants<Text>().ToList();
+            var texto = textosDeLaCelda.FirstOrDefault();
+            if (texto == null) return;
+            texto.Text = linea[mapeo.Value];
+            for (int k = 1; k < textosDeLaCelda.Count; k++) textosDeLaCelda[k].Text = string.Empty;
         }
 
         private static void SustituirTexto(Text texto, object? valor, string cadenafinal)

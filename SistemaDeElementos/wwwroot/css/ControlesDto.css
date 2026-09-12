@@ -1907,3 +1907,10 @@ a.deshabilitado {
 .fila-200px-fr {
     grid-template-columns: 200px 1fr !important;
 }
+
+.columna-con-block-no-flex {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+}

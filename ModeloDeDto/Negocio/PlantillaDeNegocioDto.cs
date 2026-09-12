@@ -98,7 +98,8 @@ namespace ModeloDeDto.Negocio
             TipoDeControl = enumTipoControl.Referencia,
             css = enumCssControles.ReferenciaCentradaEnTd,
             VisibleAlCrear = false,
-            AccionRef = "javascript:" + nameof(enumNameSpaceTs.Negocio) + "." + nameof(enumFunctionTs.Negocio_DescargarPlantillaDeNegocio) + "(["+nameof(IdArchivo)+"])"
+            AccionRef = "javascript:" + nameof(enumNameSpaceTs.Negocio) + "." + nameof(enumFunctionTs.Negocio_DescargarPlantillaDeNegocio) + "(["+nameof(IdArchivo)+"])",
+            CssDelDivDeLaTd = enumCssDiv.ColumnaConBlockNoFlex
             )
         ]
         public string Plantilla { get; set; }
@@ -112,7 +113,7 @@ namespace ModeloDeDto.Negocio
             Columna = 0,
             Posicion = 1,
             TipoDeControl = enumTipoControl.Referencia,
-            css = enumCssControles.ReferenciaCentradaEnTd,
+            css = enumCssControles.CheckApilado,
             VisibleAlCrear = false,
             AccionRef = "javascript:" + nameof(enumNameSpaceTs.ApiDePeticiones) + "." + nameof(enumFunctionTs.ApiDePeticiones_DescargarEtiquetasDeNegocio) + "([" + nameof(IdNegocio) + "])"
             )

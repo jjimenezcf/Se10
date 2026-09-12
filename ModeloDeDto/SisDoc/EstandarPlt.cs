@@ -11,6 +11,8 @@
 
     public class EstandarPlt : IPlantillaPlt
     {
+        public const string Estandard = nameof(Estandard);
+
         public int IdPlantilla { get ; set; } = 0;
         public string Plantilla { get; set; } = "Estandard";
         public enumClaseDePlantilla Clase { get; set; } = enumClaseDePlantilla.programada;

@@ -1134,7 +1134,8 @@ namespace Utilidades
         Th,
         Tr,
         Td,
-        CuerpoDatosTabla
+        CuerpoDatosTabla,
+        ColumnaConBlockNoFlex
     }
 
 
@@ -1194,7 +1195,7 @@ namespace Utilidades
         ContenedorDelGridConElDivDeGraficos,
         Splitter,
         filaAutoFr,
-        fila200pxFr,
+        fila200pxFr
     }
 
     public enum enumCssHistorial
@@ -2150,6 +2151,7 @@ namespace Utilidades
                 case enumCssDiv.Tr: return "div-tr";
                 case enumCssDiv.Td: return "div-td";
                 case enumCssDiv.CuerpoDatosTabla: return "cuerpo-datos-tabla";
+                case enumCssDiv.ColumnaConBlockNoFlex: return "columna-con-block-no-flex";
 
             }
             throw new Exception($"No se ha definido que renderizar para la clase {clase}");

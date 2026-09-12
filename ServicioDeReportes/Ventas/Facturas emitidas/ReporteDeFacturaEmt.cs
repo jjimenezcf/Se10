@@ -118,7 +118,7 @@ namespace ServicioDeReportes.Ventas
                                 columna.Item().AlignCenter().Width(85.04f).Height(85.04f).Image(qrSif);
                                 columna.Item().AlignCenter().Text(Factura.LeyendaSe).FontSize(7).FontColor(Colors.Grey.Darken2);
                             });
-                            ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: string.Empty);
+                            ApiDeReportes.RenderLogo(fila, Factura.Logo, 85.04f, 85.04f, texto: Factura.Sociedad.Nif);
                         });
                     }
                     else if (qrSif != null)

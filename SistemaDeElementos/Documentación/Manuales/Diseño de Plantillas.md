@@ -169,10 +169,12 @@ reflexión sobre el Dto (`ServicioDeImpresion.cs:65-81`).
 
 **Para saber qué etiquetas tienes disponibles de este tipo, no las adivines**: en la ficha de la
 plantilla (`ModeloDeDto/Negocio/PlantillaDeNegocioDto.cs:107-120`) hay un enlace **"Etiquetas
-disponibles"** que descarga un `.docx` con el listado completo y actualizado de etiquetas del negocio (el
-propio elemento, sus ampliaciones, sus tablas de detalle, y desde ahora también los datos maestros del
-punto 4.d) — lo genera `ApiDeEtiquetas.CrearFicheroDeEtiquetas` (`ServicioDeReportes/Base/ApiDeEtiquetas.cs`).
-Es el fichero que hay que mirar primero siempre, antes de escribir una sola etiqueta a mano.
+disponibles"** que descarga un fichero de texto (`.txt`) con el listado completo y actualizado de
+etiquetas del negocio, en tres bloques: 1) etiquetas de un solo dato (el propio elemento y sus
+ampliaciones), 2) etiquetas de tabla (detalles/Hitos/Observaciones/Direcciones, con su fila marcadora y
+sus columnas), 3) datos maestros (punto 4.c) — lo genera `ApiDeEtiquetas.CrearFicheroDeEtiquetas`
+(`ServicioDeReportes/Base/ApiDeEtiquetas.cs`). Es el fichero que hay que mirar primero siempre, antes de
+escribir una sola etiqueta a mano.
 
 Formato de sustitución según el tipo .NET de la propiedad (`ApiDePlantillas.cs:431-449`):
 
@@ -185,10 +187,34 @@ Formato de sustitución según el tipo .NET de la propiedad (`ApiDePlantillas.cs
 | `bool` | `"Si"` / `"No"` |
 | `enum` | `.Descripcion()` (el atributo `[Description]` del valor) |
 
-> Si necesitas un formato concreto (fecha corta sin hora, decimales con dos cifras, moneda con símbolo,
-> etc.), **no uses la etiqueta automática**: trae ese dato ya formateado como texto desde el PA (ver
-> 4.b), con `FORMAT(...)`/`CONVERT(...)` en SQL — así es como lo hacen los dos PA reales del repositorio
-> (`FORMAT(FACTURADA_EL, 'dd-MM-yyyy')`, `FORMAT(..., 'N2')`).
+> Si necesitas un formato concreto (fecha corta sin hora, moneda con símbolo, etc.), **no uses la etiqueta
+> automática**: trae ese dato ya formateado como texto desde el PA (ver 4.b), con
+> `FORMAT(...)`/`CONVERT(...)` en SQL — así es como lo hacen los dos PA reales del repositorio
+> (`FORMAT(FACTURADA_EL, 'dd-MM-yyyy')`, `FORMAT(..., 'N2')`). Para el caso concreto de redondear un
+> importe a N decimales sí hay un atajo sin tocar el PA: sigue leyendo.
+
+#### Redondear un número sin tocar el PA — `{{{Prefijo.Campo,N}}}`
+
+Si lo único que te hace falta es redondear un `int`/`decimal`/`float`/`double` a un número fijo de
+decimales, añade `,N` al final de la etiqueta (`N` = nº de decimales, un entero ≥ 0):
+
+```
+{{{FacturaEmt.APagar,2}}}   ->  1.234,57   (con la cultura del servidor, formato "N2": separador de miles + 2 decimales)
+{{{FacturaEmt.APagar,0}}}   ->  1.235      (redondea al entero más próximo)
+```
+
+Es una pasada independiente (`ApiDePlantillas.ProcesarFormatosDeDto`) que se ejecuta antes que la
+sustitución normal de 4.a, y **solo** actúa si se cumplen las dos condiciones a la vez:
+
+1. `N` es un entero válido (no negativo). `{{{FacturaEmt.APagar,abc}}}` o `{{{FacturaEmt.APagar,-1}}}`
+   no cumplen esto.
+2. El valor de esa propiedad es numérico (`int`, `decimal`, `float` o `double`). Si es texto, fecha,
+   booleano o enumerado (p.ej. `{{{FacturaEmt.Nombre,2}}}`), no cumple esto.
+
+**Si cualquiera de las dos falla, la etiqueta se deja tal cual, sin sustituir nada** — no se imprime un
+número a medio formatear ni se rompe el resto del documento. Esto solo existe para las etiquetas de 4.a
+(el propio elemento y sus ampliaciones); no está implementado para los alias del PA (4.b, que ya puedes
+formatear tú mismo en el `SELECT`) ni para los datos maestros (4.c).
 
 ### 4.b. Explícitas del PA — `{{{alias.campo}}}`
 
@@ -226,6 +252,17 @@ Los cinco maestros dados de alta hoy:
 (`ServicioDeDatos/_Elemento/ElementoDtm.cs`) — es decir, la mayoría de los negocios de proceso del
 sistema, no solo facturas. Igual que en 4.a, no hace falta que el PA sepa nada de esto: si la interfaz
 está implementada, la etiqueta funciona sola.
+
+**No todas las propiedades del Dto del maestro llegan con valor por esta vía.** `GestorDeMaestros` llama a
+`LeerElementoPorId(id)` sin parámetros adicionales, y algunas propiedades de `ClienteDto`/`ProveedorDto`/
+`SociedadDto`... solo se rellenan cuando el `Gestor` correspondiente recibe un parámetro puntual que la
+impresión no pasa (p.ej. `ClienteDto.NIF`, `ProveedorDto.RazonSocial`) — esas propiedades se excluyen a
+propósito del listado de "Etiquetas disponibles" (`ApiDeEtiquetas.PropiedadesSinValorDesdeElMaestro`) para
+no inducir a poner una etiqueta que siempre imprime vacío. El caso real: `ClienteDto.VAT` sí llega por
+`{{{maestro.cliente.VAT}}}`, pero puede venir vacío (el NIF de verdad cuelga del `Interlocutor` del
+cliente — persona o sociedad — y calcularlo así no es una propiedad plana del Dto); para ese dato hay que
+tirar de PA (4.b) con el mismo `JOIN` que ya hace en C# `ClienteDtm.NIF(contexto)`: `VAT` si lo tiene, si
+no el NIF de la Persona o la Sociedad del interlocutor (ver el apéndice, plantilla "Factura_propia").
 
 Gramática de la etiqueta, según qué parte del maestro se referencia:
 
@@ -335,8 +372,9 @@ adicional para depurar, que las demás etiquetas del sistema no dejan.
 
 ## 5. Checklist antes de subir una plantilla a producción
 
-1. Descargar el `.docx` de "Etiquetas disponibles" del negocio y comprobar qué etiquetas automáticas
-   (4.a) y qué datos maestros (4.c) cubren ya lo que necesitas, antes de tocar el PA.
+1. Descargar el fichero de "Etiquetas disponibles" del negocio y comprobar qué etiquetas automáticas
+   (4.a, con `,N` si necesitas redondear un importe) y qué datos maestros (4.c) cubren ya lo que
+   necesitas, antes de tocar el PA.
 2. Para lo que no cubran 4.a/4.c, decidir el descriptor del PA (4.d ayuda a decidir cuándo toca PA en vez
    de maestro): cuántos alias escalares (4.b) y cuántas tablas (4.e) hacen falta de verdad, y con qué
    índices de result-set.
@@ -346,9 +384,13 @@ adicional para depurar, que las demás etiquetas del sistema no dejan.
    boilerplate genérico (ver v3 del apéndice).
 4. Diseñar el `.docx` con las clases de etiquetas que hagan falta, respetando el patrón de 3 filas (4.f)
    en cualquier tabla repetida.
-5. Imprimir sobre un elemento real y revisar el documento resultado buscando `{{{` sobrante (4.g) y
+5. **Guarda el `.docx` desde Word de verdad antes de subirlo** (no uses el fichero recién escrito a
+   máquina sin abrirlo nunca en Word): el corrector ortográfico puede partir una etiqueta larga en varios
+   `<w:t>`, incluso el propio delimitador `{{{` en fragmentos de un carácter. El motor ya lo tolera (ver
+   el apéndice), pero solo se puede confirmar probando el fichero tal como sale de Word.
+6. Imprimir sobre un elemento real y revisar el documento resultado buscando `{{{` sobrante (4.g) y
    comprobando formatos de fecha/decimales.
-6. Repetir el punto 5 con un elemento "límite" (sin datos opcionales, con varias líneas, con importes a
+7. Repetir el punto 6 con un elemento "límite" (sin datos opcionales, con varias líneas, con importes a
    cero...) antes de darlo por bueno.
 
 ---
@@ -515,3 +557,67 @@ ocurrencias `{{{...}}}` de un mismo bloque de texto (agrupando primero los `<w:t
 corrector ortográfico de Word, igual que ya hacía el resto del motor). Queda como aviso para quien añada
 un maestro nuevo: probar siempre con al menos dos etiquetas `{{{maestro...}}}` en la misma línea del
 Word, no solo una por párrafo.
+
+### Un bug más real, esta vez con el `.docx` de producción de verdad
+
+El aviso anterior se quedó corto. Al procesar el `.docx` real de otra plantilla del mismo despacho
+(subida y editada a mano en Word), aparecieron etiquetas sin sustituir a pesar del arreglo de la v3.
+Inspeccionando el XML del fichero real se vio el motivo: Word puede partir el propio delimitador `{{{` en
+fragmentos de **un solo carácter** (`"{"` + `"{{"` + el resto de la etiqueta en un tercer `<w:t>`), así
+que ni siquiera un disparador genérico que buscara `"{{{"` completo en un nodo lo detectaba — el
+delimitador no aparecía entero en NINGÚN nodo individual.
+
+La corrección definitiva (`ObtenerTextoCompletoParaMaestros`) dejó de intentar reconocer el delimitador a
+trozos: ahora dispara con cualquier `"{"` suelto y fusiona sin más hasta el final del **párrafo** que
+contiene ese nodo — límite seguro porque ninguna etiqueta cruza un salto de párrafo. De paso se
+encontraron y arreglaron dos fallos gemelos en código que no era mío pero comparte el mismo defecto:
+
+- `ProcesarMapeosDeTablasDelPa` / `ProcesarMapeosDeDetalles` / `ProcesarMapeosDeExtensiones` buscaban la
+  fila marcadora de una tabla (`{{{LineaDeUnaFae}}}`, `{{{Hitos}}}`...) con una igualdad exacta sobre un
+  único `<w:t>` — nunca la encontraban si Word había partido el marcador. Ahora usan el mismo fusionador
+  (`BuscarMarcadoresFusionados`).
+- `CrearFilasEnLaTabla` / `RemplazarMarcador`, al rellenar cada fila de datos, escribían el valor solo en
+  el primer `<w:t>` de la celda y no vaciaban el resto — si la celda llegaba partida (le pasó a
+  `{{{BaseImponible}}}` en el caso real), el resultado era basura tipo `"733,88 €BaseImponible}}}"`.
+  Ahora fusionan toda la celda antes de sustituir y vacían los fragmentos sobrantes.
+
+Validado sobre el `.docx` real (no uno sintético) reproduciendo exactamente sus `<w:t>` partidos: las 25
+comprobaciones (motor aislado + partición simulada + v3 + fichero real) pasan. Lección para el futuro:
+cualquier prueba de este motor que use un `.docx` escrito a mano en el propio código (como los ejemplos
+de este manual) es optimista — no reproduce cómo trocea Word un documento editado de verdad. Antes de dar
+por buena una plantilla nueva, ábrela en Word, guárdala, y solo entonces pruébala.
+
+### v4 (informal) — el NIF del cliente no siempre está en `ClienteDto.VAT`
+
+Al usar `{{{maestro.cliente.VAT}}}` en una plantilla propia, apareció un caso más: `VAT` puede venir
+vacío, porque el NIF "de verdad" no siempre es una propiedad plana del cliente — cuelga de su
+`Interlocutor` (persona física o sociedad), exactamente igual que resuelve en C# el propio sistema:
+
+```csharp
+// ExtensorDeClientes.cs
+cliente.VAT.IsNullOrEmpty() ? cliente.Interlocutor(contexto).NIF(contexto) : cliente.VAT
+// ExtensordeInterlocutores.cs
+interlocutor.EsPersona ? interlocutor.Persona(contexto).NIF... : interlocutor.Sociedad(contexto).NIF...
+```
+
+Eso no es un dato que el maestro `cliente` pueda dar (no es una propiedad de `ClienteDto`, es un cálculo
+sobre tres tablas distintas según el caso) — es exactamente el ejemplo que pone el punto 4.d: cuando el
+dato no está en el registro de maestros, se trae por PA (4.b). El PA de esta plantilla
+(`Plt_De_Negocio_Factura_propia.sql`) queda reducido a un único alias:
+
+```sql
+select top(1) COALESCE(cli.VAT, per.NIF, soc.NIF) as nif
+from VENTA.FACTURA_EMT f
+inner join TERCEROS.CLIENTE cli on cli.ID = f.ID_CLIENTE
+left join TERCEROS.INTERLOCUTOR interl on interl.ID = cli.ID_INTERLOCUTOR
+left join TERCEROS.PERSONA per on per.ID = interl.ID_PERSONA
+left join TERCEROS.SOCIEDAD soc on soc.ID = interl.ID_SOCIEDAD
+where f.ID = @IdElemento
+```
+
+con la etiqueta `{{{cliente.nif}}}` en el Word (alias del PA, sin el prefijo `maestro.` — no es un dato
+maestro). Ficheros: `Plt_De_Negocio_Factura_propia.sql`.
+
+Esta misma sesión fue también la que pidió el sufijo `{{{Prefijo.Campo,N}}}` del punto 4.a (redondear
+`{{{FacturaEmt.APagar,2}}}` sin tener que traer el total ya formateado por PA), motivada por el mismo
+"100,000000000" que ya se veía en las versiones anteriores de esta factura.

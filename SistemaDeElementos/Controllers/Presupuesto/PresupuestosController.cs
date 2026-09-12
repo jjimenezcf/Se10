@@ -27,6 +27,7 @@ using ServicioDeDatos.Negocio;
 using ModeloDeDto.Ventas;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using ModeloDeDto.SistemaDocumental;
 
 namespace MVCSistemaDeElementos.Controllers
 {
@@ -73,15 +74,15 @@ namespace MVCSistemaDeElementos.Controllers
         {
             var indicadores = base.IndicadoresParaInicializarLaVistaMnt(contexto, parametros);
             indicadores.Add(IndPresupuesto.UnidadDeMedida, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_Unidad_Medida, crearParametro: true, valorPorDefecto: Literal.Cero).Valor.Entero());
-            indicadores.Add(IndPresupuesto.Naturaleza, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_Naturaleza, crearParametro:true, valorPorDefecto: Literal.Cero).Valor.Entero());
-            indicadores.Add(IndPresupuesto.TipoDeLinea, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_TipoDeLinea, crearParametro:true, valorPorDefecto: enumTipoDeLinea.Alzada.ToString()).Valor);
-            indicadores.Add(IndPresupuesto.ClaseDeUnitario, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_ClaseDeUnitario, crearParametro:true, valorPorDefecto: enumClaseUnitario.Servicio.ToString()).Valor);
+            indicadores.Add(IndPresupuesto.Naturaleza, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_Naturaleza, crearParametro: true, valorPorDefecto: Literal.Cero).Valor.Entero());
+            indicadores.Add(IndPresupuesto.TipoDeLinea, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_TipoDeLinea, crearParametro: true, valorPorDefecto: enumTipoDeLinea.Alzada.ToString()).Valor);
+            indicadores.Add(IndPresupuesto.ClaseDeUnitario, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_ClaseDeUnitario, crearParametro: true, valorPorDefecto: enumClaseUnitario.Servicio.ToString()).Valor);
             return indicadores;
         }
 
         protected override int Vincular(int idNegocio, int idVinculado, int idElemento1, SelectorDto elemento2, Dictionary<string, object> parametros)
         {
-            
+
             if (NegociosDeSe.ToEnumerado(idNegocio) == enumNegocio.Expediente && NegociosDeSe.ToEnumerado(idVinculado) == enumNegocio.Presupuesto)
             {
                 var ppt = Contexto.SeleccionarPorId<PresupuestoDtm>(elemento2.IdElemento);
@@ -104,7 +105,7 @@ namespace MVCSistemaDeElementos.Controllers
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
                 if (!parametros.ContieneClave(nameof(PresupuestoDto.Id))) throw new Exception("Debe indicar el presupuesto");
                 if (!parametros.ContieneClave(nameof(PresupuestoDto.idExpediente))) throw new Exception("Debe indicar el expediente al que asociar");
-                
+
                 var idPresupuesto = (int)parametros.LeerValor<long>(nameof(PresupuestoDto.Id));
                 var idExpediente = (int)parametros.LeerValor<long>(nameof(PresupuestoDto.idExpediente));
 
@@ -212,8 +213,11 @@ namespace MVCSistemaDeElementos.Controllers
                     ExtensorDePresupuestos.ValidarQueLosPptsEstanEnEtapaDe(Contexto, (List<int>)parametros[ltrParametrosEp.ids], ServicioDeDatos.Ventas.enumEtapasDePpts.PPT_Etapa_PermiteFacturar);
                     return null;
                 case eventosDeMf.Ppt_ModalDeImprimir:
-                    ImprimirPresupuesto((List<int>)parametros[ltrParametrosEp.ids]);
-                    return new ServicioDePlantillas(Contexto, enumNegocio.Presupuesto).Plantillas();
+                    //ImprimirPresupuesto((List<int>)parametros[ltrParametrosEp.ids]);
+                    var plantillas = new ServicioDePlantillas(Contexto, enumNegocio.Presupuesto, (List<int>)parametros[ltrParametrosEp.ids]).Plantillas();
+                    if (!plantillas.Abrir)
+                        ImprimirPresupuesto((List<int>)parametros[ltrParametrosEp.ids]);
+                    return plantillas;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -295,6 +299,23 @@ namespace MVCSistemaDeElementos.Controllers
                 return RenderMensaje($"No se ha podido someter los trabajos de ventas.{Environment.NewLine}{GestorDeErrores.Detalle(e)}");
             }
             return VistaDelPanelDeControl(Contexto);
+        }
+
+        protected override bool Imprimir(int idNegocio, Dictionary<string, object> parametros)
+        {
+            if (base.Imprimir(idNegocio, parametros))
+                return true;
+
+            List<int> idPpts = new List<int> { (int)parametros.LeerValor<long>(ltrParametrosEp.idElemento) };
+            var plantilla = parametros.LeerValor<string>(ltrParametrosEp.Plantilla);
+
+            if (plantilla == EstandarPlt.Estandard)
+            {
+                ImprimirPresupuesto(idPpts);
+                return true;
+            }
+
+           throw Excepciones.Emitir("La plantilla seleccionada no se ha definido");
         }
 
         private void ImprimirPresupuesto(List<int> idsDePpt)

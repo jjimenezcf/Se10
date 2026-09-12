@@ -1,13 +1,7 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using Table = DocumentFormat.OpenXml.Wordprocessing.Table;
-using Text = DocumentFormat.OpenXml.Wordprocessing.Text;
-using Run = DocumentFormat.OpenXml.Wordprocessing.Run;
-using DocumentFormat.OpenXml;
-using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using Utilidades;
-using DocumentFormat.OpenXml.Packaging;
 using ServicioDeDatos.Elemento;
 using System.Reflection;
+using System.Text;
 using GestorDeElementos;
 using ServicioDeDatos.SistemaDocumental;
 using ModeloDeDto;
@@ -77,232 +71,117 @@ namespace ServicioDeReportes.Base
 
     public static class ApiDeEtiquetas
     {
+        private const string Separador = "----------------------------------------------------------------------";
+        private const string SeparadorDeBloque = "========================================================================";
 
         public static string CrearFicheroDeEtiquetas(Type tipoDtm)
         {
             if (!Path.Exists(enumRutas.RutaDePlantillas))
                 Directory.CreateDirectory(enumRutas.RutaDePlantillas);
 
-            string fichero = Path.Combine(enumRutas.RutaDePlantillas, $"Etiquetas de {tipoDtm.Name}.{enumExtensiones.docx}".NormalizarFichero());
-            var etiquetas = ObtenerEtiquetas(tipoDtm);
-            var tablasDto = DefinirTablasDto(tipoDtm);
-            var etiquetasDeTablas = EtiquetasDeTablas(tipoDtm);
-            var etiquetasDeMaestros = EtiquetasDeMaestros();
-            using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(fichero, WordprocessingDocumentType.Document))
-            {
-                MainDocumentPart mainPart = wordDocument.AddMainDocumentPart();
-                mainPart.Document = new Document();
-                mainPart.Document.Body = new Body();
+            string fichero = Path.Combine(enumRutas.RutaDePlantillas, $"Etiquetas de {tipoDtm.Name}.{enumExtensiones.txt}".NormalizarFichero());
 
-                NumberingDefinitionsPart numberingPart = mainPart.AddNewPart<NumberingDefinitionsPart>("nd");
-                var nivel = new Level(new NumberingFormat() { Val = NumberFormatValues.Bullet }, new LevelText() { Val = "·" });
-                nivel.LevelIndex = 0;
-                var numeracionAbstracta = new AbstractNum(nivel);
-                var numeracion = new NumberingInstance(new AbstractNumId() { Val = 0 }) { NumberID = 1 };
-                Numbering element = new Numbering(numeracionAbstracta, numeracion);
-                numberingPart.Numbering = element;
+            var lineas = new List<string>();
+            lineas.AddRange(Cabecera(tipoDtm));
+            lineas.AddRange(SeccionDeEtiquetasSimples(tipoDtm));
+            lineas.AddRange(SeccionDeEtiquetasDeTabla(tipoDtm));
+            lineas.AddRange(SeccionDeEtiquetasDeMaestros());
 
-                foreach (var etiqueta in etiquetas) mainPart.Document.Body.AppendLabel(etiqueta);
-
-                foreach (var tablaDto in tablasDto)
-                {
-                    mainPart.Document.Body.AppendLine();
-                    var tabla = mainPart.Document.Body.AppendTable();
-                    tabla.AppendKeyRow(tablaDto.Nombre, tablaDto.Encolumnado.Count);
-
-                    TableRow filaDeEncabezado = new TableRow();
-                    for (int i = 0; i < tablaDto.Encolumnado.Count; i++)
-                        filaDeEncabezado.AppendCell(new Paragraph(new Run(new Text(tablaDto.Encolumnado[i]))));
-                    tabla.Append(filaDeEncabezado);
-
-                    TableRow filaDeDatos = new TableRow();
-                    for (int i = 0; i < tablaDto.Encolumnado.Count; i++) filaDeDatos.Append(new TableCell(new Paragraph(new Run(new Text($"{Simbolos.PltInicio}{tablaDto.Encolumnado[i]}{Simbolos.PltCierre}")))));
-                    tabla.Append(filaDeDatos);
-                }
-
-                foreach (var etiqueta in etiquetasDeTablas) mainPart.Document.Body.AppendLabel(etiqueta);
-                foreach (var etiqueta in etiquetasDeMaestros) mainPart.Document.Body.AppendLabel(etiqueta);
-            }
+            File.WriteAllLines(fichero, lineas, Encoding.UTF8);
             return fichero;
         }
 
-        private static void AppendLabel(this Body cuerpo, string etiqueta)
+        private static List<string> Cabecera(Type tipoDtm)
         {
-            var bloque = DefinirParrafo();
-            bloque.parrafo.Append(bloque.propiedades);
-            Run run = new Run();
-            run.AppendChild(etiqueta.Contains("Etiquetas de") || etiqueta.Contains("--") || etiqueta.Contains(" ") || etiqueta.Equals(Environment.NewLine)
-            ? new Text(etiqueta)
-            : new Text($"{Simbolos.PltInicio}{etiqueta}{Simbolos.PltCierre}"));
-            bloque.parrafo.Append(run);
-            cuerpo.Append(bloque.parrafo);
-        }
-
-        private static (Paragraph parrafo, ParagraphProperties propiedades) DefinirParrafo()
-        {
-            var parrafo = new Paragraph();
-            var propiedades = new ParagraphProperties(
-                new NumberingProperties(
-                    new NumberingLevelReference() { Val = 0 },
-                    new NumberingId() { Val = 1 }
-                )
-            );
-            return (parrafo, propiedades);
-        }
-
-        private static void AppendLine(this Body cuerpo)
-        {
-            Paragraph parrafo = new Paragraph();
-            Run run = new Run();
-            run.AppendChild(new Text(Environment.NewLine));
-            parrafo.Append(run);
-            cuerpo.Append(parrafo);
-        }
-
-        private static Table AppendTable(this Body cuerpo)
-        {
-            Table tabla = new Table();
-            //TableProperties tableProperties = new TableProperties(new TableBorders(new TopBorder(), new BottomBorder(),
-            //    new LeftBorder(), new RightBorder(), new InsideHorizontalBorder(), new InsideVerticalBorder()));
-            //tabla.AppendChild(tableProperties);
-            cuerpo.Append(tabla);
-            return tabla;
-        }
-
-        private static TableRow AppendKeyRow(this Table tabla, string clave, int celadas)
-        {
-            TableRow fila = new TableRow();
-            fila.AppendKeyCell(new Paragraph(new Run(new Text("{{{" + clave + "}}}"))));
-            for (int i = 1; i < celadas; i++) fila.AppendKeyCell(new Paragraph(new Run(new Text(""))));
-            tabla.Append(fila);
-            return fila;
-        }
-
-
-        private static TableCell AppendKeyCell(this TableRow fila, Paragraph parrafo)
-        {
-            var celda = new TableCell();
-            celda.ConBorde();
-            celda.Append(parrafo);
-            fila.Append(celda);
-            return celda;
-        }
-
-        private static TableCell AppendCell(this TableRow fila, Paragraph parrafo)
-        {
-            var celda = new TableCell();
-            celda.ConBorde();
-            celda.Append(parrafo);
-            fila.Append(celda);
-            return celda;
-        }
-
-        private static void ConBorde(this TableCell celda)
-        {
-            var propiedadesDeLaCelada = new TableCellProperties();
-            TableCellBorders bordesDeCelada = new TableCellBorders();
-            BottomBorder borderInferior = new BottomBorder() { Val = new EnumValue<BorderValues>(BorderValues.Double), Color = "000000", Size = 12U };
-            bordesDeCelada.Append(borderInferior);
-            propiedadesDeLaCelada.Append(bordesDeCelada);
-            celda.Append(propiedadesDeLaCelada);
-        }
-
-        private static List<string> ObtenerEtiquetas(Type tipoDtm)
-        {
-            var etiquetas = new List<string>
+            return new List<string>
             {
-                $"Etiquetas de: {tipoDtm.Name.Replace("Dtm", "")}",
-                $"---------------------------------------------------"
+                $"ETIQUETAS DISPONIBLES PARA LA PLANTILLA DE: {tipoDtm.Name.Replace("Dtm", "")}",
+                SeparadorDeBloque,
+                "Cada etiqueta se sustituye por un dato real al imprimir. Cópiela tal cual se muestra a",
+                "continuación, llaves {{{ }}} incluidas, en el lugar del documento Word donde quiera que",
+                "aparezca ese dato.",
+                ""
+            };
+        }
+
+        private static List<string> SeccionDeEtiquetasSimples(Type tipoDtm)
+        {
+            var lineas = new List<string>
+            {
+                "1) ETIQUETAS DE UN SOLO DATO",
+                SeparadorDeBloque,
+                "Coloque cualquiera de estas etiquetas directamente en el texto del Word.",
+                ""
             };
 
-            IncluirEtiquetas(etiquetas, tipoDtm);
+            IncluirEtiquetas(lineas, tipoDtm);
 
             var negocio = tipoDtm.NegocioDeUnDtm();
             var ampliaciones = negocio.TiposDeAmpliaciones();
             foreach (var ampliacion in ampliaciones)
             {
                 var ampliacionDto = ampliacion.ToDto();
-                etiquetas.Add(" ");
-                etiquetas.Add($"Etiquetas de: {ampliacion.Name.Replace("Dtm", "")}");
-                etiquetas.Add("---------------------------------------------------");
-                IncluirEtiquetas(etiquetas, ampliacionDto);
+                lineas.Add("");
+                IncluirEtiquetas(lineas, ampliacionDto, ampliacion.Name.Replace("Dtm", ""));
             }
 
-            return etiquetas;
+            lineas.Add("");
+            return lineas;
         }
 
-        private static List<string> EtiquetasDeTablas(Type tipoDtm)
+        private static void IncluirEtiquetas(List<string> lineas, Type tipoDtm)
         {
-            var etiquetas = new List<string>
+            var clave = tipoDtm.Name.Replace("Dtm", "");
+            var tipoDto = tipoDtm.ToDto();
+            IncluirEtiquetas(lineas, tipoDto, clave);
+        }
+
+        private static void IncluirEtiquetas(List<string> lineas, Type tipoDto, string clave)
+        {
+            lineas.Add($"Etiquetas de: {clave}");
+            lineas.Add(Separador);
+            foreach (PropertyInfo propiedad in tipoDto.GetProperties())
+                lineas.Add($"{Simbolos.PltInicio}{clave}.{propiedad.Name}{Simbolos.PltCierre}");
+        }
+
+        private static List<string> SeccionDeEtiquetasDeTabla(Type tipoDtm)
+        {
+            var tablas = DefinirTablasDto(tipoDtm);
+
+            var lineas = new List<string>
             {
-                Environment.NewLine,
-                "Otras etiquetas de para poder incluir en el encolumnado",
-                "------------------------------------------------------------------------------"
+                "2) ETIQUETAS DE TABLA (detalles, líneas, hitos, observaciones, direcciones...)",
+                SeparadorDeBloque,
+                "Para cada una de estas tablas, incluya en el Word una tabla de 3 filas:",
+                "  1. Fila marcadora: una celda con el texto exacto de la primera etiqueta indicada abajo",
+                "     (p.ej. {{{NombreDeLaTabla}}}); dice de dónde se debe coger el detalle. El resto de",
+                "     celdas de esa fila puede dejarse vacío.",
+                "  2. Fila de cabecera (opcional, recomendada): los rótulos que verá el usuario final,",
+                "     en texto normal, sin etiquetas.",
+                "  3. Fila plantilla, que debe ser la ÚLTIMA fila de la tabla: una celda por columna,",
+                "     cada una con ÚNICAMENTE una de las etiquetas de columna indicadas abajo.",
+                ""
             };
 
-            var negocio = tipoDtm.NegocioDeUnDtm();
-            var detalles = negocio.TiposDeDetalles();
-            foreach (var detalle in detalles)
+            if (tablas.Count == 0)
             {
-                var detalleDto = detalle.ToDto();
-                etiquetas.Add(" ");
-                etiquetas.Add($"Etiquetas de: {detalle.Name.Replace("Dtm", "")}");
-                etiquetas.Add("-- Tabla ----------------------------------");
-                etiquetas.Add(detalle.Name.Replace("Dtm", ""));
-                etiquetas.Add("-- Columnas--------------------------------");
-                foreach (var propiedad in detalleDto.GetProperties())
-                {
-                    if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
-                    etiquetas.Add(propiedad.Name);
-                }
+                lineas.Add("(Este negocio no tiene tablas de detalle)");
+                lineas.Add("");
+                return lineas;
             }
 
-            if (negocio.UsaFlujo())
+            foreach (var tabla in tablas)
             {
-                etiquetas.Add(" ");
-                etiquetas.Add($"Etiquetas de: {negocio.ObtenerMetadatos().HitosDtm.Name.Replace("Dtm", "")}");
-                etiquetas.Add("-- Tabla ----------------------------------");
-                etiquetas.Add(enumEncabezadosDeTablas.Hitos.ToString());
-                etiquetas.Add("-- Columnas--------------------------------");
-                foreach (var propiedad in typeof(HitoDto).GetProperties())
-                {
-                    if (propiedad.Name.StartsWith("Id") && (propiedad.PropertyType == typeof(int) || propiedad.PropertyType == typeof(int?)))
-                        continue;
-                    etiquetas.Add(propiedad.Name);
-                }
+                lineas.Add($"Etiquetas de: {tabla.Nombre}");
+                lineas.Add(Separador);
+                lineas.Add($"Fila marcadora: {Simbolos.PltInicio}{tabla.Nombre}{Simbolos.PltCierre}");
+                lineas.Add("Etiquetas de columna para la fila plantilla:");
+                foreach (var columna in tabla.Encolumnado)
+                    lineas.Add($"  {Simbolos.PltInicio}{columna}{Simbolos.PltCierre}");
+                lineas.Add("");
             }
 
-            if (negocio.UsaObservaciones())
-            {
-                etiquetas.Add(" ");
-                etiquetas.Add($"Etiquetas de: {negocio.ObtenerMetadatos().ObservacionesDtm.Name.Replace("Dtm", "")}");
-                etiquetas.Add("-- Tabla ----------------------------------");
-                etiquetas.Add(enumEncabezadosDeTablas.Observaciones.ToString());
-                etiquetas.Add("-- Columnas--------------------------------");
-                foreach (var propiedad in typeof(ObservacionDto).GetProperties())
-                {
-                    if (propiedad.Name.StartsWith("Id") && (propiedad.PropertyType == typeof(int) || propiedad.PropertyType == typeof(int?)))
-                        continue;
-                    etiquetas.Add(propiedad.Name);
-                }
-            }
-
-            if (negocio.UsaDirecciones())
-            {
-                etiquetas.Add(" ");
-                etiquetas.Add($"Etiquetas de: {negocio.ObtenerMetadatos().DireccionesDtm.Name.Replace("Dtm", "")}");
-                etiquetas.Add("-- Tabla ----------------------------------");
-                etiquetas.Add(enumEncabezadosDeTablas.Direcciones.ToString());
-                etiquetas.Add("-- Columnas--------------------------------");
-                foreach (var propiedad in typeof(DireccionDto).GetProperties())
-                {
-                    if (propiedad.Name.StartsWith("Id") && (propiedad.PropertyType == typeof(int) || propiedad.PropertyType == typeof(int?)))
-                        continue;
-                    etiquetas.Add(propiedad.Name);
-                }
-            }
-
-            return etiquetas;
+            return lineas;
         }
 
         /// <summary>
@@ -314,45 +193,54 @@ namespace ServicioDeReportes.Base
         /// IUsaSolicitante, IUsaCg). Si mañana se añade un maestro nuevo al registro (Iva, Irpf, Unitario,
         /// Juzgado...), añadir aquí su bloque correspondiente.
         /// </summary>
-        private static List<string> EtiquetasDeMaestros()
+        private static List<string> SeccionDeEtiquetasDeMaestros()
         {
-            var etiquetas = new List<string>
+            var lineas = new List<string>
             {
-                Environment.NewLine,
-                "Etiquetas de datos maestros (disponibles en cualquier negocio, sin tocar el procedimiento almacenado)",
-                "------------------------------------------------------------------------------"
+                "3) ETIQUETAS DE DATOS MAESTROS",
+                SeparadorDeBloque,
+                "Disponibles en cualquier negocio, sin tocar el procedimiento almacenado (solo si el",
+                "elemento tiene ese dato: cliente, proveedor, solicitante, centro gestor o sociedad).",
+                "Coloque cualquiera de estas etiquetas directamente en el texto del Word.",
+                ""
             };
 
             void AgregarMaestro(string clave, Type tipoDatosPrincipales, Type tipoCuentaBancaria)
             {
-                etiquetas.Add(" ");
-                etiquetas.Add($"Etiquetas de: maestro.{clave}");
-                etiquetas.Add("---------------------------------------------------");
+                var sinValor = PropiedadesSinValorDesdeElMaestro(clave);
+                lineas.Add($"Etiquetas de: maestro.{clave}");
+                lineas.Add(Separador);
                 foreach (var propiedad in tipoDatosPrincipales.GetProperties())
                 {
                     if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
-                    etiquetas.Add($"maestro.{clave}.{propiedad.Name}");
+                    if (sinValor.Contains(propiedad.Name)) continue;
+                    lineas.Add($"{Simbolos.PltInicio}maestro.{clave}.{propiedad.Name}{Simbolos.PltCierre}");
                 }
 
-                etiquetas.Add($"maestro.{clave}.direccion.<Campo>  (la primera dirección de la lista)");
-                etiquetas.Add($"maestro.{clave}.direccion.[fiscal].Expresion");
-                etiquetas.Add("  <Campo> de una dirección puede ser cualquiera de estos:");
+                lineas.Add($"{Simbolos.PltInicio}maestro.{clave}.direccion.<Campo>{Simbolos.PltCierre}  (la primera dirección de la lista)");
+                lineas.Add($"{Simbolos.PltInicio}maestro.{clave}.direccion.[fiscal].Expresion{Simbolos.PltCierre}  (la primera con Calificador = 'fiscal')");
+                lineas.Add("  <Campo> de una dirección puede ser cualquiera de estos:");
                 foreach (var propiedad in typeof(DireccionDto).GetProperties())
                 {
                     if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
-                    etiquetas.Add("  " + propiedad.Name);
+                    lineas.Add("  " + propiedad.Name);
                 }
 
-                if (tipoCuentaBancaria is null) return;
+                if (tipoCuentaBancaria is null)
+                {
+                    lineas.Add("");
+                    return;
+                }
 
-                etiquetas.Add($"maestro.{clave}.cuentabancaria.<Campo>  (la primera cuenta de la lista)");
-                etiquetas.Add($"maestro.{clave}.cuentabancaria.[Ingreso].Cuenta");
-                etiquetas.Add("  <Campo> de una cuenta bancaria puede ser cualquiera de estos:");
+                lineas.Add($"{Simbolos.PltInicio}maestro.{clave}.cuentabancaria.<Campo>{Simbolos.PltCierre}  (la primera cuenta de la lista)");
+                lineas.Add($"{Simbolos.PltInicio}maestro.{clave}.cuentabancaria.[Ingreso].Cuenta{Simbolos.PltCierre}  (la primera con Clase = 'Ingreso')");
+                lineas.Add("  <Campo> de una cuenta bancaria puede ser cualquiera de estos:");
                 foreach (var propiedad in tipoCuentaBancaria.GetProperties())
                 {
                     if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
-                    etiquetas.Add("  " + propiedad.Name);
+                    lineas.Add("  " + propiedad.Name);
                 }
+                lineas.Add("");
             }
 
             AgregarMaestro("cliente", typeof(ClienteDto), typeof(CuentaDeClienteDto));
@@ -361,31 +249,46 @@ namespace ServicioDeReportes.Base
 
             // MiCg no tiene direcciones ni cuentas propias -- las suyas son las de MiSociedad. Se trata aparte
             // porque no sigue el patrón DatosPrincipales+direccion+cuentabancaria de los otros cuatro.
-            etiquetas.Add(" ");
-            etiquetas.Add("Etiquetas de: maestro.MiCg");
-            etiquetas.Add("---------------------------------------------------");
+            // (A diferencia de los otros maestros, CentroGestorDto se mapea entero sin condiciones en
+            // DespuesDeMapearElElemento -- de hecho no lo sobrescribe -- así que no hay nada que excluir aquí.)
+            lineas.Add("Etiquetas de: maestro.MiCg");
+            lineas.Add(Separador);
             foreach (var propiedad in typeof(CentroGestorDto).GetProperties())
             {
                 if (propiedad.PropertyType.HeredaDe(typeof(ElementoDto), incluirTipo: true)) continue;
-                etiquetas.Add($"maestro.MiCg.{propiedad.Name}");
+                lineas.Add($"{Simbolos.PltInicio}maestro.MiCg.{propiedad.Name}{Simbolos.PltCierre}");
             }
+            lineas.Add("");
 
             AgregarMaestro("MiSociedad", typeof(SociedadDto), typeof(CuentaDeMiSociedadDto));
 
-            return etiquetas;
+            return lineas;
         }
 
-        private static void IncluirEtiquetas(List<string> etiquetas, Type tipoDtm)
+        /// <summary>
+        /// Propiedades del Dto de un maestro que NUNCA llegan con valor por esta vía, porque
+        /// <c>GestorDeMaestros</c> llama a <c>LeerElementoPorId(id)</c> sin parámetros adicionales
+        /// (ni <c>Peticion = epLeerPorId</c>, ni <c>ObtenerDatosFiscales</c>, ni ningún otro parámetro
+        /// puntual) y el correspondiente <c>DespuesDeMapearElElemento</c> solo rellena estas propiedades
+        /// cuando esos parámetros están presentes -- verificado en GestorDeClientes, GestorDeProveedores,
+        /// GestorDeInterlocutores y GestorDeSociedades. Ofrecerlas como etiqueta induciría a pensar que
+        /// van a imprimir un dato que en realidad siempre sale vacío.
+        /// </summary>
+        private static HashSet<string> PropiedadesSinValorDesdeElMaestro(string clave) => clave switch
         {
-            var clave = tipoDtm.Name.Replace("Dtm", "");
-            var tipoDto = tipoDtm.ToDto();
-            var propiedades = tipoDto.GetProperties();
-            foreach (PropertyInfo propiedad in propiedades)
-            {
-                //if (propiedad.PropertyType.HeredaDe(typeof(RegistroDtm), incluirTipo: true)) continue;
-                etiquetas.Add(clave + "." + propiedad.Name);
-            }
-        }
+            "cliente" => new HashSet<string> { nameof(ClienteDto.NIF), nameof(ClienteDto.RazonSocial), nameof(ClienteDto.TipoDeTercero), nameof(ClienteDto.DireccionFiscal), nameof(ClienteDto.EsIntraComunitario), nameof(ClienteDto.EsExtraComunitario) },
+            "proveedor" => new HashSet<string> { nameof(ProveedorDto.DireccionFiscal), nameof(ProveedorDto.RazonSocial), nameof(ProveedorDto.TipoFarPropuesto), nameof(ProveedorDto.CgPropuesto), nameof(ProveedorDto.DomiciliadaEn), nameof(ProveedorDto.Tarjeta) },
+            "solicitante" => new HashSet<string> { nameof(InterlocutorDto.DireccionDeContacto) },
+            "MiSociedad" => new HashSet<string> {
+                nameof(SociedadDto.DireccionFiscal),
+                nameof(SociedadDto.IdInterlocutor), nameof(SociedadDto.Interlocutor),
+                nameof(SociedadDto.IdCliente), nameof(SociedadDto.Cliente),
+                nameof(SociedadDto.IdProveedor), nameof(SociedadDto.Proveedor),
+                nameof(SociedadDto.IdAbogado), nameof(SociedadDto.IdProcurador),
+                nameof(SociedadDto.Cgs), nameof(SociedadDto.Agenda)
+            },
+            _ => new HashSet<string>()
+        };
 
         private static List<TablaPlantillaDto> DefinirTablasDto(Type tipoDtm)
         {
