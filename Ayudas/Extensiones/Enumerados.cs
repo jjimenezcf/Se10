@@ -372,7 +372,6 @@ namespace Utilidades
         Fae_Tras_Cambiar_Clase_De_Abono,
         Fae_InicializarModalParaCrearCobros,
         Fae_InicializarModalParaEditarCobros,
-        Fae_TrasCrearCobro,
         Fae_InicializarModalParaCrearAbonos,
         Fae_InicializarModalParaEditarAbonos,
         Fae_MapearFechaDeVencimiento,

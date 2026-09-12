@@ -6,6 +6,7 @@ using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Logistica;
 using System.Collections.Generic;
+using System.Linq;
 using Utilidades;
 using UtilidadesParaIu;
 
@@ -43,7 +44,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 posicion: new Posicion() { fila = 0, columna = 0 });
 
 
-            var tipos = contexto.Set<TipoMovimientoDtm>();
+            var tipos = contexto.Set<TipoMovimientoDtm>().ToList();
 
             var tiposDeMovimiento = new Dictionary<string, string>();
             foreach (TipoMovimientoDtm tipo in tipos)
@@ -57,18 +58,19 @@ namespace MVCSistemaDeElementos.Descriptores
                 posicion: new Posicion() { fila = 0, columna = 1 });
 
             new ListasDinamicas<MovimientoDeAlmacenDto>(Mnt.BloqueGeneral,
-                 etiqueta: enumNegocio.Unitario.Singular(),
-                 filtrarPor: nameof(UnitarioDto.Expresion),
-                 ayuda: "seleccione el unitario",
+                 etiqueta: "Material",
+                 filtrarPor: ltrDeUnMovimientoDeAlmacen.FiltroPorUnitario,
+                 ayuda: "seleccione el material",
                  seleccionarDe: nameof(UnitarioDto),
-                 buscarPor: ltrDeUnMovimientoDeAlmacen.FiltroPorUnitario,
+                 buscarPor: nameof(UnitarioDto.Expresion),
                  mostrarExpresion: nameof(UnitarioDto.Expresion),
                  criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
                  posicion: new Posicion(1, 0),
                  controlador: nameof(UnitariosController),
                  navegarA: nameof(UnitariosController.CrudUnitarios),
                  restringirPor: "",
-                 alSeleccionarBlanquearControl: "");
+                 alSeleccionarBlanquearControl: "")
+            { OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_FiltrosPorClaseDeUnitario) + "(this)" };
 
             new FiltroEntreFechas<MovimientoDeAlmacenDto>(Mnt.BloqueGeneral,
                 etiqueta: "Realizado",

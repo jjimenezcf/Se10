@@ -41,6 +41,7 @@ namespace MVCSistemaDeElementos.Descriptores
         public string OnClick { get; set; }
         public string TrasMapear { get; set; }
         public string ParametrosParaNavegar { get; set; }
+        public string OtrosParametrosDeFiltrado { get; set; } = "";
 
         public enumNegocio Negocio { get; set; } = enumNegocio.No_Definido;
 
@@ -123,6 +124,7 @@ namespace MVCSistemaDeElementos.Descriptores
             valores[nameof(ltrParametrosEp.negocio)] = Negocio.ToNombre();
             valores[nameof(TrasMapear)] = TrasMapear;
             valores[nameof(ParametrosParaNavegar)] = ParametrosParaNavegar;
+            valores[nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)] = OtrosParametrosDeFiltrado;
 
             valores["Navegador"] = RenderDto.DefinirNavegador(IdHtml, Controlador, NavegarA, Negocio, OnClick);
             var htmlLd = PlantillasHtml.Render(PlantillasHtml.listaDinamicaFlt, valores);

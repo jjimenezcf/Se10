@@ -1868,7 +1868,7 @@ namespace GestorDeElementos
 
             }
 
-            if (typeof(TElemento).HeredaDe(typeof(ElmentoAuditadoDto)))
+            if (typeof(TElemento).HeredaDe(typeof(ElmentoAuditadoDto)) && Negocio != enumNegocio.No_Definido && !parametros.CargarLista)
             {
                 ((IElmentoAuditadoDto)elemento).HayClases = Negocio.HayClasesDelNegocio(Contexto);
                 if (!registro.PropiedadesDelObjeto().Any(x => x.Name == nameof(IElmentoAuditadoDto.IdNegocio)))

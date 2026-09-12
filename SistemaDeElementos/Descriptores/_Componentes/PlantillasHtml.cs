@@ -90,18 +90,19 @@ namespace MVCSistemaDeElementos.Descriptores
                                          contenido-en=¨[ContenidoEn]¨
                                          controlador=¨[Controlador]¨
                                          blanquear-controles-dependientes =¨[BlanquearControlesDependientes]¨
-                                         longitud=¨[Longitud]¨ 
+                                         longitud=¨[Longitud]¨
                                          aplicar-join=¨[AplicarJoin]¨
-                                         cantidad-a-leer=¨[Cantidad]¨ 
+                                         cantidad-a-leer=¨[Cantidad]¨
                                          placeholder =¨[Placeholder]¨
-                                         oninput=¨[OnInput]¨ 
-                                         onfocus=¨[OnFocus]¨ 
-                                         onblur=¨[OnChange]¨ 
+                                         oninput=¨[OnInput]¨
+                                         onfocus=¨[OnFocus]¨
+                                         onblur=¨[OnChange]¨
                                          onclick='javascript:ApiListaDinamica.ListaPulsada(this)'
                                          tras-mapear='[TrasMapear]'
                                          ordenar-por=¨[ordenarPor]¨
                                          blanquear-al-salir =¨[BlanquearAlSalir]¨
                                          autocomplete='off'
+                                         otros-parametros-de-filtrado=¨[{nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)}]¨
                                          parametros-para-navegar='[{nameof(IUPropiedadAttribute.ParametrosParaNavegar)}]'
                                          ¨>
                                          </input>

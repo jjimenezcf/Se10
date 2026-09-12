@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Logistica;
@@ -14,7 +15,7 @@ namespace GestorDeElementos.Extensores
 
         public static void AntesDeCerrar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarSinRegularizacionViva(contexto, "cerrar");
 
-        public static void AntesDeRecontar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarSinRegularizacionViva(contexto, "inventariar");
+        public static void AntesDeRecontar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarQueNoSSeEstaRecontando(contexto);
 
         private static void ValidarSinRegularizacionViva(this AlmacenDtm almacen, ContextoSe contexto, string accion)
         {
@@ -31,6 +32,27 @@ namespace GestorDeElementos.Extensores
             var hayRegularizacionViva = contexto.Set<RegularizacionDtm>().Any(x => x.IdAlmacen == almacen.Id && estadosVivos.Contains(x.IdEstado));
             if (hayRegularizacionViva)
                 Emitir($"No se puede {accion} el almacén '{almacen.Referencia}' porque tiene una regularización en curso");
+        }
+
+        private static void ValidarQueNoSSeEstaRecontando(this AlmacenDtm almacen, ContextoSe contexto)
+        {
+            if (!almacen.EstaRecontando(contexto))
+                return;
+
+            var estadosRecontando = enumEtapasDeRegularizacion.RAL_Recontando.Lista();
+            var regularizacion = contexto.Set<RegularizacionDtm>().FirstOrDefault(x => x.IdAlmacen == almacen.Id && estadosRecontando.Contains(x.IdEstado));
+            if (regularizacion != null)
+                Emitir($"El almacén '{almacen.Referencia}' ya se está recontando en la regularización '{regularizacion.Referencia}'");
+        }
+
+        private static bool EstaRecontando(this AlmacenDtm almacen, ContextoSe contexto)
+        {
+            var estadosRecontando = enumEtapasDeRegularizacion.RAL_Recontando.Lista();
+
+            if (!estadosRecontando.Any())
+                Emitir($"Debe definir el parámetro '{enumEtapasDeRegularizacion.RAL_Recontando}' del negocio de '{enumNegocio.Regularizacion}'");
+
+            return contexto.Set<RegularizacionDtm>().Any(x => x.IdAlmacen == almacen.Id && estadosRecontando.Contains(x.IdEstado));
         }
 
         public static void QuitarPreasiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)

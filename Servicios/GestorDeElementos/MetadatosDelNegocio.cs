@@ -359,6 +359,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeAlmacenes),
             TipoEtapas = typeof(enumEtapasDeAlmacen),
             EstadosDeLaEtapa = etapa => VariableDeAlmacenes.Lista((enumEtapasDeAlmacen)etapa),
+            ListaDeEtapas = registro => ((AlmacenDtm)registro).Lista(),
             PlantillasPorTipoDtm = null
         };
 
@@ -376,6 +377,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDeRegularizaciones),
             TipoEtapas = typeof(enumEtapasDeRegularizacion),
             EstadosDeLaEtapa = etapa => VariableDeRegularizaciones.Lista((enumEtapasDeRegularizacion)etapa),
+            ListaDeEtapas = registro => ((RegularizacionDtm)registro).Lista(),
             PlantillasPorTipoDtm = null
         };
 

@@ -165,6 +165,13 @@ Mismo directorio, fichero `VariablesDeXxx.cs`, con:
   `Nombre(etapa)` — calcados de `VariableDePedidos`, cambiando el enumerado de etapas y el tipo del
   elemento; un `case` del `switch` de `Estados(etapa)` por cada valor de `enumEtapasDeXxx`, y un `if`
   por cada uno en `Etapas(XxxDtm)`.
+- En el mismo fichero, un método de extensión `Lista(this XxxDtm registro)` que expone al DTO en qué
+  etapas está el registro (una por cada etapa cuyo estado actual coincide, como texto, no como enum —
+  el nombre del método puede variar de negocio a negocio, ver paso 7):
+  ```csharp
+  public static List<string> Lista(this XxxDtm registro) =>
+      registro.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
+  ```
 
 ## 3. Modelo de Dto (capa `ModeloDeDto`)
 
@@ -228,6 +235,31 @@ caso del nuevo negocio en:
     flujo; se olvida fácilmente porque no está en el mismo fichero que Estados/Transiciones/Acciones —
     conviene añadir los cuatro extensores a la vez, no solo los tres primeros.
 
+### 5.1 Enchufar el negocio en el extensor de archivadores/archivos
+
+Independiente de si el negocio tiene flujo: si usa archivadores y/o archivos vinculados (satélites
+`ArchivadoresDeUnXxxDtm`/`ArchivosDeUnXxxDtm` del paso 2, mapeados con
+`ModeloDeXxx.Archivadores`/`ModeloDeXxx.Archivos` en el paso 6), hay que añadir el caso del negocio en
+`Servicios/GestorDeElementos/Extensores/SistemaDocumental/ExtensorDeArchivadores.cs`:
+
+- `Archivadores(this enumNegocio negocio, ContextoSe contexto)` — `case enumNegocio.Xxx: return
+  contexto.Set<ArchivadoresDeUnXxxDtm>();` — solo si el negocio expone archivadores (carpetas) de
+  documentación vinculados.
+- `Archivos(this enumNegocio negocio, ContextoSe contexto)` — `case enumNegocio.Xxx: return
+  contexto.Set<ArchivosDeUnXxxDtm>();` — solo si el negocio expone archivos vinculados directamente
+  (sin pasar por un archivador).
+
+No hace falta rellenar los dos si el negocio solo usa uno de los dos mecanismos, pero lo habitual (y lo
+que corresponde si en el paso 2 se dieron de alta ambos satélites, `ArchivadoresDeUnXxxDtm` y
+`ArchivosDeUnXxxDtm`) es añadir el caso en **los dos** switch — es lo que se hace, por ejemplo, para
+**Almacenes** y **Regularizaciones**, que usan tanto `Archivadores` (`negocio.UsaArchivadores()` — ver
+`NegociosDeSe.cs` — devuelve `true` en cuanto el Dtm tiene tabla de archivadores vinculados) como
+`Archivos`. Si falta el caso correspondiente al negocio, en tiempo de ejecución lanza `Se debe indicar
+como obtener los archivos vinculados/anexados al negocio: Xxx` — un fallo que solo aparece al usar la
+funcionalidad de documentación de ese negocio (filtro por archivador, búsqueda de archivos...), así que
+conviene añadirlo a la vez que se dan de alta los satélites del paso 2 y no dejarlo para luego (se
+olvidó la primera vez para Almacenes y Regularizaciones).
+
 ## 6. Enganchar el modelo en el `DbContext`
 
 Fichero: `ServicioDeDatos/CreadorDelMd.cs` (`ContextoSe.OnModelCreating`).
@@ -283,15 +315,38 @@ public static Metadatos MetadatosDeXxxs() => new Metadatos
     TipoParametros = typeof(enumParametrosDeXxx),
     TipoEtapas = typeof(enumEtapasDeXxx),
     EstadosDeLaEtapa = etapa => VariableDeXxx.Lista((enumEtapasDeXxx)etapa),
+    ListaDeEtapas = registro => ((XxxDtm)registro).Lista(),
     PlantillasPorTipoDtm = null
 };
 ```
 
 y el `case enumNegocio.Xxx: metadatos = MetadatosDeXxxs(); break;` dentro del `switch` de
 `ObtenerMetadatos`. Si el fichero `VariablesDeXxx.cs` del paso 2.1 todavía no existe cuando se escribe
-esto, se dejan `TipoParametros`/`TipoEtapas`/`EstadosDeLaEtapa` a `null` y se vuelve aquí en cuanto se
-cree — pero como el punto 0 ya trae las etapas y los parámetros, lo normal es poder rellenarlo todo a
-la primera.
+esto, se dejan `TipoParametros`/`TipoEtapas`/`EstadosDeLaEtapa`/`ListaDeEtapas` a `null` y se vuelve
+aquí en cuanto se cree — pero como el punto 0 ya trae las etapas y los parámetros, lo normal es poder
+rellenarlo todo a la primera.
+
+**`ListaDeEtapas`** es imprescindible si el frontend necesita saber en qué etapa está el registro para
+ajustar el comportamiento del formulario (habilitar/deshabilitar edición de un grid, mostrar u ocultar
+un botón...). Se apunta al método `Lista(this XxxDtm registro)` del paso 2.1 (el nombre del método en sí
+es libre — hay negocios que lo llaman `Lista()`, como Almacenes/Regularizaciones/Expedientes, y otros
+`ListaDeEtapas()`, como Remesas/Facturas/Tareas/Pagos/Presupuestos —, lo único fijo es la firma
+`Func<object, List<string>>` del delegado). En tiempo de ejecución, `GestorDeElementos.
+DespuesDeMapearElElemento` (`Servicios/GestorDeElementos/GestorDeElementos.cs`) hace, para cualquier
+negocio con flujo:
+```csharp
+if (Metadatos?.ListaDeEtapas != null)
+    ((IElementoDeUnProcesoDto)elemento).Etapas = Metadatos.ListaDeEtapas(registro);
+```
+es decir, rellena la propiedad `Etapas` del Dto (heredada de `ElementoDeUnProcesoDto`) con la lista de
+nombres de etapa activas para ese registro concreto — si `ListaDeEtapas` se deja a `null`, `Etapas` nunca
+se rellena y el frontend no tiene forma de saber la etapa del registro. Esa propiedad viaja al cliente
+dentro del Dto y el TypeScript la consulta con `EstaElEnumerado(this.Etapas, enumEtapasDeXxx,
+enumEtapasDeXxx.Valor)` — el TS necesita su propia copia local de `enumEtapasDeXxx` (mismos nombres que
+el enum de C#) para poder comparar. Patrón real en
+`SistemaDeElementos/wwwroot/ts/Logistica/Regularizaciones.ts`: el getter `_estaRecontando` comprueba si
+la etapa `RAL_Recontando` está en `this.Etapas`, y `AjustarLineasSegunEtapa()` usa ese booleano para
+poner el grid de líneas en edición o en consulta según en qué etapa esté la regularización.
 
 ## 8. Crear los gestores de negocio
 
@@ -551,14 +606,15 @@ cosas no son mecánicas y quedan fuera:
 |---|---|---|
 | 2 | `ServicioDeDatos/<Área>/Xxxs/XxxDtm.cs` | `XxxDtm`, satélites, `ModeloDeXxx.Xxx/Trazas/Auditoria/Archivos/Observaciones/Permisos/Direcciones/Archivadores` |
 | 2 | `ServicioDeDatos/<Área>/Xxxs/TipoDeXxxDtm.cs` | Enum de campo particular del tipo (si aplica), `EstadoDeUnXxxDtm`, `TransicionesDeUnXxxDtm`, `AccionesDeUnXxxDtm`, `TipoDeXxxDtm`, `ModeloDeXxx.EstadosDeUnXxx/TransicionesDeUnXxx/AccionesDeUnXxx/TipoDeXxx` |
-| 2.1 | `ServicioDeDatos/<Área>/Xxxs/VariablesDeXxx.cs` | `enumEtapasDeXxx`, `enumParametrosDeXxx`, `VariableDeXxx` |
+| 2.1 | `ServicioDeDatos/<Área>/Xxxs/VariablesDeXxx.cs` | `enumEtapasDeXxx`, `enumParametrosDeXxx`, `VariableDeXxx`, `Lista(this XxxDtm)` |
 | 2 | `ServicioDeDatos/_Elemento/Metadatos.cs` | `Tablas.XXX`, `ICampos.*` de los campos particulares |
 | 3 | `ModeloDeDto/<Área>/Xxxs/XxxDto.cs` / `TipoDeXxxDto.cs` | Dtos |
 | 4 | `Ayudas/Extensiones/Negocios.cs` | Valor de `enumNegocio`, `Plural`/`ConArticulo`/`Controlador` si hace falta |
 | 4 | `Ayudas/Extensiones/Controladores.cs` | Valor en `enumControladores<Área>` si falta |
 | 5 | `ExtensorDeEstados.cs` / `ExtensorDeTransiciones.cs` / `ExtensorDeAccionesDeTrn.cs` / `ExtensorDeHitos.cs` | Caso del negocio en cada `switch`/`if` |
+| 5.1 | `ExtensorDeArchivadores.cs` | Caso del negocio en `Archivadores`/`Archivos` (solo los que use) |
 | 6 | `ServicioDeDatos/CreadorDelMd.cs` | `DefinirTablasDeXxx` + llamada desde `OnModelCreating` |
-| 7 | `Servicios/GestorDeElementos/MetadatosDelNegocio.cs` | `MetadatosDeXxxs()` + caso en el `switch` |
+| 7 | `Servicios/GestorDeElementos/MetadatosDelNegocio.cs` | `MetadatosDeXxxs()` (incl. `ListaDeEtapas`) + caso en el `switch` |
 | 8 | `GestoresDeNegocio/<Área>/Xxxs/GestorDeTiposDeXxx.cs` / `GestorDeXxx.cs` | Gestores |
 | 8 | `GestoresDeNegocio/ServiceExtensions.cs` | `services.AddScoped<GestorDeXxx>();` en `Configure<Área>` |
 | 9 | `SistemaDeElementos/Controllers/<Área>/XxxsController.cs` | Controlador MVC |
@@ -602,3 +658,10 @@ paso:
   sin ellos, el mantenimiento de Almacenes fallaba al renderizar el control de "Tipo".
 - `ExtensorDeHitos.cs`: caso `HitosDeUnAlmacenDtm`/`enumNegocio.Almacen` añadido en `Negocio(Type)` y en
   `Hitos(this enumNegocio, ContextoSe)` — se había quedado fuera al hacer el paso 5 la primera vez.
+- `ExtensorDeArchivadores.cs` (paso 5.1): caso `enumNegocio.Almacen` añadido tanto en `Archivadores(...)`
+  como en `Archivos(...)` — también se había quedado fuera la primera vez, igual que Regularizaciones.
+- `ListaDeEtapas` (paso 7): `MetadatosDeAlmacenes().ListaDeEtapas = registro => ((AlmacenDtm)
+  registro).Lista()`, con `Lista(this AlmacenDtm almacen)` definido en `VariablesDeAlmacenes.cs` (paso
+  2.1). Mismo patrón aplicado a Regularizaciones (`VariablesDeRegularizacion.cs`), que lo usa en
+  `Regularizaciones.ts` para poner en edición o en consulta el grid de líneas según la etapa
+  (`RAL_Recontando`) en la que esté la regularización.

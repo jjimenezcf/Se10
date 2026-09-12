@@ -53,8 +53,11 @@ namespace GestoresDeNegocio.Logistica
 
         protected override IQueryable<MovimientoDeAlmacenDtm> AplicarFiltros(IQueryable<MovimientoDeAlmacenDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
-            // TODO: completar los filtros propios (por almacén, por unitario, por rango de fechas, etc.)
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
+            consulta = consulta.FiltroPorAlmacen(filtros);
+            consulta = consulta.FiltroPorTipoMovimiento(filtros);
+            consulta = consulta.FiltroPorUnitario(filtros);
+            consulta = consulta.FiltroPorRealizadoEl(filtros);
             return consulta;
         }
 

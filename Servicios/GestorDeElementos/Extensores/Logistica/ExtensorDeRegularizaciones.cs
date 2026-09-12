@@ -1,6 +1,7 @@
 ﻿using Gestor.Errores;
 using ServicioDeDatos;
 using ServicioDeDatos.Logistica;
+using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
 
@@ -47,5 +48,63 @@ namespace GestorDeElementos.Extensores
 
             return regularizacion.Almacen = contexto.SeleccionarPorId<AlmacenDtm>(regularizacion.IdAlmacen);
         }
+
+        public static void AntesDeIniciarElRecuento(this RegularizacionDtm regularizacion, ContextoSe contexto)
+        {
+            var almacen = regularizacion.Almacen(contexto);
+
+            if (!almacen.EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Activo))
+                GestorDeErrores.Emitir($"No se puede iniciar un recuento/inventario si el almacén no está en la etapa {enumEtapasDeAlmacen.ALM_Etapa_Activo.Nombre()}");
+
+            almacen.TransitarALaEtapa(contexto, enumEtapasDeAlmacen.ALM_Etapa_En_Inventario.EstadosDeLaEtapa(), delSistema: true);
+        }
+
+        public static void AntesDeCerrarElRecuento(this RegularizacionDtm regularizacion, ContextoSe contexto)
+        {
+            if (((TipoDeRegularizacionDtm) regularizacion.Tipo(contexto)).ClaseDeRegularizacion == enumRegularizacionAlm.Inicial)
+                GenerarInventarioInicial(contexto, regularizacion);
+        }
+
+        public static void ValidarQueNoHayaLineasDeRecuento(this RegularizacionDtm regularizacion, ContextoSe contexto)
+        {
+            var hayLineas = contexto.Set<LineasDeUnaRegularizacionDtm>().Any(x => x.IdElemento == regularizacion.Id);
+            if (hayLineas)
+                GestorDeErrores.Emitir($"No se puede devolver la regularización '{regularizacion.Referencia}' a la etapa inicial porque tiene líneas de recuento");
+        }
+
+        public static void GenerarInventarioInicial(ContextoSe contexto, RegularizacionDtm regularizacion)
+        {
+            var idTipoMovimiento = contexto.Set<TipoMovimientoDtm>().Single(x => x.Nombre == enumTiposDeMovimiento.StockInicial.Descripcion()).Id;
+
+            var lineas = contexto.Set<LineasDeUnaRegularizacionDtm>()
+                .Where(x => x.IdElemento == regularizacion.Id)
+                .OrderBy(x => x.Orden)
+                .ToList();
+
+            foreach (var linea in lineas)
+            {
+                var movimiento = new MovimientoDeAlmacenDtm
+                {
+                    IdAlmacen = regularizacion.IdAlmacen,
+                    IdUnitario = linea.IdUnitario,
+                    IdTipoMovimiento = idTipoMovimiento,
+                    Cantidad = linea.Cantidad,
+                    Precio = linea.Precio,
+                    RealizadoEl = regularizacion.FechaCreacion,
+                    IdLineaInventario = linea.Id
+                };
+
+                movimiento.CalcularInventarioDelMovimiento(contexto);
+                movimiento.Preasentar(contexto);
+                movimiento = movimiento.InsertarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
+
+                foreach (var posterior in movimiento.ObtenerMovimientosPosteriores(contexto))
+                {
+                    posterior.Barrer(contexto);
+                    posterior.ModificarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
+                }
+            }
+        }
+
     }
 }

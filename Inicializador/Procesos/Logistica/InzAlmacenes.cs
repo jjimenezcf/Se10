@@ -73,6 +73,7 @@ namespace Inicializador.Logistica
         public static readonly string n_tran_alm_cerrar = $"{n_alm}: Cerrar";
         public static readonly string n_tran_alm_reabrir = $"{n_alm}: Reabrir";
         public static readonly string n_tran_alm_inventariar = $"{n_alm}: Inventariar";
+        public static readonly string n_tran_alm_Inventario_cerrado = $"{n_alm}: Inventario aplicado";        
         public static readonly string n_tran_alm_cancelar = $"{n_alm}: Cancelar";
 
         private static void Transiciones(ContextoSe contexto)
@@ -83,6 +84,7 @@ namespace Inicializador.Logistica
                 //abierto --> cerrado, en inventario, cancelado
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Almacen, n_tran_alm_cerrar, n_estado_alm_abierto, n_estado_alm_cerrado);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Almacen, n_tran_alm_inventariar, n_estado_alm_abierto, n_estado_alm_en_inventario, delSistema: true);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Almacen, n_tran_alm_Inventario_cerrado, n_estado_alm_en_inventario, n_estado_alm_abierto, delSistema: true);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Almacen, n_tran_alm_cancelar, n_estado_alm_abierto, n_estado_alm_cancelado, asunto: "Motivo de cancelación");
 
                 //cerrado --> abierto
@@ -109,36 +111,23 @@ namespace Inicializador.Logistica
             }
         }
 
-        public static readonly string n_tpm_stock_inicial = "Stock inicial";
-        public static readonly string n_tpm_compra = "Compra de materiales";
-        public static readonly string n_tpm_venta = "Venta de materiales";
-        public static readonly string n_tpm_consumo = "Consumo";
-        public static readonly string n_tpm_dev_compra = "Devolución de compra";
-        public static readonly string n_tpm_dev_consumo = "Devolución de consumo";
-        public static readonly string n_tpm_dev_venta = "Devolución de venta";
-        public static readonly string n_tpm_incremento = "Incremento de stock";
-        public static readonly string n_tpm_decremento = "Decremento de stock";
-        public static readonly string n_tpm_ajuste_precio = "Ajuste de precio";
-        public static readonly string n_tpm_reserva = "Reserva de stock";
-        public static readonly string n_tpm_cancela_reserva = "Cancelación de reserva";
-
         private static void TiposDeMovimiento(ContextoSe contexto)
         {
             contexto.IniciarTraza("Tipos de movimiento de almacén");
             try
             {
-                PersistirTipoDeMovimiento(contexto, n_tpm_stock_inicial, enumClaseDeMovimiento.Inicial);
-                PersistirTipoDeMovimiento(contexto, n_tpm_compra, enumClaseDeMovimiento.Entrada);
-                PersistirTipoDeMovimiento(contexto, n_tpm_venta, enumClaseDeMovimiento.Salida);
-                PersistirTipoDeMovimiento(contexto, n_tpm_consumo, enumClaseDeMovimiento.Salida);
-                PersistirTipoDeMovimiento(contexto, n_tpm_dev_compra, enumClaseDeMovimiento.Salida);
-                PersistirTipoDeMovimiento(contexto, n_tpm_dev_consumo, enumClaseDeMovimiento.Entrada);
-                PersistirTipoDeMovimiento(contexto, n_tpm_dev_venta, enumClaseDeMovimiento.Entrada);
-                PersistirTipoDeMovimiento(contexto, n_tpm_incremento, enumClaseDeMovimiento.Regularizacion);
-                PersistirTipoDeMovimiento(contexto, n_tpm_decremento, enumClaseDeMovimiento.Regularizacion);
-                PersistirTipoDeMovimiento(contexto, n_tpm_ajuste_precio, enumClaseDeMovimiento.Ajuste);
-                PersistirTipoDeMovimiento(contexto, n_tpm_reserva, enumClaseDeMovimiento.Nulo);
-                PersistirTipoDeMovimiento(contexto, n_tpm_cancela_reserva, enumClaseDeMovimiento.Nulo);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.StockInicial, enumClaseDeMovimiento.Inicial);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.Compra, enumClaseDeMovimiento.Entrada);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.Venta, enumClaseDeMovimiento.Salida);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.Consumo, enumClaseDeMovimiento.Salida);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.DevCompra, enumClaseDeMovimiento.Salida);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.DevConsumo, enumClaseDeMovimiento.Entrada);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.DevVenta, enumClaseDeMovimiento.Entrada);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.Incremento, enumClaseDeMovimiento.Regularizacion);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.Decremento, enumClaseDeMovimiento.Regularizacion);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.AjustePrecio, enumClaseDeMovimiento.Ajuste);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.Reserva, enumClaseDeMovimiento.Nulo);
+                PersistirTipoDeMovimiento(contexto, enumTiposDeMovimiento.CancelaReserva, enumClaseDeMovimiento.Nulo);
             }
             finally
             {
@@ -146,9 +135,9 @@ namespace Inicializador.Logistica
             }
         }
 
-        private static void PersistirTipoDeMovimiento(ContextoSe contexto, string nombre, enumClaseDeMovimiento clase)
+        private static void PersistirTipoDeMovimiento(ContextoSe contexto, enumTiposDeMovimiento tipo, enumClaseDeMovimiento clase)
         {
-            new TipoMovimientoDtm { Nombre = nombre, ClaseMovimiento = clase }.PersistirPorAk(contexto, nameof(TipoMovimientoDtm.Nombre));
+            new TipoMovimientoDtm { Nombre = tipo.Descripcion(), ClaseMovimiento = clase }.PersistirPorAk(contexto, nameof(TipoMovimientoDtm.Nombre));
         }
     }
 }

@@ -102,7 +102,6 @@ namespace GestoresDeNegocio.Logistica
             {
                 var almacen = regularizacion.Almacen(Contexto);
                 almacen.ValidarQueNoHayaRegularizacionViva(Contexto);
-                almacen.TransitarALaEtapa(Contexto, enumEtapasDeAlmacen.ALM_Etapa_En_Inventario.EstadosDeLaEtapa(), delSistema: true);
             }
         }
 
@@ -115,12 +114,25 @@ namespace GestoresDeNegocio.Logistica
         protected override RegularizacionDtm AntesDeTransitar(RegularizacionDtm regularizacion, TransicionDtm transicion, Dictionary<string, object> parametros)
         {
             regularizacion = base.AntesDeTransitar(regularizacion, transicion, parametros);
+
+            if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Recontando.Estados()))
+                regularizacion.AntesDeIniciarElRecuento(Contexto);
+            else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Cerrado.Estados()))
+                regularizacion.AntesDeCerrarElRecuento(Contexto);
+            else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Inicial.Estados()))
+                regularizacion.ValidarQueNoHayaLineasDeRecuento(Contexto);
+
             return regularizacion;
         }
 
         protected override RegularizacionDtm DespuesDeTransitar(RegularizacionDtm regularizacion, TransicionDtm transicion, Dictionary<string, object> parametros)
         {
             regularizacion = base.DespuesDeTransitar(regularizacion, transicion, parametros);
+
+            if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Cerrado.Estados()) ||
+                transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Inicial.Estados()))
+                regularizacion.Almacen(Contexto).TransitarALaEtapa(Contexto, enumEtapasDeAlmacen.ALM_Etapa_Activo.EstadosDeLaEtapa(), delSistema: true);
+
             return regularizacion;
         }
 

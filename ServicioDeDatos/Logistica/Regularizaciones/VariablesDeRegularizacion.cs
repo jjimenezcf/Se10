@@ -63,6 +63,8 @@ namespace ServicioDeDatos.Logistica
             return false;
         }
 
+        public static List<string> Lista(this RegularizacionDtm regularizacion) => regularizacion.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
+
         public static (List<int> estados, enumEtapasDeRegularizacion etapa) EstadosDeLaEtapa(this enumEtapasDeRegularizacion etapa) => (etapa.Lista(), etapa);
 
         public static List<int> Lista(this enumEtapasDeRegularizacion etapa) => etapa.Estados().ToLista<int>(Simbolos.Coma);

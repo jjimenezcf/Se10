@@ -22,13 +22,20 @@ namespace Logistica {
         let modal: HTMLDivElement = editor.ModalDeCreacionDeLineas;
         let tabla: HTMLDivElement = editor.GridDeLineas;
         let valor: number = 0;
-        let tablarows = tabla.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila);
-        if (tablarows.length > 1) {
-            let ultimoOrden = tablarows[tablarows.length - 1].querySelector(`input[propiedad=${ltrPropiedades.Logistica.Regularizacion.linea.orden}]`) as HTMLInputElement;
-            valor = Numero(ultimoOrden.value);
+        if (Definido(tabla)) {
+            let tablarows = tabla.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila);
+            if (tablarows.length > 1) {
+                let ultimoOrden = tablarows[tablarows.length - 1].querySelector(`input[propiedad=${ltrPropiedades.Logistica.Regularizacion.linea.orden}]`) as HTMLInputElement;
+                valor = Numero(ultimoOrden.value);
+            }
         }
+        // El grid de detalle se vacía de forma síncrona al recargarse tras crear una línea (y seguir creando),
+        // así que puede no reflejar todavía la última línea creada; nos quedamos con el mayor de los dos.
+        valor = Math.max(valor, editor.UltimoOrdenPropuesto);
+
         let orden = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Regularizacion.linea.orden, true) as HTMLInputElement;
         orden.value = (valor + incremento).toString();
+        editor.UltimoOrdenPropuesto = valor + incremento;
 
         let unitario = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Regularizacion.linea.unitario, true) as HTMLInputElement;
         unitario.focus();

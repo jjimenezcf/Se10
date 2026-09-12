@@ -2307,11 +2307,10 @@
                 if (Definido(accion))
                     Evaluar('CrudEdicion.DespuesVincular', accion, accion.includes('this') ? modal : undefined);
 
-                if (Crud.crudMnt.ModoTrabajo !== enumModoTrabajo.mantenimiento)
-                    return;
-                Crud.crudMnt.MenuGrid_DeselecionarTodasLasFilas(Crud.crudMnt);
-                Crud.crudMnt.CargarGrid();
-
+                if (Crud.crudMnt.ModoTrabajo === enumModoTrabajo.mantenimiento) {
+                    Crud.crudMnt.MenuGrid_DeselecionarTodasLasFilas(Crud.crudMnt);
+                    Crud.crudMnt.CargarGrid();
+                }
             }
 
             //si no hay que seguir creando cerrar la ventana modal

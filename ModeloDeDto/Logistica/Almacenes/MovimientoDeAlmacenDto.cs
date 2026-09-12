@@ -9,7 +9,7 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Tipo de movimiento", Ayuda = "tipo de movimiento de almacén", VisibleEnGrid = true, Obligatorio = false)]
         public string TipoMovimiento { get; set; }
 
-        [IUPropiedad(Etiqueta = "Unitario", Ayuda = "unitario del movimiento", VisibleEnGrid = true, Obligatorio = false, PorAnchoMnt = 20)]
+        [IUPropiedad(Etiqueta = "Material", Ayuda = "material del movimiento", VisibleEnGrid = true, Obligatorio = false, PorAnchoMnt = 20)]
         public string Unitario { get; set; }
 
         [IUPropiedad(Etiqueta = "Cantidad", Ayuda = "cantidad del movimiento", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Numero_6)]

@@ -32,6 +32,9 @@ namespace GestorDeElementos.Extensores
 
         public static bool HayClasesDelNegocio(this enumNegocio negocio, ContextoSe contexto)
         {
+            if (negocio == enumNegocio.No_Definido)
+                return false;
+
             var cache = ServicioDeCaches.Obtener(CacheDe.Negocio_HayClasesDelNegocio);
             var indice = negocio.IdNegocio().ToString();
             if (cache.ContainsKey(indice))

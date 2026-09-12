@@ -53,6 +53,8 @@ namespace ServicioDeDatos.Logistica
             modelBuilder.Entity<LineasDeUnaRegularizacionDtm>().Property(nameof(LineasDeUnaRegularizacionDtm.Cantidad)).HasColumnName(ICampos.CANTIDAD).HasColumnType(IDominio.DECIMAL).IsRequired(true);
             modelBuilder.Entity<LineasDeUnaRegularizacionDtm>().Property(nameof(LineasDeUnaRegularizacionDtm.Precio)).HasColumnName(ICampos.PRECIO).HasColumnType(IDominio.DECIMAL).IsRequired(true);
 
+            modelBuilder.Entity<LineasDeUnaRegularizacionDtm>().HasIndex(x => new { x.IdElemento, x.IdUnitario }).HasDatabaseName($"I_{ApiDeRegistroDtm.NombreDeTabla(typeof(LineasDeUnaRegularizacionDtm))}_{ICampos.ID_ELEMENTO}_{ICampos.ID_UNITARIO}").IsUnique();
+
             ApiDeElementoDtm.DefinirCamposDeAuditoria<LineasDeUnaRegularizacionDtm>(modelBuilder);
         }
     }

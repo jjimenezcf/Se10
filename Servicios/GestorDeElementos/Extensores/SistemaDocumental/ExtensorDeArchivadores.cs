@@ -81,6 +81,10 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<ArchivadoresDeUnInfanteDtm>();
                 case enumNegocio.CursoDeGuarderia:
                     return contexto.Set<ArchivadoresDeUnCursoDeGuarderiaDtm>();
+                case enumNegocio.Almacen:
+                    return contexto.Set<ArchivadoresDeUnAlmacenDtm>();
+                case enumNegocio.Regularizacion:
+                    return contexto.Set<ArchivadoresDeUnaRegularizacionDtm>();
             }
 
             throw new Exception($"Se debe indicar como obtener los archivos vinculados al negocio: {negocio}");
@@ -144,6 +148,10 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<ArchivosDeUnInfanteDtm>();
                 case enumNegocio.CursoDeGuarderia:
                     return contexto.Set<ArchivosDeUnCursoDeGuarderiaDtm>();
+                case enumNegocio.Regularizacion:
+                    return contexto.Set<ArchivosDeUnaRegularizacionDtm>();
+                case enumNegocio.Almacen:
+                    return contexto.Set<ArchivosDeUnAlmacenDtm>();
             }
 
             throw new Exception($"Se debe indicar como obtener los archivos anexados al negocio: {negocio}");

@@ -24,6 +24,34 @@ namespace ServicioDeDatos.Logistica
         Nulo
     }
 
+    public enum enumTiposDeMovimiento
+    {
+        [Description("Stock inicial")]
+        StockInicial,
+        [Description("Compra de materiales")]
+        Compra,
+        [Description("Venta de materiales")]
+        Venta,
+        [Description("Consumo")]
+        Consumo,
+        [Description("Devolución de compra")]
+        DevCompra,
+        [Description("Devolución de consumo")]
+        DevConsumo,
+        [Description("Devolución de venta")]
+        DevVenta,
+        [Description("Incremento de stock")]
+        Incremento,
+        [Description("Decremento de stock")]
+        Decremento,
+        [Description("Ajuste de precio")]
+        AjustePrecio,
+        [Description("Reserva de stock")]
+        Reserva,
+        [Description("Cancelación de reserva")]
+        CancelaReserva
+    }
+
     public class ltrDeUnMovimientoDeAlmacen
     {
         public static string FiltroPorAlmacen => nameof(FiltroPorAlmacen);
