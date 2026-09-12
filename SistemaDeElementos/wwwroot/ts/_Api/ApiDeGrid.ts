@@ -789,8 +789,8 @@
     export function Expansor_PonerEnConsulta(idGrid) {
         let grid: HTMLDivElement = document.getElementById(idGrid) as HTMLDivElement;
         let tbody = grid.querySelector('.' + ltrCss.crud.tbody);
-        let tablarows = tbody.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila);
         if (!Definido(tbody)) return
+        const tablarows = tbody.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila);
         for (var i = 0; i < tablarows.length; i++) {
             let fila: HTMLDivElement = tablarows[i];
             let filacells = fila.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.celda);
