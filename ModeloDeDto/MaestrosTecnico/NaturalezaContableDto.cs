@@ -1,18 +1,33 @@
 ﻿using ModeloDeDto.Contabilidad;
+using ServicioDeDatos.MaestrosTecnico;
 using Utilidades;
 
 namespace ModeloDeDto.MaestrosTecnico
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5  , MostrarExpresion = "[Nombre]")]
     public class NaturalezaDto : ElementoDto
-    {        
+    {
+        //----------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "Clase",
+            Ayuda = "Indique si esta naturaleza es de material, mano de obra o servicio",
+            TipoDeControl = enumTipoControl.Enumerado,
+            Tipo = typeof(enumClaseUnitario),
+            GuardarEn = nameof(Clase),
+            Obligatorio = false,
+            Fila = 0,
+            Columna = 0
+          )
+        ]
+        public enumClaseUnitario? Clase { get; set; }
+
         //----------------------------------------------
         [IUPropiedad(
             Etiqueta = "Sigla",
             Ayuda = "Indique las siglas de la naturaleza contable",
             Tipo = typeof(string),
             Fila = 0,
-            Columna = 0,
+            Columna = 1,
             Ordenar = true,
             Obligatorio = true,
             LongitudMaxima = 5
@@ -26,13 +41,31 @@ namespace ModeloDeDto.MaestrosTecnico
             Ayuda = "Indique el nombre",
             Tipo = typeof(string),
             Fila = 0,
-            Columna = 1,
+            Columna = 2,
             Ordenar = true,
             Obligatorio = true,
             LongitudMaxima = 250
           )
         ]
         public string Nombre { get; set; }
+
+        //----------------------------------------------
+        [IUPropiedad(Etiqueta = "Id la unidad de medida", Visible = false)]
+        public int? IdUnidad { get; set; }
+
+        [IUPropiedad(
+            Etiqueta = "Unidad",
+            Ayuda = "Seleccione la unidad de medida que propone esta naturaleza",
+            TipoDeControl = enumTipoControl.ListaDeElemento,
+            SeleccionarDe = typeof(UnidadDto),
+            Controlador = nameof(enumControladoresMt.Unidades),
+            GuardarEn = nameof(IdUnidad),
+            Obligatorio = false,
+            Fila = 0,
+            Columna = 3
+          )
+        ]
+        public string Unidad { get; set; }
 
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id la cuenta contable del gasto", Visible = false)]

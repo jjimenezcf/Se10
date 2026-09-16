@@ -24,10 +24,12 @@ namespace GestoresDeNegocio.MaestrosTecnico
             {
                 CreateMap<NaturalezaDtm, NaturalezaDto>()
                 .ForMember(dto => dto.CuentaDeGasto, x => x.MapFrom(dtm => dtm.CuentaDeGasto.Expresion))
-                .ForMember(dto => dto.CuentaDeIngreso, x => x.MapFrom(dtm => dtm.CuentaDeIngreso.Expresion));
+                .ForMember(dto => dto.CuentaDeIngreso, x => x.MapFrom(dtm => dtm.CuentaDeIngreso.Expresion))
+                .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad == null ? null : dtm.Unidad.Expresion));
                 CreateMap<NaturalezaDto, NaturalezaDtm>()
                 .ForMember(dtm => dtm.CuentaDeIngreso, dto => dto.Ignore())
-                .ForMember(dtm => dtm.CuentaDeGasto, dto => dto.Ignore());
+                .ForMember(dtm => dtm.CuentaDeGasto, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Unidad, dto => dto.Ignore());
             }
         }
 
@@ -47,6 +49,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
             consulta  = base.AplicarJoins(consulta, filtros, parametros);
             consulta = consulta.Include(x => x.CuentaDeGasto);
             consulta = consulta.Include(x => x.CuentaDeIngreso);
+            consulta = consulta.Include(x => x.Unidad);
             return consulta;
         }
 
