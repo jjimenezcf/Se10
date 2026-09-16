@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServicioDeDatos;
 
@@ -11,9 +12,11 @@ using ServicioDeDatos;
 namespace Migraciones.Migrations
 {
     [DbContext(typeof(ContextoSe))]
-    partial class ContextoSeModelSnapshot : ModelSnapshot
+    [Migration("20260916201300_clase de naturaleza obligatoria y quitar clase de unitario")]
+    partial class clasedenaturalezaobligatoriayquitarclasedeunitario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

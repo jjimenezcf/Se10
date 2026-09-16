@@ -26,7 +26,6 @@ namespace ServicioDeDatos.MaestrosTecnico
     [Table(Tablas.UNITARIO, Schema = Esquemas.MT)]
     public class UnitarioDtm : ElementoDtm, IUsaDescripcion, IUsaReferencia, IUsaBaja
     {
-        public enumClaseUnitario Clase { get; set; }
         public int IdUnidad { get; set; }
         public int IdNaturaleza { get; set; }
         public string Descripcion { get; set; }
@@ -56,7 +55,6 @@ namespace ServicioDeDatos.MaestrosTecnico
         {
 
             ApiDeElementoDtm.DefinirCamposDelElementoDtm<UnitarioDtm>(modelBuilder, indiceUnicoPorNombre: true);
-            modelBuilder.Entity<UnitarioDtm>().Property(p => p.Clase).HasColumnName(ICampos.CLASE).HasColumnType(IDominio.VARCHAR_30).IsRequired(true);
 
             ApiDeRegistroDtm.DefinirCampoFk<UnitarioDtm>(modelBuilder, nameof(UnitarioDtm.Unidad), nameof(UnitarioDtm.IdUnidad), ICampos.ID_UNIDAD, requerida: true, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<UnitarioDtm>(modelBuilder, nameof(UnitarioDtm.Naturaleza), nameof(UnitarioDtm.IdNaturaleza), ICampos.ID_NATURALEZA, requerida: true, unico: false);

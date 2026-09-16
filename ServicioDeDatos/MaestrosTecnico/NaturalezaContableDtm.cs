@@ -30,8 +30,9 @@ namespace ServicioDeDatos.MaestrosTecnico
         public CuentaDtm CuentaDeGasto { get; set; }
         public CuentaDtm CuentaDeIngreso { get; set; }
 
-        // Opcionales por ahora: se rellenarán con un backfill desde los unitarios existentes antes de hacerlos obligatorios
-        public enumClaseUnitario? Clase { get; set; }
+        public enumClaseUnitario Clase { get; set; }
+
+        // Opcional por ahora: se rellenará con un backfill desde los unitarios existentes antes de hacerlo obligatorio
         public int? IdUnidad { get; set; }
         public UnidadDtm Unidad { get; set; }
     }
@@ -46,7 +47,7 @@ namespace ServicioDeDatos.MaestrosTecnico
             ApiDeRegistroDtm.DefinirCampoFk<NaturalezaDtm>(modelBuilder, nameof(NaturalezaDtm.CuentaDeGasto), nameof(NaturalezaDtm.IdCuentaDeGasto), ICampos.ID_CUENTA_GASTO, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<NaturalezaDtm>(modelBuilder, nameof(NaturalezaDtm.CuentaDeIngreso), nameof(NaturalezaDtm.IdCuentaDeIngreso), ICampos.ID_CUENTA_INGRESO, requerida: false, unico: false);
 
-            modelBuilder.Entity<NaturalezaDtm>().Property(p => p.Clase).HasColumnName(ICampos.CLASE).HasColumnType(IDominio.VARCHAR_30).IsRequired(false);
+            modelBuilder.Entity<NaturalezaDtm>().Property(p => p.Clase).HasColumnName(ICampos.CLASE).HasColumnType(IDominio.VARCHAR_30).IsRequired(true);
             ApiDeRegistroDtm.DefinirCampoFk<NaturalezaDtm>(modelBuilder, nameof(NaturalezaDtm.Unidad), nameof(NaturalezaDtm.IdUnidad), ICampos.ID_UNIDAD, requerida: false, unico: false);
         }
     }

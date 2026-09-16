@@ -10,7 +10,7 @@ namespace ModeloDeDto.MaestrosTecnico
         //----------------------------------------------
         [IUPropiedad(
             Etiqueta = "Clase",
-            Ayuda = "Indique si esta naturaleza es de material, mano de obra o servicio",
+            Ayuda = "Seleccione ...",
             TipoDeControl = enumTipoControl.Enumerado,
             Tipo = typeof(enumClaseUnitario),
             GuardarEn = nameof(Clase),

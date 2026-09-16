@@ -14,6 +14,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
         public const string PreciosDelLote = nameof(PreciosDelLote);
         public const string IdPlanificador = nameof(IdPlanificador);
         public const string FiltrosPorClaseDeUnitario = nameof(FiltrosPorClaseDeUnitario);
+        public const string ObtenerTarifaProveedor = nameof(ObtenerTarifaProveedor);
     }
 
     internal static class FiltrosDeUnitarios
@@ -52,7 +53,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
             if (filtro != null)
             {
                 var clase = ApiDeEnsamblados.ToEnumerado<enumClaseUnitario>(filtro.Valor);
-                consulta = consulta.Where(x => x.Clase == clase);
+                consulta = consulta.Where(x => x.Naturaleza.Clase == clase);
                 filtro.Aplicado = true;
             }
             return consulta;

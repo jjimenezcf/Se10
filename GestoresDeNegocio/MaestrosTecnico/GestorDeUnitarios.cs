@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ServicioDeDatos;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using ServicioDeDatos.MaestrosTecnico;
 using ModeloDeDto.MaestrosTecnico;
 using Utilidades;
@@ -73,6 +74,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
         protected override void DespuesDeMapearElElemento(UnitarioDtm registro, UnitarioDto elemento, ParametrosDeNegocio parametros)
         {
             base.DespuesDeMapearElElemento(registro, elemento, parametros);
+            elemento.Clase = registro.Naturaleza(Contexto).Clase;
+
             var idLote = (int)parametros.Parametros.LeerValor(ltrDeUnUnitario.PreciosDelLote, 0);
             if (idLote>0)
             {
@@ -82,6 +85,22 @@ namespace GestoresDeNegocio.MaestrosTecnico
                              }).Venta;
             }
 
+            if (parametros.CargarListaDinamica && parametros.Parametros.LeerValor(ltrDeUnUnitario.ObtenerTarifaProveedor, false))
+            {
+                var idProveedor = parametros.Parametros.LeerValor<int>(nameof(TarifaDtm.IdProveedor), 0);
+                if (idProveedor > 0)
+                {
+                    var tarifa = Contexto.SeleccionarPorAk<TarifaDtm>(new Dictionary<string, object> {
+                                     { nameof(TarifaDtm.IdElemento), registro.Id },
+                                     { nameof(TarifaDtm.IdProveedor), idProveedor }
+                                 }, errorSiNoHay: false);
+                    if (tarifa != null)
+                    {
+                        elemento.Venta = tarifa.Tarifa;
+                        elemento.ReferenciaDeTarifa = tarifa.Referencia;
+                    }
+                }
+            }
         }
 
     }
