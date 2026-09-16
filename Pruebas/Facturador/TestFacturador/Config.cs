@@ -5,6 +5,7 @@ namespace TestFacturador;
 public class Config
 {
     public string Nif { get; set; } = "00811725D";
+    public string NifFacturado { get; set; } = "V30048086";
     public string ApiKey { get; set; } = "";
     public string UrlBase { get; set; } = "localhost:44396";
 

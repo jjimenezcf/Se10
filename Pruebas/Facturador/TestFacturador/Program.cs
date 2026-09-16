@@ -30,10 +30,12 @@ if (!await ComprobarUrlBaseAsync(uriBase))
 
 var nif = Pedir("Nif del emisor", config.Nif);
 var apiKey = Pedir("ApiKey", config.ApiKey);
+var nifFacturado = Pedir("Nif del facturado", config.NifFacturado);
 
 config.UrlBase = urlBase;
 config.Nif = nif;
 config.ApiKey = apiKey;
+config.NifFacturado = nifFacturado;
 config.Guardar();
 
 using var handler = new HttpClientHandler
@@ -43,7 +45,7 @@ using var handler = new HttpClientHandler
 };
 using var http = new HttpClient(handler) { BaseAddress = uriBase };
 
-var factura = FacturaDeEjemplo.Construir();
+var factura = FacturaDeEjemplo.Construir(config.NifFacturado);
 var cuerpo = JsonSerializer.Serialize(factura, jsonOpciones);
 var rutaRelativa = $"Facturador/epCrearFactura?nif={Uri.EscapeDataString(nif)}&apiKey={Uri.EscapeDataString(apiKey)}";
 
@@ -83,7 +85,7 @@ Console.WriteLine($"Mensaje: {resultado?.Mensaje ?? resultado?.Consola}");
 if (resultado is null || !resultado.EsOk || resultado.Datos.ValueKind != JsonValueKind.Object)
 {
     Console.WriteLine();
-    Console.WriteLine("No se puede continuar: la factura no se ha creado correctamente.");
+    Esperar("No se puede continuar: la factura no se ha creado correctamente.");
     return;
 }
 
@@ -217,6 +219,13 @@ static bool Confirmar(string pregunta)
     Console.Write($"{pregunta} (S/n): ");
     var entrada = Console.ReadLine()?.Trim().ToLowerInvariant();
     return string.IsNullOrEmpty(entrada) || entrada == "s" || entrada == "si" || entrada == "y" || entrada == "yes";
+}
+
+
+static void Esperar(string pregunta)
+{
+    Console.Write($"{pregunta}");
+    var entrada = Console.ReadLine()?.Trim().ToLowerInvariant();
 }
 
 static async Task DescargarDocumentoAsync(HttpClient http, string nif, string apiKey, string numeroFactura, Guid guid, string accion, JsonSerializerOptions jsonOpciones)

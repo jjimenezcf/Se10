@@ -28,9 +28,9 @@ public class FacturaBody
 
 public static class FacturaDeEjemplo
 {
-    public static FacturaBody Construir() => new()
+    public static FacturaBody Construir(string nifFacturado) => new()
     {
-        NifDelCliente = "27485405Z",
+        NifDelCliente = nifFacturado,
         Nombre = "Prueba del facturador",
         Descripcion = "Factura por servicios de consultoría y licencia.",
         Contacto = "Juan",
