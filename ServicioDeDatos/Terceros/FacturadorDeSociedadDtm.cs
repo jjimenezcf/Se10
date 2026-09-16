@@ -25,7 +25,7 @@ namespace ServicioDeDatos.Terceros
     { ""clave"": ""Unidad"", ""valor"": 1 },
     { ""clave"": ""Hora"", ""valor"": 2 }
   ],
-  ""Naturaleza"": [
+  ""Naturalezas"": [
     { ""clave"": ""Materiales"", ""valor"": 1 },
     { ""clave"": ""Servicios"", ""valor"": 2 }
    ],

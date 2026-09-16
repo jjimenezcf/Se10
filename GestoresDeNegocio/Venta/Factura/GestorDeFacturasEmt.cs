@@ -1058,6 +1058,8 @@ namespace GestoresDeNegocio.Ventas
 
                 loteDeEnvio.Insert(0, anterior.Id);
                 anterior = anterior.Anterior(contexto);
+                if (anterior is null)
+                    break;
                 if (anterior.Verifactu(contexto, errorSiNoHay: false) is not null)
                     break;
                 if (anterior.Ano < factura.Ano)

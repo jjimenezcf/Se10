@@ -1,7 +1,4 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
-using Gestor.Errores;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Gestor.Errores;
 using Microsoft.EntityFrameworkCore;
 using ModeloDeDto;
 using ModeloDeDto.Negocio;
@@ -26,9 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Mime;
 using System.Security.Cryptography;
-using System.Security.Policy;
 using System.Text;
 using Utilidades;
 using static Gestor.Errores.GestorDeErrores;
@@ -670,6 +665,13 @@ namespace GestorDeElementos.Extensores
             var facturaParseada = FacturaEmtJson.Parsear(facturaJson);
 
             var mapeos = facturador.ParsearMapeos();
+
+            if (mapeos.Naturalezas == null)
+                Emitir($"El facturador ha de incluir el mapeo de las naturalezas");
+            if (mapeos.Ivas == null)
+                Emitir($"El facturador ha de incluir el mapeo de los ivas");
+            if (mapeos.Unidades == null)
+                Emitir($"El facturador ha de incluir el mapeo de las unidades");
 
 
             var Cliente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(SociedadDtm.NIF), facturaParseada.NifDelCliente, errorSiNoHay: false);
