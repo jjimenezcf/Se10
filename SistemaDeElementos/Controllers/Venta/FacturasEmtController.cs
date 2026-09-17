@@ -58,22 +58,40 @@ namespace MVCSistemaDeElementos.Controllers
         [AllowAnonymous]
         public IActionResult epValidarQr(string nif, string numserie, string fecha, string importe)
         {
-            ViewBag.Nif = nif;
-            ViewBag.NumSerie = numserie;
-            ViewBag.Fecha = fecha;
-            ViewBag.Importe = importe;
+            Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
             ViewBag.DatosDeConexion = DatosDeConexion;
-            ViewBag.AccesoAnonimo = true;
             try
             {
-                ViewBag.Mensaje = ((GestorDeFacturasEmt)_GestorDeElementos).ValidarFactura(nif, numserie, fecha, importe);
-                return View($"../{enumNameSpaceTs.Venta}/FacturaValidada");
+                var firma = ((GestorDeFacturasEmt)_GestorDeElementos).ValidarFactura(nif, numserie, fecha, importe);
+                var cuerpoOk = $@"
+                    <div class='{enumCssCuerpo.CuerpoDatos.Render()}'>
+                        <h2>Factura Validada</h2>
+                        <p>
+                            NIF: <strong>{nif}</strong><br />
+                            Número de serie: <strong>{numserie}</strong><br />
+                            Fecha: <strong>{fecha}</strong><br />
+                            Importe: <strong>{importe}</strong><br /><br />
+                            Firma: <strong style='word-break:break-all;overflow-wrap:anywhere;'>{firma}</strong>
+                        </p>
+                    </div>";
+                ViewBag.Mensaje = PanelDeControl.RenderPagina(Contexto, cuerpoOk, enumCssCuerpo.CuerpoSoloConsulta.Render());
             }
             catch (Exception ex)
             {
-                ViewBag.Mensaje = ex.MensajeCompleto();
-                return View($"../{enumNameSpaceTs.Venta}/FacturaNOValidada");
+                var cuerpoKo = $@"
+                    <div class='{enumCssCuerpo.CuerpoDatos.Render()} {enumCssCuerpo.CuerpoDatosError.Render()}'>
+                        <h2>Factura NO Validada</h2>
+                        <p>
+                            NIF: <strong>{nif}</strong><br />
+                            Número de serie: <strong>{numserie}</strong><br />
+                            Fecha: <strong>{fecha}</strong><br />
+                            Importe: <strong>{importe}</strong><br /><br />
+                            {ex.MensajeCompleto().Replace(Environment.NewLine, "<br>")}
+                        </p>
+                    </div>";
+                ViewBag.Mensaje = PanelDeControl.RenderPagina(Contexto, cuerpoKo, enumCssCuerpo.CuerpoSoloConsulta.Render());
             }
+            return View(nameof(RenderMensaje));
         }
 
         public IActionResult CrudFacturasEmt()
