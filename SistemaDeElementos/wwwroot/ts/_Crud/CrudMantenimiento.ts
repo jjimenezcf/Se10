@@ -755,7 +755,7 @@
             }
         }
 
-        private MostrarDatosPrincipales(id: number) {
+        protected MostrarDatosPrincipales(id: number) {
             const parametros: Array<Parametro> = this.crudDeEdicion.ParametrosParaLeerElementoPorId();
             ApiDePeticiones.LeerElementoPorId(this, this.Controlador, id, parametros, id)
                 .then((peticion) => this.MapearDatosPrincipales(peticion))
@@ -888,7 +888,7 @@
                 ApiControl.ExcluirCss(this.ContenedorDeGraficos, ltrCss.crud.grid.ScrollHorizontalEnGraficos);
         }
 
-        private PonerElDtoEnEdicion() {
+        protected PonerElDtoEnEdicion() {
             if (!this.EstaElDtoEnEdicion)
                 this.crudDeEdicion.PadreContenedorDeDatosPrincipales.appendChild(this.crudDeEdicion.ContenedorDeDatosPrincipales);
         }
@@ -919,6 +919,8 @@
 
             MapearAlPanel.ElObjeto(crudMnt.ContenedorDeGraficos, peticion.resultado.datos, ModoAcceso.enumModoDeAccesoDeDatos.Consultor, new Array<string>());
 
+            this.DespuesDeMapearDatosPrincipales(peticion);
+
             // aquí llega el detalle real del elemento (TransicionesDisponibles/
             // MostrarModalParaAvanzar/IdTransicionParaDevolver/MostrarModalParaDevolver, que
             // solo se calculan al leer un elemento individual). Se cachea siempre, esté o no
@@ -933,6 +935,12 @@
                 const tarjeta = this._contenedorDeFichas.querySelector<HTMLDivElement>(`[data-id="${this.InfoSelector.IdsSeleccionados[0]}"]`);
                 if (Definido(tarjeta)) this.InicializarFicha(tarjeta, peticion.resultado.datos, true);
             }
+        }
+
+        // hook para que un negocio concreto (p.ej. Calles) añada contenido extra en
+        // div-graficos justo tras mapear los datos principales de la fila seleccionada;
+        // vacío por defecto, no afecta al resto de cruds.
+        protected DespuesDeMapearDatosPrincipales(peticion: ApiDeAjax.DescriptorAjax): void {
         }
 
         private SiHayErrorAlLeerElemento(peticion: ApiDeAjax.DescriptorAjax) {

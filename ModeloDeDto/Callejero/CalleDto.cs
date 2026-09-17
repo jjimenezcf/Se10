@@ -340,6 +340,24 @@ namespace ModeloDeDto.Callejero
         [IUPropiedad(Etiqueta = "Id Zona", Visible = false)]
         public int? IdZona { get; set; }
 
+        //----------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "Validar en Catastro",
+            Ayuda = "Indica si al crear o modificar la calle se valida que existe en el callejero del Catastro",
+            TipoDeControl = enumTipoControl.Check,
+            css = enumCssControles.CheckApilado,
+            ValorPorDefecto = true,
+            EditableAlCrear = true,
+            EditableAlEditar = true,
+            VisibleAlCrear = true,
+            VisibleAlEditar = true,
+            VisibleEnGrid = false,
+            Obligatorio = false,
+            Fila = 6,
+            Columna = 0
+            )
+        ]
+        public bool ValidarEnCatastro { get; set; }
 
     }
 }

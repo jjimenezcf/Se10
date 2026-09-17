@@ -139,6 +139,22 @@ namespace GestorDeMapas {
     const _leafletMaps = new WeakMap<HTMLDivElement, L.Map>();
     const _leafletObservers = new WeakMap<HTMLDivElement, ResizeObserver>();
 
+    // "última llamada gana" por contenedor: si dos renderizados se solapan sobre el mismo
+    // panel (p.ej. el del último clic en el grid y el de abrir edición casi a la vez), el más
+    // antiguo se aborta en cuanto detecta que ya no es el token vigente, en vez de seguir y
+    // acabar llamando a L.map() sobre un contenedor que el más reciente ya inicializó.
+    const _tokenDeRenderPorPanel = new WeakMap<HTMLDivElement, object>();
+
+    function _iniciarRender(panel: HTMLDivElement): object {
+        const token = {};
+        _tokenDeRenderPorPanel.set(panel, token);
+        return token;
+    }
+
+    function _sigoVigente(panel: HTMLDivElement, token: object): boolean {
+        return panel.isConnected && _tokenDeRenderPorPanel.get(panel) === token;
+    }
+
     const _iconoMarcador = () => L.icon({
         iconUrl: '/lib/leaflet/dist/images/marker-icon.png',
         iconRetinaUrl: '/lib/leaflet/dist/images/marker-icon-2x.png',
@@ -200,7 +216,11 @@ namespace GestorDeMapas {
     }
 
     async function RenderizarLeaflet(panel: HTMLDivElement, lat: number, lon: number, delta: number, popupHtml?: string): Promise<void> {
+        if (!Definido(panel)) return;
+        const miToken = _iniciarRender(panel);
+
         await AsegurarLeafletCargado();
+        if (!_sigoVigente(panel, miToken)) return;
 
         const observerExistente = _leafletObservers.get(panel);
         if (observerExistente) { observerExistente.disconnect(); _leafletObservers.delete(panel); }
@@ -210,6 +230,19 @@ namespace GestorDeMapas {
 
         panel.innerHTML = '';
         panel.style.display = 'block';
+
+        // esperar un frame para que el navegador calcule las dimensiones reales del
+        // contenedor (recién insertado, o recién hecho visible tras quitarle una clase de
+        // oculto) antes de inicializar Leaflet: si se crea con el contenedor a 0x0 el mapa
+        // queda en blanco hasta que algo fuerce un invalidateSize. Mismo arreglo que ya usa
+        // MostrarChinchetasEnElMapa.
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        if (!_sigoVigente(panel, miToken)) return;
+
+        // defensivo: si por alguna razón el contenedor ya tiene un mapa de Leaflet marcado
+        // que no está en nuestro _leafletMaps (p.ej. quedó huérfano de una carrera anterior),
+        // se limpia la marca interna para evitar el "Map container is already initialized".
+        if ((panel as any)._leaflet_id) delete (panel as any)._leaflet_id;
 
         const mapa = L.map(panel);
         _leafletMaps.set(panel, mapa);
@@ -234,7 +267,11 @@ namespace GestorDeMapas {
     }
 
     async function RenderizarLeafletEspana(panel: HTMLDivElement): Promise<void> {
+        if (!Definido(panel)) return;
+        const miToken = _iniciarRender(panel);
+
         await AsegurarLeafletCargado();
+        if (!_sigoVigente(panel, miToken)) return;
 
         const observerExistente = _leafletObservers.get(panel);
         if (observerExistente) { observerExistente.disconnect(); _leafletObservers.delete(panel); }
@@ -244,6 +281,11 @@ namespace GestorDeMapas {
 
         panel.innerHTML = '';
         panel.style.display = 'block';
+
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        if (!_sigoVigente(panel, miToken)) return;
+
+        if ((panel as any)._leaflet_id) delete (panel as any)._leaflet_id;
 
         const mapa = L.map(panel);
         _leafletMaps.set(panel, mapa);

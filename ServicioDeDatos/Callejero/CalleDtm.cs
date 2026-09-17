@@ -10,6 +10,7 @@ namespace ServicioDeDatos.Callejero
     {
         public const string csvCalle = nameof(csvCalle);
         public const string SeleccionarParaDireccion = nameof(SeleccionarParaDireccion);
+        public const string ValidarEnCatastro = nameof(ValidarEnCatastro);
         public static readonly string filtroPorBarrio = $"{nameof(CalleDtm.Barrios)}.{nameof(BarrioDtm.Nombre)}";
         public static readonly string filtroPorZona = $"{nameof(CalleDtm.Zonas)}.{nameof(ZonaDtm.Nombre)}";
         public static readonly string filtroPorPais = $"{nameof(CalleDtm.Municipio)}.{nameof(MunicipioDtm.Provincia)}.{nameof(ProvinciaDtm.Pais)}.{nameof(INombre.Nombre)}";

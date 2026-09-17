@@ -1,0 +1,39 @@
+// Servicio web gratuito del Catastro (Dirección General del Catastro) para validar si una calle
+// existe en un municipio, usando datos oficiales. No requiere apiKey ni registro.
+//
+// Servicio: OVCCallejero.asmx (Sede Electrónica del Catastro)
+// Método:   ConsultaVia — dado Provincia + Municipio (+ TipoVia opcional) + NombreVia (admite
+//           coincidencia parcial), devuelve las vías del callejero catastral que encajan.
+//
+// Documentación / WSDL:
+// https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx
+//
+// Nota: el Catastro organiza el callejero por Provincia/Municipio, no por código postal
+// (el CP es un concepto de Correos). Esto solo valida "¿existe esta calle en este municipio?".
+//
+// Probado en vivo (2026-09-17) contra Provincia=MURCIA, Municipio=MURCIA, NombreVia=CARMEN CONDE:
+// - Sin TipoVia: devuelve 8 coincidencias (<cuca>8</cuca>), porque "MURCIA" como municipio
+//   catastral engloba varias pedanías/diseminados (Alberca la, Sangonera Seca, Torreaguera,
+//   Zarandona, La Ñora...), cada una con su propia "Carmen Conde". La que corresponde a la
+//   capital es la entrada "CARMEN CONDE en MURCIA", código de vía 4758, tipo CL.
+// - TipoVia espera el CÓDIGO abreviado (p.ej. "CL" de calle), no la palabra completa
+//   ("CALLE" no devuelve nada: <cuerr>1</cuerr>, código 10 "NO HAY COINCIDENCIAS").
+// - Si no hay coincidencias, la respuesta trae <cuerr>1</cuerr> con el código/descripción del error
+//   en vez de la lista de vías.
+
+### 1. Buscar "Carmen Conde" en el municipio de Murcia (provincia Murcia), sin restringir tipo de vía
+GET https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/ConsultaVia?Provincia=MURCIA&Municipio=MURCIA&TipoVia=CL&NombreVia=CARMEN%20CONDE
+
+###
+
+### 2. Misma búsqueda, restringiendo el tipo de vía a "CL" (calle)
+GET https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/ConsultaVia?Provincia=MURCIA&Municipio=MURCIA&TipoVia=CL&NombreVia=CARMEN%20CONDE
+
+###
+
+// Bonus: listado de municipios de la provincia de Murcia, por si hace falta confirmar el nombre
+// exacto que espera el Catastro para "Municipio" antes de llamar a ConsultaVia.
+### 3. Listar municipios de la provincia de Murcia
+GET https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/ConsultaMunicipio?Provincia=MURCIA&Municipio=
+
+###

@@ -298,6 +298,12 @@ namespace GestoresDeNegocio.Callejero
             }
         }
 
+        protected override void DespuesDeMapearElRegistro(CalleDto elemento, CalleDtm calle, ParametrosDeNegocio opciones)
+        {
+            base.DespuesDeMapearElRegistro(elemento, calle, opciones);
+            opciones.Parametros[ltrCalles.ValidarEnCatastro] = elemento.ValidarEnCatastro;
+        }
+
         //Todo: --> Reglas de negocio
         protected override void AntesDePersistir(CalleDtm calle, ParametrosDeNegocio parametros)
         {
@@ -307,6 +313,15 @@ namespace GestoresDeNegocio.Callejero
             {
                 //Si la calle esta relacionada con CPs validar que esos Cps corresponden al municipio
 
+                if (parametros.Parametros.LeerValor(ltrCalles.ValidarEnCatastro, false))
+                {
+                    var municipio = Contexto.SeleccionarPorId<MunicipioDtm>(calle.IdMunicipio);
+                    var provincia = Contexto.SeleccionarPorId<ProvinciaDtm>(municipio.IdProvincia);
+                    var pais = Contexto.SeleccionarPorId<PaisDtm>(provincia.IdPais);
+
+                    if (pais.ISO2 == ltrIsoPaises.Spain && !ApiDeCatastro.ExisteLaVia(provincia.Nombre, municipio.Nombre, calle.Nombre))
+                        GestorDeErrores.Emitir($"La calle '{calle.Nombre}' no existe en el callejero del Catastro para el municipio '{municipio.Nombre}'");
+                }
             }
 
             if (parametros.Modificando && calle.SeHaModificadoElCampo<int>(x => x.Name == nameof(calle.IdMunicipio), parametros))

@@ -61,6 +61,85 @@ namespace Callejero {
             }
         }
 
+        // al seleccionar una o varias filas en el grid de Calles, si el panel de detalle
+        // (splitter + div-graficos) estaba cerrado, se abre automáticamente para poder ver de
+        // inmediato dónde se sitúa la calle (ver DespuesDeMapearDatosPrincipales). Solo afecta
+        // a Calles: el resto de cruds conserva el comportamiento de base (no se abre solo).
+        public EditarEnPanelDeGraficos(mostrarDto: boolean): void {
+            const cantidad = this.InfoSelector.Seleccionados.length;
+
+            if (cantidad > 0 && this.VisorDeDetalle?.classList.contains(ltrCss.crud.mostrarDetalle)) {
+                ApiControl.ExcluirCss(this.VisorDeDetalle, ltrCss.crud.mostrarDetalle);
+                ApiControl.IncluirCss(this.VisorDeDetalle, ltrCss.crud.ocultarDetalle);
+            }
+
+            // Calles no tiene panel de totales ni de archivos: con varias filas seleccionadas,
+            // la lógica de la base (pensada para negocios con totales) alternaba entre mostrar
+            // y ocultar el panel según la paridad del nº de seleccionados, sin llegar nunca a
+            // MostrarDatosPrincipales. Aquí, con más de una fila, se sigue mostrando sin más el
+            // mapa de la última fila pulsada.
+            if (cantidad > 1 && mostrarDto) {
+                if (!this.EstoyEnMantenimiento || !Definido(this.ContenedorDeTablaConGraficos) || EsDispositvoMovil())
+                    return;
+                this.AsegurarPanelDeGraficosVisible();
+                this.MostrarDatosPrincipales(this.InfoSelector.IdsSeleccionados[this.InfoSelector.IdsSeleccionados.length - 1]);
+                return;
+            }
+
+            super.EditarEnPanelDeGraficos(mostrarDto);
+        }
+
+        private AsegurarPanelDeGraficosVisible(): void {
+            if (!Definido(this.ContenedorDeGraficos)) return;
+            ApiControl.ExcluirCss(this.ContenedorDeGraficos, ltrCss.divNoVisible);
+            ApiControl.ExcluirCss(this.Splitter, ltrCss.divNoVisible);
+            ApiVisorDeArchivos.MostrarContenedorDeGraficos();
+        }
+
+        // tras mapear los datos principales de la calle seleccionada, se retira la tabla de
+        // propiedades de div-graficos (igual que hace manualmente el botón de mostrar/ocultar
+        // detalle) y se monta en su lugar el mismo asistente de mapa que usa la edición,
+        // apuntando a esa calle. Cada selección sustituye el marcador anterior (no se acumulan).
+        protected DespuesDeMapearDatosPrincipales(peticion: ApiDeAjax.DescriptorAjax): void {
+            super.DespuesDeMapearDatosPrincipales(peticion);
+
+            const divMapa = this.MontarMapaEnPanelDeGraficos();
+            if (!divMapa) return;
+
+            this.PonerElDtoEnEdicion();
+
+            const pais: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Pais).substring(6);
+            const provincia: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Provincia);
+            const municipio: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Municipio);
+            const tipoDeVia: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.TipoDeVia);
+            const calle: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Nombre);
+            const zona: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Zona, '');
+            const cp: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Callejero.Calle.Cp, '');
+
+            GestorDeMapas.MostrarVisorDeOpenStreetView(divMapa, pais, provincia, municipio, zona, tipoDeVia, calle, cp);
+        }
+
+        private MontarMapaEnPanelDeGraficos(): HTMLDivElement {
+            const contenedor = this.ContenedorDeGraficos;
+            if (!Definido(contenedor)) return null;
+
+            const idAsistente = 'div-graficos-calle-asistente-maps';
+            let divAsistente = document.getElementById(idAsistente) as HTMLDivElement;
+            if (!Definido(divAsistente)) {
+                divAsistente = document.createElement('div');
+                divAsistente.id = idAsistente;
+                ApiControl.IncluirCss(divAsistente, ltrCss.crud.panelCreacion.AsistenteDelMapa);
+                ApiControl.IncluirCss(divAsistente, ltrCss.crud.panelDeEdicion.AsistenteMapaEnEdicion);
+
+                const divMapa = document.createElement('div');
+                divMapa.id = `${idAsistente}-mapa`;
+                ApiControl.IncluirCss(divMapa, ltrCss.crud.panelCreacion.divMapa);
+                divAsistente.appendChild(divMapa);
+            }
+            contenedor.appendChild(divAsistente);
+            return document.getElementById(`${idAsistente}-mapa`) as HTMLDivElement;
+        }
+
     }
 
     export class CrudCreacionCalle extends Crud.CrudCreacion {
