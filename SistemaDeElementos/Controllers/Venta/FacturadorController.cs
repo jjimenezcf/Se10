@@ -1,5 +1,6 @@
 ﻿using Gestor.Errores;
 using GestorDeElementos.Extensores;
+using GestoresDeNegocio.Terceros;
 using GestoresDeNegocio.Ventas;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using ModeloDeDto.Ventas;
 using MVCSistemaDeElementos.Controllers;
 using ServicioDeDatos;
 using ServicioDeDatos.Seguridad;
+using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Ventas;
 using System;
 using Utilidades;
@@ -102,6 +104,43 @@ Invoke-WebRequest -Method POST `
                                resultado.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
                                resultado.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
                                ? enumEstadoPeticion.Ok : enumEstadoPeticion.Error;
+                    Contexto.Commit(tran);
+                }
+                catch (Exception e)
+                {
+                    Contexto.Rollback(tran);
+                    ApiController.PrepararError(e, r, "Error en la solicitud.");
+                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
+                }
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+                Contexto.QuitarUsuario();
+            }
+            return new JsonResult(r);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public JsonResult epCrearCliente(string nif, string apiKey)
+        {
+            string clienteJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
+            var tran = Contexto.IniciarTransaccion();
+            Contexto.IniciarTraza(nameof(epCrearCliente));
+            var r = new Resultado();
+            try
+            {
+                Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
+                PeticionDeFacturaEmtDtm facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.CrearCliente);
+                try
+                {
+                    var datos = ClienteFacturadorJson.Parsear(clienteJson);
+                    var cliente = GestorDeClientes.CrearClienteCompleto(Contexto, datos);
+                    r.Datos = new { cliente.Id, NIF = datos.NIF, cliente.Nombre };
+                    r.Consola = $"Cliente '{cliente.Nombre}' disponible para facturar";
+                    r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                    r.Estado = enumEstadoPeticion.Ok;
                     Contexto.Commit(tran);
                 }
                 catch (Exception e)

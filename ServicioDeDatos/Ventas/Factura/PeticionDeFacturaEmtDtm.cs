@@ -18,7 +18,9 @@ namespace ServicioDeDatos.Ventas
         [Description("Solicitar Xml")]
         SolicitarXml,
         [Description("Rectificar por datos erróneos")]
-        RectificarPorDe
+        RectificarPorDe,
+        [Description("Crear cliente")]
+        CrearCliente
     }
 
     public static class ltrFacturador

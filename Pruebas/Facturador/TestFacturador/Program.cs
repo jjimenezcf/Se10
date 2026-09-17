@@ -109,6 +109,7 @@ while (true)
     Console.WriteLine("2. Descargar PDF");
     Console.WriteLine("3. Acceder a la factura");
     Console.WriteLine("4. Rectificar por datos erroneos");
+    Console.WriteLine("5. Crear cliente");
     Console.WriteLine("0. Salir");
     Console.Write("Opción: ");
     var opcion = Console.ReadLine();
@@ -135,6 +136,10 @@ while (true)
 
         case "4":
             await RectificarPorDeAsync(http, apiKey, facturaCreada.NumeroFactura, jsonOpciones);
+            break;
+
+        case "5":
+            await CrearClienteAsync(http, nif, apiKey, jsonOpciones);
             break;
 
         case "0":
@@ -340,6 +345,87 @@ static async Task RectificarPorDeAsync(HttpClient http, string apiKey, string? n
     Console.WriteLine($"GuidDeConsultaPdf  : {rectificativa.GuidDeConsultaPdf}");
     Console.WriteLine($"GuidDeConsultaXml  : {rectificativa.GuidDeConsultaXml}");
     Console.WriteLine($"UrlDeLaFactura     : {rectificativa.UrlDeLaFactura}");
+}
+
+static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, JsonSerializerOptions jsonOpciones)
+{
+    Console.WriteLine();
+    Console.WriteLine("--- Crear cliente ---");
+    var tipoDeCliente = Pedir("Tipo de cliente (Fisica/Juridica, vacío = se infiere del NIF)", "");
+    var nifCliente = Pedir("NIF/CIF/NIE del cliente", "");
+    var nombre = Pedir("Nombre (o razón social si es jurídica)", "");
+    var apellidos = Pedir("Apellidos (solo si es persona física)", "");
+    var eMail = Pedir("eMail", "");
+    var telefono = Pedir("Teléfono", "");
+    var municipio = Pedir("Municipio de la dirección fiscal (vacío = sin dirección)", "");
+    var codigoPostal = Pedir("Código postal", "");
+    var tipoDeVia = Pedir("Tipo de vía (Calle, Avenida, Plaza...)", "");
+    var calle = Pedir("Calle", "");
+    var numeroTexto = Pedir("Número de policía", "");
+    int.TryParse(numeroTexto, out var numero);
+
+    var cliente = new ClienteJson
+    {
+        TipoDeCliente = string.IsNullOrWhiteSpace(tipoDeCliente) ? null : tipoDeCliente,
+        NIF = nifCliente,
+        Nombre = nombre,
+        Apellidos = string.IsNullOrWhiteSpace(apellidos) ? null : apellidos,
+        eMail = string.IsNullOrWhiteSpace(eMail) ? null : eMail,
+        Telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono,
+        Municipio = string.IsNullOrWhiteSpace(municipio) ? null : municipio,
+        CodigoPostal = string.IsNullOrWhiteSpace(codigoPostal) ? null : codigoPostal,
+        TipoDeVia = string.IsNullOrWhiteSpace(tipoDeVia) ? null : tipoDeVia,
+        Calle = string.IsNullOrWhiteSpace(calle) ? null : calle,
+        Numero = numero
+    };
+
+    var cuerpo = JsonSerializer.Serialize(cliente, jsonOpciones);
+    var rutaRelativa = $"Facturador/epCrearCliente?nif={Uri.EscapeDataString(nif)}&apiKey={Uri.EscapeDataString(apiKey)}";
+
+    Console.WriteLine();
+    Console.WriteLine("Se va a ejecutar la siguiente petición:");
+    Console.WriteLine();
+    Console.WriteLine($"POST {new Uri(http.BaseAddress!, rutaRelativa)}");
+    Console.WriteLine("Content-Type: application/json");
+    Console.WriteLine();
+    Console.WriteLine(cuerpo);
+    Console.WriteLine();
+
+    if (!Confirmar("¿Deseas ejecutarla?"))
+    {
+        Console.WriteLine("Cancelado.");
+        return;
+    }
+
+    Resultado? resultado;
+    try
+    {
+        using var respuesta = await http.PostAsync(rutaRelativa, new StringContent(cuerpo, Encoding.UTF8, "application/json"));
+        var contenido = await respuesta.Content.ReadAsStringAsync();
+        MostrarRespuesta(contenido, jsonOpciones);
+        resultado = JsonSerializer.Deserialize<Resultado>(contenido, jsonOpciones);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al llamar al servicio: {DescribirError(ex, http.BaseAddress!)}");
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Estado: {resultado?.Estado}");
+    Console.WriteLine($"Mensaje: {resultado?.Mensaje ?? resultado?.Consola}");
+
+    if (resultado is null || !resultado.EsOk || resultado.Datos.ValueKind != JsonValueKind.Object)
+        return;
+
+    var clienteCreado = resultado.Datos.Deserialize<ClienteCreado>(jsonOpciones);
+    if (clienteCreado is null)
+        return;
+
+    Console.WriteLine();
+    Console.WriteLine($"Id     : {clienteCreado.Id}");
+    Console.WriteLine($"NIF    : {clienteCreado.NIF}");
+    Console.WriteLine($"Nombre : {clienteCreado.Nombre}");
 }
 
 static void AbrirEnNavegador(string? url)

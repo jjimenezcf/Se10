@@ -43,6 +43,19 @@ Si los datos coinciden, el backend **no devuelve el fichero directamente**: devu
 
 Ver el detalle en el [Anexo 3](#anexo-3--consulta-de-pdf--xml-de-una-factura).
 
+## Crear un cliente antes de facturar
+
+Si el cliente al que se va a facturar (`NifDelCliente`) todavía no existe en el sistema, se puede dar de alta antes de emitir la factura. Se autentica igual que el resto de operaciones, con el `apiKey` del facturador.
+
+`POST /Facturador/epCrearCliente?nif={nifEmisor}&apiKey={apiKey}`
+Body: JSON del cliente (ver estructura en el [Anexo 5](#anexo-5--crear-un-cliente)).
+
+- Si el cliente ya existe (se busca por su NIF/CIF/NIE), la llamada no crea nada nuevo: devuelve el cliente ya existente. Es seguro repetir la llamada.
+- Según el formato del NIF/CIF/NIE se da de alta automáticamente como persona física o persona jurídica (o se puede forzar con `TipoDeCliente`).
+- Si además se indican los datos de la dirección fiscal y el cliente todavía no tiene ninguna, se crea también esa dirección. La calle se crea automáticamente si no existe en el callejero; el municipio, el código postal y el tipo de vía deben existir ya.
+
+Ver el detalle en el [Anexo 5](#anexo-5--crear-un-cliente).
+
 ## Rectificar una factura por datos erróneos
 
 Si una factura ya emitida tiene datos incorrectos, se puede anular mediante una **rectificativa total por datos erróneos**: se crea automáticamente una factura rectificativa (con las mismas líneas en negativo), se asocia a la original y se emite, sin intervención manual.
@@ -57,7 +70,7 @@ Ver el detalle en el [Anexo 4](#anexo-4--rectificar-una-factura-por-datos-errón
 ## Resumen del backend
 
 1. **Autenticación**: `apiKey` se valida contra uno generado a partir de `IdSociedad + IdCg + IdTipoDeFactura`. Si no coincide → error.
-2. **Registro de la petición**: se crea una fila en `PeticionDeFacturaEmtDtm` con GUID propio, timestamp de solicitud y el tipo de operación (`enumOperacionFacturador`: `CrearFactura`, `AnularFactura`, `SolicitarPdf`, `SolicitarXml`, `RectificarPorDe`). Al crearla también se generan `GuidDeConsultaPdf` y `GuidDeConsultaXml`, permanentes, para consultas futuras del documento.
+2. **Registro de la petición**: se crea una fila en `PeticionDeFacturaEmtDtm` con GUID propio, timestamp de solicitud y el tipo de operación (`enumOperacionFacturador`: `CrearFactura`, `AnularFactura`, `SolicitarPdf`, `SolicitarXml`, `RectificarPorDe`, `CrearCliente`). Al crearla también se generan `GuidDeConsultaPdf` y `GuidDeConsultaXml`, permanentes, para consultas futuras del documento.
 3. **Creación de la prefactura**: se parsea el JSON recibido (cliente, líneas, etc.) y se crea la prefactura.
 4. **Transición a "Emitida"**: la prefactura pasa a la etapa `FAE_Etapa_Emitida`.
 5. **Envío a la AEAT (Verifactu)**: si la sociedad usa Verifactu y está activo, se envía la factura — el mensaje de resultado indica si se sometió el envío individual o en lote. Si no usa Verifactu, simplemente se genera el PDF.
@@ -378,3 +391,88 @@ Texto libre con el motivo de la rectificación. Se guarda como detalle del motiv
 - Si el número de factura indicado no existe, o hay más de una factura con ese número (caso ambiguo entre sociedades), la petición falla con `Estado: "Error"`.
 - Si la factura original ya estaba rectificada, la petición falla indicando qué rectificativa la sustituyó.
 - Igual que al crear una factura: si la sociedad usa Verifactu, la rectificativa se envía a la AEAT; si no, simplemente se genera su PDF.
+
+---
+
+## Anexo 5 — Crear un cliente
+
+Da de alta un cliente (persona física o jurídica) para poder facturarle después con `NifDelCliente` (Anexos 1, 2). Si ya existe un cliente con ese NIF/CIF/NIE, la llamada no crea nada y simplemente lo devuelve.
+
+### Petición
+
+```
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=XXXXXXXX
+Content-Type: application/json
+
+{
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García",
+  "eMail": "juan@ejemplo.com",
+  "Telefono": "915551234",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28001",
+  "TipoDeVia": "Calle",
+  "Calle": "Serrano",
+  "Numero": 45
+}
+```
+
+Ejemplo con persona jurídica (una sociedad, identificada por CIF):
+
+```json
+{
+  "NIF": "B73954455",
+  "Nombre": "Cliente Ejemplo SL",
+  "eMail": "administracion@ejemplo.com",
+  "Telefono": "915559876",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28001",
+  "TipoDeVia": "Calle",
+  "Calle": "Serrano",
+  "Numero": 45
+}
+```
+
+### Parámetros de la URL
+
+- `nif`: NIF de la sociedad emisora (la que va a facturar).
+- `apiKey`: clave de API asignada al facturador de esa sociedad.
+
+### Campos del JSON
+
+| Campo | Obligatorio | Descripción |
+|---|---|---|
+| `NIF` | Sí | NIF, NIE o CIF del cliente. |
+| `TipoDeCliente` | No | `Fisica` o `Juridica`. Si se omite, se infiere automáticamente a partir del formato de `NIF` (NIF/NIE → física, CIF → jurídica). |
+| `Nombre` | Sí | Nombre de pila si es persona física, razón social si es persona jurídica. |
+| `Apellidos` | Solo persona física | Apellidos del cliente. Se ignora si es persona jurídica. |
+| `eMail` / `Telefono` | No | Datos de contacto. |
+| `Municipio` | Solo si se da la dirección | Nombre del municipio; debe existir ya en el callejero. |
+| `CodigoPostal` | Solo si se da la dirección | Debe existir ya en el callejero. |
+| `TipoDeVia` | Solo si se da la dirección | P. ej. `Calle`, `Avenida`, `Plaza`; debe existir ya en el callejero. |
+| `Calle` | Solo si se da la dirección | Nombre de la calle. Si no existe para ese municipio/tipo de vía, se crea automáticamente. |
+| `Numero` | Solo si se da la dirección | Número de policía. |
+
+Los campos de dirección (`Municipio`, `CodigoPostal`, `TipoDeVia`, `Calle`, `Numero`) son opcionales en conjunto: si no se indican, el cliente se crea sin dirección fiscal (se podrá completar después desde la aplicación). Si se indican y el cliente aún no tiene dirección fiscal, se da de alta con el calificador `fiscal`.
+
+### Respuesta (ejemplo)
+
+```json
+{
+  "Datos": {
+    "Id": 4521,
+    "NIF": "27485405Z",
+    "Nombre": "(27485405Z) Pérez García, Juan"
+  },
+  "Estado": "Ok",
+  "Consola": "Cliente '(27485405Z) Pérez García, Juan' disponible para facturar"
+}
+```
+
+### Notas
+
+- La búsqueda de "cliente ya existente" se hace por `NIF`, así que repetir la llamada con los mismos datos es seguro (no duplica cliente ni dirección).
+- Si `Municipio`, `CodigoPostal` o `TipoDeVia` no existen en el callejero, la petición falla con `Estado: "Error"` indicando cuál no se ha localizado.
+- Si el `NIF` no tiene un formato válido (ni NIF, ni NIE, ni CIF), la petición falla indicando que no es válido.
+- Esta operación no emite ninguna factura: es un paso previo, opcional, a `epCrearFactura` / `epSolicitarFacturador` + `epCrearFacturaConGuid`.

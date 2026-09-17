@@ -27,9 +27,31 @@ namespace ServicioDeDatos.Terceros
         Extracomunitario
     }
 
+    // Persona física (se ha de crear una PersonaDtm, identificada por NIF o NIE) o persona jurídica (SociedadDtm, identificada por CIF).
+    // No confundir con enumTipoTercero, que distingue Autonomo/Empresa/Nie para decidir si aplica IRPF al facturar.
+    public enum enumTipoCliente
+    {
+        Fisica,
+        Juridica
+    }
+
 
     public static class ApiDeTerceros
     {
+        public static enumTipoCliente TipoDeClienteEsp(string nifCif)
+        {
+            var tipo = TipoDeTerceroEsp(nifCif);
+
+            if (tipo == enumTipoTercero.Empresa)
+                return enumTipoCliente.Juridica;
+
+            if (tipo == enumTipoTercero.Autonomo || tipo == enumTipoTercero.Nie)
+                return enumTipoCliente.Fisica;
+
+            GestorDeErrores.Emitir($"El NIF/CIF '{nifCif}' no es válido");
+            return default;
+        }
+
         public static enumTipoTercero TipoDeTerceroEsp(string nifCif)
         {
             // Validar el formato del NIF/CIF

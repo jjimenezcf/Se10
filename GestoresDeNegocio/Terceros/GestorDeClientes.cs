@@ -5,10 +5,15 @@ using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Seguridad;
 using GestoresDeNegocio.Venta.Factura;
 using Microsoft.EntityFrameworkCore;
+using GestoresDeNegocio.Callejero;
 using ModeloDeDto;
+using ModeloDeDto.Callejero;
 using ModeloDeDto.Negocio;
 using ModeloDeDto.Terceros;
 using ServicioDeDatos;
+using ServicioDeDatos.Callejero;
+using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Negocio;
@@ -261,6 +266,67 @@ namespace GestoresDeNegocio.Terceros
             }
 
             return Cliente;
+        }
+
+        public static ClienteDtm CrearClienteCompleto(ContextoSe contexto, ClienteFacturadorJson datos)
+        {
+            var clienteExistente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(ClienteDto.NIF), datos.NIF, errorSiNoHay: false);
+            if (clienteExistente != null)
+                return clienteExistente;
+
+            var tipo = datos.TipoDeCliente.IsNullOrEmpty()
+                ? ApiDeTerceros.TipoDeClienteEsp(datos.NIF)
+                : ApiDeEnsamblados.ToEnumerado<enumTipoCliente>(datos.TipoDeCliente);
+
+            InterlocutorDtm interlocutor;
+            if (tipo == enumTipoCliente.Juridica)
+            {
+                var sociedad = ExtensorDeSociedades.CrearSiNoExiste(contexto, datos.NIF, datos.Nombre, datos.Nombre, null, datos.eMail, datos.Telefono);
+                interlocutor = sociedad.CrearInterlocutor(contexto, errorSihay: false);
+            }
+            else
+            {
+                var esNie = ApiDeTerceros.ValidarNie(datos.NIF).IsNullOrEmpty();
+                var persona = ExtensorDePersonas.CrearSiNoExiste(contexto, datos.NIF, datos.Nombre, datos.Apellidos, esNie, datos.eMail, datos.Telefono);
+                interlocutor = persona.CrearInterlocutor(contexto, errorSihay: false);
+            }
+
+            var idCuenta = contexto.SeleccionarPorPropiedad<CuentaDtm>(nameof(CuentaDtm.Codigo), VariablesDeCuentas.Clientes).Id;
+            var cliente = CrearCliente(contexto, interlocutor, idCuenta);
+
+            if (!datos.Municipio.IsNullOrEmpty() && cliente.DireccionFiscal(contexto, errorSiNoHay: false) is null)
+            {
+                var municipio = contexto.SeleccionarPorNombre<MunicipioDtm>(datos.Municipio, $"No se ha localizado el municipio indicado: '{datos.Municipio}'", aplicarJoin: true);
+                var tipoVia = contexto.SeleccionarPorNombre<TipoDeViaDtm>(datos.TipoDeVia, $"No se ha localizado el tipo de vía indicado: '{datos.TipoDeVia}'");
+                var codigoPostal = contexto.SeleccionarPorPropiedad<CodigoPostalDtm>(nameof(CodigoPostalDtm.Codigo), datos.CodigoPostal, errorSiNoHay: false);
+                if (codigoPostal == null)
+                    GestorDeErrores.Emitir($"No se ha localizado el código postal indicado: '{datos.CodigoPostal}'");
+
+                var calle = new CalleDtm { Nombre = datos.Calle, IdMunicipio = municipio.Id, IdTipoDeVia = tipoVia.Id }
+                    .InsertarSiNoExiste(contexto, new List<string> { nameof(CalleDtm.Nombre), nameof(CalleDtm.IdTipoDeVia), nameof(CalleDtm.IdMunicipio) });
+
+                GestorDeCpsDeUnaCalle.Gestor(contexto, contexto.Mapeador).CrearRelacion(new CpsDeUnaCalleDto
+                {
+                    IdCalle = calle.Id,
+                    IdCp = codigoPostal.Id,
+                    Mano = ParseosDeManosDeUnaCalle.Ambos
+                }, new ParametrosDeNegocio(enumTipoOperacion.Insertar), errorSiYaExiste: false);
+
+                GestorDeDirecciones.Gestor(contexto, enumNegocio.Cliente).PersistirRegistro(new DireccionDeUnClienteDtm
+                {
+                    IdElemento = cliente.Id,
+                    IdPais = municipio.Provincia.IdPais,
+                    IdProvincia = municipio.IdProvincia,
+                    IdMunicipio = municipio.Id,
+                    IdCalle = calle.Id,
+                    IdCp = codigoPostal.Id,
+                    Calificador = enumCalificadorDireccion.fiscal,
+                    Numero = datos.Numero,
+                    Negocio = enumNegocio.Cliente
+                }, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
+            }
+
+            return cliente;
         }
 
         protected override void DespuesDeMapearElElemento(ClienteDtm cliente, ClienteDto elemento, ParametrosDeNegocio parametros)

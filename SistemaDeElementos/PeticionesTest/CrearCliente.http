@@ -1,0 +1,70 @@
+//POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+
+### 1. Crear cliente persona física (NIF/NIE), con dirección fiscal
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García",
+  "eMail": "juan@ejemplo.com",
+  "Telefono": "915551234",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28001",
+  "TipoDeVia": "Calle",
+  "Calle": "Serrano",
+  "Numero": 45
+}
+
+###
+
+### 2. Crear cliente persona jurídica (CIF), con dirección fiscal
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "B73954455",
+  "Nombre": "Cliente Ejemplo SL",
+  "eMail": "administracion@ejemplo.com",
+  "Telefono": "915559876",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28001",
+  "TipoDeVia": "Calle",
+  "Calle": "Serrano",
+  "Numero": 45
+}
+
+###
+
+### 3. Crear cliente sin dirección fiscal (se completa más tarde desde la aplicación)
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García",
+  "eMail": "juan@ejemplo.com",
+  "Telefono": "915551234"
+}
+
+###
+
+### 4. Forzar el tipo de cliente (por si el formato del NIF pudiera dar lugar a confusión)
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "TipoDeCliente": "Fisica",
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28001",
+  "TipoDeVia": "Calle",
+  "Calle": "Serrano",
+  "Numero": 45
+}
+
+###
