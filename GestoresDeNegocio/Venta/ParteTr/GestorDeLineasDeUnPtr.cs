@@ -90,7 +90,7 @@ namespace GestoresDeNegocio.Ventas
                     var unitario = Contexto.SeleccionarPorId<UnitarioDtm>((int)linea.IdUnitario, aplicarJoin: true);
                     linea.Precio = unitario.Venta;
                     linea.Concepto = unitario.Expresion;
-                    linea.Clase = unitario.Clase;
+                    linea.Clase = unitario.Naturaleza(Contexto).Clase;
                     linea.IdNaturaleza = unitario.IdNaturaleza;
                     linea.IdUnidad = unitario.IdUnidad;
                 }

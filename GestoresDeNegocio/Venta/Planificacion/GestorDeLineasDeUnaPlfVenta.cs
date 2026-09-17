@@ -119,7 +119,7 @@ namespace GestoresDeNegocio.Ventas
             if (linea.Iva <= 0 && linea.Iva > 100) GestorDeErrores.Emitir("El IVA a aplicar ha de ser mayor de cero y menor de 100");
 
             linea.Coste = unitario.Coste;
-            linea.Clase = unitario.Clase;
+            linea.Clase = unitario.Naturaleza(Contexto).Clase;
             linea.IdNaturaleza = unitario.IdNaturaleza;
             linea.IdUnidad = unitario.IdUnidad;
             linea.Iva = linea.PorcentageDeIva(Contexto);

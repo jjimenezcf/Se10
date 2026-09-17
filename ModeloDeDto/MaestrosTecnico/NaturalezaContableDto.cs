@@ -61,8 +61,8 @@ namespace ModeloDeDto.MaestrosTecnico
             Controlador = nameof(enumControladoresMt.Unidades),
             GuardarEn = nameof(IdUnidad),
             Obligatorio = false,
-            Fila = 0,
-            Columna = 3
+            Fila = 1,
+            Columna = 0
           )
         ]
         public string Unidad { get; set; }
@@ -81,7 +81,7 @@ namespace ModeloDeDto.MaestrosTecnico
             VisibleEnGrid = true,
             AutoSpan = true,
             Fila = 1,
-            Columna = 0
+            Columna = 2
             )
         ]
         public string CuentaDeGasto { get; set; }
@@ -100,7 +100,7 @@ namespace ModeloDeDto.MaestrosTecnico
             VisibleEnGrid = true,
             AutoSpan = true,
             Fila = 1,
-            Columna = 1
+            Columna = 3
             )
         ]
         public string CuentaDeIngreso { get; set; }

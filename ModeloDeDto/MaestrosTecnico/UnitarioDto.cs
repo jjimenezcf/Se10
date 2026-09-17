@@ -22,22 +22,6 @@ namespace ModeloDeDto.MaestrosTecnico
         ]
         public string Nombre { get; set; }
 
-        //----------------------------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumClaseUnitario),
-            GuardarEn = nameof(Clase),
-            EditableAlEditar = false,
-            EditableAlCrear = true,
-            Fila = 1,
-            Columna = 0,
-            OnBlur = "javascript:" + nameof(enumNameSpaceTs.MaestrosTecnico) + "." + nameof(enumFunctionTs.Unitario_ProponerReferencia) + "()"
-            )
-        ]
-        public enumClaseUnitario Clase { get; set; }
-
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la naturaleza contable", Visible = false)]
         public int IdNaturaleza { get; set; }
@@ -53,7 +37,7 @@ namespace ModeloDeDto.MaestrosTecnico
             EditableAlCrear = true,
             EditableAlEditar = false,
             Fila = 1,
-            Columna = 1,
+            Columna = 0,
             OnBlur = "javascript:" + nameof(enumNameSpaceTs.MaestrosTecnico) + "." + nameof(enumFunctionTs.Unitario_ProponerReferencia) + "()"
             )
         ]
@@ -73,12 +57,28 @@ namespace ModeloDeDto.MaestrosTecnico
             EditableAlCrear = true,
             EditableAlEditar = false,
             Fila = 1,
-            Columna = 2
+            Columna = 1
             )
         ]
         public string Unidad { get; set; }
 
 
+        //----------------------------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "Clase",
+            Ayuda = "Seleccione la clase del unitario",
+            TipoDeControl = enumTipoControl.Enumerado,
+            Tipo = typeof(enumClaseUnitario),
+            GuardarEn = nameof(Clase),
+            EditableAlEditar = false,
+            VisibleAlCrear = false,
+            VisibleAlEditar = true,
+            Obligatorio = false,
+            Fila = 1,
+            Columna = 2
+            )
+        ]
+        public enumClaseUnitario Clase { get; set; }
         //----------------------------------------------------------------
         [IUPropiedad(
            Etiqueta = "Descripción",
@@ -134,6 +134,11 @@ namespace ModeloDeDto.MaestrosTecnico
            Columna = 3)
         ]
         public decimal Venta { get; set; }
+
+        //--------------------------------------------
+        // Referencia de la tarifa del proveedor, mapeada sólo cuando se solicita explícitamente (ver ltrDeUnUnitario.ObtenerTarifaProveedor)
+        [IUPropiedad(Etiqueta = "Referencia de la tarifa del proveedor", Visible = false)]
+        public string ReferenciaDeTarifa { get; set; }
 
 
         //----------------------------------------------------------------

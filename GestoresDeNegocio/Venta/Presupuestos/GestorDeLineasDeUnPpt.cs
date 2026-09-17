@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ServicioDeDatos;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using Utilidades;
 using ServicioDeDatos.Presupuesto;
 using ModeloDeDto.Presupuesto;
@@ -88,7 +89,7 @@ namespace GestoresDeNegocio.Presupuesto
                     var unitario = Contexto.SeleccionarPorId<UnitarioDtm>((int)linea.IdUnitario, aplicarJoin: true);
                     linea.Precio = unitario.Venta;
                     linea.Concepto = unitario.Expresion;
-                    linea.Clase = unitario.Clase;
+                    linea.Clase = unitario.Naturaleza(Contexto).Clase;
                     linea.IdNaturaleza = unitario.IdNaturaleza;
                     linea.IdUnidad = unitario.IdUnidad;
                 }
