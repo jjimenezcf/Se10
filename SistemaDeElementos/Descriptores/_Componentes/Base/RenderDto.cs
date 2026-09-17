@@ -485,6 +485,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             valores["ordenarPor"] = atributos.OrdenarListaDinamicaPor;
             valores[nameof(IUPropiedadAttribute.RestrictorFijo)] = atributos.RestrictorFijo;
+            valores[nameof(IUPropiedadAttribute.OtrosClausulasDeFiltrado)] = atributos.OtrosClausulasDeFiltrado;
             valores[nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)] = atributos.OtrosParametrosDeFiltrado;
             valores[nameof(IUPropiedadAttribute.SoloEnAlta)] = atributos.SoloEnAlta;
 

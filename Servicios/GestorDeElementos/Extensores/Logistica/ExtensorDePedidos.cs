@@ -25,6 +25,14 @@ namespace GestorDeElementos.Extensores
 
         public static bool EstaEnLaEtapa(this PedidoDtm pedido, string etapa) => etapa.ToLista<int>(Simbolos.Coma).Contains(pedido.IdEstado);
 
+        public static int IncrementarOrdenEn(ContextoSe contexto)
+        {
+            var incremento = enumNegocio.Pedido.LeerCrearParametro(contexto, enumParametrosDePedidos.PED_IncrementarOrdenEn, "10");
+            if (incremento is null || incremento.Valor.Entero() == 0)
+                Emitir($"Ha de definir el parámetro '{enumParametrosDePedidos.PED_IncrementarOrdenEn}' del negocio de '{enumNegocio.Pedido.Singular()}' con un valor mayor de 0");
+            return incremento.Valor.Entero();
+        }
+
         private static void AnotarEventoDeEntrega(this PedidoDtm pedido, ContextoSe contexto)
         {
             var sociedad = pedido.Sociedad(contexto);

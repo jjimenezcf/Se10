@@ -251,6 +251,12 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(pedido, elemento, parametros);
             elemento.Importe = pedido.Importe(Contexto);
+            if (parametros.LeerPorId)
+            {
+                elemento.IdNaturalezaDelProveedor = pedido.Proveedor(Contexto)?.IdNaturaleza;
+                elemento.IdUnidadDelProveedor = pedido.Proveedor(Contexto)?.IdUnidad;
+                elemento.ConceptoDelProveedor = pedido.Proveedor(Contexto)?.Concepto;
+            }
         }
 
 

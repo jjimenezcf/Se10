@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ServicioDeDatos;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using Utilidades;
 using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
@@ -78,9 +79,15 @@ namespace GestoresDeNegocio.Logistica
                 if (parametros.Insertando)
                 {
                     var unitario = Contexto.SeleccionarPorId<UnitarioDtm>((int)linea.IdUnitario, aplicarJoin: true);
-                    linea.Precio = unitario.Venta;
-                    linea.Concepto = unitario.Expresion;
-                    linea.Clase = unitario.Clase;
+                    var tarifa = Contexto.SeleccionarPorAk<TarifaDtm>(new Dictionary<string, object> {
+                                     { nameof(TarifaDtm.IdElemento), unitario.Id },
+                                     { nameof(TarifaDtm.IdProveedor), pedido.IdProveedor }
+                                 }, errorSiNoHay: false);
+                    linea.Precio = tarifa?.Tarifa ?? unitario.Venta;
+                    linea.Concepto = tarifa != null && !tarifa.Referencia.IsNullOrEmpty()
+                        ? $"({tarifa.Referencia}) {unitario.Nombre}"
+                        : unitario.Expresion;
+                    linea.Clase = unitario.Naturaleza(Contexto).Clase;
                     linea.IdNaturaleza = unitario.IdNaturaleza;
                     linea.IdUnidad = unitario.IdUnidad;
                 }

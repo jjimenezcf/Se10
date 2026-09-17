@@ -76,7 +76,7 @@ namespace MVCSistemaDeElementos.Descriptores
             gridDeRelacion.PermitirBorrar = true;
 
             var modalDeCreacion = expansor.DescriptorDeCrearRelaciones(Editor.Crud.Contexto, typeof(LineaDeUnPedidoDto), typeof(LineasDeUnPedidoController), nameof(LineaDeUnPedidoDto.IdElemento), "Añadir línea");
-            modalDeCreacion.AccionTrasAbrirModal = $"javascript: {RutaBase}.{enumFunctionTs.Ped_InicializarModalParaCrearLineas}({ExtensorDePresupuestos.IncrementarOrdenEn(Contexto)})";
+            modalDeCreacion.AccionTrasAbrirModal = $"javascript: {RutaBase}.{enumFunctionTs.Ped_InicializarModalParaCrearLineas}({ExtensorDePedidos.IncrementarOrdenEn(Contexto)})";
 
             var modalDeEdicion = expansor.DescriptorDeEditarRelaciones(Editor.Crud.Contexto, typeof(LineaDeUnPedidoDto), typeof(LineasDeUnPedidoController), "Editar línea", soloConsulta: false);
             modalDeEdicion.AccionTrasAbrirModal = $"javascript: {RutaBase}.{enumFunctionTs.Ped_InicializarModalParaEditarLineas}();";

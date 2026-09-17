@@ -904,6 +904,7 @@ const atListasDinamicas = {
     cantidad: atControl.cantidadPorLeer,
     RestringidoPor: atListas.RestringidoPor,
     RestrictorFijo: atListas.RestrictorFijo,
+    OtrosClausulasDeFiltrado: 'otros-clausulas-de-filtrado',
     OtrosParametrosDeFiltrado: 'otros-parametros-de-filtrado',
     SoloEnAlta: 'solo-en-alta',
     PropiedadRestrictora: atControl.propiedadRestrictora,
@@ -2556,7 +2557,9 @@ const ltrPropiedades = {
             idnaturaleza: 'IdNaturaleza',
             idunidad: 'IdUnidad',
             nombre: 'nombre',
-            FiltrosPorClaseDeUnitario: 'FiltrosPorClaseDeUnitario'
+            referenciaDeTarifa: 'ReferenciaDeTarifa',
+            FiltrosPorClaseDeUnitario: 'FiltrosPorClaseDeUnitario',
+            ObtenerTarifaProveedor: 'ObtenerTarifaProveedor'
         },
         Tarifa: {
             IdElemento: 'IdElemento',
@@ -3264,6 +3267,9 @@ const ltrPropiedades = {
             Proveedor: 'proveedor',
             Etapas: 'Etapas',
             Contrato: 'Contrato',
+            IdNaturalezaDelProveedor: 'IdNaturalezaDelProveedor',
+            IdUnidadDelProveedor: 'IdUnidadDelProveedor',
+            ConceptoDelProveedor: 'ConceptoDelProveedor',
             Indicadores: {
                 Naturaleza: 'Naturaleza',
                 UnidadDeMedida: 'UnidadDeMedida',

@@ -334,8 +334,17 @@ namespace ModeloDeDto
 
         /// <summary>
         /// En una lista dinámica, referencia (en formato 'javascript:Modulo.Funcion(lista)') a una función de typescript que, dado
-        /// el propio control de la lista dinámica, devuelve cláusulas de filtrado adicionales a las ya montadas en
-        /// ApiListaDinamica.DefinirFiltroListaDinamica, por ejemplo para excluir de la búsqueda el elemento que se está editando.
+        /// el propio control de la lista dinámica, devuelve cláusulas de filtrado adicionales (Array&lt;ClausulaDeFiltrado&gt;) a las
+        /// ya montadas en ApiListaDinamica.DefinirFiltroListaDinamica, por ejemplo para excluir de la búsqueda el elemento que se
+        /// está editando o para restringir la clase del elemento buscado.
+        /// </summary>
+        public string OtrosClausulasDeFiltrado { get; set; } = "";
+
+        /// <summary>
+        /// En una lista dinámica, referencia (en formato 'javascript:Modulo.Funcion()') a una función de typescript que devuelve
+        /// parámetros adicionales (Array&lt;Parametro&gt;) a añadir a la petición de carga (ApiDeListasDinamicas.DefinirFiltrosParaCargar),
+        /// para viajar directamente hasta ParametrosDeNegocio.Parametros en el servidor sin restringir la consulta, por ejemplo para
+        /// pedir que se enriquezca el resultado con datos adicionales.
         /// </summary>
         public string OtrosParametrosDeFiltrado { get; set; } = "";
 

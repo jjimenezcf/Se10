@@ -171,6 +171,23 @@
                             var SelectorDeClase = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.clase);
                             MapearAlControl.ListaDeValores(SelectorDeClase, (this.CrudDeMnt as CrudDePedidos).ClaseDeUnitario);
                         }
+
+                        // El proveedor del pedido, si tiene naturaleza/unidad/concepto propios definidos, prevalece sobre los valores por defecto del negocio
+                        let idNaturalezaDelProveedor = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.IdNaturalezaDelProveedor, 0));
+                        if (idNaturalezaDelProveedor > 0) {
+                            var SelectorNaturalezaProveedor = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.naturaleza);
+                            MapearAlControl.ListaDeElementos(SelectorNaturalezaProveedor, new Array<ClausulaDeFiltrado>(), idNaturalezaDelProveedor, null);
+                        }
+                        let idUnidadDelProveedor = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.IdUnidadDelProveedor, 0));
+                        if (idUnidadDelProveedor > 0) {
+                            var SelectorUnidadProveedor = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.unidad);
+                            MapearAlControl.ListaDeElementos(SelectorUnidadProveedor, new Array<ClausulaDeFiltrado>(), idUnidadDelProveedor, null);
+                        }
+                        let conceptoDelProveedor = ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.ConceptoDelProveedor, '');
+                        if (!IsNullOrEmpty(conceptoDelProveedor)) {
+                            let conceptoCtrl = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.linea.concepto) as HTMLInputElement;
+                            AsignarValor(conceptoCtrl, conceptoDelProveedor);
+                        }
                     }
                     break;
                 }

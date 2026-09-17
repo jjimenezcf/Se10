@@ -453,6 +453,7 @@ namespace Utilidades
         Ped_CalcularImportesDeLinea,
         Ped_InicializarModalParaCrearLineas,
         Ped_InicializarModalParaEditarLineas,
+        Ped_Parametros_Para_Seleccionar_Unitarios,
 
         Ral_Tras_Seleccionar_Almacen,
         Ral_Tras_Blanquear_Almacen,

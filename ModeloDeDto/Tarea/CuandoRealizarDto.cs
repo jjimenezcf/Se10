@@ -25,7 +25,7 @@ namespace ModeloDeDto.Tarea
             VistaDondeNavegar = enumVistasAdministrativo.CrudTareas,
             RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + Simbolos.separadorDeRestrictoresFijos +
                              ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeTareas.TAR_Etapa_Asignada),
-            OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
+            OtrosClausulasDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
             Negocio = enumNegocio.Tarea,
             LongitudMinimaParaBuscar = 1,
             MostrarExpresion = nameof(TareaDto.Expresion),
@@ -50,7 +50,7 @@ namespace ModeloDeDto.Tarea
             VistaDondeNavegar = enumVistasAdministrativo.CrudTareas,
             RestrictorFijo = ltrParametrosDto.Negocio + ";" + nameof(enumNegocio.Tarea) + ";" + nameof(enumModoDeAccesoDeDatos.Consultor) + Simbolos.separadorDeRestrictoresFijos +
                              ltrFiltros.FiltroPorEtapa + ";" + nameof(enumEtapasDeTareas.TAR_Etapa_Inicial) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeTareas.TAR_Etapa_Asignada),
-            OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
+            OtrosClausulasDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_FiltrosParaCuandoRealizar) + "(this)",
             Negocio = enumNegocio.Tarea,
             LongitudMinimaParaBuscar = 1,
             MostrarExpresion = nameof(TareaDto.Expresion),

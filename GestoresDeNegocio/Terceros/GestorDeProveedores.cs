@@ -50,6 +50,7 @@ namespace GestoresDeNegocio.Terceros
         {
             consulta = base.AplicarJoins(consulta, filtros, parametros);
             consulta = consulta.Include(e => e.Interlocutor);
+            consulta = consulta.Include(c => c.Cuenta);
             return consulta;
         }
 

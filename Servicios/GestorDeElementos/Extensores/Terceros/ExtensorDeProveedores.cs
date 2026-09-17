@@ -205,16 +205,13 @@ namespace GestorDeElementos.Extensores
 
         public static ProveedorDtm Proveedor(this IUsaProveedor elemento, ContextoSe contexto, bool aplicarJoin = false)
         {
-            if (elemento.Proveedor == null || elemento.Proveedor.Id != elemento.IdProveedor)
-                elemento.Proveedor = contexto.SeleccionarPorId<ProveedorDtm>(elemento.IdProveedor, aplicarJoin: aplicarJoin);
-            else
+            if (elemento.Proveedor != null && elemento.Proveedor.Id == elemento.IdProveedor)
             {
-                if (elemento.Proveedor.Cuenta == null && aplicarJoin)
-                {
-                    elemento.Proveedor = contexto.SeleccionarPorId<ProveedorDtm>(elemento.IdProveedor, aplicarJoin: aplicarJoin);
-                }
+                if (!aplicarJoin || (aplicarJoin && elemento.Proveedor.Cuenta != null))
+                    return elemento.Proveedor;
             }
 
+            elemento.Proveedor = contexto.SeleccionarPorId<ProveedorDtm>(elemento.IdProveedor, aplicarJoin: aplicarJoin);
             return elemento.Proveedor;
         }
 
@@ -305,7 +302,7 @@ namespace GestorDeElementos.Extensores
 
             if (proveedor.IdDomiciliadaEn is null)
                 return null;
-           
+
             proveedor.DomiciliadaEn = contexto.SeleccionarPorId<CuentaDeMiSociedadDtm>((int)proveedor.IdDomiciliadaEn, aplicarJoin: true);
 
             return proveedor.DomiciliadaEn;

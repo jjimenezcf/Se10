@@ -64,6 +64,7 @@ namespace ModeloDeDto.Logistica
             EditableAlEditar = false,
             trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ped_Tras_Seleccionar_Unitario) + "(["+nameof(enumParamTs.idLista)+"])",
             trasBlanquear = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ped_Tras_Blanquear_Unitario) + "()",
+            OtrosParametrosDeFiltrado = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ped_Parametros_Para_Seleccionar_Unitarios) + "()",
             AutoSpan = true
             )
         ]

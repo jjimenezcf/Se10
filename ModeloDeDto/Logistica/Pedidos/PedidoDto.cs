@@ -59,6 +59,17 @@ namespace ModeloDeDto.Logistica
             )]
         public string Proveedor { get; set; }
 
+        //-------------------------------------------------------------------------------------------------------------
+        // Propuestos por el proveedor del pedido para inicializar una línea de tipo Alzada (ver Ped_Tras_Cambiar_TipoDeLinea)
+        [IUPropiedad(Etiqueta = "Naturaleza propuesta por el proveedor", Visible = false)]
+        public int? IdNaturalezaDelProveedor { get; set; }
+
+        [IUPropiedad(Etiqueta = "Unidad propuesta por el proveedor", Visible = false)]
+        public int? IdUnidadDelProveedor { get; set; }
+
+        [IUPropiedad(Etiqueta = "Concepto propuesto por el proveedor", Visible = false)]
+        public string ConceptoDelProveedor { get; set; }
+
         [IUPropiedad(Visible = false)]
         public string Interlocutor { get; set; }
 

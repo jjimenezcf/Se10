@@ -70,7 +70,7 @@ namespace MVCSistemaDeElementos.Descriptores
                  navegarA: nameof(UnitariosController.CrudUnitarios),
                  restringirPor: "",
                  alSeleccionarBlanquearControl: "")
-            { OtrosParametrosDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_FiltrosPorClaseDeUnitario) + "(this)" };
+            { OtrosClausulasDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_FiltrosPorClaseDeUnitario) + "(this)" };
 
             new FiltroEntreFechas<MovimientoDeAlmacenDto>(Mnt.BloqueGeneral,
                 etiqueta: "Realizado",

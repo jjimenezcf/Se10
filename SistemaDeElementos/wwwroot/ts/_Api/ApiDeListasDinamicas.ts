@@ -290,6 +290,13 @@
         let negocio = lista.getAttribute(literal.negocio);
         if (Definido(negocio) && negocio !== ltrNegocioSe.Enumerado.NoDefinido) parametros.push(new Parametro(Ajax.Param.nombreDeNegocio, negocio));
 
+        let otrosParametrosDeFiltrado: string = lista.getAttribute(atListasDinamicas.OtrosParametrosDeFiltrado);
+        if (!IsNullOrEmpty(otrosParametrosDeFiltrado)) {
+            let otrosParametros = EvaluarOtrosParametrosDeFiltrado(otrosParametrosDeFiltrado, lista);
+            for (let i = 0; i < otrosParametros.length; i++)
+                parametros.push(otrosParametros[i]);
+        }
+
         let accion = lista.getAttribute(atListas.antesDeBuscar);
         if (Definido(accion))
             EvaluarConParametros('ApiDeListasDinamicas.Cargar', accion, [filtros, parametros]);
@@ -363,9 +370,9 @@
         filtros.push(clausula);
         //}
 
-        let otrosParametrosDeFiltrado: string = input.getAttribute(atListasDinamicas.OtrosParametrosDeFiltrado);
-        if (!IsNullOrEmpty(otrosParametrosDeFiltrado)) {
-            let otrasClausulas = EvaluarOtrasClausulasDeFiltrado(otrosParametrosDeFiltrado, input);
+        let otrasClausulasDeFiltrado: string = input.getAttribute(atListasDinamicas.OtrosClausulasDeFiltrado);
+        if (!IsNullOrEmpty(otrasClausulasDeFiltrado)) {
+            let otrasClausulas = EvaluarOtrasClausulasDeFiltrado(otrasClausulasDeFiltrado, input);
             for (let i = 0; i < otrasClausulas.length; i++)
                 filtros.push(otrasClausulas[i]);
         }
@@ -375,6 +382,11 @@
 
     function EvaluarOtrasClausulasDeFiltrado(accion: string, lista: HTMLInputElement): Array<ClausulaDeFiltrado> {
         let resultado = Evaluar('DefinirFiltroListaDinamica', accion, accion.includes('this') ? lista : undefined);
+        return Definido(resultado) ? resultado : [];
+    }
+
+    function EvaluarOtrosParametrosDeFiltrado(accion: string, lista: HTMLInputElement): Array<Parametro> {
+        let resultado = Evaluar('DefinirFiltrosParaCargar', accion, accion.includes('this') ? lista : undefined);
         return Definido(resultado) ? resultado : [];
     }
 

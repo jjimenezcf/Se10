@@ -4,6 +4,8 @@ using UtilidadesParaIu;
 using Utilidades;
 using ServicioDeDatos.Seguridad;
 using ModeloDeDto.MaestrosTecnico;
+using Gestor.Errores;
+using System;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -16,16 +18,15 @@ namespace MVCSistemaDeElementos.Descriptores
                , modo
                , rutaBase: enumNameSpaceTs.MaestrosTecnico)
         {
-          
         }
 
 
         public override string RenderControl()
         {
             var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{Modo}-{GetType().FullName}";
-if (ServicioDeCaches.Obtener(CacheDe.RenderCrud).ContainsKey(indice))
-				 return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
-var render = base.RenderControl();
+            if (ServicioDeCaches.Obtener(CacheDe.RenderCrud).ContainsKey(indice))
+                return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
+            var render = base.RenderControl();
 
             render = render +
                    $@"<script src=¨../../js/{RutaBase}/Naturalezas.js?v={System.DateTime.Now.Ticks}¨></script>
@@ -39,7 +40,7 @@ var render = base.RenderControl();
                       </script>
                     ";
             ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice] = render.Render();
-			return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
+            return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
         }
 
 

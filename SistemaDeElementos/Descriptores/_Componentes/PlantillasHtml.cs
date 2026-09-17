@@ -102,6 +102,7 @@ namespace MVCSistemaDeElementos.Descriptores
                                          ordenar-por=¨[ordenarPor]¨
                                          blanquear-al-salir =¨[BlanquearAlSalir]¨
                                          autocomplete='off'
+                                         otros-clausulas-de-filtrado=¨[{nameof(IUPropiedadAttribute.OtrosClausulasDeFiltrado)}]¨
                                          otros-parametros-de-filtrado=¨[{nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)}]¨
                                          parametros-para-navegar='[{nameof(IUPropiedadAttribute.ParametrosParaNavegar)}]'
                                          ¨>
@@ -125,6 +126,7 @@ namespace MVCSistemaDeElementos.Descriptores
                                          criterio-de-filtro=¨[CriterioDeFiltro]¨
                                          restringido-por=¨[RestringidoPor]¨
                                          restrictor-fijo=¨[{nameof(IUPropiedadAttribute.RestrictorFijo)}]¨
+                                         otros-clausulas-de-filtrado=¨[{nameof(IUPropiedadAttribute.OtrosClausulasDeFiltrado)}]¨
                                          otros-parametros-de-filtrado=¨[{nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)}]¨
                                          solo-en-alta=¨[{nameof(IUPropiedadAttribute.SoloEnAlta)}]¨
                                          propiedad-restrictora=¨[PropiedadRestrictora]¨
