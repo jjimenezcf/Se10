@@ -626,17 +626,20 @@ namespace GestorDeElementos.Extensores
 
         private static int IdDeLaTareaEnlazada(this string cuerpoDeLaObservacion)
         {
-            var coincidencia = Regex.Match(cuerpoDeLaObservacion ?? "", @"[?&]id=(\d+)");
+            var coincidencia = Regex.Match(cuerpoDeLaObservacion ?? "", @"[?&]id=(\d+)", RegexOptions.IgnoreCase);
             return coincidencia.Success ? int.Parse(coincidencia.Groups[1].Value) : 0;
         }
 
-        public static TareaDtm TareaEnlazada(this ObservacionDtm observacion, ContextoSe contexto)
+        public static TareaDtm TareaEnlazada(this ObservacionDtm observacion, ContextoSe contexto, bool emitirError)
         {
-            var coincidencia = Regex.Match(observacion.Descripcion ?? "", @"[?&]id=(\d+)");
+            var coincidencia = Regex.Match(observacion.Descripcion ?? "", @"[?&]id=(\d+)", RegexOptions.IgnoreCase);
             var id = coincidencia.Success ? int.Parse(coincidencia.Groups[1].Value) : 0;
 
             if (id == 0)
-                GestorDeErrores.Emitir($"No se ha localizado la tarea en el cuerpo de la observación, '{observacion.Nombre}' de la tarea '{contexto.SeleccionarPorId<TareaDtm>(observacion.IdElemento).Referencia}'");
+                if (emitirError)
+                    GestorDeErrores.Emitir($"No se ha localizado la tarea en el cuerpo de la observación, '{observacion.Nombre}' de la tarea '{contexto.SeleccionarPorId<TareaDtm>(observacion.IdElemento).Referencia}'");
+                else return null;
+
 
             return contexto.SeleccionarPorId<TareaDtm>(id);
         }

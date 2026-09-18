@@ -692,7 +692,7 @@ namespace GestoresDeNegocio.Tarea
             var observaciones = enumNegocio.Tarea.Observaciones(contexto).Where(o => o.IdElemento == tarea1.Id && o.Nombre == cuandoResolver);
             foreach (var observacion in observaciones)
             {
-                var tareaReferenciada = observacion.TareaEnlazada(contexto);
+                var tareaReferenciada = observacion.TareaEnlazada(contexto, emitirError: false);
                 if (tareaReferenciada != null && tareaReferenciada.Id == tarea2.Id)
                     GestorDeErrores.Emitir($"La tarea '{tarea1.Referencia}' ya se le ha indicado que '{cuandoResolver}' la '{tareaReferenciada.Referencia}'");
             }
@@ -731,9 +731,9 @@ namespace GestoresDeNegocio.Tarea
 
             foreach (var observacion in observaciones)
             {
-                var tareaReferenciada = observacion.TareaEnlazada(contexto);
+                var tareaReferenciada = observacion.TareaEnlazada(contexto, emitirError: false);
 
-                var observacionReciproca = enumNegocio.Tarea.Observaciones(contexto)
+                var observacionReciproca = tareaReferenciada == null ? null : enumNegocio.Tarea.Observaciones(contexto)
                     .FirstOrDefault(o => o.IdElemento == tareaReferenciada.Id && o.Nombre == cuandoResolverOpuesto && o.Descripcion == cuerpoDeLaEditada);
 
                 if (observacionReciproca != null)
