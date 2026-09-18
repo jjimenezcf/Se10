@@ -50,9 +50,10 @@ Si el cliente al que se va a facturar (`NifDelCliente`) todavía no existe en el
 `POST /Facturador/epCrearCliente?nif={nifEmisor}&apiKey={apiKey}`
 Body: JSON del cliente (ver estructura en el [Anexo 5](#anexo-5--crear-un-cliente)).
 
-- Si el cliente ya existe (se busca por su NIF/CIF/NIE), la llamada no crea nada nuevo: devuelve el cliente ya existente. Es seguro repetir la llamada.
+- Si el cliente ya existe (se busca por su NIF/CIF/NIE), no se crea de nuevo: se actualiza (nombre/apellidos, razón social, email, teléfono, dirección fiscal) solo si los datos han cambiado y el flag correspondiente lo permite — ver `SustituirDatosIdentificativos` y `SustituirDatosDeContacto` en el Anexo 5. Es seguro repetir la llamada.
 - Según el formato del NIF/CIF/NIE se da de alta automáticamente como persona física o persona jurídica (o se puede forzar con `TipoDeCliente`).
-- Si además se indican los datos de la dirección fiscal y el cliente todavía no tiene ninguna, se crea también esa dirección. La calle se crea automáticamente si no existe en el callejero; el municipio, el código postal y el tipo de vía deben existir ya.
+- Opcionalmente, antes de dar de alta o actualizar, se puede validar el NIF y la razón social contra la AEAT (`ValidarEnLaAeat`).
+- Si además se indican los datos de la dirección fiscal, se da de alta (o se sustituye, si ya tenía una distinta) esa dirección. La calle se crea automáticamente si no existe en el callejero y `CrearCalleSiNoExiste` es `true` (si no, la petición falla); opcionalmente se puede exigir que la calle exista en el Catastro (`ValidarEnCatastro`). El municipio, el código postal y el tipo de vía deben existir ya.
 
 Ver el detalle en el [Anexo 5](#anexo-5--crear-un-cliente).
 
@@ -396,7 +397,7 @@ Texto libre con el motivo de la rectificación. Se guarda como detalle del motiv
 
 ## Anexo 5 — Crear un cliente
 
-Da de alta un cliente (persona física o jurídica) para poder facturarle después con `NifDelCliente` (Anexos 1, 2). Si ya existe un cliente con ese NIF/CIF/NIE, la llamada no crea nada y simplemente lo devuelve.
+Da de alta un cliente (persona física o jurídica) para poder facturarle después con `NifDelCliente` (Anexos 1, 2). Si ya existe un cliente con ese NIF/CIF/NIE, la llamada no crea uno nuevo: actualiza sus datos según los flags `Sustituir...` y, si se indica dirección, la sustituye si ha cambiado (ver más abajo).
 
 ### Petición
 
@@ -414,7 +415,12 @@ Content-Type: application/json
   "CodigoPostal": "28001",
   "TipoDeVia": "Calle",
   "Calle": "Serrano",
-  "Numero": 45
+  "Numero": 45,
+  "ValidarEnLaAeat": false,
+  "SustituirDatosIdentificativos": true,
+  "SustituirDatosDeContacto": true,
+  "CrearCalleSiNoExiste": true,
+  "ValidarEnCatastro": true
 }
 ```
 
@@ -430,7 +436,12 @@ Ejemplo con persona jurídica (una sociedad, identificada por CIF):
   "CodigoPostal": "28001",
   "TipoDeVia": "Calle",
   "Calle": "Serrano",
-  "Numero": 45
+  "Numero": 45,
+  "ValidarEnLaAeat": false,
+  "SustituirDatosIdentificativos": true,
+  "SustituirDatosDeContacto": true,
+  "CrearCalleSiNoExiste": true,
+  "ValidarEnCatastro": true
 }
 ```
 
@@ -448,13 +459,23 @@ Ejemplo con persona jurídica (una sociedad, identificada por CIF):
 | `Nombre` | Sí | Nombre de pila si es persona física, razón social si es persona jurídica. |
 | `Apellidos` | Solo persona física | Apellidos del cliente. Se ignora si es persona jurídica. |
 | `eMail` / `Telefono` | No | Datos de contacto. |
+| `ValidarEnLaAeat` | No (`false` por defecto) | Si es `true`, antes de dar de alta o actualizar valida el NIF y la razón social (`Apellidos, Nombre` en persona física; `Nombre` en persona jurídica) contra la AEAT. Si no coincide, la petición falla. |
+| `SustituirDatosIdentificativos` | No (`false` por defecto) | Solo aplica si el cliente **ya existía**: si `Nombre`/`Apellidos` (persona) o `Nombre` como razón social (sociedad) difieren de los que ya tenía y este flag es `true`, se actualizan. Con `false`, se ignoran las diferencias. |
+| `SustituirDatosDeContacto` | No (`false` por defecto) | Igual que el anterior pero para `eMail`/`Telefono` del cliente. |
 | `Municipio` | Solo si se da la dirección | Nombre del municipio; debe existir ya en el callejero. |
 | `CodigoPostal` | Solo si se da la dirección | Debe existir ya en el callejero. |
 | `TipoDeVia` | Solo si se da la dirección | P. ej. `Calle`, `Avenida`, `Plaza`; debe existir ya en el callejero. |
-| `Calle` | Solo si se da la dirección | Nombre de la calle. Si no existe para ese municipio/tipo de vía, se crea automáticamente. |
+| `Calle` | Solo si se da la dirección | Nombre de la calle. |
 | `Numero` | Solo si se da la dirección | Número de policía. |
+| `CrearCalleSiNoExiste` | No (`false` por defecto) | Si la calle no existe para ese municipio/tipo de vía: con `true` se crea; con `false` la petición falla indicando que no se permite crearla. |
+| `ValidarEnCatastro` | No (`false` por defecto) | Solo tiene efecto cuando se va a **crear** la calle (`CrearCalleSiNoExiste=true` y no existía): si es `true`, exige que esa calle exista en el callejero oficial del Catastro — si no, la petición falla. |
 
-Los campos de dirección (`Municipio`, `CodigoPostal`, `TipoDeVia`, `Calle`, `Numero`) son opcionales en conjunto: si no se indican, el cliente se crea sin dirección fiscal (se podrá completar después desde la aplicación). Si se indican y el cliente aún no tiene dirección fiscal, se da de alta con el calificador `fiscal`.
+Los campos de dirección (`Municipio`, `CodigoPostal`, `TipoDeVia`, `Calle`, `Numero`) son opcionales en conjunto: si no se indican, no se toca la dirección fiscal del cliente (en un alta, se crea sin dirección; se podrá completar después desde la aplicación).
+
+Si se indican:
+- Si el cliente es nuevo, o no tenía todavía dirección fiscal propia, se da de alta con el calificador `fiscal`.
+- Si el cliente ya tenía una dirección fiscal propia y es la misma (misma calle, mismo código postal y mismo número), no se hace nada.
+- Si es distinta, se **da de baja la dirección anterior y se crea la nueva** (usando los gestores de direcciones, que dejan la traza informativa del cambio), y se asocia al cliente.
 
 ### Respuesta (ejemplo)
 
@@ -472,7 +493,9 @@ Los campos de dirección (`Municipio`, `CodigoPostal`, `TipoDeVia`, `Calle`, `Nu
 
 ### Notas
 
-- La búsqueda de "cliente ya existente" se hace por `NIF`, así que repetir la llamada con los mismos datos es seguro (no duplica cliente ni dirección).
+- La búsqueda de "cliente ya existente" se hace por `NIF`, así que repetir la llamada con los mismos datos es segura: no duplica cliente ni dirección, y con los flags `Sustituir...` a `false` tampoco pisa datos que hayan podido cambiarse a mano en la aplicación.
 - Si `Municipio`, `CodigoPostal` o `TipoDeVia` no existen en el callejero, la petición falla con `Estado: "Error"` indicando cuál no se ha localizado.
+- Si `CrearCalleSiNoExiste` es `false` y la calle indicada no existe, la petición falla en vez de crearla.
 - Si el `NIF` no tiene un formato válido (ni NIF, ni NIE, ni CIF), la petición falla indicando que no es válido.
+- `ValidarEnLaAeat` requiere que el servicio de Verifactu esté correctamente configurado (certificado instalado, etc.); si falla por eso, el mensaje de error lo indica.
 - Esta operación no emite ninguna factura: es un paso previo, opcional, a `epCrearFactura` / `epSolicitarFacturador` + `epCrearFacturaConGuid`.

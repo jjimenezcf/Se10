@@ -148,19 +148,7 @@ namespace GestoresDeNegocio.Terceros
             }
 
             if (VariableDeFacturasEmt.Fae_Sii_Activo() && VariablesDeClientes.Cli_Validar_En_La_AEAT())
-                try
-                {
-                    ValidarClienteEnAeat(inter.NIF(Contexto, quitarPrefijoEs: true), inter.RazonSocial(Contexto));
-                }
-                catch (Exception e)
-                {
-                    if (e.Message.EndsWith(msjCertificados.CertificadoNoInstalado.Right(20)))
-                    {
-                        GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar modifique el parámetro '{enumParametrosDeCliente.CLI_Validar_Aeat }'");
-                    }
-                    else
-                        GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}");
-                }
+                ValidarClienteEnAeat(Contexto, inter.NIF(Contexto, quitarPrefijoEs: true), inter.RazonSocial(Contexto));
 
             var direccion = cliente.DireccionFiscal(Contexto, errorSiNoHay: false);
             if (!cliente.VAT.IsNullOrEmpty())
@@ -270,31 +258,72 @@ namespace GestoresDeNegocio.Terceros
 
         public static ClienteDtm CrearClienteCompleto(ContextoSe contexto, ClienteFacturadorJson datos)
         {
-            var clienteExistente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(ClienteDto.NIF), datos.NIF, errorSiNoHay: false);
-            if (clienteExistente != null)
-                return clienteExistente;
-
             var tipo = datos.TipoDeCliente.IsNullOrEmpty()
                 ? ApiDeTerceros.TipoDeClienteEsp(datos.NIF)
                 : ApiDeEnsamblados.ToEnumerado<enumTipoCliente>(datos.TipoDeCliente);
 
-            InterlocutorDtm interlocutor;
-            if (tipo == enumTipoCliente.Juridica)
+            if (datos.ValidarEnLaAeat)
             {
-                var sociedad = ExtensorDeSociedades.CrearSiNoExiste(contexto, datos.NIF, datos.Nombre, datos.Nombre, null, datos.eMail, datos.Telefono);
-                interlocutor = sociedad.CrearInterlocutor(contexto, errorSihay: false);
+                var razonSocial = tipo == enumTipoCliente.Fisica ? $"{datos.Apellidos}, {datos.Nombre}" : datos.Nombre;
+                ValidarClienteEnAeat(contexto, datos.NIF, razonSocial);
+            }
+
+            ClienteDtm cliente;
+            var clienteExistente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(ClienteDto.NIF), datos.NIF, errorSiNoHay: false);
+
+            if (clienteExistente != null)
+            {
+                cliente = clienteExistente;
+                var interlocutor = contexto.SeleccionarPorId<InterlocutorDtm>(cliente.IdInterlocutor);
+
+                if (interlocutor.EsPersona)
+                {
+                    var persona = contexto.SeleccionarPorId<PersonaDtm>(interlocutor.IdPersona.Value);
+                    if ((persona.Apellidos != datos.Apellidos || persona.Nombre != datos.Nombre) && datos.SustituirDatosIdentificativos)
+                    {
+                        persona.Apellidos = datos.Apellidos;
+                        persona.Nombre = datos.Nombre;
+                        persona.Modificar(contexto);
+                    }
+                }
+                else if (interlocutor.EsSociedad)
+                {
+                    var sociedad = contexto.SeleccionarPorId<SociedadDtm>(interlocutor.IdSociedad.Value);
+                    if (sociedad.RazonSocial != datos.Nombre && datos.SustituirDatosIdentificativos)
+                    {
+                        sociedad.Nombre = datos.Nombre;
+                        sociedad.RazonSocial = datos.Nombre;
+                        sociedad.Modificar(contexto);
+                    }
+                }
+
+                if ((cliente.eMail != datos.eMail || cliente.Telefono != datos.Telefono) && datos.SustituirDatosDeContacto)
+                {
+                    cliente.eMail = datos.eMail;
+                    cliente.Telefono = datos.Telefono;
+                    cliente.Modificar(contexto);
+                }
             }
             else
             {
-                var esNie = ApiDeTerceros.ValidarNie(datos.NIF).IsNullOrEmpty();
-                var persona = ExtensorDePersonas.CrearSiNoExiste(contexto, datos.NIF, datos.Nombre, datos.Apellidos, esNie, datos.eMail, datos.Telefono);
-                interlocutor = persona.CrearInterlocutor(contexto, errorSihay: false);
+                InterlocutorDtm interlocutor;
+                if (tipo == enumTipoCliente.Juridica)
+                {
+                    var sociedad = ExtensorDeSociedades.CrearSiNoExiste(contexto, datos.NIF, datos.Nombre, datos.Nombre, null, datos.eMail, datos.Telefono);
+                    interlocutor = sociedad.CrearInterlocutor(contexto, errorSihay: false);
+                }
+                else
+                {
+                    var esNie = ApiDeTerceros.ValidarNie(datos.NIF).IsNullOrEmpty();
+                    var persona = ExtensorDePersonas.CrearSiNoExiste(contexto, datos.NIF, datos.Nombre, datos.Apellidos, esNie, datos.eMail, datos.Telefono);
+                    interlocutor = persona.CrearInterlocutor(contexto, errorSihay: false);
+                }
+
+                var idCuenta = contexto.SeleccionarPorPropiedad<CuentaDtm>(nameof(CuentaDtm.Codigo), VariablesDeCuentas.Clientes).Id;
+                cliente = CrearCliente(contexto, interlocutor, idCuenta);
             }
 
-            var idCuenta = contexto.SeleccionarPorPropiedad<CuentaDtm>(nameof(CuentaDtm.Codigo), VariablesDeCuentas.Clientes).Id;
-            var cliente = CrearCliente(contexto, interlocutor, idCuenta);
-
-            if (!datos.Municipio.IsNullOrEmpty() && cliente.DireccionFiscal(contexto, errorSiNoHay: false) is null)
+            if (!datos.Municipio.IsNullOrEmpty())
             {
                 var municipio = contexto.SeleccionarPorNombre<MunicipioDtm>(datos.Municipio, $"No se ha localizado el municipio indicado: '{datos.Municipio}'", aplicarJoin: true);
                 var tipoVia = contexto.SeleccionarPorNombre<TipoDeViaDtm>(datos.TipoDeVia, $"No se ha localizado el tipo de vía indicado: '{datos.TipoDeVia}'");
@@ -302,28 +331,55 @@ namespace GestoresDeNegocio.Terceros
                 if (codigoPostal == null)
                     GestorDeErrores.Emitir($"No se ha localizado el código postal indicado: '{datos.CodigoPostal}'");
 
-                var calle = new CalleDtm { Nombre = datos.Calle, IdMunicipio = municipio.Id, IdTipoDeVia = tipoVia.Id }
-                    .InsertarSiNoExiste(contexto, new List<string> { nameof(CalleDtm.Nombre), nameof(CalleDtm.IdTipoDeVia), nameof(CalleDtm.IdMunicipio) });
-
-                GestorDeCpsDeUnaCalle.Gestor(contexto, contexto.Mapeador).CrearRelacion(new CpsDeUnaCalleDto
+                var calle = contexto.SeleccionarTodos<CalleDtm>(new Dictionary<string, object>
                 {
-                    IdCalle = calle.Id,
-                    IdCp = codigoPostal.Id,
-                    Mano = ParseosDeManosDeUnaCalle.Ambos
-                }, new ParametrosDeNegocio(enumTipoOperacion.Insertar), errorSiYaExiste: false);
+                    { nameof(CalleDtm.Nombre), datos.Calle },
+                    { nameof(CalleDtm.IdTipoDeVia), tipoVia.Id },
+                    { nameof(CalleDtm.IdMunicipio), municipio.Id }
+                }).FirstOrDefault();
 
-                GestorDeDirecciones.Gestor(contexto, enumNegocio.Cliente).PersistirRegistro(new DireccionDeUnClienteDtm
+                if (calle == null)
                 {
-                    IdElemento = cliente.Id,
-                    IdPais = municipio.Provincia.IdPais,
-                    IdProvincia = municipio.IdProvincia,
-                    IdMunicipio = municipio.Id,
-                    IdCalle = calle.Id,
-                    IdCp = codigoPostal.Id,
-                    Calificador = enumCalificadorDireccion.fiscal,
-                    Numero = datos.Numero,
-                    Negocio = enumNegocio.Cliente
-                }, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
+                    if (!datos.CrearCalleSiNoExiste)
+                        GestorDeErrores.Emitir($"La calle '{datos.Calle}' no existe en el municipio '{datos.Municipio}' y no se permite crearla");
+
+                    calle = new CalleDtm { Nombre = datos.Calle, IdMunicipio = municipio.Id, IdTipoDeVia = tipoVia.Id }
+                        .Insertar(contexto, parametros: new Dictionary<string, object> { { ltrCalles.ValidarEnCatastro, datos.ValidarEnCatastro } });
+
+                    GestorDeCpsDeUnaCalle.Gestor(contexto, contexto.Mapeador).CrearRelacion(new CpsDeUnaCalleDto
+                    {
+                        IdCalle = calle.Id,
+                        IdCp = codigoPostal.Id,
+                        Mano = ParseosDeManosDeUnaCalle.Ambos
+                    }, new ParametrosDeNegocio(enumTipoOperacion.Insertar), errorSiYaExiste: false);
+                }
+
+                var direccionActual = GestorDeDirecciones.LeerRegistros(contexto, enumNegocio.Cliente, cliente.Id)
+                    .FirstOrDefault(x => x.Calificador == enumCalificadorDireccion.fiscal && x.Activo);
+
+                var esLaMisma = direccionActual != null
+                    && direccionActual.IdCalle == calle.Id
+                    && direccionActual.IdCp == codigoPostal.Id
+                    && direccionActual.Numero == datos.Numero;
+
+                if (!esLaMisma)
+                {
+                    if (direccionActual != null)
+                        GestorDeDirecciones.Gestor(contexto, enumNegocio.Cliente).PersistirRegistro(direccionActual, new ParametrosDeNegocio(enumTipoOperacion.Eliminar));
+
+                    GestorDeDirecciones.Gestor(contexto, enumNegocio.Cliente).PersistirRegistro(new DireccionDeUnClienteDtm
+                    {
+                        IdElemento = cliente.Id,
+                        IdPais = municipio.Provincia.IdPais,
+                        IdProvincia = municipio.IdProvincia,
+                        IdMunicipio = municipio.Id,
+                        IdCalle = calle.Id,
+                        IdCp = codigoPostal.Id,
+                        Calificador = enumCalificadorDireccion.fiscal,
+                        Numero = datos.Numero,
+                        Negocio = enumNegocio.Cliente
+                    }, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
+                }
             }
 
             return cliente;
@@ -433,15 +489,25 @@ namespace GestoresDeNegocio.Terceros
             if (!VariableDeFacturasEmt.Fae_Sii_Activo())
                 GestorDeErrores.Emitir($"El servicio de Verifactu no está activo, no se puede validar el NIF de la sociedad '{cliente.Referencia}' en la AEAT");
 
-            ValidarClienteEnAeat(cliente.NIF(Contexto, quitarPrefijoEs: true), cliente.RazonSocial(Contexto));
+            ValidarClienteEnAeat(Contexto, cliente.NIF(Contexto, quitarPrefijoEs: true), cliente.RazonSocial(Contexto));
         }
 
-        private void ValidarClienteEnAeat(string nif, string razonSocial)
+        private static void ValidarClienteEnAeat(ContextoSe contexto, string nif, string razonSocial)
         {
-            var miSociedad = Contexto.Set<SociedadDtm>().FirstOrDefault(s => s.Id == Contexto.Set<CentroGestorDtm>().First(cg => true).IdSociedad);
-            var gestorSii = new GeneradorSii(Contexto, miSociedad);
+            try
+            {
+                var miSociedad = contexto.Set<SociedadDtm>().FirstOrDefault(s => s.Id == contexto.Set<CentroGestorDtm>().First(cg => true).IdSociedad);
+                var gestorSii = new GeneradorSii(contexto, miSociedad);
 
-            gestorSii.ValidarNif(nif, razonSocial);
+                gestorSii.ValidarNif(nif, razonSocial);
+            }
+            catch (Exception e)
+            {
+                if (e.Message.EndsWith(msjCertificados.CertificadoNoInstalado.Right(20)))
+                    GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar modifique el parámetro '{enumParametrosDeCliente.CLI_Validar_Aeat}'");
+                else
+                    GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}");
+            }
         }
     }
 

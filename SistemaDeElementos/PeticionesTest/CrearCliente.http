@@ -14,7 +14,12 @@ Content-Type: application/json
   "CodigoPostal": "28001",
   "TipoDeVia": "Calle",
   "Calle": "Serrano",
-  "Numero": 45
+  "Numero": 45,
+  "ValidarEnLaAeat": false,
+  "SustituirDatosIdentificativos": true,
+  "SustituirDatosDeContacto": true,
+  "CrearCalleSiNoExiste": true,
+  "ValidarEnCatastro": true
 }
 
 ###
@@ -32,7 +37,12 @@ Content-Type: application/json
   "CodigoPostal": "28001",
   "TipoDeVia": "Calle",
   "Calle": "Serrano",
-  "Numero": 45
+  "Numero": 45,
+  "ValidarEnLaAeat": false,
+  "SustituirDatosIdentificativos": true,
+  "SustituirDatosDeContacto": true,
+  "CrearCalleSiNoExiste": true,
+  "ValidarEnCatastro": true
 }
 
 ###
@@ -65,6 +75,75 @@ Content-Type: application/json
   "TipoDeVia": "Calle",
   "Calle": "Serrano",
   "Numero": 45
+}
+
+###
+
+### 5. Validar el NIF/razón social contra la AEAT antes de dar de alta
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "B73954455",
+  "Nombre": "Cliente Ejemplo SL",
+  "ValidarEnLaAeat": true
+}
+
+###
+
+### 6. Actualizar un cliente ya existente: si el nombre/apellidos, la razón social o los datos
+### de contacto han cambiado en origen, se sustituyen en Se10 (repetir con el mismo NIF del
+### ejemplo 1, cambiando estos datos, para comprobarlo)
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García de la Torre",
+  "eMail": "juan.perez@ejemplo.com",
+  "Telefono": "915551299",
+  "SustituirDatosIdentificativos": true,
+  "SustituirDatosDeContacto": true
+}
+
+###
+
+### 7. Cambiar la dirección fiscal de un cliente ya existente (mismo NIF, otra calle): se da
+### de baja la dirección anterior y se crea la nueva
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28006",
+  "TipoDeVia": "Calle",
+  "Calle": "Velázquez",
+  "Numero": 10,
+  "CrearCalleSiNoExiste": true,
+  "ValidarEnCatastro": true
+}
+
+###
+
+### 8. No permitir crear la calle si no existe ya en el callejero (falla con "no se permite
+### crearla" en vez de darla de alta)
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28001",
+  "TipoDeVia": "Calle",
+  "Calle": "Una Calle Que Seguro No Existe 12345",
+  "Numero": 1,
+  "CrearCalleSiNoExiste": false
 }
 
 ###

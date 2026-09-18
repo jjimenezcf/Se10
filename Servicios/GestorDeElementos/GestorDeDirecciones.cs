@@ -219,7 +219,6 @@ namespace GestorDeElementos
                 else
                     if (parametros.Operacion == enumTipoOperacion.Eliminar)
                     {
-
                         if (Negocio.UsaTrazas()) parametros.registroEnBd = DireccionSql.LeerPorId(Contexto, _Tabla, Negocio.TipoDtm(), registro.Id);
                         DireccionSql.Eliminar(Contexto, _Tabla, registro.Id);
                     }
