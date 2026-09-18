@@ -2,6 +2,23 @@
 
 Hay **dos formas** de crear una factura vía API, ambas autenticadas con el `apiKey` del facturador dado de alta para la sociedad (no requieren login, son `[AllowAnonymous]`).
 
+## Herramienta de pruebas: TestFacturador
+
+Además de los ficheros `.http` (`SistemaDeElementos/PeticionesTest/`), el proyecto `Pruebas/Facturador/TestFacturador` es una consola interactiva que guía la prueba paso a paso sin tener que escribir JSON a mano.
+
+Al arrancar pide la URL base, el `Nif` del emisor y el `apiKey`, y luego muestra un menú:
+
+```
+1. Crear cliente
+2. Crear factura
+0. Salir
+```
+
+- **1. Crear cliente**: pregunta uno a uno todos los campos del JSON de `epCrearCliente` (incluidos los flags `ValidarEnLaAeat`, `SustituirDatosIdentificativos`, `SustituirDatosDeContacto`, `CrearCalleSiNoExiste`, `ValidarEnCatastro`), enseña la petición antes de enviarla y pide confirmación.
+- **2. Crear factura**: pide el `Nif del facturado`, construye una factura de ejemplo y la envía a `epCrearFactura`; si se crea correctamente, entra en un submenú (descargar XML/PDF, acceder a la factura, rectificar por datos erróneos, o crear un cliente) con la opción `0` para volver al menú principal.
+
+Al terminar cualquiera de las dos opciones se vuelve al menú principal, así que se pueden encadenar varias pruebas sin reiniciar el programa.
+
 ## Opción A — Modo directo (un solo paso)
 
 `POST /Facturador/epCrearFactura?nif={nifEmisor}&apiKey={apiKey}`

@@ -53,8 +53,10 @@ Si al generar la respuesta hay ambiguedad o contradición con las respuestas ant
 #### R4.3 · Estado Actual
 - **Disparador:** Elementos que "están", "son" o mención directa del estado **sin referencia temporal** (ej: "dame las asignadas", "que estén pendientes").
 - **Acción:** Genera el objeto:
-  1. si se encuenta Id encontrado en `CONTEXTO DE DATOS:: Estados` `{"Clausula": "idestado", "Criterio": "igual", "Valor": "Id"}`
-  2. si no se encuenta Id encontrado en `CONTEXTO DE DATOS:: Estados` y parte de los nombres de estado se encuentran en `CONTEXTO DE DATOS:: Estados` `{"Clausula": "estados", "Criterio": "contiene", "Valor": "nombre1;nombre2;..."}`
+  1. Si se encuentra **un único** Id en `CONTEXTO DE DATOS:: Estados` → `{"Clausula": "idestado", "Criterio": "igual", "Valor": "Id"}`
+  2. Si se encuentran **varios** Ids en `CONTEXTO DE DATOS:: Estados` (ej: "que estén en estado A o en estado B") → `{"Clausula": "idestado", "Criterio": "esAlgunoDe", "Valor": "Id1,Id2,..."}`. **IMPORTANTE:** al ser IDs numéricos se separan siempre con **coma** (`,`), NUNCA con punto y coma (`;`) — el `;` está reservado exclusivamente para listas de texto (nombres, palabras clave), ver R7, R8, R9.2 y R10.
+  3. Si no se encuentra Id en `CONTEXTO DE DATOS:: Estados` y parte de los nombres de estado se encuentran en `CONTEXTO DE DATOS:: Estados` → `{"Clausula": "estados", "Criterio": "contiene", "Valor": "nombre1;nombre2;..."}`
+- **Ejemplo:** "dime las tareas que están en estado A y estado B" → se localizan los IDs 6 y 35 en `CONTEXTO DE DATOS:: Estados` → `{"Clausula": "idestado", "Criterio": "esAlgunoDe", "Valor": "6,35"}`
 
 #### R4.4 · Usuario que realizó la acción en hitos
 - **Disparador:** Frases que implican quién realizó la acción de estado o transición: "que [yo/nombre] terminé", "que asigné", "que [usuario] canceló", "que [persona] envió". También "asignadas por mí", "que yo cerré".

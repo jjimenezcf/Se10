@@ -1,5 +1,8 @@
 //POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
 
+// Alternativa interactiva: Pruebas/Facturador/TestFacturador (consola) — menú "1. Crear
+// cliente", pide cada campo (incluidos los flags) uno a uno y enseña el JSON antes de enviarlo.
+
 ### 1. Crear cliente persona física (NIF/NIE), con dirección fiscal
 POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
 Content-Type: application/json
