@@ -30,12 +30,10 @@ if (!await ComprobarUrlBaseAsync(uriBase))
 
 var nif = Pedir("Nif del emisor", config.Nif);
 var apiKey = Pedir("ApiKey", config.ApiKey);
-var nifFacturado = Pedir("Nif del facturado", config.NifFacturado);
 
 config.UrlBase = urlBase;
 config.Nif = nif;
 config.ApiKey = apiKey;
-config.NifFacturado = nifFacturado;
 config.Guardar();
 
 using var handler = new HttpClientHandler
@@ -45,101 +43,23 @@ using var handler = new HttpClientHandler
 };
 using var http = new HttpClient(handler) { BaseAddress = uriBase };
 
-var factura = FacturaDeEjemplo.Construir(config.NifFacturado);
-var cuerpo = JsonSerializer.Serialize(factura, jsonOpciones);
-var rutaRelativa = $"Facturador/epCrearFactura?nif={Uri.EscapeDataString(nif)}&apiKey={Uri.EscapeDataString(apiKey)}";
-
-Console.WriteLine();
-Console.WriteLine("Se va a ejecutar la siguiente petición:");
-Console.WriteLine();
-Console.WriteLine($"POST {new Uri(http.BaseAddress!, rutaRelativa)}");
-Console.WriteLine("Content-Type: application/json");
-Console.WriteLine();
-Console.WriteLine(cuerpo);
-Console.WriteLine();
-
-if (!Confirmar("¿Deseas ejecutarla?"))
-{
-    Console.WriteLine("Cancelado.");
-    return;
-}
-
-Resultado? resultado;
-try
-{
-    using var respuesta = await http.PostAsync(rutaRelativa, new StringContent(cuerpo, Encoding.UTF8, "application/json"));
-    var contenido = await respuesta.Content.ReadAsStringAsync();
-    MostrarRespuesta(contenido, jsonOpciones);
-    resultado = JsonSerializer.Deserialize<Resultado>(contenido, jsonOpciones);
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error al llamar al servicio: {DescribirError(ex, uriBase)}");
-    return;
-}
-
-Console.WriteLine();
-Console.WriteLine($"Estado: {resultado?.Estado}");
-Console.WriteLine($"Mensaje: {resultado?.Mensaje ?? resultado?.Consola}");
-
-if (resultado is null || !resultado.EsOk || resultado.Datos.ValueKind != JsonValueKind.Object)
-{
-    Console.WriteLine();
-    Esperar("No se puede continuar: la factura no se ha creado correctamente.");
-    return;
-}
-
-var facturaCreada = resultado.Datos.Deserialize<FacturaCreada>(jsonOpciones);
-if (facturaCreada is null || string.IsNullOrEmpty(facturaCreada.NumeroFactura))
-{
-    Console.WriteLine("La respuesta no trae los datos esperados de la factura.");
-    return;
-}
-
-Console.WriteLine();
-Console.WriteLine($"Número de factura : {facturaCreada.NumeroFactura}");
-Console.WriteLine($"GuidDeConsultaPdf  : {facturaCreada.GuidDeConsultaPdf}");
-Console.WriteLine($"GuidDeConsultaXml  : {facturaCreada.GuidDeConsultaXml}");
-Console.WriteLine($"UrlDeLaFactura     : {facturaCreada.UrlDeLaFactura}");
-
 while (true)
 {
     Console.WriteLine();
-    Console.WriteLine("1. Descargar XML");
-    Console.WriteLine("2. Descargar PDF");
-    Console.WriteLine("3. Acceder a la factura");
-    Console.WriteLine("4. Rectificar por datos erroneos");
-    Console.WriteLine("5. Crear cliente");
+    Console.WriteLine("1. Crear cliente");
+    Console.WriteLine("2. Crear factura");
     Console.WriteLine("0. Salir");
     Console.Write("Opción: ");
-    var opcion = Console.ReadLine();
+    var opcionInicial = Console.ReadLine();
 
-    switch (opcion)
+    switch (opcionInicial)
     {
         case "1":
-            if (facturaCreada.GuidDeConsultaXml is null)
-                Console.WriteLine("Esta factura no tiene GuidDeConsultaXml.");
-            else
-                await DescargarDocumentoAsync(http, nif, apiKey, facturaCreada.NumeroFactura, facturaCreada.GuidDeConsultaXml.Value, "epSolicitarXml", jsonOpciones);
+            await CrearClienteAsync(http, nif, apiKey, jsonOpciones);
             break;
 
         case "2":
-            if (facturaCreada.GuidDeConsultaPdf is null)
-                Console.WriteLine("Esta factura no tiene GuidDeConsultaPdf.");
-            else
-                await DescargarDocumentoAsync(http, nif, apiKey, facturaCreada.NumeroFactura, facturaCreada.GuidDeConsultaPdf.Value, "epSolicitarPdf", jsonOpciones);
-            break;
-
-        case "3":
-            AbrirEnNavegador(facturaCreada.UrlDeLaFactura);
-            break;
-
-        case "4":
-            await RectificarPorDeAsync(http, apiKey, facturaCreada.NumeroFactura, jsonOpciones);
-            break;
-
-        case "5":
-            await CrearClienteAsync(http, nif, apiKey, jsonOpciones);
+            await CrearFacturaConMenuAsync(http, nif, apiKey, config, jsonOpciones);
             break;
 
         case "0":
@@ -148,6 +68,119 @@ while (true)
         default:
             Console.WriteLine("Opción no válida.");
             break;
+    }
+}
+
+static async Task CrearFacturaConMenuAsync(HttpClient http, string nif, string apiKey, Config config, JsonSerializerOptions jsonOpciones)
+{
+    var nifFacturado = Pedir("Nif del facturado", config.NifFacturado);
+    config.NifFacturado = nifFacturado;
+    config.Guardar();
+
+    var factura = FacturaDeEjemplo.Construir(nifFacturado);
+    var cuerpo = JsonSerializer.Serialize(factura, jsonOpciones);
+    var rutaRelativa = $"Facturador/epCrearFactura?nif={Uri.EscapeDataString(nif)}&apiKey={Uri.EscapeDataString(apiKey)}";
+
+    Console.WriteLine();
+    Console.WriteLine("Se va a ejecutar la siguiente petición:");
+    Console.WriteLine();
+    Console.WriteLine($"POST {new Uri(http.BaseAddress!, rutaRelativa)}");
+    Console.WriteLine("Content-Type: application/json");
+    Console.WriteLine();
+    Console.WriteLine(cuerpo);
+    Console.WriteLine();
+
+    if (!Confirmar("¿Deseas ejecutarla?"))
+    {
+        Console.WriteLine("Cancelado.");
+        return;
+    }
+
+    Resultado? resultado;
+    try
+    {
+        using var respuesta = await http.PostAsync(rutaRelativa, new StringContent(cuerpo, Encoding.UTF8, "application/json"));
+        var contenido = await respuesta.Content.ReadAsStringAsync();
+        MostrarRespuesta(contenido, jsonOpciones);
+        resultado = JsonSerializer.Deserialize<Resultado>(contenido, jsonOpciones);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al llamar al servicio: {DescribirError(ex, http.BaseAddress!)}");
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Estado: {resultado?.Estado}");
+    Console.WriteLine($"Mensaje: {resultado?.Mensaje ?? resultado?.Consola}");
+
+    if (resultado is null || !resultado.EsOk || resultado.Datos.ValueKind != JsonValueKind.Object)
+    {
+        Console.WriteLine();
+        Esperar("No se puede continuar: la factura no se ha creado correctamente.");
+        return;
+    }
+
+    var facturaCreada = resultado.Datos.Deserialize<FacturaCreada>(jsonOpciones);
+    if (facturaCreada is null || string.IsNullOrEmpty(facturaCreada.NumeroFactura))
+    {
+        Console.WriteLine("La respuesta no trae los datos esperados de la factura.");
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Número de factura : {facturaCreada.NumeroFactura}");
+    Console.WriteLine($"GuidDeConsultaPdf  : {facturaCreada.GuidDeConsultaPdf}");
+    Console.WriteLine($"GuidDeConsultaXml  : {facturaCreada.GuidDeConsultaXml}");
+    Console.WriteLine($"UrlDeLaFactura     : {facturaCreada.UrlDeLaFactura}");
+
+    while (true)
+    {
+        Console.WriteLine();
+        Console.WriteLine("1. Descargar XML");
+        Console.WriteLine("2. Descargar PDF");
+        Console.WriteLine("3. Acceder a la factura");
+        Console.WriteLine("4. Rectificar por datos erroneos");
+        Console.WriteLine("5. Crear cliente");
+        Console.WriteLine("0. Volver al menú principal");
+        Console.Write("Opción: ");
+        var opcion = Console.ReadLine();
+
+        switch (opcion)
+        {
+            case "1":
+                if (facturaCreada.GuidDeConsultaXml is null)
+                    Console.WriteLine("Esta factura no tiene GuidDeConsultaXml.");
+                else
+                    await DescargarDocumentoAsync(http, nif, apiKey, facturaCreada.NumeroFactura, facturaCreada.GuidDeConsultaXml.Value, "epSolicitarXml", jsonOpciones);
+                break;
+
+            case "2":
+                if (facturaCreada.GuidDeConsultaPdf is null)
+                    Console.WriteLine("Esta factura no tiene GuidDeConsultaPdf.");
+                else
+                    await DescargarDocumentoAsync(http, nif, apiKey, facturaCreada.NumeroFactura, facturaCreada.GuidDeConsultaPdf.Value, "epSolicitarPdf", jsonOpciones);
+                break;
+
+            case "3":
+                AbrirEnNavegador(facturaCreada.UrlDeLaFactura);
+                break;
+
+            case "4":
+                await RectificarPorDeAsync(http, apiKey, facturaCreada.NumeroFactura, jsonOpciones);
+                break;
+
+            case "5":
+                await CrearClienteAsync(http, nif, apiKey, jsonOpciones);
+                break;
+
+            case "0":
+                return;
+
+            default:
+                Console.WriteLine("Opción no válida.");
+                break;
+        }
     }
 }
 
@@ -224,6 +257,14 @@ static bool Confirmar(string pregunta)
     Console.Write($"{pregunta} (S/n): ");
     var entrada = Console.ReadLine()?.Trim().ToLowerInvariant();
     return string.IsNullOrEmpty(entrada) || entrada == "s" || entrada == "si" || entrada == "y" || entrada == "yes";
+}
+
+static bool PedirFlag(string etiqueta, bool valorPorDefecto)
+{
+    Console.Write($"{etiqueta} (S/N) [{(valorPorDefecto ? "S" : "N")}]: ");
+    var entrada = Console.ReadLine()?.Trim().ToLowerInvariant();
+    if (string.IsNullOrEmpty(entrada)) return valorPorDefecto;
+    return entrada == "s" || entrada == "si" || entrada == "y" || entrada == "yes";
 }
 
 
@@ -364,6 +405,12 @@ static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, 
     var numeroTexto = Pedir("Número de policía", "");
     int.TryParse(numeroTexto, out var numero);
 
+    var validarEnLaAeat = PedirFlag("Validar en la AEAT", false);
+    var sustituirDatosIdentificativos = PedirFlag("Sustituir datos identificativos si el cliente ya existe", true);
+    var sustituirDatosDeContacto = PedirFlag("Sustituir datos de contacto si el cliente ya existe", true);
+    var crearCalleSiNoExiste = PedirFlag("Crear la calle si no existe", true);
+    var validarEnCatastro = PedirFlag("Validar la calle en el Catastro al crearla", true);
+
     var cliente = new ClienteJson
     {
         TipoDeCliente = string.IsNullOrWhiteSpace(tipoDeCliente) ? null : tipoDeCliente,
@@ -376,7 +423,12 @@ static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, 
         CodigoPostal = string.IsNullOrWhiteSpace(codigoPostal) ? null : codigoPostal,
         TipoDeVia = string.IsNullOrWhiteSpace(tipoDeVia) ? null : tipoDeVia,
         Calle = string.IsNullOrWhiteSpace(calle) ? null : calle,
-        Numero = numero
+        Numero = numero,
+        ValidarEnLaAeat = validarEnLaAeat,
+        SustituirDatosIdentificativos = sustituirDatosIdentificativos,
+        SustituirDatosDeContacto = sustituirDatosDeContacto,
+        CrearCalleSiNoExiste = crearCalleSiNoExiste,
+        ValidarEnCatastro = validarEnCatastro
     };
 
     var cuerpo = JsonSerializer.Serialize(cliente, jsonOpciones);

@@ -40,6 +40,11 @@ public class ClienteJson
     public string? TipoDeVia { get; set; }
     public string? Calle { get; set; }
     public int Numero { get; set; }
+    public bool ValidarEnLaAeat { get; set; }
+    public bool SustituirDatosIdentificativos { get; set; }
+    public bool SustituirDatosDeContacto { get; set; }
+    public bool CrearCalleSiNoExiste { get; set; }
+    public bool ValidarEnCatastro { get; set; }
 }
 
 public class ClienteCreado
