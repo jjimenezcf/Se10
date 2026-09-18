@@ -43,7 +43,7 @@ namespace ModeloDeDto.Logistica
             AutoSpan = true,
             trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_Tras_Seleccionar_Unitario) + "([" + nameof(enumParamTs.idLista) + "])",
             trasBlanquear = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_Tras_Blanquear_Unitario) + "()",
-            OtrosClausulasDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_FiltrosPorClaseDeUnitario) + "(this)"
+            OtrosClausulasDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_FiltrosPorClaseDeUnitario) + "()"
             )
         ]
         public string Unitario { get; set; }

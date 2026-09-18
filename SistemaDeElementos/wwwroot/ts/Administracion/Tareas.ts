@@ -340,7 +340,7 @@
         EntornoSe.AbrirPestana(url);
     }
 
-    export function Tar_FiltrosParaCuandoRealizar(lista: HTMLInputElement): Array<ClausulaDeFiltrado> {
+    export function Tar_FiltrosParaCuandoRealizar(): Array<ClausulaDeFiltrado> {
         let clausulas: Array<ClausulaDeFiltrado> = new Array<ClausulaDeFiltrado>();
 
         let modal = (Crud.crudMnt as CrudDeTareas).ModalCuandoRealizar;

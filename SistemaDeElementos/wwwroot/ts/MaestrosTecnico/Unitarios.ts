@@ -7,7 +7,7 @@
             Referencia: 'referencia',
             Proponer: 'proponer'
         }
-    } 
+    }
 
     export function CrearCrudDeUnitarios(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string) {
         Crud.crudMnt = new MaestrosTecnico.CrudDeUnitarios(idPanelMnt, idPanelCreacion, idPanelEdicion, idModalBorrar);
@@ -100,14 +100,15 @@
             return;
         }
         ApiControl.DesbloquearEditor(referencia);
-
-        let siglaClase: string = clase.options[clase.selectedIndex].label.substring(0,3);
-        let siglaNatur: string = naturaleza.selectedIndex > 0 ? ObtenerSubcadenas(naturaleza.options[naturaleza.selectedIndex].label, '(', ')')[0] : "";    
-
-        let proponer = `${siglaClase}.${siglaNatur}: `;
-        if (referencia.value.indexOf(proponer) > -1) return;
-        referencia.value = proponer;
-        Unitario_DesbloquearReferencia();
+        var objeto = OpcionesDeLasListas.ObtenerObjeto(naturaleza);
+        if (Definido(objeto)) {
+            let siglaNatur: string = naturaleza.selectedIndex > 0 ? ObtenerSubcadenas(naturaleza.options[naturaleza.selectedIndex].label, '(', ')')[0] : "";
+            let proponer = `${siglaNatur}: `;
+            if (referencia.value.indexOf(proponer) > -1)
+                return;
+            referencia.value = proponer;
+            Unitario_DesbloquearReferencia();
+        }
     }
 }
 

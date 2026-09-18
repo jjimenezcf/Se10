@@ -82,7 +82,7 @@ namespace Logistica {
         Ral_CalcularImportesDeLinea();
     }
 
-    export function Ral_FiltrosPorClaseDeUnitario(lista: HTMLInputElement): Array<ClausulaDeFiltrado> {
+    export function Ral_FiltrosPorClaseDeUnitario(): Array<ClausulaDeFiltrado> {
         let clausulas: Array<ClausulaDeFiltrado> = new Array<ClausulaDeFiltrado>();
         clausulas.push(new ClausulaDeFiltrado(ltrPropiedades.Maestros.unitario.FiltrosPorClaseDeUnitario, atCriterio.igual, ltrValores.Maestros.Unitario.Clase.Material));
         return clausulas;
