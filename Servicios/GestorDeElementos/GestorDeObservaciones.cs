@@ -239,8 +239,9 @@ namespace GestorDeElementos
 
             if (Negocio == enumNegocio.Tarea && (observacion.Nombre == enumCuandoRealizar.Anterior.Descripcion() || observacion.Nombre == enumCuandoRealizar.Despues.Descripcion()) || observacion.Nombre == enumTareaReferenciadaComo.Copia.Descripcion())
             {
-                var tareaEnlazada = observacion.TareaEnlazada(Contexto);
-                elemento.Nombre = elemento.Nombre + ": (" + tareaEnlazada.Referencia + ") "  + tareaEnlazada.Nombre ;
+                var tareaEnlazada = observacion.TareaEnlazada(Contexto, emitirError: false);
+                if (tareaEnlazada != null)
+                    elemento.Nombre = elemento.Nombre + ": (" + tareaEnlazada.Referencia + ") " + tareaEnlazada.Nombre;
             }
 
             if (parametros.LeerPorIdParaEditar)
