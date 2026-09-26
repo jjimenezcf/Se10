@@ -79,18 +79,18 @@ namespace GestoresDeNegocio.Callejero
             return gestor.LeerRegistroCacheadoPoAk(filtros, aplicarJoin: false, errorSiNoHay, errorSiMasDeUno);
         }
 
-        protected override void AntesDePersistir(PaisDtm registro, ParametrosDeNegocio parametros)
+        protected override void AntesDePersistir(PaisDtm pais, ParametrosDeNegocio parametros)
         {
+            base.AntesDePersistir(pais, parametros);
             if (parametros.Insertando || parametros.Modificando)
-                registro.Nombre = registro.Nombre.Capitalizar();
+                pais.Nombre = pais.Nombre.Capitalizar();
 
-            base.AntesDePersistir(registro, parametros);
-            if (registro.ISO2 == ltrIsoPaises.Spain) registro.EsUE = true;
+            if (pais.ISO2 == ltrIsoPaises.Spain) pais.EsUE = true;
         }
 
-        protected override void DespuesDePersistir(PaisDtm registro, ParametrosDeNegocio parametros)
+        protected override void DespuesDePersistir(PaisDtm pais, ParametrosDeNegocio parametros)
         {
-            base.DespuesDePersistir(registro, parametros);
+            base.DespuesDePersistir(pais, parametros);
 
             if (parametros.Operacion == enumTipoOperacion.Modificar || parametros.Operacion == enumTipoOperacion.Eliminar)
               GestorDeMunicipios.EliminarCacheDeMunicipiosPorNombre();

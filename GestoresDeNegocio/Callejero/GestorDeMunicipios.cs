@@ -184,20 +184,12 @@ namespace GestoresDeNegocio.Callejero
         //Todo: --> Reglas de negocio
         protected override void AntesDePersistir(MunicipioDtm registro, ParametrosDeNegocio parametros)
         {
-            if (parametros.Insertando || parametros.Modificando)
-                registro.Nombre = registro.Nombre.Capitalizar();
-
             base.AntesDePersistir(registro, parametros);
 
-            if (parametros.Operacion == enumTipoOperacion.Modificar || parametros.Operacion == enumTipoOperacion.Insertar)
+            if (parametros.Insertando || parametros.Modificando)
             {
-                //if (registro.DC.Length > 1)
-                //    GestorDeErrores.Emitir($"La longitud del DC de un municipio sólo es de un caracter, uds ha indicado {registro.DC}");
-                //Obtener el código de la provincia del municipio
 
-                //ver si el municipio está relacionado con códigos postales
-
-                //si lo está, validar que los dos primeros dígitos del código postal corresponden con el código de la provincia
+                registro.Nombre = registro.Nombre.Capitalizar();
             }
 
             if (parametros.Operacion == enumTipoOperacion.Eliminar)

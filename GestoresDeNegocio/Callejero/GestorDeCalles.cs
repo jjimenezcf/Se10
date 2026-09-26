@@ -26,11 +26,11 @@ namespace GestoresDeNegocio.Callejero
             public MapearCalles()
             {
                 CreateMap<CalleDtm, CalleDto>()
-                    .ForMember(dto => dto.Municipio, dtm =>  dtm.MapFrom(dtm => dtm.Municipio == null ? null : dtm.Municipio.Nombre))
+                    .ForMember(dto => dto.Municipio, dtm => dtm.MapFrom(dtm => dtm.Municipio == null ? null : dtm.Municipio.Nombre))
                     .ForMember(dto => dto.Provincia, dtm => dtm.MapFrom(dtm => dtm.Municipio == null ? null : $"({dtm.Municipio.Provincia.Codigo}) {dtm.Municipio.Provincia.Nombre}"))
                     .ForMember(dto => dto.Pais, dtm => dtm.MapFrom(dtm => dtm.Municipio == null ? null : $"({dtm.Municipio.Provincia.Pais.Codigo}) {dtm.Municipio.Provincia.Pais.Nombre}"))
                     .ForMember(dto => dto.TipoDeVia, dtm => dtm.MapFrom(dtm => dtm.TipoDeVia == null ? null : $"{dtm.TipoDeVia.Nombre}"))
-                    .ForMember(dto => dto.IdProvincia, dtm => dtm.MapFrom(dtm => dtm.Municipio == null ? 0: dtm.Municipio.Provincia.Id))
+                    .ForMember(dto => dto.IdProvincia, dtm => dtm.MapFrom(dtm => dtm.Municipio == null ? 0 : dtm.Municipio.Provincia.Id))
                     .ForMember(dto => dto.IdPais, dtm => dtm.MapFrom(dtm => dtm.Municipio == null ? 0 : dtm.Municipio.Provincia.Pais.Id));
 
                 CreateMap<CalleDto, CalleDtm>()
@@ -307,13 +307,11 @@ namespace GestoresDeNegocio.Callejero
         //Todo: --> Reglas de negocio
         protected override void AntesDePersistir(CalleDtm calle, ParametrosDeNegocio parametros)
         {
-            if (parametros.Insertando || parametros.Modificando)
-                calle.Nombre = calle.Nombre.Capitalizar();
-
             base.AntesDePersistir(calle, parametros);
 
             if (parametros.Insertando || parametros.Modificando)
             {
+                calle.Nombre = calle.Nombre.Capitalizar();
                 //Si la calle esta relacionada con CPs validar que esos Cps corresponden al municipio
 
                 if (parametros.Parametros.LeerValor(ltrCalles.ValidarEnCatastro, false))
@@ -355,7 +353,7 @@ namespace GestoresDeNegocio.Callejero
             base.DespuesDeMapearElElemento(calle, elemento, parametros);
             List<ZonasDeUnaCalleDtm> zonas = ZonasDeUnaCalle(calle);
             var zonasConcatenadas = $"{(zonas.Count == 0 ? "" : "(" + string.Join(",", zonas.Select(x => x.Zona.Nombre)) + ")")}";
-            elemento.Expresion = elemento.Expresion + (elemento.Expresion.Contains(zonasConcatenadas)? "" : zonasConcatenadas) ;
+            elemento.Expresion = elemento.Expresion + (elemento.Expresion.Contains(zonasConcatenadas) ? "" : zonasConcatenadas);
 
 
             if (parametros.Parametros.LeerValor(ltrCalles.SeleccionarParaDireccion, false) ||

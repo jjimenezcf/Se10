@@ -100,18 +100,16 @@ namespace GestoresDeNegocio.Terceros
 
         protected override void AntesDePersistir(PersonaDtm persona, ParametrosDeNegocio parametros)
         {
-            if (parametros.Insertando || parametros.Modificando)
-            {
-                persona.Nombre = persona.Nombre.Capitalizar();
-                persona.Apellidos = persona.Apellidos.Capitalizar();
-            }
-
             base.AntesDePersistir(persona, parametros);
             if (parametros.Operacion == enumTipoOperacion.Insertar || parametros.Operacion == enumTipoOperacion.Modificar)
             {
                 var nifValido = persona.EsNie ? ApiDeTerceros.ValidarNie(persona.NIF) : ApiDeTerceros.ValidarNif(persona.NIF);
                 if (!nifValido.IsNullOrEmpty())
                     GestorDeErrores.Emitir(nifValido);
+
+                persona.Nombre = persona.Nombre.Capitalizar();
+                persona.Apellidos = persona.Apellidos.Capitalizar();
+
             }
             if (persona.SeHaModificadoElCampo<string>(x => x.Name == nameof(persona.NIF), parametros) && persona.TieneFacturas(Contexto))
                 GestorDeErrores.Emitir($"No se puede modificar el NIF de un cliente que tiene facturas emitidas");

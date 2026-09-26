@@ -121,10 +121,9 @@ namespace GestoresDeNegocio.Callejero
 
         protected override void AntesDePersistir(ProvinciaDtm registro, ParametrosDeNegocio parametros)
         {
+            base.AntesDePersistir(registro, parametros);
             if (parametros.Insertando || parametros.Modificando)
                 registro.Nombre = registro.Nombre.Capitalizar();
-
-            base.AntesDePersistir(registro, parametros);
 
             if (parametros.Operacion == enumTipoOperacion.Modificar)
             {
@@ -162,7 +161,7 @@ namespace GestoresDeNegocio.Callejero
 
     public static class ExtensionDeProvincias
     {
-        public static MunicipioDto CrearMunicipio(this ProvinciaDto provincia, ContextoSe contexto,  string nombre, string dc)
+        public static MunicipioDto CrearMunicipio(this ProvinciaDto provincia, ContextoSe contexto, string nombre, string dc)
         {
             var municipio = CrearMunicipio(contexto, provincia.Id, nombre, dc);
             return municipio.MapearDto<MunicipioDto, MunicipioDtm>(contexto);

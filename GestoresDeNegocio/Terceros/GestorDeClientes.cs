@@ -256,7 +256,7 @@ namespace GestoresDeNegocio.Terceros
             return Cliente;
         }
 
-        public static ClienteDtm CrearClienteCompleto(ContextoSe contexto, ClienteFacturadorJson datos)
+        public static ClienteDtm CrearClienteCompleto(ContextoSe contexto, SociedadDtm sociedadEmisora, ClienteFacturadorJson datos)
         {
             if (datos.NIF.IsNullOrEmpty())
                 GestorDeErrores.Emitir("El NIF del cliente es obligatorio");
@@ -276,7 +276,7 @@ namespace GestoresDeNegocio.Terceros
             var razonSocial = tipo == enumTipoCliente.Juridica && esAutonomo ? datos.Nombre.Capitalizar() : datos.Nombre;
 
             if (datos.ValidarEnLaAeat)
-                ValidarClienteEnAeat(contexto, datos.NIF, tipo == enumTipoCliente.Fisica ? $"{datos.Apellidos}, {datos.Nombre}" : razonSocial);
+                ValidarClienteEnAeat(contexto, datos.NIF, tipo == enumTipoCliente.Fisica ? $"{datos.Apellidos}, {datos.Nombre}" : razonSocial, sociedadEmisora);
 
             ClienteDtm cliente;
             var clienteExistente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(ClienteDto.NIF), datos.NIF, errorSiNoHay: false);
@@ -530,11 +530,13 @@ namespace GestoresDeNegocio.Terceros
             ValidarClienteEnAeat(Contexto, cliente.NIF(Contexto, quitarPrefijoEs: true), cliente.RazonSocial(Contexto));
         }
 
-        private static void ValidarClienteEnAeat(ContextoSe contexto, string nif, string razonSocial)
+        // sociedadQueValida: la sociedad con cuyo certificado se consulta la AEAT. Si no se indica, se
+        // usa la del primer centro gestor, que solo es correcta cuando en la BD hay una única sociedad.
+        private static void ValidarClienteEnAeat(ContextoSe contexto, string nif, string razonSocial, SociedadDtm sociedadQueValida = null)
         {
             try
             {
-                var miSociedad = contexto.Set<SociedadDtm>().FirstOrDefault(s => s.Id == contexto.Set<CentroGestorDtm>().First(cg => true).IdSociedad);
+                var miSociedad = sociedadQueValida ?? contexto.Set<SociedadDtm>().FirstOrDefault(s => s.Id == contexto.Set<CentroGestorDtm>().First(cg => true).IdSociedad);
                 var gestorSii = new GeneradorSii(contexto, miSociedad);
 
                 gestorSii.ValidarNif(nif, razonSocial);

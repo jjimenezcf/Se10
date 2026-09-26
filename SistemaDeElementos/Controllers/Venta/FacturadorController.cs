@@ -149,7 +149,7 @@ Invoke-WebRequest -Method POST `
                 var tran = Contexto.IniciarTransaccion();
                 try
                 {
-                    var cliente = GestorDeClientes.CrearClienteCompleto(Contexto, datos);
+                    var cliente = GestorDeClientes.CrearClienteCompleto(Contexto, facturador.Sociedad(Contexto), datos);
                     Contexto.Commit(tran);
                     r.Datos = new { cliente.Id, NIF = datos.NIF, cliente.Nombre };
                     r.Consola = $"Cliente '{cliente.Nombre}' disponible para facturar";
