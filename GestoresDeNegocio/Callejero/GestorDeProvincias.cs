@@ -121,6 +121,9 @@ namespace GestoresDeNegocio.Callejero
 
         protected override void AntesDePersistir(ProvinciaDtm registro, ParametrosDeNegocio parametros)
         {
+            if (parametros.Insertando || parametros.Modificando)
+                registro.Nombre = registro.Nombre.Capitalizar();
+
             base.AntesDePersistir(registro, parametros);
 
             if (parametros.Operacion == enumTipoOperacion.Modificar)

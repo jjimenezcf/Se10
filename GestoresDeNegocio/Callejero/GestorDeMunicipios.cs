@@ -184,6 +184,9 @@ namespace GestoresDeNegocio.Callejero
         //Todo: --> Reglas de negocio
         protected override void AntesDePersistir(MunicipioDtm registro, ParametrosDeNegocio parametros)
         {
+            if (parametros.Insertando || parametros.Modificando)
+                registro.Nombre = registro.Nombre.Capitalizar();
+
             base.AntesDePersistir(registro, parametros);
 
             if (parametros.Operacion == enumTipoOperacion.Modificar || parametros.Operacion == enumTipoOperacion.Insertar)

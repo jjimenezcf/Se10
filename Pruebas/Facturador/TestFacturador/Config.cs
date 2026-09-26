@@ -9,6 +9,9 @@ public class Config
     public string ApiKey { get; set; } = "";
     public string UrlBase { get; set; } = "localhost:44396";
 
+    // últimos datos introducidos al crear un cliente, se proponen por defecto en la siguiente vez
+    public ClienteJson? UltimoCliente { get; set; }
+
     private static string RutaFichero => Path.Combine(AppContext.BaseDirectory, "config.json");
 
     private static readonly JsonSerializerOptions Opciones = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };

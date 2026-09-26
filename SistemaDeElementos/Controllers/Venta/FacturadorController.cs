@@ -87,16 +87,23 @@ Invoke-WebRequest -Method POST `
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             string referer = HttpContext.Request.Headers["Referer"].ToString();
             string facturaJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
-            var tran = Contexto.IniciarTransaccion();
-            Contexto.IniciarTraza(nameof(epSolicitarFacturador));
+            Contexto.IniciarTraza(nameof(epCrearFactura));
             var r = new Resultado();
+            PeticionDeFacturaEmtDtm facturador = null;
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-                PeticionDeFacturaEmtDtm facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.CrearFactura);
+                // La petición se registra fuera de la transacción para que sobreviva al Rollback
+                // y se le pueda anotar el error.
+                facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.CrearFactura);
+
+                var tran = Contexto.IniciarTransaccion();
                 try
                 {
+                    // CrearFactura captura los errores de negocio y los devuelve en el Mensaje: en ese
+                    // caso se hace Commit igualmente para conservar la prefactura creada.
                     var resultado = Facturador.CrearFactura(Contexto, facturador, facturaJson);
+                    Contexto.Commit(tran);
                     r.Datos = resultado;
                     r.Consola = resultado.Mensaje;
                     r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
@@ -104,14 +111,18 @@ Invoke-WebRequest -Method POST `
                                resultado.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
                                resultado.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
                                ? enumEstadoPeticion.Ok : enumEstadoPeticion.Error;
-                    Contexto.Commit(tran);
                 }
-                catch (Exception e)
+                catch
                 {
                     Contexto.Rollback(tran);
-                    ApiController.PrepararError(e, r, "Error en la solicitud.");
-                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
+                    throw;
                 }
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "Error en la solicitud.");
+                if (facturador != null)
+                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
             }
             finally
             {
@@ -126,29 +137,36 @@ Invoke-WebRequest -Method POST `
         public JsonResult epCrearCliente(string nif, string apiKey)
         {
             string clienteJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
-            var tran = Contexto.IniciarTransaccion();
             Contexto.IniciarTraza(nameof(epCrearCliente));
             var r = new Resultado();
+            PeticionDeFacturaEmtDtm facturador = null;
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-                PeticionDeFacturaEmtDtm facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.CrearCliente);
+                facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.CrearCliente);
+                var datos = ClienteFacturadorJson.Parsear(clienteJson);
+
+                var tran = Contexto.IniciarTransaccion();
                 try
                 {
-                    var datos = ClienteFacturadorJson.Parsear(clienteJson);
                     var cliente = GestorDeClientes.CrearClienteCompleto(Contexto, datos);
+                    Contexto.Commit(tran);
                     r.Datos = new { cliente.Id, NIF = datos.NIF, cliente.Nombre };
                     r.Consola = $"Cliente '{cliente.Nombre}' disponible para facturar";
                     r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
                     r.Estado = enumEstadoPeticion.Ok;
-                    Contexto.Commit(tran);
                 }
-                catch (Exception e)
+                catch
                 {
                     Contexto.Rollback(tran);
-                    ApiController.PrepararError(e, r, "Error en la solicitud.");
-                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
+                    throw;
                 }
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "Error en la solicitud.");
+                if (facturador != null)
+                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
             }
             finally
             {
@@ -166,27 +184,40 @@ Invoke-WebRequest -Method POST `
             string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             string referer = HttpContext.Request.Headers["Referer"].ToString();
             string facturaJson = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
-            var tran = Contexto.IniciarTransaccion();
             Contexto.IniciarTraza(nameof(epCrearFacturaConGuid));
             var r = new Resultado();
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-                var peticion = Facturador.CrearFactura(Contexto, nif, guid, facturaJson);
-                r.Datos = peticion;
-                r.Consola = peticion.Mensaje;
-                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
-                r.Estado = peticion.Mensaje.Contains(ltrFacturador.SometidoEnvioDeFactura) ||
-                           peticion.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
-                           peticion.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
-                           ? enumEstadoPeticion.Ok : enumEstadoPeticion.Error;
-                Contexto.Commit(tran);
+
+                // la petición ya se registró (y confirmó) en epSolicitarFacturador, así que sobrevive
+                // al Rollback y se le puede anotar el error
+                var tran = Contexto.IniciarTransaccion();
+                try
+                {
+                    // CrearFactura captura los errores de negocio y los devuelve en el Mensaje: en ese
+                    // caso se hace Commit igualmente para conservar la prefactura creada.
+                    var peticion = Facturador.CrearFactura(Contexto, nif, guid, facturaJson);
+                    Contexto.Commit(tran);
+                    r.Datos = peticion;
+                    r.Consola = peticion.Mensaje;
+                    r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                    r.Estado = peticion.Mensaje.Contains(ltrFacturador.SometidoEnvioDeFactura) ||
+                               peticion.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
+                               peticion.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
+                               ? enumEstadoPeticion.Ok : enumEstadoPeticion.Error;
+                }
+                catch
+                {
+                    Contexto.Rollback(tran);
+                    throw;
+                }
             }
             catch (Exception e)
             {
-                Contexto.Rollback(tran);
                 ApiController.PrepararError(e, r, "Error en la solicitud.");
-                ExtensorDelFacturador.RegistrarExcepcion(Contexto, Guid.Parse(guid), e);
+                if (Guid.TryParse(guid, out var guidDeLaPeticion))
+                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, guidDeLaPeticion, e);
             }
             finally
             {
@@ -201,18 +232,25 @@ Invoke-WebRequest -Method POST `
         public JsonResult epRectificarPorDe(string apiKey, string numeroFactura)
         {
             string motivo = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
-            var tran = Contexto.IniciarTransaccion();
             Contexto.IniciarTraza(nameof(epRectificarPorDe));
             var r = new Resultado();
+            PeticionDeFacturaEmtDtm facturador = null;
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
                 var facturaOriginal = Facturador.ObtenerFacturaPorNumero(Contexto, numeroFactura);
                 var nif = facturaOriginal.Cg(Contexto).Sociedad(Contexto).NIF;
-                PeticionDeFacturaEmtDtm facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.RectificarPorDe);
+                // La petición se registra fuera de la transacción para que sobreviva al Rollback
+                // y se le pueda anotar el error.
+                facturador = Facturador.ObtenerFacturador(Contexto, nif, apiKey, enumOperacionFacturador.RectificarPorDe);
+
+                var tran = Contexto.IniciarTransaccion();
                 try
                 {
+                    // RectificarPorDe captura los errores de negocio y los devuelve en el Mensaje: en
+                    // ese caso se hace Commit igualmente para conservar la prefactura creada.
                     var resultado = Facturador.RectificarPorDe(Contexto, facturador, facturaOriginal, motivo);
+                    Contexto.Commit(tran);
                     r.Datos = resultado;
                     r.Consola = resultado.Mensaje;
                     r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
@@ -220,19 +258,18 @@ Invoke-WebRequest -Method POST `
                                resultado.Mensaje.Contains(ltrFacturador.SometidoLoteDeEnvio) ||
                                resultado.Mensaje.Contains(ltrFacturador.NoUsaVerifactu)
                                ? enumEstadoPeticion.Ok : enumEstadoPeticion.Error;
-                    Contexto.Commit(tran);
                 }
-                catch (Exception e)
+                catch
                 {
                     Contexto.Rollback(tran);
-                    ApiController.PrepararError(e, r, "Error en la solicitud.");
-                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
+                    throw;
                 }
             }
             catch (Exception e)
             {
-                Contexto.Rollback(tran);
                 ApiController.PrepararError(e, r, "Error en la solicitud.");
+                if (facturador != null)
+                    ExtensorDelFacturador.RegistrarExcepcion(Contexto, facturador.Guid, e);
             }
             finally
             {

@@ -81,6 +81,9 @@ namespace GestoresDeNegocio.Callejero
 
         protected override void AntesDePersistir(PaisDtm registro, ParametrosDeNegocio parametros)
         {
+            if (parametros.Insertando || parametros.Modificando)
+                registro.Nombre = registro.Nombre.Capitalizar();
+
             base.AntesDePersistir(registro, parametros);
             if (registro.ISO2 == ltrIsoPaises.Spain) registro.EsUE = true;
         }

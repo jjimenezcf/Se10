@@ -100,6 +100,12 @@ namespace GestoresDeNegocio.Terceros
 
         protected override void AntesDePersistir(PersonaDtm persona, ParametrosDeNegocio parametros)
         {
+            if (parametros.Insertando || parametros.Modificando)
+            {
+                persona.Nombre = persona.Nombre.Capitalizar();
+                persona.Apellidos = persona.Apellidos.Capitalizar();
+            }
+
             base.AntesDePersistir(persona, parametros);
             if (parametros.Operacion == enumTipoOperacion.Insertar || parametros.Operacion == enumTipoOperacion.Modificar)
             {

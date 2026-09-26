@@ -46,6 +46,24 @@ namespace Utilidades
             return string.IsNullOrEmpty(quitarBlancos ? str.Trim() : str);
         }
 
+        private static readonly HashSet<string> _particulasEnMinusculas = new() { "a", "de", "del", "en", "y" };
+
+        // Equivalente a Entorno.CapitalizarFrase: separa por espacios (colapsando los repetidos), deja
+        // en minúsculas las partículas a/de/del/en/y y pone el resto con la inicial en mayúscula.
+        public static string Capitalizar(this string frase)
+        {
+            if (frase.IsNullOrEmpty())
+                return frase;
+
+            var palabras = frase
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(palabra => _particulasEnMinusculas.Contains(palabra.ToLowerInvariant())
+                    ? palabra.ToLowerInvariant()
+                    : char.ToUpperInvariant(palabra[0]) + palabra.Substring(1).ToLowerInvariant());
+
+            return string.Join(" ", palabras);
+        }
+
         public static bool MayorQueCero(this int? numero)
         {
             if (numero == null)

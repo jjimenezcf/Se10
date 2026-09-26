@@ -472,10 +472,10 @@ Ejemplo con persona jurídica (una sociedad, identificada por CIF):
 | Campo | Obligatorio | Descripción |
 |---|---|---|
 | `NIF` | Sí | NIF, NIE o CIF del cliente. |
-| `TipoDeCliente` | No | `Fisica` o `Juridica`. Si se omite, se infiere automáticamente a partir del formato de `NIF` (NIF/NIE → física, CIF → jurídica). |
-| `Nombre` | Sí | Nombre de pila si es persona física, razón social si es persona jurídica. |
-| `Apellidos` | Solo persona física | Apellidos del cliente. Se ignora si es persona jurídica. |
-| `eMail` / `Telefono` | No | Datos de contacto. |
+| `TipoDeCliente` | No | `F` (física) o `J` (jurídica); también se admiten `Fisica`/`Física` y `Juridica`/`Jurídica`, en mayúsculas o minúsculas. Si se omite, se infiere a partir del formato de `NIF` (NIF/NIE → física, CIF → jurídica). |
+| `Nombre` | Sí | Persona física: nombre de pila. Persona jurídica: razón social; si es un autónomo dado de alta como sociedad (NIF de persona con `TipoDeCliente` `J`), su nombre y apellidos juntos, que se guardan capitalizados. |
+| `Apellidos` | Solo persona física | Obligatorio para persona física. En persona jurídica **no** debe indicarse: si viene informado, la petición falla. |
+| `eMail` / `Telefono` | Sí | Datos de contacto, ambos obligatorios. |
 | `ValidarEnLaAeat` | No (`false` por defecto) | Si es `true`, antes de dar de alta o actualizar valida el NIF y la razón social (`Apellidos, Nombre` en persona física; `Nombre` en persona jurídica) contra la AEAT. Si no coincide, la petición falla. |
 | `SustituirDatosIdentificativos` | No (`false` por defecto) | Solo aplica si el cliente **ya existía**: si `Nombre`/`Apellidos` (persona) o `Nombre` como razón social (sociedad) difieren de los que ya tenía y este flag es `true`, se actualizan. Con `false`, se ignoran las diferencias. |
 | `SustituirDatosDeContacto` | No (`false` por defecto) | Igual que el anterior pero para `eMail`/`Telefono` del cliente. |
@@ -485,7 +485,7 @@ Ejemplo con persona jurídica (una sociedad, identificada por CIF):
 | `Calle` | Solo si se da la dirección | Nombre de la calle. |
 | `Numero` | Solo si se da la dirección | Número de policía. |
 | `CrearCalleSiNoExiste` | No (`false` por defecto) | Si la calle no existe para ese municipio/tipo de vía: con `true` se crea; con `false` la petición falla indicando que no se permite crearla. |
-| `ValidarEnCatastro` | No (`false` por defecto) | Solo tiene efecto cuando se va a **crear** la calle (`CrearCalleSiNoExiste=true` y no existía): si es `true`, exige que esa calle exista en el callejero oficial del Catastro — si no, la petición falla. |
+| `ValidarEnCatastro` | No (`false` por defecto) | Si es `true` y se indica dirección, antes de dar de alta nada se comprueba que la calle exista en el callejero oficial del Catastro para ese municipio (tanto si la calle ya estaba en Se10 como si hay que crearla). Si no existe, o no se puede consultar el Catastro, la petición falla. Solo aplica a municipios de España. |
 
 Los campos de dirección (`Municipio`, `CodigoPostal`, `TipoDeVia`, `Calle`, `Numero`) son opcionales en conjunto: si no se indican, no se toca la dirección fiscal del cliente (en un alta, se crea sin dirección; se podrá completar después desde la aplicación).
 
@@ -511,7 +511,7 @@ Si se indican:
 ### Notas
 
 - La búsqueda de "cliente ya existente" se hace por `NIF`, así que repetir la llamada con los mismos datos es segura: no duplica cliente ni dirección, y con los flags `Sustituir...` a `false` tampoco pisa datos que hayan podido cambiarse a mano en la aplicación.
-- Si `Municipio`, `CodigoPostal` o `TipoDeVia` no existen en el callejero, la petición falla con `Estado: "Error"` indicando cuál no se ha localizado.
+- Si se indica `Municipio`, son obligatorios también `CodigoPostal`, `TipoDeVia` y `Calle`. Si el municipio, el código postal o el tipo de vía no existen en la base de datos, la petición falla con `Estado: "Error"` indicando cuál no se ha localizado, sin llegar a crear ni modificar el cliente.
 - Si `CrearCalleSiNoExiste` es `false` y la calle indicada no existe, la petición falla en vez de crearla.
 - Si el `NIF` no tiene un formato válido (ni NIF, ni NIE, ni CIF), la petición falla indicando que no es válido.
 - `ValidarEnLaAeat` requiere que el servicio de Verifactu esté correctamente configurado (certificado instalado, etc.); si falla por eso, el mensaje de error lo indica.

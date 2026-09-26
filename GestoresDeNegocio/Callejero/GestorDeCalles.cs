@@ -307,6 +307,9 @@ namespace GestoresDeNegocio.Callejero
         //Todo: --> Reglas de negocio
         protected override void AntesDePersistir(CalleDtm calle, ParametrosDeNegocio parametros)
         {
+            if (parametros.Insertando || parametros.Modificando)
+                calle.Nombre = calle.Nombre.Capitalizar();
+
             base.AntesDePersistir(calle, parametros);
 
             if (parametros.Insertando || parametros.Modificando)

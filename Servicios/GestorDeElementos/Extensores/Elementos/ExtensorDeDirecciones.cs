@@ -23,6 +23,48 @@ namespace GestorDeElementos.Extensores
 {
     public static class ExtensorDeDirecciones
     {
+        // Valida, antes de dar de alta nada, los datos de una dirección que se va a asociar a
+        // cualquier elemento (cliente, proveedor, interlocutor...): que estén informados y que el
+        // municipio, el tipo de vía y el código postal existan; opcionalmente, que la calle exista
+        // en el callejero del Catastro (solo para municipios de España).
+        public static void ValidarDatosDeDireccion(ContextoSe contexto, string nombreMunicipio, string codigoPostal, string nombreTipoDeVia, string nombreCalle, bool validarEnCatastro)
+        {
+            if (nombreMunicipio.IsNullOrEmpty() || codigoPostal.IsNullOrEmpty() || nombreTipoDeVia.IsNullOrEmpty() || nombreCalle.IsNullOrEmpty())
+                GestorDeErrores.Emitir("Para indicar la dirección hay que informar el municipio, el código postal, el tipo de vía y la calle");
+
+            var municipio = contexto.SeleccionarPorNombre<MunicipioDtm>(nombreMunicipio, errorSiNoHay: false);
+            if (municipio == null)
+                GestorDeErrores.Emitir($"El municipio '{nombreMunicipio}' no existe en la base de datos");
+
+            if (contexto.SeleccionarPorNombre<TipoDeViaDtm>(nombreTipoDeVia, errorSiNoHay: false) == null)
+                GestorDeErrores.Emitir($"El tipo de vía '{nombreTipoDeVia}' no existe en la base de datos");
+
+            if (contexto.SeleccionarPorPropiedad<CodigoPostalDtm>(nameof(CodigoPostalDtm.Codigo), codigoPostal, errorSiNoHay: false) == null)
+                GestorDeErrores.Emitir($"El código postal '{codigoPostal}' no existe en la base de datos");
+
+            if (!validarEnCatastro)
+                return;
+
+            // el Catastro solo cubre España: igual que en GestorDeCalles, fuera de España no se valida
+            var provincia = contexto.SeleccionarPorId<ProvinciaDtm>(municipio.IdProvincia);
+            var pais = contexto.SeleccionarPorId<PaisDtm>(provincia.IdPais);
+            if (pais.ISO2 != ltrIsoPaises.Spain)
+                return;
+
+            bool existe;
+            try
+            {
+                existe = ApiDeCatastro.ExisteLaVia(provincia.Nombre, municipio.Nombre, nombreCalle);
+            }
+            catch (Exception e)
+            {
+                GestorDeErrores.Emitir($"No se ha podido validar la calle '{nombreCalle}' en el Catastro: {e.Message}");
+                return;
+            }
+
+            if (!existe)
+                GestorDeErrores.Emitir($"La calle '{nombreCalle}' no existe en el callejero del Catastro para el municipio '{municipio.Nombre}'");
+        }
 
         public static IQueryable<DireccionDtm> Direcciones(this enumNegocio negocio, ContextoSe contexto)
         {

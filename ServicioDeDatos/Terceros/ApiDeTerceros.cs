@@ -38,6 +38,24 @@ namespace ServicioDeDatos.Terceros
 
     public static class ApiDeTerceros
     {
+        public static enumTipoCliente ParsearTipoDeCliente(string valor)
+        {
+            switch (valor.Trim().ToUpperInvariant())
+            {
+                case "F":
+                case "FISICA":
+                case "FÍSICA":
+                    return enumTipoCliente.Fisica;
+                case "J":
+                case "JURIDICA":
+                case "JURÍDICA":
+                    return enumTipoCliente.Juridica;
+            }
+
+            GestorDeErrores.Emitir($"El tipo de cliente '{valor}' no es válido, indique F (física) o J (jurídica)");
+            return default;
+        }
+
         public static enumTipoCliente TipoDeClienteEsp(string nifCif)
         {
             var tipo = TipoDeTerceroEsp(nifCif);

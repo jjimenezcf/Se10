@@ -55,7 +55,7 @@ while (true)
     switch (opcionInicial)
     {
         case "1":
-            await CrearClienteAsync(http, nif, apiKey, jsonOpciones);
+            await CrearClienteAsync(http, nif, apiKey, config, jsonOpciones);
             break;
 
         case "2":
@@ -73,7 +73,7 @@ while (true)
 
 static async Task CrearFacturaConMenuAsync(HttpClient http, string nif, string apiKey, Config config, JsonSerializerOptions jsonOpciones)
 {
-    var nifFacturado = Pedir("Nif del facturado", config.NifFacturado);
+    var nifFacturado = PedirObligatorio("NIF del cliente al que se factura", config.NifFacturado);
     config.NifFacturado = nifFacturado;
     config.Guardar();
 
@@ -171,7 +171,7 @@ static async Task CrearFacturaConMenuAsync(HttpClient http, string nif, string a
                 break;
 
             case "5":
-                await CrearClienteAsync(http, nif, apiKey, jsonOpciones);
+                await CrearClienteAsync(http, nif, apiKey, config, jsonOpciones);
                 break;
 
             case "0":
@@ -257,6 +257,59 @@ static bool Confirmar(string pregunta)
     Console.Write($"{pregunta} (S/n): ");
     var entrada = Console.ReadLine()?.Trim().ToLowerInvariant();
     return string.IsNullOrEmpty(entrada) || entrada == "s" || entrada == "si" || entrada == "y" || entrada == "yes";
+}
+
+static string PedirObligatorio(string etiqueta, string? valorPorDefecto = null)
+{
+    while (true)
+    {
+        var valor = Pedir(etiqueta, valorPorDefecto ?? "");
+        if (!string.IsNullOrWhiteSpace(valor))
+            return valor;
+        Console.WriteLine($"  {etiqueta} es obligatorio.");
+    }
+}
+
+// Enter reutiliza el valor por defecto; "-" deja el campo vacío
+static string? PedirOpcional(string etiqueta, string? valorPorDefecto, string significadoDeVacio = "vacío")
+{
+    var ayuda = string.IsNullOrEmpty(valorPorDefecto) ? $"vacío = {significadoDeVacio}" : $"- = {significadoDeVacio}";
+    var valor = Pedir($"{etiqueta} ({ayuda})", valorPorDefecto ?? "");
+    return string.IsNullOrWhiteSpace(valor) || valor == "-" ? null : valor;
+}
+
+static int PedirEntero(string etiqueta, int? valorPorDefecto = null)
+{
+    while (true)
+    {
+        if (int.TryParse(PedirObligatorio(etiqueta, valorPorDefecto?.ToString()), out var numero))
+            return numero;
+        Console.WriteLine($"  {etiqueta} debe ser un número.");
+    }
+}
+
+// devuelve "F", "J" o null (el servidor lo infiere del NIF)
+static string? PedirTipoDeCliente(string? valorPorDefecto)
+{
+    while (true)
+    {
+        var valor = Pedir("Tipo de cliente (F = física, J = jurídica, - = se infiere del NIF)", valorPorDefecto ?? "").ToUpperInvariant();
+        switch (valor)
+        {
+            case "": case "-": return null;
+            case "F": case "FISICA": case "FÍSICA": return "F";
+            case "J": case "JURIDICA": case "JURÍDICA": return "J";
+        }
+        Console.WriteLine("  Indique F, J o -.");
+    }
+}
+
+// misma regla que usa el servidor: un CIF empieza por letra (salvo X/Y/Z, que son NIE)
+static bool NifDePersona(string nif)
+{
+    var n = nif.Trim().ToUpperInvariant();
+    if (n.StartsWith("ES") && n.Length == 11) n = n.Substring(2);
+    return n.Length == 0 || !char.IsLetter(n[0]) || n[0] is 'X' or 'Y' or 'Z';
 }
 
 static bool PedirFlag(string etiqueta, bool valorPorDefecto)
@@ -388,41 +441,65 @@ static async Task RectificarPorDeAsync(HttpClient http, string apiKey, string? n
     Console.WriteLine($"UrlDeLaFactura     : {rectificativa.UrlDeLaFactura}");
 }
 
-static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, JsonSerializerOptions jsonOpciones)
+static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, Config config, JsonSerializerOptions jsonOpciones)
 {
     Console.WriteLine();
     Console.WriteLine("--- Crear cliente ---");
-    var tipoDeCliente = Pedir("Tipo de cliente (Fisica/Juridica, vacío = se infiere del NIF)", "");
-    var nifCliente = Pedir("NIF/CIF/NIE del cliente", "");
-    var nombre = Pedir("Nombre (o razón social si es jurídica)", "");
-    var apellidos = Pedir("Apellidos (solo si es persona física)", "");
-    var eMail = Pedir("eMail", "");
-    var telefono = Pedir("Teléfono", "");
-    var municipio = Pedir("Municipio de la dirección fiscal (vacío = sin dirección)", "");
-    var codigoPostal = Pedir("Código postal", "");
-    var tipoDeVia = Pedir("Tipo de vía (Calle, Avenida, Plaza...)", "");
-    var calle = Pedir("Calle", "");
-    var numeroTexto = Pedir("Número de policía", "");
-    int.TryParse(numeroTexto, out var numero);
+    var previo = config.UltimoCliente;
+    if (previo is not null)
+        Console.WriteLine("(Enter = reutilizar el valor entre corchetes de la última vez)");
 
-    var validarEnLaAeat = PedirFlag("Validar en la AEAT", false);
-    var sustituirDatosIdentificativos = PedirFlag("Sustituir datos identificativos si el cliente ya existe", true);
-    var sustituirDatosDeContacto = PedirFlag("Sustituir datos de contacto si el cliente ya existe", true);
-    var crearCalleSiNoExiste = PedirFlag("Crear la calle si no existe", true);
-    var validarEnCatastro = PedirFlag("Validar la calle en el Catastro al crearla", true);
+    var nifCliente = PedirObligatorio("NIF/CIF/NIE del cliente", previo?.NIF);
+    var tipoDeCliente = PedirTipoDeCliente(previo?.TipoDeCliente);
+    var esFisica = tipoDeCliente is null ? NifDePersona(nifCliente) : tipoDeCliente == "F";
+    if (tipoDeCliente is null)
+        Console.WriteLine($"Tipo inferido del NIF: {(esFisica ? "persona física" : "persona jurídica")}");
+
+    string nombre;
+    string? apellidos = null;
+    if (esFisica)
+    {
+        nombre = PedirObligatorio("Nombre", previo?.Nombre);
+        apellidos = PedirObligatorio("Apellidos", previo?.Apellidos);
+    }
+    else
+        nombre = PedirObligatorio("Razón social (si es un autónomo, nombre y apellidos)", previo?.Nombre);
+
+    var eMail = PedirObligatorio("eMail", previo?.eMail);
+    var telefono = PedirObligatorio("Teléfono", previo?.Telefono);
+
+    var municipio = PedirOpcional("Municipio de la dirección fiscal", previo?.Municipio, "sin dirección");
+    string? codigoPostal = null, tipoDeVia = null, calle = null;
+    var numero = 0;
+    // sin dirección no se preguntan, pero se conservan los de la última vez para proponerlos de nuevo
+    var crearCalleSiNoExiste = previo?.CrearCalleSiNoExiste ?? true;
+    var validarEnCatastro = previo?.ValidarEnCatastro ?? true;
+    if (municipio is not null)
+    {
+        codigoPostal = PedirObligatorio("Código postal", previo?.CodigoPostal);
+        tipoDeVia = PedirObligatorio("Tipo de vía (Calle, Avenida, Plaza...)", previo?.TipoDeVia);
+        calle = PedirObligatorio("Calle", previo?.Calle);
+        numero = PedirEntero("Número de policía", previo?.Calle is null ? null : previo.Numero);
+        crearCalleSiNoExiste = PedirFlag("Crear la calle si no existe", crearCalleSiNoExiste);
+        validarEnCatastro = PedirFlag("Validar la calle en el Catastro", validarEnCatastro);
+    }
+
+    var validarEnLaAeat = PedirFlag("Validar en la AEAT", previo?.ValidarEnLaAeat ?? false);
+    var sustituirDatosIdentificativos = PedirFlag("Sustituir datos identificativos si el cliente ya existe", previo?.SustituirDatosIdentificativos ?? true);
+    var sustituirDatosDeContacto = PedirFlag("Sustituir datos de contacto si el cliente ya existe", previo?.SustituirDatosDeContacto ?? true);
 
     var cliente = new ClienteJson
     {
-        TipoDeCliente = string.IsNullOrWhiteSpace(tipoDeCliente) ? null : tipoDeCliente,
+        TipoDeCliente = tipoDeCliente,
         NIF = nifCliente,
         Nombre = nombre,
-        Apellidos = string.IsNullOrWhiteSpace(apellidos) ? null : apellidos,
-        eMail = string.IsNullOrWhiteSpace(eMail) ? null : eMail,
-        Telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono,
-        Municipio = string.IsNullOrWhiteSpace(municipio) ? null : municipio,
-        CodigoPostal = string.IsNullOrWhiteSpace(codigoPostal) ? null : codigoPostal,
-        TipoDeVia = string.IsNullOrWhiteSpace(tipoDeVia) ? null : tipoDeVia,
-        Calle = string.IsNullOrWhiteSpace(calle) ? null : calle,
+        Apellidos = apellidos,
+        eMail = eMail,
+        Telefono = telefono,
+        Municipio = municipio,
+        CodigoPostal = codigoPostal,
+        TipoDeVia = tipoDeVia,
+        Calle = calle,
         Numero = numero,
         ValidarEnLaAeat = validarEnLaAeat,
         SustituirDatosIdentificativos = sustituirDatosIdentificativos,
@@ -430,6 +507,10 @@ static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, 
         CrearCalleSiNoExiste = crearCalleSiNoExiste,
         ValidarEnCatastro = validarEnCatastro
     };
+
+    // se guarda antes de enviar: si la petición falla, la próxima vez se proponen estos mismos datos
+    config.UltimoCliente = cliente;
+    config.Guardar();
 
     var cuerpo = JsonSerializer.Serialize(cliente, jsonOpciones);
     var rutaRelativa = $"Facturador/epCrearCliente?nif={Uri.EscapeDataString(nif)}&apiKey={Uri.EscapeDataString(apiKey)}";
@@ -454,6 +535,12 @@ static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, 
     {
         using var respuesta = await http.PostAsync(rutaRelativa, new StringContent(cuerpo, Encoding.UTF8, "application/json"));
         var contenido = await respuesta.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(contenido))
+        {
+            Console.WriteLine();
+            Console.WriteLine($"El servidor ha devuelto una respuesta vacía: HTTP {(int)respuesta.StatusCode} {respuesta.ReasonPhrase}");
+            return;
+        }
         MostrarRespuesta(contenido, jsonOpciones);
         resultado = JsonSerializer.Deserialize<Resultado>(contenido, jsonOpciones);
     }
@@ -478,6 +565,13 @@ static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, 
     Console.WriteLine($"Id     : {clienteCreado.Id}");
     Console.WriteLine($"NIF    : {clienteCreado.NIF}");
     Console.WriteLine($"Nombre : {clienteCreado.Nombre}");
+
+    // lo normal tras dar de alta un cliente es facturarle: se propone su NIF en "Crear factura"
+    if (!string.IsNullOrWhiteSpace(clienteCreado.NIF))
+    {
+        config.NifFacturado = clienteCreado.NIF;
+        config.Guardar();
+    }
 }
 
 static void AbrirEnNavegador(string? url)

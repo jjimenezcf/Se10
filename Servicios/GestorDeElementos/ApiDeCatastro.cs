@@ -2,7 +2,7 @@ using System;
 using System.Net.Http;
 using System.Xml.Linq;
 
-namespace GestoresDeNegocio.Callejero
+namespace GestorDeElementos
 {
     // Servicio web gratuito y público de la Dirección General del Catastro (OVCCallejero),
     // usado para validar si una vía existe en el callejero oficial de un municipio.

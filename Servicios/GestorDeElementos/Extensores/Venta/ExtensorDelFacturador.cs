@@ -79,9 +79,13 @@ namespace GestorDeElementos.Extensores
 
         public static void RegistrarExcepcion(ContextoSe contexto, Guid guid, Exception e)
         {
-            var facturador = FacturadorDeUnGuid(contexto, guid);
             var peticion = contexto.SeleccionarPorPropiedad<PeticionDeFacturaEmtDtm>(nameof(PeticionDeFacturaEmtDtm.Guid), guid, errorSiNoHay: false);
-            peticion?.RegistrarError(contexto, e.MensajeCompleto());
+            // si ya tiene factura se procesó en una llamada anterior (p.ej. se reutiliza un guid ya
+            // usado): no se le anota el error de esta llamada para no ensuciar una petición correcta
+            if (peticion is null || peticion.IdFactura is not null)
+                return;
+
+            peticion.RegistrarError(contexto, e.MensajeCompleto());
         }
 
         public static void RegistrarErrorDePeticion(this FacturaEmtDtm factura, ContextoSe contexto, string error)

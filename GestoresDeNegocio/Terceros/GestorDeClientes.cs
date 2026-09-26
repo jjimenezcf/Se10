@@ -258,15 +258,25 @@ namespace GestoresDeNegocio.Terceros
 
         public static ClienteDtm CrearClienteCompleto(ContextoSe contexto, ClienteFacturadorJson datos)
         {
+            if (datos.NIF.IsNullOrEmpty())
+                GestorDeErrores.Emitir("El NIF del cliente es obligatorio");
+
+            datos.NIF = datos.NIF.ToUpper();
+
             var tipo = datos.TipoDeCliente.IsNullOrEmpty()
                 ? ApiDeTerceros.TipoDeClienteEsp(datos.NIF)
-                : ApiDeEnsamblados.ToEnumerado<enumTipoCliente>(datos.TipoDeCliente);
+                : ApiDeTerceros.ParsearTipoDeCliente(datos.TipoDeCliente);
+
+            ValidarDatosDelCliente(contexto, datos, tipo);
+
+            // una sociedad con NIF de persona (autónomo) tiene como razón social su nombre y
+            // apellidos: se capitaliza igual que el de una persona; la de una empresa se respeta
+            var tipoDeTercero = ApiDeTerceros.TipoDeTerceroEsp(datos.NIF);
+            var esAutonomo = tipoDeTercero == enumTipoTercero.Autonomo;
+            var razonSocial = tipo == enumTipoCliente.Juridica && esAutonomo ? datos.Nombre.Capitalizar() : datos.Nombre;
 
             if (datos.ValidarEnLaAeat)
-            {
-                var razonSocial = tipo == enumTipoCliente.Fisica ? $"{datos.Apellidos}, {datos.Nombre}" : datos.Nombre;
-                ValidarClienteEnAeat(contexto, datos.NIF, razonSocial);
-            }
+                ValidarClienteEnAeat(contexto, datos.NIF, tipo == enumTipoCliente.Fisica ? $"{datos.Apellidos}, {datos.Nombre}" : razonSocial);
 
             ClienteDtm cliente;
             var clienteExistente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(ClienteDto.NIF), datos.NIF, errorSiNoHay: false);
@@ -279,7 +289,9 @@ namespace GestoresDeNegocio.Terceros
                 if (interlocutor.EsPersona)
                 {
                     var persona = contexto.SeleccionarPorId<PersonaDtm>(interlocutor.IdPersona.Value);
-                    if ((persona.Apellidos != datos.Apellidos || persona.Nombre != datos.Nombre) && datos.SustituirDatosIdentificativos)
+                    // se compara con el valor capitalizado, que es como lo guarda GestorDePersonas; si no,
+                    // un JSON en mayúsculas se tomaría siempre como un cambio
+                    if ((persona.Apellidos != datos.Apellidos.Capitalizar() || persona.Nombre != datos.Nombre.Capitalizar()) && datos.SustituirDatosIdentificativos)
                     {
                         persona.Apellidos = datos.Apellidos;
                         persona.Nombre = datos.Nombre;
@@ -289,10 +301,10 @@ namespace GestoresDeNegocio.Terceros
                 else if (interlocutor.EsSociedad)
                 {
                     var sociedad = contexto.SeleccionarPorId<SociedadDtm>(interlocutor.IdSociedad.Value);
-                    if (sociedad.RazonSocial != datos.Nombre && datos.SustituirDatosIdentificativos)
+                    if (sociedad.RazonSocial != razonSocial && datos.SustituirDatosIdentificativos)
                     {
-                        sociedad.Nombre = datos.Nombre;
-                        sociedad.RazonSocial = datos.Nombre;
+                        sociedad.Nombre = razonSocial;
+                        sociedad.RazonSocial = razonSocial;
                         sociedad.Modificar(contexto);
                     }
                 }
@@ -309,7 +321,7 @@ namespace GestoresDeNegocio.Terceros
                 InterlocutorDtm interlocutor;
                 if (tipo == enumTipoCliente.Juridica)
                 {
-                    var sociedad = ExtensorDeSociedades.CrearSiNoExiste(contexto, datos.NIF, datos.Nombre, datos.Nombre, null, datos.eMail, datos.Telefono);
+                    var sociedad = ExtensorDeSociedades.CrearSiNoExiste(contexto, datos.NIF, razonSocial, razonSocial, null, datos.eMail, datos.Telefono);
                     interlocutor = sociedad.CrearInterlocutor(contexto, errorSihay: false);
                 }
                 else
@@ -343,8 +355,8 @@ namespace GestoresDeNegocio.Terceros
                     if (!datos.CrearCalleSiNoExiste)
                         GestorDeErrores.Emitir($"La calle '{datos.Calle}' no existe en el municipio '{datos.Municipio}' y no se permite crearla");
 
-                    calle = new CalleDtm { Nombre = datos.Calle, IdMunicipio = municipio.Id, IdTipoDeVia = tipoVia.Id }
-                        .Insertar(contexto, parametros: new Dictionary<string, object> { { ltrCalles.ValidarEnCatastro, datos.ValidarEnCatastro } });
+                    // la existencia en el Catastro ya se validó en ValidarDireccionFiscal
+                    calle = new CalleDtm { Nombre = datos.Calle, IdMunicipio = municipio.Id, IdTipoDeVia = tipoVia.Id }.Insertar(contexto);
 
                     GestorDeCpsDeUnaCalle.Gestor(contexto, contexto.Mapeador).CrearRelacion(new CpsDeUnaCalleDto
                     {
@@ -383,6 +395,32 @@ namespace GestoresDeNegocio.Terceros
             }
 
             return cliente;
+        }
+
+        private static void ValidarDatosDelCliente(ContextoSe contexto, ClienteFacturadorJson datos, enumTipoCliente tipo)
+        {
+            if (tipo == enumTipoCliente.Fisica)
+            {
+                if (datos.Nombre.IsNullOrEmpty())
+                    GestorDeErrores.Emitir("El nombre es obligatorio para una persona física");
+                if (datos.Apellidos.IsNullOrEmpty())
+                    GestorDeErrores.Emitir("Los apellidos son obligatorios para una persona física");
+            }
+            else
+            {
+                if (!datos.Apellidos.IsNullOrEmpty())
+                    GestorDeErrores.Emitir("Una persona jurídica no lleva apellidos: el nombre debe ser la razón social y, si es un autónomo, el nombre y los apellidos");
+                if (datos.Nombre.IsNullOrEmpty())
+                    GestorDeErrores.Emitir("El nombre (razón social) es obligatorio para una persona jurídica");
+            }
+
+            if (datos.eMail.IsNullOrEmpty())
+                GestorDeErrores.Emitir("El eMail del cliente es obligatorio");
+            if (datos.Telefono.IsNullOrEmpty())
+                GestorDeErrores.Emitir("El teléfono del cliente es obligatorio");
+
+            if (!datos.Municipio.IsNullOrEmpty())
+                ExtensorDeDirecciones.ValidarDatosDeDireccion(contexto, datos.Municipio, datos.CodigoPostal, datos.TipoDeVia, datos.Calle, datos.ValidarEnCatastro);
         }
 
         protected override void DespuesDeMapearElElemento(ClienteDtm cliente, ClienteDto elemento, ParametrosDeNegocio parametros)
