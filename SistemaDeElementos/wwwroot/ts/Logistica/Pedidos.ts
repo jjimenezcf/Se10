@@ -1,5 +1,16 @@
 ﻿namespace Logistica {
 
+    enum enumEtapasDePedido {
+        PED_Etapa_De_Cumplimentacion,
+        PED_Etapa_De_Aprobacion,
+        PED_Etapa_De_Solicitud,
+        PED_Etapa_De_Recepcion,
+        PED_Etapa_Cerrado,
+        PED_Etapa_Devuelto,
+        PED_Etapa_Cancelado
+    }
+
+    let crudDePedidos: CrudDePedidos;
     export function CrearCrudDePedidos(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string) {
         Crud.crudMnt = new Logistica.CrudDePedidos(idPanelMnt, idPanelCreacion, idPanelEdicion, idModalBorrar);
         window.addEventListener("load", function () { Crud.crudMnt.Inicializar(idPanelMnt); }, false);
@@ -7,19 +18,40 @@
         window.onbeforeunload = function () {
             Crud.crudMnt.AntesDeSalir();
         };
+
+        crudDePedidos = Crud.crudMnt as CrudDePedidos;
     }
 
     export class CrudDePedidos extends Crud.CrudMnt {
 
         private _IdDeUnidadDeMedida: number = 0;
         private _IdDeNaturaleza: number = 0;
-        private _ClaseDeUnitario: string = undefined;
         private _TipoDeLinea: string = undefined;
+        private _Concepto: string = undefined;
 
         public get UnidadDeMedida(): number { return this._IdDeUnidadDeMedida; }
         public get Naturaleza(): number { return this._IdDeNaturaleza; }
-        public get ClaseDeUnitario(): string { return this._ClaseDeUnitario; }
         public get TipoDeLinea(): string { return this._TipoDeLinea; }
+
+        public set Naturaleza(value: number) {
+            if (Numero(value) > 0)
+                this._IdDeNaturaleza = value;
+            else {
+                if (this.MapIndicadores.size > 0)
+                    this._IdDeNaturaleza = this.MapIndicadores.get(ltrPropiedades.Logistica.Pedido.Indicadores.Naturaleza);
+                else
+                    this._IdDeNaturaleza = 0;
+            }
+        }
+
+
+        public get Concepto(): string {
+            return this._Concepto;
+        }
+        public set Concepto(value: string) {
+            this._Concepto = value;
+        }
+
 
         constructor(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string) {
             super(idPanelMnt, idModalBorrar);
@@ -31,7 +63,6 @@
             super.AplicarIndicadores(mapIndicadores);
             this._IdDeUnidadDeMedida = mapIndicadores.get(ltrPropiedades.Logistica.Pedido.Indicadores.UnidadDeMedida);
             this._IdDeNaturaleza = mapIndicadores.get(ltrPropiedades.Logistica.Pedido.Indicadores.Naturaleza);
-            this._ClaseDeUnitario = mapIndicadores.get(ltrPropiedades.Logistica.Pedido.Indicadores.ClaseDeUnitario);
             this._TipoDeLinea = mapIndicadores.get(ltrPropiedades.Logistica.Pedido.Indicadores.TipoDeLinea);
         }
 
@@ -114,6 +145,9 @@
 
         public RecargarGridDeRelacion(grid: HTMLDivElement, idnegocio: number, id: number) {
             super.RecargarGridDeRelacion(grid, idnegocio, id);
+            if (grid.id === this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Lineas)) {
+                this.RecargarValoresDeCabecera(this.ElementoEditado.Id);
+            }
         }
 
         protected AntesDeMapearElementoDevuelto(peticion: ApiDeAjax.DescriptorAjax) {
@@ -122,6 +156,20 @@
 
         protected DespuesDeMapearElementoDevuelto(panel: HTMLDivElement, peticion: ApiDeAjax.DescriptorAjax): void {
             super.DespuesDeMapearElementoDevuelto(panel, peticion);
+
+            // "Pedir el" mientras el pedido se está cumplimentando o aprobando (aún no se ha pedido de verdad);
+            // en el resto de etapas ya se ha pedido, así que la etiqueta pasa a "Pedido el"
+            let etapas: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.Etapas);
+            let seEstaCumplimentando = EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Cumplimentacion);
+            let seEstaCumplimentandoOAprobando =
+                seEstaCumplimentando ||
+                EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Aprobacion);
+            if (!seEstaCumplimentandoOAprobando) {
+                ApiControl.BuscarEtiqueta(panel, ltrPropiedades.Logistica.Pedido.PedidoEl).innerText = 'Pedido el';
+            }
+
+            // El fichero de pedido solo se puede añadir al crear o, en edición, mientras se está cumplimentando
+            ApiControl.MostrarPropiedadSi(panel, ltrPropiedades.Logistica.Pedido.IdArchivoPedido, seEstaCumplimentando);
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
@@ -146,7 +194,6 @@
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.concepto);
                     ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.unitario);
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.precio);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Logistica.Pedido.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Logistica.Pedido.linea.unidad);
                     break;
@@ -155,29 +202,23 @@
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.unitario);
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.precio);
-                    ApiControl.DesbloquearListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.clase);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Logistica.Pedido.linea.naturaleza);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Logistica.Pedido.linea.unidad);
                     if (this.EstaCreandoUnaLinea) {
-                        if ((this.CrudDeMnt as CrudDePedidos).Naturaleza > 0) {
+                        // La naturaleza a proponer ya viene resuelta desde el servidor: la del proveedor de la cabecera
+                        // si la tiene definida, si no la del indicador de negocio, si no en blanco (ver GestorDePedidos.DespuesDeMapearElElemento)
+                        let idNaturalezaPropuesta = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.IdNaturaleza, 0));
+                        if (idNaturalezaPropuesta > 0) {
                             var SelectorNaturaleza = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.naturaleza);
-                            MapearAlControl.ListaDeElementos(SelectorNaturaleza, new Array<ClausulaDeFiltrado>(), (this.CrudDeMnt as CrudDePedidos).Naturaleza, null);
+                            MapearAlControl.ListaDeElementos(SelectorNaturaleza, new Array<ClausulaDeFiltrado>(), idNaturalezaPropuesta, null);
                         }
                         if ((this.CrudDeMnt as CrudDePedidos).UnidadDeMedida > 0) {
                             var SelectorUnidad = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.unidad);
                             MapearAlControl.ListaDeElementos(SelectorUnidad, new Array<ClausulaDeFiltrado>(), (this.CrudDeMnt as CrudDePedidos).UnidadDeMedida, null);
                         }
-                        if (Definido((this.CrudDeMnt as CrudDePedidos).ClaseDeUnitario)) {
-                            var SelectorDeClase = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.clase);
-                            MapearAlControl.ListaDeValores(SelectorDeClase, (this.CrudDeMnt as CrudDePedidos).ClaseDeUnitario);
-                        }
+                        // La clase ya no se muestra ni se propone en la modal: siempre se deriva de la naturaleza en el servidor
 
-                        // El proveedor del pedido, si tiene naturaleza/unidad/concepto propios definidos, prevalece sobre los valores por defecto del negocio
-                        let idNaturalezaDelProveedor = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.IdNaturalezaDelProveedor, 0));
-                        if (idNaturalezaDelProveedor > 0) {
-                            var SelectorNaturalezaProveedor = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.naturaleza);
-                            MapearAlControl.ListaDeElementos(SelectorNaturalezaProveedor, new Array<ClausulaDeFiltrado>(), idNaturalezaDelProveedor, null);
-                        }
+                        // El proveedor del pedido, si tiene unidad/concepto propios definidos, prevalece sobre los valores por defecto del negocio
                         let idUnidadDelProveedor = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.IdUnidadDelProveedor, 0));
                         if (idUnidadDelProveedor > 0) {
                             var SelectorUnidadProveedor = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.unidad);
@@ -188,13 +229,21 @@
                             let conceptoCtrl = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.linea.concepto) as HTMLInputElement;
                             AsignarValor(conceptoCtrl, conceptoDelProveedor);
                         }
+
+                        // Tarifa propuesta: la base imponible del proveedor con su iva soportado aplicado
+                        let biPropuestoDelProveedor = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.BiPropuestoDelProveedor, 0));
+                        if (biPropuestoDelProveedor > 0) {
+                            let porcentajeIva = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.PorcentajeIvaSoportadoDelProveedor, 0));
+                            let tarifaConIva = biPropuestoDelProveedor * (1 + porcentajeIva / 100);
+                            let precioCtrl = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.linea.precio) as HTMLInputElement;
+                            AsignarValor(precioCtrl, tarifaConIva.toString());
+                        }
                     }
                     break;
                 }
                 case 2: {
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Logistica.Pedido.linea.unitario);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Logistica.Pedido.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Logistica.Pedido.linea.unidad);
                     ocultar = true;
@@ -246,6 +295,90 @@
             }
         }
 
+    }
+
+
+    export function Ped_Tras_Seleccionar_Proveedor(idLista: string): void {
+        let lista: HTMLInputElement = document.getElementById(idLista) as HTMLInputElement;
+        const proveedor = OpcionesDeLasListas.ObtenerObjeto(lista);
+
+        if (crudDePedidos.EstoyEditandoConsultando || crudDePedidos.EstoyCreando) {
+            var idSeleccionado = Numero(lista.getAttribute(atListasDinamicas.idSeleccionado));
+            ApiControl.BloquearListaDinamicaSi(
+                crudDePedidos.EstoyEditandoConsultando ? crudDePedidos.crudDeEdicion.PanelDelDto : crudDePedidos.crudDeCreacion.PanelDeCrear,
+                ltrPropiedades.Logistica.Pedido.Contrato,
+                idSeleccionado === 0);
+
+            if (!Definido(proveedor) && idSeleccionado > 0) {
+
+                ApiDePeticiones.LeerElementoPorId(crudDePedidos, ltrControladores.Terceros.Proveedores, idSeleccionado, new Array<Parametro>(), idSeleccionado)
+                    .then((peticion) => {
+                        AplicarDatosDeUnProveedor(peticion.resultado.datos);
+                    })
+                    .catch((peticion) => {
+                        ApiDePeticiones.EmitirError(peticion);
+                    });
+            }
+            else AplicarDatosDeUnProveedor(proveedor);
+
+
+            return;
+        }
+
+        if (crudDePedidos.EstoyEnMantenimiento)
+            return;
+
+        MensajesSe.EmitirExcepcion('Ped_Tras_Seleccionar_Proveedor', 'No se ha definido donde afectar la selección del proveedor');
+    }
+
+    export function Ped_Tras_Blanquear_Proveedor(idLista: string): void {
+
+        if (crudDePedidos.EstoyEditandoConsultando) {
+            ApiControl.BloquearListaDinamicaPorPropiedad(crudDePedidos.crudDeEdicion.PanelDelDto, ltrPropiedades.Logistica.Pedido.Contrato);
+        }
+        else if (crudDePedidos.ModoTrabajo === enumModoTrabajo.creando) {
+            ApiControl.BloquearListaDinamicaPorPropiedad(crudDePedidos.crudDeCreacion.PanelDeCrear, ltrPropiedades.Logistica.Pedido.Contrato);
+            ApiDelCrud.QuitarResaltos(crudDePedidos.crudDeCreacion.PanelDeCrear, ltrCss.Resalto.Verde);
+        }
+        else
+            MensajesSe.EmitirExcepcion('Ped_Tras_Blanquear_Proveedor', 'No se ha definido donde afectar la selección del proveedor');
+    }
+
+
+    function AplicarDatosDeUnProveedor(proveedor: any) {
+
+        if (crudDePedidos.EstoyCreando && crudDePedidos.crudDeCreacion.MapeandoPlantilla) {
+            return;
+        }
+
+        crudDePedidos.Naturaleza = ObtenerPropiedad(proveedor, ltrPropiedades.Terceros.Proveedor.IdNaturaleza, undefined, false);
+        crudDePedidos.Concepto = ObtenerPropiedad(proveedor, ltrPropiedades.Terceros.Proveedor.Concepto, undefined, false);
+        if (crudDePedidos.EstoyCreando) {
+            const creador = (crudDePedidos.crudDeCreacion as CrudCreacionPedido);
+            crudDePedidos.crudDeCreacion.ControlDeNombre.value = crudDePedidos.Concepto;
+
+            ApiControl.ResaltarControl(crudDePedidos.crudDeCreacion.ControlDeNombre, ltrCss.Resalto.Verde);
+            if (crudDePedidos.Naturaleza > 0) {
+                var SelectorNaturaleza = ApiControl.BuscarListaDeElementos(creador.PanelDeCrear, ltrPropiedades.Logistica.Pedido.SelectorNaturaleza);
+                MapearAlControl.ListaDeElementos(SelectorNaturaleza, new Array<ClausulaDeFiltrado>(), crudDePedidos.Naturaleza, null);
+                ApiControl.ResaltarControl(ApiControl.BuscarListaDeElementos(creador.PanelDeCrear, ltrPropiedades.Logistica.Pedido.SelectorNaturaleza), ltrCss.Resalto.Verde);
+                Ped_Tras_Cambiar_Naturaleza_Del_Detalle();
+            }
+
+            const idCg: number = Numero(ObtenerPropiedad(proveedor, ltrPropiedades.Terceros.Proveedor.idcgPropuesto, 0, false));
+            if (idCg > 0) {
+                const cg: string = ObtenerPropiedad(proveedor, ltrPropiedades.Terceros.Proveedor.cgPropuesto, '', false);
+                ApiListaDinamica.AsignarValorConResaltado(creador.Cg, idCg, cg, ltrCss.Resalto.Verde);
+            }
+
+            const idTipo: number = Numero(ObtenerPropiedad(proveedor, ltrPropiedades.Terceros.Proveedor.idtipoPropuesto, 0, false));
+            if (idTipo > 0) {
+                const tipo: string = ObtenerPropiedad(proveedor, ltrPropiedades.Terceros.Proveedor.tipoPropuesto, '', false);
+                ApiListaDinamica.AsignarValorConResaltado(creador.Tipo, idTipo, tipo, ltrCss.Resalto.Verde);
+            }
+
+            const bi: number = Numero(ObtenerPropiedad(proveedor, ltrPropiedades.Terceros.Proveedor.biPropuesto, 0, false));
+        }
     }
 
 

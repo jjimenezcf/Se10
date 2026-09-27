@@ -1908,6 +1908,11 @@ a.deshabilitado {
     grid-template-columns: 200px 1fr !important;
 }
 
+/* Naturaleza (2fr) + Clase oculta (0px, hueco explícito) + Unidad/Cantidad/Tarifa (1fr cada una) en la línea de un pedido */
+.fila-con-primera-columna-doble {
+    grid-template-columns: 2fr 0px 1fr 1fr 1fr !important;
+}
+
 .columna-con-block-no-flex {
     display: block !important;
     width: 100% !important;

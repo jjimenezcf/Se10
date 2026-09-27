@@ -34,8 +34,6 @@ namespace ServicioDeDatos.Logistica
         PED_Naturaleza,
         [Description("Indica el tipo de línea por defecto")]
         PED_TipoDeLinea,
-        [Description("Indica la clase de unitario por defecto")]
-        PED_ClaseDeUnitario,
         [Description("Indica los datos por defecto para usar en la impresión de un pedido")]
         PED_DatosDeImpresion,
         [Description("Indica el incremento a aplicar a las líneas de pedido")]

@@ -1,5 +1,6 @@
 using Utilidades;
 using ServicioDeDatos.MaestrosTecnico;
+using ServicioDeDatos;
 
 namespace ModeloDeDto.MaestrosTecnico
 {

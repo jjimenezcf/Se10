@@ -109,15 +109,20 @@ namespace GestorDeElementos.Extensores
         =>
         pedido.Detalles<LineaDeUnPedidoDtm>(contexto).Sum(linea => linea.ImporteDeLinea);
 
-        public static void Validar(this PedidoDtm pedido, ContextoSe contexto)
+        public static void Validar(this PedidoDtm pedido, ContextoSe contexto, ParametrosDeNegocio parametros)
         {
-            pedido.ValidarFechas();
+            pedido.ValidarFechas(parametros);
             pedido.ValidarExpediente(contexto);
             pedido.ValidarContrato(contexto);
         }
 
-        public static void ValidarFechas(this PedidoDtm pedido)
+        public static void ValidarFechas(this PedidoDtm pedido, ParametrosDeNegocio parametros)
         {
+            var seAcabaDePedirOSeHaCambiadoLaFechaDePedido = parametros.Insertando || pedido.PropiedadCambiada<DateTime?>(nameof(PedidoDtm.PedidoEl), parametros);
+            if (seAcabaDePedirOSeHaCambiadoLaFechaDePedido && pedido.PedidoEl is not null && pedido.PedidoEl.Fecha().Date < DateTime.Today)
+            {
+                Emitir($"El pedido '{pedido.Referencia}' no se puede pedir el '{pedido.PedidoEl.Fecha().ToString("dd-MM-yyyy")}' por ser anterior al día de hoy");
+            }
             if (pedido.PedidoEl is not null && pedido.EntregarEl is not null && pedido.PedidoEl > pedido.EntregarEl)
             {
                 Emitir($"El pedido '{pedido.Referencia}' no se puede entregar el '{pedido.EntregarEl.Fecha().ToString("dd-MM-yyyy")}' ya que se ha pedido el '{pedido.PedidoEl.Fecha().ToString("dd-MM-yyyy")}' ");
@@ -125,6 +130,16 @@ namespace GestorDeElementos.Extensores
             if (pedido.RecibidoEl is not null && pedido.CerradoEl is not null && pedido.RecibidoEl > pedido.CerradoEl)
             {
                 Emitir($"El pedido '{pedido.Referencia}' no se puede cerrar el '{pedido.EntregarEl.Fecha().ToString("dd-MM-yyyy")}' por haber sido recibido el '{pedido.RecibidoEl.Fecha().ToString("dd-MM-yyyy")}' ");
+            }
+
+            if (pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado }))
+            {
+                if (pedido.RecibidoEl is null || pedido.PedidoEl is null || pedido.RecibidoEl <= pedido.PedidoEl)
+                    Emitir($"El pedido '{pedido.Referencia}' ha de indicar una fecha de recepción posterior a la fecha de pedido '{pedido.PedidoEl.Fecha().ToString("dd-MM-yyyy")}'");
+            }
+            else if (pedido.RecibidoEl is not null)
+            {
+                Emitir($"El pedido '{pedido.Referencia}' no puede tener fecha de recepción si no está en la etapa de recepción o cerrado");
             }
         }
 

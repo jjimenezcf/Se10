@@ -19,7 +19,6 @@ namespace ModeloDeDto.Logistica
         public const string UnidadDeMedida = nameof(UnidadDeMedida);
         public const string Naturaleza = nameof(Naturaleza);
         public const string TipoDeLinea = nameof(TipoDeLinea);
-        public const string ClaseDeUnitario = nameof(ClaseDeUnitario);
     }
 
 
@@ -61,14 +60,17 @@ namespace ModeloDeDto.Logistica
 
         //-------------------------------------------------------------------------------------------------------------
         // Propuestos por el proveedor del pedido para inicializar una línea de tipo Alzada (ver Ped_Tras_Cambiar_TipoDeLinea)
-        [IUPropiedad(Etiqueta = "Naturaleza propuesta por el proveedor", Visible = false)]
-        public int? IdNaturalezaDelProveedor { get; set; }
-
         [IUPropiedad(Etiqueta = "Unidad propuesta por el proveedor", Visible = false)]
         public int? IdUnidadDelProveedor { get; set; }
 
         [IUPropiedad(Etiqueta = "Concepto propuesto por el proveedor", Visible = false)]
         public string ConceptoDelProveedor { get; set; }
+
+        [IUPropiedad(Etiqueta = "Base imponible propuesta por el proveedor", Visible = false)]
+        public decimal? BiPropuestoDelProveedor { get; set; }
+
+        [IUPropiedad(Etiqueta = "Porcentaje de iva soportado del proveedor", Visible = false)]
+        public decimal? PorcentajeIvaSoportadoDelProveedor { get; set; }
 
         [IUPropiedad(Visible = false)]
         public string Interlocutor { get; set; }
@@ -171,7 +173,7 @@ namespace ModeloDeDto.Logistica
         //-------------------------------------------------------------------------------------------------------------
         [IUPropiedad(
               PorAnchoMnt = 15
-            , Etiqueta = "Pedido el"
+            , Etiqueta = "Pedir el"
             , Ordenar = true
             , OrdenarGridPor = nameof(PedidoDto.PedidoEl)
             , TipoDeControl = enumTipoControl.SelectorDeFecha
@@ -209,7 +211,7 @@ namespace ModeloDeDto.Logistica
             , OrdenarGridPor = nameof(PedidoDto.RecibidoEl)
             , TipoDeControl = enumTipoControl.SelectorDeFecha
             , VisibleEnGrid = false
-            , EditableAlCrear = true
+            , EditableAlCrear = false
             , EditableAlEditar = true
             , Fila = 2
             , Columna = 4
@@ -239,7 +241,7 @@ namespace ModeloDeDto.Logistica
            Ayuda = "importe del pedido",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
-           VisibleAlCrear = true,
+           EditableAlCrear = false,
            EditableAlEditar = false,
            Fila = 12,
            Columna = 4,
@@ -256,12 +258,12 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(
             VisibleEnGrid = false,
             EtiquetaGrid = "",
-            Etiqueta = "Archivo pedido",
-            Ayuda = "Añadir fichero de pedido enviado a proveedor",
+            Etiqueta = "Añadir fichero como pedido",
+            Ayuda = "Fichero que se enviará al proveedor que sustituirá al generado por el sistema",
             Tipo = typeof(int),
             TipoDeControl = enumTipoControl.SelectorDeUnArchivo,
             ExtensionesValidas = ExtensorDeTipoDeArchivos.NoEditables,
-            Fila = 12,
+            Fila = 13,
             Columna = 0,
             AutoSpan = true)]
         public int? IdArchivoPedido { get; set; }
@@ -273,19 +275,20 @@ namespace ModeloDeDto.Logistica
 
         [IUPropiedad(
             Etiqueta = "Naturaleza",
-            Ayuda = "Seleccione la naturaleza contable del detalle a crear",
+            Ayuda = "Naturaleza propuesta para las líneas del pedido: la del proveedor si la tiene definida, si no la del negocio. No se guarda en el pedido, es solo informativa",
             TipoDeControl = enumTipoControl.ListaDeElemento,
             SeleccionarDe = typeof(NaturalezaDto),
             Controlador = nameof(enumControladoresMt.Naturalezas),
             GuardarEn = nameof(IdNaturaleza),
             Obligatorio = false,
             MostrarExpresion = nameof(NaturalezaDtm.Expresion),
-            EditableAlCrear = true,
+            EditableAlCrear = false,
             EsAlmacenable = true,
             VisibleAlEditar = false,
             VisibleEnGrid = false,
             Fila = 12,
-            Columna = 2
+            Columna = 0,
+            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ped_Tras_Cambiar_Naturaleza_Del_Detalle) + "()"
             )
         ]
         public string Naturaleza { get; set; }
@@ -294,17 +297,17 @@ namespace ModeloDeDto.Logistica
 
         [IUPropiedad(
             Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase de lo solicitado",
+            Ayuda = "Clase de unitario correspondiente a la naturaleza del pedido indicada",
             TipoDeControl = enumTipoControl.Enumerado,
             Tipo = typeof(enumClaseUnitario),
             GuardarEn = nameof(ClaseDeLinea),
             VisibleAlEditar = false,
-            EditableAlCrear = true,
+            EditableAlCrear = false,
             VisibleEnGrid = false,
             EsAlmacenable = true,
             Obligatorio = false,
             Fila = 12,
-            Columna = 3
+            Columna = 1
             )
         ]
         public enumClaseUnitario? ClaseDeLinea { get; set; }

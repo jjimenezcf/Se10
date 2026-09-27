@@ -2567,6 +2567,9 @@ const ltrPropiedades = {
             Referencia: 'Referencia',
             Tarifa: 'Tarifa'
         },
+        Naturaleza: {
+            Clase: 'Clase'
+        },
         Contabilidad: {
             IvaR: {
                 Clase: 'clase',
@@ -3267,14 +3270,19 @@ const ltrPropiedades = {
             Proveedor: 'proveedor',
             Etapas: 'Etapas',
             Contrato: 'Contrato',
-            IdNaturalezaDelProveedor: 'IdNaturalezaDelProveedor',
+            IdNaturaleza: 'IdNaturaleza',
             IdUnidadDelProveedor: 'IdUnidadDelProveedor',
             ConceptoDelProveedor: 'ConceptoDelProveedor',
+            BiPropuestoDelProveedor: 'BiPropuestoDelProveedor',
+            PorcentajeIvaSoportadoDelProveedor: 'PorcentajeIvaSoportadoDelProveedor',
+            SelectorNaturaleza: 'Naturaleza',
+            ClaseDeLinea: 'ClaseDeLinea',
+            PedidoEl: 'PedidoEl',
+            IdArchivoPedido: 'IdArchivoPedido',
             Indicadores: {
                 Naturaleza: 'Naturaleza',
                 UnidadDeMedida: 'UnidadDeMedida',
-                TipoDeLinea: 'TipoDeLinea',
-                ClaseDeUnitario: 'ClaseDeUnitario'
+                TipoDeLinea: 'TipoDeLinea'
             },
             linea: {
                 orden: 'orden',

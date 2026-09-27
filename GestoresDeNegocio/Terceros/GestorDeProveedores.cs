@@ -7,6 +7,7 @@ using ModeloDeDto.Terceros;
 using ModeloXml.eFactura.Facturae322;
 using ServicioDeDatos;
 using ServicioDeDatos.Callejero;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.SistemaDocumental;
@@ -148,6 +149,7 @@ namespace GestoresDeNegocio.Terceros
             {
                 elemento.TipoFarPropuesto = Contexto.SeleccionarPorId<TipoDeFacturaRecDtm>(proveedor.IdTipoFarPropuesto.Entero(), errorSiNoHay: false)?.Nombre;
                 elemento.CgPropuesto = Contexto.SeleccionarPorId<CentroGestorDtm>(proveedor.IdCgPropuesto.Entero(), errorSiNoHay: false)?.Expresion;
+                elemento.PorcentajeIvaSoportado = Contexto.SeleccionarPorId<IvaSoportadoDtm>(proveedor.IdIvaS.Entero(), errorSiNoHay: false)?.Porcentaje;
             }
 
         }

@@ -448,6 +448,7 @@ namespace Utilidades
         Ped_Tras_Blanquear_Proveedor,
         Ped_Tras_Seleccionar_Proveedor,
         Ped_Tras_Cambiar_TipoDeLinea,
+        Ped_Tras_Cambiar_Naturaleza_Del_Detalle,
         Ped_Tras_Blanquear_Unitario,
         Ped_Tras_Seleccionar_Unitario,
         Ped_CalcularImportesDeLinea,
@@ -1196,7 +1197,8 @@ namespace Utilidades
         ContenedorDelGridConElDivDeGraficos,
         Splitter,
         filaAutoFr,
-        fila200pxFr
+        fila200pxFr,
+        filaConPrimeraColumnaDoble
     }
 
     public enum enumCssHistorial
@@ -2105,6 +2107,7 @@ namespace Utilidades
                 case enumCssGrid.ContenedorDelGridConElDivDeGraficos: return "div-graficos";
                 case enumCssGrid.filaAutoFr: return "fila-auto-fr";
                 case enumCssGrid.fila200pxFr: return "fila-200px-fr";
+                case enumCssGrid.filaConPrimeraColumnaDoble: return "fila-con-primera-columna-doble";
                 case enumCssGrid.Splitter: return "splitter-tabla";
             }
             throw new Exception($"No se ha definido que renderizar para la clase {clase}");

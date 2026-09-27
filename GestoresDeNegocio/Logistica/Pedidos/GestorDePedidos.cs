@@ -19,6 +19,7 @@ using ServicioDeDatos.Negocio;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Gastos;
+using ServicioDeDatos.Contabilidad;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -120,11 +121,10 @@ namespace GestoresDeNegocio.Logistica
             base.AntesDeMapearElRegistroParaInsertar(elemento, opciones);
             if (elemento.Importe is not null)
             {
-                if (elemento.IdNaturaleza.Entero() == 0 || elemento.ClaseDeLinea == null)
-                    Emitir("Si indica un importe de pedido, ha de indicar una naturaleza y una clase de lo pedido");
+                if (elemento.IdNaturaleza.Entero() == 0)
+                    Emitir("Si indica un importe de pedido, ha de indicar una naturaleza");
                 opciones.Parametros.Add(nameof(PedidoDto.Importe), elemento.Importe);
                 opciones.Parametros.Add(nameof(PedidoDto.IdNaturaleza), elemento.IdNaturaleza);
-                opciones.Parametros.Add(nameof(PedidoDto.ClaseDeLinea), elemento.ClaseDeLinea);
             }
 
             if (elemento.IdArchivoPedido is not null && elemento.Importe is null)
@@ -160,21 +160,22 @@ namespace GestoresDeNegocio.Logistica
         private void AntesDeModificar(PedidoDtm pedido, ParametrosDeNegocio parametros)
         {
             var idArchivoPedido = parametros.Parametros.LeerValor<int?>(nameof(PedidoDto.IdArchivoPedido), null);
-            pedido.Validar(Contexto);
-            
-            if (idArchivoPedido != null)
+            pedido.Validar(Contexto, parametros);
+
+            var pedidoEnBd = (PedidoDtm)parametros.registroEnBd;
+            if (pedidoEnBd.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion) && idArchivoPedido != null)
             {
                 pedido.IdArchivo = idArchivoPedido;
             }
 
-            if (pedido.IdArchivo is null && ((PedidoDtm)parametros.registroEnBd).IdArchivo is not null)
-                pedido.IdArchivo = ((PedidoDtm)parametros.registroEnBd).IdArchivo;
+            if (pedido.IdArchivo is null && pedidoEnBd.IdArchivo is not null)
+                pedido.IdArchivo = pedidoEnBd.IdArchivo;
         }
 
         private void AntesDeCrear(PedidoDtm pedido, ParametrosDeNegocio parametros)
         {
             var idArchivoPedido = parametros.Parametros.LeerValor<int?>(nameof(PedidoDto.IdArchivoPedido), null);
-            pedido.Validar(Contexto);
+            pedido.Validar(Contexto, parametros);
         }
 
         private void ValidarDatosNoModificablesSiNoEstaCumplimentandose(PedidoDtm far, ParametrosDeNegocio parametros)
@@ -219,7 +220,6 @@ namespace GestoresDeNegocio.Logistica
                     Orden = Negocio.Parametro(enumParametrosDePedidos.PED_IncrementarOrdenEn, crearParametro: true, valorPorDefecto: 10).Valor.Entero(),
                     Concepto = pedido.Nombre,
                     IdNaturaleza = parametros.Parametros.LeerValor<int>(nameof(PedidoDto.IdNaturaleza)),
-                    Clase = parametros.Parametros.LeerValor<enumClaseUnitario>(nameof(PedidoDto.IdNaturaleza)),
                     Precio = importe,
                     Cantidad = 1,
                     IdUnidad = enumNegocio.Pedido.Parametro(enumParametrosDePedidos.PED_Unidad_Medida, crearParametro: true, valorPorDefecto: Literal.Cero).Valor.Entero()
@@ -253,9 +253,23 @@ namespace GestoresDeNegocio.Logistica
             elemento.Importe = pedido.Importe(Contexto);
             if (parametros.LeerPorId)
             {
-                elemento.IdNaturalezaDelProveedor = pedido.Proveedor(Contexto)?.IdNaturaleza;
-                elemento.IdUnidadDelProveedor = pedido.Proveedor(Contexto)?.IdUnidad;
-                elemento.ConceptoDelProveedor = pedido.Proveedor(Contexto)?.Concepto;
+                var proveedor = pedido.Proveedor(Contexto);
+                var idNaturalezaDelProveedor = proveedor?.IdNaturaleza;
+                if (idNaturalezaDelProveedor.Entero() > 0)
+                {
+                    elemento.IdNaturaleza = idNaturalezaDelProveedor;
+                }
+                else
+                {
+                    var idNaturalezaDelIndicador = enumNegocio.Pedido.Parametro(enumParametrosDePedidos.PED_Naturaleza, crearParametro: true, valorPorDefecto: Literal.Cero).Valor.Entero();
+                    elemento.IdNaturaleza = idNaturalezaDelIndicador > 0 ? idNaturalezaDelIndicador : null;
+                }
+                elemento.IdUnidadDelProveedor = proveedor?.IdUnidad;
+                elemento.ConceptoDelProveedor = proveedor?.Concepto;
+                elemento.BiPropuestoDelProveedor = proveedor?.BiPropuesto;
+                elemento.PorcentajeIvaSoportadoDelProveedor = proveedor?.IdIvaS is > 0
+                    ? Contexto.SeleccionarPorId<IvaSoportadoDtm>(proveedor.IdIvaS.Value, errorSiNoHay: false)?.Porcentaje
+                    : null;
             }
         }
 

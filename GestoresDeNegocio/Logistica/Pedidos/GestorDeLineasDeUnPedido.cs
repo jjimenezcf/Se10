@@ -87,7 +87,6 @@ namespace GestoresDeNegocio.Logistica
                     linea.Concepto = tarifa != null && !tarifa.Referencia.IsNullOrEmpty()
                         ? $"({tarifa.Referencia}) {unitario.Nombre}"
                         : unitario.Expresion;
-                    linea.Clase = unitario.Naturaleza(Contexto).Clase;
                     linea.IdNaturaleza = unitario.IdNaturaleza;
                     linea.IdUnidad = unitario.IdUnidad;
                 }
@@ -95,7 +94,6 @@ namespace GestoresDeNegocio.Logistica
                 {
                     linea.Precio = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Precio;
                     linea.Concepto = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Concepto;
-                    linea.Clase = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Clase;
                     linea.Naturaleza = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Naturaleza;
                     linea.Unidad = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Unidad;
                 }
@@ -106,7 +104,6 @@ namespace GestoresDeNegocio.Logistica
             if (linea.TipoDeLinea == enumTipoDeLinea.Alzada)
             {
                 if (linea.Concepto.IsNullOrEmpty()) GestorDeErrores.Emitir("El tipo de línea exige un concepto");
-                if (linea.Clase == null) GestorDeErrores.Emitir("debe indicar una clase");
                 if (linea.IdNaturaleza.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una naturaleza");
                 if (linea.IdUnidad.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una unidad de medida");
             }
@@ -118,8 +115,12 @@ namespace GestoresDeNegocio.Logistica
                 linea.Precio = null;
                 linea.Descuento = null;
                 linea.IdNaturaleza = null;
-                linea.Clase = null;
             }
+
+            // La clase siempre se deriva de la naturaleza: si hay naturaleza, hay clase; un comentario no tiene ninguna de las dos
+            linea.Clase = linea.TipoDeLinea == enumTipoDeLinea.Comentario
+                ? null
+                : Contexto.SeleccionarPorId<NaturalezaDtm>((int)linea.IdNaturaleza).Clase;
 
             ServicioDeCaches.EliminarElemento(CacheDe.Pedido_Total, linea.IdElemento.ToString());
         }

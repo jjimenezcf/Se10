@@ -89,14 +89,10 @@ namespace ModeloDeDto.Logistica
 
         [IUPropiedad(
             Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
+            Ayuda = "Se deriva siempre de la naturaleza seleccionada",
             Tipo = typeof(enumClaseUnitario),
             GuardarEn = nameof(Clase),
-            EditableAlEditar = false,
-            EditableAlCrear = true,
-            Fila = 3,
-            Columna = 0
+            Visible = false
             )
         ]
         public string Clase { get; set; }
@@ -117,7 +113,9 @@ namespace ModeloDeDto.Logistica
             EditableAlCrear = true,
             EditableAlEditar = false,
             Fila = 3,
-            Columna = 1
+            Columna = 0,
+            ColSpan = 2,
+            CssDeLaFila = enumCssGrid.filaConPrimeraColumnaDoble
             )
         ]
         public string Naturaleza { get; set; }
@@ -160,9 +158,9 @@ namespace ModeloDeDto.Logistica
         
         //--------------------------------------------
         [IUPropiedad(
-           Etiqueta = "Precio",
+           Etiqueta = "Tarifa",
            Tipo = typeof(decimal),
-           Ayuda = "precio de compra",
+           Ayuda = "tarifa unitaria del proveedor con iva aplicado",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ped_CalcularImportesDeLinea) + "()",
@@ -184,9 +182,8 @@ namespace ModeloDeDto.Logistica
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ped_CalcularImportesDeLinea) + "()",
            Obligatorio = false,
            Formato = enumFormato.Porcentaje,
-            MantenerHuecoDeLaIzquierda = true,
            Fila = 4,
-           Columna = 1)
+           Columna = 0)
         ]
         public decimal? Descuento { get; set; }
 
@@ -203,7 +200,7 @@ namespace ModeloDeDto.Logistica
            Obligatorio = false,
            Formato = enumFormato.Moneda,
            Fila = 4,
-           Columna = 2)
+           Columna = 1)
         ]
         public decimal? ImporteDeDto { get; set; }
         //--------------------------------------------
@@ -217,6 +214,7 @@ namespace ModeloDeDto.Logistica
            EditableAlEditar = false,
            Obligatorio = false,
            Formato = enumFormato.Moneda,
+           MantenerHuecoDeLaIzquierda = true,
            Fila = 4,
            Columna = 3)
         ]

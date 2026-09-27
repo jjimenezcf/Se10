@@ -128,6 +128,26 @@ namespace Logistica {
         editor.AplicarTipoDeLinea();
     }
 
+    export function Ped_Tras_Cambiar_Naturaleza_Del_Detalle() {
+        let panel = Crud.crudMnt.crudDeCreacion.PanelDeCrear;
+        ped_FijarClaseSegunNaturaleza_interno(panel, ltrPropiedades.Logistica.Pedido.SelectorNaturaleza, ltrPropiedades.Logistica.Pedido.ClaseDeLinea);
+    }
+
+    function ped_FijarClaseSegunNaturaleza_interno(panel: HTMLDivElement, propiedadNaturaleza: string, propiedadClase: string) {
+        let naturaleza = ApiControl.BuscarListaDeElementos(panel, propiedadNaturaleza) as HTMLSelectElement;
+        let clase = ApiControl.BuscarListaDeValores(panel, propiedadClase) as HTMLSelectElement;
+
+        if (naturaleza.selectedIndex <= 0) {
+            clase.selectedIndex = 0;
+            return;
+        }
+
+        var objeto = OpcionesDeLasListas.ObtenerObjeto(naturaleza);
+        if (Definido(objeto)) {
+            MapearAlControl.ListaDeValores(clase, ObtenerPropiedad(objeto, ltrPropiedades.Maestros.Naturaleza.Clase, 0));
+        }
+    }
+
     export function Ped_Tras_Seleccionar_Unitario(idLista: string) {
         let lista: HTMLInputElement = document.getElementById(idLista) as HTMLInputElement;
         var objeto = OpcionesDeLasListas.ObtenerObjeto(lista);
@@ -156,14 +176,12 @@ namespace Logistica {
         let modal: HTMLDivElement = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.linea.precio) as HTMLInputElement;
         let concepto = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.linea.concepto) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.linea.unidad) as HTMLSelectElement;
 
         if (NoDefinido(unitario)) {
             precio.value = "";
             concepto.value = "";
-            clase.selectedIndex = 0;
             naturaleza.selectedIndex = 0;
             unidad.selectedIndex = 0;
             return;
@@ -175,8 +193,7 @@ namespace Logistica {
         let referenciaDeTarifa = ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.referenciaDeTarifa, '');
         AsignarValor(concepto, IsNullOrEmpty(referenciaDeTarifa) ? nombre : `(${referenciaDeTarifa}) ${nombre}`);
 
-        let claseDelUnitario = ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.clase, 0);
-        MapearAlControl.ListaDeValores(clase, claseDelUnitario);
+        // La clase ya no se muestra en la modal: se deriva de la naturaleza en el servidor
         MapearAlControl.FijarEnListaDeElementos(naturaleza, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.idnaturaleza, 0));
         MapearAlControl.FijarEnListaDeElementos(unidad, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.idunidad, 0));
     }
@@ -185,7 +202,6 @@ namespace Logistica {
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(panel, ltrPropiedades.Logistica.Pedido.linea.precio) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Logistica.Pedido.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Logistica.Pedido.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Logistica.Pedido.linea.unidad) as HTMLSelectElement;
         let cantidad = ApiControl.BuscarEditor(panel, ltrPropiedades.Logistica.Pedido.linea.cantidad);
@@ -194,7 +210,6 @@ namespace Logistica {
 
         cantidad.value = "";
         precio.value = "";
-        clase.selectedIndex = 0;
         naturaleza.selectedIndex = 0;
         unidad.selectedIndex = 0;
     }

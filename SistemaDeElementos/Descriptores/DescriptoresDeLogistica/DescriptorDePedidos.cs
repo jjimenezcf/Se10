@@ -56,7 +56,7 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Concepto));
             columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Unidad), autoAjustable: true);
             columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Cantidad), tamano: 150, formato: enumFormato.Numero_6);
-            columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Precio), formato: enumFormato.Moneda, tamano: 150);
+            columnas.Add(titulo:"Tarifa", propiedad: nameof(LineaDeUnPedidoDto.Precio), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Descuento), formato: enumFormato.Porcentaje, tamano: 150);
             columnas.Add(titulo: "Importe", propiedad: nameof(LineaDeUnPedidoDto.ImporteDeLinea), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnPedidoDto.IdElemento), mostrar: false);
