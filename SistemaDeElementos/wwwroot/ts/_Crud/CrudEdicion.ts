@@ -2275,8 +2275,9 @@
             let modal: HTMLDivElement = document.getElementById(idModal) as HTMLDivElement;
             let json: JSON = ApiDelCrud.MapearControlesDesdeElCrudAlJson(this, modal, enumModoTrabajo.editando);
             let controlador: string = modal.getAttribute(atControl.controlador);
+            let accion: string = modal.getAttribute(atModal.accion);
 
-            ApiDePeticiones.ModificarRelacion(this, controlador, Ajax.EndPoint.ModificarRelacion, this.CrudDeMnt.IdNegocio, json)
+            ApiDePeticiones.ModificarRelacion(this, controlador, Definido(accion) ? accion : Ajax.EndPoint.ModificarRelacion, this.CrudDeMnt.IdNegocio, json)
                 .then((peticion: ApiDeAjax.DescriptorAjax) => this.DespuesDeModificarRelacion(peticion, modal))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }

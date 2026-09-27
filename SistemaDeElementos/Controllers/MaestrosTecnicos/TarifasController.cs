@@ -39,18 +39,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         protected override IEnumerable<TarifaDto> LeerElementos(int posicion, int cantidad, List<ClausulaDeFiltrado> filtros, List<ClausulaDeOrdenacion> orden, Dictionary<string, object> opcionesDeMapeo)
         {
-            var parametros = new Dictionary<string, object>();
-            (int idNegocio, int idElemento) restrictor = (0, 0);
-            foreach (var filtro in filtros)
-                if (filtro.Clausula.Equals(nameof(TarifaDto.IdProveedor), System.StringComparison.InvariantCultureIgnoreCase)) 
-                {
-                    restrictor.idElemento = filtro.Valor.Entero();
-                    restrictor.idNegocio = NegociosDeSe.IdNegocio(enumNegocio.Proveedor);
-                    parametros[ltrParametrosNeg.EnConsulta] = true;
-                }
-            
-            if (restrictor.idElemento == 0)
-                restrictor = ApiController.ObtenerNegocioYelemento(filtros);
+            var restrictor = ApiController.ObtenerNegocioYelemento(filtros);
 
             var modoAcceso = ApiDePermisos.LeerModoDeAcceso(Contexto, NegociosDeSe.ToEnumerado(restrictor.idNegocio), restrictor.idElemento);
             if (modoAcceso == enumModoDeAccesoDeDatos.SinPermiso)
@@ -58,16 +47,11 @@ namespace MVCSistemaDeElementos.Controllers
 
             var gestor = GestorDeTarifas.Gestor(Contexto, Contexto.Mapeador);
 
-            return gestor.LeerElementos(posicion, cantidad, filtros, orden, parametros);
+            return gestor.LeerElementos(posicion, cantidad, filtros, orden, new Dictionary<string, object>());
         }
 
         protected override TarifaDto LeerPorId(int id, Dictionary<string, object> parametros)
         {
-            var idNegocio = (long) parametros.LeerValor(ltrParametrosNeg.IdNegocio, (long)0);
-
-            if (NegociosDeSe.ToEnumerado((int)idNegocio) == enumNegocio.Proveedor)
-                parametros[ltrParametrosNeg.EnConsulta] = true;
-
             var gestor = GestorDeTarifas.Gestor(Contexto, Contexto.Mapeador);
             return gestor.LeerElementoPorId(id, parametros);
         }

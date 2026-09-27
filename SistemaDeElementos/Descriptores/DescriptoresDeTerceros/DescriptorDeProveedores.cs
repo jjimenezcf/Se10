@@ -122,31 +122,31 @@ namespace MVCSistemaDeElementos.Descriptores
 
             //Definimos el grid de detalles de la tarifas
             var columnas = new DescriptorDeColumnas("tarifas");
-            columnas.Add(titulo: "Elemento", propiedad: nameof(TarifaDto.Elemento), alineacion: enumAliniacion.izquierda, mostrar: true);
-            columnas.Add(titulo: "Referencia", propiedad: nameof(TarifaDto.Referencia), alineacion: enumAliniacion.izquierda, mostrar: true, tamano: 200);
-            columnas.Add(titulo: "Tarifa", propiedad: nameof(TarifaDto.Tarifa), alineacion: enumAliniacion.derecha, mostrar: true, tamano: 150);
-            columnas.Add(titulo: "IdElemento", propiedad: nameof(TarifaDto.IdElemento), alineacion: enumAliniacion.derecha, mostrar: false);
-            columnas.Add(titulo: "IdPoveedor", propiedad: nameof(TarifaDto.IdProveedor), alineacion: enumAliniacion.derecha, mostrar: false);
-            columnas.Add(titulo: "Id", propiedad: nameof(TarifaDto.Id), alineacion: enumAliniacion.derecha, mostrar: false);
+            columnas.Add(titulo: "Elemento", propiedad: nameof(UnitariosDeUnProveedorDto.Elemento), alineacion: enumAliniacion.izquierda, mostrar: true);
+            columnas.Add(titulo: "Referencia", propiedad: nameof(UnitariosDeUnProveedorDto.Referencia), alineacion: enumAliniacion.izquierda, mostrar: true, tamano: 200);
+            columnas.Add(titulo: "Tarifa", propiedad: nameof(UnitariosDeUnProveedorDto.Tarifa), alineacion: enumAliniacion.derecha, mostrar: true, tamano: 150);
+            columnas.Add(titulo: "IdElemento", propiedad: nameof(UnitariosDeUnProveedorDto.IdElemento), alineacion: enumAliniacion.derecha, mostrar: false);
+            columnas.Add(titulo: "IdPoveedor", propiedad: nameof(UnitariosDeUnProveedorDto.IdProveedor), alineacion: enumAliniacion.derecha, mostrar: false);
+            columnas.Add(titulo: "Id", propiedad: nameof(UnitariosDeUnProveedorDto.Id), alineacion: enumAliniacion.derecha, mostrar: false);
 
             var orden = $"{nameof(TarifaDtm.Elemento)}.{nameof(TarifaDtm.Elemento.Referencia)}:{enumModoOrdenacion.ascendente.Render()}";
 
-
             var parametros = new Dictionary<string, object> {
-                   { nameof(GridDeRelacion.Controlador), typeof(TarifasController) }
-                 , { nameof(GridDeRelacion.AccionDeConsulta), nameof(TarifasController.epLeerElementos)}
-                 , { nameof(GridDeRelacion.PropiedadRestrictora), nameof(TarifaDto.IdProveedor) }
+                   { nameof(GridDeRelacion.Controlador), typeof(UnitariosDeUnProveedorController) }
+                 , { nameof(GridDeRelacion.AccionDeConsulta), nameof(UnitariosDeUnProveedorController.epLeerElementos)}
+                 , { nameof(GridDeRelacion.PropiedadRestrictora), nameof(UnitariosDeUnProveedorDto.IdProveedor) }
                  , { nameof(GridDeRelacion.OrdenarPor), orden }
-                 , { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(UnitariosController)}/{nameof(UnitariosController.CrudUnitarios)}?id={nameof(TarifaDto.IdElemento)}" }
+                 , { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(UnitariosController)}/{nameof(UnitariosController.CrudUnitarios)}?id={nameof(UnitariosDeUnProveedorDto.IdElemento)}" }
                  , { nameof(GridDeRelacion.OcultarSiVacio), false}
                 };
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
             gridDeRelacion.PermitirBorrar = false;
 
-            // var modalDeCreacion = expansor.DescriptorDeCrearRelaciones(Editor.Crud.Contexto, typeof(TarifaDto), typeof(TarifasController), nameof(TarifaDto.IdElemento), "Añadir tarifa de proveedor");
-            // modalDeCreacion.AccionTrasAbrirModal = $"javascript: {enumNameSpaceTs.MaestrosTecnico}.{enumFunctionTs.Unitario_InicializarModalParaCrearTarifa}('{modalDeCreacion.IdHtml}')";
+            expansor.DescriptorDeCrearRelaciones(Editor.Crud.Contexto, typeof(UnitariosDeUnProveedorDto), typeof(UnitariosDeUnProveedorController), nameof(UnitariosDeUnProveedorDto.IdProveedor), "Añadir tarifa de un unitario",
+                accionControlador: nameof(UnitariosDeUnProveedorController.epCrearTarifa));
 
-            expansor.DescriptorDeEditarRelaciones(Editor.Crud.Contexto, typeof(TarifaDto), typeof(TarifasController), "Consultar tarifa", soloConsulta: true);
+            expansor.DescriptorDeEditarRelaciones(Editor.Crud.Contexto, typeof(UnitariosDeUnProveedorDto), typeof(UnitariosDeUnProveedorController), "Editar tarifa", soloConsulta: false,
+                accionControlador: nameof(UnitariosDeUnProveedorController.epModificarTarifa));
         }
 
 

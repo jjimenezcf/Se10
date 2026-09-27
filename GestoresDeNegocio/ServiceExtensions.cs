@@ -222,6 +222,7 @@ public static class ServiceExtensions
     {
         services.AddScoped<GestorDeNaturalezas>();
         services.AddScoped<GestorDeTarifas>();
+        services.AddScoped<GestorDeUnitariosDeUnProveedor>();
         services.AddScoped<GestorDeUnidades>();
         services.AddScoped<GestorDeUnitarios>();
     }
