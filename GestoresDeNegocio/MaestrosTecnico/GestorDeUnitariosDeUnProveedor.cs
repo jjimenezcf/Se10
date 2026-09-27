@@ -53,6 +53,9 @@ namespace GestoresDeNegocio.MaestrosTecnico
         {
             base.AntesDePersistir(tarifa, parametros);
 
+            if (parametros.Operacion == enumTipoOperacion.Eliminar)
+                return;
+
             if (tarifa.IdProveedor == 0)
                 GestorDeErrores.Emitir($"Debe indicar el proveedor");
 

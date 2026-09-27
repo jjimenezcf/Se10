@@ -6,7 +6,7 @@ namespace ModeloDeDto.MaestrosTecnico
     /// <summary>
     /// Tarifa de un proveedor vista desde el proveedor: el restrictor es el proveedor y el seleccionable es el unitario
     /// </summary>
-    [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, OpcionDeBorrar = false)]
+    [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5)]
     public class UnitariosDeUnProveedorDto : ElementoDto
     {
         //----------------------------------------------------------

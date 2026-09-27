@@ -140,7 +140,7 @@ namespace MVCSistemaDeElementos.Descriptores
                  , { nameof(GridDeRelacion.OcultarSiVacio), false}
                 };
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
-            gridDeRelacion.PermitirBorrar = false;
+            gridDeRelacion.PermitirBorrar = true;
 
             expansor.DescriptorDeCrearRelaciones(Editor.Crud.Contexto, typeof(UnitariosDeUnProveedorDto), typeof(UnitariosDeUnProveedorController), nameof(UnitariosDeUnProveedorDto.IdProveedor), "Añadir tarifa de un unitario",
                 accionControlador: nameof(UnitariosDeUnProveedorController.epCrearTarifa));

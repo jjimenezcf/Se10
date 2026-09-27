@@ -43,6 +43,15 @@ namespace MVCSistemaDeElementos.Controllers
             return new ParametrosDeNegocio(enumTipoOperacion.Modificar);
         }
 
+        public JsonResult epBorrarRelacionPorId(int id, string parametrosJson) =>
+        ApiController.BorrarPorId(GestorDeUnitariosDeUnProveedor.Gestor(Contexto, Contexto.Mapeador), id, parametrosJson, HttpContext, AntesDeEjecutar_BorrarPorId);
+
+        protected override ParametrosDeNegocio AntesDeEjecutar_BorrarPorId(UnitariosDeUnProveedorDto elemento)
+        {
+            ValidarPermisoDeGestion(elemento.IdProveedor);
+            return base.AntesDeEjecutar_BorrarPorId(elemento);
+        }
+
         protected override IEnumerable<UnitariosDeUnProveedorDto> LeerElementos(int posicion, int cantidad, List<ClausulaDeFiltrado> filtros, List<ClausulaDeOrdenacion> orden, Dictionary<string, object> opcionesDeMapeo)
         {
             var idProveedor = 0;
