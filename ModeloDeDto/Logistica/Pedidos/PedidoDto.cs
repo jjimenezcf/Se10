@@ -69,9 +69,6 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Base imponible propuesta por el proveedor", Visible = false)]
         public decimal? BiPropuestoDelProveedor { get; set; }
 
-        [IUPropiedad(Etiqueta = "Porcentaje de iva soportado del proveedor", Visible = false)]
-        public decimal? PorcentajeIvaSoportadoDelProveedor { get; set; }
-
         // Indica si el proveedor del pedido tiene tarifas definidas: si las tiene, al crear una línea se propone
         // tipo Unitario (elegir del maestro) en vez de Alzada (ver Ped_InicializarModalParaCrearLineas)
         [IUPropiedad(Etiqueta = "El proveedor usa tarifa", Visible = false)]

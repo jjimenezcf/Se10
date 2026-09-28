@@ -230,13 +230,11 @@
                             AsignarValor(conceptoCtrl, conceptoDelProveedor);
                         }
 
-                        // Tarifa propuesta: la base imponible del proveedor con su iva soportado aplicado
+                        // Tarifa propuesta: la base imponible del proveedor (los pedidos van sin iva)
                         let biPropuestoDelProveedor = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.BiPropuestoDelProveedor, 0));
                         if (biPropuestoDelProveedor > 0) {
-                            let porcentajeIva = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.PorcentajeIvaSoportadoDelProveedor, 0));
-                            let tarifaConIva = biPropuestoDelProveedor * (1 + porcentajeIva / 100);
                             let precioCtrl = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.linea.precio) as HTMLInputElement;
-                            AsignarValor(precioCtrl, tarifaConIva.toString());
+                            AsignarValor(precioCtrl, biPropuestoDelProveedor.toString());
                         }
                     }
                     break;

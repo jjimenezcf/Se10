@@ -150,7 +150,6 @@ namespace GestoresDeNegocio.Terceros
             {
                 elemento.TipoFarPropuesto = proveedor.TipoFarPropuesto(Contexto)?.Nombre;
                 elemento.CgPropuesto = proveedor.CgPropuesto(Contexto)?.Expresion;
-                elemento.PorcentajeIvaSoportado = proveedor.IvaSoportado(Contexto)?.Porcentaje;
                 elemento.UsaTarifa = Contexto.Set<TarifaDtm>().Any(t => t.IdProveedor == proveedor.Id);
             }
 

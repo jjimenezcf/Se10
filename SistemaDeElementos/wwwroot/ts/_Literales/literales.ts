@@ -3280,7 +3280,6 @@ const ltrPropiedades = {
             IdUnidadDelProveedor: 'IdUnidadDelProveedor',
             ConceptoDelProveedor: 'ConceptoDelProveedor',
             BiPropuestoDelProveedor: 'BiPropuestoDelProveedor',
-            PorcentajeIvaSoportadoDelProveedor: 'PorcentajeIvaSoportadoDelProveedor',
             UsaTarifaDelProveedor: 'UsaTarifaDelProveedor',
             SelectorNaturaleza: 'Naturaleza',
             ClaseDeLinea: 'ClaseDeLinea',

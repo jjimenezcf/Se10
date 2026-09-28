@@ -27,7 +27,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
                 .ForMember(dto => dto.Proveedor, dtm => dtm.MapFrom(dtm => dtm.Proveedor.Expresion))
                 .ForMember(dto => dto.Elemento, dtm => dtm.MapFrom(dtm => dtm.Elemento.Expresion));
                 CreateMap<TarifaDto, TarifaDtm>()
-                .ForMember(dtm => dtm.Proveedor, dto => dto.Ignore());
+                .ForMember(dtm => dtm.Proveedor, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Elemento, dto => dto.Ignore());
             }
         }
 

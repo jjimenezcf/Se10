@@ -246,11 +246,6 @@ namespace ModeloDeDto.Terceros
         [IUPropiedad(Etiqueta = "Id del iva soportado", Visible = false)]
         public int? IdIvaS { get; set; }
 
-        // Se rellena solo al seleccionar el proveedor en una lista dinámica (ver GestorDeProveedores.DespuesDeMapearElElemento),
-        // para poder proponer la tarifa con iva aplicado sin necesitar otra petición al servidor
-        [IUPropiedad(Etiqueta = "Porcentaje del iva soportado propuesto", Visible = false)]
-        public decimal? PorcentajeIvaSoportado { get; set; }
-
         // Se rellena solo al seleccionar el proveedor en una lista dinámica: indica si tiene tarifas definidas (TarifaDtm)
         [IUPropiedad(Etiqueta = "Usa tarifa", Visible = false)]
         public bool UsaTarifa { get; set; }

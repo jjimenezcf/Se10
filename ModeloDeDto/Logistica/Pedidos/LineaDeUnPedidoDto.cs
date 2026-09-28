@@ -160,7 +160,7 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(
            Etiqueta = "Tarifa",
            Tipo = typeof(decimal),
-           Ayuda = "tarifa unitaria del proveedor con iva aplicado",
+           Ayuda = "tarifa unitaria del proveedor sin iva",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ped_CalcularImportesDeLinea) + "()",
