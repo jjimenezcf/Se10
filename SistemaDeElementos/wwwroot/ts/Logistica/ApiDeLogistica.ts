@@ -101,9 +101,14 @@ namespace Logistica {
         let orden = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Pedido.linea.orden, true) as HTMLInputElement;
         orden.value = (valor + incremento).toString();
 
-        if (Definido((Crud.crudMnt as CrudDePedidos).TipoDeLinea)) {
+        // Si el proveedor del pedido tiene tarifas definidas (TarifaDtm), se propone elegir un elemento del maestro
+        // de unitarios en vez de partida alzada (ver GestorDePedidos.DespuesDeMapearElElemento)
+        let usaTarifaDelProveedor = ObtenerPropiedad(editor.Registro, ltrPropiedades.Logistica.Pedido.UsaTarifaDelProveedor, false);
+        let tipoDeLineaPropuesto = usaTarifaDelProveedor ? enumTipoDeLinea.Unitario : (Crud.crudMnt as CrudDePedidos).TipoDeLinea;
+
+        if (Definido(tipoDeLineaPropuesto)) {
             var SelectorDeTipo = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.tipoDeLinea);
-            MapearAlControl.ListaDeValores(SelectorDeTipo, (Crud.crudMnt as CrudDePedidos).TipoDeLinea);
+            MapearAlControl.ListaDeValores(SelectorDeTipo, tipoDeLineaPropuesto);
         }
         else {
             let unitario = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Pedido.linea.unitario, true) as HTMLInputElement;

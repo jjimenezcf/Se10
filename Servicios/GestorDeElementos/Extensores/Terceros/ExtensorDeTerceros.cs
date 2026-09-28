@@ -4,7 +4,6 @@ using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Terceros;
 using System.Text;
 using Utilidades;
-using static Utilidades.Ampliaciones;
 
 namespace GestorDeElementos.Extensores
 {

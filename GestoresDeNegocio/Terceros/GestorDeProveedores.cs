@@ -10,6 +10,7 @@ using ServicioDeDatos.Callejero;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Gastos;
+using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
 using System;
@@ -140,16 +141,17 @@ namespace GestoresDeNegocio.Terceros
             {
                 elemento.DireccionFiscal = proveedor.DireccionFiscal(Contexto, errorSiNoHay: false)?.Expresion;
                 elemento.RazonSocial = proveedor.RazonSocial(Contexto);
-                elemento.TipoFarPropuesto = Contexto.SeleccionarPorId<TipoDeFacturaRecDtm>(proveedor.IdTipoFarPropuesto.Entero(), errorSiNoHay: false)?.Nombre;
-                elemento.CgPropuesto = Contexto.SeleccionarPorId<CentroGestorDtm>(proveedor.IdCgPropuesto.Entero(), errorSiNoHay: false)?.Expresion;
+                elemento.TipoFarPropuesto = proveedor.TipoFarPropuesto(Contexto)?.Nombre;
+                elemento.CgPropuesto = proveedor.CgPropuesto(Contexto)?.Expresion;
                 elemento.DomiciliadaEn = proveedor.DomiciliadaEn(Contexto)?.Expresion(Contexto); 
                 elemento.Tarjeta = proveedor.Tarjeta(Contexto)?.Expresion;
             }
             else if (parametros.CargarListaDinamica)
             {
-                elemento.TipoFarPropuesto = Contexto.SeleccionarPorId<TipoDeFacturaRecDtm>(proveedor.IdTipoFarPropuesto.Entero(), errorSiNoHay: false)?.Nombre;
-                elemento.CgPropuesto = Contexto.SeleccionarPorId<CentroGestorDtm>(proveedor.IdCgPropuesto.Entero(), errorSiNoHay: false)?.Expresion;
-                elemento.PorcentajeIvaSoportado = Contexto.SeleccionarPorId<IvaSoportadoDtm>(proveedor.IdIvaS.Entero(), errorSiNoHay: false)?.Porcentaje;
+                elemento.TipoFarPropuesto = proveedor.TipoFarPropuesto(Contexto)?.Nombre;
+                elemento.CgPropuesto = proveedor.CgPropuesto(Contexto)?.Expresion;
+                elemento.PorcentajeIvaSoportado = proveedor.IvaSoportado(Contexto)?.Porcentaje;
+                elemento.UsaTarifa = Contexto.Set<TarifaDtm>().Any(t => t.IdProveedor == proveedor.Id);
             }
 
         }

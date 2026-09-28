@@ -251,6 +251,10 @@ namespace ModeloDeDto.Terceros
         [IUPropiedad(Etiqueta = "Porcentaje del iva soportado propuesto", Visible = false)]
         public decimal? PorcentajeIvaSoportado { get; set; }
 
+        // Se rellena solo al seleccionar el proveedor en una lista dinámica: indica si tiene tarifas definidas (TarifaDtm)
+        [IUPropiedad(Etiqueta = "Usa tarifa", Visible = false)]
+        public bool UsaTarifa { get; set; }
+
         //-----------------------------------------------------
         [IUPropiedad(
             Etiqueta = "Irpf",

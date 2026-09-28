@@ -308,6 +308,47 @@ namespace GestorDeElementos.Extensores
             return proveedor.DomiciliadaEn;
         }
 
+
+        public static TipoDeFacturaRecDtm TipoFarPropuesto(this ProveedorDtm proveedor, ContextoSe contexto)
+        {
+            if (proveedor.TipoFarPropuesto is not null && proveedor.IdTipoFarPropuesto == proveedor.TipoFarPropuesto.Id)
+                return proveedor.TipoFarPropuesto;
+
+            if (proveedor.IdTipoFarPropuesto is null)
+                return null;
+
+            proveedor.TipoFarPropuesto = (TipoDeFacturaRecDtm)enumNegocio.FacturaRecibida.Tipos(contexto).FirstOrDefault(t => t.Id == (int) proveedor.IdTipoFarPropuesto);   
+
+            return proveedor.TipoFarPropuesto;
+        }
+
+        public static CentroGestorDtm CgPropuesto(this ProveedorDtm proveedor, ContextoSe contexto)
+        {
+            if (proveedor.CgPropuesto is not null && proveedor.IdCgPropuesto == proveedor.CgPropuesto.Id)
+                return proveedor.CgPropuesto;
+
+            if (proveedor.IdCgPropuesto is null)
+                return null;
+
+            proveedor.CgPropuesto = contexto.SeleccionarPorId<CentroGestorDtm>((int)proveedor.IdCgPropuesto);
+
+            return proveedor.CgPropuesto;
+        }
+
+        public static IvaSoportadoDtm IvaSoportado(this ProveedorDtm proveedor, ContextoSe contexto)
+        {
+            if (proveedor.IvaSoportado is not null && proveedor.IdIvaS == proveedor.IvaSoportado.Id)
+                return proveedor.IvaSoportado;
+
+            if (proveedor.IdIvaS is null)
+                return null;
+
+            proveedor.IvaSoportado = contexto.SeleccionarPorId<IvaSoportadoDtm>((int)proveedor.IdIvaS);
+
+            return proveedor.IvaSoportado;
+        }
+
+
         public static TarjetaDeMiSociedadDtm Tarjeta(this ProveedorDtm proveedor, ContextoSe contexto)
         {
             if (proveedor.Tarjeta is not null && proveedor.IdTarjeta == proveedor.Tarjeta.Id)

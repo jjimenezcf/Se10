@@ -72,6 +72,11 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Porcentaje de iva soportado del proveedor", Visible = false)]
         public decimal? PorcentajeIvaSoportadoDelProveedor { get; set; }
 
+        // Indica si el proveedor del pedido tiene tarifas definidas: si las tiene, al crear una línea se propone
+        // tipo Unitario (elegir del maestro) en vez de Alzada (ver Ped_InicializarModalParaCrearLineas)
+        [IUPropiedad(Etiqueta = "El proveedor usa tarifa", Visible = false)]
+        public bool UsaTarifaDelProveedor { get; set; }
+
         [IUPropiedad(Visible = false)]
         public string Interlocutor { get; set; }
 

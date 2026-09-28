@@ -267,9 +267,8 @@ namespace GestoresDeNegocio.Logistica
                 elemento.IdUnidadDelProveedor = proveedor?.IdUnidad;
                 elemento.ConceptoDelProveedor = proveedor?.Concepto;
                 elemento.BiPropuestoDelProveedor = proveedor?.BiPropuesto;
-                elemento.PorcentajeIvaSoportadoDelProveedor = proveedor?.IdIvaS is > 0
-                    ? Contexto.SeleccionarPorId<IvaSoportadoDtm>(proveedor.IdIvaS.Value, errorSiNoHay: false)?.Porcentaje
-                    : null;
+                elemento.PorcentajeIvaSoportadoDelProveedor = proveedor?.IvaSoportado(Contexto)?.Porcentaje;
+                elemento.UsaTarifaDelProveedor = proveedor != null && Contexto.Set<TarifaDtm>().Any(t => t.IdProveedor == proveedor.Id);
             }
         }
 

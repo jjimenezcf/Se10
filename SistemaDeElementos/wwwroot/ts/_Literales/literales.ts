@@ -2435,6 +2435,12 @@ enum enumIa {
     IaApyHub = 'IaApyhub'
 }
 
+enum enumTipoDeLinea {
+    Unitario = 'Unitario',
+    Alzada = 'Alzada',
+    Comentario = 'Comentario'
+}
+
 const ltrPropiedades = {
     enumTipoPermiso: 'enumtipopermiso',
     baja: 'baja',
@@ -3275,6 +3281,7 @@ const ltrPropiedades = {
             ConceptoDelProveedor: 'ConceptoDelProveedor',
             BiPropuestoDelProveedor: 'BiPropuestoDelProveedor',
             PorcentajeIvaSoportadoDelProveedor: 'PorcentajeIvaSoportadoDelProveedor',
+            UsaTarifaDelProveedor: 'UsaTarifaDelProveedor',
             SelectorNaturaleza: 'Naturaleza',
             ClaseDeLinea: 'ClaseDeLinea',
             PedidoEl: 'PedidoEl',

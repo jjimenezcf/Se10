@@ -19,6 +19,15 @@ Almacén - Logistica (*) 15-09-2026
 - Probar Inventario inicial
 - Crear entrega de pedido
 
+Pedidos
+------------------------------------------------------------------------------
+definir la interface para la etapa de creación/cumplimentación
+definir la relación de unitarios dde un proveedor
+si el proveedor del pedido tiene tarifa al abrir la modal de línes no fijar alzada
+cargar la tarifa de un proveedor
+emitir excel de unitarios para enviar a un proeedor
+
+
 
 Correcciones y ampliaciones
 --------------------------------------------------------------------------------
