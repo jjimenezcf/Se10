@@ -10,7 +10,6 @@ namespace ModeloDeDto.Presupuesto
         public const string UnidadDeMedida = nameof(UnidadDeMedida);
         public const string Naturaleza = nameof(Naturaleza);
         public const string TipoDeLinea = nameof(TipoDeLinea);
-        public const string ClaseDeUnitario = nameof(ClaseDeUnitario);
     }
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]

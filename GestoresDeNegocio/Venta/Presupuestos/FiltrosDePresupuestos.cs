@@ -1,9 +1,7 @@
 ﻿using Gestor.Errores;
 using GestorDeElementos;
-using GestorDeElementos.Extensores;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
-using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Juridico;
 using ServicioDeDatos.Presupuesto;

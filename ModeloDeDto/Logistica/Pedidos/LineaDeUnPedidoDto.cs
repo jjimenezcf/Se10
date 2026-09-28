@@ -115,7 +115,7 @@ namespace ModeloDeDto.Logistica
             Fila = 3,
             Columna = 0,
             ColSpan = 2,
-            CssDeLaFila = enumCssGrid.filaConPrimeraColumnaDoble
+            CssDeLaFila = enumCssGrid.fila_2fr_0px_1fr_1fr_1fr
             )
         ]
         public string Naturaleza { get; set; }

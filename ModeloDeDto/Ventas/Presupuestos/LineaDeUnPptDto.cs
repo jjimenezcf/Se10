@@ -85,22 +85,6 @@ namespace ModeloDeDto.Presupuesto
         public string Concepto { get; set; }
 
 
-        //----------------------------------------------------------------
-
-        [IUPropiedad(
-            Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumClaseUnitario),
-            GuardarEn = nameof(Clase),
-            EditableAlEditar = false,
-            EditableAlCrear = true,
-            Fila = 3,
-            Columna = 0
-            )
-        ]
-        public string Clase { get; set; }
-
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la naturaleza contable", Visible = false)]
         public int IdNaturaleza { get; set; }
@@ -117,7 +101,7 @@ namespace ModeloDeDto.Presupuesto
             EditableAlCrear = true,
             EditableAlEditar = false,
             Fila = 3,
-            Columna = 1,
+            Columna = 0,
             ColSpan = 2
             )
         ]
@@ -138,7 +122,7 @@ namespace ModeloDeDto.Presupuesto
             EditableAlCrear = true,
             EditableAlEditar = false,
             Fila = 3,
-            Columna = 3
+            Columna = 2
             )
         ]
         public string Unidad { get; set; }

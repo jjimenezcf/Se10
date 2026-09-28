@@ -29,12 +29,10 @@
 
         private _IdDeUnidadDeMedida: number = 0;
         private _IdDeNaturaleza: number = 0;
-        private _ClaseDeUnitario: string = undefined;
         private _TipoDeLinea: string = undefined;
 
         public get UnidadDeMedida(): number { return this._IdDeUnidadDeMedida; }
         public get Naturaleza(): number { return this._IdDeNaturaleza; }
-        public get ClaseDeUnitario(): string { return this._ClaseDeUnitario; }
         public get TipoDeLinea(): string { return this._TipoDeLinea; }
 
         constructor(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string) {
@@ -47,7 +45,6 @@
             super.AplicarIndicadores(mapIndicadores);
             this._IdDeUnidadDeMedida = mapIndicadores.get(ltrPropiedades.Venta.Presupuesto.Indicadores.UnidadDeMedida);
             this._IdDeNaturaleza = mapIndicadores.get(ltrPropiedades.Venta.Presupuesto.Indicadores.Naturaleza);
-            this._ClaseDeUnitario = mapIndicadores.get(ltrPropiedades.Venta.Presupuesto.Indicadores.ClaseDeUnitario);
             this._TipoDeLinea = mapIndicadores.get(ltrPropiedades.Venta.Presupuesto.Indicadores.TipoDeLinea);
         }
 
@@ -284,7 +281,6 @@
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.concepto);
                     ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.unitario);
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.precio);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.Presupuesto.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.unidad);
                     ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva, true, false, true);
@@ -295,7 +291,6 @@
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.unitario);
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.precio);
-                    ApiControl.DesbloquearListaDeValores(modal, ltrPropiedades.Venta.Presupuesto.linea.clase);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.naturaleza);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.unidad);
                     ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva, false, false);
@@ -308,17 +303,12 @@
                             var SelectorUnidad = ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Venta.Presupuesto.linea.unidad);
                             MapearAlControl.ListaDeElementos(SelectorUnidad, new Array<ClausulaDeFiltrado>(), (this.CrudDeMnt as CrudDePresupuestos).UnidadDeMedida, null);
                         }
-                        if (Definido((this.CrudDeMnt as CrudDePresupuestos).ClaseDeUnitario)) {
-                            var SelectorDeClase = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Venta.Presupuesto.linea.clase);
-                            MapearAlControl.ListaDeValores(SelectorDeClase, (this.CrudDeMnt as CrudDePresupuestos).ClaseDeUnitario);
-                        }
                     }
                     break;
                 }
                 case 2: {
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.unitario);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.Presupuesto.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.Presupuesto.linea.unidad);
                     ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.Presupuesto.linea.ElPrecioIncluyeElIva, true, false, true);
@@ -530,19 +520,15 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPresupuesto;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(panel, ltrPropiedades.Venta.Presupuesto.linea.precio) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Venta.Presupuesto.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.Presupuesto.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.Presupuesto.linea.unidad) as HTMLSelectElement;
         if (NoDefinido(unitario)) {
             precio.value = "";
-            clase.selectedIndex = 0;
             naturaleza.selectedIndex = 0;
             unidad.selectedIndex = 0;
             return;
         }
         AsignarValor(precio, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.venta, 0));
-        let claseDelUnitario = ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.clase, 0);
-        MapearAlControl.ListaDeValores((clase as HTMLSelectElement), claseDelUnitario);
         MapearAlControl.FijarEnListaDeElementos(naturaleza, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.idnaturaleza, 0));
         MapearAlControl.FijarEnListaDeElementos(unidad, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.idunidad, 0));
     }
@@ -551,7 +537,6 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPresupuesto;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(panel, ltrPropiedades.Venta.Presupuesto.linea.precio) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Venta.Presupuesto.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.Presupuesto.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.Presupuesto.linea.unidad) as HTMLSelectElement;
         let selectorIvaR = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.Presupuesto.linea.selectorDeIvaR) as HTMLSelectElement;
@@ -562,7 +547,6 @@
         cantidad.value = "";
         selectorIvaR.selectedIndex = 0;
         precio.value = "";
-        clase.selectedIndex = 0;
         naturaleza.selectedIndex = 0;
         unidad.selectedIndex = 0;
 

@@ -410,7 +410,6 @@ namespace GestorDeElementos.Extensores
                     Orden = numero,
                     IdElemento = pptDeTareas.Id,
                     IdIvaR = iva.Id,
-                    Clase = enumClaseUnitario.Servicio,
                     IdNaturaleza = naturaleza.Id,
                     IdUnidad = unidad.Id,
                     Cantidad = minutos / 60,

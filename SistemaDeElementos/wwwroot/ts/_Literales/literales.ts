@@ -3349,8 +3349,7 @@ const ltrPropiedades = {
             Indicadores: {
                 Naturaleza: 'Naturaleza',
                 UnidadDeMedida: 'UnidadDeMedida',
-                TipoDeLinea: 'TipoDeLinea',
-                ClaseDeUnitario: 'ClaseDeUnitario'
+                TipoDeLinea: 'TipoDeLinea'
             },
             linea: {
                 orden: 'orden',

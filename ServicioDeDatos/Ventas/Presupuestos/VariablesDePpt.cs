@@ -37,8 +37,6 @@ namespace ServicioDeDatos.Ventas
         PPT_Naturaleza,
         [Description("Indica el tipo de línea por defecto")]
         PPT_TipoDeLinea,
-        [Description("Indica la clase de unitario por defecto")]
-        PPT_ClaseDeUnitario,
         [Description("Indica los datos por defecto para usar en la impresión de un ppt")]
         PPT_DatosDeImpresion,
         [Description("Indica el incremento al enumerar las filas")]

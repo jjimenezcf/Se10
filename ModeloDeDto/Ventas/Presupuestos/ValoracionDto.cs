@@ -46,7 +46,8 @@ namespace ModeloDeDto.Presupuesto
           TipoDeControl = enumTipoControl.Editor,
           Fila = 3,
           Columna = 0,
-          ColSpan = 2
+          ColSpan = 2,
+          CssDeLaFila = enumCssGrid.fila_2fr_0px_1fr_1fr_0px_0px
           )
         ]
         public string Concepto { get; set; }
@@ -65,7 +66,7 @@ namespace ModeloDeDto.Presupuesto
             GuardarEn = nameof(IdNaturaleza),
             MostrarExpresion = nameof(NaturalezaDtm.Expresion),
             Fila = 3,
-            Columna = 4
+            Columna = 2
             )
         ]
         public string Naturaleza { get; set; }
@@ -82,7 +83,7 @@ namespace ModeloDeDto.Presupuesto
             Controlador = nameof(enumControladoresMt.Unidades),
             GuardarEn = nameof(IdUnidad),
             Fila = 3,
-            Columna = 5
+            Columna = 3
             )
         ]
         public string Unidad { get; set; }

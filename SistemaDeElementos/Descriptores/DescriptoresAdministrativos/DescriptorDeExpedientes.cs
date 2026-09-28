@@ -25,8 +25,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
 using UtilidadesParaIu;
-using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
-using static Utilidades.Ampliaciones;
 
 namespace MVCSistemaDeElementos.Descriptores
 {

@@ -76,7 +76,6 @@ namespace MVCSistemaDeElementos.Controllers
             indicadores.Add(IndPresupuesto.UnidadDeMedida, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_Unidad_Medida, crearParametro: true, valorPorDefecto: Literal.Cero).Valor.Entero());
             indicadores.Add(IndPresupuesto.Naturaleza, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_Naturaleza, crearParametro: true, valorPorDefecto: Literal.Cero).Valor.Entero());
             indicadores.Add(IndPresupuesto.TipoDeLinea, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_TipoDeLinea, crearParametro: true, valorPorDefecto: enumTipoDeLinea.Alzada.ToString()).Valor);
-            indicadores.Add(IndPresupuesto.ClaseDeUnitario, enumNegocio.Presupuesto.Parametro(enumParametrosDePresupuesto.PPT_ClaseDeUnitario, crearParametro: true, valorPorDefecto: enumClaseUnitario.Servicio.ToString()).Valor);
             return indicadores;
         }
 
