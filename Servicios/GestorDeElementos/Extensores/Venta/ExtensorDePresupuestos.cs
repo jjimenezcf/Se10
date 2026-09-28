@@ -180,7 +180,6 @@ namespace GestorDeElementos.Extensores
                 Orden = IncrementarOrdenEn(contexto),
                 IdElemento = ppt.Id,
                 IdIvaR = valoracion.IdIvaR,
-                Clase = ApiDeEnsamblados.ToEnumerado<enumClaseUnitario>(valoracion.Clase),
                 IdNaturaleza = valoracion.IdNaturaleza,
                 IdUnidad = valoracion.IdUnidad,
                 Cantidad = valoracion.Cantidad,

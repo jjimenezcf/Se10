@@ -89,7 +89,6 @@ namespace GestoresDeNegocio.Presupuesto
                     var unitario = Contexto.SeleccionarPorId<UnitarioDtm>((int)linea.IdUnitario, aplicarJoin: true);
                     linea.Precio = unitario.Venta;
                     linea.Concepto = unitario.Expresion;
-                    linea.Clase = unitario.Naturaleza(Contexto).Clase;
                     linea.IdNaturaleza = unitario.IdNaturaleza;
                     linea.IdUnidad = unitario.IdUnidad;
                 }
@@ -97,7 +96,7 @@ namespace GestoresDeNegocio.Presupuesto
                 {
                     linea.Precio = ((LineaDeUnPptDtm)parametros.registroEnBd).Precio;
                     linea.Concepto = ((LineaDeUnPptDtm)parametros.registroEnBd).Concepto;
-                    linea.Clase = ((LineaDeUnPptDtm)parametros.registroEnBd).Clase;
+                    linea.IdNaturaleza = ((LineaDeUnPptDtm)parametros.registroEnBd).IdNaturaleza;
                     linea.Naturaleza = ((LineaDeUnPptDtm)parametros.registroEnBd).Naturaleza;
                     linea.Unidad = ((LineaDeUnPptDtm)parametros.registroEnBd).Unidad;
                 }
@@ -108,12 +107,15 @@ namespace GestoresDeNegocio.Presupuesto
             if (linea.TipoDeLinea == enumTipoDeLinea.Alzada)
             {
                 if (linea.Concepto.IsNullOrEmpty()) GestorDeErrores.Emitir("El tipo de línea exige un concepto");
-                if (linea.Clase == null) GestorDeErrores.Emitir("debe indicar una clase");
-                if (linea.IdNaturaleza.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una naturaleza");
                 if (linea.IdUnidad.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una unidad de medida");
             }
 
-            if (linea.TipoDeLinea == enumTipoDeLinea.Comentario)
+            if (linea.TipoDeLinea != enumTipoDeLinea.Comentario)
+            {
+                if (linea.IdNaturaleza.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una naturaleza");
+                linea.Clase = Contexto.SeleccionarPorId<NaturalezaDtm>((int)linea.IdNaturaleza).Clase;
+            }
+            else
             {
                 if (linea.Concepto.IsNullOrEmpty()) GestorDeErrores.Emitir($"Un comentario exige una desripción breve  ({nameof(LineaDeUnPptDtm.Concepto)})");
                 linea.Cantidad = null;
