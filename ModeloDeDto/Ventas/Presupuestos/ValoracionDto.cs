@@ -52,19 +52,6 @@ namespace ModeloDeDto.Presupuesto
         public string Concepto { get; set; }
 
 
-        //----------------------------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumClaseUnitario),
-            GuardarEn = nameof(Clase),
-            Fila = 3,
-            Columna = 3
-            )
-        ]
-        public string Clase { get; set; }
-
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la naturaleza contable", Visible = false)]
         public int IdNaturaleza { get; set; }
