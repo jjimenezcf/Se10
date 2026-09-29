@@ -31,7 +31,8 @@ namespace GestoresDeNegocio.Ventas
                 CreateMap<LineaDeUnaFaeDtm, LineaDeUnaFaeDto>()
                 .ForMember(dto => dto.Unitario, x => x.MapFrom(dtm => dtm.Unitario.Expresion))
                 .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad.Expresion))
-                .ForMember(dto => dto.IvaRepercutido, x => x.MapFrom(dtm => dtm.IvaRepercutido.Expresion));
+                .ForMember(dto => dto.IvaRepercutido, x => x.MapFrom(dtm => dtm.IvaRepercutido.Expresion))
+                .ForMember(dto => dto.Clase, x => x.Ignore());
                 CreateMap<LineaDeUnaFaeDto, LineaDeUnaFaeDtm>()
                 .ForMember(dtm => dtm.Elemento, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
@@ -129,7 +130,6 @@ namespace GestoresDeNegocio.Ventas
                         var unitario = Contexto.SeleccionarPorId<UnitarioDtm>((int)linea.IdUnitario, aplicarJoin: true);
                         linea.Precio = unitario.Venta;
                         linea.Concepto = unitario.Expresion;
-                        linea.Clase = unitario.Naturaleza(Contexto).Clase;
                         linea.IdNaturaleza = unitario.IdNaturaleza;
                         linea.IdUnidad = unitario.IdUnidad;
                     }
@@ -137,9 +137,8 @@ namespace GestoresDeNegocio.Ventas
                     {
                         linea.Precio = ((LineaDeUnaFaeDtm)parametros.registroEnBd).Precio;
                         linea.Concepto = ((LineaDeUnaFaeDtm)parametros.registroEnBd).Concepto;
-                        linea.Clase = ((LineaDeUnaFaeDtm)parametros.registroEnBd).Clase;
-                        linea.Naturaleza = ((LineaDeUnaFaeDtm)parametros.registroEnBd).Naturaleza;
-                        linea.Unidad = ((LineaDeUnaFaeDtm)parametros.registroEnBd).Unidad;
+                        linea.IdNaturaleza = ((LineaDeUnaFaeDtm)parametros.registroEnBd).IdNaturaleza;
+                        linea.IdUnidad = ((LineaDeUnaFaeDtm)parametros.registroEnBd).IdUnidad;
                     }
                 }
                 if (linea.TipoDeLinea != enumTipoDeLinea.Unitario && linea.IdUnitario.Entero() > 0)
@@ -149,7 +148,6 @@ namespace GestoresDeNegocio.Ventas
                 if (linea.TipoDeLinea == enumTipoDeLinea.Alzada)
                 {
                     if (linea.Concepto.IsNullOrEmpty()) GestorDeErrores.Emitir("El tipo de línea exige un concepto");
-                    if (linea.Clase == null) GestorDeErrores.Emitir("debe indicar una clase");
                     if (linea.IdNaturaleza.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una naturaleza");
                     if (linea.IdUnidad.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una unidad de medida");
                 }
@@ -164,7 +162,6 @@ namespace GestoresDeNegocio.Ventas
                     linea.IdIvaR = null;
                     linea.IdUnidad = null;
                     linea.IdNaturaleza = null;
-                    linea.Clase = null;
                 }
             }
         }
@@ -217,6 +214,7 @@ namespace GestoresDeNegocio.Ventas
         protected override void DespuesDeMapearElElemento(LineaDeUnaFaeDtm linea, LineaDeUnaFaeDto elemento, ParametrosDeNegocio parametros)
         {
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
+            elemento.Clase = linea.Clase(Contexto)?.ToString();
 
             var factura = linea.DetalleDe<FacturaEmtDtm>(Contexto);
             if (!factura.EstaEnLaEtapa(enumEtapasDeFacturasEmt.FAE_Etapa_Prefactura)) elemento.ModoDeAcceso = ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Consultor;

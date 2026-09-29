@@ -759,7 +759,6 @@ namespace GestorDeElementos.Extensores
                     Anotacion = linea.Anotacion,
                     Descuento = linea.Descuento,
                     IdIvaR = idIva,
-                    Clase = linea.Clase,
                     IdUnidad = idUnidad,
                     IdNaturaleza = idNaturaleza,
                     Iva = idIva is null ? null : contexto.SeleccionarPorId<IvaRepercutidoDtm>((int)idIva).Porcentaje,
@@ -876,7 +875,6 @@ namespace GestorDeElementos.Extensores
                     Descuento = linea.Descuento,
                     IdIvaR = linea.IdIvaR,
                     Iva = linea.Iva,
-                    Clase = linea.Clase(contexto),
                     IdUnidad = linea.IdUnidad,
                     IdNaturaleza = linea.IdNaturaleza
                 }
@@ -928,7 +926,6 @@ namespace GestorDeElementos.Extensores
                     Descuento = linea.Descuento,
                     IdIvaR = linea.IdIvaR,
                     Iva = linea.Iva,
-                    Clase = linea.Clase(contexto),
                     IdUnidad = linea.IdUnidad,
                     IdNaturaleza = linea.IdNaturaleza
                 }
@@ -1603,9 +1600,6 @@ namespace GestorDeElementos.Extensores
             if (factura.Tipo.IdIvaRDefecto == default(int))
                 Emitir($"No se puede facturar el parte de trabajo porque el tipo de factura '{factura.Tipo.Nombre}' no informa del Iva por defecto a usar");
 
-            if (factura.Tipo.ClaseDefecto == null)
-                Emitir($"No se puede facturar el parte de trabajo porque el tipo de factura '{factura.Tipo.Nombre}' no informa de la clase de unitario por defecto a usar");
-
             if (factura.Tipo.IdUnidadDefecto == null)
                 Emitir($"No se puede facturar el parte de trabajo porque el tipo de factura '{factura.Tipo.Nombre}' no informa de la unidad de medida por defecto a usar");
 
@@ -1627,7 +1621,6 @@ namespace GestorDeElementos.Extensores
                 Descuento = null,
                 IdIvaR = factura.Tipo.IdIvaRDefecto,
                 Iva = contexto.SeleccionarPorId<IvaRepercutidoDtm>((int)factura.Tipo.IdIvaRDefecto).Porcentaje,
-                Clase = factura.Tipo.ClaseDefecto,
                 IdUnidad = factura.Tipo.IdUnidadDefecto,
                 IdNaturaleza = factura.Tipo.IdNaturalezaDefecto,
                 IdParteTr = parteTr.Id
@@ -1913,7 +1906,6 @@ namespace GestorDeElementos.Extensores
                     Descuento = linea.Descuento,
                     IdIvaR = linea.IdIvaR,
                     Iva = linea.Iva,
-                    Clase = linea.Clase(contexto),
                     IdUnidad = linea.IdUnidad,
                     IdNaturaleza = linea.IdNaturaleza
                 }

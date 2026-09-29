@@ -86,18 +86,7 @@ namespace ModeloDeDto.Ventas
 
 
         //----------------------------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumClaseUnitario),
-            GuardarEn = nameof(Clase),
-            EditableAlEditar = false,
-            EditableAlCrear = true,
-            Fila = 3,
-            Columna = 0
-            )
-        ]
+        [IUPropiedad(Visible = false)]
         public string Clase { get; set; }
 
         //----------------------------------------------
@@ -116,8 +105,9 @@ namespace ModeloDeDto.Ventas
             EditableAlCrear = true,
             EditableAlEditar = false,
             Fila = 3,
-            Columna = 1,
-            ColSpan = 2
+            Columna = 0,
+            ColSpan = 2,
+            CssDeLaFila = enumCssGrid.fila_2fr_0px_1fr_1fr
             )
         ]
         public string Naturaleza { get; set; }
@@ -137,7 +127,7 @@ namespace ModeloDeDto.Ventas
             EditableAlCrear = true,
             EditableAlEditar = false,
             Fila = 3,
-            Columna = 3
+            Columna = 2
             )
         ]
         public string Unidad { get; set; }

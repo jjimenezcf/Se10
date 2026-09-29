@@ -456,7 +456,6 @@
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.concepto);
                     ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.unitario);
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.precio);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad, true);
                     ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva, true, false, true);
@@ -467,7 +466,6 @@
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.unitario);
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.precio);
-                    ApiControl.DesbloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad);
                     ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva, false, false);
@@ -485,18 +483,11 @@
                         MapearAlControl.FijarEnListaDeElementos(lista, idunidad);
                     }
 
-                    const clase = ObtenerPropiedad(this.Tipo, ltrPropiedades.Venta.FacturaEmt.tipo.claseDefecto);
-                    if (Definido(clase)) {
-                        lista = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, atControl.propiedad);
-                        MapearAlControl.FijarEnListaDeValores(lista, clase);
-                    }
-
                     break;
                 }
                 case 2: {
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.unitario);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.FacturaEmt.linea.clase, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.naturaleza, true);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.FacturaEmt.linea.unidad, true);
                     ApiControl.BloquearCheckPorPropiedad(modal, ltrPropiedades.Venta.FacturaEmt.linea.ElPrecioIncluyeElIva, true, false, true);

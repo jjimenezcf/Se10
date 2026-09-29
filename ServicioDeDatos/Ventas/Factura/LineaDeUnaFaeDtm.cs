@@ -14,7 +14,7 @@ namespace ServicioDeDatos.Ventas
 {
 
     [Table(Tablas.FACTURA_EMT + "_" + Sufijo.LINEA, Schema = Esquemas.VENTA)]
-    public class LineaDeUnaFaeDtm : RegistroDtm, IDetalle, IAuditoria
+    public class LineaDeUnaFaeDtm : RegistroDtm, IEsUnaLineaConCantidad, IAuditoria
     {
         public int IdElemento { get; set; }
         public FacturaEmtDtm Elemento { get; set; }
@@ -40,7 +40,6 @@ namespace ServicioDeDatos.Ventas
         public decimal ImporteDeIva => ImporteConDto * (Iva is null ? 0 : (decimal)Iva / 100);
         public decimal? ImporteDeLinea => (Precio is null || Cantidad is null) ? null : ImporteConDto + ImporteDeIva;
 
-        public enumClaseUnitario? Clase { get; set; }
         public int? IdUnidad { get; set; }
         public int? IdNaturaleza { get; set; }
 
@@ -97,7 +96,6 @@ namespace ServicioDeDatos.Ventas
             modelBuilder.Entity<LineaDeUnaFaeDtm>().Property(nameof(LineaDeUnaFaeDtm.Iva)).HasColumnName(ICampos.IVA).HasColumnType(IDominio.PORCENTAJE_MENOR_100).IsRequired(false);
             modelBuilder.Entity<LineaDeUnaFaeDtm>().Property(nameof(LineaDeUnaFaeDtm.Descuento)).HasColumnName(ICampos.DESCUENTO).HasColumnType(IDominio.PORCENTAJE_MENOR_100).IsRequired(false);
 
-            modelBuilder.Entity<LineaDeUnaFaeDtm>().Property(p => p.Clase).HasColumnName(ICampos.CLASE).HasColumnType(IDominio.VARCHAR_30).IsRequired(false);
             ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnaFaeDtm>(modelBuilder, nameof(LineaDeUnaFaeDtm.Unidad), nameof(LineaDeUnaFaeDtm.IdUnidad), ICampos.ID_UNIDAD, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnaFaeDtm>(modelBuilder, nameof(LineaDeUnaFaeDtm.Naturaleza), nameof(LineaDeUnaFaeDtm.IdNaturaleza), ICampos.ID_NATURALEZA, requerida: false, unico: false);
 

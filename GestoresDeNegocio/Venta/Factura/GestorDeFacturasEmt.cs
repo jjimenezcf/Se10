@@ -819,7 +819,6 @@ namespace GestoresDeNegocio.Ventas
                 Cantidad = cantidad,
                 Precio = precio,
                 IdIvaR = idIvaRep,
-                Clase = enumClaseUnitario.Servicio,
                 Iva = porcentajeDeIva,
                 IdUnidad = unidad.Id,
                 IdNaturaleza = idNaturaleza
@@ -846,7 +845,6 @@ namespace GestoresDeNegocio.Ventas
                 Precio = precio,
                 IdIvaR = idIvaRep,
                 Iva = porcentajeDeIva,
-                Clase = enumClaseUnitario.Servicio,
                 IdUnidad = unidad.Id,
                 IdNaturaleza = idNaturaleza
             }.Insertar(contexto, nameof(CrearLineaDeFactura));
