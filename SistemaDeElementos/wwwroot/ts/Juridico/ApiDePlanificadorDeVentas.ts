@@ -102,19 +102,15 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPlanificadorDeVenta;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let venta = ApiControl.BuscarEditor(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.venta) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.unidad) as HTMLSelectElement;
         if (NoDefinido(unitario)) {
             venta.value = "";
-            clase.selectedIndex = 0;
             naturaleza.selectedIndex = 0;
             unidad.selectedIndex = 0;
             return;
         }
         AsignarValor(venta, ObtenerPropiedad(unitario, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.venta, 0));
-        let claseDelUnitario = ObtenerPropiedad(unitario, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.clase, 0);
-        MapearAlControl.ListaDeValores((clase as HTMLSelectElement), claseDelUnitario);
         MapearAlControl.FijarEnListaDeElementos(naturaleza, ObtenerPropiedad(unitario, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.idnaturaleza, 0));
         MapearAlControl.FijarEnListaDeElementos(unidad, ObtenerPropiedad(unitario, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.idunidad, 0));
     }
@@ -123,7 +119,6 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPlanificadorDeVenta;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.venta) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.unidad) as HTMLSelectElement;
         let selectorIvaR = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.selectorDeIvaR) as HTMLSelectElement;
@@ -134,7 +129,6 @@
         cantidad.value = "";
         selectorIvaR.selectedIndex = 0;
         precio.value = "";
-        clase.selectedIndex = 0;
         naturaleza.selectedIndex = 0;
         unidad.selectedIndex = 0;
     }

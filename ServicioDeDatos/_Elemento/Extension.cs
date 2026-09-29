@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServicioDeDatos.MaestrosTecnico;
 using Utilidades;
+using static ServicioDeDatos.Elemento.Enumerados;
 
 namespace ServicioDeDatos.Elemento
 {
@@ -46,6 +48,13 @@ namespace ServicioDeDatos.Elemento
         public IElementoDtm Elemento { get; }
 
         public enumNegocio Negocio { get; }
+    }
+
+    public interface IEsUnaLineaConCantidad: IDetalle, IPuedeUsarNaturaleza, IPuedeUsarUnitario
+    {
+        public int Orden { get; set; }
+        public enumTipoDeLinea TipoDeLinea { get; set; }
+        public decimal? Cantidad { get; set; }
     }
 
     public static class ModeloDeAmpliaciones

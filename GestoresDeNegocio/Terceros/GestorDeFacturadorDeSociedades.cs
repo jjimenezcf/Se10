@@ -92,6 +92,11 @@ namespace GestoresDeNegocio.Terceros
             }
         }
 
+        protected override void DespuesDeMapearElRegistro(FacturadorDeSociedadDto elemento, FacturadorDeSociedadDtm registro, ParametrosDeNegocio opciones)
+        {
+            base.DespuesDeMapearElRegistro(elemento, registro, opciones);
+        }
+
         protected override void AntesDePersistir(FacturadorDeSociedadDtm facturador, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(facturador, parametros);

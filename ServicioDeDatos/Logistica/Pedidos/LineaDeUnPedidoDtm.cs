@@ -12,7 +12,7 @@ namespace ServicioDeDatos.Logistica
 {
 
     [Table(Tablas.PEDIDO + "_" + nameof(Sufijo.LINEA), Schema = Esquemas.LOGISTICA)]
-    public class LineaDeUnPedidoDtm : RegistroDtm, IDetalle, IAuditoria, IPuedeUsarUnitario, IPuedeUsarNaturaleza
+    public class LineaDeUnPedidoDtm : RegistroDtm, IEsUnaLineaConCantidad, IAuditoria
     {
         public int IdElemento { get; set; }
         public PedidoDtm Elemento { get; set; }

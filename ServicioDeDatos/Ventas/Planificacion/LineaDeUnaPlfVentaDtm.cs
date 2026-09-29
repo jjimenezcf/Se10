@@ -9,7 +9,7 @@ using static ServicioDeDatos.Elemento.Enumerados;
 namespace ServicioDeDatos.Ventas
 {
     [Table(Tablas.PLANIFICACION_VENTA + "_" + nameof(Sufijo.LINEA), Schema = Esquemas.VENTA)]
-    public class LineaDeUnaPlfVentaDtm : RegistroDtm, IDetalle, IPuedeUsarUnitario, IPuedeUsarNaturaleza
+    public class LineaDeUnaPlfVentaDtm : RegistroDtm, IEsUnaLineaConCantidad
     {
         public int IdElemento { get; set; }
         public PlanificacionDeVentaDtm Elemento { get; set; }

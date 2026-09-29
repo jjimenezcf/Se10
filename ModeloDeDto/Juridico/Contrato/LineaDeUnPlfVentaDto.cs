@@ -109,19 +109,8 @@ namespace ModeloDeDto.Juridico
 
         //----------------------------------------------------------------
 
-        [IUPropiedad(
-            Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumClaseUnitario),
-            GuardarEn = nameof(Clase),
-            EditableAlEditar = false,
-            EditableAlCrear = false,
-            Fila = 3,
-            Columna = 0
-            )
-        ]
-        public enumClaseUnitario Clase { get; set; }
+        [IUPropiedad(Visible = false)]
+        public string Clase { get; set; }
 
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la naturaleza contable", Visible = false)]
@@ -138,8 +127,7 @@ namespace ModeloDeDto.Juridico
             EditableAlCrear = false,
             EditableAlEditar = false,
             Fila = 3,
-            Columna = 1,
-            ColSpan = 2,
+            Columna = 0,
             Obligatorio = false
             )
         ]
@@ -159,7 +147,7 @@ namespace ModeloDeDto.Juridico
             EditableAlCrear = false,
             EditableAlEditar = false,
             Fila = 3,
-            Columna = 3,
+            Columna = 1,
             Obligatorio = false
             )
         ]

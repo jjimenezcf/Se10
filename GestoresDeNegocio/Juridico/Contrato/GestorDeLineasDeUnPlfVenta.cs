@@ -31,7 +31,7 @@ namespace GestoresDeNegocio.Juridico
                 .ForMember(dto => dto.Unitario, x => x.MapFrom(dtm => dtm.IdUnitario == null || dtm.Unitario == null ? "" : dtm.Unitario.Expresion))
                 .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.IdUnitario == null || dtm.Unidad == null ? "" : dtm.Unidad.Expresion))
                 .ForMember(dto => dto.IvaRepercutido, x => x.MapFrom(dtm => dtm.IdIvaR == null || dtm.IvaRepercutido == null ? "" : dtm.IvaRepercutido.Expresion))
-                .ForMember(dto => dto.Clase, x => x.MapFrom(dtm => dtm.Clase == null ? enumClaseUnitario.Material : dtm.Clase)); 
+                .ForMember(dto => dto.Clase, x => x.Ignore());
 
                 CreateMap<LineaDeUnPlfVentaDto, LineaDeUnPlfVentaDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
@@ -87,7 +87,8 @@ namespace GestoresDeNegocio.Juridico
             if (linea.Concepto.IsNullOrEmpty())
                 GestorDeErrores.Emitir("Debe indicar el comentario de la línea");
 
-            linea.Clase = null;
+            linea.IdNaturaleza = null;
+            linea.IdUnidad = null;
             linea.Cantidad = null;
             linea.Coste = null;
             linea.Descuento = null;
@@ -130,7 +131,6 @@ namespace GestoresDeNegocio.Juridico
             if (linea.Iva <= 0 && linea.Iva > 100) GestorDeErrores.Emitir("El IVA a aplicar ha de ser mayor de cero y menor de 100");
 
             linea.Coste = unitario.Coste;
-            linea.Clase = unitario.Naturaleza(Contexto).Clase;
             linea.IdNaturaleza = unitario.IdNaturaleza;
             linea.IdUnidad = unitario.IdUnidad;
             linea.Iva = linea.PorcentageDeIva(Contexto);
@@ -143,10 +143,6 @@ namespace GestoresDeNegocio.Juridico
                 linea.Concepto = (linea.IdUnitario == ((LineaDeUnPlfVentaDtm)parametros.registroEnBd).IdUnitario)
                 ? ((LineaDeUnPlfVentaDtm)parametros.registroEnBd).Concepto
                 : linea.Concepto = unitario.Expresion;
-               
-                linea.Clase = ((LineaDeUnPlfVentaDtm)parametros.registroEnBd).Clase;
-                linea.Naturaleza = ((LineaDeUnPlfVentaDtm)parametros.registroEnBd).Naturaleza;
-                linea.Unidad = ((LineaDeUnPlfVentaDtm)parametros.registroEnBd).Unidad;
             }
         }
 
@@ -169,6 +165,7 @@ namespace GestoresDeNegocio.Juridico
         {
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.Expresion = linea.TipoDeLinea == enumTipoDeLinea.Unitario ? linea.Unitario(Contexto).Expresion : linea.Concepto;
+            elemento.Clase = linea.Clase(Contexto)?.ToString();
             if (parametros.FiltroPorId)
             {
                 var planificador = linea.DetalleDe<PlanificadorDeVentaDtm>(Contexto, aplicarJoin: true);

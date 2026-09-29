@@ -1,8 +1,6 @@
 ﻿using ModeloDeDto.Negocio;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Terceros;
-using ServicioDeDatos.Ventas;
-using System;
 using Utilidades;
 
 namespace ModeloDeDto.Terceros

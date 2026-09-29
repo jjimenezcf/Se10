@@ -1,6 +1,7 @@
 ﻿using Gestor.Errores;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Elemento;
 using ServicioDeDatos.MaestrosTecnico;
 
 namespace GestorDeElementos.Extensores
@@ -27,6 +28,14 @@ namespace GestorDeElementos.Extensores
                 return linea.Naturaleza;
 
             return linea.Naturaleza = contexto.SeleccionarPorId<NaturalezaDtm>((int)linea.IdNaturaleza, aplicarJoin: aplicarJoin);
+        }
+
+        public static enumClaseUnitario? Clase(this IEsUnaLineaConCantidad linea, ContextoSe contexto)
+        {
+            if (linea.TipoDeLinea == Enumerados.enumTipoDeLinea.Comentario)
+                return null;
+
+            return linea.Naturaleza(contexto)?.Clase;
         }
 
     }

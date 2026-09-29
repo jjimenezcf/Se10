@@ -132,7 +132,6 @@
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.concepto);
                     ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.unitario);
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.concepto);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.unidad);
                     break;
@@ -145,7 +144,6 @@
                 case 2: {
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.unitario);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Juridico.PlanificadorDeVenta.linea.unidad);
                     break;
