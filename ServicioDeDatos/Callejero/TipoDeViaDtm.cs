@@ -21,7 +21,7 @@ namespace ServicioDeDatos.Callejero
                 .HasColumnType(IDominio.VARCHAR_10)
                 .IsRequired(true);
 
-            modelBuilder.Entity<TipoDeViaDtm>().HasIndex(p => p.Sigla).HasDatabaseName($"I_{ApiDeRegistroDtm.NombreDeTabla(typeof(TipoDeViaDtm))}_{ICampos.SIGLA}").IsUnique(false);
+            modelBuilder.Entity<TipoDeViaDtm>().HasIndex(p => p.Sigla).HasDatabaseName($"I_{ApiDeRegistroDtm.NombreDeTabla(typeof(TipoDeViaDtm))}_{ICampos.SIGLA}").IsUnique(true);
         }
 
     }

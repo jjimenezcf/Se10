@@ -173,3 +173,26 @@ Content-Type: application/json
 }
 
 ###
+
+### 9. Tipo de vía con la codificación del sistema de origen: "Avd" no es ni nombre ni sigla en
+### Se10, se resuelve con el mapeo "TiposDeVia" del JSON del facturador ({ "clave": "Avd", "valor": "Av" }).
+### Orden de búsqueda: nombre → mapeo del facturador → sigla. Sin mapeo para "Avd" la petición falla
+POST https://biwe.femdek.com/Facturador/epCrearCliente?nif=00811725D&apiKey=[xxxxx]
+Content-Type: application/json
+
+{
+  "NIF": "27485405Z",
+  "Nombre": "Juan",
+  "Apellidos": "Pérez García",
+  "eMail": "juan@ejemplo.com",
+  "Telefono": "915551234",
+  "Municipio": "Madrid",
+  "CodigoPostal": "28014",
+  "TipoDeVia": "Avd",
+  "Calle": "Menéndez Pelayo",
+  "Numero": 1,
+  "CrearCalleSiNoExiste": true,
+  "ValidarEnCatastro": true
+}
+
+###

@@ -477,7 +477,7 @@ static async Task CrearClienteAsync(HttpClient http, string nif, string apiKey, 
     if (municipio is not null)
     {
         codigoPostal = PedirObligatorio("Código postal", previo?.CodigoPostal);
-        tipoDeVia = PedirObligatorio("Tipo de vía (Calle, Avenida, Plaza...)", previo?.TipoDeVia);
+        tipoDeVia = PedirObligatorio("Tipo de vía (nombre, sigla o clave del mapeo TiposDeVia del facturador)", previo?.TipoDeVia);
         calle = PedirObligatorio("Calle", previo?.Calle);
         numero = PedirEntero("Número de policía", previo?.Calle is null ? null : previo.Numero);
         crearCalleSiNoExiste = PedirFlag("Crear la calle si no existe", crearCalleSiNoExiste);

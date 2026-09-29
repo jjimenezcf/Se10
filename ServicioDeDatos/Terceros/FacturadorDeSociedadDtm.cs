@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Gestor.Errores;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using ServicioDeDatos.Callejero;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.MaestrosTecnico;
@@ -36,7 +37,11 @@ namespace ServicioDeDatos.Terceros
   ""Irpfs"": [
     { ""clave"": ""15"", ""valor"": 1 },
     { ""clave"": ""7"", ""valor"": 2 }
-   ]
+   ],
+  ""TiposDeVia"": [
+    { ""clave"": ""CL"", ""valor"": ""Cl"" },
+    { ""clave"": ""Avd"", ""valor"": ""Av"" }
+  ]
 }";
     }
 
@@ -46,6 +51,13 @@ namespace ServicioDeDatos.Terceros
         public int Valor { get; set; }
     }
 
+    // mapeo cuyo valor no es un id sino un texto (p. ej. la sigla de un tipo de vía)
+    public class MapeoDeTextoDelFacturador
+    {
+        public string Clave { get; set; }
+        public string Valor { get; set; }
+    }
+
     public class MapeosDelFacturador
     {
         public enumClaseDeEmision ClaseDeEmision { get; set; }
@@ -53,6 +65,7 @@ namespace ServicioDeDatos.Terceros
         public List<MapeoDelFacturador> Naturalezas { get; set; }
         public List<MapeoDelFacturador> Ivas { get; set; }
         public List<MapeoDelFacturador> Irpfs { get; set; }
+        public List<MapeoDeTextoDelFacturador> TiposDeVia { get; set; }
     }
 
     [Table(Tablas.FACTURADOR, Schema = Esquemas.TERCEROS)]
@@ -96,6 +109,11 @@ namespace ServicioDeDatos.Terceros
                     {
                         valorFinal = Enum.Parse(typeof(enumClaseDeEmision), valorJson.Value<string>(), true);
                     }
+                }
+                else if (nombreDePropiedad == nameof(MapeosDelFacturador.TiposDeVia))
+                {
+                    if (valorJson.Type == JTokenType.Array)
+                        valorFinal = valorJson.ToObject<List<MapeoDeTextoDelFacturador>>();
                 }
                 else if (valorJson.Type == JTokenType.Array)
                 {
@@ -188,6 +206,29 @@ namespace ServicioDeDatos.Terceros
                 if (!contexto.Set<IrpfDtm>().Any(u => u.Id == irpf.Valor))
                     GestorDeErrores.Emitir($"El campo '{nameof(MapeosDelFacturador.Irpfs)}' a de tener ids válidos del maestor de Irpfs, item no válido '{irpf.Clave},{irpf.Valor}'.");
             }
+        }
+
+        public static void ValidarTiposDeVia(ContextoSe contexto, JToken valorJson)
+        {
+            if (valorJson.Type != JTokenType.Array)
+            {
+                GestorDeErrores.Emitir($"El campo '{nameof(MapeosDelFacturador.TiposDeVia)}' a de ser un array de (clave, valor), donde clave es el tipo de vía que envía el cliente y valor la sigla del tipo de vía en el sitema de elementos.");
+            }
+
+            var tiposDeVia = valorJson.ToObject<List<MapeoDeTextoDelFacturador>>();
+
+            foreach (var tipoDeVia in tiposDeVia)
+            {
+                if (tipoDeVia.Clave.IsNullOrEmpty() || tipoDeVia.Valor.IsNullOrEmpty())
+                    GestorDeErrores.Emitir($"El campo '{nameof(MapeosDelFacturador.TiposDeVia)}' no puede tener claves ni valores vacíos, item no válido '{tipoDeVia.Clave},{tipoDeVia.Valor}'.");
+
+                if (!contexto.Set<TipoDeViaDtm>().Any(t => t.Sigla == tipoDeVia.Valor))
+                    GestorDeErrores.Emitir($"El campo '{nameof(MapeosDelFacturador.TiposDeVia)}' a de tener siglas válidas del maestro de tipos de vía, item no válido '{tipoDeVia.Clave},{tipoDeVia.Valor}'.");
+            }
+
+            var repetida = tiposDeVia.GroupBy(t => t.Clave.ToUpperInvariant()).FirstOrDefault(g => g.Count() > 1);
+            if (repetida != null)
+                GestorDeErrores.Emitir($"El campo '{nameof(MapeosDelFacturador.TiposDeVia)}' tiene la clave '{repetida.First().Clave}' repetida.");
         }
     }
 

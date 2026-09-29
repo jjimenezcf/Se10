@@ -256,18 +256,21 @@ namespace GestoresDeNegocio.Terceros
             return Cliente;
         }
 
-        public static ClienteDtm CrearClienteCompleto(ContextoSe contexto, SociedadDtm sociedadEmisora, ClienteFacturadorJson datos)
+        public static ClienteDtm CrearClienteCompleto(ContextoSe contexto, FacturadorDeSociedadDtm facturador, ClienteFacturadorJson datos)
         {
             if (datos.NIF.IsNullOrEmpty())
                 GestorDeErrores.Emitir("El NIF del cliente es obligatorio");
 
             datos.NIF = datos.NIF.ToUpper();
 
+            var sociedadEmisora = facturador.Sociedad(contexto);
+            var mapeoDeTiposDeVia = facturador.ParsearMapeos().TiposDeVia;
+
             var tipo = datos.TipoDeCliente.IsNullOrEmpty()
                 ? ApiDeTerceros.TipoDeClienteEsp(datos.NIF)
                 : ApiDeTerceros.ParsearTipoDeCliente(datos.TipoDeCliente);
 
-            ValidarDatosDelCliente(contexto, datos, tipo);
+            ValidarDatosDelCliente(contexto, datos, tipo, mapeoDeTiposDeVia);
 
             // una sociedad con NIF de persona (autónomo) tiene como razón social su nombre y
             // apellidos: se capitaliza igual que el de una persona; la de una empresa se respeta
@@ -338,7 +341,7 @@ namespace GestoresDeNegocio.Terceros
             if (!datos.Municipio.IsNullOrEmpty())
             {
                 var municipio = contexto.SeleccionarPorNombre<MunicipioDtm>(datos.Municipio, $"No se ha localizado el municipio indicado: '{datos.Municipio}'", aplicarJoin: true);
-                var tipoVia = contexto.SeleccionarPorNombre<TipoDeViaDtm>(datos.TipoDeVia, $"No se ha localizado el tipo de vía indicado: '{datos.TipoDeVia}'");
+                var tipoVia = ExtensorDeDirecciones.ObtenerTipoDeVia(contexto, datos.TipoDeVia, mapeoDeTiposDeVia);
                 var codigoPostal = contexto.SeleccionarPorPropiedad<CodigoPostalDtm>(nameof(CodigoPostalDtm.Codigo), datos.CodigoPostal, errorSiNoHay: false);
                 if (codigoPostal == null)
                     GestorDeErrores.Emitir($"No se ha localizado el código postal indicado: '{datos.CodigoPostal}'");
@@ -397,7 +400,7 @@ namespace GestoresDeNegocio.Terceros
             return cliente;
         }
 
-        private static void ValidarDatosDelCliente(ContextoSe contexto, ClienteFacturadorJson datos, enumTipoCliente tipo)
+        private static void ValidarDatosDelCliente(ContextoSe contexto, ClienteFacturadorJson datos, enumTipoCliente tipo, List<MapeoDeTextoDelFacturador> mapeoDeTiposDeVia)
         {
             if (tipo == enumTipoCliente.Fisica)
             {
@@ -420,7 +423,7 @@ namespace GestoresDeNegocio.Terceros
                 GestorDeErrores.Emitir("El teléfono del cliente es obligatorio");
 
             if (!datos.Municipio.IsNullOrEmpty())
-                ExtensorDeDirecciones.ValidarDatosDeDireccion(contexto, datos.Municipio, datos.CodigoPostal, datos.TipoDeVia, datos.Calle, datos.ValidarEnCatastro);
+                ExtensorDeDirecciones.ValidarDatosDeDireccion(contexto, datos.Municipio, datos.CodigoPostal, datos.TipoDeVia, datos.Calle, datos.ValidarEnCatastro, mapeoDeTiposDeVia);
         }
 
         protected override void DespuesDeMapearElElemento(ClienteDtm cliente, ClienteDto elemento, ParametrosDeNegocio parametros)

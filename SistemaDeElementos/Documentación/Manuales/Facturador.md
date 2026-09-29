@@ -70,7 +70,7 @@ Body: JSON del cliente (ver estructura en el [Anexo 5](#anexo-5--crear-un-client
 - Si el cliente ya existe (se busca por su NIF/CIF/NIE), no se crea de nuevo: se actualiza (nombre/apellidos, razón social, email, teléfono, dirección fiscal) solo si los datos han cambiado y el flag correspondiente lo permite — ver `SustituirDatosIdentificativos` y `SustituirDatosDeContacto` en el Anexo 5. Es seguro repetir la llamada.
 - Según el formato del NIF/CIF/NIE se da de alta automáticamente como persona física o persona jurídica (o se puede forzar con `TipoDeCliente`).
 - Opcionalmente, antes de dar de alta o actualizar, se puede validar el NIF y la razón social contra la AEAT (`ValidarEnLaAeat`).
-- Si además se indican los datos de la dirección fiscal, se da de alta (o se sustituye, si ya tenía una distinta) esa dirección. La calle se crea automáticamente si no existe en el callejero y `CrearCalleSiNoExiste` es `true` (si no, la petición falla); opcionalmente se puede exigir que la calle exista en el Catastro (`ValidarEnCatastro`). El municipio, el código postal y el tipo de vía deben existir ya.
+- Si además se indican los datos de la dirección fiscal, se da de alta (o se sustituye, si ya tenía una distinta) esa dirección. La calle se crea automáticamente si no existe en el callejero y `CrearCalleSiNoExiste` es `true` (si no, la petición falla); opcionalmente se puede exigir que la calle exista en el Catastro (`ValidarEnCatastro`). El municipio, el código postal y el tipo de vía deben existir ya. El tipo de vía se puede indicar por nombre, por sigla o con una clave del mapeo `TiposDeVia` del facturador.
 
 Ver el detalle en el [Anexo 5](#anexo-5--crear-un-cliente).
 
@@ -84,6 +84,60 @@ Body: texto libre con el motivo de la rectificación.
 No hace falta indicar `nif`: el sistema localiza la factura original por su número, obtiene la sociedad a la que pertenece y valida el `apiKey` contra esa sociedad — igual que en el modo directo de creación.
 
 Ver el detalle en el [Anexo 4](#anexo-4--rectificar-una-factura-por-datos-erróneos).
+
+## Configuración del facturador de la sociedad (apiKey y mapeos)
+
+Cada sociedad que quiera facturar vía API tiene uno o varios **facturadores** (en la ficha de la sociedad), uno por combinación de centro gestor y tipo de factura. Al dar de alta un facturador:
+
+- Se genera su `apiKey` a partir de `IdSociedad + IdCg + IdTipoDeFactura`; es el que el cliente externo usa en todas las llamadas. Si se desactiva el facturador, sus peticiones fallan.
+- Se indica el **JSON de mapeo**, que traduce los códigos que envía el cliente externo a los valores de Se10. Se valida al guardar el facturador. Cada clave del JSON que no se reconozca da error.
+
+Estructura del JSON de mapeo (valor por defecto al crear un facturador):
+
+```json
+{
+  "ClaseDeEmision": "eFactura322",
+  "Unidades": [
+    { "clave": "Unidad", "valor": 1 },
+    { "clave": "Hora", "valor": 2 }
+  ],
+  "Naturalezas": [
+    { "clave": "Materiales", "valor": 1 },
+    { "clave": "Servicios", "valor": 2 }
+  ],
+  "Ivas": [
+    { "clave": "21", "valor": 1 },
+    { "clave": "10", "valor": 2 }
+  ],
+  "Irpfs": [
+    { "clave": "15", "valor": 1 },
+    { "clave": "7", "valor": 2 }
+  ],
+  "TiposDeVia": [
+    { "clave": "CL", "valor": "Cl" },
+    { "clave": "Avd", "valor": "Av" }
+  ]
+}
+```
+
+| Clave | Obligatoria | `clave` (lo que envía el cliente externo) | `valor` (en Se10) |
+|---|---|---|---|
+| `ClaseDeEmision` | Sí | — (valor único) | Enumerado `enumClaseDeEmision` (p. ej. `eFactura322`). |
+| `Unidades` | Sí, para crear facturas | Unidad de la línea | Id de la unidad. |
+| `Naturalezas` | Sí, para crear facturas | Naturaleza de la línea | Id de la naturaleza. |
+| `Ivas` | Sí, para crear facturas | Porcentaje de IVA | Id del IVA repercutido. |
+| `Irpfs` | No | Porcentaje de IRPF | Id del IRPF. |
+| `TiposDeVia` | No | Tipo de vía que envía el cliente al crear un cliente (`TipoDeVia`) | **Sigla** del tipo de vía (no el id). |
+
+Sobre `TiposDeVia`:
+
+- Al validar el JSON se comprueba que cada `valor` es una sigla existente del maestro de tipos de vía (la sigla es única en el maestro). También se comprueba que no hay claves vacías ni repetidas.
+- Es opcional. Los facturadores ya existentes que no la tengan siguen funcionando: el tipo de vía se busca entonces solo por nombre y por sigla. Para añadirla basta con editar el JSON del facturador desde la aplicación.
+- Cómo se resuelve el `TipoDeVia` de `epCrearCliente` (en este orden; se usa el primero que encuentre):
+  1. Por **nombre** (`Calle`, `Avenida`...).
+  2. Por el **mapeo** `TiposDeVia` del facturador, comparando la `clave` sin distinguir mayúsculas. Va antes que la sigla porque es una configuración explícita y prevalece.
+  3. Por **sigla** (`Cl`, `Av`...).
+  4. Si no se localiza, la petición falla.
 
 ## Resumen del backend
 
@@ -481,7 +535,7 @@ Ejemplo con persona jurídica (una sociedad, identificada por CIF):
 | `SustituirDatosDeContacto` | No (`false` por defecto) | Igual que el anterior pero para `eMail`/`Telefono` del cliente. |
 | `Municipio` | Solo si se da la dirección | Nombre del municipio; debe existir ya en el callejero. |
 | `CodigoPostal` | Solo si se da la dirección | Debe existir ya en el callejero. |
-| `TipoDeVia` | Solo si se da la dirección | P. ej. `Calle`, `Avenida`, `Plaza`; debe existir ya en el callejero. |
+| `TipoDeVia` | Solo si se da la dirección | Nombre (`Calle`, `Avenida`, `Plaza`...), sigla (`Cl`, `Av`...) o una clave del mapeo `TiposDeVia` del facturador (ver [Configuración del facturador](#configuración-del-facturador-de-la-sociedad-apikey-y-mapeos)); el tipo de vía debe existir ya en el callejero. |
 | `Calle` | Solo si se da la dirección | Nombre de la calle. |
 | `Numero` | Solo si se da la dirección | Número de policía. |
 | `CrearCalleSiNoExiste` | No (`false` por defecto) | Si la calle no existe para ese municipio/tipo de vía: con `true` se crea; con `false` la petición falla indicando que no se permite crearla. |

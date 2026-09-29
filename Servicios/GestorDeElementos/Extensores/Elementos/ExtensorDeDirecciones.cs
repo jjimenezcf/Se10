@@ -27,7 +27,7 @@ namespace GestorDeElementos.Extensores
         // cualquier elemento (cliente, proveedor, interlocutor...): que estén informados y que el
         // municipio, el tipo de vía y el código postal existan; opcionalmente, que la calle exista
         // en el callejero del Catastro (solo para municipios de España).
-        public static void ValidarDatosDeDireccion(ContextoSe contexto, string nombreMunicipio, string codigoPostal, string nombreTipoDeVia, string nombreCalle, bool validarEnCatastro)
+        public static void ValidarDatosDeDireccion(ContextoSe contexto, string nombreMunicipio, string codigoPostal, string nombreTipoDeVia, string nombreCalle, bool validarEnCatastro, List<MapeoDeTextoDelFacturador> mapeoDeTiposDeVia = null)
         {
             if (nombreMunicipio.IsNullOrEmpty() || codigoPostal.IsNullOrEmpty() || nombreTipoDeVia.IsNullOrEmpty() || nombreCalle.IsNullOrEmpty())
                 GestorDeErrores.Emitir("Para indicar la dirección hay que informar el municipio, el código postal, el tipo de vía y la calle");
@@ -36,8 +36,7 @@ namespace GestorDeElementos.Extensores
             if (municipio == null)
                 GestorDeErrores.Emitir($"El municipio '{nombreMunicipio}' no existe en la base de datos");
 
-            if (contexto.SeleccionarPorNombre<TipoDeViaDtm>(nombreTipoDeVia, errorSiNoHay: false) == null)
-                GestorDeErrores.Emitir($"El tipo de vía '{nombreTipoDeVia}' no existe en la base de datos");
+            ObtenerTipoDeVia(contexto, nombreTipoDeVia, mapeoDeTiposDeVia);
 
             if (contexto.SeleccionarPorPropiedad<CodigoPostalDtm>(nameof(CodigoPostalDtm.Codigo), codigoPostal, errorSiNoHay: false) == null)
                 GestorDeErrores.Emitir($"El código postal '{codigoPostal}' no existe en la base de datos");
@@ -64,6 +63,47 @@ namespace GestorDeElementos.Extensores
 
             if (!existe)
                 GestorDeErrores.Emitir($"La calle '{nombreCalle}' no existe en el callejero del Catastro para el municipio '{municipio.Nombre}'");
+        }
+
+        // Localiza el tipo de vía que envía un tercero:
+        //   1. por nombre (Calle, Avenida...)
+        //   2. por el mapeo (clave → sigla) configurado, p. ej., en el facturador de la sociedad; va antes que
+        //      la sigla porque es una configuración explícita y ha de prevalecer
+        //   3. por sigla (Cl, Av...)
+        // si no se localiza, da error
+        public static TipoDeViaDtm ObtenerTipoDeVia(ContextoSe contexto, string tipoDeVia, List<MapeoDeTextoDelFacturador> mapeoDeTiposDeVia = null)
+        {
+            if (tipoDeVia.IsNullOrEmpty())
+                GestorDeErrores.Emitir("No se ha indicado el tipo de vía");
+
+            var porNombre = contexto.SeleccionarPorNombre<TipoDeViaDtm>(tipoDeVia, errorSiNoHay: false);
+            if (porNombre != null)
+                return porNombre;
+
+            var mapeo = mapeoDeTiposDeVia?.FirstOrDefault(m => string.Equals(m.Clave?.Trim(), tipoDeVia.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (mapeo != null)
+            {
+                var mapeado = TipoDeViaPorSigla(contexto, mapeo.Valor);
+                if (mapeado == null)
+                    GestorDeErrores.Emitir($"El tipo de vía '{tipoDeVia}' está mapeado a la sigla '{mapeo.Valor}', que no existe en el maestro de tipos de vía");
+                return mapeado;
+            }
+
+            var porSigla = TipoDeViaPorSigla(contexto, tipoDeVia);
+            if (porSigla == null)
+                GestorDeErrores.Emitir($"El tipo de vía '{tipoDeVia}' no existe en la base de datos ni por nombre, ni por sigla, ni en el mapeo de tipos de vía");
+
+            return porSigla;
+        }
+
+        private static TipoDeViaDtm TipoDeViaPorSigla(ContextoSe contexto, string sigla)
+        {
+            if (sigla.IsNullOrEmpty())
+                return null;
+
+            // la sigla es única en el maestro de tipos de vía (índice único)
+            var siglaBuscada = sigla.Trim();
+            return contexto.Set<TipoDeViaDtm>().FirstOrDefault(t => t.Sigla == siglaBuscada);
         }
 
         public static IQueryable<DireccionDtm> Direcciones(this enumNegocio negocio, ContextoSe contexto)
