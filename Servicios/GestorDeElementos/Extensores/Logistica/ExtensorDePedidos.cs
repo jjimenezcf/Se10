@@ -10,6 +10,7 @@ using static Gestor.Errores.GestorDeErrores;
 using System.Linq;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Ventas;
+using ServicioDeDatos.MaestrosTecnico;
 
 namespace GestorDeElementos.Extensores
 {
@@ -178,5 +179,12 @@ namespace GestorDeElementos.Extensores
             }
         }
 
+        public static enumClaseUnitario? Clase(this LineaDeUnPedidoDtm linea, ContextoSe contexto)
+        {
+            if (linea.TipoDeLinea == ServicioDeDatos.Elemento.Enumerados.enumTipoDeLinea.Comentario)
+                return null;
+
+            return linea.Naturaleza(contexto)?.Clase;
+        }
     }
 }

@@ -23,6 +23,12 @@ namespace ServicioDeDatos.MaestrosTecnico
         public static string Prefijo(this enumClaseUnitario clase) => clase.ToString().Substring(0, 3);
     }
 
+    public interface IPuedeUsarUnitario
+    {
+        int? IdUnitario { get; set; }
+        UnitarioDtm Unitario { get; set; }
+    }
+
     [Table(Tablas.UNITARIO, Schema = Esquemas.MT)]
     public class UnitarioDtm : ElementoDtm, IUsaDescripcion, IUsaReferencia, IUsaBaja
     {

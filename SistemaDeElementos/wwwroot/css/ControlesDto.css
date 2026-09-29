@@ -1918,6 +1918,10 @@ a.deshabilitado {
     grid-template-columns: 2fr 0px 1fr 1fr 0px 0px !important;
 }
 
+.fila-100px-1fr-2fr-0px-0px {
+    grid-template-columns: 100px 1fr 2fr 0px 0px !important;
+}
+
 .columna-con-block-no-flex {
     display: block !important;
     width: 100% !important;

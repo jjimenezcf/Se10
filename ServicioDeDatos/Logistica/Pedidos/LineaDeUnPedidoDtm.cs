@@ -12,7 +12,7 @@ namespace ServicioDeDatos.Logistica
 {
 
     [Table(Tablas.PEDIDO + "_" + nameof(Sufijo.LINEA), Schema = Esquemas.LOGISTICA)]
-    public class LineaDeUnPedidoDtm : RegistroDtm, IDetalle, IAuditoria
+    public class LineaDeUnPedidoDtm : RegistroDtm, IDetalle, IAuditoria, IPuedeUsarUnitario, IPuedeUsarNaturaleza
     {
         public int IdElemento { get; set; }
         public PedidoDtm Elemento { get; set; }
@@ -26,8 +26,6 @@ namespace ServicioDeDatos.Logistica
 
         public int? IdNaturaleza { get; set; }
         public NaturalezaDtm Naturaleza { get; set; }
-
-        public enumClaseUnitario? Clase { get; set; }
 
         public decimal? Precio { get; set; }
         public decimal? Cantidad { get; set; }
@@ -80,7 +78,6 @@ namespace ServicioDeDatos.Logistica
             modelBuilder.Entity<LineaDeUnPedidoDtm>().Property(nameof(LineaDeUnPedidoDtm.Cantidad)).HasColumnName(ICampos.CANTIDAD).HasColumnType(IDominio.DECIMAL).IsRequired(false);
             modelBuilder.Entity<LineaDeUnPedidoDtm>().Property(nameof(LineaDeUnPedidoDtm.Descuento)).HasColumnName(ICampos.DESCUENTO).HasColumnType(IDominio.PORCENTAJE_MENOR_100).IsRequired(false);
 
-            modelBuilder.Entity<LineaDeUnPedidoDtm>().Property(p => p.Clase).HasColumnName(ICampos.CLASE).HasColumnType(IDominio.VARCHAR_30).IsRequired(false);
             ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnPedidoDtm>(modelBuilder, nameof(LineaDeUnPedidoDtm.Unidad), nameof(LineaDeUnPedidoDtm.IdUnidad), ICampos.ID_UNIDAD, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnPedidoDtm>(modelBuilder, nameof(LineaDeUnPedidoDtm.Naturaleza), nameof(LineaDeUnPedidoDtm.IdNaturaleza), ICampos.ID_NATURALEZA, requerida: false, unico: false);
 

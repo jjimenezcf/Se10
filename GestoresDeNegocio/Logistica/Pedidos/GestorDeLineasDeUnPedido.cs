@@ -28,7 +28,8 @@ namespace GestoresDeNegocio.Logistica
             {
                 CreateMap<LineaDeUnPedidoDtm, LineaDeUnPedidoDto>()
                 .ForMember(dto => dto.Unitario, x => x.MapFrom(dtm => dtm.Unitario.Expresion))
-                .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad.Expresion));
+                .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad.Expresion))
+                .ForMember(dto => dto.Clase, x => x.Ignore());
                 CreateMap<LineaDeUnPedidoDto, LineaDeUnPedidoDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Naturaleza, dto => dto.Ignore())
@@ -94,8 +95,8 @@ namespace GestoresDeNegocio.Logistica
                 {
                     linea.Precio = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Precio;
                     linea.Concepto = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Concepto;
-                    linea.Naturaleza = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Naturaleza;
-                    linea.Unidad = ((LineaDeUnPedidoDtm)parametros.registroEnBd).Unidad;
+                    linea.IdNaturaleza = ((LineaDeUnPedidoDtm)parametros.registroEnBd).IdNaturaleza;
+                    linea.IdUnidad = ((LineaDeUnPedidoDtm)parametros.registroEnBd).IdUnidad;
                 }
             }
             if (linea.TipoDeLinea != enumTipoDeLinea.Unitario && linea.IdUnitario.Entero() > 0)
@@ -117,12 +118,13 @@ namespace GestoresDeNegocio.Logistica
                 linea.IdNaturaleza = null;
             }
 
-            // La clase siempre se deriva de la naturaleza: si hay naturaleza, hay clase; un comentario no tiene ninguna de las dos
-            linea.Clase = linea.TipoDeLinea == enumTipoDeLinea.Comentario
-                ? null
-                : Contexto.SeleccionarPorId<NaturalezaDtm>((int)linea.IdNaturaleza).Clase;
-
             ServicioDeCaches.EliminarElemento(CacheDe.Pedido_Total, linea.IdElemento.ToString());
+        }
+
+        protected override void DespuesDeMapearElElemento(LineaDeUnPedidoDtm linea, LineaDeUnPedidoDto elemento, ParametrosDeNegocio parametros)
+        {
+            base.DespuesDeMapearElElemento(linea, elemento, parametros);
+            elemento.Clase = linea.Clase(Contexto)?.ToString();
         }
 
     }

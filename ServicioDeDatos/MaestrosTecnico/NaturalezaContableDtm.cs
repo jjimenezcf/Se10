@@ -19,6 +19,12 @@ namespace ServicioDeDatos.MaestrosTecnico
         public string Concepto { get; set; }
     }
 
+    public interface IPuedeUsarNaturaleza
+    {
+        int? IdNaturaleza { get; set; }
+        NaturalezaDtm Naturaleza { get; set; }
+    }
+
     [Table(Tablas.MT_NATURALEZA, Schema = Esquemas.MT)]
     public class NaturalezaDtm : RegistroConNombreDtm, IRegistroDeParametrizacion, ISigla
     {

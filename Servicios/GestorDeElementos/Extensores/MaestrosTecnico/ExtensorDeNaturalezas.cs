@@ -17,5 +17,17 @@ namespace GestorDeElementos.Extensores
 
             return naturaleza.CuentaDeGasto;
         }
+
+        public static NaturalezaDtm Naturaleza(this IPuedeUsarNaturaleza linea, ContextoSe contexto, bool aplicarJoin = false)
+        {
+            if (linea.IdNaturaleza is null)
+                return null;
+
+            if (linea.Naturaleza != null && linea.Naturaleza.Id == linea.IdNaturaleza)
+                return linea.Naturaleza;
+
+            return linea.Naturaleza = contexto.SeleccionarPorId<NaturalezaDtm>((int)linea.IdNaturaleza, aplicarJoin: aplicarJoin);
+        }
+
     }
 }
