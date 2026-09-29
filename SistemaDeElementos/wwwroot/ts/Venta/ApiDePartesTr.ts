@@ -169,19 +169,15 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionParteTr;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(panel, ltrPropiedades.Venta.ParteTr.linea.precio) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Venta.ParteTr.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.ParteTr.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.ParteTr.linea.unidad) as HTMLSelectElement;
         if (NoDefinido(unitario)) {
             precio.value = "";
-            clase.selectedIndex = 0;
             naturaleza.selectedIndex = 0;
             unidad.selectedIndex = 0;
             return;
         }
         AsignarValor(precio, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.venta, 0));
-        let claseDelUnitario = ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.clase, 0);
-        MapearAlControl.ListaDeValores((clase as HTMLSelectElement), claseDelUnitario);
         MapearAlControl.FijarEnListaDeElementos(naturaleza, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.idnaturaleza, 0));
         MapearAlControl.FijarEnListaDeElementos(unidad, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.idunidad, 0));
     }
@@ -191,7 +187,6 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionParteTr;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(panel, ltrPropiedades.Venta.ParteTr.linea.precio) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Venta.ParteTr.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.ParteTr.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.ParteTr.linea.unidad) as HTMLSelectElement;
         let selectorIvaR = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.ParteTr.linea.selectorDeIvaR) as HTMLSelectElement;
@@ -202,7 +197,6 @@
         cantidad.value = "";
         selectorIvaR.selectedIndex = 0;
         precio.value = "";
-        clase.selectedIndex = 0;
         naturaleza.selectedIndex = 0;
         unidad.selectedIndex = 0;
     }

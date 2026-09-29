@@ -171,7 +171,6 @@
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.concepto);
                     ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.unitario);
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.precio);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.ParteTr.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.ParteTr.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.ParteTr.linea.unidad);
                     break;
@@ -180,7 +179,6 @@
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.unitario);
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.precio);
-                    ApiControl.DesbloquearListaDeValores(modal, ltrPropiedades.Venta.ParteTr.linea.clase);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.ParteTr.linea.naturaleza);
                     ApiControl.DesbloquearListaDeElemento(modal, ltrPropiedades.Venta.ParteTr.linea.unidad);
                     break;
@@ -188,7 +186,6 @@
                 case 2: {
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.ParteTr.linea.unitario);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.ParteTr.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.ParteTr.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.ParteTr.linea.unidad);
                     ocultar = true;

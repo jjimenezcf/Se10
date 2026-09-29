@@ -31,7 +31,8 @@ namespace GestoresDeNegocio.Presupuesto
                 CreateMap<LineaDeUnPptDtm, LineaDeUnPptDto>()
                 .ForMember(dto => dto.Unitario, x => x.MapFrom(dtm => dtm.Unitario.Expresion))
                 .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad.Expresion))
-                .ForMember(dto => dto.IvaRepercutido, x => x.MapFrom(dtm => dtm.IvaRepercutido.Expresion));
+                .ForMember(dto => dto.IvaRepercutido, x => x.MapFrom(dtm => dtm.IvaRepercutido.Expresion))
+                .ForMember(dto => dto.Clase, x => x.Ignore());
                 CreateMap<LineaDeUnPptDto, LineaDeUnPptDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Naturaleza, dto => dto.Ignore())
@@ -97,8 +98,7 @@ namespace GestoresDeNegocio.Presupuesto
                     linea.Precio = ((LineaDeUnPptDtm)parametros.registroEnBd).Precio;
                     linea.Concepto = ((LineaDeUnPptDtm)parametros.registroEnBd).Concepto;
                     linea.IdNaturaleza = ((LineaDeUnPptDtm)parametros.registroEnBd).IdNaturaleza;
-                    linea.Naturaleza = ((LineaDeUnPptDtm)parametros.registroEnBd).Naturaleza;
-                    linea.Unidad = ((LineaDeUnPptDtm)parametros.registroEnBd).Unidad;
+                    linea.IdUnidad = ((LineaDeUnPptDtm)parametros.registroEnBd).IdUnidad;
                 }
             }
             if (linea.TipoDeLinea != enumTipoDeLinea.Unitario && linea.IdUnitario.Entero() > 0)
@@ -113,7 +113,6 @@ namespace GestoresDeNegocio.Presupuesto
             if (linea.TipoDeLinea != enumTipoDeLinea.Comentario)
             {
                 if (linea.IdNaturaleza.Entero() == 0) GestorDeErrores.Emitir("El tipo de línea exige una naturaleza");
-                linea.Clase = Contexto.SeleccionarPorId<NaturalezaDtm>((int)linea.IdNaturaleza).Clase;
             }
             else
             {
@@ -125,8 +124,13 @@ namespace GestoresDeNegocio.Presupuesto
                 linea.IdIvaR = null;
                 linea.IdUnidad = null;
                 linea.IdNaturaleza = null;
-                linea.Clase = null;
             }
+        }
+
+        protected override void DespuesDeMapearElElemento(LineaDeUnPptDtm linea, LineaDeUnPptDto elemento, ParametrosDeNegocio parametros)
+        {
+            base.DespuesDeMapearElElemento(linea, elemento, parametros);
+            elemento.Clase = linea.Clase(Contexto)?.ToString();
         }
 
         protected override void EliminarCaches(LineaDeUnPptDtm linea, ParametrosDeNegocio parametros)

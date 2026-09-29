@@ -84,6 +84,9 @@ namespace ModeloDeDto.Presupuesto
         ]
         public string Concepto { get; set; }
 
+        //----------------------------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public string Clase { get; set; }
 
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la naturaleza contable", Visible = false)]

@@ -332,7 +332,6 @@ namespace ValidacionesDeRn
                 Precio = (decimal)50.6,
                 IdIvaR = contexto.SeleccionarPorPropiedad<IvaRepercutidoDtm>(nameof(IvaRepercutidoDtm.Clase), "IRG").Id,
                 Anotacion = "Esto es una alzada",
-                Clase = enumClaseUnitario.Servicio,
                 IdNaturaleza = contexto.SeleccionarPorPropiedad<NaturalezaDtm>(nameof(NaturalezaDtm.Sigla), InzMaestros.n_natu_consultoria).Id,
                 IdUnidad = contexto.SeleccionarPorPropiedad<UnidadDtm>(nameof(UnidadDtm.Sigla), InzMaestros.n_unidad_ud).Id
             }.Insertar(contexto);
