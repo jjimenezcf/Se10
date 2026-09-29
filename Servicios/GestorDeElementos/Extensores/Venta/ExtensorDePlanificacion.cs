@@ -116,6 +116,14 @@ namespace GestorDeElementos.Extensores
             return linea.Unitario == null ? contexto.SeleccionarPorId<UnitarioDtm>((int)linea.IdUnitario, aplicarJoin) : linea.Unitario;
         }
 
+        public static enumClaseUnitario? Clase(this LineaDeUnaPlfVentaDtm linea, ContextoSe contexto)
+        {
+            if (linea.TipoDeLinea == enumTipoDeLinea.Comentario)
+                return null;
+
+            return linea.Naturaleza(contexto)?.Clase;
+        }
+
         public static decimal PorcentageDeIva(this LineaDeUnaPlfVentaDtm linea, ContextoSe contexto, bool errorSiNoHay = true)
         {
             if (linea.IdIvaR.Entero() == 0)
@@ -223,7 +231,6 @@ namespace GestorDeElementos.Extensores
                     Descuento = linea.Descuento,
                     IdIvaR = linea.IdIvaR,
                     Iva = linea.Iva,
-                    Clase = linea.Clase,
                     IdUnidad = linea.IdUnidad,
                     IdNaturaleza = linea.IdNaturaleza
                 }

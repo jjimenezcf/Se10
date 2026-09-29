@@ -30,7 +30,8 @@ namespace GestoresDeNegocio.Ventas
                 CreateMap<LineaDeUnaPlfVentaDtm, LineaDeUnaPlfVentaDto>()
                 .ForMember(dto => dto.Unitario, x => x.MapFrom(dtm => dtm.Unitario.Expresion))
                 .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad.Expresion))
-                .ForMember(dto => dto.IvaRepercutido, x => x.MapFrom(dtm => dtm.IvaRepercutido.Expresion));
+                .ForMember(dto => dto.IvaRepercutido, x => x.MapFrom(dtm => dtm.IvaRepercutido.Expresion))
+                .ForMember(dto => dto.Clase, x => x.Ignore());
 
                 CreateMap<LineaDeUnaPlfVentaDto, LineaDeUnaPlfVentaDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
@@ -66,8 +67,8 @@ namespace GestoresDeNegocio.Ventas
 
             if (parametros.Modificando)
             {
-                if (((LineaDeUnPlfVentaDtm)parametros.registroEnBd).TipoDeLinea != linea.TipoDeLinea)
-                    GestorDeErrores.Emitir("No se puede modificar el tipo de línea de un planificador de ventas");
+                if (((LineaDeUnaPlfVentaDtm)parametros.registroEnBd).TipoDeLinea != linea.TipoDeLinea)
+                    GestorDeErrores.Emitir("No se puede modificar el tipo de línea de una planificación de ventas");
             }
 
             if (linea.TipoDeLinea == enumTipoDeLinea.Unitario)
@@ -87,7 +88,8 @@ namespace GestoresDeNegocio.Ventas
             if (linea.Concepto.IsNullOrEmpty())
                 GestorDeErrores.Emitir("Debe indicar el comentario de la línea");
 
-            linea.Clase = null;
+            linea.IdNaturaleza = null;
+            linea.IdUnidad = null;
             linea.Cantidad = null;
             linea.Coste = null;
             linea.Descuento = null;
@@ -119,7 +121,6 @@ namespace GestoresDeNegocio.Ventas
             if (linea.Iva <= 0 && linea.Iva > 100) GestorDeErrores.Emitir("El IVA a aplicar ha de ser mayor de cero y menor de 100");
 
             linea.Coste = unitario.Coste;
-            linea.Clase = unitario.Naturaleza(Contexto).Clase;
             linea.IdNaturaleza = unitario.IdNaturaleza;
             linea.IdUnidad = unitario.IdUnidad;
             linea.Iva = linea.PorcentageDeIva(Contexto);
@@ -132,10 +133,6 @@ namespace GestoresDeNegocio.Ventas
                 linea.Concepto = (linea.IdUnitario == ((LineaDeUnaPlfVentaDtm)parametros.registroEnBd).IdUnitario)
                 ? ((LineaDeUnaPlfVentaDtm)parametros.registroEnBd).Concepto
                 : linea.Concepto = unitario.Expresion;
-
-                linea.Clase = ((LineaDeUnaPlfVentaDtm)parametros.registroEnBd).Clase;
-                linea.Naturaleza = ((LineaDeUnaPlfVentaDtm)parametros.registroEnBd).Naturaleza;
-                linea.Unidad = ((LineaDeUnaPlfVentaDtm)parametros.registroEnBd).Unidad;
             }
         }
 
@@ -170,6 +167,7 @@ namespace GestoresDeNegocio.Ventas
         {
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.Expresion = linea.TipoDeLinea == enumTipoDeLinea.Unitario ? linea.Unitario(Contexto).Expresion : linea.Concepto;
+            elemento.Clase = linea.Clase(Contexto)?.ToString();
         }
     }
 

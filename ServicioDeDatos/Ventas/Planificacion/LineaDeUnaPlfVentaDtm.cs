@@ -9,7 +9,7 @@ using static ServicioDeDatos.Elemento.Enumerados;
 namespace ServicioDeDatos.Ventas
 {
     [Table(Tablas.PLANIFICACION_VENTA + "_" + nameof(Sufijo.LINEA), Schema = Esquemas.VENTA)]
-    public class LineaDeUnaPlfVentaDtm : RegistroDtm, IDetalle
+    public class LineaDeUnaPlfVentaDtm : RegistroDtm, IDetalle, IPuedeUsarUnitario, IPuedeUsarNaturaleza
     {
         public int IdElemento { get; set; }
         public PlanificacionDeVentaDtm Elemento { get; set; }
@@ -35,7 +35,6 @@ namespace ServicioDeDatos.Ventas
         public decimal ImporteDeIva => Iva.HasValue ? ImporteConDto * (decimal)Iva / 100 : 0;
         public decimal ImporteDeLinea => ImporteConDto + ImporteDeIva;
 
-        public enumClaseUnitario? Clase { get; set; }
         public int? IdUnidad { get; set; }
         public int? IdNaturaleza { get; set; }
 
@@ -76,7 +75,6 @@ namespace ServicioDeDatos.Ventas
             modelBuilder.Entity<LineaDeUnaPlfVentaDtm>().Property(nameof(LineaDeUnaPlfVentaDtm.Iva)).HasColumnName(ICampos.IVA).HasColumnType(IDominio.PORCENTAJE_MENOR_100).IsRequired(false);
             modelBuilder.Entity<LineaDeUnaPlfVentaDtm>().Property(nameof(LineaDeUnaPlfVentaDtm.Descuento)).HasColumnName(ICampos.DESCUENTO).HasColumnType(IDominio.PORCENTAJE_MENOR_100).IsRequired(false);
 
-            modelBuilder.Entity<LineaDeUnaPlfVentaDtm>().Property(p => p.Clase).HasColumnName(ICampos.CLASE).HasColumnType(IDominio.VARCHAR_30).IsRequired(false);
             ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnaPlfVentaDtm>(modelBuilder, nameof(LineaDeUnaPlfVentaDtm.Unidad), nameof(LineaDeUnaPlfVentaDtm.IdUnidad), ICampos.ID_UNIDAD, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnaPlfVentaDtm>(modelBuilder, nameof(LineaDeUnaPlfVentaDtm.Naturaleza), nameof(LineaDeUnaPlfVentaDtm.IdNaturaleza), ICampos.ID_NATURALEZA, requerida: false, unico: false);
         }

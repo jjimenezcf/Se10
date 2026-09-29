@@ -8,13 +8,8 @@ using ModeloDeDto.Juridico;
 using System.Collections.Generic;
 using Utilidades;
 using GestorDeElementos.Extensores;
-using iText.Commons.Actions.Contexts;
-using iText.Layout.Element;
 using ServicioDeDatos.Ventas;
 using GestorDeElementos;
-using GestoresDeNegocio.Guarderias;
-using ModeloDeDto.Guarderias;
-using System;
 
 namespace MVCSistemaDeElementos.Controllers
 {

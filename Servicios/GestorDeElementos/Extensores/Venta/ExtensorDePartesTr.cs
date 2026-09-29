@@ -132,7 +132,7 @@ namespace GestorDeElementos.Extensores
                         Descuento = linea.Descuento,
                         IdIvaR = linea.IdIvaR,
                         Iva = linea.Iva,
-                        Clase = linea.Clase,
+                        Clase = linea.Clase(contexto),
                         IdUnidad = linea.IdUnidad,
                         IdNaturaleza = linea.IdNaturaleza
                     }

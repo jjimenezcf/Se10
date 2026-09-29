@@ -17,7 +17,8 @@ namespace ModeloDeDto.Ventas
             Ayuda = "orden de la línea",
             Tipo = typeof(int),
             Fila = 1,
-            Columna = 0
+            Columna = 0,
+            CssDeLaFila = enumCssGrid.fila_100px_1fr_2fr_0px_0px
             )
         ]
         public int Orden { get; set; }
@@ -31,8 +32,7 @@ namespace ModeloDeDto.Ventas
             GuardarEn = nameof(TipoDeLinea),
             OnChange = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Plv_Tras_Cambiar_TipoDeLinea) + "()",
             Fila = 1,
-            Columna = 0,
-            Posicion = 1,
+            Columna = 1,
             EditableAlEditar = false
           )
         ]
@@ -57,7 +57,7 @@ namespace ModeloDeDto.Ventas
             BuscarPor = nameof(UnitarioDtm.Nombre),
             CriterioDeBusqueda = enumCriteriosDeFiltrado.contiene,
             Fila = 1,
-            Columna = 1,
+            Columna = 2,
             Ordenar = true,
             EditableAlEditar = false,
             trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Plv_Tras_Seleccionar_Unitario) + "(["+nameof(enumParamTs.idLista)+"])",
@@ -83,19 +83,8 @@ namespace ModeloDeDto.Ventas
 
         //----------------------------------------------------------------
 
-        [IUPropiedad(
-            Etiqueta = "Clase",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumClaseUnitario),
-            GuardarEn = nameof(Clase),
-            EditableAlEditar = false,
-            EditableAlCrear = false,
-            Fila = 3,
-            Columna = 0
-            )
-        ]
-        public enumClaseUnitario Clase { get; set; }
+        [IUPropiedad(Visible = false)]
+        public string Clase { get; set; }
 
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la naturaleza contable", Visible = false)]
@@ -113,8 +102,9 @@ namespace ModeloDeDto.Ventas
             EditableAlEditar = false,
             Obligatorio = false,
             Fila = 3,
-            Columna = 1,
-            ColSpan = 2
+            Columna = 0,
+            ColSpan = 2,
+            CssDeLaFila = enumCssGrid.fila_2fr_0px_1fr_1fr_1fr
             )
         ]
         public string Naturaleza { get; set; }
@@ -134,7 +124,7 @@ namespace ModeloDeDto.Ventas
             EditableAlEditar = false,
             Obligatorio = false,
             Fila = 3,
-            Columna = 3
+            Columna = 2
             )
         ]
         public string Unidad { get; set; }
@@ -150,8 +140,8 @@ namespace ModeloDeDto.Ventas
            Formato = enumFormato.Numero_6,
            MantenerHuecoDeLaIzquierda =true,
            Obligatorio = false,
-           Fila = 4,
-           Columna = 2)
+           Fila = 3,
+           Columna = 3)
         ]
         public decimal? Cantidad { get; set; }
         
@@ -168,8 +158,8 @@ namespace ModeloDeDto.Ventas
            EditableAlCrear = false,
            EditableAlEditar = false,
            Obligatorio = false,
-           Fila = 4,
-           Columna = 3)
+           Fila = 3,
+           Columna = 4)
         ]
         public decimal? Venta { get; set; }
 
@@ -183,7 +173,7 @@ namespace ModeloDeDto.Ventas
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Plv_CalcularImportesDeLinea) + "()",
            Obligatorio = false,
            Formato = enumFormato.Porcentaje,
-           Fila = 5,
+           Fila = 4,
            Columna = 0)
         ]
         public decimal? Descuento { get; set; }
@@ -202,9 +192,8 @@ namespace ModeloDeDto.Ventas
             OnChange = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Plv_IvaRepercutidoCambiado) + "()",
             OnBlur = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Plv_CalcularImportesDeLinea) + "()",
             Obligatorio = false,
-            ColSpan = 2,
             VisibleEnGrid = false,
-            Fila = 5,
+            Fila = 4,
             Columna = 1
             )
         ]
@@ -221,7 +210,7 @@ namespace ModeloDeDto.Ventas
            EditableAlCrear = false,
            EditableAlEditar = false,
            Formato = enumFormato.Porcentaje,
-           Fila = 5,
+           Fila = 4,
            Columna = 3)
         ]
         public decimal? Iva { get; set; }

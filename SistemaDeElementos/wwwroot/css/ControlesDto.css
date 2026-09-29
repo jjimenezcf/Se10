@@ -1913,6 +1913,11 @@ a.deshabilitado {
     grid-template-columns: 2fr 0px 1fr 1fr 1fr !important;
 }
 
+/* Variante de 4 columnas: Naturaleza (2fr) + hueco (0px) + Unidad y cuarta columna (1fr cada una) en la línea de una planificación de venta */
+.fila-2fr-0px-1fr-1fr {
+    grid-template-columns: 2fr 0px 1fr 1fr !important;
+}
+
 /* Variante de 6 columnas: Concepto (2fr) + hueco (0px) + Naturaleza/Unidad (1fr cada una) + dos columnas vacías (0px) en la valoración de un presupuesto */
 .fila-2fr-0px-1fr-1fr-0px-0px {
     grid-template-columns: 2fr 0px 1fr 1fr 0px 0px !important;

@@ -52,7 +52,6 @@
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.PlfDeVenta.linea.concepto);
                     ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.PlfDeVenta.linea.unitario);
                     ApiControl.BloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.PlfDeVenta.linea.concepto);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.PlfDeVenta.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.PlfDeVenta.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.PlfDeVenta.linea.unidad);
                     break;
@@ -62,10 +61,9 @@
                     MensajesSe.Error("AplicarTipoDeLinea", "Una planificación de ventas no acepta partidas alzadas");
                     break;
                 }
-                case 2: {Venta
+                case 2: {
                     ApiControl.DesbloquearEditorPorPropiedad(modal, ltrPropiedades.Venta.PlfDeVenta.linea.concepto);
                     ApiControl.BloquearListaDinamicaPorPropiedad(modal, ltrPropiedades.Venta.PlfDeVenta.linea.unitario);
-                    ApiControl.BloquearListaDeValores(modal, ltrPropiedades.Venta.PlfDeVenta.linea.clase);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.PlfDeVenta.linea.naturaleza);
                     ApiControl.BloquearListaDeElemento(modal, ltrPropiedades.Venta.PlfDeVenta.linea.unidad);
                     break;
@@ -254,7 +252,6 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPlanificacionDeVenta;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let precio = ApiControl.BuscarEditor(panel, ltrPropiedades.Venta.PlfDeVenta.linea.venta) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Venta.PlfDeVenta.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.PlfDeVenta.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.PlfDeVenta.linea.unidad) as HTMLSelectElement;
         let selectorIvaR = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.PlfDeVenta.linea.selectorDeIvaR) as HTMLSelectElement;
@@ -265,7 +262,6 @@
         cantidad.value = "";
         selectorIvaR.selectedIndex = 0;
         precio.value = "";
-        clase.selectedIndex = 0;
         naturaleza.selectedIndex = 0;
         unidad.selectedIndex = 0;
     }
@@ -303,19 +299,15 @@
         var editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPlanificacionDeVenta;
         var panel = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
         let venta = ApiControl.BuscarEditor(panel, ltrPropiedades.Venta.PlfDeVenta.linea.venta) as HTMLInputElement;
-        let clase = ApiControl.BuscarListaDeValores(panel, ltrPropiedades.Venta.PlfDeVenta.linea.clase) as HTMLSelectElement;
         let naturaleza = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.PlfDeVenta.linea.naturaleza) as HTMLSelectElement;
         let unidad = ApiControl.BuscarListaDeElementos(panel, ltrPropiedades.Venta.PlfDeVenta.linea.unidad) as HTMLSelectElement;
         if (NoDefinido(unitario)) {
             venta.value = "";
-            clase.selectedIndex = 0;
             naturaleza.selectedIndex = 0;
             unidad.selectedIndex = 0;
             return;
         }
         AsignarValor(venta, ObtenerPropiedad(unitario, ltrPropiedades.Venta.PlfDeVenta.linea.venta, 0));
-        let claseDelUnitario = ObtenerPropiedad(unitario, ltrPropiedades.Venta.PlfDeVenta.linea.clase, 0);
-        MapearAlControl.ListaDeValores((clase as HTMLSelectElement), claseDelUnitario);
         MapearAlControl.FijarEnListaDeElementos(naturaleza, ObtenerPropiedad(unitario, ltrPropiedades.Venta.PlfDeVenta.linea.idnaturaleza, 0));
         MapearAlControl.FijarEnListaDeElementos(unidad, ObtenerPropiedad(unitario, ltrPropiedades.Venta.PlfDeVenta.linea.idunidad, 0));
     }
