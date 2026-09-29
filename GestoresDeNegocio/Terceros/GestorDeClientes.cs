@@ -148,7 +148,9 @@ namespace GestoresDeNegocio.Terceros
             }
 
             if (VariableDeFacturasEmt.Fae_Sii_Activo() && VariablesDeClientes.Cli_Validar_En_La_AEAT())
-                ValidarClienteEnAeat(Contexto, inter.NIF(Contexto, quitarPrefijoEs: true), inter.RazonSocial(Contexto));
+            {
+                ValidarClienteEnAeat(Contexto, inter.NIF(Contexto, quitarPrefijoEs: true), inter.RazonSocial(Contexto), parametros.Parametros);
+            }
 
             var direccion = cliente.DireccionFiscal(Contexto, errorSiNoHay: false);
             if (!cliente.VAT.IsNullOrEmpty())
@@ -231,7 +233,7 @@ namespace GestoresDeNegocio.Terceros
         =>
         CrearCliente(contexto, contexto.SeleccionarPorId<InterlocutorDtm>(idInter), idCuenta, direccion);
 
-        public static ClienteDtm CrearCliente(ContextoSe contexto, InterlocutorDtm inter, int idCuenta, CrearDireccionDto direccion = null)
+        public static ClienteDtm CrearCliente(ContextoSe contexto, InterlocutorDtm inter, int idCuenta, CrearDireccionDto direccion = null, Dictionary<string, object> parametros = null)
         {
             var Cliente = contexto.SeleccionarPorFk<ClienteDtm>(nameof(ClienteDtm.IdInterlocutor), inter.Id, errorSiNoHay: false);
 
@@ -250,7 +252,9 @@ namespace GestoresDeNegocio.Terceros
                 Cliente.Telefono = inter.Telefono;
                 Cliente.eMail = inter.eMail;
                 Cliente.IdCuenta = idCuenta;
-                Cliente = Cliente.Insertar(contexto, parametros: direccion == null ? null : new Dictionary<string, object> { { Ampliaciones.Comunes.DireccionAlCrear, direccion } });
+                parametros ??= new Dictionary<string, object>();
+                if (direccion != null) parametros[Ampliaciones.Comunes.DireccionAlCrear] = direccion;
+                Cliente = Cliente.Insertar(contexto, parametros: parametros);
             }
 
             return Cliente;
@@ -266,6 +270,10 @@ namespace GestoresDeNegocio.Terceros
             var sociedadEmisora = facturador.Sociedad(contexto);
             var mapeoDeTiposDeVia = facturador.ParsearMapeos().TiposDeVia;
 
+            // si el parámetro Cli_Validar_En_La_AEAT obliga a validar al persistir el cliente (incluida la modificación en
+            // cascada desde la persona/sociedad), se valida con la sociedad del facturador y no con la del primer centro gestor
+            Dictionary<string, object> ParametrosDeValidacion() => new() { { ltrCliente.IdSociedadQueValidaEnAeat, sociedadEmisora.Id } };
+
             var tipo = datos.TipoDeCliente.IsNullOrEmpty()
                 ? ApiDeTerceros.TipoDeClienteEsp(datos.NIF)
                 : ApiDeTerceros.ParsearTipoDeCliente(datos.TipoDeCliente);
@@ -279,10 +287,14 @@ namespace GestoresDeNegocio.Terceros
             var razonSocial = tipo == enumTipoCliente.Juridica && esAutonomo ? datos.Nombre.Capitalizar() : datos.Nombre;
 
             if (datos.ValidarEnLaAeat)
-                ValidarClienteEnAeat(contexto, datos.NIF, tipo == enumTipoCliente.Fisica ? $"{datos.Apellidos}, {datos.Nombre}" : razonSocial, sociedadEmisora);
+            {
+                var parametrosDelJson = ParametrosDeValidacion();
+                parametrosDelJson[ltrCliente.ValidacionPedidaEnElJson] = true;
+                ValidarClienteEnAeat(contexto, datos.NIF, tipo == enumTipoCliente.Fisica ? $"{datos.Apellidos}, {datos.Nombre}" : razonSocial, parametrosDelJson);
+            }
 
             ClienteDtm cliente;
-            var clienteExistente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(ClienteDto.NIF), datos.NIF, errorSiNoHay: false);
+            var clienteExistente = contexto.SeleccionarPorPropiedad<ClienteDtm>(nameof(ClienteDto.NIF), datos.NIF, errorSiNoHay: false, usarLaCache: false);
 
             if (clienteExistente != null)
             {
@@ -298,7 +310,7 @@ namespace GestoresDeNegocio.Terceros
                     {
                         persona.Apellidos = datos.Apellidos;
                         persona.Nombre = datos.Nombre;
-                        persona.Modificar(contexto);
+                        persona.Modificar(contexto, ParametrosDeValidacion());
                     }
                 }
                 else if (interlocutor.EsSociedad)
@@ -308,15 +320,20 @@ namespace GestoresDeNegocio.Terceros
                     {
                         sociedad.Nombre = razonSocial;
                         sociedad.RazonSocial = razonSocial;
-                        sociedad.Modificar(contexto);
+                        sociedad.Modificar(contexto, ParametrosDeValidacion());
                     }
                 }
+
+                // al modificar la persona/sociedad se sincroniza en cascada el interlocutor y, desde él, el cliente
+                // (nombre, fecha de modificación...): se relee para no persistir una copia obsoleta, que el control de
+                // concurrencia rechazaría con "El registro ha sido modificado por el usuario ..."
+                cliente = contexto.SeleccionarPorId<ClienteDtm>(cliente.Id, usarLaCache: false);
 
                 if ((cliente.eMail != datos.eMail || cliente.Telefono != datos.Telefono) && datos.SustituirDatosDeContacto)
                 {
                     cliente.eMail = datos.eMail;
                     cliente.Telefono = datos.Telefono;
-                    cliente.Modificar(contexto);
+                    cliente.Modificar(contexto, ParametrosDeValidacion());
                 }
             }
             else
@@ -335,7 +352,7 @@ namespace GestoresDeNegocio.Terceros
                 }
 
                 var idCuenta = contexto.SeleccionarPorPropiedad<CuentaDtm>(nameof(CuentaDtm.Codigo), VariablesDeCuentas.Clientes).Id;
-                cliente = CrearCliente(contexto, interlocutor, idCuenta);
+                cliente = CrearCliente(contexto, interlocutor, idCuenta, parametros: ParametrosDeValidacion());
             }
 
             if (!datos.Municipio.IsNullOrEmpty())
@@ -530,27 +547,50 @@ namespace GestoresDeNegocio.Terceros
             if (!VariableDeFacturasEmt.Fae_Sii_Activo())
                 GestorDeErrores.Emitir($"El servicio de Verifactu no está activo, no se puede validar el NIF de la sociedad '{cliente.Referencia}' en la AEAT");
 
-            ValidarClienteEnAeat(Contexto, cliente.NIF(Contexto, quitarPrefijoEs: true), cliente.RazonSocial(Contexto));
+            ValidarClienteEnAeat(Contexto, cliente.NIF(Contexto, quitarPrefijoEs: true), cliente.RazonSocial(Contexto), parametros: null);
         }
 
-        // sociedadQueValida: la sociedad con cuyo certificado se consulta la AEAT. Si no se indica, se
-        // usa la del primer centro gestor, que solo es correcta cuando en la BD hay una única sociedad.
-        private static void ValidarClienteEnAeat(ContextoSe contexto, string nif, string razonSocial, SociedadDtm sociedadQueValida = null)
+        // si quien persiste indica en ltrCliente.IdSociedadQueValidaEnAeat la sociedad (p. ej. la del facturador), se valida con su
+        // certificado; si no, con el de la primera sociedad de un centro gestor que lo tenga instalado: consultar un NIF en el censo
+        // de la AEAT da el mismo resultado sea cual sea la empresa que pregunta, el certificado solo sirve para identificarse
+        private static void ValidarClienteEnAeat(ContextoSe contexto, string nif, string razonSocial, Dictionary<string, object> parametros)
         {
             try
             {
-                var miSociedad = sociedadQueValida ?? contexto.Set<SociedadDtm>().FirstOrDefault(s => s.Id == contexto.Set<CentroGestorDtm>().First(cg => true).IdSociedad);
-                var gestorSii = new GeneradorSii(contexto, miSociedad);
+                var idSociedadQueValida = parametros.LeerValor(ltrCliente.IdSociedadQueValidaEnAeat, 0);
+                var miSociedad = idSociedadQueValida > 0
+                ? contexto.SeleccionarPorId<SociedadDtm>(idSociedadQueValida)
+                : SociedadConCertificado(contexto);
 
+                var gestorSii = new GeneradorSii(contexto, miSociedad);
                 gestorSii.ValidarNif(nif, razonSocial);
             }
             catch (Exception e)
             {
-                if (e.Message.EndsWith(msjCertificados.CertificadoNoInstalado.Right(20)))
-                    GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar modifique el parámetro '{enumParametrosDeCliente.CLI_Validar_Aeat}'");
-                else
+                if (!e.Message.EndsWith(msjCertificados.CertificadoNoInstalado.Right(20)))
                     GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}");
+
+                // el consejo depende de quién ha pedido la validación: el flag del JSON del facturador o el parámetro global
+                if (parametros.LeerValor(ltrCliente.ValidacionPedidaEnElJson, false))
+                    GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar envíe '{nameof(ClienteFacturadorJson.ValidarEnLaAeat)}': false en el JSON");
+                else
+                    GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar modifique el parámetro '{enumParametrosDeCliente.CLI_Validar_Aeat}'");
             }
+        }
+
+        private static SociedadDtm SociedadConCertificado(ContextoSe contexto)
+        {
+            var idsDeSociedades = contexto.Set<CentroGestorDtm>().OrderBy(cg => cg.Id).Select(cg => cg.IdSociedad).ToList().Distinct();
+            foreach (var idSociedad in idsDeSociedades)
+            {
+                var sociedad = contexto.SeleccionarPorId<SociedadDtm>(idSociedad);
+                if (sociedad.ObtenerCertificado(contexto, errorSiNoHay: false) != null)
+                    return sociedad;
+            }
+
+            // termina igual que msjCertificados.CertificadoNoInstalado para que se dé el mismo consejo
+            GestorDeErrores.Emitir("Ninguna sociedad de los centros gestores tiene instalado el certificado electrónico en el sistema");
+            return null;
         }
     }
 

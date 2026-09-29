@@ -291,7 +291,7 @@ namespace GestorDeElementos.Extensores
             return (SociedadDtm)cache[nameof(Cfg_Sociedad_Del_Sistema)];
         }
 
-        public static void SincronizarConInterlocutor(this SociedadDtm sociedad, ContextoSe contexto, SociedadDtm anterior)
+        public static void SincronizarConInterlocutor(this SociedadDtm sociedad, ContextoSe contexto, SociedadDtm anterior, Dictionary<string, object> parametros = null)
         {
             if (sociedad.Expresion == anterior.Expresion && sociedad.eMail == anterior.eMail && sociedad.Telefono == anterior.Telefono)
                 return;
@@ -301,7 +301,7 @@ namespace GestorDeElementos.Extensores
             interlocutor.Nombre = sociedad.Expresion;
             if (sociedad.eMail != anterior.eMail) interlocutor.eMail = sociedad.eMail;
             if (sociedad.Telefono != anterior.Telefono) interlocutor.Telefono = sociedad.Telefono;
-            interlocutor.Modificar(contexto);
+            interlocutor.Modificar(contexto, ltrCliente.ParametrosQueSePropagan(parametros));
             ServicioDeCaches.EliminarCache(CacheDe.Ter_NifDeProveedor);
             ServicioDeCaches.EliminarCache(CacheDe.Ter_NifDeCliente);
         }

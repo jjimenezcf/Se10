@@ -124,7 +124,7 @@ namespace GestoresDeNegocio.Terceros
             if (parametros.Modificando)
             {
                 persona.TrazarModificaciones(Contexto, (PersonaDtm)parametros.registroEnBd);
-                persona.SincronizarConInterlocutor(Contexto, (PersonaDtm)parametros.registroEnBd);
+                persona.SincronizarConInterlocutor(Contexto, (PersonaDtm)parametros.registroEnBd, parametros.Parametros);
             }
 
             if (parametros.Insertando && parametros.Parametros.LeerValor(nameof(PersonaDto.CrearInterlocutor), false))

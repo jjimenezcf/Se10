@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Contabilidad;
@@ -14,7 +15,22 @@ namespace ServicioDeDatos.Terceros
         public static readonly string Cliente = nameof(Cliente);
         public static readonly string IdPersona = nameof(IdPersona);
         public static readonly string IdSociedad = nameof(IdSociedad);
-        public static readonly string OtorgarPermisos = nameof(OtorgarPermisos);    }
+        public static readonly string OtorgarPermisos = nameof(OtorgarPermisos);
+        // parámetro de negocio: id de la sociedad con cuyo certificado se valida el cliente en la AEAT (p. ej. la del
+        // facturador); se propaga en la sincronización persona/sociedad → interlocutor → cliente
+        public static readonly string IdSociedadQueValidaEnAeat = nameof(IdSociedadQueValidaEnAeat);
+        // parámetro de negocio: la validación en la AEAT la pide el flag ValidarEnLaAeat del JSON del facturador (no el parámetro
+        // CLI_Validar_Aeat); solo sirve para dar el consejo adecuado si falla. No se propaga
+        public static readonly string ValidacionPedidaEnElJson = nameof(ValidacionPedidaEnElJson);
+
+        public static Dictionary<string, object> ParametrosQueSePropagan(Dictionary<string, object> parametros)
+        {
+            var propagados = new Dictionary<string, object>();
+            if (parametros != null && parametros.ContieneClave(IdSociedadQueValidaEnAeat))
+                propagados[IdSociedadQueValidaEnAeat] = parametros[IdSociedadQueValidaEnAeat];
+            return propagados;
+        }
+    }
 
     public static class msgCliente
     {

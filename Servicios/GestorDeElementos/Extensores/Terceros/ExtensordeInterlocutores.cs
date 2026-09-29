@@ -606,7 +606,7 @@ namespace GestorDeElementos.Extensores
         }
 
 
-        public static void SincronizarConTerceros(this InterlocutorDtm interlocutor, ContextoSe contexto, InterlocutorDtm anterior)
+        public static void SincronizarConTerceros(this InterlocutorDtm interlocutor, ContextoSe contexto, InterlocutorDtm anterior, Dictionary<string, object> parametros = null)
         {
             if (interlocutor.EsContacto)
                 return;
@@ -620,7 +620,7 @@ namespace GestorDeElementos.Extensores
                 cliente.Nombre = interlocutor.Expresion;
                 if (interlocutor.eMail != anterior.eMail) cliente.eMail = interlocutor.eMail;
                 if (interlocutor.Telefono != anterior.Telefono) cliente.Telefono = interlocutor.Telefono;
-                cliente.Modificar(contexto);
+                cliente.Modificar(contexto, ltrCliente.ParametrosQueSePropagan(parametros));
             }
             var proveedor = interlocutor.Proveedor(contexto);
             if (proveedor is not null)

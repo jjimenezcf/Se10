@@ -96,7 +96,7 @@ namespace GestoresDeNegocio.Terceros
             if (parametros.Modificando)
             {
                 interlocutor.TrazarModificaciones(Contexto, (InterlocutorDtm)parametros.registroEnBd);
-                interlocutor.SincronizarConTerceros(Contexto, (InterlocutorDtm)parametros.registroEnBd);
+                interlocutor.SincronizarConTerceros(Contexto, (InterlocutorDtm)parametros.registroEnBd, parametros.Parametros);
             }
         }
 

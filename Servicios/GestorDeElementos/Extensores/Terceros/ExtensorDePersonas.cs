@@ -107,7 +107,7 @@ namespace GestorDeElementos.Extensores
             return persona;
         }
 
-        public static void SincronizarConInterlocutor(this PersonaDtm persona, ContextoSe contexto, PersonaDtm anterior)
+        public static void SincronizarConInterlocutor(this PersonaDtm persona, ContextoSe contexto, PersonaDtm anterior, Dictionary<string, object> parametros = null)
         {
             if (persona.Expresion == anterior.Expresion && persona.eMail == anterior.eMail && persona.Telefono == anterior.Telefono)
                 return;
@@ -117,7 +117,7 @@ namespace GestorDeElementos.Extensores
             interlocutor.Nombre = persona.Expresion;
             if (persona.eMail != anterior.eMail) interlocutor.eMail = persona.eMail;
             if (persona.Telefono != anterior.Telefono) interlocutor.Telefono = persona.Telefono;
-            interlocutor.Modificar(contexto);
+            interlocutor.Modificar(contexto, ltrCliente.ParametrosQueSePropagan(parametros));
             ServicioDeCaches.EliminarCache(CacheDe.Ter_NifDeProveedor);
             ServicioDeCaches.EliminarCache(CacheDe.Ter_NifDeCliente);
         }

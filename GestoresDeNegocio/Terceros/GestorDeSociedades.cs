@@ -212,7 +212,7 @@ namespace GestoresDeNegocio.Terceros
             if (parametros.Modificando)
             {
                 sociedad.TrazarModificaciones(Contexto, (SociedadDtm)parametros.registroEnBd);
-                sociedad.SincronizarConInterlocutor(Contexto, (SociedadDtm)parametros.registroEnBd);
+                sociedad.SincronizarConInterlocutor(Contexto, (SociedadDtm)parametros.registroEnBd, parametros.Parametros);
                 sociedad.SincronizarConTrabajadores(Contexto, (SociedadDtm)parametros.registroEnBd);
             }
         }
