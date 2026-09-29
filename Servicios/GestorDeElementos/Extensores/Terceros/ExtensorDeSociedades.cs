@@ -408,11 +408,18 @@ namespace GestorDeElementos.Extensores
 
             var certificadosDeUnaSociedad = GestorDeVinculos.RegistrosVinculados<CertificadoDtm>(contexto, enumNegocio.Sociedad, enumNegocio.Certificado, sociedad.Id);
 
+            // sin error: se devuelve null si no hay certificado o si no se puede usar por no tener archivo
             if (certificadosDeUnaSociedad.Count == 0)
+            {
+                if (!errorSiNoHay) return null;
                 GestorDeErrores.Emitir(msjCertificados.CertificadoNoInstalado.Replace("[Empresa]", sociedad.NIF));
+            }
 
             if (certificadosDeUnaSociedad[certificadosDeUnaSociedad.Count - 1].IdArchivo is null)
+            {
+                if (!errorSiNoHay) return null;
                 GestorDeErrores.Emitir(msjCertificados.ArchivoCertificadoNoEncontrado.Replace("[Certificado]", certificadosDeUnaSociedad[0].Nombre).Replace("[Empresa]", sociedad.NIF));
+            }
 
             return certificadosDeUnaSociedad[certificadosDeUnaSociedad.Count - 1];
         }
