@@ -4,6 +4,7 @@ using GestorDeElementos.Extensores;
 using GestorDeElementos.Extensores.Elementos;
 using GestoresDeNegocio.Negocio;
 using Microsoft.CodeAnalysis;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ModeloDeDto;
 using ModeloDeDto.Negocio;
@@ -243,6 +244,13 @@ namespace GestorDeElementos
             catch (Exception e)
             {
                 Contexto.Rollback(transaccion, e);
+
+                // violación de un índice/restricción única: mensaje entendible para el usuario y el detalle de SQL a la consola;
+                // si ya lo emitió un PersistirRegistro anidado, no se vuelve a envolver
+                var claveDuplicada = ExcepcionDeClaveDuplicada(e);
+                if (claveDuplicada != null && !e.Data.Contains(GestorDeErrores.Datos.EmitidoPorMi))
+                    GestorDeErrores.Emitir($"No se puede {(parametros.Insertando ? "insertar" : "modificar")} el registro por tener un campo duplicado, acceda a la consola para más detalles", claveDuplicada.Message, e);
+
                 throw;
             }
             finally
@@ -261,6 +269,15 @@ namespace GestorDeElementos
             : registro;
         }
 
+
+        // 2601: fila duplicada en un índice único; 2627: violación de una restricción UNIQUE o de la clave primaria
+        private static SqlException ExcepcionDeClaveDuplicada(Exception e)
+        {
+            for (var actual = e; actual != null; actual = actual.InnerException)
+                if (actual is SqlException sql && (sql.Number == 2601 || sql.Number == 2627))
+                    return sql;
+            return null;
+        }
 
         protected virtual void Persistir(TRegistro registro, ParametrosDeNegocio parametros)
         {
