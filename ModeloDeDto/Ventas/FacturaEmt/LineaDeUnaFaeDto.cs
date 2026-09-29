@@ -17,7 +17,8 @@ namespace ModeloDeDto.Ventas
             Ayuda = "orden de la línea",
             Tipo = typeof(int),
             Fila = 1,
-            Columna = 0
+            Columna = 0,
+            CssDeLaFila = enumCssGrid.fila_100px_1fr_2fr_0px_0px
             )
         ]
         public int Orden { get; set; }
@@ -107,7 +108,7 @@ namespace ModeloDeDto.Ventas
             Fila = 3,
             Columna = 0,
             ColSpan = 2,
-            CssDeLaFila = enumCssGrid.fila_2fr_0px_1fr_1fr
+            CssDeLaFila = enumCssGrid.fila_2fr_0px_2fr_0px
             )
         ]
         public string Naturaleza { get; set; }

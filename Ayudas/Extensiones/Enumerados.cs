@@ -1201,7 +1201,8 @@ namespace Utilidades
         fila_2fr_0px_1fr_1fr_1fr,
         fila_2fr_0px_1fr_1fr,
         fila_2fr_0px_1fr_1fr_0px_0px,
-        fila_100px_1fr_2fr_0px_0px
+        fila_100px_1fr_2fr_0px_0px,
+        fila_2fr_0px_2fr_0px
     }
 
     public enum enumCssHistorial
@@ -2112,6 +2113,7 @@ namespace Utilidades
                 case enumCssGrid.fila200pxFr: return "fila-200px-fr";
                 case enumCssGrid.fila_2fr_0px_1fr_1fr_1fr: return "fila-2fr-0px-1fr-1fr-1fr";
                 case enumCssGrid.fila_2fr_0px_1fr_1fr: return "fila-2fr-0px-1fr-1fr";
+                case enumCssGrid.fila_2fr_0px_2fr_0px: return "fila-2fr-0px-2fr-0px";
                 case enumCssGrid.fila_2fr_0px_1fr_1fr_0px_0px: return "fila-2fr-0px-1fr-1fr-0px-0px";
                 case enumCssGrid.fila_100px_1fr_2fr_0px_0px: return "fila-100px-1fr-2fr-0px-0px";
                 case enumCssGrid.Splitter: return "splitter-tabla";

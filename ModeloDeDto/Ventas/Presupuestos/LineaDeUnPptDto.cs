@@ -17,7 +17,8 @@ namespace ModeloDeDto.Presupuesto
             Ayuda = "orden de la línea",
             Tipo = typeof(int),
             Fila = 1,
-            Columna = 0
+            Columna = 0,
+            CssDeLaFila = enumCssGrid.fila_100px_1fr_2fr_0px_0px
             )
         ]
         public int Orden { get; set; }

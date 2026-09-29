@@ -1918,6 +1918,10 @@ a.deshabilitado {
     grid-template-columns: 2fr 0px 1fr 1fr !important;
 }
 
+.fila-2fr-0px-2fr-0px {
+    grid-template-columns: 2fr 0px 2fr 0px !important;
+}
+
 /* Variante de 6 columnas: Concepto (2fr) + hueco (0px) + Naturaleza/Unidad (1fr cada una) + dos columnas vacías (0px) en la valoración de un presupuesto */
 .fila-2fr-0px-1fr-1fr-0px-0px {
     grid-template-columns: 2fr 0px 1fr 1fr 0px 0px !important;
