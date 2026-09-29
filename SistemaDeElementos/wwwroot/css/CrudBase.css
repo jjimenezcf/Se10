@@ -634,6 +634,9 @@ body.resizing-en-progreso * {
 
     /* 2. EL TRUCO CLAVE: Anular el width 100% que pusimos antes */
     /* Usamos el ID o una combinación de clases para que tenga más peso */
+    /* El check se renderiza con la clase check-apilado-dto (no control-apilado-dto) y la regla
+       ".div-td.dto-td.td-propiedad input" le daba width/min-width 100%, empujando el label fuera. */
+    .div-td.dto-td.td-propiedad .contenedor-check input[type="checkbox"],
     .contenedor-check input[type="checkbox"].control-apilado-dto {
         width: 20px !important; /* Tamaño fijo para el check */
         min-width: 20px !important; /* Obligatorio para anular el 100% */
