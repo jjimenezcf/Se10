@@ -226,52 +226,6 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
-        [HttpGet]
-        public JsonResult epLeerDisposicionDashBoard()
-        {
-            var r = new Resultado();
-            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerDisposicionDashBoard));
-            try
-            {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                r.Datos = ExtensorDelPanelDelControl.DatosParaInicializarDashBoard(Contexto);
-                r.Estado = enumEstadoPeticion.Ok;
-            }
-            catch (Exception e)
-            {
-                ApiController.PrepararError(e, r, $"Error al obtener la disposición del dashboard para el usuario {DatosDeConexion.Login}.");
-            }
-            finally
-            {
-                Contexto.CerrarTraza();
-            }
-            return new JsonResult(r);
-        }
-
-        [HttpGet]
-        public JsonResult epResetearDashBoard()
-        {
-            var r = new Resultado();
-            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epResetearDashBoard));
-            try
-            {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                enumNegocio.Negocio.EliminarParametroDeUsuario(
-                    Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard);
-                r.Estado = enumEstadoPeticion.Ok;
-                r.Consola = $"Disposición del dashboard eliminada para el usuario {DatosDeConexion.Login}";
-            }
-            catch (Exception e)
-            {
-                ApiController.PrepararError(e, r, $"Error al resetear la disposición del dashboard para el usuario {DatosDeConexion.Login}.");
-            }
-            finally
-            {
-                Contexto.CerrarTraza();
-                ServicioDeCaches.EliminarCache(CacheDe.Negocio_Flujo);
-            }
-            return new JsonResult(r);
-        }
 
         public JsonResult epLeerFiltrosDeUsuario()
         {
@@ -1189,18 +1143,15 @@ namespace MVCSistemaDeElementos.Controllers
 
         protected virtual dynamic ProcesarPeticion(enumNegocio negocio, VistaMvcDtm vista, string peticion, Dictionary<string, object> parametros)
         {
-            string jsonCrudo;
             switch (peticion)
             {
                 case eventosDeMf.Comun_GuardarDisposicionDashBoard:
-                    jsonCrudo = parametros[ltrParametrosEp.datosPeticion]?.ToString();
-                    List<EstadoDeDashBoardPorNegocio> dashboard = Newtonsoft.Json.JsonConvert.DeserializeObject<List<EstadoDeDashBoardPorNegocio>>(jsonCrudo);
+                    var dashboard = parametros.LeerValor<List<EstadoDeDashBoardPorNegocio>>(ltrParametrosEp.datosPeticion);
                     JObject disposicion = JObject.FromObject(new { estados = dashboard });
                     negocio.ResetearParametroDeUsuario(Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard, disposicion.ToString());
                     return null;
                 case eventosDeMf.Comun_GuardarDisposicionEstados:
-                    jsonCrudo = parametros[ltrParametrosEp.datosPeticion]?.ToString();
-                    List<PosicionDeEstado> posicion = Newtonsoft.Json.JsonConvert.DeserializeObject<List<PosicionDeEstado>>(jsonCrudo);
+                    var posicion = parametros.LeerValor<List<PosicionDeEstado>>(ltrParametrosEp.datosPeticion);
                     JObject posiciones = JObject.FromObject(new { estados = posicion });
                     negocio.ResetearParametroDeUsuario(Contexto, enumParametrosDeUsuario.USU_Disposicion_Estados, posiciones.ToString());
                     return null;

@@ -121,16 +121,13 @@ namespace PanelDeControl {
     // ─── Entrada pública ──────────────────────────────────────────────────────
 
     export function Inicializar() {
-        const peticion = new ApiDeAjax.DescriptorAjax(
-            null, 'epGraficasDeNegocio', null,
-            `/Home/epGraficasDeNegocio`,
-            ApiDeAjax.TipoPeticion.Asincrona, ApiDeAjax.ModoPeticion.Get,
+        const peticion = new ApiDeAjax.DescriptorAjax(null, Ajax.Entorno.Home.ObtenerDashboard, null, `/${ltrControladores.Comunes.Home}/${Ajax.Entorno.Home.ObtenerDashboard}`, ApiDeAjax.TipoPeticion.Asincrona, ApiDeAjax.ModoPeticion.Get,
             (pet: ApiDeAjax.DescriptorAjax) => {
                 RenderTarjetas(pet.resultado.datos as DatosDeNegocio[]);
                 AplicarDisposicion();
             },
             (pet: ApiDeAjax.DescriptorAjax) => {
-                console.error(`Error cargando gráficas: ${pet.resultado.mensaje}`);
+                MensajesSe.Error(Ajax.Entorno.Home.ObtenerDashboard, pet.resultado.mensaje, `Error cargando dashboard: ${pet.resultado.consola}`);
             }
         );
         peticion.Ejecutar();
@@ -139,10 +136,17 @@ namespace PanelDeControl {
     // ─── Reset del dashboard ──────────────────────────────────────────────────
 
     export function ResetearDashBoard() {
-        fetch('/Home/epResetearDashBoard', { method: 'GET' })
-            .then(() => window.location.reload())
-            .catch(err => console.error('Error reseteando el dashboard:', err));
-    }
+
+        const peticion = new ApiDeAjax.DescriptorAjax(null, Ajax.Entorno.Home.ResetearDashboard, null, `/${ltrControladores.Comunes.Home}/${Ajax.Entorno.Home.ResetearDashboard}`, ApiDeAjax.TipoPeticion.Asincrona, ApiDeAjax.ModoPeticion.Get,
+            (pet: ApiDeAjax.DescriptorAjax) => {
+                window.location.reload();
+            },
+            (pet: ApiDeAjax.DescriptorAjax) => {
+                MensajesSe.Error(Ajax.Entorno.Home.ResetearDashboard, pet.resultado.mensaje, `Error reseteando el dashboard: ${pet.resultado.consola}`);
+            }
+        );
+        peticion.Ejecutar();
+   }
 
     // ─── Construcción de tarjetas ─────────────────────────────────────────────
 
@@ -303,8 +307,8 @@ namespace PanelDeControl {
 
     function AplicarDisposicion() {
         const peticion = new ApiDeAjax.DescriptorAjax(
-            null, 'epLeerDisposicionDashBoard', null,
-            `/Home/epLeerDisposicionDashBoard`,
+            null, Ajax.Entorno.Home.LeerDisposicionDashboard, null,
+            `/${ltrControladores.Comunes.Home}/${Ajax.Entorno.Home.LeerDisposicionDashboard}`,
             ApiDeAjax.TipoPeticion.Asincrona, ApiDeAjax.ModoPeticion.Get,
             (pet: ApiDeAjax.DescriptorAjax) => {
                 const estados: EstadoDeDashBoardDto[] = pet.resultado.datos;
@@ -339,7 +343,7 @@ namespace PanelDeControl {
                 AjustarAnchura();
             },
             (pet: ApiDeAjax.DescriptorAjax) => {
-                console.error(`Error leyendo disposición: ${pet.resultado.mensaje}`);
+                MensajesSe.Error(Ajax.Entorno.Home.LeerDisposicionDashboard, pet.resultado.mensaje, `Error leyendo disposición: ${pet.resultado.consola}`);
             }
         );
         peticion.Ejecutar();
@@ -368,9 +372,16 @@ namespace PanelDeControl {
     function GuardarDisposicion() {
         AjustarAnchura();
         const estados = RecopilarEstado();
-        const cuerpo = JSON.stringify([{ parametro: 'datosPeticion', valor: estados }]);
-        fetch('/Home/epGrabarGraficasDeNegocio', { method: 'POST', body: cuerpo })
-            .catch(err => console.error('Error guardando disposición:', err));
+        const peticion = new ApiDeAjax.DescriptorAjax(
+            null, Ajax.Entorno.Home.GrabarDisposicionDashboard, null,
+            `/${ltrControladores.Comunes.Home}/${Ajax.Entorno.Home.GrabarDisposicionDashboard}`,
+            ApiDeAjax.TipoPeticion.Asincrona, ApiDeAjax.ModoPeticion.Post,
+            (_pet: ApiDeAjax.DescriptorAjax) => { },
+            (pet: ApiDeAjax.DescriptorAjax) => {
+                MensajesSe.Error(Ajax.Entorno.Home.GrabarDisposicionDashboard, pet.resultado.mensaje, `Error guardando disposición: ${pet.resultado.consola}`);
+            }
+        );
+        peticion.Ejecutar(JSON.stringify([new Parametro(Ajax.Param.datosPeticion, estados)]));
     }
 
     /**

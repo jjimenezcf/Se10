@@ -49,7 +49,8 @@ namespace ServicioDeDatos.Negocio
 
     public class EstadoDeDashBoardPorNegocio
     {
-        public enumNegocio Negocio { get; set; }
+        // Puede ser una tarjeta derivada (p. ej. CircuitoDoc_Fichadas) que no existe en enumNegocio
+        public string Negocio { get; set; }
         public enumClaseDeDashBoard Clase { get; set; }
         public bool Visible { get; set; }
         public int? Posicion { get; set; }

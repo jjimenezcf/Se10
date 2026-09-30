@@ -1,11 +1,13 @@
 using AutoMapper;
 using Gestor.Errores;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ModeloDeDto.Entorno;
 using MVCSistemaDeElementos.Descriptores;
 using ServicioDeDatos;
+using ServicioDeDatos.Negocio;
 using SistemaDeElementos.Controllers.Seguridad;
 using System;
 using System.Security.Claims;
@@ -99,6 +101,53 @@ namespace MVCSistemaDeElementos.Controllers
                 r.Mensaje = e.Message;
             }
             return Json(r);
+        }
+
+        [HttpGet]
+        public JsonResult epLeerDisposicionDashBoard()
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerDisposicionDashBoard));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                r.Datos = ExtensorDelPanelDelControl.DatosParaInicializarDashBoard(Contexto);
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al obtener la disposición del dashboard para el usuario {DatosDeConexion.Login}.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
+        [HttpGet]
+        public JsonResult epResetearDashBoard()
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epResetearDashBoard));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                 enumNegocio.Negocio.EliminarParametroDeUsuario(
+                    Contexto, enumParametrosDeUsuario.USU_Disposicion_DashBoard);
+                r.Estado = enumEstadoPeticion.Ok;
+                r.Consola = $"Disposición del dashboard eliminada para el usuario {DatosDeConexion.Login}";
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al resetear la disposición del dashboard para el usuario {DatosDeConexion.Login}.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+                ServicioDeCaches.EliminarCache(CacheDe.Negocio_Flujo);
+            }
+            return new JsonResult(r);
         }
 
         public IActionResult About()

@@ -1451,6 +1451,13 @@ const Ajax = {
         NoMostrar: 'no_mostrar'
     },
     Entorno: {
+        Home: {
+            controlador: ltrControladores.Comunes.Home,
+            ObtenerDashboard: 'epGraficasDeNegocio',
+            LeerDisposicionDashboard: 'epLeerDisposicionDashBoard',
+            GrabarDisposicionDashboard: 'epGrabarGraficasDeNegocio',
+            ResetearDashboard: 'epResetearDashBoard',
+        },
         Ia: {
             controlador: ltrControladores.Comunes.Home,
             PregutaConConteo: 'epPreguntaParaLaIa',

@@ -128,6 +128,10 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<TipoDeRemesaPagDtm>().Cast<TipoConFlujoDtm>();
                 case enumNegocio.PlanificacionDeVenta:
                     return contexto.Set<TipoDePlanificacionDeVentaDtm>().Cast<TipoConFlujoDtm>();
+                case enumNegocio.Almacen:
+                    return contexto.Set<TipoDeAlmacenDtm>().Cast<TipoConFlujoDtm>();
+                case enumNegocio.Regularizacion:
+                    return contexto.Set<TipoDeRegularizacionDtm>().Cast<TipoConFlujoDtm>();
             }
 
             throw new Exception($"Se debe indicar como obtener los tipos con flujo del negocio: {negocio}");
