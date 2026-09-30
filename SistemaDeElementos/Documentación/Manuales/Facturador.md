@@ -180,8 +180,7 @@ Content-Type: application/json
       "Descuento": 0.00,
       "Iva": "21",
       "Unidad": "Unidad",
-      "Naturaleza": "Servicios",
-      "Clase": "Servicio"
+      "Naturaleza": "Servicios"
     },
     {
       "Orden": 2,
@@ -193,8 +192,7 @@ Content-Type: application/json
       "Descuento": 0.00,
       "Iva": "21",
       "Unidad": "Hora",
-      "Naturaleza": "Servicios",
-      "Clase": "Servicio"
+      "Naturaleza": "Servicios"
     },
     {
       "Orden": 3,
@@ -206,8 +204,7 @@ Content-Type: application/json
       "Descuento": null,
       "Iva": null,
       "Unidad": null,
-      "Naturaleza": null,
-      "Clase": null
+      "Naturaleza": null
     }
   ]
 }
@@ -302,8 +299,7 @@ Content-Type: application/json
       "Descuento": 0.00,
       "Iva": "21",
       "Unidad": "Unidad",
-      "Naturaleza": "Servicios",
-      "Clase": "Servicio"
+      "Naturaleza": "Servicios"
     },
     {
       "Orden": 2,
@@ -315,8 +311,7 @@ Content-Type: application/json
       "Descuento": 0.00,
       "Iva": "21",
       "Unidad": "Hora",
-      "Naturaleza": "Servicios",
-      "Clase": "Servicio"
+      "Naturaleza": "Servicios"
     },
     {
       "Orden": 3,
@@ -328,8 +323,7 @@ Content-Type: application/json
       "Descuento": null,
       "Iva": null,
       "Unidad": null,
-      "Naturaleza": null,
-      "Clase": null
+      "Naturaleza": null
     }
   ]
 }

@@ -12,7 +12,6 @@ public class LineaFactura
     public string? Iva { get; set; }
     public string? Unidad { get; set; }
     public string? Naturaleza { get; set; }
-    public string? Clase { get; set; }
 }
 
 public class FacturaBody
@@ -49,8 +48,7 @@ public static class FacturaDeEjemplo
                 Descuento = 0.00m,
                 Iva = "21",
                 Unidad = "Unidad",
-                Naturaleza = "Servicios",
-                Clase = "Servicio"
+                Naturaleza = "Servicios"
             },
             new()
             {
@@ -63,8 +61,7 @@ public static class FacturaDeEjemplo
                 Descuento = 0.00m,
                 Iva = "21",
                 Unidad = "Hora",
-                Naturaleza = "Servicios",
-                Clase = "Servicio"
+                Naturaleza = "Servicios"
             },
             new()
             {
@@ -77,8 +74,7 @@ public static class FacturaDeEjemplo
                 Descuento = null,
                 Iva = null,
                 Unidad = null,
-                Naturaleza = null,
-                Clase = null
+                Naturaleza = null
             }
         }
     };

@@ -3483,7 +3483,6 @@ const ltrPropiedades = {
             IdCentroAdministrativo: 'IdCentroAdministrativo',
             EstaComunicandose: 'EstaComunicandose',
             tipo: {
-                claseDefecto: 'ClaseDefecto',
                 idNaturalezaDefecto: 'IdNaturalezaDefecto',
                 idUnidadDefecto: 'IdUnidadDefecto'
             },

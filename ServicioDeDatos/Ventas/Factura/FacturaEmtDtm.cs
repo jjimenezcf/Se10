@@ -127,7 +127,6 @@ namespace ServicioDeDatos.Ventas
         public string Iva { get; set; }
         public string Unidad { get; set; }
         public string Naturaleza { get; set; }
-        public enumClaseUnitario? Clase { get; set; }
     }
     public class FacturaEmtJson
     {
