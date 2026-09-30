@@ -66,19 +66,6 @@ namespace ModeloDeDto.Ventas
 
 
 
-        //----------------------------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Clase de unitario",
-            Ayuda = "Seleccione la clase del unitario",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumClaseUnitario),
-            GuardarEn = nameof(ClaseDefecto),
-            Fila = 2,
-            Columna = 0
-            )
-        ]
-        public string ClaseDefecto { get; set; }
-
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id de la naturaleza contable", Visible = false)]
         public int IdNaturalezaDefecto { get; set; }
@@ -93,7 +80,7 @@ namespace ModeloDeDto.Ventas
             Obligatorio = false,
             MostrarExpresion = nameof(NaturalezaDtm.Expresion),
             Fila = 2,
-            Columna = 1
+            Columna = 0
             )
         ]
         public string Naturaleza { get; set; }
@@ -111,7 +98,7 @@ namespace ModeloDeDto.Ventas
             GuardarEn = nameof(IdUnidadDefecto),
             Obligatorio = false,
             Fila = 2,
-            Columna = 2
+            Columna = 1
             )
         ]
         public string Unidad { get; set; }
@@ -129,7 +116,7 @@ namespace ModeloDeDto.Ventas
             GuardarEn = nameof(IdIvaRDefecto),
             Obligatorio = false,
             Fila = 2,
-            Columna = 3
+            Columna = 2
             )
         ]
         public string IvaRepercutido { get; set; }

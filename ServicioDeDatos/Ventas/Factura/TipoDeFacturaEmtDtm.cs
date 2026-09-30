@@ -39,7 +39,6 @@ namespace ServicioDeDatos.Ventas
         public static new enumNegocio Negocio => enumNegocio.FacturaEmitida;
         
         public int? IdIvaRDefecto { get; set; }
-        public enumClaseUnitario? ClaseDefecto { get; set; }
         public int? IdUnidadDefecto { get; set; }
         public int? IdNaturalezaDefecto { get; set; }
         public IvaRepercutidoDtm IvaRepercutido { get; set; }
@@ -89,7 +88,6 @@ namespace ServicioDeDatos.Ventas
             ApiDeRegistroDtm.DefinirFk<TipoDeFacturaEmtDtm>(modelBuilder, nameof(TipoDeFacturaEmtDtm.Padre), nameof(TipoDeFacturaEmtDtm.IdPadre), ICampos.ID_PADRE, unico: false);
             ApiDeRegistroDtm.DefinirFk<TipoDeFacturaEmtDtm>(modelBuilder, nameof(TipoDeFacturaEmtDtm.Estado), nameof(TipoDeFacturaEmtDtm.IdEstado), ICampos.ID_ESTADO, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<TipoDeFacturaEmtDtm>(modelBuilder, nameof(TipoDeFacturaEmtDtm.IvaRepercutido), nameof(TipoDeFacturaEmtDtm.IdIvaRDefecto), ICampos.ID_IVA_R, requerida: false, unico: false);
-            modelBuilder.Entity<TipoDeFacturaEmtDtm>().Property(p => p.ClaseDefecto).HasColumnName(ICampos.CLASE).HasColumnType(IDominio.VARCHAR_30).IsRequired(false);
             ApiDeRegistroDtm.DefinirCampoFk<TipoDeFacturaEmtDtm>(modelBuilder, nameof(TipoDeFacturaEmtDtm.Unidad), nameof(TipoDeFacturaEmtDtm.IdUnidadDefecto), ICampos.ID_UNIDAD, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<TipoDeFacturaEmtDtm>(modelBuilder, nameof(TipoDeFacturaEmtDtm.Naturaleza), nameof(TipoDeFacturaEmtDtm.IdNaturalezaDefecto), ICampos.ID_NATURALEZA, requerida: false, unico: false);
             modelBuilder.Entity<TipoDeFacturaEmtDtm>().Property(p => p.Vencimiento).HasColumnName(ICampos.VENCIMIENTO).HasColumnType(IDominio.INT).IsRequired(true);
