@@ -318,7 +318,7 @@ namespace GestorDeElementos
         private static List<int> SplitComoListaDeEnteros(this string valor, ClausulaDeFiltrado filtro)
         {
             var trozos = valor.Split(Simbolos.separadorDeEnteros);
-            var noNumericos = trozos.Where(s => !s.EsEntero()).ToList();
+            var noNumericos = trozos.Where(s => !s.EsEntero() && !s.IsNullOrEmpty()).ToList();
             if (noNumericos.Count > 0)
                 GestorDeErrores.Emitir($"Se ha solicitado filtrar por una lista de números separados por '{Simbolos.separadorDeEnteros}', y contiene valores no numéricos: '{string.Join(", ", noNumericos)}'. Filtro: {filtro.Clausula}, Criterio {filtro.Criterio}, Valor: '{filtro.Valor}'. ¿Se ha usado por error el separador ';' en vez de '{Simbolos.separadorDeEnteros}'?");
 
