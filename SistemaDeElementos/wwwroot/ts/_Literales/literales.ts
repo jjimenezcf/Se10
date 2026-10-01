@@ -1533,6 +1533,7 @@ const Ajax = {
             DescargarHtmlSanitizado: 'epDescargarHtmlSanitizado',
             Descargar: 'epDescargarArchivo',
             DescargarPorGuid: 'epDescargarArchivoPorGuid',
+            DescargarComoHtmlPorGuid: 'epDescargarComoHtmlPorGuid',
             Thumsnail: 'epDescargarThumsnail',
             LeerCertificados: 'epLeerCertificados',
             LeerDatosDeFirma: 'epLeerDatosDeFirma',

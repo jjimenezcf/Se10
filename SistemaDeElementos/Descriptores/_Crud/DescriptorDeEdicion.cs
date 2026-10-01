@@ -402,6 +402,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private static string RenderVisorDeArchivos(IControlHtml contenedor, string idHtmlCuerpoDeEdicion)
         {
+            // En la página de consulta por guid no hay usuario validado: IA, OCR y compartir necesitan uno
             var crud = contenedor is DescriptorDePaginaDeConsulta ? null : (DescriptorDeCrud<TElemento>)contenedor;
 
             var uriDescargar = new UriBuilder(CacheDeVariable.Cfg_UrlBase) { Path = $"/images/menu/DescargarArchivo.png" };
@@ -418,17 +419,20 @@ namespace MVCSistemaDeElementos.Descriptores
                                          <img src=""/images/paginaAnterior.png"" alt=""archivo anterior"" title=""archivo anterior"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.Anterior.Descripcion()}')"">
                                          <img src=""/images/paginaSiguiente.png"" alt=""archivo siguiente"" title=""archivo siguiente"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.Siguiente.Descripcion()}')"">
                                           {(crud == null ? "" : $@"
-                                         <button class=""{enumCssControles.ProcesarConIa.Render()}"" title=""{crud.Mnt.IaTitulo}"" onclick=""Crud.EventosDeEdicion('{crud.Mnt.IaAccion.Descripcion()}')""></button>"
+                                         <button class=""{enumCssControles.ProcesarConIa.Render()}"" title=""{crud.Mnt.IaTitulo}"" onclick=""Crud.EventosDeEdicion('{crud.Mnt.IaAccion.Descripcion()}')""></button>
+                                         <button class=""{enumCssControles.PasarOcr.Render()}"" title=""Pasar OCR"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.PasarOcr.Descripcion()}')""></button>"
                                           )}
-                                         <button class=""{enumCssControles.PasarOcr.Render()}"" title=""Pasar OCR"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.PasarOcr.Descripcion()}')""></button>
                                       </div>
                                       <input type=""text"" value="""" readonly class='{enumCssEdicion.VisorNombreAnexado.Render()}'>
+                                      {(crud == null ? "" : $@"
                                       <button class=""{enumCssControles.CompartirConWhatsApp.Render()}"" title=""compartir por WhatsApp"" onclick=""Crud.EventosDeEdicion('compartir-con-whatsapp')"">
                                          <img src='{uriWhatsapp}'>
+                                      </button>
                                       <button class=""{enumCssControles.CompartirConGuid.Render()}"" title=""crear enlace y asignar al portapapeles"" onclick=""Crud.EventosDeEdicion('compartir-con-guid')"">
                                          <img src='{uriCompartir}'>
-                                      </button>                                     
-                                    </div>                                  
+                                      </button>"
+                                      )}
+                                    </div>
                                  </div>
              ";
             return htmlVisorDeArchivos;

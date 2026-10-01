@@ -229,6 +229,10 @@
     export async function RenderizarToHtml(panel: HTMLDivElement, idArchivo: number, accion: string) {
         let parametros = `idArchivo=${idArchivo}`;
         var url = `/${Ajax.Archivos.controlador}/${accion}?${parametros}`;
+        await RenderizarUrlToHtml(panel, url);
+    }
+
+    export async function RenderizarUrlToHtml(panel: HTMLDivElement, url: string) {
         const response = await fetch(url);
 
         const errorMessage = response.headers.get('X-Error-Message');

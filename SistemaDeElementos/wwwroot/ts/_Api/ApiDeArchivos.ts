@@ -1030,8 +1030,10 @@
 
         let estaElModuloCargado = typeof SistemaDocumental !== 'undefined';
         let usandoJerarquiasDeCarpetas = estaElModuloCargado && Definido(SistemaDocumental.JerarquiaDeCarpetas);
-        if (!usandoJerarquiasDeCarpetas && Definido(Crud.Consultor))
+        if (!usandoJerarquiasDeCarpetas && Definido(Crud.Consultor)) {
+            Crud.Consultor.VisorDeConsulta?.MostrarArchivo(idArchivo);
             return;
+        }
 
         var archivo = archivosLeidos.find(x => x.id === idArchivo);
         let nombre: string = ObtenerPropiedad(archivo, literal.nombre);

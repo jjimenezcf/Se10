@@ -14,9 +14,14 @@
         private _paginaDeConsultaConGuid: boolean = false;
         private _guidDeConsulta: string = null;
         private _idDeConsulta: number = null;
+        private _visorDeConsulta: ApiConsultaDeArchivos.VisorParaConsultaDeArchivos = undefined;
 
         public get PaginaDeConsultaConGuid(): boolean {
             return this._paginaDeConsultaConGuid;
+        }
+
+        public get VisorDeConsulta(): ApiConsultaDeArchivos.VisorParaConsultaDeArchivos {
+            return this._visorDeConsulta;
         }
 
         public get GuidDeConsulta(): string {
@@ -729,6 +734,8 @@
                 });
 
                 this._paginaDeConsultaConGuid = true;
+                if (!Registro.EsMovil())
+                    this._visorDeConsulta = new ApiConsultaDeArchivos.VisorParaConsultaDeArchivos(this);
                 this.ConsultarSeleccionado();
             }
             else {
@@ -828,6 +835,9 @@
         public EjecutarAcciones(accion: string, modal: HTMLDivElement) {
             let cerrarEdicion: boolean = false;
             try {
+                if (this.PaginaDeConsultaConGuid && this.VisorDeConsulta?.EjecutarAccion(accion))
+                    return;
+
                 ApiDeMenuFlotante.CerrarMf(this.PanelDeEditar);
                 switch (accion) {
                     case ltrEventos.Edicion.Modificar: {
@@ -1011,14 +1021,16 @@
             ApiControl.RemplazarCss(this.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.MostrarVisor, ltrCss.crud.panelDeEdicion.Acciones.OcultarVisor);
             ApiControl.ExcluirCss(this.ContenedorDeDatosMasVisor, ltrCss.crud.panelDeEdicion.VisorOculto);
             this.RenderizarElPrimeroRenderizable(this.FiltroDeArchivos);
-            ApiVisorDeArchivos.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, true);
+            if (!this.PaginaDeConsultaConGuid)
+                ApiVisorDeArchivos.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, true);
         }
 
 
         private OcultameElVisor(): void {
             ApiControl.RemplazarCss(this.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.OcultarVisor, ltrCss.crud.panelDeEdicion.Acciones.MostrarVisor);
             ApiControl.IncluirCss(this.ContenedorDeDatosMasVisor, ltrCss.crud.panelDeEdicion.VisorOculto);
-            ApiVisorDeArchivos.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, false);
+            if (!this.PaginaDeConsultaConGuid)
+                ApiVisorDeArchivos.GuardarMostrarVisorAlIniciar(this.CrudDeMnt, false);
         }
 
         protected ExpandirExpansores(): void {
@@ -1524,8 +1536,12 @@
 
         protected MapearOtraInformacion(peticion: ApiDeAjax.DescriptorAjax, modoDeAcceso: ModoAcceso.enumModoDeAccesoDeDatos): void {
             if (Definido(this.PanelDeArchivos)) {
-                ApiDeArchivos.MostrarArchivosAnexados(this.PanelDeArchivos.id, this.NombreDeNegocio, peticion.resultado.datos.id,
-                    this.PaginaDeConsultaConGuid ? null : (peticion) => this.AlTerminarDeLeerArchivos(peticion));
+                const alTerminarDeLeer = !this.PaginaDeConsultaConGuid
+                    ? (peticion) => this.AlTerminarDeLeerArchivos(peticion)
+                    : Definido(this.VisorDeConsulta)
+                        ? (peticion) => this.VisorDeConsulta.AgregarArchivos(peticion.resultado.datos)
+                        : null;
+                ApiDeArchivos.MostrarArchivosAnexados(this.PanelDeArchivos.id, this.NombreDeNegocio, peticion.resultado.datos.id, alTerminarDeLeer);
 
                 if (this.PaginaDeConsultaConGuid) {
                     ApiControl.IncluirCss(this.SelectorDeArchivos, ltrCss.crud.panelDeEdicion.ConsultaConGuid);

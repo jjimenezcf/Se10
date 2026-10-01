@@ -106,49 +106,14 @@ namespace ApiVisorDeArchivos {
             const blob = await response.blob();
             if (!crud.EstoyCreando)
                 ApiControl.ExcluirCss(crud.crudDeEdicion.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.SinVisor);
-            const objectUrl = URL.createObjectURL(blob);
-            if (blob.type.startsWith('image/')) {
-                ApiPanel.RenderizarContenidoImagen(visor, `<img src="${objectUrl}" alt="Archivo descargado" style="max-width: 100%; height: auto;">`);
-            }
-            else if (blob.type === 'application/pdf') {
-                ApiPanel.RenderizarContenidoPdf(visor, objectUrl);
-            }
-            else if (blob.type === 'application/xml' || blob.type === 'text/xml') {
-                ApiPanel.RenderizarXml(visor, objectUrl);
-            }
-            else if (blob.type === 'text/csv') {
-                ApiPanel.RenderizarToHtml(visor, idArchivo, Ajax.Archivos.accion.DescargarCsvToHtml);
-            }
-            else if (blob.type === 'application/rtf') {
-                ApiPanel.RenderizarToHtml(visor, idArchivo, Ajax.Archivos.accion.DescargarRtfToHtml);
-            }
-            else if (blob.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                ApiPanel.RenderizarToHtml(visor, idArchivo, Ajax.Archivos.accion.DescargarDocxToHtml);
-            }
-            else if (blob.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || blob.type === 'application/vnd.ms-excel') {
-                ApiPanel.RenderizarToHtml(visor, idArchivo, Ajax.Archivos.accion.DescargarXlsxToHtml);
-            }
-            else if (blob.type === 'application/x-zip-compressed' || blob.type === 'application/x-7z-compressed') {
-                ApiPanel.RenderizarToHtml(visor, idArchivo, Ajax.Archivos.accion.DescargarZipToHtml);
-            }
-            else if (blob.type === 'text/html') {
-                ApiPanel.RenderizarToHtml(visor, idArchivo, Ajax.Archivos.accion.DescargarHtmlSanitizado);
-            }
-            else if (blob.type === 'text/plain' || blob.type === 'application/json' || blob.type === 'application/text' || blob.type === 'application/octet-stream') {
-                const text = await blob.text();
-                ApiPanel.RenderizarContenido(visor, text, (blob.type === 'text/plain' || blob.type === 'application/text' || blob.type === 'application/octet-stream') && !(text.indexOf('</html>') > 0)
-                    ? 'texto'
-                    : blob.type === 'application/json'
-                        ? 'json'
-                        : 'html');
-            }
-            else {
+            const renderizado = await RenderizarBlobEnVisor(visor, blob, (accion) => `/${Ajax.Archivos.controlador}/${accion}?idArchivo=${idArchivo}`);
+            if (!renderizado) {
                 if (crud.EstoyCreando) {
                     ApiControl.IncluirCss(crud.crudDeCreacion.ContenedorDeDatosMasVisor, ltrCss.crud.panelCreacion.VisorOculto);
                     return;
                 } else {
                     const linkElement = document.createElement('a');
-                    linkElement.href = objectUrl;
+                    linkElement.href = URL.createObjectURL(blob);
                     linkElement.textContent = `Descargar archivo`;
                     linkElement.download = nombre;
                     visor.innerHTML = '';
@@ -168,6 +133,53 @@ namespace ApiVisorDeArchivos {
         } catch (error) {
             visor.innerHTML = 'Error al cargar el archivo';
         }
+    }
+
+    // Pinta el blob en el visor según su tipo. Los tipos que se convierten a html en el servidor se piden a
+    // urlDeConversion(accion), que en edición/creación apunta al endpoint de la conversión y en la consulta
+    // por guid a su versión validada. Devuelve false si el tipo no se sabe previsualizar.
+    export async function RenderizarBlobEnVisor(visor: HTMLDivElement, blob: Blob, urlDeConversion: (accion: string) => string): Promise<boolean> {
+        const objectUrl = URL.createObjectURL(blob);
+        if (blob.type.startsWith('image/')) {
+            ApiPanel.RenderizarContenidoImagen(visor, `<img src="${objectUrl}" alt="Archivo descargado" style="max-width: 100%; height: auto;">`);
+        }
+        else if (blob.type === 'application/pdf') {
+            ApiPanel.RenderizarContenidoPdf(visor, objectUrl);
+        }
+        else if (blob.type === 'application/xml' || blob.type === 'text/xml') {
+            ApiPanel.RenderizarXml(visor, objectUrl);
+        }
+        else if (blob.type === 'text/csv') {
+            ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarCsvToHtml));
+        }
+        else if (blob.type === 'application/rtf') {
+            ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarRtfToHtml));
+        }
+        else if (blob.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarDocxToHtml));
+        }
+        else if (blob.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || blob.type === 'application/vnd.ms-excel') {
+            ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarXlsxToHtml));
+        }
+        else if (blob.type === 'application/x-zip-compressed' || blob.type === 'application/x-7z-compressed') {
+            ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarZipToHtml));
+        }
+        else if (blob.type === 'text/html') {
+            ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarHtmlSanitizado));
+        }
+        else if (blob.type === 'text/plain' || blob.type === 'application/json' || blob.type === 'application/text' || blob.type === 'application/octet-stream') {
+            const text = await blob.text();
+            ApiPanel.RenderizarContenido(visor, text, (blob.type === 'text/plain' || blob.type === 'application/text' || blob.type === 'application/octet-stream') && !(text.indexOf('</html>') > 0)
+                ? 'texto'
+                : blob.type === 'application/json'
+                    ? 'json'
+                    : 'html');
+        }
+        else {
+            URL.revokeObjectURL(objectUrl);
+            return false;
+        }
+        return true;
     }
 
     export async function ProcesarRenderizar(crud: Crud.CrudMnt, idArchivo: number, accion: string): Promise<boolean> {

@@ -895,6 +895,10 @@
 
     export function EventosDeEdicion(accion: string): void {
         try {
+            if (!Definido(crudMnt) && Definido(Consultor)) {
+                Consultor.EjecutarAcciones(accion, null);
+                return;
+            }
             crudMnt.crudDeEdicion.EjecutarAcciones(accion, null);
         }
         catch (error) {
