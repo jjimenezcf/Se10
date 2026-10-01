@@ -309,7 +309,8 @@ namespace GestorDeElementos
             CalcularPrioridad = (registro, contexto) => ((FacturaEmtDtm)registro).CalcularPrioridad(contexto),
             DireccionesDtm = typeof(DireccionDeUnaFacturaEmtDtm),
             PlantillasPorTipoDtm = typeof(PlantillaPorTipoDeFacturaEmtDtm),
-            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasEmt, emitirError: false)
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasEmt, emitirError: false),
+            PermitirCrearDesdeElPanelDeControl = true
         };
 
 
@@ -437,7 +438,8 @@ namespace GestorDeElementos
             TipoEtapas = typeof(enumEtapasDePpts),
             EstadosDeLaEtapa = etapa => VariableDePpts.Lista((enumEtapasDePpts)etapa),
             ListaDeEtapas = registro => ((PresupuestoDtm)registro).ListaDeEtapas(),
-            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDePresupuestos, emitirError: false)
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDePresupuestos, emitirError: false),
+            PermitirCrearDesdeElPanelDeControl = true
         };
 
         public static Metadatos MetadatosDeRegistroEs() => new Metadatos
