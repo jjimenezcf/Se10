@@ -31,12 +31,30 @@ namespace GestoresDeNegocio.Negocio
             return new GestorDeConsultasConGuid(contexto, mapeador);
         }
 
-        public static void ValidarGuid(ContextoSe contexto, enumNegocio negocio, int id, string guid)
+        public static void ValidarGuid(ContextoSe contexto, enumNegocio negocio, int id, string guid, int? idArchivo = null)
         {
             if (!GuidValido(contexto, negocio, id, guid))
                 GestorDeErrores.Emitir("No está permitido el acceso al elemento indicado, o el acceso ha caducado, solicítelo");
 
+            if (idArchivo.HasValue)
+                ValidarArchivoDeLaConsulta(contexto, negocio, id, (int)idArchivo, guid);
+
             contexto.GuidDeConsulta = guid;
+        }
+
+        // El archivo puede ser el propio del registro (IUsaArchivo, p.ej. una foto que muestra MapearImagenes)
+        // o uno de los anexados; estos se validan contra lo mismo que muestra la lista de anexados
+        // (ArchivosExt recursivo, que incluye los de archivadores vinculados), no solo contra el vínculo directo.
+        private static void ValidarArchivoDeLaConsulta(ContextoSe contexto, enumNegocio negocio, int idElemento, int idArchivo, string guid)
+        {
+            var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, idElemento, aplicarJoin: false);
+            var esSuArchivo = elemento is IUsaArchivo usaArchivo && usaArchivo.IdArchivo == idArchivo;
+            var estaAnexado = !esSuArchivo && negocio.UsaArchivos() && elemento.ArchivosExt(contexto, recursivo: true).Any(a => a.Archivo.Id == idArchivo);
+            if (!esSuArchivo && !estaAnexado)
+            {
+                contexto.AnotarTraza("Consulta con guid manipulada", $"guid: {guid}, negocio: {negocio.ToNombre()}, idElemento: {idElemento}, idArchivo: {idArchivo}");
+                GestorDeErrores.Emitir("El archivo solicitado no pertenece al elemento consultado");
+            }
         }
 
 

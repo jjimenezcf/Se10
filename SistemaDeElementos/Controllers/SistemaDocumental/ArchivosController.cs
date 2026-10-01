@@ -124,8 +124,42 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         try
         {
             Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-            ValidarConsultaPorGuid(NegociosDeSe.ToEnumerado(negocio), idElemento, guid);
+            ValidarConsultaPorGuid(NegociosDeSe.ToEnumerado(negocio), idElemento, guid, idArchivo);
             return epDescargarArchivo(negocio, idElemento, idArchivo, false);
+        }
+        catch (Exception ex)
+        {
+            return DevolverPaginaWebConMensaje(ex.Message);
+        }
+        finally
+        {
+            Contexto.CerrarTraza();
+            Contexto.QuitarUsuario();
+        }
+    }
+
+    // Versión de las conversiones a html para la página de consulta por guid (sin usuario validado):
+    // valida el guid y que el archivo sea del elemento, y solo admite las conversiones de esta lista.
+    [AllowAnonymous]
+    public IActionResult epDescargarComoHtmlPorGuid(string negocio, int idElemento, int idArchivo, string guid, string accion)
+    {
+        Contexto.IniciarTraza(nameof(epDescargarComoHtmlPorGuid));
+        try
+        {
+            Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
+            ValidarConsultaPorGuid(NegociosDeSe.ToEnumerado(negocio), idElemento, guid, idArchivo);
+            switch (accion)
+            {
+                case nameof(epDescargarHtmlSanitizado): return epDescargarHtmlSanitizado(idArchivo);
+                case nameof(epDescargarDocxToHtml): return epDescargarDocxToHtml(idArchivo);
+                case nameof(epDescargarXlsxToHtml): return epDescargarXlsxToHtml(idArchivo);
+                case nameof(epDescargarCsvToHtml): return epDescargarCsvToHtml(idArchivo);
+                case nameof(epDescargarRtfToHtml): return epDescargarRtfToHtml(idArchivo);
+                case nameof(epDescargarZipToHtml): return epDescargarZipToHtml(idArchivo);
+                default:
+                    GestorDeErrores.Emitir($"La conversión '{accion}' no está permitida en una consulta");
+                    return null;
+            }
         }
         catch (Exception ex)
         {

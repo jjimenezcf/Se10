@@ -1532,9 +1532,9 @@ namespace MVCSistemaDeElementos.Controllers
             ValidarConsultaPorGuid(enumNegocio, idElemento == 0 ? id : idElemento, guid);
         }
 
-        protected void ValidarConsultaPorGuid(enumNegocio negocio, int id, string guid)
+        protected void ValidarConsultaPorGuid(enumNegocio negocio, int id, string guid, int? idArchivo = null)
         {
-            GestorDeConsultasConGuid.ValidarGuid(contexto: Contexto, negocio, id, guid);
+            GestorDeConsultasConGuid.ValidarGuid(contexto: Contexto, negocio, id, guid, idArchivo);
         }
 
         public ViewResult ViewCrud<T>(DescriptorDeCrud<T> descriptor)
