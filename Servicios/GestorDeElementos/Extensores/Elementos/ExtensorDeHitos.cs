@@ -159,6 +159,8 @@ namespace GestorDeElementos.Extensores
         /// Notifica al creador del elemento que otro usuario lo ha transitado desde la interface.
         /// No se envía si la transición es del sistema, si no viene de una petición de transitar,
         /// si quien transita es el creador o si en la petición ya se pidió notificar al creador.
+        /// Si la transición es una devolución se avisa además a quien lo transitó al estado origen,
+        /// y si éste es el creador sólo recibe el mensaje de devolución.
         /// </summary>
         public static void EnviarMensajeDeTransicion(this ContextoSe contexto, enumNegocio negocio, int idElemento, int idEstadoOrigen, int idEstadoDestino, int idTransicionEjecutada, Dictionary<string, object> parametros)
         {
@@ -177,46 +179,79 @@ namespace GestorDeElementos.Extensores
                                   {ltrParametrosNeg.UsarLaCache, false }
                               });
 
+                var devueltoA = contexto.EnviarMensajeDeDevolucion(negocio, elemento, idEstadoOrigen, idEstadoDestino, transicion, parametros);
+
                 var creador = elemento.Creador(contexto);
                 if (creador is null || creador.eMail.IsNullOrEmpty() || creador.Id == contexto.DatosDeConexion.IdUsuario)
                     return;
 
-                if (parametros.LeerValor(ltrParametrosEp.usuarios, 0) == creador.Id)
+                if (parametros.LeerValor(ltrParametrosEp.usuarios, 0) == creador.Id || devueltoA?.Id == creador.Id)
                     return;
 
-                var referencia = elemento.Referencia(contexto);
-                var motivo = transicion.Asunto is null ? parametros.LeerValor(ltrParametrosEp.asunto, "") : transicion.Asunto;
-                var detalle = parametros.LeerValor(ltrParametrosEp.detalleAsunto, "");
-                var idArchivo = parametros.LeerValor(nameof(IUsaArchivo.IdArchivo), 0);
-                var archivo = idArchivo > 0 ? contexto.SeleccionarPorId<ArchivoDtm>(idArchivo, errorSiNoHay: false) : null;
-
-                var asunto = $"Se ha transitado {negocio.Singular()} con referencia '{referencia}'";
-                var cuerpo = $"{negocio.Singular()}: {WebUtility.HtmlEncode(elemento.Nombre)}{Simbolos.br}" +
-                             $"Transitado por: {WebUtility.HtmlEncode(UsuarioDtm.NombreCompleto(contexto.Usuario))}{Simbolos.br}" +
-                             $"Estado anterior: {negocio.Estado(contexto, idEstadoOrigen).Nombre}{Simbolos.br}" +
-                             $"Estado actual: {negocio.Estado(contexto, idEstadoDestino).Nombre}{Simbolos.br}" +
-                             $"Transición ejecutada: {transicion.Nombre}{Simbolos.br}";
-
-                if (!motivo.IsNullOrEmpty())
-                    cuerpo += $"Motivo: {WebUtility.HtmlEncode(motivo)}{Simbolos.br}";
-
-                if (!detalle.IsNullOrEmpty())
-                    cuerpo += $"Detalle: {WebUtility.HtmlEncode(detalle).Replace(Environment.NewLine, Simbolos.br).Replace("\n", Simbolos.br)}{Simbolos.br}";
-
-                if (archivo is not null)
-                    cuerpo += $"Archivo añadido: {WebUtility.HtmlEncode(archivo.Nombre)}{Simbolos.br}";
-
-                cuerpo += $"{Simbolos.br}Enlace al elemento: {elemento.CrearHref(contexto)}{Simbolos.br}";
-
-                if (archivo is not null)
-                    cuerpo += $"Enlace al archivo: {archivo.HrefDeDescargaConGuid(contexto)}{Simbolos.br}";
-
+                var asunto = $"El elemento con referencia '{elemento.Referencia(contexto)}' del negocio '{negocio.Singular()}' se le ha cambiado el estado a '{negocio.Estado(contexto, idEstadoDestino).Nombre}'";
+                var cuerpo = contexto.CuerpoDelMensajeDeTransicion(negocio, elemento, idEstadoOrigen, idEstadoDestino, transicion, parametros, "Transitado por");
                 contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { creador.eMail }, asunto, cuerpo);
             }
             catch (Exception e)
             {
                 contexto.Traza?.AnotarExcepcion(e);
             }
+        }
+
+        /// <summary>
+        /// Si al transitar de e1 a ef resulta que ef es el estado e0 desde el que se llegó a e1, se considera una devolución
+        /// y se avisa al usuario que transitó de e0 a e1, salvo que sea quien devuelve o que ya se le haya notificado en la petición.
+        /// Devuelve el usuario al que se ha enviado el mensaje, o null si no se ha enviado.
+        /// </summary>
+        private static UsuarioDtm EnviarMensajeDeDevolucion(this ContextoSe contexto, enumNegocio negocio, IElementoDtm elemento, int idEstadoOrigen, int idEstadoDestino, TransicionDtm transicion, Dictionary<string, object> parametros)
+        {
+            // historia ordenada por id desc: [0] hito abierto en ef, [1] hito de e1 cerrado ahora, [2] hito de e0
+            var historia = HitoSql.LeerHistoriaDelElemento(contexto, negocio.TablaDeHitos(), elemento.Id);
+            if (historia.Count < 3 || historia[1].IdEstado != idEstadoOrigen || historia[2].IdEstado != idEstadoDestino)
+                return null;
+
+            // El hito de e1 lo creó quien transitó de e0 a e1 (al cerrar un hito no se modifica su usuario)
+            var receptor = contexto.SeleccionarPorId<UsuarioDtm>(historia[1].IdUsuario, errorSiNoHay: false);
+            if (receptor is null || receptor.eMail.IsNullOrEmpty() || receptor.Id == contexto.DatosDeConexion.IdUsuario)
+                return null;
+
+            if (parametros.LeerValor(ltrParametrosEp.usuarios, 0) == receptor.Id)
+                return null;
+
+            var asunto = $"Se ha devuelto el elemento con referencia '{elemento.Referencia(contexto)}' del negocio '{negocio.Singular()}'";
+            var cuerpo = contexto.CuerpoDelMensajeDeTransicion(negocio, elemento, idEstadoOrigen, idEstadoDestino, transicion, parametros, "Devuelto por");
+            contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { receptor.eMail }, asunto, cuerpo);
+            return receptor;
+        }
+
+        private static string CuerpoDelMensajeDeTransicion(this ContextoSe contexto, enumNegocio negocio, IElementoDtm elemento, int idEstadoOrigen, int idEstadoDestino, TransicionDtm transicion, Dictionary<string, object> parametros, string accionRealizadaPor)
+        {
+            var motivo = transicion.Asunto is null ? parametros.LeerValor(ltrParametrosEp.asunto, "") : transicion.Asunto;
+            var detalle = parametros.LeerValor(ltrParametrosEp.detalleAsunto, "");
+            var idArchivo = parametros.LeerValor(nameof(IUsaArchivo.IdArchivo), 0);
+            var archivo = idArchivo > 0 ? contexto.SeleccionarPorId<ArchivoDtm>(idArchivo, errorSiNoHay: false) : null;
+
+            var cuerpo = $"{negocio.Singular()}: {WebUtility.HtmlEncode(elemento.Nombre)}{Simbolos.br}" +
+                         $"{accionRealizadaPor}: {WebUtility.HtmlEncode(UsuarioDtm.NombreCompleto(contexto.Usuario))}{Simbolos.br}" +
+                         $"Estado anterior: {negocio.Estado(contexto, idEstadoOrigen).Nombre}{Simbolos.br}" +
+                         $"Estado actual: {negocio.Estado(contexto, idEstadoDestino).Nombre}{Simbolos.br}" +
+                         $"Transición ejecutada: {transicion.Nombre}{Simbolos.br}";
+
+            if (!motivo.IsNullOrEmpty())
+                cuerpo += $"Motivo: {WebUtility.HtmlEncode(motivo)}{Simbolos.br}";
+
+            if (!detalle.IsNullOrEmpty())
+                cuerpo += $"Detalle: {WebUtility.HtmlEncode(detalle).Replace(Environment.NewLine, Simbolos.br).Replace("\n", Simbolos.br)}{Simbolos.br}";
+
+            if (archivo is not null)
+                cuerpo += $"Archivo añadido: {WebUtility.HtmlEncode(archivo.Nombre)}{Simbolos.br}";
+
+            cuerpo += $"{Simbolos.br}Enlace al elemento: {elemento.CrearHref(contexto)}{Simbolos.br}";
+
+            if (archivo is not null)
+                cuerpo += $"Enlace al archivo: {archivo.HrefDeDescargaConGuid(contexto)}{Simbolos.br}";
+
+            return cuerpo;
         }
 
     }
