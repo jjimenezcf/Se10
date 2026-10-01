@@ -1227,6 +1227,8 @@ const ltrCss = {
             GraficaAnchoCompleto: 'grafica-ancho-completo',
             // título de la tarjeta
             GraficaTitulo: 'grafica-titulo',
+            // botón crear (+) junto al título
+            GraficaCrear: 'grafica-crear',
             // contenedor de la visualización activa
             GraficaVistaContenedor: 'grafica-vista-contenedor',
             // botón cerrar (✕)

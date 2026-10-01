@@ -963,6 +963,7 @@ namespace Utilidades
     }
     public static class enumParaQueNavegar
     {
+        public const string ParametroDeUrl = "paraque-navegar";
         public const string crear = "crear";
         public const string editar = "editar";
         public const string seleccionar = "seleccionar";

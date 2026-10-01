@@ -59,6 +59,8 @@ namespace GestorDeElementos
 
         public Type DescriptoDeConsultas { get; set; } = null;
         public Type TipoDeAgregados     { get; set; } = null;
+
+        public bool PermitirCrearDesdeElPanelDeControl { get; set; } = false;
     }
 
     public enum enumParametroDeNegocio
@@ -327,7 +329,8 @@ namespace GestorDeElementos
             ListaDeEtapas = registro => ((FacturaRecDtm)registro).ListaDeEtapas(),
             CalcularPrioridad = (registro, contexto) => ((FacturaRecDtm)registro).CalcularPrioridad(contexto),
             DireccionesDtm = typeof(DireccionDeUnaFacturaRecDtm),
-            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasRec, emitirError: false)
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio, ApiDeEnsamblados.AgrupadosDeFacturasRec, emitirError: false),
+            PermitirCrearDesdeElPanelDeControl = true
         };
 
         public static Metadatos MetadatosDePedidos() => new Metadatos
@@ -451,7 +454,8 @@ namespace GestorDeElementos
             TareasDtm = typeof(TareasDeUnRegistroDtm),
             TipoParametros = null,
             TipoEtapas = null,
-            PlantillasPorTipoDtm = null
+            PlantillasPorTipoDtm = null,
+            PermitirCrearDesdeElPanelDeControl = true
         };
 
         public static Metadatos MetadatosDeTareas() => new Metadatos
@@ -472,7 +476,8 @@ namespace GestorDeElementos
             PlantillasPorTipoDtm = null,
             ClasesDelTipoDtm = typeof(ClaseDelTipoTareaDtm),
             DescriptoDeConsultas = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelSistemaDeElementos, ApiDeEnsamblados.DescriptorDeConsultaDeTareas, emitirError: false),
-            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio,ApiDeEnsamblados.AgrupadosDeTareas, emitirError: false)
+            TipoDeAgregados = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelGestorDeNegocio,ApiDeEnsamblados.AgrupadosDeTareas, emitirError: false),
+            PermitirCrearDesdeElPanelDeControl = true
         };
 
         public static Metadatos MetadatosDePleitos() => new Metadatos
@@ -593,7 +598,8 @@ namespace GestorDeElementos
             EstadosDeLaEtapa = etapa => VariableDeRemesasFae.Lista((enumEtapasDeRemesasFae)etapa),
             ListaDeEtapas = registro => ((RemesaFaeDtm)registro).ListaDeEtapas(),
             DireccionesDtm = null,
-            PlantillasPorTipoDtm = null
+            PlantillasPorTipoDtm = null,
+            PermitirCrearDesdeElPanelDeControl = true
         };
 
         public static Metadatos MetadatosDeRemesasPag() => new Metadatos

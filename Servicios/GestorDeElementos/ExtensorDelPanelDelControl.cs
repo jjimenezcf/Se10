@@ -62,7 +62,7 @@ namespace GestorDeElementos
                     if (!cantidades.Any() || cantidades.Sum(c => c.Cantidad) == 0)
                         continue;
 
-                    var url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{negocio.VistaMvc(contexto).Accion}', null,event);";
+                    var vista = negocio.VistaMvc(contexto).Accion;
                     resultado.Add(new
                     {
                         nombre = negocio.Singular(),
@@ -72,7 +72,8 @@ namespace GestorDeElementos
                         tipos,
                         estados,
                         cantidades,
-                        url
+                        url = UrlDeAbrirVista(negocio, vista, null),
+                        urlDeCreacion = UrlDeCreacion(contexto, negocio, vista, null, tipos.Select(t => t.Id))
                     });
                 }
 
@@ -188,7 +189,8 @@ namespace GestorDeElementos
                                 tipos = tiposResto,
                                 estados = estadosResto,
                                 cantidades = cantidadesAgregadas,
-                                url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{vista}', {(parametros == null ? "null" : $"'{parametros}'")},event);"
+                                url = UrlDeAbrirVista(negocio, vista, parametros),
+                                urlDeCreacion = UrlDeCreacion(contexto, negocio, vista, parametros, idsResto)
                             });
                     }
                 }
@@ -213,7 +215,6 @@ namespace GestorDeElementos
             if (cantidadesAgregada.Sum(c => c.Cantidad) == 0)
                 return null;
 
-            var url = $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{vista}', null,event);";
             return new
             {
                 nombre = nombre,
@@ -223,8 +224,26 @@ namespace GestorDeElementos
                 tipos = new[] { tipo }.ToList(),
                 estados = flujoDelTipo.Select(e => new { e.Id, e.Nombre }).ToList<object>(),
                 cantidades = cantidadesAgregada,
-                url = url
+                url = UrlDeAbrirVista(negocio, vista, null),
+                urlDeCreacion = UrlDeCreacion(contexto, negocio, vista, null, new[] { tipo.Id })
             };
+        }
+
+        private static string UrlDeAbrirVista(enumNegocio negocio, string vista, string parametros)
+        =>
+        $"{enumNameSpaceTs.EntornoSe}.{enumFunctionTs.AbrirVista}('{negocio.Controlador()}', '{vista}', {(parametros == null ? "null" : $"'{parametros}'")},event);";
+
+        // Solo se ofrece si el usuario puede crear en alguno de los tipos de la ficha
+        private static string UrlDeCreacion(ContextoSe contexto, enumNegocio negocio, string vista, string parametros, IEnumerable<int> idsDeTipos)
+        {
+            if (!negocio.ObtenerMetadatos().PermitirCrearDesdeElPanelDeControl)
+                return null;
+
+            if (!idsDeTipos.Any(idTipo => negocio.PuedeCrearProceso(contexto, idTipo)))
+                return null;
+
+            var paraCrear = $"{enumParaQueNavegar.ParametroDeUrl}={enumParaQueNavegar.crear}";
+            return UrlDeAbrirVista(negocio, vista, parametros == null ? paraCrear : $"{parametros}&{paraCrear}");
         }
 
 

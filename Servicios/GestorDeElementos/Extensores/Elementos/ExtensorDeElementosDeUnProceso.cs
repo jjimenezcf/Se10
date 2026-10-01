@@ -27,6 +27,33 @@ namespace GestorDeElementos.Extensores
         ? ((TipoConFlujoDtm)NegociosDeSe.NegocioDeUnDtm(elemento.GetType()).CrearGestorDeTipo(contexto).LeerRegistroPorId(elemento.IdTipo, true)).Estado.Id
         : ((IUsaEstado)elemento.Tipo).IdEstado;
 
+        public static bool PuedeCrearProceso(this enumNegocio negocio, ContextoSe contexto, int idTipo)
+        {
+            if (!negocio.UsaFlujo())
+                return false;
+
+            var tipo = TipoDeElementoSql.LeerTipoPorId(contexto, negocio.ObtenerMetadatos().TipoDtm, idTipo);
+            if (tipo == null || !tipo.Activo || !tipo.PermiteCrear)
+                return false;
+
+            if (contexto.DatosDeConexion.EsAdministrador)
+                return true;
+
+            var idEstadoInicial = negocio.TiposConFlujo(contexto).Where(t => t.Id == idTipo).Select(t => t.IdEstado).FirstOrDefault();
+            if (idEstadoInicial == 0)
+                return false;
+
+            // Mismo criterio que ValidarPermisosDePersistencia: el administrador del negocio no necesita permisos por tipo ni por estado
+            if (ApiDePermisos.LeerModoDeAccesoAlNegocio(contexto, negocio).SoyAdministrador())
+                return true;
+
+            var esGestorDelTipo = PermisosPorTipoSql.UsuarioConAlgunPermiso(contexto, new List<int> { tipo.IdPermisoDeGestor, tipo.IdPermisoDeAdministrador });
+            if (!esGestorDelTipo)
+                return false;
+
+            return ApiDePermisos.HayPermisosDeEstado(contexto, negocio, negocio.Estado(contexto, idEstadoInicial));
+        }
+
         public static EstadoDtm Estado<T>(this T elemento, ContextoSe contexto)
         where T : IElementoDeProcesoDtm
         {

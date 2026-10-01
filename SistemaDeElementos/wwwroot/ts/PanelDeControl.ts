@@ -24,6 +24,7 @@ namespace PanelDeControl {
         estados: ItemNombreId[];
         cantidades: CeldaDeMatriz[];   // renombrado de celdas → cantidades (servidor)
         url?: string;                  // enlace para gestionar los objetos del negocio
+        urlDeCreacion?: string;        // solo viene si el usuario puede crear en alguno de los tipos
     }
 
     /** DTO para serializar/deserializar hacia el servidor */
@@ -226,6 +227,16 @@ namespace PanelDeControl {
                 titulo.appendChild(enlace);
             } else {
                 titulo.textContent = negocio.nombre;
+            }
+
+            if (negocio.urlDeCreacion) {
+                const btnCrear = document.createElement('a');
+                btnCrear.className = css.GraficaCrear;
+                btnCrear.setAttribute('href', '#');
+                btnCrear.title = `Crear ${negocio.nombre}`;
+                btnCrear.textContent = '+';
+                btnCrear.setAttribute('onclick', `${negocio.urlDeCreacion}; return false;`);
+                titulo.appendChild(btnCrear);
             }
 
             // ── Vista ──
