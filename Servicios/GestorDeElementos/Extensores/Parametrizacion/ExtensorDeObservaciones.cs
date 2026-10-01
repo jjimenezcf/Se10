@@ -68,6 +68,51 @@ namespace GestorDeElementos.Extensores
         }
 
 
+        /// <summary>
+        /// Notifica la observación al responsable del elemento, si no lo hay al último modificador y si no al creador,
+        /// siempre que no sea el usuario conectado. Si se ha añadido un archivo se incluye un enlace de descarga.
+        /// </summary>
+        public static void EnviarMensajeDeObservacion(this ContextoSe contexto, enumNegocio negocio, ObservacionDtm observacion, ParametrosDeNegocio parametros)
+        {
+            try
+            {
+                var elemento = (ElementoDtm)negocio.LeerRegistro(contexto, observacion.IdElemento);
+                var responsable = elemento.Responsable(contexto);
+                var receptor = responsable != null && responsable.Id != contexto.DatosDeConexion.IdUsuario ? responsable : null;
+
+                if (receptor is null && elemento.Modificador(contexto) is not null && elemento.Modificador(contexto).Id != contexto.DatosDeConexion.IdUsuario)
+                    receptor = elemento.Modificador(contexto);
+
+                if (receptor is null && elemento.Creador(contexto).Id != contexto.DatosDeConexion.IdUsuario)
+                    receptor = elemento.Creador(contexto);
+
+                if (receptor is null)
+                    return;
+
+                string refHtml = elemento.CrearHref(contexto);
+                var asunto = parametros.Insertando
+                ? $"Registro de observación en {negocio.Singular()}. {observacion.Nombre}"
+                : parametros.Eliminando
+                ? $"Eliminación de observación en {negocio.Singular()}. {observacion.Nombre}"
+                : $"Modificación de observación en {negocio.Singular()}. {observacion.Nombre}";
+
+                var cuerpo = $"{negocio.Singular()}: {elemento.Expresion}{Simbolos.br}" +
+                             observacion.Descripcion + Simbolos.br +
+                             "Enlace: " + refHtml;
+
+                var idArchivo = parametros.Parametros.LeerValor(nameof(IUsaArchivo.IdArchivo), 0);
+                var archivo = idArchivo > 0 ? contexto.SeleccionarPorId<ArchivoDtm>(idArchivo, errorSiNoHay: false) : null;
+                if (archivo is not null)
+                    cuerpo += Simbolos.br + "Archivo añadido: " + archivo.HrefDeDescargaConGuid(contexto);
+
+                contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { receptor.eMail }, asunto, cuerpo);
+            }
+            catch (Exception e)
+            {
+                contexto.Traza?.AnotarExcepcion(e);
+            }
+        }
+
         private static ObservacionDtm Nueva(enumNegocio negocio)
         {
             if (!negocio.UsaObservaciones())

@@ -993,5 +993,20 @@ namespace GestorDeElementos
 
             return guid.ToString();
         }
+
+        /// <summary>
+        /// Registra una descarga con guid que caduca en las horas indicadas y devuelve el html del enlace para incluirlo en un correo
+        /// </summary>
+        public static string HrefDeDescargaConGuid(this ArchivoDtm archivo, ContextoSe contexto, int horasDeValidez = 1)
+        {
+            var caducaEl = DateTime.Now.AddHours(horasDeValidez);
+            var guid = archivo.RegistrarDescargaConGuid(contexto, caducaEl, maximoDeDescargas: null);
+            var uri = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+            {
+                Path = $"/{nameof(enumControladoresSistemaDocumental.Archivos)}/{ltrEndPoint.epDescargaConGuid}",
+                Query = $"guid={guid}&id={archivo.Id}"
+            };
+            return $"<a href='{uri}' target='_blank'>{System.Net.WebUtility.HtmlEncode(archivo.Nombre)}</a> (válido hasta {caducaEl.ToString(extFechas.DiaHora)})";
+        }
     }
 }

@@ -14,7 +14,9 @@ using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Tarea;
 using ServicioDeDatos.Ventas;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Utilidades;
 
 namespace GestorDeElementos.Extensores
@@ -116,7 +118,7 @@ namespace GestorDeElementos.Extensores
         /// o null si el hito no tiene transición asociada.
         /// </summary>
         public static HitoDtm HitoPosterior<T>(this HitoDtm hito, ContextoSe contexto)
-        where T : HitoDtm   
+        where T : HitoDtm
         {
             if (!hito.IdTransicion.HasValue)
                 return null;
@@ -151,6 +153,70 @@ namespace GestorDeElementos.Extensores
                           .Where(h => h.Id > hito.Id)
                           .OrderBy(h => h.Id)
                           .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Notifica al creador del elemento que otro usuario lo ha transitado desde la interface.
+        /// No se envía si la transición es del sistema, si no viene de una petición de transitar,
+        /// si quien transita es el creador o si en la petición ya se pidió notificar al creador.
+        /// </summary>
+        public static void EnviarMensajeDeTransicion(this ContextoSe contexto, enumNegocio negocio, int idElemento, int idEstadoOrigen, int idEstadoDestino, int idTransicionEjecutada, Dictionary<string, object> parametros)
+        {
+            try
+            {
+                var transicion = negocio.Transicion(contexto, idTransicionEjecutada);
+                if (transicion.DelSistema)
+                    return;
+
+                if (parametros.LeerValor(ltrParametrosNeg.Peticion, enumPeticion.epSinPeticion) != enumPeticion.epTransitar)
+                    return;
+
+                var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, idElemento, aplicarJoin: false, parametros: new Dictionary<string, object>
+                              {
+                                  {ltrParametrosNeg.ValidarPermisosDeConsulta, false },
+                                  {ltrParametrosNeg.UsarLaCache, false }
+                              });
+
+                var creador = elemento.Creador(contexto);
+                if (creador is null || creador.eMail.IsNullOrEmpty() || creador.Id == contexto.DatosDeConexion.IdUsuario)
+                    return;
+
+                if (parametros.LeerValor(ltrParametrosEp.usuarios, 0) == creador.Id)
+                    return;
+
+                var referencia = elemento.Referencia(contexto);
+                var motivo = transicion.Asunto is null ? parametros.LeerValor(ltrParametrosEp.asunto, "") : transicion.Asunto;
+                var detalle = parametros.LeerValor(ltrParametrosEp.detalleAsunto, "");
+                var idArchivo = parametros.LeerValor(nameof(IUsaArchivo.IdArchivo), 0);
+                var archivo = idArchivo > 0 ? contexto.SeleccionarPorId<ArchivoDtm>(idArchivo, errorSiNoHay: false) : null;
+
+                var asunto = $"Se ha transitado {negocio.Singular()} con referencia '{referencia}'";
+                var cuerpo = $"{negocio.Singular()}: {WebUtility.HtmlEncode(elemento.Nombre)}{Simbolos.br}" +
+                             $"Transitado por: {WebUtility.HtmlEncode(UsuarioDtm.NombreCompleto(contexto.Usuario))}{Simbolos.br}" +
+                             $"Estado anterior: {negocio.Estado(contexto, idEstadoOrigen).Nombre}{Simbolos.br}" +
+                             $"Estado actual: {negocio.Estado(contexto, idEstadoDestino).Nombre}{Simbolos.br}" +
+                             $"Transición ejecutada: {transicion.Nombre}{Simbolos.br}";
+
+                if (!motivo.IsNullOrEmpty())
+                    cuerpo += $"Motivo: {WebUtility.HtmlEncode(motivo)}{Simbolos.br}";
+
+                if (!detalle.IsNullOrEmpty())
+                    cuerpo += $"Detalle: {WebUtility.HtmlEncode(detalle).Replace(Environment.NewLine, Simbolos.br).Replace("\n", Simbolos.br)}{Simbolos.br}";
+
+                if (archivo is not null)
+                    cuerpo += $"Archivo añadido: {WebUtility.HtmlEncode(archivo.Nombre)}{Simbolos.br}";
+
+                cuerpo += $"{Simbolos.br}Enlace al elemento: {elemento.CrearHref(contexto)}{Simbolos.br}";
+
+                if (archivo is not null)
+                    cuerpo += $"Enlace al archivo: {archivo.HrefDeDescargaConGuid(contexto)}{Simbolos.br}";
+
+                contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { creador.eMail }, asunto, cuerpo);
+            }
+            catch (Exception e)
+            {
+                contexto.Traza?.AnotarExcepcion(e);
+            }
         }
 
     }

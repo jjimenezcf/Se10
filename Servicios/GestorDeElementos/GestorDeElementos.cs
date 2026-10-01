@@ -2096,7 +2096,6 @@ namespace GestorDeElementos
                 registro = DespuesDeTransitar(registro, transicion, parametros);
                 registro = AlFinalizarDeTransitar(registro, transicion, parametros);
                 Contexto.Commit(transaccion);
-                return registro;
             }
             catch
             {
@@ -2111,6 +2110,9 @@ namespace GestorDeElementos
                 ServicioDeCaches.EliminarElementos(CacheDe.elemento_HitoAnterior_AlActual, $"{Negocio.ToString()}-{registro.Id}-");
                 ServicioDeCaches.EliminarElementos(CacheDe.elemento_HitoAnterior_AlPrimero, $"{Negocio.ToString()}-{registro.Id}-");
             }
+
+            Contexto.EnviarMensajeDeTransicion(Negocio, registro.Id, transicion.IdOrigen, transicion.IdDestino, transicion.Id, parametros);
+            return registro;
         }
 
         protected virtual TRegistro AntesDeTransitar(TRegistro registro, TransicionDtm transicion, Dictionary<string, object> parametros)

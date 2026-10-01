@@ -173,31 +173,6 @@ namespace GestorDeElementos
         protected override void DespuesDePersistir(ObservacionDtm observacion, ParametrosDeNegocio parametros)
         {
             base.DespuesDePersistir(observacion, parametros);
-            var elemento = (ElementoDtm)Negocio.LeerRegistro(Contexto, observacion.IdElemento);
-            var responsable = elemento.Responsable(Contexto);
-            var receptor = responsable != null && responsable.Id != Contexto.DatosDeConexion.IdUsuario ? responsable : null;
-
-            if (receptor is null && elemento.Modificador(Contexto) is not null && elemento.Modificador(Contexto).Id != Contexto.DatosDeConexion.IdUsuario)
-                receptor = elemento.Modificador(Contexto);
-
-            if (receptor is null && elemento.Creador(Contexto).Id != Contexto.DatosDeConexion.IdUsuario)
-                receptor = elemento.Creador(Contexto);
-
-            if (receptor is not null)
-            {
-                string refHtml = elemento.CrearHref(Contexto);
-                var asunto = parametros.Insertando
-                ? $"Registro de observación en {Negocio.Singular()}. {observacion.Nombre}"
-                : parametros.Eliminando
-                ? $"Eliminación de observación en {Negocio.Singular()}. {observacion.Nombre}"
-                : $"Modificación de observación en {Negocio.Singular()}. {observacion.Nombre}";
-                Contexto.EnviarCorreoPorAdministrador(CacheDeVariable.Cfg_ServidorDeCorreo, new List<string> { receptor.eMail },
-                    asunto,
-                    $"{Negocio.Singular()}: {elemento.Expresion}{Simbolos.br}" +
-                    observacion.Descripcion + Simbolos.br +
-                    "Enlace: " + refHtml
-                    );
-            }
 
             var idArchivo = parametros.Parametros.LeerValor(nameof(IUsaArchivo.IdArchivo), 0);
             if (idArchivo > 0)
@@ -208,6 +183,13 @@ namespace GestorDeElementos
                 archivo.ModificarComoAdministrador(Contexto, accionQueSeEjecuta: ltrDeUnArchivo.Accion_Permitir_Modificar_Nombre);
                 GestorDeVinculos.Vincular(Contexto, Negocio, enumNegocio.Archivos, observacion.IdElemento, (int)idArchivo, new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDePersistencia, false } });
             }
+        }
+
+        protected override ObservacionDto DespuesDePersistirElementoDto(ObservacionDto elementoDto, ObservacionDtm observacion, ParametrosDeNegocio parametros)
+        {
+            var nuevoDto = base.DespuesDePersistirElementoDto(elementoDto, observacion, parametros);
+            Contexto.EnviarMensajeDeObservacion(Negocio, observacion, parametros);
+            return nuevoDto;
         }
 
         protected override void EliminarCaches(ObservacionDtm registro, ParametrosDeNegocio parametros)
