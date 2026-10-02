@@ -22,10 +22,13 @@
     opacity: var(--background-opacity);
 }
 
+/* Las filas se reparten sobre el alto real de .pagina (100% de la zona visible) y no con vh: en el móvil 100vh es
+   el alto con las barras del navegador ocultas, pero como el body no hace scroll nunca se ocultan, así que con vh
+   las filas sumaban más que la zona visible y .pagina (overflow: hidden) recortaba el final del cuerpo y el pie */
 .pagina {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 48px Calc(100vh - 109px) 64px;
+    grid-template-rows: 48px minmax(0, 1fr) 64px;
     gap: 0px 0px;
     grid-template-areas:
         "cabecera"
@@ -38,20 +41,6 @@
     justify-items: stretch;
     align-items: stretch;
 }
-
-@media (max-device-width: 768px) and (orientation: portrait) {
-    .pagina {
-        grid-template-rows: 48px Calc(100vh - 160px) 64px;
-    }
-}
-
-
-@media (max-device-width: 1200px) and (orientation: landscape) {
-    .pagina {
-        grid-template-rows: 48px Calc(100vh - 160px) 64px;
-    }
-}
-
 
 
 
@@ -73,7 +62,8 @@
 .cuerpo {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 3em Calc(100vh - 13em) 3em 0px 0px 0px;
+    /* igual que en .pagina: los datos ocupan lo que queda del cuerpo, sin vh */
+    grid-template-rows: 3em minmax(0, 1fr) 3em 0px 0px 0px;
     gap: 0px 0px;
     grid-auto-flow: row;
     grid-template-areas:
@@ -91,31 +81,26 @@
 .cuerpo-solo-consulta {
     display: flex !important;
     flex-direction: column !important; /* Fuerza orden vertical: primero edición, luego archivos */
-    height: auto !important;
-    min-height: calc(100vh - 13em) !important;
-    overflow-y: visible !important; /* Evita que el scroll se corte */
+    /* .pagina recorta lo que se sale de la fila del cuerpo (overflow: hidden), así que el cuerpo se ajusta
+       a esa fila y es él quien hace scroll vertical cuando el contenido no cabe (p.ej. en el móvil) */
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
+
+    /* que no se encojan para caber: el que tiene que hacer scroll es el cuerpo */
+    .cuerpo-solo-consulta > * {
+        flex-shrink: 0;
+    }
 
     .cuerpo-solo-consulta .datos-principales-dto {
         margin-block-start: 0px !important;
         border: hidden !important;
     }
 
-    @media (max-device-width: 768px) {
-        .cuerpo {
-            grid-template-rows: 3em Calc(100vh - 16em) 3em 0px 0px 0px;
-        }
-    }
-
-
-@media (max-device-width: 1200px) and (orientation: landscape) {
-    .cuerpo {
-        grid-template-rows: 3em Calc(100vh - 16em) 3em 0px 0px 0px;
-    }
-}
-
 .cuerpo-solo-con-grid {
-    grid-template-rows: 0em Calc(100vh - 10em) 3em !important;
+    grid-template-rows: 0em minmax(0, 1fr) 3em !important;
     grid-template-areas:
         "cuerpo-cabecera"
         "cuerpo-datos"

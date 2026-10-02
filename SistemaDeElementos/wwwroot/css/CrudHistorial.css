@@ -1,15 +1,19 @@
 ﻿
+/* Ocupa la fila 1fr que le da .mostrando-historial en el cuerpo del crud y reparte su alto sin vh: con
+   calc(100vh - ...) en el móvil sumaba más que la zona visible y se recortaba el pie del historial */
 .cuerpo-historial {
     overflow-x: hidden;
     overflow-y: hidden;
     width: 100%;
     display: grid;
-    grid-template-rows: 0.02fr calc(100vh - 208px) 0.02fr;
+    grid-area: cuerpo-historial;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
         "contenedor-historial-cabecera"
         "contenedor-historial-cuerpo"
         "contenedor-historial-pie";
-    height: max-content;
+    height: 100%;
+    min-height: 0;
 }
 
 .contenedor-historial-cabecera {
