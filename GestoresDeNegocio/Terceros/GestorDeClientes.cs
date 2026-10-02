@@ -556,11 +556,10 @@ namespace GestoresDeNegocio.Terceros
         // de la AEAT da el mismo resultado sea cual sea la empresa que pregunta, el certificado solo sirve para identificarse
         private static void ValidarClienteEnAeat(ContextoSe contexto, string nif, string razonSocial, Dictionary<string, object> parametros)
         {
-            SociedadDtm miSociedad = null;
             try
             {
                 var idSociedadQueValida = parametros.LeerValor(ltrCliente.IdSociedadQueValidaEnAeat, 0);
-                miSociedad = idSociedadQueValida > 0
+                var miSociedad = idSociedadQueValida > 0
                 ? contexto.SeleccionarPorId<SociedadDtm>(idSociedadQueValida)
                 : SociedadConCertificado(contexto);
 
@@ -569,23 +568,16 @@ namespace GestoresDeNegocio.Terceros
             }
             catch (Exception e)
             {
-                if (e.GetType()== typeof(System.Net.WebException))
-                {
-                    var statucode = ((System.Net.HttpWebResponse)((System.Net.WebException)e).Response).StatusCode;
-                    if (statucode == HttpStatusCode.Unauthorized)
-                    {
-                        GestorDeErrores.Emitir($"El certificado asociado a la sociedad '{miSociedad.RazonSocial}' no está autorizado");
-                    }
-                }
-
-                if (!e.Message.EndsWith(msjCertificados.CertificadoNoInstalado.Right(20)))
+                var problemaDeCertificado = e.Message.EndsWith(msjCertificados.CertificadoNoInstalado.Right(20))
+                                         || e.Message.EndsWith(msjCertificados.CertificadoNoAutorizado.Right(20));
+                if (!problemaDeCertificado)
                     GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}");
 
                 // el consejo depende de quién ha pedido la validación: el flag del JSON del facturador o el parámetro global
                 if (parametros.LeerValor(ltrCliente.ValidacionPedidaEnElJson, false))
-                    GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar envíe '{nameof(ClienteFacturadorJson.ValidarEnLaAeat)}': false en el JSON");
+                    GestorDeErrores.Emitir($"{e.Message}. Para no validar indique '{nameof(ClienteFacturadorJson.ValidarEnLaAeat)}': false en el JSON");
                 else
-                    GestorDeErrores.Emitir($"Error al validar el cliente en la AEAT: {e.Message}, para darlo de alta sin validar modifique el parámetro '{enumParametrosDeCliente.CLI_Validar_Aeat}'");
+                    GestorDeErrores.Emitir($"{e.Message}. Para darlo de alta sin validar modifique el parámetro '{enumParametrosDeCliente.CLI_Validar_Aeat}'");
             }
         }
 

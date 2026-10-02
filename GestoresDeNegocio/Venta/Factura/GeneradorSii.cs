@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using Utilidades;
 using VeriFactu.Common.Exceptions;
@@ -171,6 +172,7 @@ namespace GestoresDeNegocio.Venta.Factura
             catch (Exception e)
             {
                 Contexto.AnotarExcepcion(e);
+                TraducirErrorDeLaAeat(e);
                 throw;
             }
             finally
@@ -214,7 +216,15 @@ namespace GestoresDeNegocio.Venta.Factura
             if (Factura.MotivoDeRectificacion == enumMotivoDeRectificacion.PorImpago)
                 GestorDeErrores.Emitir($"El motivo de rectificación '{Factura.MotivoDeRectificacion.Descripcion()}' de la factura '{Factura.Referencia}' no está implementado para enviar al sii");
 
-            rectificada.CancelarFacturaSIF(Contexto, _certificado, _numeroImplantacion);
+            try
+            {
+                rectificada.CancelarFacturaSIF(Contexto, _certificado, _numeroImplantacion);
+            }
+            catch (Exception e)
+            {
+                TraducirErrorDeLaAeat(e);
+                throw;
+            }
             verifactu.Cancelada = true;
             verifactu.ModificarComoAdministrador(Contexto);
         }
@@ -231,8 +241,7 @@ namespace GestoresDeNegocio.Venta.Factura
                 if (e.GetType() == typeof(FaultException))
                     throw Excepciones.Emitir($"{ltrSii.VerifactuNoActivo}: {((FaultException)e).Fault.faultstring}");
 
-                if (e.GetType() == typeof(InvalidOperationException) && e.Message.ToLower().Contains("Certificate is out of date".ToLower()))
-                    throw Excepciones.Emitir($"{msjCertificados.CertificadoCaducado}".Replace("[Empresa]", Sociedad.Nombre));
+                TraducirErrorDeLaAeat(e);
                 throw;
             }
             finally
@@ -241,11 +250,30 @@ namespace GestoresDeNegocio.Venta.Factura
             }
         }
 
+        // Solo relanza si reconoce el error; si no, el llamador hace 'throw;' y conserva la excepción original
+        // (p. ej. una FaultException, de la que depende la cancelación de la emisión)
+        private void TraducirErrorDeLaAeat(Exception e)
+        {
+            for (var ex = e; ex != null; ex = ex.InnerException)
+            {
+                if (ex is WebException { Response: HttpWebResponse { StatusCode: HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden } })
+                    throw Excepciones.Emitir(msjCertificados.CertificadoNoAutorizado.Replace("[Empresa]", Sociedad.RazonSocial), e);
+
+                if (ex.Message.Contains("Certificate is out of date", StringComparison.OrdinalIgnoreCase))
+                    throw Excepciones.Emitir(msjCertificados.CertificadoCaducado.Replace("[Empresa]", Sociedad.Nombre), e);
+            }
+        }
+
         private List<FacturaAeatDto> ConsultaDeFacturasInterna(int ano, int mes)
         {
             try
             {
                 return Sociedad.ConsultaDeFacturasEmitidas(Contexto, _certificado, _numeroImplantacion, ano, mes);
+            }
+            catch (Exception e)
+            {
+                TraducirErrorDeLaAeat(e);
+                throw;
             }
             finally
             {
@@ -265,6 +293,11 @@ namespace GestoresDeNegocio.Venta.Factura
             {
                 Factura.ValidarNif(Contexto, _certificado, _numeroImplantacion);
             }
+            catch (Exception e)
+            {
+                TraducirErrorDeLaAeat(e);
+                throw;
+            }
             finally
             {
                 _certificado.Dispose();
@@ -280,8 +313,7 @@ namespace GestoresDeNegocio.Venta.Factura
             }
             catch (Exception e)
             {
-                if (e.Message.ToLower().Contains("Certificate is out of date".ToLower()))
-                    throw Excepciones.Emitir($"{msjCertificados.CertificadoCaducado}".Replace("[Empresa]", Sociedad.Nombre));
+                TraducirErrorDeLaAeat(e);
                 throw;
             }
             finally
@@ -296,6 +328,11 @@ namespace GestoresDeNegocio.Venta.Factura
             try
             {
                 Factura.ValidarVat(Contexto, _certificado, _numeroImplantacion);
+            }
+            catch (Exception e)
+            {
+                TraducirErrorDeLaAeat(e);
+                throw;
             }
             finally
             {
