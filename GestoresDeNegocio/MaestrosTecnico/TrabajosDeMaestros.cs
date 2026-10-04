@@ -3,6 +3,7 @@ using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Terceros;
 using GestoresDeNegocio.TrabajosSometidos;
+using Microsoft.EntityFrameworkCore;
 using ModeloDeDto.Callejero;
 using ModeloDeDto.MaestrosTecnico;
 using ModeloDeDto.Terceros;
@@ -29,6 +30,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
     {
         [Description("Importar catálogo de unitarios desde Excel")]
         ImportarCatalogoDeUnitarios,
+        [Description("Importar la tarifa de un proveedor desde Excel")]
+        ImportarTarifa,
         [Description("Importar juzgados desde Excel")]
         ImportarJuzgados,
         [Description("Importar municipios desde Excel")]
@@ -81,15 +84,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             try
             {
-                var resumen = ImportarCatalogoDeUnitariosInterno(contexto, idArchivo);
-
-                var traza = $"Importación finalizada: {resumen.TotalFilas} filas leídas, {resumen.Creados} creados, {resumen.Descartados} descartados";
-                entorno.CrearTraza(traza);
-                foreach (var errores in resumen.Errores)
-                {
-                    entorno.CrearTraza(errores);
-                }
-
+                var resumen = ImportarCatalogoDeUnitariosInterno(entorno, idArchivo);
+                entorno.CrearTraza($"Importación finalizada: {resumen.TotalFilas} filas en el Excel, {resumen.Creados} importadas correctamente, {resumen.Descartados} con error");
             }
             catch (Exception e)
             {
@@ -105,8 +101,9 @@ namespace GestoresDeNegocio.MaestrosTecnico
         //-------------------------------------------------------------------------------------------------------------
         // Lógica de importación: descarta (con rollback) cualquier fila que falle, sin abortar el resto del catálogo
         //-------------------------------------------------------------------------------------------------------------
-        public static ResumenDeImportacionDeCatalogo ImportarCatalogoDeUnitariosInterno(ContextoSe contexto, int idArchivo)
+        public static ResumenDeImportacionDeCatalogo ImportarCatalogoDeUnitariosInterno(EntornoDeTrabajo entorno, int idArchivo)
         {
+            var contexto = entorno.contextoDelProceso;
             var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
             var fichero = ApiDeArchivos.ObtenerRutaArchivo(archivo);
             var resumen = new ResumenDeImportacionDeCatalogo();
@@ -136,7 +133,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
                         var siglaUnidad = Texto(hoja, fila, columnas["Unidad"]);
                         var unidad = contexto.Set<UnidadDtm>().FirstOrDefault(u => u.Sigla.ToUpper() == siglaUnidad.ToUpper());
                         if (unidad == null)
-                            throw new Exception($"la unidad de sigla '{siglaUnidad}' no existe");
+                            GestorDeErrores.Emitir($"la unidad de sigla '{siglaUnidad}' no existe");
 
                         var siglaNaturaleza = Texto(hoja, fila, columnas["SiglaNaturaleza"]);
                         var nombreNaturaleza = Texto(hoja, fila, columnas["NaturalezaNombre"]);
@@ -166,7 +163,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
                     {
                         contexto.Rollback(tran);
                         resumen.Descartados++;
-                        resumen.Errores.Add($"Fila {fila}: {GestorDeErrores.Detalle(e)}");
+                        entorno.AnotarError($"Fila {fila}", e);
                     }
                 }
             }
@@ -238,17 +235,17 @@ namespace GestoresDeNegocio.MaestrosTecnico
         private static NaturalezaDtm ResolverOCrearNaturaleza(ContextoSe contexto, GestorDeNaturalezas gestorDeNaturalezas, string sigla, string nombre, string codigoCuentaDeGasto, string codigoCuentaDeIngreso)
         {
             if (sigla.IsNullOrEmpty())
-                throw new Exception("no se ha indicado la sigla de la naturaleza");
+                GestorDeErrores.Emitir("no se ha indicado la sigla de la naturaleza");
 
             var porSigla = contexto.Set<NaturalezaDtm>().FirstOrDefault(n => n.Sigla.ToUpper() == sigla.ToUpper());
             if (porSigla != null) return porSigla;
 
             if (nombre.IsNullOrEmpty())
-                throw new Exception($"la sigla de naturaleza '{sigla}' no existe y no se ha indicado el nombre de la naturaleza para poder crearla");
+                GestorDeErrores.Emitir($"la sigla de naturaleza '{sigla}' no existe y no se ha indicado el nombre de la naturaleza para poder crearla");
 
             var porNombre = contexto.Set<NaturalezaDtm>().FirstOrDefault(n => n.Nombre.ToUpper() == nombre.ToUpper());
             if (porNombre != null)
-                throw new Exception($"la sigla de naturaleza '{sigla}' no existe, pero sí existe una naturaleza con el nombre '{nombre}' (con sigla '{porNombre.Sigla}'); corrija la sigla en el Excel");
+                GestorDeErrores.Emitir($"la sigla de naturaleza '{sigla}' no existe, pero sí existe una naturaleza con el nombre '{nombre}' (con sigla '{porNombre.Sigla}'); corrija la sigla en el Excel");
 
             var cuentaDeGasto = BuscarCuenta(contexto, codigoCuentaDeGasto);
             var cuentaDeIngreso = BuscarCuenta(contexto, codigoCuentaDeIngreso);
@@ -269,7 +266,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
             if (codigo.IsNullOrEmpty()) return null;
             var cuenta = contexto.Set<CuentaDtm>().FirstOrDefault(c => c.Codigo.ToUpper() == codigo.ToUpper());
             if (cuenta == null)
-                throw new Exception($"no existe la cuenta contable con código '{codigo}'");
+                GestorDeErrores.Emitir($"no existe la cuenta contable con código '{codigo}'");
             return cuenta;
         }
 
@@ -292,6 +289,224 @@ namespace GestoresDeNegocio.MaestrosTecnico
             if (texto.IsNullOrEmpty()) return false;
             var valor = texto.Trim().ToUpperInvariant();
             return valor == "SI" || valor == "SÍ" || valor == "S" || valor == "TRUE" || valor == "X" || valor == "1";
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Sometimiento del job de importación de la tarifa de un proveedor
+        //-------------------------------------------------------------------------------------------------------------
+        public static TrabajoDeUsuarioDtm SometerImportarTarifa(ContextoSe contexto, int idArchivo, int idProveedor)
+        {
+            var dll = Assembly.GetExecutingAssembly().GetName().Name;
+            var clase = typeof(TrabajosParaMaestros).FullName;
+            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosDeMaestros.ImportarTarifa.Descripcion(), dll, clase, nameof(enumTrabajosDeMaestros.ImportarTarifa), comunicarFin: true);
+
+            var parametrosEntrada = new Dictionary<string, object> {
+                { nameof(ImportarTarifaDto.IdArchivo), idArchivo },
+                { nameof(ImportarTarifaDto.IdProveedor), idProveedor }
+            };
+            var datosDeCreacion = new Dictionary<string, object>
+            {
+                { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() },
+                { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
+            };
+
+            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion);
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Punto de entrada del job (invocado por el motor de trabajos sometidos)
+        //-------------------------------------------------------------------------------------------------------------
+        public static void ImportarTarifa(EntornoDeTrabajo entorno)
+        {
+            var contexto = entorno.contextoDelProceso;
+            Dictionary<string, object> parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
+            var idArchivo = (int)parametros.LeerValor<long>(nameof(ImportarTarifaDto.IdArchivo));
+            var idProveedor = (int)parametros.LeerValor<long>(nameof(ImportarTarifaDto.IdProveedor));
+
+            contexto.IniciarTraza(nameof(enumTrabajosDeMaestros.ImportarTarifa));
+            var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
+            try
+            {
+                var resumen = ImportarTarifaInterno(entorno, idArchivo, idProveedor);
+                entorno.CrearTraza($"Importación finalizada: {resumen.TotalFilas} filas en el Excel, {resumen.Creados + resumen.Actualizados} importadas correctamente, {resumen.Descartados} con error");
+
+                var tran = contexto.IniciarTransaccion();
+                try
+                {
+                    VincularTarifaImportadaAlProveedor(contexto, contexto.SeleccionarPorId<ProveedorDtm>(idProveedor), contexto.SeleccionarPorId<ArchivoDtm>(idArchivo));
+                    contexto.Commit(tran);
+                }
+                catch
+                {
+                    contexto.Rollback(tran);
+                    throw;
+                }
+            }
+            catch (Exception e)
+            {
+                entorno.AnotarError(e);
+            }
+            finally
+            {
+                if (otorgado) entorno.Ejecutor.AnularAdministrador(contexto, otorgado);
+                contexto.CerrarTraza();
+            }
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Deja el fichero importado vinculado al proveedor con el nombre "yyyy-MM-dd Tarifa importada_x" (conservando la
+        // extensión), donde x es 1 si ese día no hay ninguna tarifa importada vinculada al proveedor, o el siguiente número
+        //-------------------------------------------------------------------------------------------------------------
+        private static void VincularTarifaImportadaAlProveedor(ContextoSe contexto, ProveedorDtm proveedor, ArchivoDtm archivo)
+        {
+            var prefijo = $"{DateTime.Today:yyyy-MM-dd} Tarifa importada_";
+
+            var ultimoNumero = proveedor.Vinculados<ArchivoDtm>(contexto)
+                .Select(a => Path.GetFileNameWithoutExtension(a.Nombre))
+                .Where(nombre => nombre.StartsWith(prefijo, StringComparison.OrdinalIgnoreCase))
+                .Select(nombre => int.TryParse(nombre.Substring(prefijo.Length), out var numero) ? numero : 0)
+                .DefaultIfEmpty(0)
+                .Max();
+
+            archivo.Renombrar(contexto, $"{prefijo}{ultimoNumero + 1}{Path.GetExtension(archivo.Nombre)}");
+            proveedor.Vincular(contexto, archivo);
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Lógica de importación: cada fila con error se anota en el log del trabajo y se continúa con la siguiente
+        //-------------------------------------------------------------------------------------------------------------
+        public static ResumenDeImportacionDeCatalogo ImportarTarifaInterno(EntornoDeTrabajo entorno, int idArchivo, int idProveedor)
+        {
+            var contexto = entorno.contextoDelProceso;
+            var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            var fichero = ApiDeArchivos.ObtenerRutaArchivo(archivo);
+            var resumen = new ResumenDeImportacionDeCatalogo();
+            var proveedor = contexto.Set<ProveedorDtm>().FirstOrDefault(p => p.Id == idProveedor);
+            if (proveedor is null)
+                GestorDeErrores.Emitir($"No existe el proveedor con id '{idProveedor}'");
+            
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+            using (var libro = new ExcelPackage(new FileInfo(fichero)))
+            {
+                var hoja = libro.Workbook.Worksheets.FirstOrDefault(h => h.Dimension != null);
+                if (hoja == null)
+                    GestorDeErrores.Emitir("El fichero no contiene ninguna hoja con datos");
+
+                var columnas = LocalizarColumnasDeTarifa(hoja, out int filaCabecera);
+                var gestor = GestorDeTarifas.Gestor(contexto, contexto.Mapeador);
+
+                for (int fila = filaCabecera + 1; fila <= hoja.Dimension.End.Row; fila++)
+                {
+                    var miReferencia = Texto(hoja, fila, columnas["MiReferencia"]);
+                    var suReferencia = Texto(hoja, fila, columnas["SuReferencia"]);
+                    var textoDeTarifa = Texto(hoja, fila, columnas["Tarifa"]);
+                    if (miReferencia.IsNullOrEmpty() && suReferencia.IsNullOrEmpty() && textoDeTarifa.IsNullOrEmpty())
+                        continue; // fila en blanco, no cuenta como fila de datos
+
+                    resumen.TotalFilas++;
+                    var tran = contexto.IniciarTransaccion();
+                    try
+                    {
+                        if (miReferencia.IsNullOrEmpty())
+                            GestorDeErrores.Emitir("no se indica la referencia del unitario (columna 'Mi Referencia')");
+
+                        var unitario = contexto.Set<UnitarioDtm>().FirstOrDefault(u => u.Referencia == miReferencia);
+                        if (unitario == null)
+                            GestorDeErrores.Emitir($"no existe ningún unitario con la referencia '{miReferencia}'");
+
+                        if (suReferencia.IsNullOrEmpty())
+                            GestorDeErrores.Emitir($"no se indica la referencia del proveedor '{proveedor.Nombre}' para el unitario '{miReferencia}' (columna 'Su Referencia')");
+
+                        if (textoDeTarifa.IsNullOrEmpty())
+                            GestorDeErrores.Emitir($"no se indica el precio de tarifa para el unitario '{miReferencia}' del proveedor '{proveedor.Nombre}'");
+
+                        if (!TryDecimal(hoja, fila, columnas["Tarifa"], out var precio))
+                            GestorDeErrores.Emitir($"el precio de tarifa '{textoDeTarifa}' del unitario '{miReferencia}' del proveedor '{proveedor.Nombre}' no es un número");
+
+                        if (precio <= 0)
+                            GestorDeErrores.Emitir($"el precio de tarifa del unitario '{miReferencia}' para el proveedor '{proveedor.Nombre}' debe ser mayor que 0");
+
+                        var existente = contexto.Set<TarifaDtm>().FirstOrDefault(t => t.IdElemento == unitario.Id && t.IdProveedor == idProveedor);
+                        var elemento = new TarifaDto
+                        {
+                            Id = existente?.Id ?? 0,
+                            IdElemento = unitario.Id,
+                            IdProveedor = idProveedor,
+                            Referencia = suReferencia,
+                            Tarifa = precio
+                        };
+                        gestor.PersistirElementoDto(elemento, new ParametrosDeNegocio(existente == null ? enumTipoOperacion.Insertar : enumTipoOperacion.Modificar));
+                        contexto.Commit(tran);
+                        if (existente == null) resumen.Creados++; else resumen.Actualizados++;
+                    }
+                    catch (Exception e)
+                    {
+                        contexto.Rollback(tran);
+                        resumen.Descartados++;
+                        entorno.AnotarError($"Fila {fila}", e);
+                    }
+                }
+            }
+
+            return resumen;
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Localización de la cabecera y de las columnas por nombre (Mi Referencia | Su Referencia | ... | Tarifa)
+        //-------------------------------------------------------------------------------------------------------------
+        private static Dictionary<string, int> LocalizarColumnasDeTarifa(ExcelWorksheet hoja, out int filaCabecera)
+        {
+            var clavesBuscadas = new[]
+            {
+                ("MiReferencia", "mi referencia"),
+                ("SuReferencia", "su referencia"),
+                ("Tarifa", "tarifa")
+            }.OrderByDescending(c => c.Item2.Length).ToList();
+            var obligatorias = new[] { "MiReferencia", "SuReferencia", "Tarifa" };
+
+            var filasAExplorar = Math.Min(20, hoja.Dimension.End.Row);
+            for (int fila = 1; fila <= filasAExplorar; fila++)
+            {
+                var columnas = new Dictionary<string, int>();
+                for (int columna = 1; columna <= hoja.Dimension.End.Column; columna++)
+                {
+                    var texto = hoja.Cells[fila, columna].Text?.Trim().ToLowerInvariant();
+                    if (texto.IsNullOrEmpty()) continue;
+
+                    foreach (var (clave, palabra) in clavesBuscadas)
+                    {
+                        if (columnas.ContainsKey(clave) || !texto.Contains(palabra)) continue;
+                        columnas[clave] = columna;
+                        break;
+                    }
+                }
+
+                if (columnas.ContainsKey("MiReferencia") && columnas.ContainsKey("SuReferencia"))
+                {
+                    var faltantes = obligatorias.Where(o => !columnas.ContainsKey(o)).ToList();
+                    if (faltantes.Count > 0)
+                        GestorDeErrores.Emitir($"No se han encontrado en la cabecera las columnas: {string.Join(", ", faltantes)}");
+
+                    filaCabecera = fila;
+                    return columnas;
+                }
+            }
+
+            GestorDeErrores.Emitir("No se ha encontrado, en las primeras filas del fichero, una fila de cabecera con las columnas 'Mi Referencia', 'Su Referencia' y 'Tarifa'");
+            filaCabecera = 0;
+            return null;
+        }
+
+        private static bool TryDecimal(ExcelWorksheet hoja, int fila, int columna, out decimal valor)
+        {
+            valor = 0m;
+            var celda = hoja.Cells[fila, columna];
+            if (celda.Value is double numero) { valor = (decimal)numero; return true; }
+            if (celda.Value is decimal importe) { valor = importe; return true; }
+
+            var texto = celda.Text;
+            return decimal.TryParse(texto, NumberStyles.Any, CultureInfo.InvariantCulture, out valor)
+                || decimal.TryParse(texto, NumberStyles.Any, CultureInfo.CurrentCulture, out valor);
         }
 
         //-------------------------------------------------------------------------------------------------------------
@@ -330,14 +545,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             try
             {
-                var resumen = ImportarJuzgadosInterno(contexto, idArchivo, idProvincia);
-
-                var traza = $"Importación finalizada: {resumen.TotalFilas} filas leídas, {resumen.Creados} creados, {resumen.Descartados} descartados";
-                entorno.CrearTraza(traza);
-                foreach (var errores in resumen.Errores)
-                {
-                    entorno.CrearTraza(errores);
-                }
+                var resumen = ImportarJuzgadosInterno(entorno, idArchivo, idProvincia);
+                entorno.CrearTraza($"Importación finalizada: {resumen.TotalFilas} filas en el Excel, {resumen.Creados} importadas correctamente, {resumen.Descartados} con error");
             }
             catch (Exception e)
             {
@@ -355,8 +564,9 @@ namespace GestoresDeNegocio.MaestrosTecnico
         // Si la clase de juzgado indicada no existe se crea; el municipio (Provincia + Municipio) debe existir ya en el callejero
         // Si se indica idProvincia, se descartan (sin contabilizar) las filas del excel de otra provincia
         //-------------------------------------------------------------------------------------------------------------
-        public static ResumenDeImportacionDeCatalogo ImportarJuzgadosInterno(ContextoSe contexto, int idArchivo, int? idProvincia)
+        public static ResumenDeImportacionDeCatalogo ImportarJuzgadosInterno(EntornoDeTrabajo entorno, int idArchivo, int? idProvincia)
         {
+            var contexto = entorno.contextoDelProceso;
             var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
             var fichero = ApiDeArchivos.ObtenerRutaArchivo(archivo);
             var resumen = new ResumenDeImportacionDeCatalogo();
@@ -391,19 +601,19 @@ namespace GestoresDeNegocio.MaestrosTecnico
                     try
                     {
                         if (claseTexto.IsNullOrEmpty())
-                            throw new Exception("no se ha indicado la clase de juzgado");
+                            GestorDeErrores.Emitir("no se ha indicado la clase de juzgado");
                         if (provincia.IsNullOrEmpty() || municipio.IsNullOrEmpty())
-                            throw new Exception("no se ha indicado la provincia y/o el municipio");
+                            GestorDeErrores.Emitir("no se ha indicado la provincia y/o el municipio");
                         if (calificador.IsNullOrEmpty())
-                            throw new Exception("no se ha indicado el calificador del juzgado");
+                            GestorDeErrores.Emitir("no se ha indicado el calificador del juzgado");
 
                         var provinciaDtm = contexto.SeleccionarPorPropiedad<ProvinciaDtm>(nameof(ProvinciaDtm.Nombre), provincia, errorSiNoHay: false);
                         if (provinciaDtm == null)
-                            throw new Exception($"la provincia '{provincia}' no existe");
+                            GestorDeErrores.Emitir($"la provincia '{provincia}' no existe");
 
                         var municipioDtm = contexto.Set<MunicipioDtm>().FirstOrDefault(m => m.IdProvincia == provinciaDtm.Id && m.Nombre.ToUpper() == municipio.ToUpper());
                         if (municipioDtm == null)
-                            throw new Exception($"el municipio '{municipio}' de la provincia '{provincia}' no existe");
+                            GestorDeErrores.Emitir($"el municipio '{municipio}' de la provincia '{provincia}' no existe");
 
                         var claseDto = GestorDeClasesDeJuzgado.CrearClaseDto(contexto, claseTexto);
                         var municipioDto = municipioDtm.MapearDto<MunicipioDto>(contexto);
@@ -414,7 +624,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
                         {
                             contexto.Rollback(tran);
                             resumen.Descartados++;
-                            resumen.Errores.Add($"Fila {fila}: el juzgado '{nombre}' ya existe");
+                            entorno.AnotarError($"Fila {fila}", $"el juzgado '{nombre}' ya existe");
                             continue;
                         }
 
@@ -426,7 +636,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
                     {
                         contexto.Rollback(tran);
                         resumen.Descartados++;
-                        resumen.Errores.Add($"Fila {fila}: {GestorDeErrores.Detalle(e)}");
+                        entorno.AnotarError($"Fila {fila}", e);
                     }
                 }
             }
@@ -518,14 +728,8 @@ namespace GestoresDeNegocio.MaestrosTecnico
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             try
             {
-                var resumen = ImportarMunicipiosInterno(contexto, idArchivo, idProvincia);
-
-                var traza = $"Importación finalizada: {resumen.TotalFilas} filas leídas, {resumen.Creados} creados, {resumen.Actualizados} actualizados, {resumen.SinCambios} sin cambios, {resumen.Descartados} descartados";
-                entorno.CrearTraza(traza);
-                foreach (var errores in resumen.Errores)
-                {
-                    entorno.CrearTraza(errores);
-                }
+                var resumen = ImportarMunicipiosInterno(entorno, idArchivo, idProvincia);
+                entorno.CrearTraza($"Importación finalizada: {resumen.TotalFilas} filas en el Excel, {resumen.Creados + resumen.Actualizados + resumen.SinCambios} importadas correctamente, {resumen.Descartados} con error");
             }
             catch (Exception e)
             {
@@ -548,8 +752,9 @@ namespace GestoresDeNegocio.MaestrosTecnico
         // provincia se actualiza su DC cuando sea distinto; si no existe se crea.
         // Si se indica idProvincia, se descartan (sin contabilizar) las filas de otra provincia
         //-------------------------------------------------------------------------------------------------------------
-        public static ResumenDeImportacionDeCatalogo ImportarMunicipiosInterno(ContextoSe contexto, int idArchivo, int? idProvincia)
+        public static ResumenDeImportacionDeCatalogo ImportarMunicipiosInterno(EntornoDeTrabajo entorno, int idArchivo, int? idProvincia)
         {
+            var contexto = entorno.contextoDelProceso;
             var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
             var fichero = ApiDeArchivos.ObtenerRutaArchivo(archivo);
             var resumen = new ResumenDeImportacionDeCatalogo();
@@ -589,17 +794,17 @@ namespace GestoresDeNegocio.MaestrosTecnico
                         try
                         {
                             if (cpro.IsNullOrEmpty())
-                                throw new Exception("no se ha indicado el código de provincia (CPRO)");
+                                GestorDeErrores.Emitir("no se ha indicado el código de provincia (CPRO)");
                             if (cmun.IsNullOrEmpty())
-                                throw new Exception("no se ha indicado el código de municipio (CMUN)");
+                                GestorDeErrores.Emitir("no se ha indicado el código de municipio (CMUN)");
                             if (dc.IsNullOrEmpty())
-                                throw new Exception("no se ha indicado el dígito de control (DC)");
+                                GestorDeErrores.Emitir("no se ha indicado el dígito de control (DC)");
                             if (nombre.IsNullOrEmpty())
-                                throw new Exception("no se ha indicado el nombre del municipio");
+                                GestorDeErrores.Emitir("no se ha indicado el nombre del municipio");
 
                             var provinciaDtm = contexto.SeleccionarPorPropiedad<ProvinciaDtm>(nameof(ProvinciaDtm.Codigo), cproNormalizado, errorSiNoHay: false);
                             if (provinciaDtm == null)
-                                throw new Exception($"la provincia de código '{cproNormalizado}' no existe");
+                                GestorDeErrores.Emitir($"la provincia de código '{cproNormalizado}' no existe");
 
                             var codigoDeMunicipio = $"{cmun.Trim().PadLeft(3, '0')}{dc.Trim()}";
 
@@ -631,7 +836,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
                         {
                             contexto.Rollback(tran);
                             resumen.Descartados++;
-                            resumen.Errores.Add($"Hoja '{hoja.Name}', fila {fila}: {e.Message}");
+                            entorno.AnotarError($"Hoja '{hoja.Name}', fila {fila}", e);
                         }
                     }
                 }

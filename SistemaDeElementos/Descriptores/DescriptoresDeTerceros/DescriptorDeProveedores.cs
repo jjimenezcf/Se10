@@ -75,6 +75,9 @@ namespace MVCSistemaDeElementos.Descriptores
 
             DescriptorDeCuentasDeProveedor();
             DescriptorDeTarifas();
+
+            Editor.IncluirMfIndividual("Importar tarifa", eventosDeMf.Prv_ImportarTarifa, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ImportarTarifaDto), eventosDeMf.Prv_ImportarTarifa, "Importar la tarifa del proveedor"));
         }
 
 

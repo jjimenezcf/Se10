@@ -944,6 +944,7 @@ namespace Utilidades
         public const string Ped_IrAExpediente = IrAExpediente;
         public const string Ped_QuitarExpediente = QuitarExpediente;
         public const string Ped_QuitarContrato = QuitarContrato;
+        public const string Ped_ModalDeImprimir = ModalDeImprimir;
 
         public const string Infantes_AsociarCurso = "asociar-curso";
 
@@ -956,6 +957,8 @@ namespace Utilidades
         public const string Spr_AnularEstimacionDirecta = "anular-estimacion";
 
         public const string Uni_ImportarCatalogo = "importar-catalogo-unitarios";
+        public const string Uni_ImportarTarifa = "importar-tarifa";
+        public const string Prv_ImportarTarifa = "importar-tarifa-de-proveedor";
 
         public const string Juz_ImportarCatalogo = "importar-catalogo-juzgados";
 

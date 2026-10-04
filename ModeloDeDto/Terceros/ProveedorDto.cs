@@ -17,6 +17,8 @@ namespace ModeloDeDto.Terceros
         public static readonly string IdSociedad = nameof(IdSociedad);
         public static readonly string NIF = nameof(NIF);
         public static readonly string Mensaje_NoSePuedeCrearSiEsGestionada = "No puedo crear el proveedor '[NIF]' ya que es una sociedad gestionada";
+
+        public const string Accion_AsociarTarifa = nameof(Accion_AsociarTarifa);
     }
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(Expresion), OpcionDeBorrar = false)]

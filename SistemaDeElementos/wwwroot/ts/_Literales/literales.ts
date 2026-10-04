@@ -1657,7 +1657,8 @@ const Ajax = {
         },
         MaestrosTecnico: {
             Unitario: {
-                ImportarCatalogo: 'epImportarCatalogo'
+                ImportarCatalogo: 'epImportarCatalogo',
+                ImportarTarifa: 'epImportarTarifa'
             }
         },
         Administracion: {
@@ -1727,6 +1728,9 @@ const Ajax = {
             },
             Juzgado: {
                 ImportarCatalogo: 'epImportarCatalogo'
+            },
+            Proveedor: {
+                ImportarTarifa: 'epImportarTarifa'
             }
         },
         Callejero: {
@@ -4157,12 +4161,16 @@ const ltrMenus = {
         },
         MaestrosTecnico: {
             Unitario: {
-                ImportarCatalogo: 'importar-catalogo-unitarios'
+                ImportarCatalogo: 'importar-catalogo-unitarios',
+                ImportarTarifa: 'importar-tarifa'
             }
         },
         Terceros: {
             Juzgado: {
                 ImportarCatalogo: 'importar-catalogo-juzgados'
+            },
+            Proveedor: {
+                ImportarTarifa: 'importar-tarifa-de-proveedor'
             }
         },
         Callejero: {

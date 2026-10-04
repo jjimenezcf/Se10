@@ -291,6 +291,11 @@ namespace Utilidades
         public object Valor { get; set; }
         public enumFormato Formato { get; set; } = enumFormato.Sin_Formato;
         public bool Negrita { get; set; } = false;
+        /// <summary>
+        /// null: no se indica (comportamiento por defecto de Excel, celda bloqueada). true: bloqueada. false: editable.
+        /// Solo se aplica cuando la hoja se protege con <see cref="ExtensorExcel.Proteger"/>.
+        /// </summary>
+        public bool? Bloqueada { get; set; }
     }
 
     public static class ExtensorExcel
@@ -440,6 +445,17 @@ namespace Utilidades
 
         public static ExcelWorksheet Valor(this ExcelWorksheet hoja, string rango, ValorDeCelda valor, string estilo = null)
         {
+            EscribirValor(hoja, rango, valor, estilo);
+
+            // El bloqueo solo tiene efecto cuando la hoja está protegida (ver Proteger)
+            if (valor.Bloqueada.HasValue)
+                hoja.Cells[rango].Style.Locked = valor.Bloqueada.Value;
+
+            return hoja;
+        }
+
+        private static ExcelWorksheet EscribirValor(ExcelWorksheet hoja, string rango, ValorDeCelda valor, string estilo)
+        {
             if (!estilo.IsNullOrEmpty() && hoja.Workbook.Styles.NamedStyles.Any(s => s.Name == estilo))
             {
                 hoja.Cells[rango].StyleName = estilo;
@@ -458,6 +474,20 @@ namespace Utilidades
             }
 
             return hoja.Valor(rango, valor.Valor, valor.Negrita);
+        }
+
+        /// <summary>
+        /// Protege la hoja: solo se podrán modificar las celdas cuyo <see cref="ValorDeCelda.Bloqueada"/> sea false.
+        /// El resto de celdas (cabeceras incluidas) quedan bloqueadas. Si se indica clave, hará falta para desproteger la hoja.
+        /// </summary>
+        public static ExcelWorksheet Proteger(this ExcelWorksheet hoja, string clave = null)
+        {
+            hoja.Protection.IsProtected = true;
+            hoja.Protection.AllowFormatColumns = true;
+            hoja.Protection.AllowFormatRows = true;
+            if (!clave.IsNullOrEmpty())
+                hoja.Protection.SetPassword(clave);
+            return hoja;
         }
 
 

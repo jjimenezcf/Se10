@@ -27,6 +27,7 @@
         }
 
         public get ModalImportarCatalogo(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.MaestrosTecnico.Unitario.ImportarCatalogo) as HTMLDivElement; }
+        public get ModalImportarTarifa(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.MaestrosTecnico.Unitario.ImportarTarifa) as HTMLDivElement; }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
             if (super.DespuesDeProcesarOpcionMf(peticion))
@@ -35,6 +36,10 @@
             let opcion: string = ObtenerPropiedad(peticion.DatosDeEntrada, ltrMenus.opcion);
             if (opcion === ltrMenus.eventosDeMf.MaestrosTecnico.Unitario.ImportarCatalogo) {
                 this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(this.ModalImportarCatalogo.id, 0);
+                return true;
+            }
+            if (opcion === ltrMenus.eventosDeMf.MaestrosTecnico.Unitario.ImportarTarifa) {
+                this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(this.ModalImportarTarifa.id, 0);
                 return true;
             }
             return false;
@@ -47,6 +52,18 @@
                 ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
 
                 ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.MaestrosTecnico.Unitario.ImportarCatalogo, parametros, datosDeEntrada)
+                    .then((peticion) => {
+                        super.ModalDePedirDatos_Cerrar(modal);
+                        MensajesSe.Info(peticion.resultado.consola);
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+            }
+            else if (modal.id === this.ModalImportarTarifa.id) {
+                let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
+                let parametros: Array<Parametro> = new Array<Parametro>();
+                ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
+
+                ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.MaestrosTecnico.Unitario.ImportarTarifa, parametros, datosDeEntrada)
                     .then((peticion) => {
                         super.ModalDePedirDatos_Cerrar(modal);
                         MensajesSe.Info(peticion.resultado.consola);

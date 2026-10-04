@@ -13,12 +13,49 @@
         };
     }
 
+    const ltrImportarTarifa = {
+        Propiedades: {
+            Proveedor: 'proveedor'
+        }
+    }
+
     export class CrudDeProveedores extends Crud.CrudMnt {
+
+        public get ModalImportarTarifa(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Terceros.Proveedor.ImportarTarifa) as HTMLDivElement; }
 
         constructor(idPanelMnt: string, idPanelCreacion: string, idPanelEdicion: string, idModalBorrar: string) {
             super(idPanelMnt, idModalBorrar);
             this.crudDeCreacion = new CrudCreacionProveedor(this, idPanelCreacion);
             this.crudDeEdicion = new CrudEdicionProveedor(this, idPanelEdicion);
+        }
+
+        public ModalDePedirDatos_TrasAbrir(modal: HTMLDivElement): void {
+            super.ModalDePedirDatos_TrasAbrir(modal);
+            if (modal.id === this.ModalImportarTarifa.id) {
+                // El proveedor es el que se está editando: se asigna a la lista y se bloquea
+                let idProveedor = ObtenerPropiedad(this.crudDeEdicion.Registro, literal.id);
+                let proveedor = ObtenerPropiedad(this.crudDeEdicion.Registro, ltrPropiedades.Elemento.Expresion);
+                let lista = ApiControl.BuscarListaDinamicaPorPropiedad(modal, ltrImportarTarifa.Propiedades.Proveedor);
+                ApiControl.DesbloquearListaDinamica(lista);
+                ApiListaDinamica.AsignarValor(lista, idProveedor, proveedor);
+                ApiControl.BloquearListaDinamica(lista);
+            }
+        }
+
+        public ModalDePedirDatos_Aceptar(modal: HTMLDivElement) {
+            if (modal.id === this.ModalImportarTarifa.id) {
+                let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
+                let parametros: Array<Parametro> = new Array<Parametro>();
+                ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
+
+                ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Terceros.Proveedor.ImportarTarifa, parametros, datosDeEntrada)
+                    .then((peticion) => {
+                        super.ModalDePedirDatos_Cerrar(modal);
+                        MensajesSe.Info(peticion.resultado.consola);
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+            }
+            else super.ModalDePedirDatos_Aceptar(modal);
         }
 
 
@@ -57,6 +94,17 @@
         }
         constructor(crud: Crud.CrudMnt, idPanelEdicion: string) {
             super(crud, idPanelEdicion);
+        }
+
+        public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
+            if (super.DespuesDeProcesarOpcionMf(peticion)) return true;
+            var opcion = ObtenerParametroDeUnaUrl(peticion.Url, Ajax.Param.opcionMf, '', false);
+
+            if (opcion === ltrMenus.eventosDeMf.Terceros.Proveedor.ImportarTarifa) {
+                this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDeProveedores).ModalImportarTarifa.id, this.Registro.id);
+                return true;
+            }
+            return false;
         }
 
         protected Expansor_DespuesDeBorrarRelacion(peticion: ApiDeAjax.DescriptorAjax): void {

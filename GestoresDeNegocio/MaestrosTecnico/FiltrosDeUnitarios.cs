@@ -5,6 +5,7 @@ using GestorDeElementos;
 using ServicioDeDatos;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Juridico;
+using ServicioDeDatos.Terceros;
 using Utilidades;
 
 namespace GestoresDeNegocio.MaestrosTecnico
@@ -15,6 +16,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
         public const string IdPlanificador = nameof(IdPlanificador);
         public const string FiltrosPorClaseDeUnitario = nameof(FiltrosPorClaseDeUnitario);
         public const string ObtenerTarifaProveedor = nameof(ObtenerTarifaProveedor);
+        public const string FiltroPorProveedor = nameof(FiltroPorProveedor);
     }
 
     internal static class FiltrosDeUnitarios
@@ -44,6 +46,32 @@ namespace GestoresDeNegocio.MaestrosTecnico
                 noEstanEnElLote.Aplicado = true;
             }
 
+            return consulta;
+        }
+
+        /// <summary>
+        /// Solo los unitarios relacionados con el proveedor, es decir, los que tienen una tarifa de dicho proveedor
+        /// </summary>
+        public static IQueryable<UnitarioDtm> FiltrarPorProveedor(this IQueryable<UnitarioDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.Equals(ltrDeUnUnitario.FiltroPorProveedor, StringComparison.CurrentCultureIgnoreCase) && !x.Aplicado);
+            if (filtro != null)
+            {
+                IQueryable<TarifaDtm> tarifas = contexto.Set<TarifaDtm>();
+                if (filtro.Valor.Entero() > 0)
+                {
+                    var idProveedor = filtro.Valor.Entero();
+                    tarifas = tarifas.Where(t => t.IdProveedor == idProveedor);
+                }
+                else
+                {
+                    filtro.Clausula = nameof(ProveedorDtm.Nombre);
+                    var proveedores = contexto.Set<ProveedorDtm>().AplicarFiltroDeCadena(filtro);
+                    tarifas = tarifas.Where(t => proveedores.Any(p => p.Id == t.IdProveedor));
+                }
+                consulta = consulta.Where(x => tarifas.Any(t => t.IdElemento == x.Id));
+                filtro.Aplicado = true;
+            }
             return consulta;
         }
 

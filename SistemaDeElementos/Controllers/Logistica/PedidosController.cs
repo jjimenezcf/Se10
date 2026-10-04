@@ -17,6 +17,12 @@ using ServicioDeDatos.MaestrosTecnico;
 using static ServicioDeDatos.Elemento.Enumerados;
 using GestorDeElementos.Extensores;
 using ServicioDeDatos.Negocio;
+using GestoresDeNegocio.SistemaDocumental;
+using GestoresDeNegocio.Entorno;
+using ModeloDeDto.SistemaDocumental;
+using ServicioDeReportes.Logistica;
+using QuestPDF.Fluent;
+using System.IO;
 
 namespace MVCSistemaDeElementos.Controllers
 {
@@ -95,6 +101,51 @@ namespace MVCSistemaDeElementos.Controllers
                 ServicioDeCaches.EliminarTodas();
             }
             return VistaDelPanelDeControl(Contexto);
+        }
+
+        protected override dynamic ProcesarOpcionMf(enumNegocio negocio, string opcion, Dictionary<string, object> parametros)
+        {
+            switch (opcion)
+            {
+                case eventosDeMf.Ped_ModalDeImprimir:
+                    var plantillas = new ServicioDePlantillas(Contexto, enumNegocio.Pedido, (List<int>)parametros[ltrParametrosEp.ids]).Plantillas();
+                    if (!plantillas.Abrir)
+                        ImprimirPedidos((List<int>)parametros[ltrParametrosEp.ids]);
+                    return plantillas;
+            }
+            return base.ProcesarOpcionMf(negocio, opcion, parametros);
+        }
+
+        protected override bool Imprimir(int idNegocio, Dictionary<string, object> parametros)
+        {
+            if (base.Imprimir(idNegocio, parametros))
+                return true;
+
+            var plantilla = parametros.LeerValor<string>(ltrParametrosEp.Plantilla);
+            if (plantilla != EstandarPlt.Estandard)
+                return false;
+
+            ImprimirPedidos(new List<int> { (int)parametros.LeerValor<long>(ltrParametrosEp.idElemento) });
+            return true;
+        }
+
+        private void ImprimirPedidos(List<int> idsDePedidos)
+        {
+            foreach (var id in idsDePedidos)
+            {
+                ImprimirPedido(id);
+            }
+        }
+
+        private void ImprimirPedido(int idPedido)
+        {
+            var pedido = Contexto.SeleccionarPorId<PedidoDtm>(idPedido);
+            var nombrePropuesto = pedido.ProponerNombreDeArchivo(Contexto, $"Ped-{pedido.Referencia}.pdf".NormalizarFichero());
+            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
+            var pedidoRpt = new GeneradorDePedidoRpt(Contexto, pedido).ObtenerInformacionDeRpt(plantilla: null);
+            new ReporteDePedido(pedidoRpt).GeneratePdf(rutaConFichero);
+            var idArchivo = ServidorDocumental.SubirArchivo(Contexto, rutaConFichero, sanitizar: false);
+            GestorDeVinculos.Vincular(Contexto, enumNegocio.Pedido, enumNegocio.Archivos, pedido.Id, idArchivo);
         }
 
 

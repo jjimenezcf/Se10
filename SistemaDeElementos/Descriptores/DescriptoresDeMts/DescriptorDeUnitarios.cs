@@ -4,6 +4,8 @@ using UtilidadesParaIu;
 using Utilidades;
 using ServicioDeDatos.Seguridad;
 using ModeloDeDto.MaestrosTecnico;
+using ModeloDeDto.Terceros;
+using GestoresDeNegocio.MaestrosTecnico;
 using ModeloDeDto;
 using System.Collections.Generic;
 using ServicioDeDatos.MaestrosTecnico;
@@ -21,11 +23,34 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Mnt.OrdenacionInicial = @$"{nameof(UnitarioDto.Referencia)}:{nameof(UnitarioDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
             DescriptorDeTarifas();
+            FiltroPorProveedor();
 
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ImportarCatalogoDeUnitariosDto), eventosDeMf.Uni_ImportarCatalogo, "Seleccionar catálogo a importar"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Uni_ImportarCatalogo}' accion-menu='{eventosDeMf.Uni_ImportarCatalogo}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Importar catálogo</li>");
+
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ImportarTarifaDto), eventosDeMf.Uni_ImportarTarifa, "Importar la tarifa de un proveedor"));
+            Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Uni_ImportarTarifa}' accion-menu='{eventosDeMf.Uni_ImportarTarifa}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Importar tarifa</li>");
         }
 
+
+        // Debajo de "Mostrar" (fila 1, columna 2 del bloque general del filtro)
+        private void FiltroPorProveedor()
+        {
+            new ListasDinamicas<UnitarioDto>(Mnt.BloqueGeneral,
+                 etiqueta: enumNegocio.Proveedor.Singular(),
+                 filtrarPor: ltrDeUnUnitario.FiltroPorProveedor,
+                 ayuda: $"unitarios con tarifa del {enumNegocio.Proveedor.Singular(true)}",
+                 seleccionarDe: nameof(ProveedorDto),
+                 buscarPor: nameof(ProveedorDto.Expresion),
+                 mostrarExpresion: nameof(ProveedorDto.Expresion),
+                 criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                 posicion: new Posicion(1, 2),
+                 controlador: nameof(ProveedoresController),
+                 navegarA: nameof(ProveedoresController.CrudProveedores),
+                 restringirPor: "",
+                 alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+        }
 
         private void DescriptorDeTarifas()
         {

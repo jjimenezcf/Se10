@@ -2,8 +2,11 @@
 using Gestor.Errores;
 using Microsoft.AspNetCore.Mvc;
 using MVCSistemaDeElementos.Descriptores;
+using GestoresDeNegocio.MaestrosTecnico;
 using GestoresDeNegocio.Terceros;
+using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Terceros;
+using ModeloDeDto.MaestrosTecnico;
 using ModeloDeDto.Terceros;
 using Utilidades;
 using System;
@@ -52,6 +55,43 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 return RenderizarErrorDe(indice, e);
             }
+        }
+
+        protected override dynamic ProcesarOpcionMf(enumNegocio negocio, string opcion, Dictionary<string, object> parametros)
+        {
+            switch (opcion)
+            {
+                case eventosDeMf.Prv_ImportarTarifa:
+                    return null;
+            }
+            return base.ProcesarOpcionMf(negocio, opcion, parametros);
+        }
+
+        public JsonResult epImportarTarifa(string parametrosJson)
+        {
+            var r = new Resultado();
+            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                if (!parametros.ContieneClave(nameof(ImportarTarifaDto.IdArchivo))) throw new Exception("Debe indicar el fichero con la tarifa a importar");
+                if (!parametros.ContieneClave(nameof(ImportarTarifaDto.IdProveedor))) throw new Exception("Debe indicar el proveedor del que se importa la tarifa");
+
+                var idArchivo = (int)parametros.LeerValor<long>(nameof(ImportarTarifaDto.IdArchivo));
+                var idProveedor = (int)parametros.LeerValor<long>(nameof(ImportarTarifaDto.IdProveedor));
+
+                var trabajo = TrabajosParaMaestros.SometerImportarTarifa(Contexto, idArchivo, idProveedor);
+
+                r.Consola = "Se ha sometido la importación de la tarifa, se le notificará cuando finalice";
+                r.Datos = trabajo;
+                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "Error al someter la importación de la tarifa.");
+            }
+            return new JsonResult(r);
         }
 
         public IActionResult CrudTerceros()
