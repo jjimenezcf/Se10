@@ -23,6 +23,7 @@ namespace Inicializador.Logistica
                 Transiciones(contexto);
                 Tipos(contexto);
                 DefinirEtapas(contexto);
+                TrabajosDePedido.SometerEnviarPedidosPlanificados(contexto);
                 contexto.Commit(tran);
             }
             catch(Exception ex) 
@@ -88,6 +89,7 @@ namespace Inicializador.Logistica
         public static readonly string n_tran_ped_aprobar = $"{n_ped}: Aprobar";
         public static readonly string n_tran_ped_cancelar = $"{n_ped}: Cancelar";
         public static readonly string n_tran_ped_solicitar = $"{n_ped}: Solicitar";
+        public static readonly string n_tran_ped_enviar_a_proveedor_automatico = $"{n_ped}: Enviar a proveedor";
 
         public static readonly string n_tran_ped_devolver_al_cumplimentador = $"{n_ped}: Devolver a cumplimentación";
 
@@ -106,15 +108,16 @@ namespace Inicializador.Logistica
             contexto.IniciarTraza("Transiciones de pedidos");
             try
             {
-                //en cumplimentación --> en aprobación, cancelado, solicitado
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_aprobar, n_estado_ped_en_cumplimentacion, n_estado_ped_en_aprobacion);
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_cancelar, n_estado_ped_en_cumplimentacion, n_estado_ped_cancelado,  asunto: "Motivo de cancelación"); 
+                //en cumplimentación --> en aprobación (de baja), cancelado, solicitado
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_aprobar, n_estado_ped_en_cumplimentacion, n_estado_ped_en_aprobacion, activo: false);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_cancelar, n_estado_ped_en_cumplimentacion, n_estado_ped_cancelado,  asunto: "Motivo de cancelación");
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_solicitar, n_estado_ped_en_cumplimentacion, n_estado_ped_solicitado);
+                // la usa el trabajo diario que solicita los pedidos planificados (TrabajosDePedido.EnviarPedidosPlanificados)
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_enviar_a_proveedor_automatico, n_estado_ped_en_cumplimentacion, n_estado_ped_solicitado, delSistema: true);
 
-                //en aprobación --> en contabiliadad
-                //en aprobación --> en cumplimentación
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_enviar_a_proveedor, n_estado_ped_en_aprobacion, n_estado_ped_solicitado);
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_devolver_a_cumplimentacion, n_estado_ped_en_aprobacion, n_estado_ped_en_cumplimentacion);
+                //en aprobación (de baja) --> solicitado, en cumplimentación
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_enviar_a_proveedor, n_estado_ped_en_aprobacion, n_estado_ped_solicitado, activo: false);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_devolver_a_cumplimentacion, n_estado_ped_en_aprobacion, n_estado_ped_en_cumplimentacion, activo: false);
 
                 //solicitado --> en recepción, en aprobación, cerrado
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_recibir, n_estado_ped_solicitado, n_estado_ped_en_recepcion);

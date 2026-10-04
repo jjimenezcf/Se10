@@ -314,28 +314,37 @@ namespace GestoresDeNegocio.Logistica
         // misma transacción, si la transición falla no se envía; si no se puede preparar el envío, el pedido queda solicitado y se anota la traza
         public static void EnviarPedidoAlProveedor(ContextoSe contexto, PedidoDtm pedido)
         {
+            if (pedido.IdArchivo is null)
+                return;
             var correo = pedido.eMail.IsNullOrEmpty() ? pedido.Proveedor(contexto).eMail : pedido.eMail;
             if (correo.IsNullOrEmpty())
             {
                 pedido.CrearTraza(contexto, "Pedido no enviado por correo", $"Ni el pedido ni el proveedor tienen correo electrónico, ha de enviarle el pedido por otro medio");
                 return;
             }
-
-            if (pedido.IdArchivo is null)
-                return;
-
             try
             {
                 var idArchivo = contexto.Set<FirmadoDtm>().FirstOrDefault(x => x.IdOriginal == (int)pedido.IdArchivo)?.IdFirmado ?? (int)pedido.IdArchivo;
-                var cuerpo = $"Le adjuntamos el pedido '{pedido.Referencia}' de {pedido.Sociedad(contexto).RazonSocial}: {pedido.Nombre}" +
-                             (pedido.EntregarEl is null ? "" : $"{Environment.NewLine}Fecha de entrega solicitada: {((DateTime)pedido.EntregarEl).ToString("dd-MM-yyyy")}");
+
+                // El pdf va adjunto y, además, con un enlace de descarga válido 24 horas; si uno de los dos no se puede preparar el correo sale con el otro
+                var adjunto = PrepararParaElCorreo(contexto, pedido, "adjuntar el pedido al correo", () => ServidorDocumental.FicheroParaAdjuntar(contexto, idArchivo));
+                var enlace = PrepararParaElCorreo(contexto, pedido, "generar el enlace de descarga del pedido", () => contexto.SeleccionarPorId<ArchivoDtm>(idArchivo).HrefDeDescargaConGuid(contexto, horasDeValidez: 24));
+                if (adjunto is null && enlace is null)
+                {
+                    pedido.CrearTraza(contexto, "Pedido no enviado por correo", $"No se ha podido adjuntar el pedido ni generar su enlace de descarga, ha de enviárselo a '{correo}' por otro medio");
+                    return;
+                }
+
+                var cuerpo = $"Le enviamos el pedido '{pedido.Referencia}' de {pedido.Sociedad(contexto).RazonSocial}: {pedido.Nombre}" +
+                             (pedido.EntregarEl is null ? "" : $"{Environment.NewLine}Fecha de entrega solicitada: {((DateTime)pedido.EntregarEl).ToString("dd-MM-yyyy")}") +
+                             (enlace is null ? "" : $"{Environment.NewLine}{Environment.NewLine}Puede descargarlo desde este enlace: {enlace}");
 
                 GestorDeCorreos.CrearCorreoPara(contexto
                     , new List<string> { correo }
                     , $"Pedido {pedido.Referencia}"
                     , cuerpo
                     , new List<TipoDtoElmento>()
-                    , new List<string> { FicheroParaAdjuntar(contexto, idArchivo) });
+                    , adjunto is null ? new List<string>() : new List<string> { adjunto });
 
                 pedido.CrearTraza(contexto, "Pedido enviado por correo", $"Se ha encolado el envío del pedido al correo '{correo}'");
             }
@@ -345,17 +354,17 @@ namespace GestoresDeNegocio.Logistica
             }
         }
 
-        // La cola envía el correo más tarde, así que el adjunto ha de quedar en disco con el nombre del archivo; cada envío en su propio directorio
-        // para no coger un fichero anterior con el mismo nombre (la limpieza de la ruta de descarga los borra al día siguiente)
-        private static string FicheroParaAdjuntar(ContextoSe contexto, int idArchivo)
+        private static string PrepararParaElCorreo(ContextoSe contexto, PedidoDtm pedido, string queSePrepara, Func<string> preparar)
         {
-            var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
-            var descargado = ServidorDocumental.DescargarArchivo(contexto, idArchivo, solicitadoPorLaCola: false, erroSiNoEstaEnLaruta: true);
-            var directorio = Path.Combine(GestorDeVariables.RutaDeDescarga, Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(directorio);
-            var adjunto = Path.Combine(directorio, archivo.Nombre.NormalizarFichero());
-            File.Move(descargado, adjunto);
-            return adjunto;
+            try
+            {
+                return preparar();
+            }
+            catch (Exception exc)
+            {
+                pedido.CrearTraza(contexto, $"No se ha podido {queSePrepara}", exc.Message);
+                return null;
+            }
         }
 
         public static void ImprimirPedido(ContextoSe contexto, PedidoDtm pedido)

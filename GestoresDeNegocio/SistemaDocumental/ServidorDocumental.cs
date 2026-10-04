@@ -1016,5 +1016,18 @@ namespace GestoresDeNegocio.SistemaDocumental
                 }
             }
         }
+
+        // La cola envía el correo más tarde, así que el adjunto ha de quedar en disco con el nombre del archivo; cada envío en su propio directorio
+        // para no coger un fichero anterior con el mismo nombre (la limpieza de la ruta de descarga los borra al día siguiente)
+        public static string FicheroParaAdjuntar(ContextoSe contexto, int idArchivo)
+        {
+            var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            var descargado = ServidorDocumental.DescargarArchivo(contexto, idArchivo, solicitadoPorLaCola: false, erroSiNoEstaEnLaruta: true);
+            var directorio = Path.Combine(GestorDeVariables.RutaDeDescarga, Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directorio);
+            var adjunto = Path.Combine(directorio, archivo.Nombre.NormalizarFichero());
+            File.Move(descargado, adjunto);
+            return adjunto;
+        }
     }
 }
