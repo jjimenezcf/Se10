@@ -1945,7 +1945,7 @@ namespace ApiDePeticiones {
     export function EmitirError(peticion: ApiDeAjax.DescriptorAjax): void {
 
         if (Definido(peticion['message'])) {
-            MensajesSe.Error("EmitirError", peticion['message']);
+            MensajesSe.Error("EmitirError", peticion['message'], peticion['message'] + peticion['stack']);
             return;
         }
 

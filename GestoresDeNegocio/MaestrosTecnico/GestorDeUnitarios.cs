@@ -95,11 +95,11 @@ namespace GestoresDeNegocio.MaestrosTecnico
                                      { nameof(TarifaDtm.IdElemento), registro.Id },
                                      { nameof(TarifaDtm.IdProveedor), idProveedor }
                                  }, errorSiNoHay: false);
+                    // En un pedido de compra se compra a la tarifa del proveedor, o al coste si no la tiene
+                    // (la propiedad Venta se reutiliza para llevar al selector el precio propuesto)
+                    elemento.Venta = tarifa?.Tarifa ?? registro.Coste;
                     if (tarifa != null)
-                    {
-                        elemento.Venta = tarifa.Tarifa;
                         elemento.ReferenciaDeTarifa = tarifa.Referencia;
-                    }
                 }
             }
         }

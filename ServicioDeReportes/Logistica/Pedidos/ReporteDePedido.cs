@@ -135,19 +135,25 @@ namespace ServicioDeReportes.Logistica
                 {
                     text.Span("Referencia: ").SemiBold();
                     text.Span(Pedido.Datos.Referencia);
-
-                    if (Pedido.Datos.PedidoEl is not null)
-                    {
-                        text.Span("    Fecha de pedido: ").SemiBold();
-                        text.Span(((DateTime)Pedido.Datos.PedidoEl).ToString("dd-MM-yyyy"));
-                    }
-
-                    if (Pedido.Datos.EntregarEl is not null)
-                    {
-                        text.Span("    Entregar el: ").SemiBold();
-                        text.Span(((DateTime)Pedido.Datos.EntregarEl).ToString("dd-MM-yyyy"));
-                    }
                 });
+
+                if (Pedido.ImprimirFechaCreacion && Pedido.Datos.PedidoEl is not null)
+                {
+                    columna.Item().Text(text =>
+                    {
+                        text.Span("Solicitado el: ").SemiBold();
+                        text.Span(((DateTime)Pedido.Datos.PedidoEl).ToString("dd-MM-yyyy"));
+                    });
+                }
+
+                if (Pedido.Datos.EntregarEl is not null)
+                {
+                    columna.Item().Text(text =>
+                    {
+                        text.Span("Entregar el: ").SemiBold();
+                        text.Span(((DateTime)Pedido.Datos.EntregarEl).ToString("dd-MM-yyyy"));
+                    });
+                }
 
                 if (!Pedido.Datos.Descripcion.IsNullOrEmpty())
                     columna.Item().PaddingTop(5).Text(Pedido.Datos.Descripcion).FontSize(8).FontColor(Colors.Grey.Darken2);

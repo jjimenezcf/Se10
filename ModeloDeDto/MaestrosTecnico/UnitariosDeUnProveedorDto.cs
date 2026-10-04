@@ -70,9 +70,10 @@ namespace ModeloDeDto.MaestrosTecnico
         [IUPropiedad(
            Etiqueta = "Tarifa",
            Tipo = typeof(decimal),
-           Ayuda = "Tarifa de compra",
+           Ayuda = "Precio al que compro al proveedor (sin IVA)",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
+           Formato = enumFormato.Moneda,
            Fila = 2,
            Columna = 1)
         ]

@@ -84,7 +84,7 @@ namespace GestoresDeNegocio.Logistica
                                      { nameof(TarifaDtm.IdElemento), unitario.Id },
                                      { nameof(TarifaDtm.IdProveedor), pedido.IdProveedor }
                                  }, errorSiNoHay: false);
-                    linea.Precio = tarifa?.Tarifa ?? unitario.Venta;
+                    linea.Precio = tarifa?.Tarifa ?? unitario.Coste;
                     linea.Concepto = tarifa != null && !tarifa.Referencia.IsNullOrEmpty()
                         ? $"({tarifa.Referencia}) {unitario.Nombre}"
                         : unitario.Expresion;

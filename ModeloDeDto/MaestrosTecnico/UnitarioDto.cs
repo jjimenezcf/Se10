@@ -114,9 +114,10 @@ namespace ModeloDeDto.MaestrosTecnico
         [IUPropiedad(
            Etiqueta = "Coste",
            Tipo = typeof(decimal),
-           Ayuda = "Valor de coste",
+           Ayuda = "Coste de referencia (sin IVA). Es el precio de compra en los pedidos cuando el proveedor no tiene tarifa, y se copia a los planificadores de venta y a los lotes para calcular el margen",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
+           Formato = enumFormato.Moneda,
            Fila = 3,
            Columna = 2)
         ]
@@ -125,11 +126,12 @@ namespace ModeloDeDto.MaestrosTecnico
 
         //--------------------------------------------
         [IUPropiedad(
-           Etiqueta = "Tarifa",
+           Etiqueta = "Precio de venta",
            Tipo = typeof(decimal),
-           Ayuda = "Base imponible",
+           Ayuda = "Precio de venta unitario (sin IVA) que se propone en presupuestos, partes de trabajo y facturas. Cada lote puede fijar el suyo",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
+           Formato = enumFormato.Moneda,
            Fila = 3,
            Columna = 3)
         ]

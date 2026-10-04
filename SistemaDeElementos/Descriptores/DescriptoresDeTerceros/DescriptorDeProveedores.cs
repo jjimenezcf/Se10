@@ -127,7 +127,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var columnas = new DescriptorDeColumnas("tarifas");
             columnas.Add(titulo: "Elemento", propiedad: nameof(UnitariosDeUnProveedorDto.Elemento), alineacion: enumAliniacion.izquierda, mostrar: true);
             columnas.Add(titulo: "Referencia", propiedad: nameof(UnitariosDeUnProveedorDto.Referencia), alineacion: enumAliniacion.izquierda, mostrar: true, tamano: 200);
-            columnas.Add(titulo: "Tarifa", propiedad: nameof(UnitariosDeUnProveedorDto.Tarifa), alineacion: enumAliniacion.derecha, mostrar: true, tamano: 150);
+            columnas.Add(titulo: "Tarifa", propiedad: nameof(UnitariosDeUnProveedorDto.Tarifa), alineacion: enumAliniacion.derecha, mostrar: true, tamano: 150, formato: enumFormato.Moneda);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(UnitariosDeUnProveedorDto.IdElemento), alineacion: enumAliniacion.derecha, mostrar: false);
             columnas.Add(titulo: "IdPoveedor", propiedad: nameof(UnitariosDeUnProveedorDto.IdProveedor), alineacion: enumAliniacion.derecha, mostrar: false);
             columnas.Add(titulo: "Id", propiedad: nameof(UnitariosDeUnProveedorDto.Id), alineacion: enumAliniacion.derecha, mostrar: false);

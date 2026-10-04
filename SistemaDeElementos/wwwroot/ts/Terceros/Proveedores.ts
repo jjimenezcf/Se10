@@ -117,6 +117,8 @@
 
         public Expansor_DespuesDeMapearLosDatosEditados(peticion: ApiDeAjax.DescriptorAjax, modalDeEdicion: HTMLDivElement, modoDeAcceso: ModoAcceso.enumModoDeAccesoDeDatos) {
             super.Expansor_DespuesDeMapearLosDatosEditados(peticion, modalDeEdicion, modoDeAcceso);
+            // Solo aplica a la modal de cuentas bancarias, el proveedor tiene otras modales de edición (p.ej. tarifas)
+            if (modalDeEdicion.id !== this.ModalDeEdicionDeCuentasBancarias.id) return;
             let activa = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Terceros.Proveedor.CuentaActiva, false);
             if (!activa) this.AplicarCuentaNoActiva(modalDeEdicion);
         }
