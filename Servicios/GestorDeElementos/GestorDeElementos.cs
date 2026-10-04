@@ -2109,6 +2109,7 @@ namespace GestorDeElementos
                 EliminarCaches(registro, new ParametrosDeNegocio(enumTipoOperacion.Transitar) { Parametros = parametros });
                 ServicioDeCaches.EliminarElementos(CacheDe.elemento_HitoAnterior_AlActual, $"{Negocio.ToString()}-{registro.Id}-");
                 ServicioDeCaches.EliminarElementos(CacheDe.elemento_HitoAnterior_AlPrimero, $"{Negocio.ToString()}-{registro.Id}-");
+                ServicioDeCaches.EliminarElementos(CacheDe.elemento_Hitos, $"{Negocio.ToString()}-{registro.Id}-");
             }
 
             Contexto.EnviarMensajeDeTransicion(Negocio, registro.Id, transicion.IdOrigen, transicion.IdDestino, transicion.Id, parametros);

@@ -34,6 +34,11 @@ namespace GestoresDeNegocio.Logistica
             informacionRpt.Lineas = lineas.Select(linea => linea.MapearDto<LineaDeUnPedidoDto>(Contexto)).ToList();
             informacionRpt.Total = lineas.Sum(linea => linea.ImporteDeLinea);
 
+            // Mientras se cumplimenta o se aprueba, PedidoEl es la fecha planificada para solicitarlo, no la de solicitud
+            informacionRpt.SolicitadoEl = Pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Cumplimentacion, enumEtapasDePedido.PED_Etapa_De_Aprobacion })
+            ? null
+            : Pedido.PedidoEl;
+
             var cg = Pedido.Cg(Contexto, aplicarJoin: true);
             informacionRpt.Sociedad = Contexto.SeleccionarDto<SociedadDto, SociedadDtm>(
                           id: cg.IdSociedad,

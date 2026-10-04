@@ -566,6 +566,9 @@ const ltrControladores = {
         RemesasPag: 'RemesasPag',
         LineasDeFactura: 'LineasDeUnaFar',
     },
+    Logistica: {
+        Pedidos: 'Pedidos'
+    },
     Guarderias: {
         Cursos: 'CursosDeGuarderia',
     },

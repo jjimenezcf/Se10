@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using GestorDeElementos.Extensores;
 using System;
+using System.Text;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Juridico;
 using ServicioDeDatos.Ventas;
@@ -20,6 +21,14 @@ using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Entorno;
+using GestoresDeNegocio.Entorno;
+using GestoresDeNegocio.SistemaDocumental;
+using GestoresDeNegocio.TrabajosSometidos;
+using ModeloDeDto;
+using ServicioDeReportes.Logistica;
+using QuestPDF.Fluent;
+using System.IO;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -168,7 +177,8 @@ namespace GestoresDeNegocio.Logistica
                 pedido.IdArchivo = idArchivoPedido;
             }
 
-            if (pedido.IdArchivo is null && pedidoEnBd.IdArchivo is not null)
+            // El Dto no trae el archivo del pedido; en transiciones y acciones el registro viene de la BD y si no lo tiene es porque se ha quitado
+            if (!parametros.EsUnaTransicion && !parametros.EstaEjecutandoUnaAccion && pedido.IdArchivo is null && pedidoEnBd.IdArchivo is not null)
                 pedido.IdArchivo = pedidoEnBd.IdArchivo;
         }
 
@@ -204,7 +214,9 @@ namespace GestoresDeNegocio.Logistica
                         pedido.IncrementarLoPlanificado(Contexto, pedido.Contrato(Contexto));
                 }
             }
-            if (pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion))
+            // Sólo el archivo indicado por el usuario al cumplimentar; al cancelar la solicitud el pdf emitido se mantiene anexado y al quitar
+            // el archivo del pedido el vínculo ya se ha borrado
+            if (!parametros.EsUnaTransicion && !parametros.EstaEjecutandoUnaAccion && pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion))
                 pedido.ProcesarArchivo(Contexto, parametros);
         }
 
@@ -233,9 +245,11 @@ namespace GestoresDeNegocio.Logistica
         {
             pedido = base.AntesDeTransitar(pedido, transicion, parametros);
 
-            if (transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados()) &&
-                pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Aprobacion, enumEtapasDePedido.PED_Etapa_De_Cumplimentacion }))
+            if (SeSolicita(transicion))
                 pedido.AntesDeSolicitar(Contexto, parametros);
+
+            if (SeCancelaLaSolicitud(transicion))
+                pedido.AntesDeCancelarSolicitud(Contexto, parametros);
 
             return pedido;
         }
@@ -243,7 +257,120 @@ namespace GestoresDeNegocio.Logistica
         protected override PedidoDtm DespuesDeTransitar(PedidoDtm pedido, TransicionDtm transicion, Dictionary<string, object> parametros)
         {
             pedido = base.DespuesDeTransitar(pedido, transicion, parametros);
+
+            if (SeSolicita(transicion))
+            {
+                EmitirPdfPedido(Contexto, pedido);
+                EnviarPedidoAlProveedor(Contexto, pedido);
+            }
+
             return pedido;
+        }
+
+        private static bool SeSolicita(TransicionDtm transicion)
+        =>
+        transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados()) &&
+        (transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion.Estados()) || transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Aprobacion.Estados()));
+
+        private static bool SeCancelaLaSolicitud(TransicionDtm transicion)
+        =>
+        transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados()) &&
+        (transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion.Estados()) || transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Aprobacion.Estados()));
+
+        // Al solicitar el pedido se emite su pdf, firmado si la sociedad tiene certificado, y queda como el archivo del pedido, salvo que el
+        // usuario haya subido uno que lo sustituya mientras lo cumplimentaba o aprobaba
+        public static void EmitirPdfPedido(ContextoSe contexto, PedidoDtm pedido)
+        {
+            if (pedido.IdArchivo is not null)
+                return;
+
+            var idArchivo = GenerarPdf(contexto, pedido);
+            // AsociarArchivo relee el pedido ya transitado, guarda su IdArchivo (Modificar) y lo anexa; aquí sólo se refleja en el pedido en memoria
+            pedido.AsociarArchivo(contexto, idArchivo, ltrDeUnPedido.Accion_AsociarArchivo);
+            pedido.IdArchivo = idArchivo;
+            FirmarPdf(contexto, pedido, idArchivo);
+        }
+
+        // Como en las facturas emitidas, se firma con el certificado de la sociedad si sólo tiene uno; si no se puede firmar queda la traza
+        private static void FirmarPdf(ContextoSe contexto, PedidoDtm pedido, int idArchivo)
+        {
+            try
+            {
+                var certificados = GestorDeVinculos.RegistrosVinculados<CertificadoDtm>(contexto, enumNegocio.Sociedad, enumNegocio.Certificado, pedido.Cg(contexto).IdSociedad);
+                if (certificados.Count != 1)
+                    return;
+
+                var password = ApiDeCertificados.LeerPasswordDeCertificado(contexto, certificados[0].Id);
+                GestorDeArchivos.Gestor(contexto, contexto.Mapeador).FirmarAnexado(enumNegocio.Pedido, pedido.Id, idArchivo, certificados[0].Id, password,
+                    new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDePersistencia, false } });
+            }
+            catch (Exception exc)
+            {
+                pedido.CrearTraza(contexto, "No se ha podido firmar el pedido", $"Se ha producido un error al firmar el pedido:{Environment.NewLine}{exc.Message}");
+            }
+        }
+
+        // Si el pedido (o en su defecto su proveedor) tiene correo se le envía el archivo del pedido, el firmado si lo hay. El correo se encola en la
+        // misma transacción, si la transición falla no se envía; si no se puede preparar el envío, el pedido queda solicitado y se anota la traza
+        public static void EnviarPedidoAlProveedor(ContextoSe contexto, PedidoDtm pedido)
+        {
+            var correo = pedido.eMail.IsNullOrEmpty() ? pedido.Proveedor(contexto).eMail : pedido.eMail;
+            if (correo.IsNullOrEmpty())
+            {
+                pedido.CrearTraza(contexto, "Pedido no enviado por correo", $"Ni el pedido ni el proveedor tienen correo electrónico, ha de enviarle el pedido por otro medio");
+                return;
+            }
+
+            if (pedido.IdArchivo is null)
+                return;
+
+            try
+            {
+                var idArchivo = contexto.Set<FirmadoDtm>().FirstOrDefault(x => x.IdOriginal == (int)pedido.IdArchivo)?.IdFirmado ?? (int)pedido.IdArchivo;
+                var cuerpo = $"Le adjuntamos el pedido '{pedido.Referencia}' de {pedido.Sociedad(contexto).RazonSocial}: {pedido.Nombre}" +
+                             (pedido.EntregarEl is null ? "" : $"{Environment.NewLine}Fecha de entrega solicitada: {((DateTime)pedido.EntregarEl).ToString("dd-MM-yyyy")}");
+
+                GestorDeCorreos.CrearCorreoPara(contexto
+                    , new List<string> { correo }
+                    , $"Pedido {pedido.Referencia}"
+                    , cuerpo
+                    , new List<TipoDtoElmento>()
+                    , new List<string> { FicheroParaAdjuntar(contexto, idArchivo) });
+
+                pedido.CrearTraza(contexto, "Pedido enviado por correo", $"Se ha encolado el envío del pedido al correo '{correo}'");
+            }
+            catch (Exception exc)
+            {
+                pedido.CrearTraza(contexto, "No se ha podido enviar el pedido por correo", $"Se ha producido un error al preparar el envío a '{correo}':{Environment.NewLine}{exc.Message}");
+            }
+        }
+
+        // La cola envía el correo más tarde, así que el adjunto ha de quedar en disco con el nombre del archivo; cada envío en su propio directorio
+        // para no coger un fichero anterior con el mismo nombre (la limpieza de la ruta de descarga los borra al día siguiente)
+        private static string FicheroParaAdjuntar(ContextoSe contexto, int idArchivo)
+        {
+            var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            var descargado = ServidorDocumental.DescargarArchivo(contexto, idArchivo, solicitadoPorLaCola: false, erroSiNoEstaEnLaruta: true);
+            var directorio = Path.Combine(GestorDeVariables.RutaDeDescarga, Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directorio);
+            var adjunto = Path.Combine(directorio, archivo.Nombre.NormalizarFichero());
+            File.Move(descargado, adjunto);
+            return adjunto;
+        }
+
+        public static void ImprimirPedido(ContextoSe contexto, PedidoDtm pedido)
+        {
+            var idArchivo = GenerarPdf(contexto, pedido);
+            GestorDeVinculos.Vincular(contexto, enumNegocio.Pedido, enumNegocio.Archivos, pedido.Id, idArchivo);
+        }
+
+        private static int GenerarPdf(ContextoSe contexto, PedidoDtm pedido)
+        {
+            var nombrePropuesto = pedido.ProponerNombreDeArchivo(contexto, $"Ped-{pedido.Referencia}.pdf".NormalizarFichero());
+            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
+            var pedidoRpt = new GeneradorDePedidoRpt(contexto, pedido).ObtenerInformacionDeRpt(plantilla: null);
+            new ReporteDePedido(pedidoRpt).GeneratePdf(rutaConFichero);
+            return ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
         }
 
 
@@ -272,25 +399,33 @@ namespace GestoresDeNegocio.Logistica
         }
 
 
+        // Como en las facturas, el archivo del pedido no se puede quitar una vez solicitado: sólo mientras se cumplimenta o se aprueba
         public static void AntesDeQuitarVinculo(EntornoDeUnaAccion entorno)
         {
             var idPedido = entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdElemento));
             var vinculado = entorno.Parametros.LeerValor<enumNegocio>(nameof(ltrParametrosNeg.Vinculado));
             var pedido = entorno.Contexto.SeleccionarPorId<PedidoDtm>(idPedido);
-            if (vinculado == enumNegocio.Archivos)
+            if (vinculado == enumNegocio.Archivos && pedido.IdArchivo.Entero() == entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado)))
             {
-                if (pedido.IdArchivo.Entero() == entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado)))
-                {
-                    var archivo = entorno.Contexto.SeleccionarPorId<ArchivoDtm>(pedido.IdArchivo.Entero());
-                    var firmado = entorno.Contexto.Set<FirmadoDtm>().Where(x => x.IdOriginal == (int)pedido.IdArchivo).FirstOrDefault();
-                    if (firmado != null)
-                    {
-                        if (firmado.IdOriginal == pedido.IdArchivo)
-                            Emitir($"No puede quitar del {enumNegocio.Pedido.Singular(true)} '{pedido.Referencia}' el {enumNegocio.Archivos.Singular(true)} '{archivo.Nombre}' por ser el pedido");
-                    }
-                    else
-                        Emitir($"No puede quitar del {enumNegocio.Pedido.Singular(true)} '{pedido.Referencia}' el {enumNegocio.Archivos.Singular(true)} '{archivo.Nombre}' por ser el pedido");
-                }
+                if (pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Cumplimentacion, enumEtapasDePedido.PED_Etapa_De_Aprobacion }))
+                    return;
+
+                var archivo = entorno.Contexto.SeleccionarPorId<ArchivoDtm>(pedido.IdArchivo.Entero());
+                Emitir($"No puede quitar del {enumNegocio.Pedido.Singular(true)} '{pedido.Referencia}' el {enumNegocio.Archivos.Singular(true)} '{archivo.Nombre}' por ser el pedido, " +
+                       $"sólo se puede quitar mientras está en la etapa de {enumEtapasDePedido.PED_Etapa_De_Cumplimentacion.Nombre()} o de {enumEtapasDePedido.PED_Etapa_De_Aprobacion.Nombre()}");
+            }
+        }
+
+        // Si se ha quitado el archivo del pedido (sólo posible mientras se cumplimenta o se aprueba) el pedido deja de tenerlo
+        public static void DespuesDeQuitarVinculo(EntornoDeUnaAccion entorno)
+        {
+            var idPedido = entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdElemento));
+            var vinculado = entorno.Parametros.LeerValor<enumNegocio>(nameof(ltrParametrosNeg.Vinculado));
+            var pedido = entorno.Contexto.SeleccionarPorId<PedidoDtm>(idPedido);
+            if (vinculado == enumNegocio.Archivos && pedido.IdArchivo.Entero() == entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado)))
+            {
+                pedido.IdArchivo = null;
+                pedido.Modificar(entorno.Contexto, accionEjecutada: ApiDeEnsamblados.DespuesDeQuitarVinculo);
             }
         }
 
@@ -432,10 +567,141 @@ namespace GestoresDeNegocio.Logistica
                 { ltrParametrosNeg.CantidadPorLeer, cantidad},
                 { ltrParametrosNeg.Peticion, enumPeticion.epTotales}
             });
+            var importes = pedidos.ToDictionary(p => p.Id, p => p.Importe(Contexto));
             var totales = new TotalesDePedidos();
+
+            totales.Pendiente = Sumar(pedidos, EstadosDe(enumEtapasDePedido.PED_Etapa_De_Solicitud), importes);
+            totales.Recibido = Sumar(pedidos, EstadosDe(enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado), importes);
+            totales.TotalPedido = totales.Pendiente + totales.Recibido;
+            totales.EnCumplimentacion = Sumar(pedidos, EstadosDe(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion), importes);
+            totales.Devuelto = Sumar(pedidos, EstadosDe(enumEtapasDePedido.PED_Etapa_Devuelto), importes);
+
+            totales.TotalesPorProveedor = FormatearTotalesPorProveedor(pedidos, importes);
+            totales.TotalesPorNaturaleza = FormatearTotalesPorNaturaleza(pedidos);
 
             totales.Procesados = pedidos.Count();
             return totales;
+        }
+
+        private static HashSet<int> EstadosDe(params enumEtapasDePedido[] etapas) => etapas.SelectMany(etapa => etapa.Lista()).ToHashSet();
+
+        private static decimal Sumar(IEnumerable<PedidoDtm> pedidos, HashSet<int> estados, Dictionary<int, decimal> importes)
+        => pedidos.Where(p => estados.Contains(p.IdEstado)).Sum(p => importes[p.Id]);
+
+        private string FormatearTotalesPorProveedor(List<PedidoDtm> pedidos, Dictionary<int, decimal> importes)
+        {
+            if (!pedidos.Any()) return string.Empty;
+
+            var porSolicitar = EstadosDe(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion, enumEtapasDePedido.PED_Etapa_De_Aprobacion);
+            var solicitado = EstadosDe(enumEtapasDePedido.PED_Etapa_De_Solicitud);
+            var entregado = EstadosDe(enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado);
+
+            var filas = pedidos
+                .GroupBy(p => p.IdProveedor)
+                .Select(g => (
+                    nombre: g.First().Proveedor(Contexto).Nombre,
+                    porSolicitar: Sumar(g, porSolicitar, importes),
+                    solicitado: Sumar(g, solicitado, importes),
+                    entregado: Sumar(g, entregado, importes)
+                ))
+                .Where(f => f.porSolicitar != 0 || f.solicitado != 0 || f.entregado != 0)
+                .OrderByDescending(f => f.solicitado + f.entregado)
+                .ToList();
+
+            if (!filas.Any()) return string.Empty;
+
+            const int anchoNombre = 40;
+            const int anchoImporte = 16;
+
+            string Linea(string nombre, decimal aSolicitar, decimal pedido, decimal servido)
+            {
+                if (nombre.Length > anchoNombre) nombre = nombre.Substring(0, anchoNombre - 1) + "…";
+                return
+                    $"{nombre.PadRight(anchoNombre)}" +
+                    $"{aSolicitar.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{pedido.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{servido.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{(pedido + servido).ToString("N2").PadLeft(anchoImporte)}" +
+                    $"   ";
+            }
+
+            var separador = new string('-', anchoNombre + anchoImporte * 4);
+            var sb = new StringBuilder();
+            sb.AppendLine(
+                $"{"Proveedor".PadRight(anchoNombre)}" +
+                $"{"Por solicitar".PadLeft(anchoImporte)}" +
+                $"{"Solicitado".PadLeft(anchoImporte)}" +
+                $"{"Entregado".PadLeft(anchoImporte)}" +
+                $"{"Total".PadLeft(anchoImporte)}" +
+                $"   "
+            );
+            sb.AppendLine(separador);
+
+            foreach (var fila in filas)
+                sb.AppendLine(Linea(fila.nombre, fila.porSolicitar, fila.solicitado, fila.entregado));
+
+            sb.AppendLine(separador);
+            sb.AppendLine(Linea("Total", filas.Sum(f => f.porSolicitar), filas.Sum(f => f.solicitado), filas.Sum(f => f.entregado)));
+
+            return sb.ToString();
+        }
+
+        private string FormatearTotalesPorNaturaleza(List<PedidoDtm> pedidos)
+        {
+            var excluidos = EstadosDe(enumEtapasDePedido.PED_Etapa_Cancelado, enumEtapasDePedido.PED_Etapa_Devuelto);
+            var lineas = pedidos
+                .Where(p => !excluidos.Contains(p.IdEstado))
+                .SelectMany(p => p.Detalles<LineaDeUnPedidoDtm>(Contexto))
+                .ToList();
+
+            if (!lineas.Any()) return string.Empty;
+
+            var filas = lineas
+                .GroupBy(l => l.IdNaturaleza)
+                .Select(g => (
+                    nombre: g.Key is null ? "(sin naturaleza)" : Contexto.SeleccionarPorId<NaturalezaDtm>((int)g.Key).Expresion,
+                    lineas: g.Count(),
+                    importe: g.Sum(l => l.ImporteDeLinea)
+                ))
+                .OrderByDescending(f => f.importe)
+                .ToList();
+
+            var total = filas.Sum(f => f.importe);
+
+            const int anchoNombre = 40;
+            const int anchoNum = 10;
+            const int anchoImporte = 16;
+
+            string Linea(string nombre, int numLineas, decimal importe)
+            {
+                if (nombre.Length > anchoNombre) nombre = nombre.Substring(0, anchoNombre - 1) + "…";
+                var porcentaje = total == 0 ? 0m : importe / total * 100;
+                return
+                    $"{nombre.PadRight(anchoNombre)}" +
+                    $"{numLineas.ToString().PadLeft(anchoNum)}" +
+                    $"{importe.ToString("N2").PadLeft(anchoImporte)}" +
+                    $"{porcentaje.ToString("N2").PadLeft(anchoNum)}" +
+                    $"   ";
+            }
+
+            var separador = new string('-', anchoNombre + anchoNum * 2 + anchoImporte);
+            var sb = new StringBuilder();
+            sb.AppendLine(
+                $"{"Naturaleza".PadRight(anchoNombre)}" +
+                $"{"Líneas".PadLeft(anchoNum)}" +
+                $"{"Importe".PadLeft(anchoImporte)}" +
+                $"{"%".PadLeft(anchoNum)}" +
+                $"   "
+            );
+            sb.AppendLine(separador);
+
+            foreach (var fila in filas)
+                sb.AppendLine(Linea(fila.nombre, fila.lineas, fila.importe));
+
+            sb.AppendLine(separador);
+            sb.AppendLine(Linea("Total", lineas.Count, total));
+
+            return sb.ToString();
         }
 
     }

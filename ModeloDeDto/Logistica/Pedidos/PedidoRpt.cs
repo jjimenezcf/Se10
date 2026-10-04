@@ -1,6 +1,7 @@
 using ModeloDeDto.Reporte;
 using ModeloDeDto.Terceros;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,6 +15,7 @@ namespace ModeloDeDto.Logistica
         public ProveedorDto Proveedor { get; set; }
         public override string Logo { get; set; }
         public decimal Total { get; set; }
+        public DateTime? SolicitadoEl { get; set; }
         public bool HayDescuento => Lineas.Any(linea => linea.ImporteDeDto is not null && linea.ImporteDeDto > 0);
 
         // En el pedido el calificador de la dirección no se muestra y el logo, que se ajusta al alto de los datos del solicitante, no supera este ancho

@@ -12,6 +12,8 @@ using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Ventas;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Elemento;
+using ServicioDeDatos.SistemaDocumental;
+using System.IO;
 
 namespace GestorDeElementos.Extensores
 {
@@ -147,7 +149,7 @@ namespace GestorDeElementos.Extensores
 
         public static void ValidarContrato(this PedidoDtm pedido, ContextoSe contexto)
         {
-            if (pedido.IdContrato is null)
+            if (pedido.IdContrato is null || pedido.PedidoEl is null)
                 return;
 
             var contrato = pedido.Contrato(contexto);
@@ -172,12 +174,65 @@ namespace GestorDeElementos.Extensores
         }
 
 
+        // PedidoEl, mientras el pedido se cumplimenta o se aprueba, es la fecha planificada para solicitarlo (un trabajo del sistema lo
+        // transitará a solicitado al llegar dicha fecha); una vez solicitado es la fecha en la que se solicitó
         public static void AntesDeSolicitar(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
         {
             if (pedido.Proveedor(contexto).Baja)
             {
                 pedido.Proveedor(contexto).IndicarQueEstaDeBaja(contexto);
             }
+            pedido.PedidoEl = DateTime.Today;
+        }
+
+        // Al volver de solicitado a cumplimentación o aprobación el pedido deja de estar solicitado. Si su archivo es el pdf que generó el sistema
+        // al solicitarlo deja de ser el archivo del pedido y se renombra como antiguo, quedando anexado como constancia de que se emitió;
+        // si lo subió el usuario mientras lo cumplimentaba o aprobaba, lo sigue siendo
+        public static void AntesDeCancelarSolicitud(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            pedido.PedidoEl = null;
+
+            if (pedido.IdArchivo is null || !pedido.ArchivoGeneradoAlSolicitar(contexto))
+                return;
+
+            pedido.RenombrarComoAntiguo(contexto, (int)pedido.IdArchivo);
+            var firmado = contexto.Set<FirmadoDtm>().FirstOrDefault(x => x.IdOriginal == (int)pedido.IdArchivo);
+            if (firmado is not null)
+                pedido.RenombrarComoAntiguo(contexto, firmado.IdFirmado);
+
+            pedido.IdArchivo = null;
+        }
+
+        // El archivo que sube el usuario se crea mientras el pedido se cumplimenta o se aprueba; el que genera el sistema, al entrar en la etapa de solicitud
+        public static bool ArchivoGeneradoAlSolicitar(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            var entradaEnSolicitud = pedido.EntradaEnLaEtapaDeSolicitud(contexto);
+            if (entradaEnSolicitud is null)
+                return false;
+
+            return contexto.SeleccionarPorId<ArchivoDtm>((int)pedido.IdArchivo).FechaCreacion >= entradaEnSolicitud;
+        }
+
+        // Fecha del primer hito de la racha actual de estados de la etapa de solicitud (los hitos vienen ordenados del más reciente al más antiguo)
+        private static DateTime? EntradaEnLaEtapaDeSolicitud(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            var estadosDeSolicitud = enumEtapasDePedido.PED_Etapa_De_Solicitud.Lista();
+            DateTime? entrada = null;
+            foreach (var hito in pedido.Hitos(contexto))
+            {
+                if (!estadosDeSolicitud.Contains(hito.IdEstado))
+                    break;
+                entrada = hito.Fecha;
+            }
+            return entrada;
+        }
+
+        private static void RenombrarComoAntiguo(this PedidoDtm pedido, ContextoSe contexto, int idArchivo)
+        {
+            var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            archivo.Nombre = Path.GetFileNameWithoutExtension(archivo.Nombre) + "-old" + Path.GetExtension(archivo.Nombre);
+            archivo.Nombre = pedido.ProponerNombreDeArchivo(contexto, archivo.Nombre);
+            archivo.Modificar(contexto, ltrDeUnArchivo.Accion_Permitir_Modificar_Nombre);
         }
     }
 }

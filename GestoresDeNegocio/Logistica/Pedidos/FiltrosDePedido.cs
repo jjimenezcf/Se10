@@ -133,8 +133,9 @@ namespace GestoresDeNegocio.Logistica
 
         public static IQueryable<PedidoDtm> ExcluirLosNoTotalizables(this IQueryable<PedidoDtm> consulta)
         {
-            var filtroPorEstados = new ClausulaDeFiltrado(nameof(IUsaEstado.IdEstado), enumCriteriosDeFiltrado.noEsNingunoDe,  
-                enumEtapasDePedido.PED_Etapa_Cancelado.Estados() + "," + enumEtapasDePedido.PED_Etapa_Devuelto.Estados());
+            // los devueltos no se excluyen porque se totalizan por separado
+            var filtroPorEstados = new ClausulaDeFiltrado(nameof(IUsaEstado.IdEstado), enumCriteriosDeFiltrado.noEsNingunoDe,
+                enumEtapasDePedido.PED_Etapa_Cancelado.Estados());
             consulta = consulta.AplicarFiltroPorEntero(filtroPorEstados);
             return consulta;
         }

@@ -69,6 +69,18 @@
         public ModalDePedirDatos_Aceptar(modal: HTMLDivElement) {
             super.ModalDePedirDatos_Aceptar(modal);
         }
+
+        public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
+            if (super.DespuesDeProcesarOpcionMf(peticion))
+                return true;
+            let datosDeEntrada: Parametros = new Parametros(peticion.DatosDeEntrada as Parametro[]);
+            let opcion = datosDeEntrada.ObtenerValorDeParametro(ltrMenus.opcion);
+            if (opcion === ltrMenus.eventosDeMf.Comun.Totalizador_Mostrar) {
+                this.MostrarPanelDeTotales(ltrControladores.Logistica.Pedidos);
+                return true;
+            }
+            return false;
+        }
     }
 
     export class CrudCreacionPedido extends Crud.CrudCreacion {
@@ -119,6 +131,13 @@
 
     export class CrudEdicionPedido extends Crud.CrudEdicion {
 
+        private static readonly EtiquetaDePedidoEl = 'Pedido el';
+        private static readonly AyudaDePedidoEl = 'Fecha en la que se solicitó el pedido al proveedor, la fija el sistema al pasar el pedido a solicitado';
+
+        // Etiqueta y ayuda con las que se renderiza la fecha de pedido (las del Dto), para restaurarlas al editar otro pedido
+        private _EtiquetaDePedirEl: string = undefined;
+        private _AyudaDePedirEl: string = undefined;
+
         public get ModalDeCreacionDeLineas(): HTMLDivElement {
             return this.ModalParaCrearRelacion(ltrModalDeCrearRelacion.Logistica.Pedidos.Lineas);
         }
@@ -157,19 +176,31 @@
         protected DespuesDeMapearElementoDevuelto(panel: HTMLDivElement, peticion: ApiDeAjax.DescriptorAjax): void {
             super.DespuesDeMapearElementoDevuelto(panel, peticion);
 
-            // "Pedir el" mientras el pedido se está cumplimentando o aprobando (aún no se ha pedido de verdad);
-            // en el resto de etapas ya se ha pedido, así que la etiqueta pasa a "Pedido el"
             let etapas: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.Etapas);
             let seEstaCumplimentando = EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Cumplimentacion);
             let seEstaCumplimentandoOAprobando =
                 seEstaCumplimentando ||
                 EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Aprobacion);
-            if (!seEstaCumplimentandoOAprobando) {
-                ApiControl.BuscarEtiqueta(panel, ltrPropiedades.Logistica.Pedido.PedidoEl).innerText = 'Pedido el';
-            }
+            this.AplicarEtiquetaDeLaFechaDePedido(panel, !seEstaCumplimentandoOAprobando);
 
             // El fichero de pedido solo se puede añadir al crear o, en edición, mientras se está cumplimentando
             ApiControl.MostrarPropiedadSi(panel, ltrPropiedades.Logistica.Pedido.IdArchivoPedido, seEstaCumplimentando);
+        }
+
+        // "Pedir el" mientras el pedido se está cumplimentando o aprobando: es la fecha planificada para solicitarlo;
+        // en el resto de etapas ya se ha solicitado, así que la etiqueta pasa a "Pedido el" y la ayuda explica que es la fecha de solicitud
+        private AplicarEtiquetaDeLaFechaDePedido(panel: HTMLDivElement, seHaSolicitado: boolean) {
+            let etiqueta = ApiControl.BuscarEtiqueta(panel, ltrPropiedades.Logistica.Pedido.PedidoEl);
+            let fecha = ApiControl.BuscarControl(panel, ltrPropiedades.Logistica.Pedido.PedidoEl, true) as HTMLInputElement;
+
+            if (!Definido(this._EtiquetaDePedirEl)) {
+                this._EtiquetaDePedirEl = etiqueta.innerText;
+                this._AyudaDePedirEl = etiqueta.title;
+            }
+
+            etiqueta.innerText = seHaSolicitado ? CrudEdicionPedido.EtiquetaDePedidoEl : this._EtiquetaDePedirEl;
+            etiqueta.title = seHaSolicitado ? CrudEdicionPedido.AyudaDePedidoEl : this._AyudaDePedirEl;
+            fecha.placeholder = etiqueta.title;
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {

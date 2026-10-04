@@ -103,16 +103,21 @@ namespace GestorDeElementos.Extensores
             return HitoSql.LeerHitosDeUnaEtapaPosteriorA(contexto, negocio.TablaDeHitos(), ((IRegistro)elemento).Id, etapaRestrictora, etapaDeFiltrado);
         }
 
+        // Los hitos del elemento se cachean hasta que se transita, ordenados del más reciente al más antiguo;
+        // se devuelve siempre una lista nueva para que quien la use no altere la cacheada
         public static IEnumerable<HitoDtm> Hitos<T>(this T elemento, ContextoSe contexto, List<int> estados = null)
         where T : IElementoDeProcesoDtm
         {
-            IEnumerable<HitoDtm> hitos;
             var negocio = NegociosDeSe.NegocioDeUnDtm(elemento.GetType());
-            if (estados == null)
-                hitos = negocio.Hitos(contexto).Where(x => x.IdElemento == elemento.Id).OrderByDescending(x => x.Fecha);
-            else
-                hitos = negocio.Hitos(contexto).Where(x => x.IdElemento == elemento.Id && estados.Contains(x.IdEstado)).OrderByDescending(x => x.Fecha);
-            return hitos;
+            var cache = ServicioDeCaches.Obtener(CacheDe.elemento_Hitos);
+            var i = $"{negocio.ToString()}-{elemento.Id}-{elemento.IdEstado}";
+            if (!cache.ContainsKey(i))
+                cache[i] = negocio.Hitos(contexto).Where(x => x.IdElemento == elemento.Id).OrderByDescending(x => x.Fecha).ToList();
+
+            var hitos = (List<HitoDtm>)cache[i];
+            return estados == null
+            ? hitos.ToList()
+            : hitos.Where(x => estados.Contains(x.IdEstado)).ToList();
         }
 
         public static HitoDtm HitoAnteriorAlActual<T>(this T elemento, ContextoSe contexto, bool errorSiNoHay = true)

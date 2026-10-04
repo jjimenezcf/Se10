@@ -173,9 +173,12 @@ namespace ModeloDeDto.Logistica
         public string Expediente { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------
+        // Mientras se cumplimenta o se aprueba es la fecha planificada para solicitar el pedido; al solicitarlo pasa a ser la de solicitud.
+        // No tiene valor por defecto: el usuario ha de indicarla explícitamente para planificar la solicitud
         [IUPropiedad(
               PorAnchoMnt = 15
             , Etiqueta = "Pedir el"
+            , Ayuda = "Indique explícitamente la fecha en la que planifica solicitar el pedido: llegado ese día, si sigue en cumplimentación o aprobación, el sistema lo pasará automáticamente a solicitado. Si la deja en blanco, el pedido se ha de solicitar manualmente"
             , Ordenar = true
             , OrdenarGridPor = nameof(PedidoDto.PedidoEl)
             , TipoDeControl = enumTipoControl.SelectorDeFecha
@@ -183,7 +186,6 @@ namespace ModeloDeDto.Logistica
             , VisibleAlCrear = true
             , EditableAlEditar = true
             , Formato = enumFormato.Fecha
-            , ValorPorDefecto = ValoresPorDefecto.Hoy
             , SelectorHasta = nameof(EntregarEl) + ":7"
             , Fila = 0
             , Columna = 4

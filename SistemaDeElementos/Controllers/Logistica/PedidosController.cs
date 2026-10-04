@@ -18,11 +18,7 @@ using static ServicioDeDatos.Elemento.Enumerados;
 using GestorDeElementos.Extensores;
 using ServicioDeDatos.Negocio;
 using GestoresDeNegocio.SistemaDocumental;
-using GestoresDeNegocio.Entorno;
 using ModeloDeDto.SistemaDocumental;
-using ServicioDeReportes.Logistica;
-using QuestPDF.Fluent;
-using System.IO;
 
 namespace MVCSistemaDeElementos.Controllers
 {
@@ -112,6 +108,8 @@ namespace MVCSistemaDeElementos.Controllers
                     if (!plantillas.Abrir)
                         ImprimirPedidos((List<int>)parametros[ltrParametrosEp.ids]);
                     return plantillas;
+                case eventosDeMf.Totalizador_Mostrar:
+                    return null;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -139,13 +137,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         private void ImprimirPedido(int idPedido)
         {
-            var pedido = Contexto.SeleccionarPorId<PedidoDtm>(idPedido);
-            var nombrePropuesto = pedido.ProponerNombreDeArchivo(Contexto, $"Ped-{pedido.Referencia}.pdf".NormalizarFichero());
-            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
-            var pedidoRpt = new GeneradorDePedidoRpt(Contexto, pedido).ObtenerInformacionDeRpt(plantilla: null);
-            new ReporteDePedido(pedidoRpt).GeneratePdf(rutaConFichero);
-            var idArchivo = ServidorDocumental.SubirArchivo(Contexto, rutaConFichero, sanitizar: false);
-            GestorDeVinculos.Vincular(Contexto, enumNegocio.Pedido, enumNegocio.Archivos, pedido.Id, idArchivo);
+            GestorDePedidos.ImprimirPedido(Contexto, Contexto.SeleccionarPorId<PedidoDtm>(idPedido));
         }
 
 

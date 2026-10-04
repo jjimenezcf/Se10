@@ -37,6 +37,8 @@ namespace ServicioDeDatos.Logistica
         public const string AsociadaAUnContrato = nameof(AsociadaAUnContrato);
         public const string AsociadaAUnExpediente = nameof(AsociadaAUnExpediente);
 
+        public const string Accion_AsociarArchivo = nameof(Accion_AsociarArchivo);
+
     }
 
     [Table(Tablas.PEDIDO, Schema = Esquemas.LOGISTICA)]

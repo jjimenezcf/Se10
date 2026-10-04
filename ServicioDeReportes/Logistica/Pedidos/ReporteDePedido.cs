@@ -137,12 +137,12 @@ namespace ServicioDeReportes.Logistica
                     text.Span(Pedido.Datos.Referencia);
                 });
 
-                if (Pedido.ImprimirFechaCreacion && Pedido.Datos.PedidoEl is not null)
+                if (Pedido.ImprimirFechaCreacion && Pedido.SolicitadoEl is not null)
                 {
                     columna.Item().Text(text =>
                     {
                         text.Span("Solicitado el: ").SemiBold();
-                        text.Span(((DateTime)Pedido.Datos.PedidoEl).ToString("dd-MM-yyyy"));
+                        text.Span(((DateTime)Pedido.SolicitadoEl).ToString("dd-MM-yyyy"));
                     });
                 }
 

@@ -219,6 +219,7 @@ namespace Utilidades
         public static readonly string epLeerElementos = nameof(epLeerElementos);
         public static readonly string elemento_HitoAnterior_AlActual = nameof(elemento_HitoAnterior_AlActual);
         public static readonly string elemento_HitoAnterior_AlPrimero = nameof(elemento_HitoAnterior_AlPrimero);
+        public static readonly string elemento_Hitos = nameof(elemento_Hitos);
         
 
         public static readonly string Callejero_ZonasDeUnaCalle = nameof(Callejero_ZonasDeUnaCalle);
