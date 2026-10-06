@@ -237,12 +237,18 @@ namespace GestorDeElementos.Extensores
 
             Cbc(doc, root, "ID", Factura.NumeroDeFactura);
             Cbc(doc, root, "CopyIndicator", esCopia.ToString().ToLower());
-            Cbc(doc, root, "IssueDate", (Factura.FacturadaEl ?? DateTime.Now).ToString("yyyy-MM-dd"));
+            // Misma fecha de expedición que se envía a Verifactu: forma parte del código único de la factura en la AEAT
+            var expedidaEl = (Factura.EmitidaEl ?? DateTime.Now).Date;
+            Cbc(doc, root, "IssueDate", expedidaEl.ToString("yyyy-MM-dd"));
             if (Factura.VenceEl.HasValue)
                 Cbc(doc, root, "DueDate", Factura.VenceEl.Value.ToString("yyyy-MM-dd"));
 
             // Corregido: Usando Cbc que es el que lee tu clase base
             Cbc(doc, root, "InvoiceTypeCode", Factura.EsRectificativa ? "381" : "380");
+
+            // BT-7: fecha de realización de la operación, solo si difiere de la de expedición
+            if (Factura.FacturadaEl.HasValue && Factura.FacturadaEl.Value.Date != expedidaEl)
+                Cbc(doc, root, "TaxPointDate", Factura.FacturadaEl.Value.ToString("yyyy-MM-dd"));
 
             Cbc(doc, root, "DocumentCurrencyCode", Factura.Moneda);
 
@@ -281,7 +287,7 @@ namespace GestorDeElementos.Extensores
             var billing = Cac(doc, root, "BillingReference");
             var invoiceRef = Cac(doc, billing, "InvoiceDocumentReference");
             Cbc(doc, invoiceRef, "ID", rectificada.NumeroDeFactura);
-            Cbc(doc, invoiceRef, "IssueDate", (rectificada.FacturadaEl ?? DateTime.Now).ToString("yyyy-MM-dd"));
+            Cbc(doc, invoiceRef, "IssueDate", (rectificada.EmitidaEl ?? DateTime.Now).ToString("yyyy-MM-dd"));
         }
 
         private void AgregarEmisor(XmlDocument doc, XmlElement root)
