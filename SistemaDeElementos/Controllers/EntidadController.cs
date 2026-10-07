@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Presupuesto;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Terceros;
@@ -851,24 +852,33 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
             var idRegistro = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
             var registro = negocio.LeerRegistro(Contexto, idRegistro);
 
-            if (!registro.GetType().ImplementaUsaExpediente() && !registro.GetType().ImplementaUsaPresupuesto())
-                GestorDeErrores.Emitir($"El negocio '{negocio.Singular()}' no usa '{enumNegocio.Expediente.Singular()}'");
-
-            if (registro.GetType().ImplementaUsaExpediente() && ((IUsaExpediente)registro).IdExpediente.Entero() == 0)
-                GestorDeErrores.Emitir($"No se ha podido obtener el acceso al expediente de '{negocio.Singular()}: {((IUsaReferencia)registro).Referencia}'");
-
-            if (registro.GetType().ImplementaUsaPresupuesto() && ((IUsaPresupuesto)registro).IdPresupuesto.Entero() == 0)
-                GestorDeErrores.Emitir($"No se ha podido obtener el acceso al expediente de '{negocio.Singular()}: {((IUsaReferencia)registro).Referencia}'");
             var idExpediente = 0;
-            if (registro.GetType().ImplementaUsaExpediente()) idExpediente = (int)((IUsaExpediente)registro).IdExpediente;
-            else
+            if (registro.GetType().ImplementaUsaExpediente())
+            {
+                if (((IUsaExpediente)registro).IdExpediente.Entero() == 0)
+                    GestorDeErrores.Emitir($"No se ha podido obtener el acceso al expediente de '{negocio.Singular()}: {((IUsaReferencia)registro).Referencia}'");
+                idExpediente = (int)((IUsaExpediente)registro).IdExpediente;
+            }
+            else if (registro.GetType().ImplementaUsaPresupuesto())
             {
                 var idPresupuesto = ((IUsaPresupuesto)registro).IdPresupuesto.Entero();
+                if (idPresupuesto == 0)
+                    GestorDeErrores.Emitir($"No se ha podido obtener el acceso al expediente de '{negocio.Singular()}: {((IUsaReferencia)registro).Referencia}'");
                 var ppt = Contexto.SeleccionarPorId<PresupuestoDtm>(idPresupuesto);
                 if (ppt.IdExpediente is null)
                     GestorDeErrores.Emitir($"No se ha podido obtener el acceso al expediente de '{negocio.Singular()}: {((IUsaReferencia)registro).Referencia}'");
                 idExpediente = (int)ppt.IdExpediente;
-
+            }
+            else
+            {
+                // p.e. las tareas: el expediente no es una FK del registro, sino un vínculo
+                var expedientes = registro.Vinculados<ExpedienteDtm>(Contexto);
+                var referencia = registro is ITieneReferencia conReferencia ? conReferencia.Referencia : idRegistro.ToString();
+                if (expedientes.Count == 0)
+                    GestorDeErrores.Emitir($"No hay ningún expediente vinculado a '{negocio.Singular()}: {referencia}'");
+                if (expedientes.Count > 1)
+                    GestorDeErrores.Emitir($"Hay varios expedientes vinculados a '{negocio.Singular()}: {referencia}': {string.Join(", ", expedientes.Select(x => x.Referencia))}");
+                idExpediente = expedientes[0].Id;
             }
 
             r.Datos = $"{enumNegocio.Expediente.Controlador()}/{enumNegocio.Expediente.VistaMvc(Contexto).Accion}?Id={idExpediente}";

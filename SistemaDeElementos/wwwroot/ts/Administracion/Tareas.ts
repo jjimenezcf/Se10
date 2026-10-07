@@ -340,6 +340,12 @@
         EntornoSe.AbrirPestana(url);
     }
 
+    export function Tar_IrALaFacturaEmt(numeroDeFila: number) {
+        let id = Numero(ApiDeGrid.ObtenerValorDeLaFilaParaLaPropiedad(Crud.crudMnt.Tabla, numeroDeFila, ltrPropiedades.Tarea.IdFacturaEmt));
+        if (id === 0) return;
+        ApiDelCrud.IrALaFactura(id);
+    }
+
     export function Tar_FiltrosParaCuandoRealizar(): Array<ClausulaDeFiltrado> {
         let clausulas: Array<ClausulaDeFiltrado> = new Array<ClausulaDeFiltrado>();
 

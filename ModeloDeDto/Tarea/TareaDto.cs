@@ -144,7 +144,17 @@ namespace ModeloDeDto.Tarea
         ]
         public int? IdExpediente { get; set; }
 
-        [IUPropiedad(Visible = false, PorAnchoMnt = 20, Etiqueta = "Expediente", Obligatorio = false)]
+        [IUPropiedad(
+            Etiqueta = "Expediente",
+            EtiquetaGrid = "Expediente",
+            PorAnchoMnt = 20,
+            VisibleEnEdicion = false,
+            VisibleEnGrid = true,
+            TipoDeControlEnGrid = enumTipoControl.Referencia,
+            AccionRef = "javascript: " + nameof(enumNameSpaceTs.ApiDelCrud) + "." + nameof(enumFunctionTs.Negocio_IrAlExpediente) + "(numeroDeFila)",
+            Obligatorio = false
+            )
+        ]
         public string Expediente { get; set; }
 
         //------------------------------------------------------------------------
@@ -181,7 +191,17 @@ namespace ModeloDeDto.Tarea
         ]
         public int? IdFacturaEmt { get; set; }
 
-        [IUPropiedad(Visible = false)]
+        [IUPropiedad(
+            Etiqueta = "Factura",
+            EtiquetaGrid = "Factura",
+            PorAnchoMnt = 15,
+            VisibleEnEdicion = false,
+            VisibleEnGrid = true,
+            TipoDeControlEnGrid = enumTipoControl.Referencia,
+            AccionRef = "javascript: " + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_IrALaFacturaEmt) + "(numeroDeFila)",
+            Obligatorio = false
+            )
+        ]
         public string FacturaEmt { get; set; }
 
         //-------------------------------------------------

@@ -19,7 +19,7 @@ namespace GestoresDeNegocio.Tarea
     {
         public static IQueryable<TareaDtm> FiltroPorPresupuestos(this IQueryable<TareaDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
         {
-            consulta.FiltroDeElementosConVinculosCon<TareaDtm, TareasDeUnPresupuestoDtm>(contexto, filtros, ltrDeUnaTarea.IdPresupuesto, ltrDeUnaTarea.RelacionadaConPpt);
+            consulta = consulta.FiltroDeElementosConVinculosCon<TareaDtm, TareasDeUnPresupuestoDtm>(contexto, filtros, ltrDeUnaTarea.IdPresupuesto, ltrDeUnaTarea.RelacionadaConPpt);
             var filtroPorNombre = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaTarea.PresupuestosDeTareas.ToLower());
             if (filtroPorNombre != null)
             {

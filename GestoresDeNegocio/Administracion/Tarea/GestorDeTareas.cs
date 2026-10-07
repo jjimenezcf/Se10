@@ -322,6 +322,20 @@ namespace GestoresDeNegocio.Tarea
                     elemento.IdTareaPosterior = tareaPosterior.Id;
                 }
 
+                if (parametros.ColumnasDelGrid.Any(e => e.Equals(nameof(elemento.Expediente), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var expedientes = tarea.Vinculados<ExpedienteDtm>(Contexto);
+                    if (expedientes.Count == 1)
+                    {
+                        elemento.IdExpediente = expedientes[0].Id;
+                        elemento.Expediente = expedientes[0].Expresion;
+                    }
+                    else elemento.Expediente = string.Join(", ", expedientes.Select(x => x.Referencia));
+                }
+
+                if (tarea.IdFacturaEmt.HasValue && parametros.ColumnasDelGrid.Any(e => e.Equals(nameof(elemento.FacturaEmt), StringComparison.InvariantCultureIgnoreCase)))
+                    elemento.FacturaEmt = tarea.FacturaEmt(Contexto).Expresion;
+
 
                 if (parametros.ColumnasDelGrid.Any(item => item == nameof(elemento.Durabilidad).ToLowerInvariant() ||
                                             item == nameof(elemento.Planificada).ToLowerInvariant() ||
@@ -417,10 +431,13 @@ namespace GestoresDeNegocio.Tarea
             var totales = new TotalesDeTareas();
 
             var duraciones = new Dictionary<enumDurabilidad, decimal> { { enumDurabilidad.Minutos, 0 }, { enumDurabilidad.Horas, 0 }, { enumDurabilidad.Jornadas, 0 }, { enumDurabilidad.Dias, 0 } };
+            // solo cuentan las tareas cuya planificación se suma; las que no la tienen no han de rebajar la media por tarea
+            var tareasPlanificadas = 0;
             foreach (var tarea in tareas)
             {
                 var planificacion = tarea.Planificacion(Contexto, errorSiNoHay: false);
                 if (planificacion == null || planificacion.MedidoEn == null || planificacion.Duracion == null) continue;
+                tareasPlanificadas++;
                 if (planificacion.MedidoEn == enumDurabilidad.Jornadas)
                     duraciones[enumDurabilidad.Jornadas] = duraciones[enumDurabilidad.Jornadas] + (decimal)planificacion.Duracion;
                 else if (planificacion.MedidoEn == enumDurabilidad.Dias)
@@ -442,8 +459,8 @@ namespace GestoresDeNegocio.Tarea
                    $"{enumDurabilidad.Minutos.Descripcion()}: {duraciones[enumDurabilidad.Minutos].Formatear(alineacion: false)}{Environment.NewLine}" +
                    $"{Environment.NewLine}" +
                    $"Total en {enumDurabilidad.Jornadas.Descripcion()}: {totalJornadas.Formatear(alineacion: false)}{Environment.NewLine}" +
-                   $"{enumDurabilidad.Jornadas.Descripcion()} por tarea: {(tareas.Count() == 0 ? 0.Formatear(alineacion: false) : (totalJornadas / tareas.Count()).Formatear(alineacion: false))}";
-            totales.Procesados = tareas.Count();
+                   $"{enumDurabilidad.Jornadas.Descripcion()} por tarea: {(tareasPlanificadas == 0 ? 0.Formatear(alineacion: false) : (totalJornadas / tareasPlanificadas).Formatear(alineacion: false))}";
+            totales.Procesados = tareasPlanificadas;
             totales.TotalesPorEjecutor = FormatearTotalesPorEjecutor(tareas);
             totales.TotalesPorSolicitante = FormatearTotalesPorSolicitante(tareas);
             totales.TotalesPorExpediente = FormatearTotalesPorExpediente(tareas);

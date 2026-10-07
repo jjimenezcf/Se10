@@ -441,6 +441,7 @@ namespace Utilidades
         Tar_InicializarModalDeCopiado,
         Tar_AbrirTareaAnterior,
         Tar_AbrirTareaPosterior,
+        Tar_IrALaFacturaEmt,
         Tar_FiltrosParaCuandoRealizar,
 
         Utilidades_Totalizar_Editor,

@@ -120,11 +120,7 @@ namespace ModeloDeDto.Gastos
 
 
         //--------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Id de la factura rectificada",
-            Visible = false
-            )
-        ]
+        [IUPropiedad(Etiqueta = "Id de la factura rectificada",Visible = false ) ]
         public int? IdRectificada { get; set; }
 
         [IUPropiedad(
@@ -152,11 +148,7 @@ namespace ModeloDeDto.Gastos
         public string Rectificada { get; set; }
 
         //--------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Id del contrato",
-            Visible = false
-            )
-        ]
+        [IUPropiedad(Etiqueta = "Id del contrato",Visible = false)]
         public int? IdContrato { get; set; }
 
         [IUPropiedad(
@@ -186,11 +178,7 @@ namespace ModeloDeDto.Gastos
 
 
         //--------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "Id del expediente",
-            Visible = false
-            )
-        ]
+        [IUPropiedad(Etiqueta = "Id del expediente",Visible = false)]
         public int? IdExpediente { get; set; }
 
         [IUPropiedad(
