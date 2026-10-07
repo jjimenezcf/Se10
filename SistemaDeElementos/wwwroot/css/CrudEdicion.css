@@ -954,6 +954,7 @@ div[propiedad="Dar de alta"] a[href^="javascript:Crud.EventosDeExpansores('dar-d
     /* Cuerpo de la información */
     .modal-mostrar-propiedad .modal-body {
         margin: 20px 0;
+        overflow-y: auto;
     }
 
     .modal-mostrar-propiedad .label-propiedad {
