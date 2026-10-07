@@ -303,6 +303,9 @@ namespace GestoresDeNegocio.Tarea
                 }
                 else elemento.Expediente = "";
 
+                if (tarea.IdFacturaEmt.HasValue)
+                    elemento.FacturaEmt = tarea.FacturaEmt(Contexto).Expresion;
+
                 elemento.Prioridad = tarea.Prioridad == null ? enumPrioridad.NoDefinida : ((enumPrioridad)tarea.Prioridad);
             }
             else if (parametros.LeerDatosParaElGridOParaExportar)
