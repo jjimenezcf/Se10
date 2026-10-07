@@ -119,7 +119,7 @@ namespace GestoresDeNegocio.Gastos
                 remesa.PresentadaEl = null;
                 remesa.GeneradaEl = null;
                 remesa.PagadaEl = null;
-                remesa.Deudor = remesa.Sociedad(Contexto).Nombre;
+                remesa.Deudor = remesa.Sociedad(Contexto).RazonSocial;
                 remesa.NifDelDeudor = remesa.Sociedad(Contexto).NIF;
                 if (remesa.Presentador.IsNullOrEmpty()) remesa.Presentador = remesa.Deudor;
                 if (remesa.NifDelPresentador.IsNullOrEmpty()) remesa.NifDelPresentador = remesa.NifDelDeudor;

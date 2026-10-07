@@ -49,7 +49,7 @@ namespace ServicioXml
                 writer.WriteElementString("NbOfTxs", value: facturas.Count.ToString());
                 writer.WriteElementString("CtrlSum", value: total);
                 writer.WriteStartElement("InitgPty");
-                writer.WriteElementString("Nm", sociedad.RazonSocial.Left(70));
+                writer.WriteElementString("Nm", NombreDelPresentador(remesa.Presentador, sociedad.RazonSocial).Left(70));
                 EscribirIdentificacion(writer, idDelPresentador);
                 writer.WriteEndElement();
                 writer.WriteEndElement();
@@ -190,6 +190,10 @@ namespace ServicioXml
             return $"ES{98 - resto:00}{sufijo}{nif}";
         }
 
+        // Nombre de quien presenta el fichero (InitgPty): el de la remesa, junto a su NIF y sufijo; si no lo tiene, la razón social de la sociedad
+        private static string NombreDelPresentador(string presentador, string razonSocialDeLaSociedad) =>
+            string.IsNullOrWhiteSpace(presentador) ? razonSocialDeLaSociedad : presentador.Trim();
+
         // IBAN2007Identifier no admite guiones ni espacios: [A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}
         private static string LimpiarIban(string iban) => iban?.Replace("-", "").Replace(" ", "");
 
@@ -266,7 +270,7 @@ namespace ServicioXml
                 writer.WriteElementString("NbOfTxs", value: pagos.Count.ToString());
                 writer.WriteElementString("CtrlSum", value: total);
                 writer.WriteStartElement("InitgPty");
-                writer.WriteElementString("Nm", sociedad.RazonSocial.Left(70));
+                writer.WriteElementString("Nm", NombreDelPresentador(remesa.Presentador, sociedad.RazonSocial).Left(70));
                 // Identificación del presentador: NIF + sufijo (código de 3 cifras que asigna el banco), p.ej. A30054209000
                 EscribirIdentificacion(writer, $"{remesa.NifDelPresentador}{remesa.SufijoPresentador}");
                 writer.WriteEndElement();

@@ -110,9 +110,11 @@ namespace GestoresDeNegocio.Ventas
                 rem.GeneradaEl = null;
                 rem.CargarEl = null;
                 rem.CargadaEl = null;
+                rem.Acreedor = rem.Sociedad(Contexto).RazonSocial;
+                rem.NifDelAcreedor = rem.Sociedad(Contexto).NIF;
                 if (rem.Presentador.IsNullOrEmpty()) rem.Presentador = rem.Acreedor;
-                if (rem.NifDelPresentador.IsNullOrEmpty()) rem.Presentador = rem.NifDelPresentador;
-                if (rem.SufijoPresentador.IsNullOrEmpty()) rem.Presentador = rem.SufijoPresentador;
+                if (rem.NifDelPresentador.IsNullOrEmpty()) rem.NifDelPresentador = rem.NifDelAcreedor;
+                if (rem.SufijoPresentador.IsNullOrEmpty()) rem.SufijoPresentador = rem.SufijoAcreedor;
                 var cuenta = Contexto.SeleccionarPorId<CuentaDeMiSociedadDtm>(rem.IdCuentaDeAbono, aplicarJoin: true);
                 if (cuenta.Clase != ServicioDeDatos.Contabilidad.enumClaseDeCuentaBancaria.Ingreso && cuenta.Clase != ServicioDeDatos.Contabilidad.enumClaseDeCuentaBancaria.Ambas)
                     GestorDeErrores.Emitir($"La cuenta '{cuenta.Cuenta.NumeroIban}' no está marcada como cuenta de ingreso, no se puede usar para abonar la remesa de cobro '{rem.Referencia}'");
@@ -132,7 +134,7 @@ namespace GestoresDeNegocio.Ventas
             if (rem.PropiedadCambiada<enumClaseDeRemesaFae>(nameof(RemesaFaeDtm.Clase), parametros) && rem.Detalles<FacturaEmtDeUnaRemesaDtm>(Contexto).Count() > 0)
                 GestorDeErrores.Emitir($"No se puede modificar la clase de la remesa '{rem.Referencia}' por tener ya facturas seleccionadas");
 
-            rem.Acreedor = rem.Sociedad(Contexto).Nombre;
+            rem.Acreedor = rem.Sociedad(Contexto).RazonSocial;
             rem.NifDelAcreedor = rem.Sociedad(Contexto).NIF;
             if (rem.PropiedadCambiada<DateTime?>(nameof(RemesaFaeDtm.CargadaEl), parametros))
             {
