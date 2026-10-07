@@ -672,6 +672,45 @@
         }
     }
 
+    // Botón que en el móvil sustituye al select de opciones del menú (ZonaDeMenu.RenderOpcionesDesplegablesParaMovil):
+    // abre o cierra su lista; también se cierra al elegir una opción o al tocar fuera de ella.
+    export function MostrarOcultarOpcionesDeMenuLista(boton: HTMLButtonElement): void {
+        const opciones = boton.nextElementSibling as HTMLUListElement;
+        if (opciones.classList.contains(ltrCss.divNoVisible))
+            AbrirOpcionesDeMenuLista(opciones);
+        else
+            CerrarOpcionesDeMenuLista(opciones);
+    }
+
+    // Asigna la opción elegida al select del menú y lanza su onchange, para que se procese igual que en el escritorio.
+    export function SeleccionarOpcionDeMenuLista(opcion: HTMLLIElement): void {
+        CerrarOpcionesDeMenuLista(opcion.parentElement as HTMLUListElement);
+        const contenedor = opcion.closest('[lista]') as HTMLDivElement;
+        const lista = document.getElementById(contenedor.getAttribute('lista')) as HTMLSelectElement;
+        lista.value = opcion.getAttribute('valor');
+        lista.dispatchEvent(new Event('change'));
+    }
+
+    let _cerrarOpcionesDeMenuListaAlTocarFuera: (e: Event) => void = null;
+
+    function AbrirOpcionesDeMenuLista(opciones: HTMLUListElement): void {
+        ApiControl.ExcluirCss(opciones, ltrCss.divNoVisible);
+        // pointerdown y no click: en el móvil un toque sobre algo que no es clicable no siempre genera un click en el documento
+        _cerrarOpcionesDeMenuListaAlTocarFuera = (e: Event) => {
+            if (!opciones.parentElement.contains(e.target as Node))
+                CerrarOpcionesDeMenuLista(opciones);
+        };
+        document.addEventListener('pointerdown', _cerrarOpcionesDeMenuListaAlTocarFuera);
+    }
+
+    function CerrarOpcionesDeMenuLista(opciones: HTMLUListElement): void {
+        ApiControl.IncluirCss(opciones, ltrCss.divNoVisible);
+        if (Definido(_cerrarOpcionesDeMenuListaAlTocarFuera)) {
+            document.removeEventListener('pointerdown', _cerrarOpcionesDeMenuListaAlTocarFuera);
+            _cerrarOpcionesDeMenuListaAlTocarFuera = null;
+        }
+    }
+
     function AplicarTipo(contenedor: HTMLDivElement, tipo: any) {
         if (EstoyEditando()) {
             Crud.crudMnt.crudDeEdicion.Tipo = tipo;

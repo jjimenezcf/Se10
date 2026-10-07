@@ -2680,6 +2680,8 @@
             this.ExpandirFiltro.value = "1";
             ApiPanel.MostrarPanel(this.PanelFiltro);
             this.EtiquetaMostrarOcultarFiltro.innerText = "Ocultar filtro";
+            this.EtiquetaMostrarOcultarFiltro.title = "Ocultar filtro";
+            ApiControl.ExcluirCss(this.EtiquetaMostrarOcultarFiltro, ltrCss.crud.filtro.oculto);
             EntornoSe.AjustarDivs();
         }
 
@@ -2690,6 +2692,8 @@
             ApiPanel.OcultarPanel(this.PanelFiltro);
             this.ExpandirFiltro.value = "0";
             this.EtiquetaMostrarOcultarFiltro.innerText = "Mostrar filtro";
+            this.EtiquetaMostrarOcultarFiltro.title = "Mostrar filtro";
+            ApiControl.IncluirCss(this.EtiquetaMostrarOcultarFiltro, ltrCss.crud.filtro.oculto);
             this.PosicionarPanelesDelCuerpo();
         }
 

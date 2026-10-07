@@ -308,7 +308,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 {Etiqueta}
                 </div> 
                 <div id =¨div.mostrar.{IdHtml}¨ class=¨{Css.Render(enumCssDiv.DivVisible)} {Css.Render(enumCssMnt.MntFiltroExpansor)}¨>     
-                  <a id = ¨mostrar.{IdHtml}.ref¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.OcultarMostrarFiltro}', '{("")}');¨>Ocultar filtro</a>
+                  <a id = ¨mostrar.{IdHtml}.ref¨ title=¨Ocultar filtro¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.OcultarMostrarFiltro}', '{("")}');¨>Ocultar filtro</a>
                   <input id=¨expandir.{IdHtml}¨ type=¨hidden¨ value=¨1¨ >  
                 </div>
                 {htmlModalConDireccion}

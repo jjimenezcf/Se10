@@ -1075,7 +1075,8 @@ const ltrCss = {
         cabecera: 'cuerpo-cabecera',
         datos: 'cuerpo-datos',
         filtro: {
-            expansor:'div-mnt-filtro-expansor'
+            expansor:'div-mnt-filtro-expansor',
+            oculto: 'filtro-oculto'
         },
         grid: {
             filto: 'cuerpo-datos-filtro',

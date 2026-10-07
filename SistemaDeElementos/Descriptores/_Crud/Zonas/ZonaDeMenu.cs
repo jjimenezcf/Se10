@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Net;
 using Utilidades;
 using GestorDeElementos;
 using GestoresDeNegocio.Negocio;
@@ -90,10 +92,28 @@ namespace MVCSistemaDeElementos.Descriptores
                                 onchange ='{ProcesarOpcionesDesplegables}' >
                              {OpcionesDesplegables.RenderOptions()}
                              </select>
-                          </div>" 
+                             {RenderOpcionesDesplegablesParaMovil()}
+                          </div>"
                         : @$"<div class='{enumCssFiltro.ContenedorListaDeElementos.Render()}'> </div>");
            
             return htmlContenedorPadre.Render();
+        }
+
+        // En el móvil el select de opciones se sustituye por un botón con la lista de opciones (sin la primera,
+        // que es el título del select); al elegir una se asigna al select y se lanza su onchange, así se procesa igual.
+        private string RenderOpcionesDesplegablesParaMovil()
+        {
+            var titulo = WebUtility.HtmlEncode(OpcionesDesplegables.First().Value);
+            var opciones = "";
+            foreach (var opcion in OpcionesDesplegables.Skip(1))
+                opciones += $"<li valor='{WebUtility.HtmlEncode(opcion.Key.Trim().ToLower())}' onclick='{enumNameSpaceTs.ApiDelCrud}.SeleccionarOpcionDeMenuLista(this)'>{WebUtility.HtmlEncode(opcion.Value)}</li>{Environment.NewLine}";
+
+            return $@"<div class='{enumCssFiltro.OpcionesMenuDeCreacionMovil.Render()}' lista='{IdHtml}-otras'>
+                         <button type='button' title='{titulo}' onclick='{enumNameSpaceTs.ApiDelCrud}.MostrarOcultarOpcionesDeMenuLista(this)'></button>
+                         <ul class='{enumCssControles.DivNoVisible.Render()}'>
+                            {opciones}
+                         </ul>
+                      </div>";
         }
 
         #region Opciones de mantenimiento

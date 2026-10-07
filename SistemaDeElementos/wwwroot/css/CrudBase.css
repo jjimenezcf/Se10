@@ -180,15 +180,99 @@ body.resizing-en-progreso * {
     column-gap: 0.5em;
 }
 
+/* Botón con la lista de opciones de creación que sustituye al select en el móvil (ZonaDeMenu) */
+.opciones-menu-creacion-movil {
+    display: none;
+    position: relative;
+}
+
 @media (max-width: 47.94em) {
     .div-mnt-menu-contenedor {
-        grid-template-columns: auto 8em !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
         column-gap: 0em;
     }
 
-        .div-mnt-menu-contenedor .botones-de-menu > *:not([value="Editar"]) {
+        /* en el móvil solo quedan Nuevo y Editar (o Consultar si no es editable), como iconos */
+        .div-mnt-menu-contenedor .botones-de-menu > *:not([value="Nuevo"]):not([value="Editar"]):not([value="Consultar"]) {
             display: none !important;
         }
+
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Nuevo"],
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Editar"],
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Consultar"],
+        .div-mnt-menu-contenedor .opciones-menu-creacion-movil > button {
+            width: 34px !important;
+            min-width: 34px !important;
+            max-width: 34px !important;
+            height: 30px !important;
+            padding: 0 !important;
+            font-size: 0 !important; /* el texto del botón no se ve, solo el icono */
+            color: transparent !important;
+            background-color: #fff !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            background-size: 22px 22px !important;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Nuevo"] {
+            background-image: url('/images/menu/Nuevo.svg') !important;
+        }
+
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Editar"] {
+            background-image: url('/images/menu/Editar.png') !important;
+        }
+
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Consultar"] {
+            background-image: url('/images/consultarConGuid_lupa.svg') !important;
+        }
+
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"]:disabled {
+            opacity: 0.4;
+        }
+
+        .div-mnt-menu-contenedor .opciones-menu-creacion {
+            display: none !important;
+        }
+
+        .div-mnt-menu-contenedor .opciones-menu-creacion-movil {
+            display: block;
+            align-self: center;
+            padding-top: 5px;
+        }
+
+            .div-mnt-menu-contenedor .opciones-menu-creacion-movil > button {
+                background-image: url('/images/menu/OpcionesDeCreacion.svg') !important;
+            }
+
+            .div-mnt-menu-contenedor .opciones-menu-creacion-movil > ul {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                z-index: 1050;
+                margin: 2px 0 0 0;
+                padding: 4px 0;
+                list-style: none;
+                min-width: 14em;
+                max-width: 70vw;
+                max-height: 60vh;
+                overflow-y: auto;
+                background-color: #fff;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+
+                .div-mnt-menu-contenedor .opciones-menu-creacion-movil > ul > li {
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    white-space: normal; /* en el móvil el nombre completo de la plantilla, aunque ocupe varias líneas */
+                }
+
+                    .div-mnt-menu-contenedor .opciones-menu-creacion-movil > ul > li:hover {
+                        background-color: #f2f2f2;
+                    }
 
         .div-mnt-menu-contenedor .contenedor-titulo {
             display: none !important;
@@ -196,11 +280,45 @@ body.resizing-en-progreso * {
             max-width: 0em !important;
         }
 
+        /* Pregúntame como "?" y mostrar/ocultar filtro como un embudo (atenuado si el filtro está oculto) */
         .div-mnt-menu-contenedor .div-mnt-filtro-expansor {
-            min-width: 8em !important;
-            max-width: 8em !important;
-            padding-right: 0px;
+            min-width: 0 !important;
+            max-width: none !important;
+            padding-right: 0.3em;
+            /* la regla base pone overflow-x: hidden (que hace overflow-y: auto); en el móvil solo hay iconos y si
+               el contenido supera la caja por un píxel sale la barrita de scroll del navegador */
+            overflow: visible;
+            display: flex;
+            /*align-items: center;*/
+            justify-content: flex-end;
+            gap: 12px;
         }
+
+            .div-mnt-menu-contenedor .div-mnt-filtro-expansor #acceso-ia-preguntame {
+                font-size: 0 !important;
+                margin-right: 0 !important;
+                text-decoration: none;
+            }
+
+                .div-mnt-menu-contenedor .div-mnt-filtro-expansor #acceso-ia-preguntame::after {
+                    content: '?';
+                    font-size: 1.4rem;
+                    line-height: 1;
+                }
+
+            .div-mnt-menu-contenedor .div-mnt-filtro-expansor > a[id^="mostrar."] {
+                display: inline-block;
+                width: 22px;
+                height: 22px;
+                font-size: 0;
+                margin-top: 2px;
+                background: url('/images/menu/MenuDeFiltro.png') center / 20px 20px no-repeat;
+            }
+
+                .div-mnt-menu-contenedor .div-mnt-filtro-expansor > a[id^="mostrar."].filtro-oculto {
+                    opacity: 0.4;
+                    margin-top: 2px;
+                }
 
         .div-mnt-menu-contenedor .menu-de-filtro {
             display: none !important;
@@ -275,7 +393,7 @@ body.resizing-en-progreso * {
     width: 90%;
     display: grid;
     grid-template-columns: auto 1fr;
-    grid-gap: 10px;
+    grid-gap: 4px;
 }
 
     .div-mnt-menu-zona > div > input {

@@ -1004,6 +1004,7 @@ namespace Utilidades
         ContenedorListaDinamica,
         ContenedorListaDeElementos,
         OpcionesMenuDeCreacion,
+        OpcionesMenuDeCreacionMovil,
         ContenedorCheck,
         ContenedorEditor,
         ContenedorSelector,
@@ -1849,6 +1850,7 @@ namespace Utilidades
                 case enumCssFiltro.ContenedorDeReferenciasParaAbrirModales: return "contenedor-de-referencias-para-abrir-modales";
                 case enumCssFiltro.ContenedorListaDeElementos: return "contenedor-listas-filtro";
                 case enumCssFiltro.OpcionesMenuDeCreacion: return "opciones-menu-creacion";
+                case enumCssFiltro.OpcionesMenuDeCreacionMovil: return "opciones-menu-creacion-movil";
                 case enumCssFiltro.ContenedorCheck: return "contenedor-check";
                 case enumCssFiltro.ContenedorEditor: return "contenedor-editor-filtro";
                 case enumCssFiltro.ContenedorSelector: return "contenedor-selector-filtro";

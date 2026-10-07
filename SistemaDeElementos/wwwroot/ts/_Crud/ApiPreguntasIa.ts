@@ -7,6 +7,7 @@ namespace ApiPreguntasIa {
             linkIA.id = 'acceso-ia-preguntame';
             linkIA.href = 'javascript:void(0);';
             linkIA.innerText = 'Pregúntame';
+            linkIA.title = 'Pregúntame';
             linkIA.style.marginRight = '15px';
             linkIA.style.fontWeight = 'bold';
             linkIA.style.color = '#007bff';
