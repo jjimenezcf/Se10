@@ -130,7 +130,7 @@ namespace SistemaDeElementos.Inicializador
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Terceros", descripcion: "Gestión de terceros", icono: "Terceros.svg", padre: Maestros, vista: "", orden: 5);
             string maestrosTerceros = $"{Maestros}.Terceros";
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Personas", descripcion: "Personas del sistema", icono: "Persona.svg", padre: maestrosTerceros, vista: enumVistas.Terceros.Personas, orden: 5);
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Sociedades", descripcion: "Sociedades del sistema", icono: "Sociedad.svg", padre: maestrosTerceros, vista: enumVistas.Terceros.Sociedades, orden: 10);
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Sociedades", descripcion: "Sociedades del sistema", icono: enumNegocio.Sociedad.Icono(), padre: maestrosTerceros, vista: enumVistas.Terceros.Sociedades, orden: 10);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Interlocutores", descripcion: "Interlocutores del sistema", icono: "Interlocutor.svg", padre: maestrosTerceros, vista: enumVistas.Terceros.Interlocutores, orden: 12);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.Bancos, descripcion: "Bancos del sistema", icono: enumNegocio.Banco.Icono(), padre: maestrosTerceros, vista: enumVistas.Terceros.Bancos, orden: 20);
 
@@ -148,7 +148,7 @@ namespace SistemaDeElementos.Inicializador
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.Procuradores, descripcion: "Procuradores del sistema", icono: "Procurador.svg", padre: maestrosJuridico, vista: enumVistas.Terceros.Procuradores, orden: 10);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.Abogados, descripcion: "Abogados del sistema", icono: "Abogado.svg", padre: maestrosJuridico, vista: enumVistas.Terceros.Abogados, orden: 20);
 
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Centros gestores", descripcion: "Centros gestores de una sociedad", icono: "CentroGestor.svg", padre: Maestros, vista: enumVistas.Terceros.CentrosGestores, orden: 15, buscarPorPadre: false);
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Centros gestores", descripcion: "Centros gestores de una sociedad", icono: enumNegocio.CentroGestor.Icono(), padre: Maestros, vista: enumVistas.Terceros.CentrosGestores, orden: 15, buscarPorPadre: false);
         }
 
         private static void MenusDelSistemaDocumental(GestorDeMenus gestor)

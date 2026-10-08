@@ -51,6 +51,15 @@
     text-overflow: ellipsis;
 }
 
+/* imagen delante del nombre de un nodo (miniatura de su archivo o icono de su negocio) */
+.icono-de-nodo {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.3em;
+    vertical-align: text-bottom;
+    object-fit: contain;
+}
+
 .nodo-de-jerarquia-de-baja > a {
     color: red !important;
 }

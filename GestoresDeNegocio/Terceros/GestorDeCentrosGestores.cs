@@ -76,8 +76,21 @@ namespace GestoresDeNegocio.Terceros
                     ApiDeJerarquias.ApilarNodosComoJerarquiaEnRaiz(enumNegocio.CentroGestor, raiz, cgsLeidosDtm);
                 else
                     ApiDeJerarquias.ApilarNodosComoHijosDeLaRaiz(enumNegocio.CentroGestor, raiz, cgsLeidosDtm);
+
+                AsignarIcono(raiz, enumNegocio.Sociedad);
             }
             return jerarquia;
+        }
+
+        // cada sociedad y cada centro gestor se pinta con la miniatura de su archivo o, si no tiene, con el icono de su negocio en el menú
+        private static void AsignarIcono(NodoDeJerarquiaDto nodo, enumNegocio negocio)
+        {
+            nodo.Dto.Icono = nodo.Dto.IdArchivo.Entero() > 0
+                ? ApiDeArchivos.SolicitarDescargarArchivo(negocio, nodo.Dto.Id, nodo.Dto.IdArchivo.Entero())
+                : $"/images/menu/{negocio.Icono()}";
+
+            foreach (var hijo in nodo.Hijos)
+                AsignarIcono(hijo, enumNegocio.CentroGestor);
         }
 
         public static CentroGestorDto PersistirCgJson(ContextoSe contexto, string cgJson, ParametrosDeNegocio parametros)

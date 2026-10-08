@@ -30,6 +30,8 @@
 
     .seguridad-cabecera > div {
         flex: 0 1 40em;
+        /* sin esto el selector no encoge por debajo del ancho de su input y en el móvil se sale de la pantalla */
+        min-width: 0;
     }
 
 .seguridad-cuerpo {
@@ -135,8 +137,10 @@ li[tipo-nodo="PermisosPorElemento"] > a { color: #0288d1; }
 
 /* en el móvil el panel de datos no cabe: solo se muestra el árbol */
 @media (max-width: 768px) {
+    /* los nodos no parten línea: al desplegarlos, el texto que no cabe se ve con scroll horizontal */
     .seguridad-arbol {
         flex: 1 1 auto !important;
+        overflow-x: auto;
     }
 
     .seguridad-cuerpo > .splitter,

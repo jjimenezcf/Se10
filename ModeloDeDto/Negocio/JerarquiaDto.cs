@@ -15,10 +15,14 @@ namespace ModeloDeDto.Negocio
         public string TipoDto { get; set; }
         public string TipoDtm { get; set; }
         public enumModoDeAccesoDeDatos ModoAcceso { get; set; }
+        public int? IdArchivo { get; set; }
+        // url de la imagen que se pinta delante del nombre del nodo, vacía si la jerarquía no usa iconos
+        public string Icono { get; set; }
 
         public NodoDto(NodoDtm nodoDtm, string negocio, string tipoDto, enumModoDeAccesoDeDatos modoAcceso)
         {
             Id = nodoDtm.Id;
+            IdArchivo = nodoDtm.IdArchivo;
             Nombre = nodoDtm.Nombre;
             IdPadre = nodoDtm.IdPadre;
             Activo = nodoDtm.Activo;

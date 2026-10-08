@@ -101,6 +101,7 @@ namespace GestoresDeNegocio.Terceros
                 nodoDtm.Id = sociedad.Id;
                 nodoDtm.IdPadre = null;
                 nodoDtm.Nombre = sociedad.Expresion;
+                nodoDtm.IdArchivo = sociedad.IdArchivo;
                 nodoDtm.TipoDtm = typeof(SociedadDtm).FullName;
                 var nodoDto = new NodoDto(nodoDtm, enumNegocio.Sociedad.ToNombre(), typeof(SociedadDto).FullName, nodoDtm.modoAcceso);
                 var nodoDeJerarquia = new NodoDeJerarquiaDto(nodoDto);

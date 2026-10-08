@@ -269,18 +269,20 @@ namespace ServicioDeDatos.Terceros
                               AS
                               (
                                   SELECT T1.{ICampos.ID} AS id
-                              		   ,T1.{ICampos.BAJA}                  
-                              		   ,T1.{ICampos.NOMBRE}                  
-                              		   ,T1.{ICamposCG.ID_CG_PADRE}                    
-                                       ,T1.{ICampos.CODIGO}   
+                              		   ,T1.{ICampos.BAJA}
+                              		   ,T1.{ICampos.NOMBRE}
+                              		   ,T1.{ICamposCG.ID_CG_PADRE}
+                                       ,T1.{ICampos.CODIGO}
+                                       ,T1.{ICampos.ID_ARCHIVO}
                                   FROM  {ModeloDeTerceros.TablaCgs} T1 WITH(NOLOCK)
                                   UNION ALL
                                   --RECURSIVIDAD
                                   SELECT T2.{ICampos.ID} AS id
                               		   ,T2.{ICampos.BAJA}                     
                               		   ,T2.{ICampos.NOMBRE}                   
-                              		   ,T2.{ICamposCG.ID_CG_PADRE}                   
-                                       ,T2.{ICampos.CODIGO}   
+                              		   ,T2.{ICamposCG.ID_CG_PADRE}
+                                       ,T2.{ICampos.CODIGO}
+                                       ,T2.{ICampos.ID_ARCHIVO}
                                   FROM  {ModeloDeTerceros.TablaCgs} AS T2 WITH(NOLOCK)
                               	JOIN CGS AS TP ON T2.{ICamposCG.ID_CG_PADRE} = TP.id
                               )    
@@ -294,6 +296,7 @@ namespace ServicioDeDatos.Terceros
                                    + ') ' + T1.{ICampos.NOMBRE}   
                                                                          AS {nameof(CentroGestorDtm.Nombre)}
 								   ,T1.{ICamposCG.ID_CG_PADRE}           AS IdPadre
+								   ,T1.{ICampos.ID_ARCHIVO}              AS {nameof(NodoDtm.IdArchivo)}
                               	   ,'{typeof(CentroGestorDtm).FullName}' AS TipoDtm
                               FROM CGS T1
                               LEFT JOIN {ModeloDeTerceros.TablaCgs} T2 WITH(NOLOCK) ON T2.ID = T1.{ICamposCG.ID_CG_PADRE}

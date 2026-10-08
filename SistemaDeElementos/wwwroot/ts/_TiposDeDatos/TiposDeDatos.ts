@@ -726,6 +726,9 @@
         public tipoDto: string;
         public tipoDtm: string;
         public modoAcceso: ModoAcceso.enumModoDeAccesoDeDatos;
+        public idArchivo: number;
+        // url de la imagen que se pinta delante del nombre, vacía si la jerarquía no usa iconos
+        public icono: string;
     }
 
     export class NodoDeJerarquiaDto {

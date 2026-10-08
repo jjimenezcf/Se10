@@ -30,6 +30,12 @@
             super.InicializarJerarquia(blanquearFiltros);
         }
 
+        // cada menú de primer nivel es una raíz del árbol: no se muestra el nodo "Menus de SE" que los agrupaba
+        public AntesDePintarLaJerarquia(): void {
+            super.AntesDePintarLaJerarquia();
+            this.Titulo.style.display = ltrStyle.display.none;
+        }
+
         public MapearElDtoLeido(dto: any, modoDeAcceso: ModoAcceso.enumModoDeAccesoDeDatos) {
             ApiDeInicializacion.OcultarArchivos(this.PanelDelDto, false);
             super.MapearElDtoLeido(dto, modoDeAcceso);

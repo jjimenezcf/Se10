@@ -40,6 +40,8 @@ namespace GestoresDeNegocio.Entorno
                 CreateMap<MenuDtm, MenuDto>()
                 .ForMember(dto => dto.Padre, dtm => dtm.MapFrom(dtm => dtm.Padre.Nombre))
                 .ForMember(dto => dto.VistaMvc, dtm => dtm.MapFrom(dtm => dtm.VistaMvc.Nombre))
+                .ForMember(dto => dto.IdPermiso, dtm => dtm.MapFrom(dtm => dtm.VistaMvc == null ? (int?)null : dtm.VistaMvc.IdPermiso))
+                .ForMember(dto => dto.Permiso, dtm => dtm.MapFrom(dtm => dtm.VistaMvc == null || dtm.VistaMvc.Permiso == null ? null : dtm.VistaMvc.Permiso.Nombre))
                 ;
 
                 CreateMap<MenuDto, MenuDtm>()
@@ -66,11 +68,27 @@ namespace GestoresDeNegocio.Entorno
             var filtros = filtrosJson.ToDiccionario();
             var gestor = Gestor(contexto, contexto.Mapeador);
             List<NodoDtm> tiposLeidosDtm = gestor.LeerJerarquiaDeMenus(idPadre, filtros);
+            // se guarda antes de estructurar, porque la estructura plana va quitando de la lista los nodos que apila
+            var iconos = tiposLeidosDtm.GroupBy(x => x.Id).ToDictionary(x => x.Key, x => x.First().Icono);
 
             var mostrarJerarquia = (bool)filtros[ltrDeMenus.mostrarJerarquia];
-            return mostrarJerarquia || MenuSql.HayFiltrosConSoloPermisos(filtros)
+            var jerarquia = mostrarJerarquia || MenuSql.HayFiltrosConSoloPermisos(filtros)
                 ? ApiDeJerarquias.EstructurarJerarquica(enumNegocio.Menu, tiposLeidosDtm, typeof(MenuDto))
                 : ApiDeJerarquias.EstructuraPlana(enumNegocio.Menu, tiposLeidosDtm, typeof(MenuDto));
+
+            foreach (var rama in jerarquia.Ramas)
+                AsignarIcono(rama, iconos);
+            return jerarquia;
+        }
+
+        // cada opción de menú se pinta en la jerarquía con su icono del menú
+        private static void AsignarIcono(NodoDeJerarquiaDto nodo, Dictionary<int, string> iconos)
+        {
+            if (iconos.TryGetValue(nodo.Dto.Id, out var icono) && !icono.IsNullOrEmpty())
+                nodo.Dto.Icono = $"/images/menu/{icono}";
+
+            foreach (var hijo in nodo.Hijos)
+                AsignarIcono(hijo, iconos);
         }
 
         public static MenuDto PersistirMenuJson(ContextoSe contexto, string cgJson, ParametrosDeNegocio parametros)
@@ -316,7 +334,7 @@ namespace GestoresDeNegocio.Entorno
                     return registros;
 
             registros = registros.Include(p => p.Padre);
-            registros = registros.Include(p => p.VistaMvc);
+            registros = registros.Include(p => p.VistaMvc).ThenInclude(v => v.Permiso);
 
             return registros;
         }

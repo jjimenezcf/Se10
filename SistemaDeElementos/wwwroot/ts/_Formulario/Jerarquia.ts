@@ -17,6 +17,11 @@
         },
         propiedades: {
             dto: 'dto'
+        },
+        css: {
+            detalleEnModal: 'jerarquia-detalle-en-modal',
+            cerrarModal: 'jerarquia-cerrar-modal',
+            iconoDeNodo: 'icono-de-nodo'
         }
 
     };
@@ -348,10 +353,6 @@
         }
 
         public pintarNodo(raiz: HTMLUListElement, nodoDto: Tipos.NodoDeJerarquiaDto): void {
-            let alSeleccionar: string = this.EsNodoSeleccionable(nodoDto.dto)
-                ? `javascript: ApiDeJerarquia.NodoPulsado('${nodoDto.dto.id}.li', ()=>Formulario.NodoSeleccionado('${nodoDto.dto.id}.li'))`
-                : '';
-
             let id: string = this.EsNodoSeleccionable(nodoDto.dto)
                 ? `${nodoDto.dto.id}.li`
                 : `No.${nodoDto.dto.id}.li`;
@@ -359,13 +360,14 @@
             let li: HTMLLIElement = ApiControl.CrearLiEnUl(raiz
                 , id
                 , nodoDto.dto.nombre
-                , alSeleccionar
+                , this.AccionDelNodo(nodoDto, id)
                 , ''
                 , JSON.stringify(nodoDto.dto));
 
             li.classList.add(ltrCss.nodoDeJerarquia);
             li.setAttribute(atControl.idElemento, nodoDto.dto.id.toString());
             this.AplicarCssAlNodo(nodoDto, li);
+            this.DespuesDePintarElNodo(nodoDto, li);
 
             for (let i: number = 0; i < nodoDto.hijos.length; i++) {
                 let ul: HTMLUListElement = ApiControl.CrearUlVacioEnLi(li, `${nodoDto.dto.id}.ul`);
@@ -373,12 +375,76 @@
             }
         }
 
+        // acción del enlace de un nodo: en los seleccionables un click pliega o despliega su rama y el doble click lo selecciona
+        public AccionDelNodo(nodoDto: Tipos.NodoDeJerarquiaDto, idLi: string): string {
+            return this.EsNodoSeleccionable(nodoDto.dto)
+                ? `javascript: ApiDeJerarquia.NodoPulsado('${idLi}', ()=>Formulario.NodoSeleccionado('${idLi}'))`
+                : '';
+        }
+
+        // si el nodo trae icono (p.e. el de un menú o la miniatura de una sociedad) se pinta delante del nombre;
+        // cada jerarquía puede completar aquí el nodo recién pintado
+        public DespuesDePintarElNodo(nodoDto: Tipos.NodoDeJerarquiaDto, li: HTMLLIElement): void {
+            let enlace = li.querySelector(':scope > a') as HTMLAnchorElement;
+            if (IsNullOrEmpty(nodoDto.dto.icono) || NoDefinido(enlace))
+                return;
+
+            let icono: HTMLImageElement = document.createElement('img');
+            icono.src = nodoDto.dto.icono;
+            icono.alt = '';
+            icono.classList.add(ltrJerarquia.css.iconoDeNodo);
+            icono.addEventListener('error', () => icono.remove());
+            enlace.prepend(icono);
+        }
+
         public AplicarCssAlNodo(nodoDto: Tipos.NodoDeJerarquiaDto, li: HTMLLIElement): void {
             if (ObtenerPropiedad(nodoDto[Formulario.ltrJerarquia.propiedades.dto], ltrPropiedades.TipoDeElemento.Activo) === false)
                 li.classList.add(ltrCss.nodoDeJerarquiaDeBaja);
         }
 
+        //*******************************************************************************************************//
+        //  en el móvil sólo se ve el árbol: el panel de detalle se muestra como una modal sobre él al editar o
+        //  crear un nodo, y se cierra al cancelar o al terminar la operación (ComenzarModoNuevo)
+        //*******************************************************************************************************//
+        private get DetalleEnModal(): boolean {
+            return this.PanelDelDetalle.classList.contains(ltrJerarquia.css.detalleEnModal);
+        }
+
+        protected AbrirDetalleEnModal(): void {
+            if (!EsDispositvoMovil())
+                return;
+
+            let idCerrar: string = `${this.PanelDelDetalle.id}-cerrar`;
+            if (NoDefinido(document.getElementById(idCerrar))) {
+                let cerrar: HTMLButtonElement = document.createElement('button');
+                cerrar.id = idCerrar;
+                cerrar.type = 'button';
+                cerrar.title = 'Cerrar';
+                cerrar.textContent = String.fromCharCode(0xD7);
+                cerrar.classList.add(ltrJerarquia.css.cerrarModal);
+                cerrar.addEventListener('click', () => this.CancelarModificacion());
+                this.PanelDelDetalle.prepend(cerrar);
+            }
+            ApiControl.IncluirCss(this.PanelDelDetalle, ltrJerarquia.css.detalleEnModal);
+            this.AjustarLiteralDeCrear();
+        }
+
+        // en el móvil, mientras se crea, con la modal cerrada la opción abre el formulario vacío (Nuevo) y con ella
+        // abierta da de alta el nodo (Crear); al editar se deja como en la pantalla grande
+        private AjustarLiteralDeCrear(): void {
+            if (!EsDispositvoMovil() || this.ModoTrabajo !== enumModoTrabajo.creando)
+                return;
+
+            ApiControl.CambiarLiteralDeIdMenu(this.IdDeLaOpcionDeMenu(ltrJerarquia.opcionesDeMenu.crear)
+                , this.DetalleEnModal ? ltrMenus.BarraDeMenu.Crear : ltrMenus.BarraDeMenu.Nuevo);
+        }
+
+        protected CerrarDetalleEnModal(): void {
+            ApiControl.ExcluirCss(this.PanelDelDetalle, ltrJerarquia.css.detalleEnModal);
+        }
+
         public ComenzarModoNuevo() {
+            this.CerrarDetalleEnModal();
             this._registro = undefined;
             this.ModoTrabajo = enumModoTrabajo.creando;
             this.PanelDelDto.setAttribute(Ajax.Param.nodoSeleccionado, '');
@@ -389,6 +455,7 @@
             ApiControl.OcultarOpcionDeMenuPorId(this.IdDeLaOpcionDeMenu(ltrJerarquia.opcionesDeMenu.cancelar));
             if (ApiControl.MostrarOpcionDeMenuPorId(this.IdDeLaOpcionDeMenu(ltrJerarquia.opcionesDeMenu.crear)))
                 ApiControl.CambiarLiteralDeMenuPorNombre(this.PanelPieMenu, ltrMenus.BarraDeMenu.Copiar, ltrMenus.BarraDeMenu.Crear);
+            this.AjustarLiteralDeCrear();
 
             this.ContenedorDelId.style.display = ltrStyle.display.none;
 
@@ -441,6 +508,7 @@
             this.IdEditado = dto[literal.id];
             this.Expresion = ObtenerPropiedad(dto, literal.expresion, undefined, false);
             if (NoDefinido(this.Expresion)) this.Expresion = ObtenerPropiedad(dto, literal.nombre, "No definida");
+            this.AbrirDetalleEnModal();
         }
 
         public MapearElDtoLeido(dto: any, modoDeAcceso: ModoAcceso.enumModoDeAccesoDeDatos) {
@@ -482,6 +550,12 @@
         }
 
         public CrearNodo(): void {
+            // en el móvil, con la modal cerrada no se ven los datos del nodo a crear: primero se abre para rellenarlos
+            if (EsDispositvoMovil() && !this.DetalleEnModal) {
+                this.AbrirDetalleEnModal();
+                return;
+            }
+
             let json: JSON = ApiPanel.MapearControlesDesdeElPanelAlJson(this.PanelDelDto, JSON.parse(`{}`));
             if (json.hasOwnProperty("id"))
                 delete json['id'];

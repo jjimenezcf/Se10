@@ -44,17 +44,14 @@
             super.InicializarJerarquia(blanquearFiltros);
         }
 
+        // cada sociedad es una raíz del árbol, con sus centros gestores colgando de ella: no se muestra el nodo
+        // "Centros de gestión" que las agrupaba
         public AntesDePintarLaJerarquia(): void {
             super.AntesDePintarLaJerarquia();
+            this.Titulo.style.display = ltrStyle.display.none;
             this._IdSociedadUrl = ObtenerParametroUrl(ltrParametrosUrl.idSociedad, 0, false);
-            if (this._IdSociedadUrl > 0) {
-                let sociedad = this.jerarquia.ramas[0];
-                this._nombreSociedad = sociedad.dto.nombre;
-                this.Titulo.text = sociedad.dto.nombre;
-                for (let i = 0; i < this.jerarquia.ramas[0].hijos.length; i++)
-                    this.jerarquia.ramas.push(this.jerarquia.ramas[0].hijos[i]);
-                this.jerarquia.ramas.splice(0, 1);
-            }
+            if (this._IdSociedadUrl > 0 && this.jerarquia.ramas.length > 0)
+                this._nombreSociedad = this.jerarquia.ramas[0].dto.nombre;
         }
 
         public DespuesDePintarLaJerarquia(): void {
@@ -63,13 +60,24 @@
                 return;
             }
 
-            if (this.jerarquia.ramas.length > 0) {
-                let lis = this.ContenedorDeJerarquia.querySelectorAll('li') as NodeListOf<HTMLLIElement>;
-                if (Definido(lis) && lis.length > 0 && lis[0].id.indexOf("No.") < 0)
-                    Formulario.NodoSeleccionado(lis[0].id);
+            // al llegar desde una sociedad se edita su primer centro gestor
+            let primerCg = this.ContenedorDeJerarquia.querySelector(`li.${ltrCss.nodoDeJerarquia}:not([id^="No."])`) as HTMLLIElement;
+            if (Definido(primerCg)) {
+                Formulario.NodoSeleccionado(primerCg.id);
                 return;
             }
-            super.DespuesDePintarLaJerarquia();                
+            super.DespuesDePintarLaJerarquia();
+        }
+
+        // un click en una sociedad pliega o despliega sus centros gestores, y el doble click abre su edición en otra pestaña
+        public AccionDelNodo(nodoDto: Tipos.NodoDeJerarquiaDto, idLi: string): string {
+            if (this.EsSociedad(nodoDto.dto))
+                return `javascript: ApiDeJerarquia.NodoPulsado('${idLi}', ()=>Terceros.EditarSociedad(${nodoDto.dto.id}))`;
+            return super.AccionDelNodo(nodoDto, idLi);
+        }
+
+        private EsSociedad(dto: Tipos.NodoDto): boolean {
+            return dto.negocio === ltrNegocioSe.Nombre.Sociedades;
         }
 
         public MapearElDtoLeido(dto: any, modoDeAcceso: ModoAcceso.enumModoDeAccesoDeDatos) {
@@ -130,7 +138,7 @@
 
         public EsNodoSeleccionable(dto: Tipos.NodoDto): boolean {
             if (super.EsNodoSeleccionable(dto)) {
-                return dto.negocio !== ltrNegocioSe.Nombre.Sociedades;
+                return !this.EsSociedad(dto);
             }
             return false;
         }
@@ -154,6 +162,11 @@
 
     }
 
+
+    // abre en una nueva pestaña el crud de sociedades editando la sociedad indicada
+    export function EditarSociedad(idSociedad: number) {
+        EntornoSe.AbrirPestana(`${window.location.origin}/${ltrUrls.Terceros.Sociedades}?${ltrParametrosUrl.id}=${idSociedad}`);
+    }
 
     export function CG_Tras_Blanquear_Responsable() {
         let panel: HTMLDivElement = JerarquiaDeCgs.PanelDelDto;

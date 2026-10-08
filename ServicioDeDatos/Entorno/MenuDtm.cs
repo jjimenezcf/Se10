@@ -163,6 +163,7 @@ namespace ServicioDeDatos.Entorno
 		                                   ,T1.{ICampos.IDPADRE}                  
 		                                   ,T1.{ICampos.ORDEN}                     
 		                                   ,T1.{ICampos.PARAMETROS}             
+		                                   ,T1.{ICampos.ICONO}
                                     FROM   {ModeloDeEntorno.TablaMenus}  T1 WITH(NOLOCK)       
                                     -- Aquí he de meter los filtros de permisos
                                     where 1=1 
@@ -178,6 +179,7 @@ namespace ServicioDeDatos.Entorno
 		                                   ,T2.{ICampos.IDPADRE}                  
 		                                   ,T2.{ICampos.ORDEN}                   
 		                                   ,T2.{ICampos.PARAMETROS}                          
+		                                   ,T2.{ICampos.ICONO}
                                     FROM  {ModeloDeEntorno.TablaMenus} AS T2 WITH(NOLOCK)
 	                                JOIN MENUS AS TP ON [restriccionConPermisos]
                                     -- si no se filtra por permisos --> T2.{ICampos.IDPADRE} = TP.{ICampos.ID}
@@ -192,6 +194,7 @@ namespace ServicioDeDatos.Entorno
 	                                   ,[Padre]T1.{ICampos.NOMBRE}       AS {nameof(MenuDtm.Nombre)} 
 	                                   ,T1.{ICampos.IDPADRE}             AS {nameof(MenuDtm.IdPadre)} 
 	                                   ,T1.{ICampos.PARAMETROS}          AS {nameof(MenuDtm.Parametros)}
+	                                   ,T1.{ICampos.ICONO}               AS {nameof(NodoDtm.Icono)}
                               	       ,'{typeof(MenuDtm).FullName}'     AS TipoDtm
                                 FROM MENUS T1
                                 LEFT JOIN {ModeloDeEntorno.TablaMenus} T2 WITH(NOLOCK) ON T2.ID = T1.{ICampos.IDPADRE}

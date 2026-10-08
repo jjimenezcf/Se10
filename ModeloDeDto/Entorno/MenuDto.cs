@@ -156,6 +156,26 @@ namespace ModeloDeDto.Entorno
         ]
         public string Parametros { get; set; }
 
+        //----------------------------------------------------------------
+        // permiso de acceso de la vista del menú: la opción le sale a un usuario si es administrador o tiene este permiso.
+        // Es de solo lectura; su navegador abre el permiso en el crud de permisos, para asignarlo a un rol o a un puesto
+        [IUPropiedad(
+            Etiqueta = "Permiso de acceso",
+            Ayuda = "Permiso que da acceso a la vista del menú",
+            TipoDeControl = enumTipoControl.RestrictorDeEdicion,
+            MostrarExpresion = nameof(Permiso),
+            Controlador = nameof(enumControladoresSeguridad.Permisos),
+            VistaDondeNavegar = enumVistasSeguridad.CrudPermiso,
+            VisibleEnGrid = false,
+            Obligatorio = false,
+            Fila = 5,
+            Columna = 0
+            )
+        ]
+        public int? IdPermiso { get; set; }
+
+        [IUPropiedad(Visible = false)]
+        public string Permiso { get; set; }
 
     }
 

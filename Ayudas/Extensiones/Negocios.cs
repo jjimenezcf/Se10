@@ -158,6 +158,8 @@ namespace Utilidades
         {
             switch (negocio)
             {
+                case enumNegocio.Sociedad: return "Sociedad.svg";
+                case enumNegocio.CentroGestor: return "CentroGestor.svg";
                 default:
                     return $"{negocio}.svg";
             }
