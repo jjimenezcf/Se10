@@ -57,6 +57,7 @@ namespace SistemaDeElementos.Inicializador
             public static readonly string PuestosDeTrabajo = "Puestos de trabajo";
             public static readonly string Roles = "Roles";
             public static readonly string Permisos = "Permisos";
+            public static readonly string Seguridad = "Seguridad de usuarios";
             public static readonly string Certificados = "Certificados";
             public static readonly string InicializarEntorno = "Inicializar entorno";
 
@@ -485,6 +486,7 @@ namespace SistemaDeElementos.Inicializador
             gestor.CrearVistaSiNoExiste("Puestos de un rol", enumControladoresSeguridad.PuestosDeUnRol, enumVistasSeguridad.CrudPuestosDeUnRol, false, typeof(PuestosDeUnRolDto).FullName);
             gestor.CrearVistaSiNoExiste("Usuarios de un puesto", enumControladoresSeguridad.UsuariosDeUnPuesto, enumVistasSeguridad.CrudUsuariosDeUnPuesto, false, typeof(UsuariosDeUnPuestoDto).FullName);
             gestor.CrearVistaSiNoExiste("Permisos de un puesto de trabajo", enumControladoresSeguridad.PermisosHeredados, enumVistasSeguridad.CrudPermisosHeredados, false, typeof(PermisosDeUnPuestoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.Seguridad, enumControladoresSeguridad.Seguridad, enumVistasSeguridad.SeguridadDeUsuarios, false, typeof(UsuarioDto).FullName);
         }
 
         private static void CrearVistasDelCallejero(GestorDeVistaMvc gestor)

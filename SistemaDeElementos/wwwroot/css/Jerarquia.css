@@ -3,7 +3,6 @@
     padding-left: 5px;
     overflow-y: auto;
     overflow-x: hidden;
-    resize: horizontal;
     border: 5px ridge #d1cfcf
 }
 

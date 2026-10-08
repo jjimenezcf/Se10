@@ -314,6 +314,7 @@ namespace Utilidades
         , UsuariosDeUnPuesto
         , PermisosDeUnUsuario
         , PermisosHeredados
+        , Seguridad
     }
 
     public static class enumVistasSeguridad
@@ -330,6 +331,7 @@ namespace Utilidades
         public const string CrudPuestosDeUnRol = nameof(CrudPuestosDeUnRol);
         public const string CrudUsuariosDeUnPuesto = nameof(CrudUsuariosDeUnPuesto);
         public const string CrudPermisosHeredados = nameof(CrudPermisosHeredados);
+        public const string SeguridadDeUsuarios = nameof(SeguridadDeUsuarios);
         public const string Conectar = nameof(Conectar);
         public const string NuevaContrasena = nameof(NuevaContrasena);
         public const string Consultar = nameof(Consultar);

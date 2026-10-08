@@ -37,15 +37,22 @@
 }
 
 .div-graficos {
-    /* Desactiva Flexbox para que 'width' en JS tome control */
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: auto; /* Anula el flex-basis: 0 */
-    /* El ancho inicial lo establecerá el JS */
-    /* ... resto de propiedades ... */
+    /* El JS sólo fija el ancho de la tabla (o del tablero de fichas): div-graficos ocupa por CSS todo lo que
+       queda a la derecha del splitter, sin recalcular su ancho al arrastrar. min-width: 0 le permite ser más
+       estrecho que su contenido, que hace scroll dentro en vez de desbordar el contenedor */
+    flex: 1 1 0;
+    min-width: 0;
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+/* El panel de archivos que se muestra en div-graficos es el mismo visor del panel de edición, que puede
+   traer un ancho en px puesto en línea por el splitter datos/visor de la edición o la creación. Aquí ha de
+   ocupar siempre todo div-graficos, si no al mover splitter-tabla queda un hueco a su derecha. Sólo se
+   fuerza dentro de div-graficos: en la creación el ancho en línea es el que da tamaño al visor */
+.div-graficos > .contenedor-edicion-editor-visor {
+    width: 100% !important;
 }
 
 /* Cuando la ficha de datos (table_propiedad) no cabe entera en div-graficos -p.ej. porque
@@ -249,6 +256,7 @@
 }
 
 .splitter-tabla {
+    flex: 0 0 6px;
     width: 6px;
     height: 100%;
     background-color: #f0f0f0;

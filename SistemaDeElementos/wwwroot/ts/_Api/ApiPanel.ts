@@ -816,6 +816,86 @@
         }
     }
 
+    export interface EventosDeSplitter {
+        alEmpezar?: () => void;
+        // recibe la x del ratón; se llama como mucho una vez por frame y siempre con la última posición
+        alMover: (clientX: number) => void;
+        alSoltar?: () => void;
+    }
+
+    // mecánica común de arrastre de un splitter: el movimiento se escucha en el documento, así el arrastre no se pierde
+    // aunque el ratón vaya más rápido que la barra. Se puede llamar varias veces sobre el mismo splitter, sólo se
+    // inicializa la primera, por lo que los eventos han de obtener en cada llamada los elementos sobre los que actúan
+    export function InicializarSplitter(splitter: HTMLElement, eventos: EventosDeSplitter): void {
+        if (NoDefinido(splitter) || EsTrue(splitter.getAttribute('splitter-inicializado')))
+            return;
+        splitter.setAttribute('splitter-inicializado', 'true');
+
+        let arrastrando: boolean = false;
+        let ultimaX: number = undefined;
+        let frame: number = 0;
+
+        const alMoverRaton = (evento: MouseEvent) => {
+            if (!arrastrando) return;
+            if ((evento.buttons & 1) === 0) { alSoltarRaton(); return; }
+            evento.preventDefault();
+
+            ultimaX = evento.clientX;
+            if (frame) return;
+            frame = requestAnimationFrame(() => {
+                frame = 0;
+                if (arrastrando) eventos.alMover(ultimaX);
+            });
+        };
+
+        const alSoltarRaton = () => {
+            if (!arrastrando) return;
+            arrastrando = false;
+            if (frame) {
+                cancelAnimationFrame(frame);
+                frame = 0;
+            }
+            if (ultimaX !== undefined) eventos.alMover(ultimaX);
+
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            document.removeEventListener('mousemove', alMoverRaton);
+            document.removeEventListener('mouseup', alSoltarRaton);
+            window.removeEventListener('blur', alSoltarRaton);
+            if (Definido(eventos.alSoltar)) eventos.alSoltar();
+        };
+
+        splitter.addEventListener('mousedown', (evento: MouseEvent) => {
+            if (evento.button !== 0) return;
+            evento.preventDefault();
+            evento.stopPropagation();
+
+            arrastrando = true;
+            ultimaX = undefined;
+            if (Definido(eventos.alEmpezar)) eventos.alEmpezar();
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', alMoverRaton);
+            document.addEventListener('mouseup', alSoltarRaton);
+            window.addEventListener('blur', alSoltarRaton);
+        });
+    }
+
+    // splitter entre un panel izquierdo (árbol) y el resto: al arrastrarlo cambia el ancho del panel izquierdo
+    export function InicializarSplitterDelPanelIzquierdo(splitter: HTMLElement, panelIzquierdo: HTMLElement, anchoMinimo: number = 150): void {
+        if (NoDefinido(panelIzquierdo))
+            return;
+
+        InicializarSplitter(splitter, {
+            alMover: (clientX: number) => {
+                const rect = splitter.parentElement.getBoundingClientRect();
+                const anchoMaximo = rect.width - splitter.offsetWidth - anchoMinimo;
+                const ancho = Math.min(Math.max(clientX - rect.left, anchoMinimo), anchoMaximo);
+                panelIzquierdo.style.flex = `0 0 ${ancho}px`;
+            }
+        });
+    }
+
     export function DesactivarPanel(panel: HTMLDivElement): void {
         let inputs: NodeListOf<HTMLInputElement> = panel.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
         for (let i: number = 0; i < inputs.length; i++)

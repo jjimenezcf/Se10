@@ -97,6 +97,12 @@ namespace MVCSistemaDeElementos.Descriptores
                     .Replace("[id-contenedor]", bloque.IdHtml)
                     .Replace("[Titulo]", bloque.Etiqueta)
                     .Replace("[RenderBloque]", bloque.RenderBloqueAnexado());
+
+                // el splitter que separa el primer bloque (el árbol) del resto permite cambiar su ancho
+                if (renderDelPrimero && BloquesAnexados.Count > 1)
+                    htmlBloques = $@"{htmlBloques}
+                <div id=¨{IdHtml}-splitter¨ class=¨splitter¨ title=¨Arrastre para redimensionar¨></div>";
+
                 renderDelPrimero = false;
             }
             return htmlBloques;

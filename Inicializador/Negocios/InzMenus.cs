@@ -113,6 +113,7 @@ namespace SistemaDeElementos.Inicializador
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Puestos", descripcion: "Puestos de trabajo por CG", icono: "puestoDeTrabajo.svg", padre: padre, vista: enumVistas.Entorno.PuestosDeTrabajo, orden: 10);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Roles", descripcion: "Roles del siste", icono: "roles.svg", padre: padre, vista: enumVistas.Entorno.Roles, orden: 20);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Permisos", descripcion: "Permisos de accesos", icono: "acceso.svg", padre: padre, vista: enumVistas.Entorno.Permisos, orden: 40);
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Seguridad", descripcion: "Puestos, roles y permisos de un usuario", icono: "seguridad_1.svg", padre: padre, vista: enumVistas.Entorno.Seguridad, orden: 50);
         }
 
         private static void MenusDeNegociosSe(GestorDeMenus gestor, string padre)

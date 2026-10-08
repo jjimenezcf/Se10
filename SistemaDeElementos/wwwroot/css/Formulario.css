@@ -72,6 +72,11 @@
 }
 
 
+/* splitter entre el árbol de una jerarquía y el panel de detalle */
+.cuerpo-datos-formulario > .splitter {
+    flex: 0 0 6px;
+}
+
 .formulario-contenedor-de-siguientes-bloques-anexados {
     flex-grow: 1;
     overflow: auto;

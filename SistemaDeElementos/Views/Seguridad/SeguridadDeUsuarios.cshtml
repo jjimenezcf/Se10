@@ -1,0 +1,8 @@
+@model MVCSistemaDeElementos.Descriptores.DescriptorDeSeguridad
+
+@{
+    ViewData["Title"] = $"{Model.Titulo}";
+}
+
+
+@Html.Raw(Model.RenderControl())

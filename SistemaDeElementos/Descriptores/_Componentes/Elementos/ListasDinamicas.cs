@@ -40,6 +40,8 @@ namespace MVCSistemaDeElementos.Descriptores
         public string NavegarA { get; set; }
         public string OnClick { get; set; }
         public string TrasMapear { get; set; }
+        // acción js que se evalúa al seleccionar un valor de la lista
+        public string TrasSeleccionar { get; set; }
         public string ParametrosParaNavegar { get; set; }
         public string OtrosClausulasDeFiltrado { get; set; } = "";
         public string OtrosParametrosDeFiltrado { get; set; } = "";
@@ -136,6 +138,9 @@ namespace MVCSistemaDeElementos.Descriptores
             htmlLd = htmlLd.Replace($"negocio='{enumNegocio.No_Definido}'", "");
             htmlLd = htmlLd.Replace($"tras-mapear='[TrasMapear]'", "");
             htmlLd = htmlLd.Replace($"parametros-para-navegar='[{nameof(ParametrosParaNavegar)}]'", "");
+
+            if (!TrasSeleccionar.IsNullOrEmpty())
+                htmlLd = htmlLd.Replace("autocomplete='off'", $"autocomplete='off' tras-seleccionar='{TrasSeleccionar}'");
 
             if (Ayuda.IsNullOrEmpty()) htmlLd.Replace("title=¨[Ayuda]¨", "");
             return htmlLd;

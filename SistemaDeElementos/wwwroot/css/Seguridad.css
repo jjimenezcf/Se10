@@ -1,0 +1,146 @@
+/* Vista de seguridad de usuarios: selector arriba, árbol de permisos a la izquierda y datos del objeto a la derecha */
+.cuerpo.cuerpo-de-seguridad {
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "cuerpo-datos";
+    overflow: hidden;
+}
+
+.contenedor-seguridad {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+}
+
+.seguridad-cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    width: 100%;
+    padding: 0.4em 0.5em;
+    border-bottom: 1px solid #d1cfcf;
+}
+
+    .seguridad-cabecera .seguridad-etiqueta {
+        margin: 0;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .seguridad-cabecera > div {
+        flex: 0 1 40em;
+    }
+
+.seguridad-cuerpo {
+    display: flex;
+    min-height: 0;
+    height: 100%;
+}
+
+.seguridad-arbol {
+    flex: 0 0 30%;
+    min-width: 150px;
+}
+
+    .seguridad-arbol > ul {
+        padding-left: 1em;
+    }
+
+.seguridad-cuerpo > .splitter {
+    flex: 0 0 6px;
+}
+
+.seguridad-datos {
+    flex: 1 1 auto;
+    min-width: 150px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 0.5em;
+}
+
+.seguridad-titulo-datos {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    font-weight: bold;
+    padding: 0.4em 0;
+    border-bottom: 1px solid #d1cfcf;
+    margin-bottom: 0.5em;
+}
+
+    .seguridad-titulo-datos .seguridad-editar > img {
+        width: 18px;
+        height: 18px;
+    }
+
+/* nodos del árbol */
+.seguridad-expansor {
+    display: inline-block;
+    width: 1em;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.nodo-seguridad-con-hijos > .seguridad-expansor::before {
+    content: "\25B8";
+}
+
+.nodo-seguridad-con-hijos.nodo-seguridad-desplegado > .seguridad-expansor::before {
+    content: "\25BE";
+}
+
+.nodo-seguridad-grupo > a {
+    font-weight: bold;
+}
+
+/* un color fuerte por cada nodo agrupador, para distinguirlos sobre el fondo blanco */
+li[tipo-nodo="Usuario"] > a { color: #0d47a1; }
+li[tipo-nodo="Puestos"] > a { color: #2e7d32; }
+li[tipo-nodo="RolesDelPuesto"] > a { color: #7b1fa2; }
+li[tipo-nodo="PermisosHeredados"] > a { color: #e65100; }
+li[tipo-nodo="PermisosDirectos"] > a { color: #c62828; }
+li[tipo-nodo="PermisosPorNegocio"] > a { color: #00838f; }
+li[tipo-nodo="PermisosPorTipo"] > a { color: #c2185b; }
+li[tipo-nodo="PermisosPorEstado"] > a { color: #827717; }
+li[tipo-nodo="PermisosPorTransicion"] > a { color: #6d4c41; }
+li[tipo-nodo="PermisosPorCg"] > a { color: #b8860b; }
+li[tipo-nodo="PermisosPorElemento"] > a { color: #0288d1; }
+
+.seguridad-icono {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.3em;
+    vertical-align: text-bottom;
+}
+
+.seguridad-recargar {
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+    .seguridad-recargar:hover {
+        opacity: 1;
+    }
+
+.nodo-seguridad-heredado > a {
+    font-style: italic;
+    color: #6c757d;
+}
+
+.nodo-seguridad-cargando > a {
+    cursor: progress;
+    opacity: 0.6;
+}
+
+/* en el móvil el panel de datos no cabe: solo se muestra el árbol */
+@media (max-width: 768px) {
+    .seguridad-arbol {
+        flex: 1 1 auto !important;
+    }
+
+    .seguridad-cuerpo > .splitter,
+    .seguridad-datos {
+        display: none;
+    }
+}

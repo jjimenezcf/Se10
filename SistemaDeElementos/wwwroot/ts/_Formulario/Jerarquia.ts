@@ -97,6 +97,9 @@
         public get PanelDelDetalle(): HTMLDivElement {
             return document.getElementById(`datos-${this.IdFormulario}-detalle`) as HTMLDivElement;
         }
+        public get Splitter(): HTMLDivElement {
+            return document.getElementById(`datos-${this.IdFormulario}-splitter`) as HTMLDivElement;
+        }
         public get PanelDelDto(): HTMLDivElement {
             return document.getElementById(`datos-${this.IdFormulario}-dto`) as HTMLDivElement;
         }
@@ -245,6 +248,7 @@
             //observer.observe(contenedorArbol);
             let ancho = this.ContenedorDeJerarquia.style.width;
             this.CabeceraDelFormulario.style.setProperty("grid-template-columns", `0px ${ancho}`);
+            ApiPanel.InicializarSplitterDelPanelIzquierdo(this.Splitter, this.ContenedorDeJerarquia);
             this.RecargarJerarquia(blanquearFiltros);
         }
 

@@ -3,20 +3,13 @@ namespace ApiVisorDeArchivos {
     // ─── Variables de estado del splitter datos/visor ────────────────────────
 
     var _cambiandoAncho = false;
-    var _posicioInicial: number;
-    var _anchoInicial: number;
-    let _lastExecution = 0;
     var _contenedorDeDatos: HTMLDivElement;
     var _contenedorDelVisor: HTMLDivElement;
 
     // ─── Variables de estado del splitter tabla/gráficos ─────────────────────
 
     var _cambiandoAnchoTabla = false;
-    var _posicioInicialSplitter: number;
-    var _anchoInicialTabla: number;
-    let _ultimaEjecucion = 0;
     var _contenedorDeTabla: HTMLDivElement;
-    var _contenedorDeGraficos: HTMLDivElement;
 
     // ─── Cálculo y ajuste del visor ──────────────────────────────────────────
 
@@ -308,114 +301,66 @@ namespace ApiVisorDeArchivos {
         var contenedorDeDatosMasVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeDatosMasVisor : crud.crudDeEdicion.ContenedorDeDatosMasVisor;
         var splitter = crud.EstoyCreando ? crud.crudDeCreacion.Splitter : crud.crudDeEdicion.Splitter;
 
-        _cambiandoAncho = false;
-        _posicioInicial = undefined;
-        _anchoInicial = undefined;
-        _contenedorDeDatos = undefined;
-        _contenedorDelVisor = undefined;
+        ResetearParametrosDeArrastre();
 
         ApiControl.IncluirCss(contenedorDeDatosMasVisor, crud.EstoyCreando ? ltrCss.crud.panelCreacion.VisorOculto : ltrCss.crud.panelDeEdicion.VisorOculto);
-        splitter.addEventListener('mousedown', (e: MouseEvent) => {
-            ComienzoCambioDelAnchoContenedorDeDatos(e);
+        // se llama cada vez que se entra en creación o edición, pero el splitter sólo se inicializa la primera vez
+        ApiPanel.InicializarSplitter(splitter, {
+            alEmpezar: () => ComienzoCambioDelAnchoContenedorDeDatos(),
+            alMover: (clientX: number) => CambiarDeAnchoDelContenedorDeDatos(clientX),
+            alSoltar: () => FinalizarCambioDeAnchoDelContenedorDeDatos()
         });
     }
 
-    function ComienzoCambioDelAnchoContenedorDeDatos(e: MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
-
+    function ComienzoCambioDelAnchoContenedorDeDatos() {
         var crud = Crud.crudMnt;
         var contenedorDeDatos = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeDatos : crud.crudDeEdicion.ContenedorDeDatos;
         var contenedorCabecera = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeCabecera : crud.crudDeEdicion.ContenedorDeCabecera;
         var contenedorDelVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDelVisor : crud.crudDeEdicion.ContenedorDelVisor;
         var contenedorDeDatosMasVisor = crud.EstoyCreando ? crud.crudDeCreacion.ContenedorDeDatosMasVisor : crud.crudDeEdicion.ContenedorDeDatosMasVisor;
-        var splitter = crud.EstoyCreando ? crud.crudDeCreacion.Splitter : crud.crudDeEdicion.Splitter;
 
         _cambiandoAncho = true;
-        _posicioInicial = e.clientX;
-        _anchoInicial = contenedorDeDatos.offsetWidth;
         _contenedorDeDatos = contenedorDeDatos;
         _contenedorDelVisor = contenedorDelVisor;
         contenedorCabecera.style.width = "auto";
         contenedorDeDatosMasVisor.style.width = "auto";
-
-        document.addEventListener('mousemove', CambiarDeAnchoDelContenedorDeDatos.bind(splitter));
-        document.addEventListener('mouseup', FinalizarCambioDeAnchoDelContenedorDeDatos.bind(splitter));
-        document.addEventListener('mouseleave', FinalizarCambioDeAnchoDelContenedorDeDatos.bind(splitter));
     }
 
-    function CambiarDeAnchoDelContenedorDeDatos(e: MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if ((e.buttons & 1) === 0) {
-            FinalizarCambioDeAnchoDelContenedorDeDatos(e);
-            return;
-        }
-
-        if (!_cambiandoAncho) return;
-
-        if (_lastExecution && Date.now() - _lastExecution < 16) return;
-        _lastExecution = Date.now();
+    function CambiarDeAnchoDelContenedorDeDatos(clientX: number) {
+        if (!_cambiandoAncho || !Definido(_contenedorDeDatos)) return;
 
         const crud = Crud.crudMnt;
         const splitter = crud.EstoyCreando ? crud.crudDeCreacion.Splitter : crud.crudDeEdicion.Splitter;
-
         const contenedorEditorRect = _contenedorDeDatos.parentElement.getBoundingClientRect();
-        const splitterRect = splitter.getBoundingClientRect();
 
-        const margenAmpliado = 50;
-        const dentroDelRango =
-            e.clientX >= contenedorEditorRect.left &&
-            e.clientX <= contenedorEditorRect.right &&
-            e.clientX >= splitterRect.left - margenAmpliado &&
-            e.clientX <= splitterRect.right + margenAmpliado;
-
-        if (!dentroDelRango) {
-            FinalizarCambioDeAnchoDelContenedorDeDatos(e);
-            return;
-        }
-
-        const nuevoAnchoDatos = e.clientX - contenedorEditorRect.left;
+        // si el ratón se sale de los límites la barra se queda en el tope, en vez de dejar de seguirlo
+        const minWidth = 100;
+        const nuevoAnchoDatos = Math.min(Math.max(clientX - contenedorEditorRect.left, minWidth), contenedorEditorRect.width - 10 - minWidth);
         const nuevoAnchoVisor = contenedorEditorRect.width - nuevoAnchoDatos - 10;
 
-        const minWidth = 100;
-        if (nuevoAnchoDatos < minWidth || nuevoAnchoVisor < minWidth) return;
-
-        requestAnimationFrame(() => {
-            if (!Definido(_contenedorDeDatos)) return;
-            _contenedorDeDatos.style.width = `${nuevoAnchoDatos}px`;
-            _contenedorDelVisor.style.width = `${nuevoAnchoVisor - splitter.clientWidth}px`;
-            if (!crud.EstoyCreando) _contenedorDelVisor.parentElement.style.width = `${nuevoAnchoVisor - splitter.clientWidth}px`;
-            splitter.style.left = `${nuevoAnchoDatos}px`;
-        });
+        _contenedorDeDatos.style.width = `${nuevoAnchoDatos}px`;
+        _contenedorDelVisor.style.width = `${nuevoAnchoVisor - splitter.clientWidth}px`;
+        if (!crud.EstoyCreando) _contenedorDelVisor.parentElement.style.width = `${nuevoAnchoVisor - splitter.clientWidth}px`;
+        splitter.style.left = `${nuevoAnchoDatos}px`;
     }
 
-    function FinalizarCambioDeAnchoDelContenedorDeDatos(e: MouseEvent) {
-        var crud = Crud.crudMnt;
-        var splitter = crud.EstoyCreando ? crud.crudDeCreacion.Splitter : crud.crudDeEdicion.Splitter;
-        if (!_cambiandoAncho || _posicioInicial === undefined) return;
+    function FinalizarCambioDeAnchoDelContenedorDeDatos() {
+        if (!_cambiandoAncho) return;
 
-        console.log("Terminar el arrastre:");
+        var crud = Crud.crudMnt;
         try {
             ApiVisorDeArchivos.AjustarAnchoDeDatosMasVisor();
             GuardarTamanoDelVisor(crud);
         }
         finally {
-            document.removeEventListener('mousemove', CambiarDeAnchoDelContenedorDeDatos.bind(splitter));
-            document.removeEventListener('mouseup', FinalizarCambioDeAnchoDelContenedorDeDatos.bind(splitter));
-            document.removeEventListener('mouseleave', FinalizarCambioDeAnchoDelContenedorDeDatos.bind(splitter));
             ResetearParametrosDeArrastre();
         }
     }
 
     function ResetearParametrosDeArrastre() {
         _cambiandoAncho = false;
-        _posicioInicial = undefined;
-        _anchoInicial = undefined;
         _contenedorDeDatos = undefined;
         _contenedorDelVisor = undefined;
-        _lastExecution = 0;
     }
 
     async function GuardarTamanoDelVisor(crud: Crud.CrudMnt) {
@@ -464,96 +409,48 @@ namespace ApiVisorDeArchivos {
         const crud = Crud.crudMnt;
         if (!Definido(crud.ContenedorDeTablaConGraficos))
             return;
-        const splitter = crud.Splitter;
 
-        _cambiandoAnchoTabla = false;
-        _posicioInicialSplitter = undefined;
-        _anchoInicialTabla = undefined;
-        _contenedorDeTabla = undefined;
-        _contenedorDeGraficos = undefined;
-
-        splitter.addEventListener('mousedown', (e: MouseEvent) => {
-            ComienzoCambioDelAnchoContenedorDeTablaConGraficos(e);
+        ResetearParametrosDeArrastreDeGraficos();
+        // el splitter sólo se inicializa la primera vez que se llama
+        ApiPanel.InicializarSplitter(crud.Splitter, {
+            alEmpezar: () => ComienzoCambioDelAnchoContenedorDeTablaConGraficos(),
+            alMover: (clientX: number) => CambiarDeAnchoDelContenedorDeTablaConGraficos(clientX),
+            alSoltar: () => FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos()
         });
     }
 
-    function ComienzoCambioDelAnchoContenedorDeTablaConGraficos(e: MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
-
+    function ComienzoCambioDelAnchoContenedorDeTablaConGraficos() {
         const crud = Crud.crudMnt;
-        const contenedorDeTablaConGraficos = crud.ContenedorDeTablaConGraficos;
-        const splitter = crud.Splitter;
-        const contenedorDeTabla = crud.ContenedorDeTabla;
-        const contenedorDeGraficos = crud.ContenedorDeGraficos;
-
         _cambiandoAnchoTabla = true;
-        _posicioInicialSplitter = e.clientX;
-        _anchoInicialTabla = contenedorDeTabla.offsetWidth;
-        _contenedorDeTabla = contenedorDeTabla;
-        _contenedorDeGraficos = contenedorDeGraficos;
-
-        document.addEventListener('mousemove', CambiarDeAnchoDelContenedorDeTablaConGraficos.bind(splitter));
-        document.addEventListener('mouseup', FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos.bind(splitter));
-        document.addEventListener('mouseleave', FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos.bind(splitter));
+        _contenedorDeTabla = crud.ContenedorDeTabla;
     }
 
-    export function CambiarDeAnchoDelContenedorDeTablaConGraficos(e: MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
+    function CambiarDeAnchoDelContenedorDeTablaConGraficos(clientX: number) {
+        if (!_cambiandoAnchoTabla || !Definido(_contenedorDeTabla)) return;
 
-        if ((e.buttons & 1) === 0) {
-            FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos(e);
-            return;
-        }
+        const crud = Crud.crudMnt;
+        const contenedorPrincipalRect = _contenedorDeTabla.parentElement.getBoundingClientRect();
+        const anchoTotal = contenedorPrincipalRect.width;
+        const anchoSplitter = crud.Splitter.clientWidth;
 
+        // si el ratón se sale de los límites la barra se queda en el tope, en vez de dejar de seguirlo
+        const minWidth = 100;
+        const nuevoAnchoTabla = Math.min(Math.max(clientX - contenedorPrincipalRect.left, minWidth), anchoTotal - anchoSplitter - minWidth);
+
+        // div-graficos ocupa por CSS (flex: 1) lo que queda a la derecha del splitter
+        _contenedorDeTabla.style.width = `${nuevoAnchoTabla}px`;
+    }
+
+    function FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos() {
         if (!_cambiandoAnchoTabla) return;
 
-        if (_ultimaEjecucion && Date.now() - _ultimaEjecucion < 16) return;
-        _ultimaEjecucion = Date.now();
-
-        const crud = Crud.crudMnt;
-        const splitter = crud.Splitter;
-
-        const contenedorPrincipalRect = _contenedorDeTabla.parentElement.getBoundingClientRect();
-        const nuevoAnchoTabla = e.clientX - contenedorPrincipalRect.left;
-        const anchoTotal = contenedorPrincipalRect.width;
-        const anchoSplitter = splitter.clientWidth;
-        const nuevoAnchoGraficos = anchoTotal - nuevoAnchoTabla - anchoSplitter;
-
-        const minWidth = 100;
-        if (nuevoAnchoTabla < minWidth || nuevoAnchoGraficos < minWidth) return;
-
-        requestAnimationFrame(() => {
-            if (!Definido(_contenedorDeTabla) || !Definido(_contenedorDeGraficos)) return;
-            _contenedorDeTabla.style.width = `${nuevoAnchoTabla}px`;
-            _contenedorDeGraficos.style.width = `${nuevoAnchoGraficos}px`;
-        });
-    }
-
-    function FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos(e: MouseEvent) {
-        var crud = Crud.crudMnt;
-        var splitter = crud.Splitter;
-        if (!_cambiandoAnchoTabla || _posicioInicialSplitter === undefined) return;
-
-        try {
-            // GuardarTamanoDeGraficos(crud);
-        }
-        finally {
-            document.removeEventListener('mousemove', CambiarDeAnchoDelContenedorDeTablaConGraficos.bind(splitter));
-            document.removeEventListener('mouseup', FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos.bind(splitter));
-            document.removeEventListener('mouseleave', FinalizarCambioDeAnchoDelContenedorDeTablaConGraficos.bind(splitter));
-            ResetearParametrosDeArrastreDeGraficos();
-        }
+        // GuardarTamanoDeGraficos(crud);
+        ResetearParametrosDeArrastreDeGraficos();
     }
 
     function ResetearParametrosDeArrastreDeGraficos() {
         _cambiandoAnchoTabla = false;
-        _posicioInicialSplitter = undefined;
-        _anchoInicialTabla = undefined;
         _contenedorDeTabla = undefined;
-        _contenedorDeGraficos = undefined;
-        _ultimaEjecucion = 0;
     }
 
     export function OcultarContenedorDeGraficos(): boolean {
@@ -610,8 +507,8 @@ namespace ApiVisorDeArchivos {
         const minWidth = 100;
         if (nuevoAnchoTabla < minWidth || nuevoAnchoGraficos < minWidth) return;
 
+        // div-graficos ocupa por CSS (flex: 1) lo que queda a la derecha del splitter
         contenedorDeTabla.style.width = `${nuevoAnchoTabla}px`;
-        crud.ContenedorDeGraficos.style.width = `${nuevoAnchoGraficos}px`;
         return true;
     }
 
