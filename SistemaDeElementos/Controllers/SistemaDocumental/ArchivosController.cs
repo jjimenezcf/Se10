@@ -190,6 +190,8 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
 
             if (!elemento.EsConsultor(Contexto))
                 throw new Exception($"No tiene acceso al elemento {elemento.Referencia(Contexto)}");
+
+            ApiDeArchivos.ValidarQueEsAnexoDelElemento(Contexto, enumNegocio, idElemento, idArchivo);
         }
 
         return DescargarArchivo(idArchivo, auditarDescarga: auditar);

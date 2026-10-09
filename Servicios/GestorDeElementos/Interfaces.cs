@@ -5,6 +5,7 @@ using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Utilidades;
 
@@ -63,6 +64,7 @@ namespace GestorDeElementos
         public object EliminarRegistroPorId(int id, Dictionary<string, object> parametros);
         public int Contar(List<ClausulaDeFiltrado> clausulaDeFiltrados, ParametrosDeNegocio parametros = null);
         public bool Existen(List<ClausulaDeFiltrado> clausulaDeFiltrados, ParametrosDeNegocio parametros = null);
+        public IQueryable<int> IdsConsultables();
         public object ValidarPermisosDePersistencia(enumTipoOperacion operacion, enumNegocio negocio, int id, Dictionary<string, object> parametros = null);
 
         public object PersistirElementoDto(object elementoDto, ParametrosDeNegocio parametros);

@@ -1293,6 +1293,20 @@ namespace GestorDeElementos
             return consulta;
         }
 
+        public static IQueryable<int> IdsConPermisoPorElemento<P>(ContextoSe contexto, enumNegocio negocio)
+        where P : PermisosDelElementoDtm
+        {
+            var idNegocio = NegociosDeSe.LeerNegocioPorEnumerado(negocio).Id;
+            var idUsuario = contexto.DatosDeConexion.IdUsuario;
+
+            return contexto.Set<PermisosPorElementoDtm>()
+                .Where(y => y.IdNegocio == idNegocio
+                         && y.IdUsuario == idUsuario
+                         && contexto.Set<P>().Any(t => t.IdElemento == y.IdElemento
+                                                    && (t.IdConsultor == y.IdPermiso || t.IdGestor == y.IdPermiso || t.IdAdministrador == y.IdPermiso)))
+                .Select(y => y.IdElemento);
+        }
+
 
         public static IQueryable<R> DeNegocio<R, P>(ContextoSe contexto, enumNegocio negocio, IQueryable<R> consulta)
         where R : RegistroDtm

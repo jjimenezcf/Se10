@@ -463,6 +463,25 @@ namespace GestorDeElementos
                 GestorDeErrores.Emitir($"El archivo no está anexado al elemento del negocio {negocio.ToNombre()}");
         }
 
+        /// <summary>
+        /// Valida que el archivo es uno de los que se muestran como anexos del elemento: anexado directamente,
+        /// o anexado a los archivadores vinculados al elemento o a sus carpetas
+        /// </summary>
+        public static void ValidarQueEsAnexoDelElemento(ContextoSe contexto, enumNegocio negocio, int idElemento, int idArchivo)
+        {
+            if (VinculoSql.LeerVinculo(contexto, NegociosDeSe.TipoDtm(negocio), enumNegocio.Archivos, idElemento, idArchivo, false) != null)
+                return;
+
+            if (negocio == enumNegocio.Archivador || negocio.UsaArchivadores())
+            {
+                var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, idElemento);
+                if (elemento.ArchivosExt(contexto, recursivo: true, incluirOriginal: true).Any(a => a.IdArchivo == idArchivo))
+                    return;
+            }
+
+            GestorDeErrores.Emitir($"El archivo no está anexado al elemento del negocio {negocio.ToNombre()}");
+        }
+
         public static void ValidarQueNoEstaFirmado(ContextoSe contexto, int idArchivo)
         {
             var firmado = contexto.Set<FirmadoDtm>().Where(x => x.IdFirmado == idArchivo).FirstOrDefault();

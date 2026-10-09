@@ -85,6 +85,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<ArchivadoresDeUnAlmacenDtm>();
                 case enumNegocio.Regularizacion:
                     return contexto.Set<ArchivadoresDeUnaRegularizacionDtm>();
+                case enumNegocio.Gasto:
+                    return contexto.Set<ArchivadoresDeUnGastoDtm>();
             }
 
             throw new Exception($"Se debe indicar como obtener los archivos vinculados al negocio: {negocio}");

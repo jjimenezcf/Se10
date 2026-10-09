@@ -1381,6 +1381,13 @@ namespace GestorDeElementos
         }
 
         /// <summary>
+        /// Subconsulta con los ids de los registros que el usuario conectado puede consultar según la seguridad del negocio,
+        /// para poder aplicarla desde otros negocios sin materializarla
+        /// </summary>
+        public IQueryable<int> IdsConsultables()
+        => AplicarSeguridad(Contexto.Set<TRegistro>(), new List<ClausulaDeFiltrado>(), new ParametrosDeNegocio(enumTipoOperacion.LeerSinBloqueo)).Select(x => x.Id);
+
+        /// <summary>
         /// se indican que joins se han de montar cuando se defina la consulta en función de los filtros y los parámetros de negocio
         /// </summary>
         /// <param name="filtros">filtros que se van a aplicar</param>

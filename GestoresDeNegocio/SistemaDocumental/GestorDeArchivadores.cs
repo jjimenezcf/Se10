@@ -364,8 +364,37 @@ namespace GestoresDeNegocio.SistemaDocumental
             {
                 consulta = FiltrarPorSeguridad.DeTipo<ArchivadorDtm, TipoDeArchivadorDtm, PermisoDelArchivadorDtm>(Contexto, Negocio, consulta);
                 consulta = FiltrarPorSeguridad.DeCg<ArchivadorDtm, PermisoDelArchivadorDtm>(Contexto, Negocio, consulta);
+                //consulta = FiltrarPorElementosVinculados(consulta);
             }
             return consulta;
+        }
+
+        /// <summary>
+        /// Un archivador vinculado a otros elementos sólo es visible si el usuario puede consultar alguno de ellos,
+        /// o si tiene un permiso explícito sobre el propio archivador
+        /// </summary>
+        private IQueryable<ArchivadorDtm> FiltrarPorElementosVinculados(IQueryable<ArchivadorDtm> consulta)
+        {
+            IQueryable<int> vinculados = null;
+            IQueryable<int> consultables = null;
+            foreach (var tipoDtm in Negocio.VinculosCon(Contexto))
+            {
+                var negocio = NegociosDeSe.NegocioDeUnDtm(tipoDtm);
+                var vinculos = negocio.Archivadores(Contexto);
+                var idsConsultables = NegociosDeSe.CrearGestor(Contexto, negocio).IdsConsultables();
+
+                var archivadores = vinculos.Select(v => v.idElemento2);
+                var archivadoresConsultables = vinculos.Where(v => idsConsultables.Contains(v.idElemento1)).Select(v => v.idElemento2);
+
+                vinculados = vinculados is null ? archivadores : vinculados.Concat(archivadores);
+                consultables = consultables is null ? archivadoresConsultables : consultables.Concat(archivadoresConsultables);
+            }
+
+            if (vinculados is null)
+                return consulta;
+
+            var conPermisoExplicito = FiltrarPorSeguridad.IdsConPermisoPorElemento<PermisoDelArchivadorDtm>(Contexto, Negocio);
+            return consulta.Where(a => !vinculados.Contains(a.Id) || consultables.Contains(a.Id) || conPermisoExplicito.Contains(a.Id));
         }
 
         private int? _cfgIdTipoBackUp = null;
