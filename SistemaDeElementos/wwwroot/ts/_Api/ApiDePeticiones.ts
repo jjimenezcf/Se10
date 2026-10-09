@@ -443,13 +443,15 @@ namespace ApiDePeticiones {
         });
     }
 
-    export function RegistrarDescargaConGuid(llamador: any, idArchivo: number, caducaEl: Date): Promise<ApiDeAjax.DescriptorAjax> {
+    export function RegistrarDescargaConGuid(llamador: any, negocio: string, idElemento: number, idArchivo: number, caducaEl: Date): Promise<ApiDeAjax.DescriptorAjax> {
         return new Promise((resolve, reject) => {
             const caducaElFormateado = caducaEl && !isNaN(caducaEl.getTime())
                 ? caducaEl.toISOString()
                 : 'null';
 
             let url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.RegistrarDescargaConGuid}?` +
+                `${Ajax.Param.nombreDeNegocio}=${Encriptar(literal.ClaveDeEncriptacion, negocio)}&` +
+                `${Ajax.Param.idElemento}=${Encriptar(literal.ClaveDeEncriptacion, idElemento)}&` +
                 `${literal.id}=${Encriptar(literal.ClaveDeEncriptacion, idArchivo)}&` +
                 `${ltrPropiedades.SisDoc.Archivo.CaducaEl}=${Encriptar(literal.ClaveDeEncriptacion, caducaElFormateado)}`;
 

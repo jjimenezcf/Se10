@@ -215,7 +215,9 @@
                     //MapearAlControl.FechaDatePorPropiedad(modal, ltrPropiedades.SisDoc.Archivo.CaducaEl, caducaEl);
                     caducaEl = null;
                 }
-                ApiDePeticiones.RegistrarDescargaConGuid(modal, idArchivo, caducaEl)
+                const negocio = modal.getAttribute(atModal.NombreNegocio);
+                const idElemento = Numero(modal.getAttribute(atModal.idElemento));
+                ApiDePeticiones.RegistrarDescargaConGuid(modal, negocio, idElemento, idArchivo, caducaEl)
                     .then((peticion) => DespuesDeRegistrarDescargaConGuid(peticion))
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
             }

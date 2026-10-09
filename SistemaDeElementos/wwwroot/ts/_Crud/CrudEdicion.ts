@@ -2593,7 +2593,7 @@
             let idArchivo: number = this.IdArchivoMostrado;
             let caducaEl = new Date();
             caducaEl.setHours(caducaEl.getHours() + 2);
-            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, idArchivo, null)
+            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.ElementoEditado.Id, idArchivo, null)
                 .then((peticion) => this.DespuesDeRegistrarDescargaConGuid(peticion, false))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
@@ -2634,7 +2634,7 @@
             let idArchivo: number = this.IdArchivoMostrado;
             let caducaEl = new Date();
             caducaEl.setHours(caducaEl.getHours() + 2);
-            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, idArchivo, null)
+            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.ElementoEditado.Id, idArchivo, null)
                 .then((peticion) => this.DespuesDeRegistrarDescargaConGuid(peticion, true))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }

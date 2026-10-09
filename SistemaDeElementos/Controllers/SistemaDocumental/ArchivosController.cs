@@ -86,7 +86,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
     }
 
 
-    public JsonResult epRegistrarDescargaConGuid(int id, DateTime? caducaEl)
+    public JsonResult epRegistrarDescargaConGuid(string negocio, int idElemento, int id, DateTime? caducaEl)
     {
         {
             var resultado = new Resultado();
@@ -95,6 +95,11 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             try
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+                var enumNegocio = NegociosDeSe.ToEnumerado(negocio, nullValido: true);
+                if (enumNegocio == enumNegocio.No_Definido)
+                    GestorDeErrores.Emitir("Para generar un enlace de descarga se ha de indicar el elemento al que está anexado el archivo");
+
+                ValidarAccesoAlArchivo(enumNegocio, idElemento, id);
                 var archivo = _GestorDeElementos.LeerRegistroPorId(id, false, false, false, false);
 
                 if (caducaEl == null) caducaEl = DateTime.Now.AddHours(1);
@@ -178,23 +183,26 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
 
         var enumNegocio = NegociosDeSe.ToEnumerado(negocio, nullValido: true);
         if (enumNegocio != enumNegocio.No_Definido)
-        {
-            var gestor = enumNegocio.CrearGestor(Contexto);
-            IElementoDtm elemento;
-            if (enumNegocio == enumNegocio.Carpeta)
-            {
-                var carpeta = (CarpetaDtm)gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
-                elemento = Contexto.SeleccionarPorId<ArchivadorDtm>(carpeta.IdArchivador);
-            }
-            else elemento = (ElementoDtm)gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
-
-            if (!elemento.EsConsultor(Contexto))
-                throw new Exception($"No tiene acceso al elemento {elemento.Referencia(Contexto)}");
-
-            ApiDeArchivos.ValidarQueEsAnexoDelElemento(Contexto, enumNegocio, idElemento, idArchivo);
-        }
+            ValidarAccesoAlArchivo(enumNegocio, idElemento, idArchivo);
 
         return DescargarArchivo(idArchivo, auditarDescarga: auditar);
+    }
+
+    private void ValidarAccesoAlArchivo(enumNegocio negocio, int idElemento, int idArchivo)
+    {
+        var gestor = negocio.CrearGestor(Contexto);
+        IElementoDtm elemento;
+        if (negocio == enumNegocio.Carpeta)
+        {
+            var carpeta = (CarpetaDtm)gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
+            elemento = Contexto.SeleccionarPorId<ArchivadorDtm>(carpeta.IdArchivador);
+        }
+        else elemento = (ElementoDtm)gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
+
+        if (!elemento.EsConsultor(Contexto))
+            throw new Exception($"No tiene acceso al elemento {elemento.Referencia(Contexto)}");
+
+        ApiDeArchivos.ValidarQueEsAnexoDelElemento(Contexto, negocio, idElemento, idArchivo);
     }
 
     public FileStreamResult epDescargarArchivoParaCrear(int idArchivo)
