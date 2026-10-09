@@ -310,6 +310,53 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
         }
 
+        public static void DespuesDeVincular(EntornoDeUnaAccion entorno)
+        {
+            var vinculado = entorno.Parametros.LeerValor<enumNegocio>(nameof(ltrParametrosNeg.Vinculado));
+            if (SeAnotaElVinculo(vinculado))
+            {
+                var contexto = entorno.Contexto;
+                var idArchivador = entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdElemento));
+                var idVinculado = entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado));
+
+                var archivador = contexto.SeleccionarPorId<ArchivadorDtm>(idArchivador);
+                var (nombre, cuerpo) = ObservacionDelVinculo(contexto, vinculado, idVinculado);
+
+                archivador.CrearObservacion(contexto, nombre, cuerpo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+            }
+        }
+
+        public static void DespuesDeQuitarVinculo(EntornoDeUnaAccion entorno)
+        {
+            var vinculado = entorno.Parametros.LeerValor<enumNegocio>(nameof(ltrParametrosNeg.Vinculado));
+            if (SeAnotaElVinculo(vinculado))
+            {
+                var contexto = entorno.Contexto;
+                var idArchivador = entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdElemento));
+                var idVinculado = entorno.Parametros.LeerValor<int>(nameof(ltrParametrosNeg.IdVinculado));
+
+                var idAdministrador = contexto.Administrador().Id;
+                var (nombre, cuerpo) = ObservacionDelVinculo(contexto, vinculado, idVinculado);
+
+                var observaciones = enumNegocio.Archivador.Observaciones(contexto)
+                    .Where(o => o.IdElemento == idArchivador && o.IdCreador == idAdministrador && o.Nombre == nombre && o.Descripcion == cuerpo)
+                    .ToList();
+
+                var parametrosDeBorrado = new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true }, { ltrDeObservaciones.PermitirEliminar, true } };
+                foreach (var observacion in observaciones)
+                    observacion.EliminarObservacion(contexto, parametrosDeBorrado);
+            }
+        }
+
+        private static bool SeAnotaElVinculo(enumNegocio vinculado)
+        => vinculado != enumNegocio.Archivador && vinculado != enumNegocio.Carpeta && vinculado != enumNegocio.Archivos;
+
+        private static (string nombre, string cuerpo) ObservacionDelVinculo(ContextoSe contexto, enumNegocio vinculado, int idVinculado)
+        {
+            var elemento = (IElementoDtm)vinculado.LeerRegistro(contexto, idVinculado);
+            return ($"{vinculado.Singular()}: {elemento.Referencia(contexto)}", elemento.CrearLink(contexto).ToString());
+        }
+
         protected override IQueryable<ArchivadorDtm> AplicarSeguridad(IQueryable<ArchivadorDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
             consulta = base.AplicarSeguridad(consulta, filtros, parametros);
