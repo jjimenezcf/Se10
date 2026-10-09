@@ -1,6 +1,4 @@
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace ServicioDeReportes.Base
 {
@@ -12,31 +10,38 @@ namespace ServicioDeReportes.Base
         {
             try
             {
-                using var imagen = Image.Load<Rgba32>(rutaDeLaImagen);
+                using var codec = SKCodec.Create(rutaDeLaImagen);
+                if (codec == null) return null;
+
+                // Rgba sin premultiplicar para comparar los colores tal cual, con independencia de la transparencia
+                var formato = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+                using var imagen = SKBitmap.Decode(codec, formato);
+                if (imagen == null) return null;
+
                 int izquierda = imagen.Width, derecha = -1, arriba = imagen.Height, abajo = -1;
 
-                imagen.ProcessPixelRows(filas =>
+                var pixeles = imagen.GetPixelSpan();
+                for (var y = 0; y < imagen.Height; y++)
                 {
-                    for (var y = 0; y < filas.Height; y++)
+                    var fila = pixeles.Slice(y * imagen.RowBytes, imagen.Width * imagen.BytesPerPixel);
+                    for (var x = 0; x < imagen.Width; x++)
                     {
-                        var fila = filas.GetRowSpan(y);
-                        for (var x = 0; x < fila.Length; x++)
-                        {
-                            if (EsFondo(fila[x])) continue;
-                            if (x < izquierda) izquierda = x;
-                            if (x > derecha) derecha = x;
-                            if (y < arriba) arriba = y;
-                            if (y > abajo) abajo = y;
-                        }
+                        if (EsFondo(fila.Slice(x * imagen.BytesPerPixel, imagen.BytesPerPixel))) continue;
+                        if (x < izquierda) izquierda = x;
+                        if (x > derecha) derecha = x;
+                        if (y < arriba) arriba = y;
+                        if (y > abajo) abajo = y;
                     }
-                });
+                }
 
-                if (derecha >= izquierda && abajo >= arriba)
-                    imagen.Mutate(x => x.Crop(new Rectangle(izquierda, arriba, derecha - izquierda + 1, abajo - arriba + 1)));
+                var recorte = derecha >= izquierda && abajo >= arriba
+                    ? new SKRectI(izquierda, arriba, derecha + 1, abajo + 1)
+                    : new SKRectI(0, 0, imagen.Width, imagen.Height);
 
-                using var salida = new MemoryStream();
-                imagen.SaveAsPng(salida);
-                return (salida.ToArray(), (float)imagen.Width / imagen.Height);
+                using var completa = SKImage.FromBitmap(imagen);
+                using var recortada = completa.Subset(recorte);
+                using var salida = recortada.Encode(SKEncodedImageFormat.Png, 100);
+                return (salida.ToArray(), (float)recortada.Width / recortada.Height);
             }
             catch
             {
@@ -44,6 +49,7 @@ namespace ServicioDeReportes.Base
             }
         }
 
-        private static bool EsFondo(Rgba32 pixel) => pixel.A < 16 || (pixel.R > 240 && pixel.G > 240 && pixel.B > 240);
+        // pixel en Rgba8888: [R, G, B, A]
+        private static bool EsFondo(ReadOnlySpan<byte> pixel) => pixel[3] < 16 || (pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
     }
 }

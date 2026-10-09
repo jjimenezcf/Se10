@@ -4,7 +4,6 @@ using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Data;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using Newtonsoft.Json;
-using SixLabors.ImageSharp;
 using System.Drawing;
 using System.Globalization;
 using System.Text;

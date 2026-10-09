@@ -23,13 +23,20 @@ namespace ServicioDeReportes.Base
         {
             try
             {
+                // Sin márgenes el logo ocupa todo el hueco reservado; si no se puede recortar se muestra tal cual
+                var recortado = File.Exists(logo) ? ApiDeImagenes.RecortarMargenes(logo) : null;
+
                 descriptorDeFila.RelativeItem().Column(columna =>
                 {
                     if (File.Exists(logo))
                         columna.Item().Row(fila =>
                         {
                             fila.RelativeItem();
-                            fila.AutoItem().Width(anchoLogo).Height(altoLogo).AlignRight().Image(logo).FitArea();
+                            var hueco = fila.AutoItem().Width(anchoLogo).Height(altoLogo).AlignRight();
+                            if (recortado is null)
+                                hueco.Image(logo).FitArea();
+                            else
+                                hueco.Image(recortado.Value.Imagen).FitArea();
                         });
                     else
                         columna.Item().AlignRight().Text(texto).FontSize(7).FontColor(Colors.Grey.Darken2);

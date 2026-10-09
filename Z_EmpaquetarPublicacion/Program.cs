@@ -125,7 +125,6 @@ class Program
                    "Magick.NET.Core.dll",
                    "SkiaSharp.dll",
                    "libSkiaSharp.dll",
-                   "SixLabors.ImageSharp.dll",
                
                    // Reporting
                    "QuestPDF.dll",
