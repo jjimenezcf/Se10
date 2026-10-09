@@ -15,12 +15,12 @@ namespace ServicioDeDatos.Tarea
     {
         [Description("Seleccionar...")]
         Seleccionar,
-        //[Description("Antes que")]
-        //Anterior,
+        [Description("Continuación de")]
+        Continuacion,
         [Description("Copiada de")]
         Copia,
-        //[Description("Después de")]
-        //Despues
+        [Description("Enlazada a")]
+        Enlazada
     }
 
     public enum enumCuandoRealizar

@@ -587,22 +587,11 @@ namespace GestoresDeNegocio.Tarea
                 var referenciadaComo = parametros.LeerValor(nameof(CopiarTareaDto.ReferenciadaComo), enumTareaReferenciadaComo.Seleccionar);
                 if (referenciadaComo != enumTareaReferenciadaComo.Seleccionar)
                 {
-                    if (referenciadaComo == enumTareaReferenciadaComo.Copia)
+                    t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                    if (referenciadaComo == enumTareaReferenciadaComo.Enlazada)
                     {
-                        t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                        t1.CrearObservacion(contexto, enumTareaReferenciadaComo.Enlazada.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t2.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
                     }
-                    //else
-                    //if (referenciadaComo == enumTareaReferenciadaComo.Anterior)
-                    //{
-                    //    t1.CrearObservacion(contexto, enumTareaReferenciadaComo.Despues.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t2.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
-                    //    t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
-                    //}
-                    //else
-                    //if (referenciadaComo == enumTareaReferenciadaComo.Despues)
-                    //{
-                    //    t1.CrearObservacion(contexto, enumTareaReferenciadaComo.Anterior.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t2.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
-                    //    t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
-                    //}
                 }
             }
 
