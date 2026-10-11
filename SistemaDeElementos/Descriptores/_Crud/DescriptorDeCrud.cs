@@ -291,6 +291,10 @@ namespace MVCSistemaDeElementos.Descriptores
                     UsaCompartir = true;
                 }
 
+                // Los elementos con datos de contacto tienen en la edición, junto al eMail, un botón para enviar por correo enlaces de descarga de los archivos del elemento
+                if (Negocio != enumNegocio.No_Definido && typeof(IDatosDeContactoDto).IsAssignableFrom(typeof(TElemento)))
+                    modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(EnviarCorreoExternoDto), eventosDeMf.Comun_EnviarCorreoExterno, "Enviar por correo"));
+
                 if (Historial is not null)
                 {
                     Mnt.ZonaMenu.AnadirOpcionDeIrAHistorial();

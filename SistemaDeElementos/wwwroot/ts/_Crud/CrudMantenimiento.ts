@@ -2534,7 +2534,85 @@
             ApiPanel.OcultarModal(modal);
         }
 
+        public get ModalEnviarCorreoExterno(): HTMLDivElement {
+            return document.getElementById(`${this.IdCrud}-${ltrMenus.eventosDeMf.Comun.EnviarCorreoExterno}`) as HTMLDivElement;
+        }
+
+        private get ListaDeArchivosParaEnviar(): HTMLDivElement {
+            let modal = this.ModalEnviarCorreoExterno;
+            let lista = modal.querySelector(`div.${ltrCss.EnviarPorCorreo.ListaDeArchivos}`) as HTMLDivElement;
+            if (Definido(lista)) return lista;
+
+            // la lista depende del elemento, no es una propiedad del Dto: se añade al cuerpo de la modal, tras los controles del Dto
+            let cuerpo = modal.querySelector(`div.${ltrCss.Modal.ContenedorEdicionCuerpo}`) as HTMLDivElement;
+            let contenedor = document.createElement('div');
+            let titulo = document.createElement('label');
+            titulo.textContent = 'Archivos a enviar (se añade al cuerpo un enlace de descarga por cada uno marcado)';
+            // en una sola línea, lo que no cabe se corta con '...': el texto completo queda en el title
+            titulo.title = titulo.textContent;
+            ApiControl.IncluirCss(titulo, ltrCss.EnviarPorCorreo.TituloDeLaLista);
+            contenedor.appendChild(titulo);
+            lista = document.createElement('div');
+            ApiControl.IncluirCss(lista, ltrCss.EnviarPorCorreo.ListaDeArchivos);
+            contenedor.appendChild(lista);
+            cuerpo.appendChild(contenedor);
+            return lista;
+        }
+
+        // Se abre desde el botón del correo de la edición (ver CrudEdicion.AnadirBotonDeEnviarPorCorreo)
+        public ModalEnviarCorreoExterno_Abrir(correo: string, idElemento: number): void {
+            let modal = this.ModalEnviarCorreoExterno;
+            ApiPanel.BlanquearControlesDeIU(modal);
+            modal.setAttribute(atModal.idElemento1, idElemento.toString());
+            ApiControl.MapearEditor(modal, ltrPropiedades.Entorno.EnviarCorreoExterno.Para, correo);
+            let lista = this.ListaDeArchivosParaEnviar;
+            lista.innerHTML = '';
+
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(Ajax.Param.idNegocio, this.IdNegocio));
+            parametros.push(new Parametro(ltrPropiedades.Entorno.EnviarCorreoExterno.IdElemento, idElemento));
+            ApiDePeticiones.EjecutarPeticion(this, ltrControladores.SisDoc.Archivos, Ajax.Archivos.accion.LeerAnexadosDirectos, parametros, new Array<Parametro>())
+                .then((peticion) => {
+                    let archivos: Array<any> = peticion.resultado.datos;
+                    if (archivos.length === 0)
+                        lista.innerHTML = '<span>El elemento no tiene archivos anexados</span>';
+                    for (let archivo of archivos) {
+                        let fila = document.createElement('label');
+                        let check = document.createElement('input');
+                        check.type = 'checkbox';
+                        check.value = ObtenerPropiedad(archivo, literal.id);
+                        fila.appendChild(check);
+                        fila.appendChild(document.createTextNode(ObtenerPropiedad(archivo, literal.nombre)));
+                        lista.appendChild(fila);
+                    }
+                    ApiPanel.AbrirModal(modal);
+                })
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+        }
+
+        private ModalEnviarCorreoExterno_Enviar(modal: HTMLDivElement): void {
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
+            parametros.push(new Parametro(Ajax.Param.idNegocio, this.IdNegocio));
+            parametros.push(new Parametro(ltrPropiedades.Entorno.EnviarCorreoExterno.IdElemento, Numero(modal.getAttribute(atModal.idElemento1))));
+            let marcados = Array.from(this.ListaDeArchivosParaEnviar.querySelectorAll('input[type=checkbox]:checked') as NodeListOf<HTMLInputElement>);
+            parametros.push(new Parametro(Ajax.Param.ids, marcados.map(check => Numero(check.value))));
+            ApiDePeticiones.EjecutarPeticion(this, ltrControladores.Entorno.Correos, Ajax.EndPoint.Entorno.Correos.EnviarCorreoExterno, parametros, new Array<Parametro>())
+                .then((peticion) => {
+                    MensajesSe.Info(peticion.resultado.mensaje);
+                    this.ModalDePedirDatos_Cerrar(modal);
+                    // el envío deja una traza en el elemento
+                    this.crudDeEdicion?.RecargarGridDeTrazas();
+                })
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+        }
+
         public ModalDePedirDatos_Aceptar(modal: HTMLDivElement): void {
+            if (modal.id === (this.ModalEnviarCorreoExterno?.id ?? '')) {
+                this.ModalEnviarCorreoExterno_Enviar(modal);
+                return;
+            }
+
             if (this.modoTrabajo === enumModoTrabajo.editando)
                 this.crudDeEdicion.Recargar();
             else if (modal.id === (this.ModalEnviarElemento?.id ?? '')) {

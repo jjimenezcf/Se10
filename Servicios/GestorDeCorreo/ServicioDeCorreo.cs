@@ -158,7 +158,19 @@ namespace ServicioDeCorreos
             if (!dejarElReceptore)
                 receptores.RemoveAll(item => item == emisor);
             
-            receptores = receptores.Select(r => r.Trim()).Distinct().ToList();
+            receptores = receptores.Where(r => !r.IsNullOrEmpty()).Select(r => r.Trim()).Distinct().ToList();
+
+            // Con manejador (correo encolado) el error se anota en el correo como cualquier otro fallo de envío; sin él se relanza al llamador
+            try
+            {
+                receptores.ForEach(extCorreos.ValidarMail);
+            }
+            catch (Exception ex) when (manejador != null)
+            {
+                DespuesDeEnviarElCorreo(this, new AsyncCompletedEventArgs(ex, false, manejador));
+                return;
+            }
+
             if (receptores.Count > 1)
             {
                 mensaje = mensaje + Environment.NewLine + $"Receptores: '{string.Join(Simbolos.separadorDeCorreos, receptores)}'";

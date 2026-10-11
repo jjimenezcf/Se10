@@ -462,6 +462,19 @@ namespace GestoresDeNegocio.SistemaDocumental
             return (List<ArchivoDtm>)cache[indice];
         }
 
+        // Sólo los archivos vinculados directamente al elemento (sin los de sus elementos relacionados ni los de sus archivadores, que sí lee LeerAnexados),
+        // validando que el usuario tenga acceso a sus anexados
+        public List<ArchivoDtm> LeerAnexadosDirectos(enumNegocio negocio, int idElemento)
+        {
+            if (!negocio.UsaArchivos())
+                return new List<ArchivoDtm>();
+
+            return LeerAnexadosAlRegistro(negocio, idElemento, new Dictionary<string, object> {
+                    { ltrParametrosNeg.IncluirOriginales, false },
+                    { ltrParametrosNeg.Peticion, enumPeticion.epLeerAnexados }
+                });
+        }
+
         public List<ArchivoDto> LeerAnexados(enumNegocio negocio, int idElemento, int posicion, int cantidad, string guid, Dictionary<string, object> parametros)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Arc_AnexadosDto_PorGuid);

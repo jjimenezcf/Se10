@@ -3,17 +3,13 @@ using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
 using GestoresDeNegocio.Gastos;
-using GestoresDeNegocio.Negocio;
 using GestoresDeNegocio.SistemaDocumental;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ModeloDeDto.SistemaDocumental;
-using MVCSistemaDeElementos.Controllers;
 using MVCSistemaDeElementos.UtilidadesIu;
 using Newtonsoft.Json;
-using NuGet.Protocol.Core.Types;
 using RtfPipe;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
@@ -712,6 +708,31 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             ApiController.PrepararError(e, r, "No se ha podido leer.");
         }
 
+        return new JsonResult(r);
+    }
+
+    // Sólo los archivos vinculados directamente al elemento (epLeerAnexados incluye también los de sus elementos relacionados y archivadores);
+    // los usa, por ejemplo, la modal de enviar un correo externo para marcar los archivos de los que se envía un enlace de descarga
+    public JsonResult epLeerAnexadosDirectos(string parametrosJson)
+    {
+        var r = new Resultado();
+        Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+        try
+        {
+            ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            var negocio = NegociosDeSe.ToEnumerado((int)parametros.LeerValor<long>(ltrParametrosEp.idNegocio));
+            var idElemento = (int)parametros.LeerValor<long>(ltrParametrosEp.idElemento);
+
+            r.Datos = ((GestorDeArchivos)_GestorDeElementos).LeerAnexadosDirectos(negocio, idElemento)
+                .Select(archivo => new { archivo.Id, archivo.Nombre })
+                .ToList();
+            r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+            r.Estado = enumEstadoPeticion.Ok;
+        }
+        catch (Exception e)
+        {
+            ApiController.PrepararError(e, r, "Error al leer los archivos del elemento.");
+        }
         return new JsonResult(r);
     }
 

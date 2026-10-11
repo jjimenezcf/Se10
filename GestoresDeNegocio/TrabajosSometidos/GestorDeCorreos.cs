@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using Dapper;
 using GestorDeElementos.Extensores;
 using ModeloDeDto.Negocio;
+using GestoresDeNegocio.SistemaDocumental;
+using ServicioDeDatos.SistemaDocumental;
 
 namespace GestoresDeNegocio.TrabajosSometidos
 {
@@ -182,6 +184,60 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 , (string)parametros[ltrParamCorreos.cuerpo]
                 , (List<TipoDtoElmento>)parametros[ltrParamCorreos.adjuntos]
                 , (List<string>)parametros[ltrParamCorreos.archivos]);
+        }
+
+        // Encola un correo al destinatario indicado con, al final del cuerpo, un enlace de descarga con guid por cada archivo marcado del elemento;
+        // los archivos no van adjuntos, los enlaces caducan a las horas indicadas en la variable CFG_Horas_De_Validez_De_Enlaces_Archivos
+        public static CorreoDtm EnviarCorreoExterno(ContextoSe contexto, enumNegocio negocio, int idElemento, string para, string asunto, string cuerpo, List<int> idsDeArchivos)
+        {
+            if (para.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el correo al que enviar");
+            if (!extCorreos.EsUnCorreo(para)) GestorDeErrores.Emitir(extCorreos.MensajeDeCorreoNoValido(para));
+            if (asunto.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el asunto");
+            if (cuerpo.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el cuerpo");
+
+            var horasDeValidez = CacheDeVariable.CFG_Horas_De_Validez_De_Enlaces_Archivos;
+            var tran = contexto.IniciarTransaccion();
+            try
+            {
+                var anexados = GestorDeArchivos.Gestor(contexto, contexto.Mapeador).LeerAnexadosDirectos(negocio, idElemento);
+                var enlaces = new List<string>();
+                foreach (var idArchivo in idsDeArchivos)
+                {
+                    var archivo = anexados.FirstOrDefault(a => a.Id == idArchivo);
+                    if (archivo is null)
+                        GestorDeErrores.Emitir($"El archivo con id '{idArchivo}' no está anexado al elemento que se envía");
+                    enlaces.Add(archivo.HrefDeDescargaConGuid(contexto, horasDeValidez));
+                }
+
+                if (enlaces.Count > 0)
+                    cuerpo = $"{cuerpo}{Environment.NewLine}{Environment.NewLine}Archivos para descargar:{Environment.NewLine}{string.Join(Environment.NewLine, enlaces)}";
+
+                var correo = CrearCorreoDe(contexto
+                    , GestorDeUsuarios.LeerUsuario(contexto, contexto.DatosDeConexion.IdUsuario).eMail
+                    , new List<string> { para }
+                    , asunto
+                    , cuerpo
+                    , new List<TipoDtoElmento>()
+                    , new List<string>());
+
+                if (negocio.UsaTrazas())
+                {
+                    // las urls de descarga, una por línea, detrás de la cabecera del mensaje
+                    var mensaje = enlaces.Count == 0
+                        ? $"Se ha enviado a '{para}' el correo '{asunto}' sin enlaces de descarga"
+                        : $"Se ha enviado a '{para}' el correo '{asunto}', válido{(enlaces.Count == 1 ? "" : "s")} durante {horasDeValidez} horas, con {enlaces.Count} enlace{(enlaces.Count == 1 ? "" : "s")} de descarga:" +
+                          $"{Environment.NewLine}{string.Join(Environment.NewLine, enlaces)}";
+                    ((IElementoDtm)negocio.LeerRegistro(contexto, idElemento)).CrearTraza(contexto, enumTraza.envioDeCorreo.Descripcion(), mensaje);
+                }
+
+                contexto.Commit(tran);
+                return correo;
+            }
+            catch
+            {
+                contexto.Rollback(tran);
+                throw;
+            }
         }
 
         private static void ValidarParametrosDeCorreo(ContextoSe contexto, Dictionary<string, object> parametros)

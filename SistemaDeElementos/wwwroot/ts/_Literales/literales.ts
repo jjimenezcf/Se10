@@ -1073,7 +1073,8 @@ const ltrCss = {
     EnviarPorCorreo: {
         Boton: 'boton-enviar-por-correo',
         InputConBoton: 'con-boton-de-correo',
-        ListaDeArchivos: 'archivos-para-enviar'
+        ListaDeArchivos: 'archivos-para-enviar',
+        TituloDeLaLista: 'titulo-archivos-para-enviar'
     },
     crud: {
         cuerpo: 'cuerpo',
@@ -1532,6 +1533,7 @@ const Ajax = {
             DescargaConGuid: 'epDescargaConGuid',
             AnularFirma: 'epAnularFirma',
             LeerAnexados: 'epLeerAnexados',
+            LeerAnexadosDirectos: 'epLeerAnexadosDirectos',
             LeerAnexadosPorGuid: 'epLeerAnexadosPorGuid',
             DescargarZipToHtml: 'epDescargarZipToHtml',
             DescargarDocxToHtml: 'epDescargarDocxToHtml',
@@ -1628,8 +1630,7 @@ const Ajax = {
         },
         Entorno: {
             Correos: {
-                ArchivosParaEnviar: 'epArchivosParaEnviar',
-                EnviarArchivosConGuid: 'epEnviarArchivosConGuid'
+                EnviarCorreoExterno: 'epEnviarCorreoExterno'
             },
             MiCorreo: {
                 Archivar: 'epArchivarCorreo',

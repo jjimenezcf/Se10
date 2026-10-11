@@ -1001,3 +1001,107 @@ div[propiedad="Dar de alta"] a[href^="javascript:Crud.EventosDeExpansores('dar-d
     font-family: inherit;
     resize: none;
 }
+
+
+/* Botón a la derecha del correo (propiedad eMail) de la edición: abre la modal de enviar por correo enlaces de descarga de los archivos.
+   El input y el botón se ven como un único control: el input pierde las esquinas derechas y el botón continúa su borde sin separación.
+   El icono (un sobre) es un svg embebido como fondo, así el botón no depende de ninguna imagen ni ruta */
+input.editor-dto.con-boton-de-correo {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.boton-enviar-por-correo {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: 2.5rem;
+    height: calc(1.5em + .75rem + 2px); /* la misma altura que .editor-dto */
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ced4da;
+    border-left: none;
+    border-radius: 0 .25rem .25rem 0;
+    background-color: #e9ecef;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23495057' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='4' width='20' height='16' rx='2'/%3E%3Cpath d='m22 7-10 6L2 7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1.15rem 1.15rem;
+    cursor: pointer;
+    transition: background-color .15s ease-in-out;
+}
+
+    .boton-enviar-por-correo:focus-visible {
+        outline: 2px solid #80bdff;
+        outline-offset: -2px;
+    }
+
+    .boton-enviar-por-correo:hover {
+        background-color: #dde0e3;
+    }
+
+    .boton-enviar-por-correo:active {
+        background-color: #ced4da;
+    }
+
+/* En el móvil (una sola hilera de controles) CrudBase.css fuerza width y min-width al 100% en los inputs de las propiedades, lo que
+   echaría el botón a la línea de abajo: el input del correo ocupa lo que deja el botón y ambos se mantienen en la misma línea */
+@media (max-width: 47.94em) {
+    .contenedor-editor:has(> .boton-enviar-por-correo) {
+        flex-wrap: nowrap !important;
+    }
+
+    .div-td.dto-td.td-propiedad input.editor-dto.con-boton-de-correo {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    .div-td.dto-td.td-propiedad .boton-enviar-por-correo {
+        flex: 0 0 auto !important;
+    }
+}
+
+/* Título de la lista de archivos de la modal de enviar por correo: siempre en una línea, lo que no cabe (en el móvil) se corta con '...' */
+.titulo-archivos-para-enviar {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Lista de archivos a marcar en la modal de enviar por correo: cada archivo (check + nombre) en una sola línea, aunque el nombre sea largo
+   (en el móvil sale scroll horizontal en vez de partir la línea), y como mucho 10 archivos a la vista, con scroll vertical si hay más */
+.archivos-para-enviar {
+    --alto-fila-archivo: 1.75em;
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+    max-height: calc(10 * var(--alto-fila-archivo) + 10px); /* 10 filas + padding y borde */
+    overflow-x: auto;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+    .archivos-para-enviar label {
+        display: flex;
+        align-items: center;
+        gap: .4em;
+        width: max-content;  /* la fila mide lo que su contenido: lo que no cabe se ve con el scroll del div */
+        min-width: 100%;
+        height: var(--alto-fila-archivo);
+        margin: 0;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+        .archivos-para-enviar label input[type=checkbox] {
+            flex: 0 0 auto;
+            width: auto !important;  /* en el móvil CrudBase.css estira los inputs al 100% */
+            min-width: 0 !important;
+            margin: 0;
+        }

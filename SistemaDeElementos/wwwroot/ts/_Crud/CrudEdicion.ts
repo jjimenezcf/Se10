@@ -1679,6 +1679,29 @@
 
             let informacion: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Informacion, undefined);
             if (!IsNullOrEmpty(informacion)) MensajesSe.Info(informacion, informacion);
+
+            this.AnadirBotonDeEnviarPorCorreo(panel);
+        }
+
+        // A la derecha del correo (propiedad eMail) un botón para enviar a esa dirección enlaces de descarga de los archivos del elemento;
+        // el panel de edición se reutiliza, así que el botón se crea una sola vez y toma el correo y el elemento al pulsarlo
+        private AnadirBotonDeEnviarPorCorreo(panel: HTMLDivElement) {
+            if (!Definido(this.CrudDeMnt.ModalEnviarCorreoExterno))
+                return;
+
+            let correo = ApiControl.BuscarEditor(panel, ltrPropiedades.Entorno.EnviarCorreoExterno.eMail) as HTMLInputElement;
+            if (!Definido(correo) || Definido(correo.parentElement.querySelector(`.${ltrCss.EnviarPorCorreo.Boton}`)))
+                return;
+
+            // el icono del sobre lo pone la clase (ver .boton-enviar-por-correo en CrudEdicion.css)
+            let boton = document.createElement('button');
+            boton.type = 'button';
+            ApiControl.IncluirCss(boton, ltrCss.EnviarPorCorreo.Boton);
+            boton.title = 'Enviar correo';
+            boton.onclick = () => this.CrudDeMnt.ModalEnviarCorreoExterno_Abrir(correo.value, this.ElementoEditado.Id);
+            // el input y el botón se pintan como un único control (ver .con-boton-de-correo en CrudEdicion.css)
+            ApiControl.IncluirCss(correo, ltrCss.EnviarPorCorreo.InputConBoton);
+            correo.parentElement.appendChild(boton);
         }
 
         protected AplicarBloqueo() {
