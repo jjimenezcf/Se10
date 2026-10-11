@@ -15,7 +15,7 @@ namespace ModeloDeDto.Terceros
     }
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(Expresion), EditarTrasCrear = true)]
-    public class TrabajadorDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto
+    public class TrabajadorDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto, IDatosDeContactoDto
     {
         //----------------------------------------------
         [IUPropiedad(

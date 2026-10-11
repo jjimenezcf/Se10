@@ -7,7 +7,7 @@ using Utilidades;
 namespace ModeloDeDto.Juridico
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, OpcionDeBorrar = false)]
-    public class DatosDelContratoDto : EsUnaAmpliacionDto
+    public class DatosDelContratoDto : EsUnaAmpliacionDto, IDatosDeContactoDto
     {
 
         //-------------------------------------------------------------------------------------------------------------

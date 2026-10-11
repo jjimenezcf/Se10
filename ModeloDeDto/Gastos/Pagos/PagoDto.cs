@@ -9,7 +9,7 @@ using Utilidades;
 namespace ModeloDeDto.Gastos
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class PagoDto : ElementoDeUnProcesoDto, IUsaCuentaBancariaDto
+    public class PagoDto : ElementoDeUnProcesoDto, IUsaCuentaBancariaDto, IDatosDeContactoDto
     {
 
         //-------------------------------------------------------------------------------------------------------

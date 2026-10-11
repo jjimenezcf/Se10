@@ -22,7 +22,7 @@ namespace ModeloDeDto.Terceros
     }
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(Expresion), OpcionDeBorrar = false)]
-    public class ProveedorDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto
+    public class ProveedorDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto, IDatosDeContactoDto
     {
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id del interlocutor", Visible = false)]

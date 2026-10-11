@@ -5,7 +5,7 @@ using Utilidades;
 namespace ModeloDeDto.RegistroEs
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class RegistroEsDto : ElementoDeUnProcesoDto, IUsaSolicitanteDto
+    public class RegistroEsDto : ElementoDeUnProcesoDto, IUsaSolicitanteDto, IDatosDeContactoDto
     {
         //-------------------------------------------------------------------------------------------------------------
         [IUPropiedad(

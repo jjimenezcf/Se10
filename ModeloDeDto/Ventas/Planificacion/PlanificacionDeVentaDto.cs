@@ -8,7 +8,7 @@ using Utilidades;
 namespace ModeloDeDto.Ventas
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class PlanificacionDeVentaDto : ElementoDeUnProcesoDto
+    public class PlanificacionDeVentaDto : ElementoDeUnProcesoDto, IDatosDeContactoDto
     {
 
         //--------------------------------------------

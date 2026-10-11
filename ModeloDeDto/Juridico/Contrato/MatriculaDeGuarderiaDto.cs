@@ -7,7 +7,7 @@ using Utilidades;
 namespace ModeloDeDto.Juridico
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, OpcionDeBorrar = false)]
-    public class MatriculaDeGuarderiaDto : EsUnaAmpliacionDto
+    public class MatriculaDeGuarderiaDto : EsUnaAmpliacionDto, IDatosDeContactoDto
     {
         //----------------------------------------------------------
         [IUPropiedad(Etiqueta = "Id del infante", Visible = false)]

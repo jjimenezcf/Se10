@@ -5,7 +5,7 @@ namespace ModeloDeDto.Terceros
     [IUDto(AnchoEtiqueta = 20
          , AnchoSeparador = 5
          , MostrarExpresion = nameof(Expresion))]
-    public class PersonaDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto
+    public class PersonaDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto, IDatosDeContactoDto
     {
 
         //--------------------------------------------

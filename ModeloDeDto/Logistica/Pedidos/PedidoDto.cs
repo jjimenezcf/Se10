@@ -23,7 +23,7 @@ namespace ModeloDeDto.Logistica
 
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class PedidoDto : ElementoDeUnProcesoDto
+    public class PedidoDto : ElementoDeUnProcesoDto, IDatosDeContactoDto
     {
 
         //-------------------------------------------------------------------------------------------------------------

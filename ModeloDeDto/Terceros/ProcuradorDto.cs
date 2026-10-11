@@ -11,7 +11,7 @@ namespace ModeloDeDto.Terceros
          , AnchoSeparador = 5
          , MostrarExpresion = nameof(Expresion)
          , OpcionDeCrear = false)]
-    public class ProcuradorDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto
+    public class ProcuradorDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto, IDatosDeContactoDto
     {
         //----------------------------------------------
         [IUPropiedad(

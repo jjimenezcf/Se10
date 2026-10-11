@@ -126,6 +126,12 @@ namespace ModeloDeDto
         public string Solicitante { get; set; }
     }
 
+    public interface IDatosDeContactoDto
+    {
+        public string eMail { get; set; }
+        public string Telefono { get; set; }
+    }
+
     public interface IPuedeUsarResponsableDto
     {
         public int? IdResponsable { get; set; }

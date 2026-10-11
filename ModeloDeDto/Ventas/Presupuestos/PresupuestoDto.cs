@@ -13,7 +13,7 @@ namespace ModeloDeDto.Presupuesto
     }
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class PresupuestoDto : ElementoDeUnProcesoDto, IUsaSolicitanteDto, IPuedeUsarResponsableDto, IUsaDirecciones
+    public class PresupuestoDto : ElementoDeUnProcesoDto, IUsaSolicitanteDto, IPuedeUsarResponsableDto, IUsaDirecciones, IDatosDeContactoDto
     {
 
         //------------------------------------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 namespace ModeloDeDto.Terceros
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(Expresion))]
-    public class ContactoDto : ElementoDto, IUsaNombreDto, IUsaBajaDto
+    public class ContactoDto : ElementoDto, IUsaNombreDto, IUsaBajaDto, IDatosDeContactoDto
     {
         //----------------------------------------------------------------------------------------
         [IUPropiedad(

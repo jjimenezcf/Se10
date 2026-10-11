@@ -6,7 +6,7 @@ using Utilidades;
 namespace ModeloDeDto.Juridico
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class PleitoDto : ElementoDeUnProcesoDto
+    public class PleitoDto : ElementoDeUnProcesoDto, IDatosDeContactoDto
     {
 
         //-------------------------------------------------------------------------------------------------------------

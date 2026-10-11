@@ -27,7 +27,7 @@ namespace ModeloDeDto.Gastos
 
 
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(IUsaNombreDto.Nombre), EditarTrasCrear = true)]
-    public class FacturaRecDto : ElementoDeUnProcesoDto, IPrioridadDto
+    public class FacturaRecDto : ElementoDeUnProcesoDto, IPrioridadDto, IDatosDeContactoDto
     {
         [IUPropiedad(
           Etiqueta = "Factura proveedor",

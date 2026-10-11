@@ -5,7 +5,7 @@ using Utilidades;
 namespace ModeloDeDto.Terceros
 {
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(Expresion), OpcionDeCrear = false, OpcionDeBorrar = false)]
-    public class ClienteDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto
+    public class ClienteDto : ElmentoAuditadoDto, IUsaNombreDto, IUsaBajaDto, IDatosDeContactoDto
     {
         //----------------------------------------------
         [IUPropiedad(Etiqueta = "Id del interlocutor", Visible = false)]
