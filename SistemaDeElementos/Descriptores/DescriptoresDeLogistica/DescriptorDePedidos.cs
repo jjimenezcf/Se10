@@ -36,6 +36,8 @@ namespace MVCSistemaDeElementos.Descriptores
             modalesParaPedirDatos.Add(new ModalDeTotales(this, typeof(TotalesDePedidos), eventosDeMf.Totalizador_Mostrar, $"Mostrar los totales de la selección"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Totalizador_Mostrar}' accion-menu='{eventosDeMf.Totalizador_Mostrar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Mostrar totales</li>");
 
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ModificarCabeceraDePedidoDto), eventosDeMf.Ped_ModificarCabecera, "Modificar cabecera"));
+            Editor.IncluirMfIndividual("Modificar cabecera", eventosDeMf.Ped_ModificarCabecera, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Quitar expediente", eventosDeMf.Ped_QuitarExpediente, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Quitar contrato", eventosDeMf.Ped_QuitarContrato, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
 

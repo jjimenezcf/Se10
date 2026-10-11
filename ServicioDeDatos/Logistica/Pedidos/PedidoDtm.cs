@@ -38,6 +38,7 @@ namespace ServicioDeDatos.Logistica
         public const string AsociadaAUnExpediente = nameof(AsociadaAUnExpediente);
 
         public const string Accion_AsociarArchivo = nameof(Accion_AsociarArchivo);
+        public const string Accion_ModificarCabecera = nameof(Accion_ModificarCabecera);
 
     }
 

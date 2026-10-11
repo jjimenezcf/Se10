@@ -532,6 +532,7 @@ const ltrControladores = {
     Entorno: {
         Acciones: 'Acciones',
         MiCorreo: 'MiCorreo',
+        Correos: 'Correos',
         VisorDeAgenda: 'VisorDeAgenda',
         ArbolDeMenu: 'ArbolDeMenu',
         Menus: 'Menus',
@@ -1068,6 +1069,11 @@ const ltrCss = {
     Mensajes: {
         Informativo: 'mensaje-informativo',
         Error: 'mensaje-error'
+    },
+    EnviarPorCorreo: {
+        Boton: 'boton-enviar-por-correo',
+        InputConBoton: 'con-boton-de-correo',
+        ListaDeArchivos: 'archivos-para-enviar'
     },
     crud: {
         cuerpo: 'cuerpo',
@@ -1621,6 +1627,10 @@ const Ajax = {
             ObtenerUrlAlCliente: 'epObtenerUrlAlCliente',
         },
         Entorno: {
+            Correos: {
+                ArchivosParaEnviar: 'epArchivosParaEnviar',
+                EnviarArchivosConGuid: 'epEnviarArchivosConGuid'
+            },
             MiCorreo: {
                 Archivar: 'epArchivarCorreo',
                 DescargarAdjunto: 'epDescargarAdjunto',
@@ -2572,6 +2582,11 @@ const ltrPropiedades = {
             Cuerpo: 'Cuerpo',
             OtorgarGestor: 'OtorgarGestor'
         },
+        EnviarCorreoExterno: {
+            eMail: 'eMail',
+            Para: 'Para',
+            IdElemento: 'idElemento'
+        },
     },
     Maestros: {
         unitario: {
@@ -3302,6 +3317,10 @@ const ltrPropiedades = {
             SelectorNaturaleza: 'Naturaleza',
             ClaseDeLinea: 'ClaseDeLinea',
             PedidoEl: 'PedidoEl',
+            EntregarEl: 'EntregarEl',
+            RecibidoEl: 'RecibidoEl',
+            CerradoEl: 'CerradoEl',
+            eMail: 'eMail',
             IdArchivoPedido: 'IdArchivoPedido',
             Indicadores: {
                 Naturaleza: 'Naturaleza',
@@ -3978,6 +3997,7 @@ const ltrMenus = {
         alta: ltrEventos.ModalEdicion.DarDeAlta,
         baja: ltrEventos.ModalEdicion.DarDeBaja,
         Comun: {
+            EnviarCorreoExterno: 'enviar-correo-externo',
             PermisosDeElemento: 'permiso-de-elemento',
             Imprimir: 'abrir-imprimir',
             GuardarEstadosDeExpansores: 'guardar-estados-de-expansores',
@@ -4162,6 +4182,12 @@ const ltrMenus = {
                 CancelarPreasientos: 'cancelar-preasientos'
             }
 
+        },
+        Logistica: {
+            Pedidos: {
+                ModificarCabecera: 'modificar-cabecera-pedido',
+                GuardarCabecera: 'guardar-cabecera-pedido'
+            }
         },
         MaestrosTecnico: {
             Unitario: {

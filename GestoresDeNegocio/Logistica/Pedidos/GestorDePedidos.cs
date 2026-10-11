@@ -22,6 +22,7 @@ using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Seguridad;
 using GestoresDeNegocio.Entorno;
 using GestoresDeNegocio.SistemaDocumental;
 using GestoresDeNegocio.TrabajosSometidos;
@@ -74,9 +75,15 @@ namespace GestoresDeNegocio.Logistica
             return new GestorDePedidos(contexto, mapeador);
         }
 
+        // La cabecera sólo se modifica desde el Dto mientras se cumplimenta; las transiciones y acciones del sistema modifican el registro sin pasar por aquí
         protected override void DespuesDeMapearElRegistro(PedidoDto dto, PedidoDtm dtm, ParametrosDeNegocio opciones)
         {
+            if (!opciones.Modificando)
+                return;
 
+            var pedidoEnBd = Contexto.SeleccionarPorId<PedidoDtm>(dtm.Id);
+            if (!pedidoEnBd.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion))
+                Emitir($"La cabecera del pedido '{pedidoEnBd.Referencia}' solo es modificable mientras se cumplimenta");
         }
 
         protected override IQueryable<PedidoDtm> AplicarJoins(IQueryable<PedidoDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
@@ -251,7 +258,116 @@ namespace GestoresDeNegocio.Logistica
             if (SeCancelaLaSolicitud(transicion))
                 pedido.AntesDeCancelarSolicitud(Contexto, parametros);
 
+            if (SeRecibe(transicion))
+                pedido.AntesDeRecibir(Contexto, parametros);
+
+            if (SeAnulaLaRecepcion(transicion))
+                pedido.AntesDeAnularRecepcion(Contexto, parametros);
+
+            if (SeCierra(transicion))
+                pedido.AntesDeCerrar(Contexto, parametros);
+
+            if (SeReabre(transicion))
+                pedido.AntesDeReabrir(Contexto, parametros);
+
             return pedido;
+        }
+
+        private static bool SeCierra(TransicionDtm transicion)
+        =>
+        transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados()) &&
+        !transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados());
+
+        private static bool SeReabre(TransicionDtm transicion)
+        =>
+        transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados()) &&
+        !transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados());
+
+        // De solicitado a la etapa de entrega o, con "Dar por recibido", directamente a cerrado
+        private static bool SeRecibe(TransicionDtm transicion)
+        =>
+        transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados()) &&
+        (transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion.Estados()) || transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados()));
+
+        private static bool SeAnulaLaRecepcion(TransicionDtm transicion)
+        =>
+        transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion.Estados()) &&
+        transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados());
+
+        // Permite al interventor corregir la cabecera fuera de la etapa de cumplimentación, en la que es de sólo consulta: el nombre, el correo
+        // (y guardarlo como correo del proveedor), la fecha de entrega y, una vez recibido o cerrado, la de recepción (no posterior a hoy ni anterior
+        // a la fecha en la que se creó el pedido) y la de cierre (no posterior a hoy). Los datos se toman de la edición, si desde que se leyó otro
+        // usuario ha modificado el pedido no se guardan
+        public static void ModificarCabecera(ContextoSe contexto, ModificarCabeceraDePedidoDto datos)
+        {
+            var tran = contexto.IniciarTransaccion();
+            try
+            {
+                var pedido = contexto.SeleccionarPorId<PedidoDtm>(datos.IdElemento, usarLaCache: false);
+                if (datos.RowVersion.IsNullOrEmpty() || Convert.ToBase64String(pedido.RowVersion) != datos.RowVersion)
+                    Emitir($"El pedido '{pedido.Referencia}' ha sido modificado por otro usuario desde que lo leyó, vuelva a leerlo antes de modificar su cabecera");
+
+                if (!pedido.EsInterventor<TipoDePedidoDtm>(contexto))
+                    Emitir($"Ha de ser interventor del pedido '{pedido.Referencia}' para modificar su cabecera");
+
+                if (pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cancelado))
+                    Emitir($"El pedido '{pedido.Referencia}' está anulado, no se puede modificar su cabecera");
+
+                if (datos.Nombre.IsNullOrEmpty())
+                    Emitir($"Ha de indicar el nombre del pedido '{pedido.Referencia}'");
+
+                pedido.Nombre = datos.Nombre;
+                pedido.eMail = datos.eMail;
+                pedido.EntregarEl = datos.EntregarEl;
+
+                if (datos.RecibidoEl?.Date != pedido.RecibidoEl?.Date)
+                {
+                    if (!pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado }))
+                        Emitir($"La fecha de recepción del pedido '{pedido.Referencia}' sólo se puede indicar una vez recibido");
+
+                    if (datos.RecibidoEl is null)
+                        Emitir($"Ha de indicar la fecha de recepción del pedido '{pedido.Referencia}'");
+
+                    var recibidoEl = ((DateTime)datos.RecibidoEl).Date;
+                    if (recibidoEl > DateTime.Today || recibidoEl < pedido.FechaCreacion.Date)
+                        Emitir($"La fecha de recepción del pedido '{pedido.Referencia}' ha de estar entre el '{pedido.FechaCreacion.ToString("dd-MM-yyyy")}', en el que se creó, y hoy");
+
+                    pedido.RecibidoEl = recibidoEl;
+                }
+
+                if (datos.CerradoEl?.Date != pedido.CerradoEl?.Date)
+                {
+                    if (!pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado))
+                        Emitir($"La fecha de cierre del pedido '{pedido.Referencia}' sólo se puede indicar una vez cerrado");
+
+                    if (datos.CerradoEl is null)
+                        Emitir($"Ha de indicar la fecha de cierre del pedido '{pedido.Referencia}'");
+
+                    var cerradoEl = ((DateTime)datos.CerradoEl).Date;
+                    if (cerradoEl > DateTime.Today)
+                        Emitir($"La fecha de cierre del pedido '{pedido.Referencia}' no puede ser posterior a hoy");
+
+                    // que no sea anterior a la de recepción lo valida ValidarFechas al modificar
+                    pedido.CerradoEl = cerradoEl;
+                }
+
+                pedido.Modificar(contexto, ltrDeUnPedido.Accion_ModificarCabecera);
+
+                var proveedor = pedido.Proveedor(contexto);
+                if (datos.GuardarEnElProveedor && !datos.eMail.IsNullOrEmpty() && !datos.eMail.Equals(proveedor.eMail, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    proveedor.eMail = datos.eMail;
+                    proveedor.Modificar(contexto, ltrDeUnPedido.Accion_ModificarCabecera);
+                }
+
+                pedido.CrearTraza(contexto, "Cabecera modificada", $"El usuario '{contexto.DatosDeConexion.Login}' ha modificado la cabecera del pedido");
+                contexto.Commit(tran);
+            }
+            catch
+            {
+                contexto.Rollback(tran);
+                throw;
+            }
         }
 
         protected override PedidoDtm DespuesDeTransitar(PedidoDtm pedido, TransicionDtm transicion, Dictionary<string, object> parametros)
@@ -386,6 +502,11 @@ namespace GestoresDeNegocio.Logistica
         protected override void DespuesDeMapearElElemento(PedidoDtm pedido, PedidoDto elemento, ParametrosDeNegocio parametros)
         {
             base.DespuesDeMapearElElemento(pedido, elemento, parametros);
+
+            // La cabecera sólo es modificable mientras se cumplimenta, en el resto de etapas se consulta
+            if (elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor) && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion))
+                elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;
+
             elemento.Importe = pedido.Importe(Contexto);
             if (parametros.LeerPorId)
             {

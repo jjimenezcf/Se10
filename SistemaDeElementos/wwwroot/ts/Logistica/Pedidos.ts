@@ -66,8 +66,39 @@
             this._TipoDeLinea = mapIndicadores.get(ltrPropiedades.Logistica.Pedido.Indicadores.TipoDeLinea);
         }
 
+        public get ModalModificarCabecera(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Logistica.Pedidos.ModificarCabecera) as HTMLDivElement; }
+
         public ModalDePedirDatos_Aceptar(modal: HTMLDivElement) {
+            if (modal.id === this.ModalModificarCabecera.id) {
+                const editor = this.crudDeEdicion;
+                let parametros: Array<Parametro> = new Array<Parametro>();
+                ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
+                parametros.push(new Parametro(Ajax.Param.ids, [editor.ElementoEditado.Id]));
+                // versión del pedido que se está editando: si otro usuario lo ha modificado desde entonces el servidor no guarda
+                parametros.push(new Parametro(ltrPropiedades.Elemento.RowVersion, ObtenerPropiedad(editor.ElementoEditado.Registro, ltrPropiedades.Elemento.RowVersion)));
+                ApiDePeticiones.ProcesarOpcionMf(this, this.Controlador, this.IdNegocio, ltrMenus.eventosDeMf.Logistica.Pedidos.GuardarCabecera, false, parametros, new Array<Parametro>())
+                    .then(() => {
+                        super.ModalDePedirDatos_Cerrar(modal);
+                        editor.RecargarValoresDeCabecera(editor.ElementoEditado.Id);
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+                return;
+            }
             super.ModalDePedirDatos_Aceptar(modal);
+        }
+
+        // La modal de modificar la cabecera se propone con lo que el usuario ve en la edición, no con lo que haya ahora en el servidor
+        public ModalDePedirDatos_TrasAbrir(modal: HTMLDivElement): void {
+            super.ModalDePedirDatos_TrasAbrir(modal);
+            if (modal.id === this.ModalModificarCabecera.id) {
+                const panel = this.crudDeEdicion.PanelDelDto;
+                ApiDelCrud.ProponerParaRenombrar(modal, this.crudDeEdicion.ElementoEditado.Registro);
+                ApiDelCrud.ProponerPropiedad(panel, modal, literal.nombre, false);
+                ApiDelCrud.ProponerPropiedad(panel, modal, ltrPropiedades.Logistica.Pedido.eMail, false);
+                ApiDelCrud.ProponerPropiedad(panel, modal, ltrPropiedades.Logistica.Pedido.EntregarEl, false);
+                ApiDelCrud.ProponerPropiedad(panel, modal, ltrPropiedades.Logistica.Pedido.RecibidoEl, false);
+                ApiDelCrud.ProponerPropiedad(panel, modal, ltrPropiedades.Logistica.Pedido.CerradoEl, false);
+            }
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
@@ -185,6 +216,10 @@
 
             // El fichero de pedido solo se puede añadir al crear o, en edición, mientras se está cumplimentando
             ApiControl.MostrarPropiedadSi(panel, ltrPropiedades.Logistica.Pedido.IdArchivoPedido, seEstaCumplimentando);
+
+            // Fuera de cumplimentación la cabecera es de consulta, el interventor la corrige con "Modificar cabecera" mientras no esté anulado
+            let estaAnulado = EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_Cancelado);
+            ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Pedidos.ModificarCabecera, ltrMenus.enumOrigen.edicion, this.EsInterventorSinEstado && !estaAnulado);
         }
 
         // "Pedir el" mientras el pedido se está cumplimentando o aprobando: es la fecha planificada para solicitarlo;
@@ -206,6 +241,12 @@
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
             if (super.DespuesDeProcesarOpcionMf(peticion))
                 return true;
+            let opcion: string = ObtenerPropiedad(peticion.DatosDeEntrada, ltrMenus.opcion);
+            if (opcion === ltrMenus.eventosDeMf.Logistica.Pedidos.ModificarCabecera) {
+                // la cabecera se propone desde la edición (ver CrudDePedidos.ModalDePedirDatos_TrasAbrir)
+                this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDePedidos).ModalModificarCabecera.id, this.ElementoEditado.Id);
+                return true;
+            }
             return false;
         }
 

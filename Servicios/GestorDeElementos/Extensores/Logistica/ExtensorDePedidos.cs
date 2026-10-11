@@ -131,15 +131,15 @@ namespace GestorDeElementos.Extensores
             {
                 Emitir($"El pedido '{pedido.Referencia}' no se puede entregar el '{pedido.EntregarEl.Fecha().ToString("dd-MM-yyyy")}' ya que se ha pedido el '{pedido.PedidoEl.Fecha().ToString("dd-MM-yyyy")}' ");
             }
-            if (pedido.RecibidoEl is not null && pedido.CerradoEl is not null && pedido.RecibidoEl > pedido.CerradoEl)
+            if (pedido.RecibidoEl is not null && pedido.CerradoEl is not null && pedido.RecibidoEl.Fecha().Date > pedido.CerradoEl.Fecha().Date)
             {
-                Emitir($"El pedido '{pedido.Referencia}' no se puede cerrar el '{pedido.EntregarEl.Fecha().ToString("dd-MM-yyyy")}' por haber sido recibido el '{pedido.RecibidoEl.Fecha().ToString("dd-MM-yyyy")}' ");
+                Emitir($"El pedido '{pedido.Referencia}' no se puede cerrar el '{pedido.CerradoEl.Fecha().ToString("dd-MM-yyyy")}' por haber sido recibido el '{pedido.RecibidoEl.Fecha().ToString("dd-MM-yyyy")}' ");
             }
 
             if (pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado }))
             {
-                if (pedido.RecibidoEl is null || pedido.PedidoEl is null || pedido.RecibidoEl <= pedido.PedidoEl)
-                    Emitir($"El pedido '{pedido.Referencia}' ha de indicar una fecha de recepción posterior a la fecha de pedido '{pedido.PedidoEl.Fecha().ToString("dd-MM-yyyy")}'");
+                if (pedido.RecibidoEl is null || pedido.PedidoEl is null || pedido.RecibidoEl.Fecha().Date < pedido.PedidoEl.Fecha().Date)
+                    Emitir($"El pedido '{pedido.Referencia}' ha de indicar una fecha de recepción igual o posterior a la fecha de pedido '{pedido.PedidoEl.Fecha().ToString("dd-MM-yyyy")}'");
             }
             else if (pedido.RecibidoEl is not null)
             {
@@ -201,6 +201,30 @@ namespace GestorDeElementos.Extensores
                 pedido.RenombrarComoAntiguo(contexto, firmado.IdFirmado);
 
             pedido.IdArchivo = null;
+        }
+
+        // Al pasar de solicitado a la etapa de entrega (o directamente a cerrado) se recibe hoy; si se recibió antes se corrige con "Modificar cabecera"
+        public static void AntesDeRecibir(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            pedido.RecibidoEl = DateTime.Today;
+        }
+
+        // Al cerrar el pedido (desde la etapa de entrega o, con "Dar por recibido", desde solicitado) se cierra hoy; se corrige con "Modificar cabecera"
+        public static void AntesDeCerrar(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            pedido.CerradoEl = DateTime.Today;
+        }
+
+        // Al reabrir el pedido cerrado deja de estar cerrado
+        public static void AntesDeReabrir(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            pedido.CerradoEl = null;
+        }
+
+        // Al devolver el pedido de la etapa de entrega a solicitado deja de estar recibido
+        public static void AntesDeAnularRecepcion(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
+        {
+            pedido.RecibidoEl = null;
         }
 
         // El archivo que sube el usuario se crea mientras el pedido se cumplimenta o se aprueba; el que genera el sistema, al entrar en la etapa de solicitud
