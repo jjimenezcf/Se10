@@ -464,22 +464,24 @@ namespace GestorDeElementos
         }
 
         /// <summary>
-        /// Valida que el archivo es uno de los que se muestran como anexos del elemento: anexado directamente,
+        /// Indica si el archivo es uno de los que se muestran del elemento: anexado directamente, su archivo propio (IUsaArchivo),
         /// o anexado a los archivadores vinculados al elemento o a sus carpetas
         /// </summary>
-        public static void ValidarQueEsAnexoDelElemento(ContextoSe contexto, enumNegocio negocio, int idElemento, int idArchivo)
+        public static bool EsAnexoDelElemento(ContextoSe contexto, enumNegocio negocio, int idElemento, int idArchivo)
         {
             if (VinculoSql.LeerVinculo(contexto, NegociosDeSe.TipoDtm(negocio), enumNegocio.Archivos, idElemento, idArchivo, false) != null)
-                return;
+                return true;
 
-            if (negocio == enumNegocio.Archivador || negocio.UsaArchivadores())
-            {
-                var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, idElemento);
-                if (elemento.ArchivosExt(contexto, recursivo: true, incluirOriginal: true).Any(a => a.IdArchivo == idArchivo))
-                    return;
-            }
+            if (negocio == enumNegocio.Carpeta)
+                return false;
 
-            GestorDeErrores.Emitir($"El archivo no está anexado al elemento del negocio {negocio.ToNombre()}");
+            var elemento = (IElementoDtm)negocio.LeerRegistro(contexto, idElemento);
+            if (elemento is IUsaArchivo conArchivo && conArchivo.IdArchivo == idArchivo)
+                return true;
+
+            // sin los originales de los firmados: la caché de anexados no distingue si se pidieron o no, y los anexados directos ya se han validado
+            return (negocio == enumNegocio.Archivador || negocio.UsaArchivadores())
+                && elemento.ArchivosExt(contexto, recursivo: true, incluirOriginal: false).Any(a => a.IdArchivo == idArchivo);
         }
 
         public static void ValidarQueNoEstaFirmado(ContextoSe contexto, int idArchivo)

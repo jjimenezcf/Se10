@@ -88,7 +88,7 @@ namespace ApiVisorDeArchivos {
         }
         else {
             let parametros = `negocio=${crud.NombreDeNegocio}`;
-            parametros = `${parametros}&idElemento=${crud.EstoyEnMantenimiento ? crud.InfoSelector.IdsSeleccionados[0] : crud.crudDeEdicion.ElementoEditado.Id}`;
+            parametros = `${parametros}&idElemento=${crud.crudDeEdicion.IdDelElementoDelVisor}`;
             parametros = `${parametros}&idArchivo=${idArchivo}`;
             parametros = `${parametros}&auditar=false`;
             url = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.Descargar}?${parametros}`;
@@ -186,9 +186,8 @@ namespace ApiVisorDeArchivos {
 
         actualizarMensajeVisor(visor, accion);
 
-        const url = construirUrl(crud, idArchivo, accion);
-
         try {
+            const url = construirUrl(crud, idArchivo, accion);
             const resultado = await obtenerResultado(url);
 
             if (resultado.estado === 'Ok') {
@@ -228,7 +227,7 @@ namespace ApiVisorDeArchivos {
 
     async function mapearDatosSiEsUnaFacturaJson(crud: Crud.CrudMnt, idArchivo: number, accion: string): Promise<boolean> {
         if (accion === ltrEventos.Edicion.FacturasRec.Analizar) {
-            const resultado = await ApiDeArchivos.EsFicheroJson(crud.NombreDeNegocio, crud.EstoyCreando ? 0 : crud.crudDeEdicion.ElementoEditado.Id, idArchivo);
+            const resultado = await ApiDeArchivos.EsFicheroJson(crud.NombreDeNegocio, crud.EstoyCreando ? 0 : crud.crudDeEdicion.IdDelElementoDelVisor, idArchivo);
             if (resultado.esJson) {
                 crud.MapearDatosJsonDesdeElVisor(resultado.json);
                 return true;
@@ -242,7 +241,7 @@ namespace ApiVisorDeArchivos {
             idArchivo: idArchivo.toString(),
             accion,
             negocio: crud.EnumeradoDeNegocio as string,
-            idElemento: (crud.EstoyCreando ? 0 : crud.crudDeEdicion.ElementoEditado.Id).toString()
+            idElemento: (crud.EstoyCreando ? 0 : crud.crudDeEdicion.IdDelElementoDelVisor).toString()
         });
         return `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.ProcesarAccion}?${parametros}`;
     }
@@ -271,7 +270,7 @@ namespace ApiVisorDeArchivos {
             if (crud.EstoyEditando) ApiDeArchivos.MostrarArchivosAnexados(
                 crud.crudDeEdicion.PanelDeArchivos.id,
                 crud.NombreDeNegocio,
-                crud.crudDeEdicion.ElementoEditado.Id, null
+                crud.crudDeEdicion.IdDelElementoDelVisor, null
             );
             return { idArchivo: idArchivo, nombreArchivo: nombre };
         }

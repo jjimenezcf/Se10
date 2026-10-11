@@ -760,6 +760,15 @@ namespace GestoresDeNegocio.SistemaDocumental
             return false;
         }
 
+        /// <summary>
+        /// Archivo que ha subido el usuario conectado y que no está anexado a nada, como el resultado de pasar el OCR o de resumir con la IA
+        /// </summary>
+        public bool EsUnArchivoSueltoDelUsuario(int idArchivo)
+        {
+            var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            return archivo.IdUsuaCrea == Contexto.DatosDeConexion.IdUsuario && !ExisteAlgunVinculoAl(archivo);
+        }
+
         public static void AntesDeQuitarVinculo(EntornoDeUnaAccion entorno)
         {
             var contexto = entorno.Contexto;

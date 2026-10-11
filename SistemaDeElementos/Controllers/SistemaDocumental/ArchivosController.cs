@@ -202,7 +202,8 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         if (!elemento.EsConsultor(Contexto))
             throw new Exception($"No tiene acceso al elemento {elemento.Referencia(Contexto)}");
 
-        ApiDeArchivos.ValidarQueEsAnexoDelElemento(Contexto, negocio, idElemento, idArchivo);
+        if (!ApiDeArchivos.EsAnexoDelElemento(Contexto, negocio, idElemento, idArchivo) && !((GestorDeArchivos)_GestorDeElementos).EsUnArchivoSueltoDelUsuario(idArchivo))
+            GestorDeErrores.Emitir($"El archivo no está anexado al elemento del negocio {negocio.ToNombre()}");
     }
 
     public FileStreamResult epDescargarArchivoParaCrear(int idArchivo)
@@ -434,6 +435,11 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         try
         {
             ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            if (idElemento > 0)
+                ValidarAccesoAlArchivo(negocio, idElemento, idArchivo);
+            else if (!((GestorDeArchivos)_GestorDeElementos).EsUnArchivoSueltoDelUsuario(idArchivo))
+                GestorDeErrores.Emitir("Sólo se puede procesar un archivo que ha subido y que no está anexado a ningún elemento");
+
             var archivo = _GestorDeElementos.LeerRegistroPorId(idArchivo, false, false, false, false);
             var rutaArchivo = ApiDeArchivos.ObtenerRutaArchivo(archivo);
             pendienteDeBorrar.Add(rutaArchivo);

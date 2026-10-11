@@ -659,6 +659,11 @@
             return this.InfoSelectorEdicion.Seleccionados[this.Posicionador - 1];
         }
 
+        // id del elemento cuyos anexos se han cargado en el panel: no depende del orden del InfoSelector ni de un posicionador de una edición anterior
+        public get IdDelElementoDelVisor(): number {
+            return this.Id;
+        }
+
         public get IdEditor(): HTMLInputElement {
             var control = ApiControl.BuscarEditor(this.PanelDeEditar, literal.id);
 
@@ -2593,7 +2598,7 @@
             let idArchivo: number = this.IdArchivoMostrado;
             let caducaEl = new Date();
             caducaEl.setHours(caducaEl.getHours() + 2);
-            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.ElementoEditado.Id, idArchivo, null)
+            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.IdDelElementoDelVisor, idArchivo, null)
                 .then((peticion) => this.DespuesDeRegistrarDescargaConGuid(peticion, false))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
@@ -2634,7 +2639,7 @@
             let idArchivo: number = this.IdArchivoMostrado;
             let caducaEl = new Date();
             caducaEl.setHours(caducaEl.getHours() + 2);
-            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.ElementoEditado.Id, idArchivo, null)
+            ApiDePeticiones.RegistrarDescargaConGuid(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.IdDelElementoDelVisor, idArchivo, null)
                 .then((peticion) => this.DespuesDeRegistrarDescargaConGuid(peticion, true))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
@@ -2684,7 +2689,7 @@
 
             let idArchivo: number = this.IdArchivoMostrado;
             let parametros = `negocio=${this.CrudDeMnt.NombreDeNegocio}`;
-            parametros = `${parametros}&idElemento=${this.ElementoEditado.Id}`;
+            parametros = `${parametros}&idElemento=${this.IdDelElementoDelVisor}`;
             parametros = `${parametros}&idArchivo=${idArchivo}`;
             parametros = `${parametros}&auditar=true`;
 
