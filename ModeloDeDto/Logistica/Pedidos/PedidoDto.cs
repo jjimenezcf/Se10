@@ -37,6 +37,8 @@ namespace ModeloDeDto.Logistica
             Etiqueta = "Proveedor",
             Ayuda = "Quién me provee",
             TipoDeControl = enumTipoControl.ListaDinamica,
+            TipoDeControlEnGrid = enumTipoControl.Referencia,
+            AccionRef = "javascript: " + nameof(enumNameSpaceTs.ApiDelCrud) + "." + nameof(enumFunctionTs.Negocio_IrAlProveedor) + "(numeroDeFila)",
             GuardarEn = nameof(IdProveedor),
             Controlador = nameof(enumControladoresTerceros.Proveedores),
             SeleccionarDe = typeof(ProveedorDto),
