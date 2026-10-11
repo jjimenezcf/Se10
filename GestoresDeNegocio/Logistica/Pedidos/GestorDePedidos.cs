@@ -304,8 +304,7 @@ namespace GestoresDeNegocio.Logistica
             try
             {
                 var pedido = contexto.SeleccionarPorId<PedidoDtm>(datos.IdElemento, usarLaCache: false);
-                if (datos.RowVersion.IsNullOrEmpty() || Convert.ToBase64String(pedido.RowVersion) != datos.RowVersion)
-                    Emitir($"El pedido '{pedido.Referencia}' ha sido modificado por otro usuario desde que lo leyó, vuelva a leerlo antes de modificar su cabecera");
+                pedido.ValidarRowId(contexto, datos.RowVersion, releer: false);
 
                 if (!pedido.EsInterventor<TipoDePedidoDtm>(contexto))
                     Emitir($"Ha de ser interventor del pedido '{pedido.Referencia}' para modificar su cabecera");
@@ -316,8 +315,23 @@ namespace GestoresDeNegocio.Logistica
                 if (datos.Nombre.IsNullOrEmpty())
                     Emitir($"Ha de indicar el nombre del pedido '{pedido.Referencia}'");
 
+                // lo que se modifica, con su valor anterior y el nuevo, para la traza
+                var cambios = new List<string>();
+                string Fecha(DateTime? fecha) => fecha is null ? "(vacía)" : ((DateTime)fecha).ToString("dd-MM-yyyy");
+                string Texto(string texto) => texto.IsNullOrEmpty() ? "(vacío)" : $"'{texto}'";
+
+                if ((pedido.Nombre ?? "") != (datos.Nombre ?? ""))
+                    cambios.Add($"Nombre: {Texto(pedido.Nombre)} → {Texto(datos.Nombre)}");
                 pedido.Nombre = datos.Nombre;
+
+                if (!datos.eMail.IsNullOrEmpty() && !extCorreos.EsUnCorreo(datos.eMail))
+                    Emitir(extCorreos.MensajeDeCorreoNoValido(datos.eMail));
+                if ((pedido.eMail ?? "") != (datos.eMail ?? ""))
+                    cambios.Add($"Correo: {Texto(pedido.eMail)} → {Texto(datos.eMail)}");
                 pedido.eMail = datos.eMail;
+
+                if (pedido.EntregarEl?.Date != datos.EntregarEl?.Date)
+                    cambios.Add($"Entregar el: {Fecha(pedido.EntregarEl)} → {Fecha(datos.EntregarEl)}");
                 pedido.EntregarEl = datos.EntregarEl;
 
                 if (datos.RecibidoEl?.Date != pedido.RecibidoEl?.Date)
@@ -332,6 +346,7 @@ namespace GestoresDeNegocio.Logistica
                     if (recibidoEl > DateTime.Today || recibidoEl < pedido.FechaCreacion.Date)
                         Emitir($"La fecha de recepción del pedido '{pedido.Referencia}' ha de estar entre el '{pedido.FechaCreacion.ToString("dd-MM-yyyy")}', en el que se creó, y hoy");
 
+                    cambios.Add($"Recibido el: {Fecha(pedido.RecibidoEl)} → {Fecha(recibidoEl)}");
                     pedido.RecibidoEl = recibidoEl;
                 }
 
@@ -348,19 +363,29 @@ namespace GestoresDeNegocio.Logistica
                         Emitir($"La fecha de cierre del pedido '{pedido.Referencia}' no puede ser posterior a hoy");
 
                     // que no sea anterior a la de recepción lo valida ValidarFechas al modificar
+                    cambios.Add($"Cerrado el: {Fecha(pedido.CerradoEl)} → {Fecha(cerradoEl)}");
                     pedido.CerradoEl = cerradoEl;
                 }
 
-                pedido.Modificar(contexto, ltrDeUnPedido.Accion_ModificarCabecera);
-
                 var proveedor = pedido.Proveedor(contexto);
-                if (datos.GuardarEnElProveedor && !datos.eMail.IsNullOrEmpty() && !datos.eMail.Equals(proveedor.eMail, StringComparison.CurrentCultureIgnoreCase))
+                var guardarEnElProveedor = datos.GuardarEnElProveedor && !datos.eMail.IsNullOrEmpty() && !datos.eMail.Equals(proveedor.eMail, StringComparison.CurrentCultureIgnoreCase);
+
+                if (cambios.Count == 0 && !guardarEnElProveedor)
+                    Emitir($"No ha modificado ningún dato de la cabecera del pedido '{pedido.Referencia}'");
+
+                if (cambios.Count > 0)
+                    pedido.Modificar(contexto, ltrDeUnPedido.Accion_ModificarCabecera);
+
+                if (guardarEnElProveedor)
                 {
+                    cambios.Add($"Correo del proveedor '{proveedor.Nombre}': {Texto(proveedor.eMail)} → {Texto(datos.eMail)}");
                     proveedor.eMail = datos.eMail;
                     proveedor.Modificar(contexto, ltrDeUnPedido.Accion_ModificarCabecera);
                 }
 
-                pedido.CrearTraza(contexto, "Cabecera modificada", $"El usuario '{contexto.DatosDeConexion.Login}' ha modificado la cabecera del pedido");
+                // un dato modificado por línea, con su valor anterior y el nuevo
+                pedido.CrearTraza(contexto, "Cabecera modificada",
+                    $"El usuario '{contexto.DatosDeConexion.Login}' ha modificado la cabecera del pedido:{Environment.NewLine}{string.Join(Environment.NewLine, cambios)}");
                 contexto.Commit(tran);
             }
             catch

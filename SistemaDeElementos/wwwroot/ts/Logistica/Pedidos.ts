@@ -74,12 +74,11 @@
                 let parametros: Array<Parametro> = new Array<Parametro>();
                 ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
                 parametros.push(new Parametro(Ajax.Param.ids, [editor.ElementoEditado.Id]));
-                // versión del pedido que se está editando: si otro usuario lo ha modificado desde entonces el servidor no guarda
-                parametros.push(new Parametro(ltrPropiedades.Elemento.RowVersion, ObtenerPropiedad(editor.ElementoEditado.Registro, ltrPropiedades.Elemento.RowVersion)));
                 ApiDePeticiones.ProcesarOpcionMf(this, this.Controlador, this.IdNegocio, ltrMenus.eventosDeMf.Logistica.Pedidos.GuardarCabecera, false, parametros, new Array<Parametro>())
                     .then(() => {
                         super.ModalDePedirDatos_Cerrar(modal);
                         editor.RecargarValoresDeCabecera(editor.ElementoEditado.Id);
+                        editor.RecargarGridDeTrazas();
                     })
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
                 return;
@@ -92,7 +91,7 @@
             super.ModalDePedirDatos_TrasAbrir(modal);
             if (modal.id === this.ModalModificarCabecera.id) {
                 const panel = this.crudDeEdicion.PanelDelDto;
-                ApiDelCrud.ProponerParaRenombrar(modal, this.crudDeEdicion.ElementoEditado.Registro);
+                ApiDelCrud.ProponerParaRenombrar(modal, this.crudDeEdicion.Registro);
                 ApiDelCrud.ProponerPropiedad(panel, modal, literal.nombre, false);
                 ApiDelCrud.ProponerPropiedad(panel, modal, ltrPropiedades.Logistica.Pedido.eMail, false);
                 ApiDelCrud.ProponerPropiedad(panel, modal, ltrPropiedades.Logistica.Pedido.EntregarEl, false);

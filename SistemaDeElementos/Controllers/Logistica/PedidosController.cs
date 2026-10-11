@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using Utilidades;
 using System.Collections.Generic;
+using System.Linq;
 using GestoresDeNegocio.Logistica;
 using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
@@ -110,6 +111,22 @@ namespace MVCSistemaDeElementos.Controllers
                     return plantillas;
                 case eventosDeMf.Totalizador_Mostrar:
                     return null;
+                case eventosDeMf.Ped_ModificarCabecera:
+                    // la modal se propone con los datos de la edición
+                    return null;
+                case eventosDeMf.Ped_GuardarCabecera:
+                    GestorDePedidos.ModificarCabecera(Contexto, new ModificarCabeceraDePedidoDto
+                    {
+                        IdElemento = ((List<int>)parametros[ltrParametrosEp.ids]).Single(),
+                        Nombre = parametros.LeerValor<string>(nameof(ModificarCabeceraDePedidoDto.Nombre), null),
+                        eMail = parametros.LeerValor<string>(nameof(ModificarCabeceraDePedidoDto.eMail), null),
+                        GuardarEnElProveedor = parametros.LeerValor(nameof(ModificarCabeceraDePedidoDto.GuardarEnElProveedor), false),
+                        EntregarEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.EntregarEl), null),
+                        RecibidoEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.RecibidoEl), null),
+                        CerradoEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.CerradoEl), null),
+                        RowVersion = parametros.LeerValor<string>(nameof(ModificarCabeceraDePedidoDto.RowVersion), null)
+                    });
+                    return new Resultado { Estado = enumEstadoPeticion.Ok, Mensaje = "Cabecera del pedido modificada" };
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }

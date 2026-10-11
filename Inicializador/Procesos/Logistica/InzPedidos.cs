@@ -96,7 +96,7 @@ namespace Inicializador.Logistica
         public static readonly string n_tran_ped_enviar_a_proveedor = $"{n_ped}: Enviar al proveedor";
         public static readonly string n_tran_ped_devolver_a_cumplimentacion = $"{n_ped}: Devolver a cumplimentación";
 
-        public static readonly string n_tran_ped_recibir = $"{n_ped}: Cerrar";
+        public static readonly string n_tran_ped_recibir = $"{n_ped}: Recibir";
         public static readonly string n_tran_ped_dar_por_recibido = $"{n_ped}: Dar por recibido";
         public static readonly string n_tran_ped_cerrado = $"{n_ped}: Cerrar";
         public static readonly string n_tran_ped_reabrir = $"{n_ped}: Reabrir";
@@ -128,7 +128,7 @@ namespace Inicializador.Logistica
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_cerrado, n_estado_ped_en_recepcion, n_estado_ped_cerrado);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_devolver_a_solicitado, n_estado_ped_en_recepcion, n_estado_ped_solicitado, asunto: "Devolver al proveedor");
 
-                //pagada --> pdt de pago
+                //cerrado --> en recepción
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_reabrir, n_estado_ped_cerrado, n_estado_ped_en_recepcion);
             }
             finally
