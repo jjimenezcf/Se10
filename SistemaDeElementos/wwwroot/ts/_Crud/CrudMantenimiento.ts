@@ -2585,8 +2585,9 @@
             ApiDePeticiones.EjecutarPeticion(this, ltrControladores.SisDoc.Archivos, Ajax.Archivos.accion.LeerAnexadosDirectos, parametros, new Array<Parametro>())
                 .then((peticion) => {
                     let archivos: Array<any> = peticion.resultado.datos;
-                    if (archivos.length === 0)
-                        lista.innerHTML = '<span>El elemento no tiene archivos anexados</span>';
+                    // sin archivos anexados no hay nada que marcar: se oculta el bloque entero (título y lista); el panel se
+                    // reutiliza para otros elementos, así que se vuelve a mostrar si los tiene
+                    lista.parentElement.style.display = archivos.length === 0 ? 'none' : '';
                     for (let archivo of archivos) {
                         let fila = document.createElement('label');
                         let check = document.createElement('input');
