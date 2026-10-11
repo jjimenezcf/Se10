@@ -347,6 +347,7 @@ namespace GestorDeElementos
             TipoParametros = typeof(enumParametrosDePedidos),
             TipoEtapas = typeof(enumEtapasDePedido),
             EstadosDeLaEtapa = etapa => VariableDePedidos.Lista((enumEtapasDePedido)etapa),
+            ListaDeEtapas = registro => ((PedidoDtm)registro).ListaDeEtapas(),
             DireccionesDtm = typeof(DireccionDeUnPedidoDtm)
         };
         public static Metadatos MetadatosDeAlmacenes() => new Metadatos

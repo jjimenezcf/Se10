@@ -163,6 +163,18 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             return $"javascript:{enumNameSpaceTs.ApiDeAgenda}.{enumFunctionTs.Agenda_EnviarEventoIcs}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
         }
+        internal static string Pedido_Recepcionar(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_Recepcionar}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Pedido_RecibirLinea(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_RecibirLinea}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Pedido_LineaNoEntregada(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_LineaNoEntregada}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
         internal static string SisDoc_CarpetasDeUnArchivador(DescriptorDeExpansor expansor)
         {
             return $"javascript:{enumNameSpaceTs.ApiDeArchivos}.{enumFunctionTs.SisDoc_CarpetasDeUnArchivador}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";

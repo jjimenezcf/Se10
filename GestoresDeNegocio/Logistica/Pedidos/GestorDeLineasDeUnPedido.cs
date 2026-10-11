@@ -7,6 +7,7 @@ using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
 using Gestor.Errores;
 using ServicioDeDatos.MaestrosTecnico;
+using ServicioDeDatos.Seguridad;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
@@ -125,6 +126,11 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.Clase = linea.Clase(Contexto)?.ToString();
+
+            // Las líneas sólo se modifican mientras el pedido se cumplimenta (ver AntesDePersistir), en el resto de etapas se consultan
+            if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)
+                && !Contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento).EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion))
+                elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;
         }
 
     }

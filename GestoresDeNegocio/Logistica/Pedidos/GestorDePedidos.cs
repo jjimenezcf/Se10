@@ -46,7 +46,8 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.Estado, dtm => dtm.MapFrom(dtm => dtm.Estado.Nombre))
                 .ForMember(dto => dto.Expediente, dtm => dtm.MapFrom(dtm => dtm.Expediente == null ? null : dtm.Expediente.Expresion))
                 .ForMember(dto => dto.Proveedor, dtm => dtm.MapFrom(dtm => dtm.Proveedor == null ? null : dtm.Proveedor.Expresion))
-                .ForMember(dto => dto.Contrato, dtm => dtm.MapFrom(dtm => dtm.Contrato == null ? null : dtm.Contrato.Expresion));
+                .ForMember(dto => dto.Contrato, dtm => dtm.MapFrom(dtm => dtm.Contrato == null ? null : dtm.Contrato.Expresion))
+                .ForMember(dto => dto.Almacen, dtm => dtm.MapFrom(dtm => dtm.Almacen == null ? null : dtm.Almacen.Expresion));
 
                 CreateMap<PedidoDto, PedidoDtm>()
                 .ForMember(dtm => dtm.Cg, dto => dto.Ignore())
@@ -54,7 +55,8 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dtm => dtm.Estado, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Proveedor, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Expediente, dto => dto.Ignore())
-                .ForMember(dtm => dtm.Contrato, dto => dto.Ignore());
+                .ForMember(dtm => dtm.Contrato, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Almacen, dto => dto.Ignore());
             }
         }
 
@@ -92,6 +94,7 @@ namespace GestoresDeNegocio.Logistica
             consulta = consulta.Include(x => x.Proveedor);
             consulta = consulta.Include(x => x.Contrato);
             consulta = consulta.Include(x => x.Expediente);
+            consulta = consulta.Include(x => x.Almacen);
             return consulta;
         }
 
@@ -528,8 +531,11 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(pedido, elemento, parametros);
 
-            // La cabecera sólo es modificable mientras se cumplimenta, en el resto de etapas se consulta
-            if (elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor) && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion))
+            // La cabecera sólo es modificable mientras se cumplimenta, en el resto de etapas se consulta.
+            // En recepción se mantiene el permiso para poder recepcionar las líneas, la cabecera se pone en consulta en el cliente (CrudEdicionPedido)
+            if (elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)
+                && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion)
+                && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion))
                 elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;
 
             elemento.Importe = pedido.Importe(Contexto);

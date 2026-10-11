@@ -109,6 +109,8 @@ namespace ServicioDeDatos.Logistica
 
         public static string CadenaDeEtapas(this PedidoDtm pedido) => string.Join(Simbolos.separadorDeEtapas, pedido.Etapas());
 
+        public static List<string> ListaDeEtapas(this PedidoDtm pedido) => pedido.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
+
         public static enumEtapasDePedido Etapa(this PedidoDtm pedido)
         {
             var etapas = pedido.Etapas();

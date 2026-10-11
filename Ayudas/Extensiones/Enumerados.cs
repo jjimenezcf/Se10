@@ -456,6 +456,10 @@ namespace Utilidades
         Ped_InicializarModalParaCrearLineas,
         Ped_InicializarModalParaEditarLineas,
         Ped_Parametros_Para_Seleccionar_Unitarios,
+        Pedido_Recepcionar,
+        Pedido_RecibirLinea,
+        Pedido_LineaNoEntregada,
+        Pedido_CalcularImporteEntregado,
 
         Ral_Tras_Seleccionar_Almacen,
         Ral_Tras_Blanquear_Almacen,
@@ -949,6 +953,7 @@ namespace Utilidades
         public const string Ped_ModalDeImprimir = ModalDeImprimir;
         public const string Ped_ModificarCabecera = "modificar-cabecera-pedido";
         public const string Ped_GuardarCabecera = "guardar-cabecera-pedido";
+        public const string Ped_RecepcionarLinea = "recepcionar-linea-pedido";
 
         public const string Infantes_AsociarCurso = "asociar-curso";
 

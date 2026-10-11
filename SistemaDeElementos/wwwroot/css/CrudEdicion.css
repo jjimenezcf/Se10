@@ -603,6 +603,38 @@ div[propiedad="Editar"] a[href^="javascript:Formulario.EventosDeExpansores('abri
     vertical-align: middle;
 }
 
+div[propiedad="Recepcionar"] a[href^="javascript:Logistica.Pedido_Recepcionar"],
+div[propiedad="NoEntregada"] a[href^="javascript:Logistica.Pedido_LineaNoEntregada"],
+div[propiedad="Recibida"] a[href^="javascript:Logistica.Pedido_RecibirLinea"] {
+    font-size: 0;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+div[propiedad="Recepcionar"] a[href^="javascript:Logistica.Pedido_Recepcionar"] {
+    background-image: url('/images/menu/RecepcionarLinea.svg');
+}
+
+div[propiedad="NoEntregada"] a[href^="javascript:Logistica.Pedido_LineaNoEntregada"] {
+    background-image: url('/images/menu/LineaNoEntregada.svg');
+}
+
+div[propiedad="Recibida"] a[href^="javascript:Logistica.Pedido_RecibirLinea"] {
+    background-image: url('/images/menu/LineaRecibida.svg');
+}
+
+a.accion-deshabilitada {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: default;
+}
+
 div[propiedad="Destino"] a[href^="javascript:Crud.EventosDeExpansores('navegar-a-editar'"] {
     font-size: 0;
     display: inline-block;

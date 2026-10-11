@@ -176,6 +176,92 @@ namespace Logistica {
         return parametros;
     }
 
+    export function Pedido_Recepcionar(parametros: string): void {
+        if (!ped_SePuedeRecepcionar_interno()) return;
+        let linea = ped_LeerLineaDelGrid_interno(parametros);
+        // modal para pedir datos de RecepcionarLineaDto (ver DescriptorDePedidos), su Aceptar está en CrudDePedidos.ModalDePedirDatos_Aceptar
+        (Crud.crudMnt as CrudDePedidos).AbrirModalDeRecepcionarLinea(linea.id, linea.rowVersion, linea.cantidad, linea.precio, linea.descuento);
+    }
+
+    export function Pedido_CalcularImporteEntregado() {
+        (Crud.crudMnt as CrudDePedidos).CalcularImporteEntregado();
+    }
+
+    export function Pedido_RecibirLinea(parametros: string): void {
+        if (!ped_SePuedeRecepcionar_interno()) return;
+        ped_RecibirLinea_interno(ped_LeerLineaDelGrid_interno(parametros));
+    }
+
+    export function Pedido_LineaNoEntregada(parametros: string): void {
+        if (!ped_SePuedeRecepcionar_interno()) return;
+        let linea = ped_LeerLineaDelGrid_interno(parametros);
+        let datos: Array<Parametro> = new Array<Parametro>();
+        datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, linea.id));
+        datos.push(new Parametro(Ajax.Param.RowVersion, linea.rowVersion));
+        ped_EjecutarPeticionDeLinea_interno(Ajax.EndPoint.Logistica.Pedidos.LineaNoEntregada, datos);
+    }
+
+    interface LineaDelGridDePedido {
+        id: number;
+        rowVersion: string;
+        cantidad: number;
+        precio: number;
+        descuento: number;
+    }
+
+    function ped_LeerLineaDelGrid_interno(parametros: string): LineaDelGridDePedido {
+        let partes = parametros.split(';');
+        let idGrid: string = partes[0];
+        let fila: number = Numero(partes[1]);
+        // No se usa ApiDeGrid.Expansor_ObtenerPropiedadDeLaFila porque da error si la celda está vacía (p.e. una línea sin descuento)
+        let idDeLaFila = `${idGrid.replace('-contenedor', '-tabla_d_tr')}_${fila}`;
+        let leer = (propiedad: string) => ApiDeExpansor.ObtenerElValorDeLaPropiedadDeLaFila(idDeLaFila, propiedad);
+        let aNumero = (texto: string) => IsNullOrEmpty(texto) ? 0 : Numero(texto);
+
+        return {
+            id: Numero(leer(literal.id)),
+            rowVersion: leer(ltrPropiedades.Elemento.RowVersion),
+            cantidad: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.cantidad)),
+            precio: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.precio)),
+            descuento: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.descuentoPorLinea))
+        };
+    }
+
+    function ped_SePuedeRecepcionar_interno(): boolean {
+        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeRecepcionar)
+            return true;
+        MensajesSe.Error('Recepción', 'Solo se pueden recepcionar líneas de pedidos solicitados o en recepción');
+        return false;
+    }
+
+    function ped_RecibirLinea_interno(linea: LineaDelGridDePedido): void {
+        let datos: Array<Parametro> = new Array<Parametro>();
+        datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, linea.id));
+        datos.push(new Parametro(Ajax.Param.RowVersion, linea.rowVersion));
+        datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad, linea.cantidad));
+        datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Precio, linea.precio));
+        datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento, linea.descuento));
+        ped_EjecutarPeticionDeLinea_interno(Ajax.EndPoint.Logistica.Pedidos.RecibirLinea, datos);
+    }
+
+    // Los parámetros llevan el RowVersion de la línea, así IncluirRowId no añade el del pedido.
+    // Tras cada operación se recarga el grid para que las filas tengan la versión actual de sus líneas
+    function ped_EjecutarPeticionDeLinea_interno(accion: string, parametros: Array<Parametro>): void {
+        let editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
+        ApiDePeticiones.EjecutarPeticion(
+            editor,
+            ltrControladores.Logistica.Pedidos,
+            accion,
+            parametros,
+            new Array<Parametro>()
+        )
+        .then((peticion) => {
+            MensajesSe.Info(peticion.resultado.consola);
+            editor.RecargarGridDeLineas();
+        })
+        .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+    }
+
     function ped_mapearUnitarioSeleccionado_interno(unitario: any) {
         var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionPedido);
         let modal: HTMLDivElement = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;

@@ -187,5 +187,86 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        public JsonResult epRecibirLinea(string parametrosJson)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epRecibirLinea));
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var parametros = parametrosJson.ToDiccionarioDeParametros();
+                var linea = LeerLineaParaRecepcionar(parametros);
+                var cantidad = parametros.LeerValor<decimal?>(nameof(RecepcionarLineaDto.Cantidad), null);
+                var precio = parametros.LeerValor<decimal?>(nameof(RecepcionarLineaDto.Precio), null);
+                var descuento = parametros.LeerValor<decimal?>(nameof(RecepcionarLineaDto.Descuento), null);
+                if (cantidad == null || cantidad <= 0)
+                    GestorDeErrores.Emitir("Ha de indicar la cantidad entregada, si no se ha entregado nada marque la línea como no entregada");
+                if (precio == null || precio < 0)
+                    GestorDeErrores.Emitir("Ha de indicar el precio de compra unitario sin iva");
+                if (descuento != null && (descuento < 0 || descuento > 100))
+                    GestorDeErrores.Emitir("El descuento ha de estar entre 0 y 100");
+                var importeEntregado = cantidad * precio * (1 - (descuento ?? 0) / 100);
+
+                //TODO: registrar la recepción de la línea
+                r.Consola = $"Línea {linea.Orden} recibida: cantidad {cantidad}, precio {precio}, descuento {descuento}, importe entregado {importeEntregado:N2}";
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error al recibir la línea del pedido.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
+        public JsonResult epLineaNoEntregada(string parametrosJson)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLineaNoEntregada));
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var parametros = parametrosJson.ToDiccionarioDeParametros();
+                var linea = LeerLineaParaRecepcionar(parametros);
+
+                //TODO: registrar que la línea no se ha entregado
+                r.Consola = $"Línea {linea.Orden} marcada como no entregada";
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error al marcar la línea del pedido como no entregada.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
+        // Lee la línea sin cache, valida que es la versión que el usuario vio en el grid y que el pedido admite recepciones;
+        // se ha de llamar antes de cualquier modificación de la operación
+        private LineaDeUnPedidoDtm LeerLineaParaRecepcionar(Dictionary<string, object> parametros)
+        {
+            var idLinea = (int)parametros.LeerValor<long>(nameof(RecepcionarLineaDto.IdLineaPedido));
+            var linea = Contexto.SeleccionarPorId<LineaDeUnPedidoDtm>(idLinea, usarLaCache: false);
+            linea.ValidarRowId(Contexto, parametros.LeerValor<string>(nameof(LineaDeUnPedidoDtm.RowVersion), null), releer: false);
+
+            var pedido = Contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento, usarLaCache: false);
+            if (!pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Solicitud, enumEtapasDePedido.PED_Etapa_De_Recepcion }))
+                GestorDeErrores.Emitir($"Las líneas del pedido '{pedido.Referencia}' solo se pueden recepcionar con el pedido {enumEtapasDePedido.PED_Etapa_De_Solicitud.Nombre()} o {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
+
+            return linea;
+        }
+
     }
 }

@@ -165,9 +165,11 @@ Mismo directorio, fichero `VariablesDeXxx.cs`, con:
   `Nombre(etapa)` — calcados de `VariableDePedidos`, cambiando el enumerado de etapas y el tipo del
   elemento; un `case` del `switch` de `Estados(etapa)` por cada valor de `enumEtapasDeXxx`, y un `if`
   por cada uno en `Etapas(XxxDtm)`.
-- En el mismo fichero, un método de extensión `Lista(this XxxDtm registro)` que expone al DTO en qué
-  etapas está el registro (una por cada etapa cuyo estado actual coincide, como texto, no como enum —
-  el nombre del método puede variar de negocio a negocio, ver paso 7):
+- **Obligatorio**: en el mismo fichero, un método de extensión `Lista(this XxxDtm registro)` que expone
+  al DTO en qué etapas está el registro (una por cada etapa cuyo estado actual coincide, como texto, no
+  como enum — el nombre del método puede variar de negocio a negocio, ver paso 7). Es el método al que
+  apunta `ListaDeEtapas` en los metadatos del paso 7, que hay que definir siempre; sin él, `Etapas` llega
+  vacío al navegador y fallan todas las comprobaciones de etapa en TypeScript:
   ```csharp
   public static List<string> Lista(this XxxDtm registro) =>
       registro.CadenaDeEtapas().ToLista<string>(Simbolos.separadorDeEtapas);
@@ -212,6 +214,29 @@ Fichero: `Ayudas/Extensiones/Negocios.cs`.
      `SistemaDeElementos/wwwroot/images/menu/Xxx.svg` con ese nombre exacto (un SVG simple, un único
      `<path>` con `fill-rule="evenodd"` y sub-trazados como "agujeros" es más que suficiente si no hay
      un icono de diseño).
+3. **Replicar el valor en el TypeScript** — `SistemaDeElementos/wwwroot/ts/_Literales/literales.ts`
+   tiene un `enum enumNegocio` espejo del de C# (cada valor es un string igual a su nombre). Hay que
+   añadir ahí también el negocio nuevo, **con el mismo nombre que en C#**:
+   ```typescript
+   enum enumNegocio {
+       ...
+       Pedido = 'Pedido',
+       Preasiento = 'Preasiento',
+       Xxx = 'Xxx'
+   }
+   ```
+   No es opcional aunque el CRUD básico no lo use todavía. El fallo **no se ve al compilar ni en el
+   servidor**: ocurre en el navegador. Para enviar el negocio al servidor, el código cliente (p.ej. el
+   grid, al pulsar un enlace) llama a `ParsearEnumerado(enumNegocio, 'Xxx')`; si `'Xxx'` no está en el
+   enumerado, devuelve `undefined` y el parámetro `enumNegocio` llega nulo al endpoint
+   (p.ej. `epObtenerUrlAlProveedor` en Pedidos). Lo sufren también otras opciones genéricas que mandan
+   el negocio al servidor: enlace a "registros accedidos", agenda, etc.
+
+   **Al añadir un negocio, comparar siempre el `enumNegocio` de TypeScript con el de C#
+   (`Ayudas/Extensiones/Negocios.cs`)**: no basta con añadir el nuevo, porque pueden faltar otros
+   anteriores (en una revisión faltaban `Pedido`, `Cobro`, `Gasto`, `Almacen` y `Regularizacion`).
+   Después de cambiar `literales.ts`, recargar el navegador sin caché (Ctrl+F5) para que cargue el
+   JavaScript nuevo.
 
 ## 5. Enchufar el negocio en los "Extensores" de parametrización
 
@@ -330,12 +355,18 @@ public static Metadatos MetadatosDeXxxs() => new Metadatos
 y el `case enumNegocio.Xxx: metadatos = MetadatosDeXxxs(); break;` dentro del `switch` de
 `ObtenerMetadatos`. Si el fichero `VariablesDeXxx.cs` del paso 2.1 todavía no existe cuando se escribe
 esto, se dejan `TipoParametros`/`TipoEtapas`/`EstadosDeLaEtapa`/`ListaDeEtapas` a `null` y se vuelve
-aquí en cuanto se cree — pero como el punto 0 ya trae las etapas y los parámetros, lo normal es poder
-rellenarlo todo a la primera.
+aquí en cuanto se cree (no dejar el negocio así: ver más abajo por qué `ListaDeEtapas` es obligatorio) —
+pero como el punto 0 ya trae las etapas y los parámetros, lo normal es poder rellenarlo todo a la
+primera.
 
-**`ListaDeEtapas`** es imprescindible si el frontend necesita saber en qué etapa está el registro para
-ajustar el comportamiento del formulario (habilitar/deshabilitar edición de un grid, mostrar u ocultar
-un botón...). Se apunta al método `Lista(this XxxDtm registro)` del paso 2.1 (el nombre del método en sí
+**`ListaDeEtapas` hay que definirlo SIEMPRE en los metadatos de todo negocio con flujo/etapas**, aunque
+al empezar el CRUD no lo use. Sin él, el frontend no puede saber en qué etapa está el registro, y
+cualquier comprobación de etapa en TypeScript (habilitar/deshabilitar edición de un grid, mostrar u
+ocultar un botón, bloquear una acción...) da falso sin ningún error visible. Caso real: a Pedido le
+faltaba y `Etapas` llegaba siempre vacío al navegador, así que las acciones de recepción (aspa, visto,
+"Recepcionar") seguían desactivadas aunque el pedido estuviera en recepción; además, comprobaciones que
+ya existían en `Pedidos.ts` ("Añadir fichero como pedido", etiqueta "Pedido el", bloqueo de "Modificar
+cabecera" si está anulado) no se cumplían nunca. Se apunta al método `Lista(this XxxDtm registro)` del paso 2.1 (el nombre del método en sí
 es libre — hay negocios que lo llaman `Lista()`, como Almacenes/Regularizaciones/Expedientes, y otros
 `ListaDeEtapas()`, como Remesas/Facturas/Tareas/Pagos/Presupuestos —, lo único fijo es la firma
 `Func<object, List<string>>` del delegado). En tiempo de ejecución, `GestorDeElementos.
@@ -618,6 +649,7 @@ cosas no son mecánicas y quedan fuera:
 | 3 | `ModeloDeDto/<Área>/Xxxs/XxxDto.cs` / `TipoDeXxxDto.cs` | Dtos |
 | 4 | `Ayudas/Extensiones/Negocios.cs` | Valor de `enumNegocio`, `Plural`/`ConArticulo`/`Controlador` si hace falta |
 | 4 | `Ayudas/Extensiones/Controladores.cs` | Valor en `enumControladores<Área>` si falta |
+| 4 | `SistemaDeElementos/wwwroot/ts/_Literales/literales.ts` | Valor en `enum enumNegocio` (espejo del de C#; comparar los dos enumerados completos) — imprescindible |
 | 5 | `ExtensorDeEstados.cs` / `ExtensorDeTransiciones.cs` / `ExtensorDeAccionesDeTrn.cs` / `ExtensorDeTipos.cs` (`TiposConFlujo`) / `ExtensorDeHitos.cs` | Caso del negocio en cada `switch`/`if` |
 | 5.1 | `ExtensorDeArchivadores.cs` | Caso del negocio en `Archivadores`/`Archivos` (solo los que use) |
 | 6 | `ServicioDeDatos/CreadorDelMd.cs` | `DefinirTablasDeXxx` + llamada desde `OnModelCreating` |
@@ -663,6 +695,7 @@ paso:
 - JSON de layout: `AlmacenDto.json` y `TipoDeAlmacenDto.json` en `wwwroot/Json/`, con el override de
   `Tipo` (`SeleccionarDe: TipoDeAlmacenDto`, `Negocio: Almacen`, `VistaDondeNavegar: TiposDeAlmacen`) —
   sin ellos, el mantenimiento de Almacenes fallaba al renderizar el control de "Tipo".
+- TypeScript: `Almacen = 'Almacen'` añadido a `enumNegocio` en `literales.ts`.
 - `ExtensorDeHitos.cs`: caso `HitosDeUnAlmacenDtm`/`enumNegocio.Almacen` añadido en `Negocio(Type)` y en
   `Hitos(this enumNegocio, ContextoSe)` — se había quedado fuera al hacer el paso 5 la primera vez.
 - `ExtensorDeArchivadores.cs` (paso 5.1): caso `enumNegocio.Almacen` añadido tanto en `Archivadores(...)`

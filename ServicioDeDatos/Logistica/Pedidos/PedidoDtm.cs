@@ -60,6 +60,9 @@ namespace ServicioDeDatos.Logistica
         public int? IdExpediente { get; set; }
         public ExpedienteDtm Expediente { get; set; }
 
+        public int? IdAlmacen { get; set; }
+        public AlmacenDtm Almacen { get; set; }
+
         public DateTime? PedidoEl { get; set; }
         public DateTime? EntregarEl { get; set; }
         public DateTime? RecibidoEl { get; set; }
@@ -147,6 +150,8 @@ namespace ServicioDeDatos.Logistica
             ApiDeRegistroDtm.DefinirDependencia<PedidoDtm, ContratoDtm>(modelBuilder, apuntadoPor: nameof(PedidoDtm.IdContrato), idCampo: ICampos.ID_CONTRATO, requerido: false);
 
             ModeloDeExpediente.DefinirExpediente<PedidoDtm>(modelBuilder, false);
+
+            ApiDeRegistroDtm.DefinirCampoFk<PedidoDtm>(modelBuilder, nameof(PedidoDtm.Almacen), nameof(PedidoDtm.IdAlmacen), ICampos.ID_ALMACEN, requerida: false, unico: false);
 
             ApiDeElementoDtm.DefinirCampoArchivo<PedidoDtm>(modelBuilder);
         }

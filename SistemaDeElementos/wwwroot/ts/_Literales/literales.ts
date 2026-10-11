@@ -78,15 +78,20 @@ enum enumNegocio {
     LoteDeUnContrato = 'LoteDeUnContrato',
     PlanificadorDeVenta = 'PlanificadorDeVenta',
     FacturaEmitida = 'FacturaEmitida',
+    Cobro = 'Cobro',
     PlanificacionDeVenta = 'PlanificacionDeVenta',
     PlanificacionDeCompra = 'PlanificacionDeCompra',
     RemesaFae = 'RemesaFae',
+    Gasto = 'Gasto',
     Pago = 'Pago',
     RemesaPag = 'RemesaPag',
     FacturaRecibida = 'FacturaRecibida',
     Infante = 'Infante',
     CursoDeGuarderia = 'CursoDeGuarderia',
-    Preasiento = 'Preasiento'
+    Pedido = 'Pedido',
+    Preasiento = 'Preasiento',
+    Almacen = 'Almacen',
+    Regularizacion = 'Regularizacion'
 }
 
 const literal = {
@@ -1386,7 +1391,8 @@ const ltrCss = {
         Contenedor: 'detalle-dto',
         CerrarDetalle: 'img-detalle-dto-cerrar',
         AbrirDetalle: 'img-detalle-dto-abrir',
-        ColumnaAccion: atGridDeDetalle.EsAccion
+        ColumnaAccion: atGridDeDetalle.EsAccion,
+        AccionDeshabilitada: 'accion-deshabilitada'
     },
     Espan: {
         Cabecera: 'grid-span-cabecera',
@@ -1649,6 +1655,12 @@ const Ajax = {
             },
             Menu: {
                 SeleccionarIa: 'epSeleccionarIa'
+            }
+        },
+        Logistica: {
+            Pedidos: {
+                RecibirLinea: 'epRecibirLinea',
+                LineaNoEntregada: 'epLineaNoEntregada'
             }
         },
         Contabilidad: {
@@ -3343,6 +3355,13 @@ const ltrPropiedades = {
                 clase: 'Clase',
                 naturaleza: 'Naturaleza',
                 unidad: 'Unidad'
+            },
+            RecepcionarLinea: {
+                IdLineaPedido: 'IdLineaPedido',
+                Cantidad: 'Cantidad',
+                Precio: 'Precio',
+                Descuento: 'Descuento',
+                ImporteEntregado: 'ImporteEntregado'
             }
         },
         RenombraPedido: {
@@ -4187,7 +4206,8 @@ const ltrMenus = {
         Logistica: {
             Pedidos: {
                 ModificarCabecera: 'modificar-cabecera-pedido',
-                GuardarCabecera: 'guardar-cabecera-pedido'
+                GuardarCabecera: 'guardar-cabecera-pedido',
+                RecepcionarLinea: 'recepcionar-linea-pedido'
             }
         },
         MaestrosTecnico: {

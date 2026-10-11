@@ -38,6 +38,9 @@ namespace MVCSistemaDeElementos.Descriptores
 
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ModificarCabeceraDePedidoDto), eventosDeMf.Ped_ModificarCabecera, "Modificar cabecera"));
             Editor.IncluirMfIndividual("Modificar cabecera", eventosDeMf.Ped_ModificarCabecera, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
+
+            // se abre desde la acción Recepcionar de las líneas del pedido (ver Logistica.Pedido_Recepcionar)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(RecepcionarLineaDto), eventosDeMf.Ped_RecepcionarLinea, "Recepcionar línea"));
             Editor.IncluirMfIndividual("Quitar expediente", eventosDeMf.Ped_QuitarExpediente, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Quitar contrato", eventosDeMf.Ped_QuitarContrato, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
 
@@ -63,6 +66,8 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo: "Importe", propiedad: nameof(LineaDeUnPedidoDto.ImporteDeLinea), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnPedidoDto.IdElemento), mostrar: false);
             columnas.Add(titulo: "Id", propiedad: nameof(LineaDeUnPedidoDto.Id), mostrar: false);
+            // versión de la línea leída, para validarla en el servidor al recepcionarla (ver PedidosController.epRecibirLinea)
+            columnas.Add(titulo: "RowVersion", propiedad: nameof(LineaDeUnPedidoDto.RowVersion), mostrar: false);
 
             var orden = $"{nameof(LineaDeUnPedidoDto.Orden)}:{enumModoOrdenacion.ascendente.Render()}";
 
@@ -76,6 +81,27 @@ namespace MVCSistemaDeElementos.Descriptores
                 };
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
             gridDeRelacion.PermitirBorrar = true;
+            gridDeRelacion.acciones.Add(new ColumnaAccion
+            {
+                accion = Referencia.Pedido_Recepcionar(expansor),
+                titulo = "Recepcionar",
+                tamano = 100,
+                visible = true
+            });
+            gridDeRelacion.acciones.Add(new ColumnaAccion
+            {
+                accion = Referencia.Pedido_LineaNoEntregada(expansor),
+                titulo = "NoEntregada",
+                tamano = 100,
+                visible = true
+            });
+            gridDeRelacion.acciones.Add(new ColumnaAccion
+            {
+                accion = Referencia.Pedido_RecibirLinea(expansor),
+                titulo = "Recibida",
+                tamano = 100,
+                visible = true
+            });
 
             var modalDeCreacion = expansor.DescriptorDeCrearRelaciones(Editor.Crud.Contexto, typeof(LineaDeUnPedidoDto), typeof(LineasDeUnPedidoController), nameof(LineaDeUnPedidoDto.IdElemento), "Añadir línea");
             modalDeCreacion.AccionTrasAbrirModal = $"javascript: {RutaBase}.{enumFunctionTs.Ped_InicializarModalParaCrearLineas}({ExtensorDePedidos.IncrementarOrdenEn(Contexto)})";

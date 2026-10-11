@@ -131,8 +131,8 @@ namespace ModeloDeDto.Logistica
             ParametrosParaNavegar = nameof(ltrParametrosEp.Clase) + Simbolos.Igual + nameof(enumClaseDeContrato.Compra),
             RestrictorFijo = ltrDeUnContrato.SelectorParaUnPedido + Simbolos.PuntoComa + nameof(enumEtapasDeContratos.CTR_Etapa_Vigente) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeContratos.CTR_Etapa_Finalizacion),
             RestringidoPorControl = nameof(Proveedor),
-            Fila = 3,
-            Columna = 3,
+            Fila = 4,
+            Columna = 0,
             Posicion = 0,
             EditableAlCrear = true,
             EditableAlEditar = true,
@@ -162,8 +162,8 @@ namespace ModeloDeDto.Logistica
             Controlador = nameof(enumControladoresAdministrativos.Expedientes),
             VistaDondeNavegar = enumVistasAdministrativo.CrudExpedientes,
             RestrictorFijo = ltrDeUnExpediente.SelectorParaUnPedido + Simbolos.PuntoComa + nameof(enumEtapasDeExpedientes.EXP_Etapa_Ejecucion) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeExpedientes.EXP_Etapa_Terminada),
-            Fila = 3,
-            Columna = 4,
+            Fila = 4,
+            Columna = 1,
             Posicion = 0,
             EditableAlCrear = true,
             EditableAlEditar = true,
@@ -173,6 +173,33 @@ namespace ModeloDeDto.Logistica
             )
         ]
         public string Expediente { get; set; }
+
+        //--------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "Id del almacén",
+            Visible = false
+            )
+        ]
+        public int? IdAlmacen { get; set; }
+
+        // Lista de valores con los almacenes que el usuario conectado puede consultar (ver GestorDeAlmacenes.AplicarSeguridad)
+        [IUPropiedad(
+            Etiqueta = "Almacén",
+            Ayuda = "Almacén del pedido",
+            TipoDeControl = enumTipoControl.ListaDeElemento,
+            SeleccionarDe = typeof(AlmacenDto),
+            Controlador = nameof(enumControladoresLogistica.Almacenes),
+            GuardarEn = nameof(IdAlmacen),
+            MostrarExpresion = nameof(AlmacenDto.Expresion),
+            Obligatorio = false,
+            Fila = 4,
+            Columna = 2,
+            EditableAlCrear = true,
+            EditableAlEditar = true,
+            VisibleEnGrid = false
+            )
+        ]
+        public string Almacen { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------
         // Mientras se cumplimenta o se aprueba es la fecha planificada para solicitar el pedido; al solicitarlo pasa a ser la de solicitud.

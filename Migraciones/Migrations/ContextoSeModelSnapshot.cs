@@ -13094,6 +13094,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("DATETIME2(7)")
                         .HasColumnName("FECMOD");
 
+                    b.Property<int?>("IdAlmacen")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ALMACEN");
+
                     b.Property<int?>("IdArchivo")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ARCHIVO");
@@ -13165,6 +13169,9 @@ namespace Migraciones.Migrations
                         .HasColumnName("EMAIL");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IdAlmacen")
+                        .HasDatabaseName("I_PEDIDO_ID_ALMACEN");
 
                     b.HasIndex("IdArchivo")
                         .HasDatabaseName("I_PEDIDO_ID_ARCHIVO");
@@ -36387,6 +36394,12 @@ namespace Migraciones.Migrations
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.PedidoDtm", b =>
                 {
+                    b.HasOne("ServicioDeDatos.Logistica.AlmacenDtm", "Almacen")
+                        .WithMany()
+                        .HasForeignKey("IdAlmacen")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PEDIDO_ID_ALMACEN");
+
                     b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivoDtm", "Archivo")
                         .WithMany()
                         .HasForeignKey("IdArchivo")
@@ -36445,6 +36458,8 @@ namespace Migraciones.Migrations
                         .HasForeignKey("IdUsuaModi")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_PEDIDO_ID_MODIFICADOR");
+
+                    b.Navigation("Almacen");
 
                     b.Navigation("Archivo");
 
