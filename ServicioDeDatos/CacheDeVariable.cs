@@ -49,6 +49,7 @@ namespace ServicioDeDatos
         public static readonly string Cfg_Tipo_De_Archivador_Zip = nameof(Cfg_Tipo_De_Archivador_Zip);
         public static readonly string Cfg_Tipo_De_Archivador_Sii = nameof(Cfg_Tipo_De_Archivador_Sii);
         public static readonly string CFG_Tamano_Maximo_Zip = nameof(CFG_Tamano_Maximo_Zip);
+        public static readonly string CFG_Horas_De_Validez_De_Enlaces_Archivos = nameof(CFG_Horas_De_Validez_De_Enlaces_Archivos);
 
         public static readonly string CFG_Usar_Cache_En_EpLeerPorId = nameof(CFG_Usar_Cache_En_EpLeerPorId);
         public static readonly string CFG_Usar_Cache = ApiDeEnsamblados.CFG_Usar_Cache;
@@ -113,6 +114,8 @@ namespace ServicioDeDatos
         
 
         public static readonly string CFG_SeparadorDecimal_En_BD = "Indica el separador decimal usado por la BD";
+
+        public static readonly string CFG_Horas_De_Validez_De_Enlaces_Archivos = "Indica las horas durante las que se pueden descargar los archivos de los enlaces con guid que se envían por correo";
 
         public static readonly string CTA_Cuenta_De_Proveedor = $"Indica el nº de cuenta: {ltrCuenta.ProveedorDescripcion}";
         public static readonly string CTA_Cuenta_De_Cliente = $"Indica el nº de cuenta: {ltrCuenta.ClienteDescripcion}";
@@ -249,6 +252,15 @@ namespace ServicioDeDatos
         }
 
 
+
+        public static int CFG_Horas_De_Validez_De_Enlaces_Archivos
+        {
+            get
+            {
+                var horas = ObtenerVariable(Variable.CFG_Horas_De_Validez_De_Enlaces_Archivos, Descripciones.CFG_Horas_De_Validez_De_Enlaces_Archivos, "24").Entero();
+                return horas > 0 ? horas : 24;
+            }
+        }
 
         public static string CFG_Usar_Cache_En_EpLeerPorId => ObtenerVariable(Variable.CFG_Usar_Cache_En_EpLeerPorId, "Indica si ha de usar la cache en el EndPoint LeerPorId", "N");
 

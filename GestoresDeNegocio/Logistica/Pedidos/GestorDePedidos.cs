@@ -444,7 +444,7 @@ namespace GestoresDeNegocio.Logistica
 
                 // El pdf va adjunto y, además, con un enlace de descarga válido 24 horas; si uno de los dos no se puede preparar el correo sale con el otro
                 var adjunto = PrepararParaElCorreo(contexto, pedido, "adjuntar el pedido al correo", () => ServidorDocumental.FicheroParaAdjuntar(contexto, idArchivo));
-                var enlace = PrepararParaElCorreo(contexto, pedido, "generar el enlace de descarga del pedido", () => contexto.SeleccionarPorId<ArchivoDtm>(idArchivo).HrefDeDescargaConGuid(contexto, horasDeValidez: 24));
+                var enlace = PrepararParaElCorreo(contexto, pedido, "generar el enlace de descarga del pedido", () => contexto.SeleccionarPorId<ArchivoDtm>(idArchivo).HrefDeDescargaConGuid(contexto, horasDeValidez: CacheDeVariable.CFG_Horas_De_Validez_De_Enlaces_Archivos));
                 if (adjunto is null && enlace is null)
                 {
                     pedido.CrearTraza(contexto, "Pedido no enviado por correo", $"No se ha podido adjuntar el pedido ni generar su enlace de descarga, ha de enviárselo a '{correo}' por otro medio");
