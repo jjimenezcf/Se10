@@ -27,6 +27,23 @@ namespace GestorDeElementos.Extensores
 {
     public static class ExtensorDeElementos
     {
+        // Concurrencia optimista: rowVersion es la versión (en base64) del registro que tenía el usuario cuando leyó los datos que ahora quiere
+        // guardar; si desde entonces otro usuario lo ha modificado no se deja seguir. Se ha de llamar antes de cualquier modificación de la
+        // operación, ya que cada una cambia la versión del registro.
+        // releer: true lee de la BD (sin la cache) la versión actual; false compara con la del registro proporcionado, sólo si quien llama
+        // lo acaba de leer sin la cache (SeleccionarPorId(..., usarLaCache: false)), ya que una copia de la cache puede tener una versión antigua
+        public static void ValidarRowId<T>(this T registro, ContextoSe contexto, string rowVersion, bool releer = true)
+        where T : RegistroDtm, IRowVersion
+        {
+            string Expresion(T r) => r is INombre conNombre ? conNombre.Expresion : $"{typeof(T).Name} {r.Id}";
+
+            if (rowVersion.IsNullOrEmpty())
+                GestorDeErrores.Emitir($"Ha de indicar la versión de '{Expresion(registro)}' que se leyó para poder modificarlo");
+
+            var enLaBd = releer ? contexto.SeleccionarPorId<T>(registro.Id, usarLaCache: false) : registro;
+            if (Convert.ToBase64String(enLaBd.RowVersion) != rowVersion)
+                GestorDeErrores.Emitir($"'{Expresion(enLaBd)}' ha sido modificado por otro usuario desde que lo leyó, vuelva a leerlo antes de modificarlo");
+        }
 
         public static bool SonIguales(this IElementoDtm origen, IElementoDtm detino, List<string> propiedadesNoComparables)
         {

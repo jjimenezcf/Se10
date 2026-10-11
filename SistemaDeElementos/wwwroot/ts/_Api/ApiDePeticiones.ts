@@ -1126,6 +1126,7 @@ namespace ApiDePeticiones {
 
     export function ProcesarOpcionMf(llamador: any, controlador: string, idNegocio: number, opcion: string, esContextual: boolean, parametros: Array<Parametro>, datosDeEntrada: Array<Parametro>)
         : Promise<ApiDeAjax.DescriptorAjax> {
+        IncluirRowId(llamador, parametros);
         return new Promise((resolve, reject) => {
 
             let paramMf: string = `${Ajax.Param.idNegocio}=${Encriptar(literal.ClaveDeEncriptacion, idNegocio)}`;
@@ -2205,7 +2206,40 @@ namespace ApiDePeticiones {
     }
 
 
+    // Añade la versión (RowVersion) del elemento sobre el que actúa el llamador, para que el servidor pueda comprobar con ValidarRowId que
+    // nadie lo ha modificado desde que se leyó; no molesta aunque la petición no la use. Si ya se ha indicado no se toca, y se toma:
+    //  - si el llamador es la edición: del registro que ha leído (CrudEdicion.AnadirRowId)
+    //  - si es el mantenimiento con la edición abierta (editando o en sólo consulta): del registro de su edición
+    //  - si es el mantenimiento con una sola fila seleccionada: del registro de esa fila
+    // con más de una fila seleccionada y sin la edición abierta no se añade, la petición no es sobre un único elemento
+    function IncluirRowId(llamador: any, parametros: Parametro[]): void {
+        if (!Definido(parametros) || parametros.some(p => p.parametro === Ajax.Param.RowVersion))
+            return;
+
+        // en las páginas sin crud no está cargado el espacio de nombres Crud
+        if (typeof Crud === 'undefined')
+            return;
+
+        if (typeof Crud.CrudEdicion === 'function' && llamador instanceof Crud.CrudEdicion) {
+            llamador.AnadirRowId(parametros);
+            return;
+        }
+
+        if (typeof Crud.CrudMnt === 'function' && llamador instanceof Crud.CrudMnt) {
+            if (llamador.EdicionAbierta) {
+                llamador.AnadirRowId(parametros);
+                return;
+            }
+            const seleccionados = llamador.InfoSelector?.Seleccionados;
+            const registro = seleccionados?.length === 1 ? seleccionados[0].Registro : undefined;
+            const rowVersion = Definido(registro) ? ObtenerPropiedad(registro, ltrPropiedades.Elemento.RowVersion) : undefined;
+            if (Definido(rowVersion))
+                parametros.push(new Parametro(Ajax.Param.RowVersion, rowVersion));
+        }
+    }
+
     export function EjecutarPeticion(llamador: any, controlador: string, accion: string, parametros: Parametro[], datosDeEntrada: Parametro[], conCapa: boolean = true): Promise<ApiDeAjax.DescriptorAjax> {
+        IncluirRowId(llamador, parametros);
         return new Promise((resolve, reject) => {
 
             let url: string = `/${controlador}/${accion}?${Ajax.Param.parametros}=${Encriptar(literal.ClaveDeEncriptacion, JSON.stringify(parametros))}`;

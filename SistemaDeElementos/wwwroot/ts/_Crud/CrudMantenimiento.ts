@@ -2534,6 +2534,17 @@
             ApiPanel.OcultarModal(modal);
         }
 
+        // Añade a la petición la versión (RowVersion) del elemento que se está editando (ver CrudEdicion.AnadirRowId)
+        public AnadirRowId(parametros: Array<Parametro>): void {
+            this.crudDeEdicion.AnadirRowId(parametros);
+        }
+
+        // La edición de un elemento está abierta, tanto si se puede modificar (editando) como si es de sólo consulta (consultando),
+        // a diferencia de EstoyEditando, que en sólo consulta es falso
+        public get EdicionAbierta(): boolean {
+            return Definido(this.crudDeEdicion) && ApiPanel.EsVisible(this.crudDeEdicion.PanelDeEditar);
+        }
+
         public get ModalEnviarCorreoExterno(): HTMLDivElement {
             return document.getElementById(`${this.IdCrud}-${ltrMenus.eventosDeMf.Comun.EnviarCorreoExterno}`) as HTMLDivElement;
         }

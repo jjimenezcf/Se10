@@ -321,7 +321,8 @@ namespace MVCSistemaDeElementos.Controllers
 
                 var idFactura = (int)parametros.LeerValor<long>(nameof(CambiarProveedorDto.IdElemento));
                 var idProveedor = (int)parametros.LeerValor<long>(nameof(CambiarProveedorDto.IdProveedor));
-                var far = Contexto.SeleccionarPorId<FacturaRecDtm>(idFactura);
+                var far = Contexto.SeleccionarPorId<FacturaRecDtm>(idFactura, usarLaCache: false);
+                far.ValidarRowId(Contexto, parametros.LeerValor<string>(nameof(ltrParametrosEp.RowVersion), null), releer: false);
                 far.CambiarProveedor(Contexto, idProveedor);
 
                 r.Mensaje = $"proveedor cambiado";
@@ -347,7 +348,9 @@ namespace MVCSistemaDeElementos.Controllers
                 if (!parametros.ContieneClave(nameof(RenombrarFarDto.Nombre))) throw new Exception("Debe indicar el nuevo asunto");
 
                 var idFactura = (int)parametros.LeerValor<long>(nameof(RenombrarFarDto.IdElemento));
-                var far = Contexto.SeleccionarPorId<FacturaRecDtm>(idFactura);
+                var far = Contexto.SeleccionarPorId<FacturaRecDtm>(idFactura, usarLaCache: false);
+                // una sola vez y antes de modificar nada: el asunto, la naturaleza, el iva y el preasiento cambian la versión de la factura
+                far.ValidarRowId(Contexto, parametros.LeerValor<string>(nameof(ltrParametrosEp.RowVersion), null), releer: false);
 
                 if (far.EsRectificativa)
                     GestorDeErrores.Emitir($"No se le puede cambiar el proveedor a una factura rectificativa");

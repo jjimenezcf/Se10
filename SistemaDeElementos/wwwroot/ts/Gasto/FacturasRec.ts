@@ -270,10 +270,10 @@
                     this.Far_MapearDatosDeLaRectificada(modal, this.InfoSelector.Seleccionados[0].Registro);
             }
             if (modal.id === this.ModalParaRenombrar.id) {
-                ApiDelCrud.ProponerParaRenombrar(this.ModalParaRenombrar, this.crudDeEdicion.ElementoEditado.Registro);
+                ApiDelCrud.ProponerParaRenombrar(this.ModalParaRenombrar, this.crudDeEdicion.Registro);
             }
             if (modal.id === this.ModalParaCambiarProveedor.id) {
-                ApiDelCrud.ProponerParaCambiarProveedor(this.ModalParaCambiarProveedor, this.crudDeEdicion.ElementoEditado.Registro);
+                ApiDelCrud.ProponerParaCambiarProveedor(this.ModalParaCambiarProveedor, this.crudDeEdicion.Registro);
             }
         }
 

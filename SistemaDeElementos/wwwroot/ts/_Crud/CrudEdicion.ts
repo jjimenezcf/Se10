@@ -1091,6 +1091,13 @@
             ApiDeArchivos.MostrarArchivosAnexados(this.PanelDeArchivos.id, this.CrudDeMnt.NombreDeNegocio, this.Registro.id, null);
         }
 
+        // Añade a la petición la versión (RowVersion) del elemento editado, para que el servidor no guarde si otro usuario lo ha modificado desde que
+        // se leyó (ver ExtensorDeElementos.ValidarRowId). Se toma del registro leído por la edición, que se refresca en cada lectura, nunca de
+        // ElementoEditado.Registro, que es el elemento seleccionado en el grid y conserva la versión de cuando se seleccionó
+        public AnadirRowId(parametros: Array<Parametro>): void {
+            parametros.push(new Parametro(Ajax.Param.RowVersion, ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.RowVersion)));
+        }
+
         public RecargarGridDeTrazas() {
             var trazas = this.GridDeTrazas;
             if (!Definido(trazas))
@@ -2455,7 +2462,7 @@
             let parametros: Array<Parametro> = new Array<Parametro>();
             parametros.push(new Parametro(Ajax.Param.idElemento, this.ElementoEditado.Id));
             parametros.push(new Parametro(Ajax.Param.Bloquear, bloquear));
-            parametros.push(new Parametro(Ajax.Param.RowVersion, ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.RowVersion)));
+            // la versión (RowVersion) la añade EjecutarPeticion al ser la edición quien llama
             ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Bloquear, parametros, new Array<Parametro>(), true)
                 .then((peticion) => {
                     this.DespuesDeBloquearDesbloquear(peticion);
