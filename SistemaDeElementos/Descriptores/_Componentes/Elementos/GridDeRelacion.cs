@@ -253,8 +253,20 @@ namespace MVCSistemaDeElementos.Descriptores
             ";//
         }
 
+        // Si el Dto del grid tiene versión (RowVersion, la tienen todos los que heredan de ElementoDto) se incluye como columna oculta, sin
+        // tener que añadirla en cada descriptor: así la fila del grid lleva la versión leída y la interfaz la puede enviar al servidor para
+        // validarla (ver ExtensorDeElementos.ValidarRowId). Se hace al renderizar, cuando ya están definidas todas las columnas
+        private void IncluirColumnaDeVersion()
+        {
+            if (TipoDto?.GetProperty(nameof(ElementoDto.RowVersion)) is null || _Columnas.Contiene(nameof(ElementoDto.RowVersion)))
+                return;
+
+            _Columnas.Add(titulo: nameof(ElementoDto.RowVersion), propiedad: nameof(ElementoDto.RowVersion), mostrar: false);
+        }
+
         private string renderFilaCabecera()
         {
+            IncluirColumnaDeVersion();
             var filaCabeceraHtml = $@"
              <div id='[{nameof(IdHtml)}]-tr' class='{enumCssDiv.Tr.Render()}'>
                ColumnasHtml

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
 
@@ -59,6 +60,8 @@ namespace ModeloDeDto
             _propiedades.Add(p);
             return _propiedades.Count;
         }
+
+        public bool Contiene(string propiedad) => _propiedades.Any(p => p.Propiedad.Equals(propiedad, StringComparison.OrdinalIgnoreCase));
 
 
     }
