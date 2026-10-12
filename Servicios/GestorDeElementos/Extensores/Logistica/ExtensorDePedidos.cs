@@ -14,6 +14,7 @@ using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.SistemaDocumental;
 using System.IO;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestorDeElementos.Extensores
 {
@@ -29,6 +30,80 @@ namespace GestorDeElementos.Extensores
 
         public static bool EstaEnLaEtapa(this PedidoDtm pedido, string etapa) => etapa.ToLista<int>(Simbolos.Coma).Contains(pedido.IdEstado);
 
+        // Entrega registrada de una línea del pedido, null si aún no se ha entregado.
+        // Se cachea también el null; se lee sin seguimiento porque la instancia cacheada se comparte entre peticiones
+        public static RecepcionDeLineaDtm Recepcion(this LineaDeUnPedidoDtm linea, ContextoSe contexto)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_Recepcion);
+            if (cache.ContainsKey(linea.Id.ToString()))
+                return (RecepcionDeLineaDtm)cache[linea.Id.ToString()];
+            var recepcion = contexto.Set<RecepcionDeLineaDtm>().AsNoTracking().FirstOrDefault(recepcion => recepcion.IdLinea == linea.Id);
+            cache[linea.Id.ToString()] = recepcion;
+            return recepcion;
+        }
+
+        // Destino por defecto de las entregas de un pedido: el almacén de la cabecera y, si no lo tiene, la obra de su expediente
+        public static (int? idAlmacen, int? idExpediente) DestinoDeLasEntregas(this PedidoDtm pedido)
+            => pedido.IdAlmacen != null ? (pedido.IdAlmacen, null) : (null, pedido.IdExpediente);
+
+        // Para enviar el pedido al proveedor ha de saberse dónde se entregará
+        public static void ValidarDestinoDeLasEntregas(this PedidoDtm pedido)
+        {
+            if (pedido.IdAlmacen is null && pedido.IdExpediente is null)
+                Emitir($"Para enviar el pedido '{pedido.Referencia}' al proveedor ha de indicar el almacén o el expediente al que se entregará");
+        }
+
+        public static void OlvidarRecepcion(this LineaDeUnPedidoDtm linea) => OlvidarRecepcion(linea.Id);
+
+        public static void OlvidarRecepcion(int idLinea) => ServicioDeCaches.EliminarElemento(CacheDe.Pedido_Recepcion, idLinea.ToString());
+
+        // La entrega va al almacén o a la obra del expediente, nunca a ambos (ver CK_PEDIDO_LINEA_RECEPCION_DESTINO).
+        // Sin gestor, la auditoría de creación se rellena aquí
+        public static RecepcionDeLineaDtm Recibir(this LineaDeUnPedidoDtm linea, ContextoSe contexto, decimal cantidad, decimal precio, decimal? descuento, int? idAlmacen, int? idExpediente)
+        {
+            if ((idAlmacen == null) == (idExpediente == null))
+                Emitir($"La entrega de la línea {linea.Orden} ha de ir a un almacén o a la obra de un expediente, y sólo a uno de ellos");
+
+            var recepcion = new RecepcionDeLineaDtm
+            {
+                IdLinea = linea.Id,
+                Cantidad = cantidad,
+                Precio = precio,
+                Descuento = descuento,
+                Importe = cantidad * precio * (1 - (descuento ?? 0) / 100),
+                IdAlmacen = idAlmacen,
+                IdExpediente = idExpediente,
+                IdUsuaCrea = contexto.DatosDeConexion.IdUsuario,
+                FechaCreacion = DateTime.Now
+            };
+            try
+            {
+                contexto.Add(recepcion);
+                contexto.SaveChanges();
+            }
+            finally
+            {
+                linea.OlvidarRecepcion();
+            }
+            return recepcion;
+        }
+
+        // Se borra la entrega leída de la base de datos, no la cacheada, para que su RowVersion sea el actual
+        public static void CancelarRecepcion(this LineaDeUnPedidoDtm linea, ContextoSe contexto)
+        {
+            var recepcion = contexto.Set<RecepcionDeLineaDtm>().FirstOrDefault(recepcion => recepcion.IdLinea == linea.Id);
+            if (recepcion is null)
+                return;
+            try
+            {
+                contexto.Remove(recepcion);
+                contexto.SaveChanges();
+            }
+            finally
+            {
+                linea.OlvidarRecepcion();
+            }
+        }
         public static int IncrementarOrdenEn(ContextoSe contexto)
         {
             var incremento = enumNegocio.Pedido.LeerCrearParametro(contexto, enumParametrosDePedidos.PED_IncrementarOrdenEn, "10");
@@ -178,6 +253,7 @@ namespace GestorDeElementos.Extensores
         // transitará a solicitado al llegar dicha fecha); una vez solicitado es la fecha en la que se solicitó
         public static void AntesDeSolicitar(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
         {
+            pedido.ValidarDestinoDeLasEntregas();
             if (pedido.Proveedor(contexto).Baja)
             {
                 pedido.Proveedor(contexto).IndicarQueEstaDeBaja(contexto);

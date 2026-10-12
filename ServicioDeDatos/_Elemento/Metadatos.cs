@@ -85,7 +85,8 @@ namespace ServicioDeDatos.Elemento
         internal const string LOG_AEAT = nameof(LOG_AEAT);
         internal const string DETALLE_LOG_AEAT = nameof(DETALLE_LOG_AEAT);        
         internal const string LINEA = nameof(LINEA);
-        internal const string APUNTE = nameof(APUNTE);        
+        internal const string RECEPCION = nameof(RECEPCION);
+        internal const string APUNTE = nameof(APUNTE);
         internal const string PPT_CLIENTE = nameof(PPT_CLIENTE);
         public const string AVANCE = nameof(AVANCE);
         public const string SALDOS = nameof(SALDOS);
@@ -649,6 +650,7 @@ namespace ServicioDeDatos.Elemento
         internal const string STOCK = nameof(STOCK);
         internal const string REALIZADO_EL = nameof(REALIZADO_EL);
         internal const string ID_MOVIMIENTO = nameof(ID_MOVIMIENTO);
+        internal const string ID_LINEA = nameof(ID_LINEA);
         internal const string ID_LINEA_ALBARAN = nameof(ID_LINEA_ALBARAN);
         internal const string ID_LINEA_DEVOLUCION = nameof(ID_LINEA_DEVOLUCION);
         internal const string ID_LINEA_INVENTARIO = nameof(ID_LINEA_INVENTARIO);

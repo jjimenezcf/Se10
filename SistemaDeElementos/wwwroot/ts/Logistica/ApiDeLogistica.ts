@@ -176,37 +176,56 @@ namespace Logistica {
         return parametros;
     }
 
+    // Sin entrega abre la modal para entregar la línea; con entrega la muestra en consulta
     export function Pedido_Recepcionar(parametros: string): void {
-        if (!ped_SePuedeRecepcionar_interno()) return;
         let linea = ped_LeerLineaDelGrid_interno(parametros);
+        if (!linea.entregada && !ped_SePuedeEntregar_interno(linea)) return;
         // modal para pedir datos de RecepcionarLineaDto (ver DescriptorDePedidos), su Aceptar está en CrudDePedidos.ModalDePedirDatos_Aceptar
-        (Crud.crudMnt as CrudDePedidos).AbrirModalDeRecepcionarLinea(linea.id, linea.rowVersion, linea.cantidad, linea.precio, linea.descuento);
+        (Crud.crudMnt as CrudDePedidos).AbrirModalDeRecepcionarLinea(linea);
     }
 
     export function Pedido_CalcularImporteEntregado() {
         (Crud.crudMnt as CrudDePedidos).CalcularImporteEntregado();
     }
 
+    export function Pedido_Recepcion_TrasCambiarAlmacen() {
+        (Crud.crudMnt as CrudDePedidos).Recepcion_TrasCambiarAlmacen();
+    }
+
+    export function Pedido_Recepcion_TrasSeleccionarExpediente() {
+        (Crud.crudMnt as CrudDePedidos).Recepcion_TrasSeleccionarExpediente();
+    }
+
     export function Pedido_RecibirLinea(parametros: string): void {
-        if (!ped_SePuedeRecepcionar_interno()) return;
-        ped_RecibirLinea_interno(ped_LeerLineaDelGrid_interno(parametros));
+        let linea = ped_LeerLineaDelGrid_interno(parametros);
+        if (!ped_SePuedeEntregar_interno(linea)) return;
+        ped_RecibirLinea_interno(linea);
     }
 
     export function Pedido_LineaNoEntregada(parametros: string): void {
-        if (!ped_SePuedeRecepcionar_interno()) return;
         let linea = ped_LeerLineaDelGrid_interno(parametros);
+        if (!ped_SePuedeCancelarLaEntrega_interno(linea)) return;
         let datos: Array<Parametro> = new Array<Parametro>();
         datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, linea.id));
         datos.push(new Parametro(Ajax.Param.RowVersion, linea.rowVersion));
-        ped_EjecutarPeticionDeLinea_interno(Ajax.EndPoint.Logistica.Pedidos.LineaNoEntregada, datos);
+        ped_EjecutarPeticionDeLinea_interno(Ajax.EndPoint.Logistica.LineasDeUnPedido.LineaNoEntregada, datos);
     }
 
-    interface LineaDelGridDePedido {
+    // Lo pedido en la línea y, si se ha entregado, los datos de su entrega
+    export interface LineaDelGridDePedido {
         id: number;
         rowVersion: string;
         cantidad: number;
         precio: number;
         descuento: number;
+        entregada: boolean;
+        cantidadRecibida: number;
+        precioDeRecepcion: number;
+        descuentoAplicado: number;
+        idAlmacenDeRecepcion: number;
+        almacenDeRecepcion: string;
+        idExpedienteDeRecepcion: number;
+        expedienteDeRecepcion: string;
     }
 
     function ped_LeerLineaDelGrid_interno(parametros: string): LineaDelGridDePedido {
@@ -223,14 +242,33 @@ namespace Logistica {
             rowVersion: leer(ltrPropiedades.Elemento.RowVersion),
             cantidad: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.cantidad)),
             precio: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.precio)),
-            descuento: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.descuentoPorLinea))
+            descuento: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.descuentoPorLinea)),
+            entregada: !IsNullOrEmpty(leer(ltrPropiedades.Logistica.Pedido.linea.CantidadRecibida)),
+            cantidadRecibida: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.CantidadRecibida)),
+            precioDeRecepcion: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.PrecioDeRecepcion)),
+            descuentoAplicado: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.DescuentoAplicado)),
+            idAlmacenDeRecepcion: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.IdAlmacenDeRecepcion)),
+            almacenDeRecepcion: leer(ltrPropiedades.Logistica.Pedido.linea.AlmacenDeRecepcion),
+            idExpedienteDeRecepcion: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.IdExpedienteDeRecepcion)),
+            expedienteDeRecepcion: leer(ltrPropiedades.Logistica.Pedido.linea.ExpedienteDeRecepcion)
         };
     }
 
-    function ped_SePuedeRecepcionar_interno(): boolean {
-        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeRecepcionar)
+    function ped_SePuedeEntregar_interno(linea: LineaDelGridDePedido): boolean {
+        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeEntregarLaLinea(linea.entregada))
             return true;
-        MensajesSe.Error('Recepción', 'Solo se pueden recepcionar líneas de pedidos solicitados o en recepción');
+        MensajesSe.Error('Recepción', linea.entregada
+            ? 'La línea ya se ha entregado, para volver a entregarla cancele antes la entrega'
+            : 'Solo se pueden recepcionar líneas de pedidos solicitados o en recepción');
+        return false;
+    }
+
+    function ped_SePuedeCancelarLaEntrega_interno(linea: LineaDelGridDePedido): boolean {
+        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeCancelarLaEntrega(linea.entregada))
+            return true;
+        MensajesSe.Error('Recepción', linea.entregada
+            ? 'Solo se puede cancelar la entrega de una línea con el pedido en recepción'
+            : 'Solo se pueden marcar como no entregadas líneas de pedidos solicitados o en recepción');
         return false;
     }
 
@@ -241,7 +279,7 @@ namespace Logistica {
         datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad, linea.cantidad));
         datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Precio, linea.precio));
         datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento, linea.descuento));
-        ped_EjecutarPeticionDeLinea_interno(Ajax.EndPoint.Logistica.Pedidos.RecibirLinea, datos);
+        ped_EjecutarPeticionDeLinea_interno(Ajax.EndPoint.Logistica.LineasDeUnPedido.RecibirLinea, datos);
     }
 
     // Los parámetros llevan el RowVersion de la línea, así IncluirRowId no añade el del pedido.
@@ -250,7 +288,7 @@ namespace Logistica {
         let editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
         ApiDePeticiones.EjecutarPeticion(
             editor,
-            ltrControladores.Logistica.Pedidos,
+            ltrControladores.Logistica.LineasDeUnPedido,
             accion,
             parametros,
             new Array<Parametro>()

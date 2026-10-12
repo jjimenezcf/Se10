@@ -13368,6 +13368,91 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.RecepcionDeLineaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Cantidad")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("CANTIDAD");
+
+                    b.Property<decimal?>("Descuento")
+                        .HasColumnType("DECIMAL(4,2)")
+                        .HasColumnName("DESCUENTO");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECCRE");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECMOD");
+
+                    b.Property<int?>("IdAlmacen")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ALMACEN");
+
+                    b.Property<int?>("IdExpediente")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_EXPEDIENTE");
+
+                    b.Property<int>("IdLinea")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LINEA");
+
+                    b.Property<int>("IdUsuaCrea")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CREADOR");
+
+                    b.Property<int?>("IdUsuaModi")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_MODIFICADOR");
+
+                    b.Property<decimal>("Importe")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("IMPORTE");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("PRECIO");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdAlmacen")
+                        .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_ALMACEN");
+
+                    b.HasIndex("IdExpediente")
+                        .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_EXPEDIENTE");
+
+                    b.HasIndex("IdLinea")
+                        .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_LINEA");
+
+                    b.HasIndex("IdUsuaCrea")
+                        .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_CREADOR");
+
+                    b.HasIndex("IdUsuaModi")
+                        .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_MODIFICADOR");
+
+                    b.ToTable("PEDIDO_LINEA_RECEPCION", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("PEDIDO_LINEA_RECEPCION_Trigger");
+
+                            t.HasCheckConstraint("CK_PEDIDO_LINEA_RECEPCION_DESTINO", "([ID_ALMACEN] IS NOT NULL AND [ID_EXPEDIENTE] IS NULL) OR ([ID_ALMACEN] IS NULL AND [ID_EXPEDIENTE] IS NOT NULL)");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.RegularizacionDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -36571,6 +36656,51 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_PERMISO_ID_GESTOR");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.RecepcionDeLineaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.AlmacenDtm", "Almacen")
+                        .WithMany()
+                        .HasForeignKey("IdAlmacen")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PEDIDO_LINEA_RECEPCION_ID_ALMACEN");
+
+                    b.HasOne("ServicioDeDatos.Expediente.ExpedienteDtm", "Expediente")
+                        .WithMany()
+                        .HasForeignKey("IdExpediente")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PEDIDO_LINEA_RECEPCION_ID_EXPEDIENTE");
+
+                    b.HasOne("ServicioDeDatos.Logistica.LineaDeUnPedidoDtm", "Linea")
+                        .WithMany()
+                        .HasForeignKey("IdLinea")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_PEDIDO_LINEA_RECEPCION_ID_LINEA");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaCrea")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_PEDIDO_LINEA_RECEPCION_ID_CREADOR");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioModificador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaModi")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PEDIDO_LINEA_RECEPCION_ID_MODIFICADOR");
+
+                    b.Navigation("Almacen");
+
+                    b.Navigation("Expediente");
+
+                    b.Navigation("Linea");
+
+                    b.Navigation("UsuarioCreador");
+
+                    b.Navigation("UsuarioModificador");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.RegularizacionDtm", b =>

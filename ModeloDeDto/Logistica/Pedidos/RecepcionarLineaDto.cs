@@ -1,8 +1,10 @@
+using ModeloDeDto.Expediente;
+using ServicioDeDatos.Expediente;
 using Utilidades;
 
 namespace ModeloDeDto.Logistica
 {
-    // Datos de lo que se recibe de una línea de un pedido, se piden en la modal de recepcionar una línea (ver PedidosController.epRecibirLinea)
+    // Datos de lo que se recibe de una línea de un pedido, se piden en la modal de recepcionar una línea (ver LineasDeUnPedidoController.epRecibirLinea)
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = "Recepcionar línea")]
     public class RecepcionarLineaDto
     {
@@ -72,5 +74,49 @@ namespace ModeloDeDto.Logistica
            Columna = 1)
         ]
         public decimal? ImporteEntregado { get; set; }
+
+        //--------------------------------------------
+        // Destino de la entrega: el almacén o la obra del expediente, nunca ambos (al seleccionar uno se blanquea el otro).
+        // Se propone el de la cabecera del pedido (ver CrudDePedidos.AbrirModalDeRecepcionarLinea)
+        [IUPropiedad(Etiqueta = "Id del almacén", Visible = false)]
+        public int? IdAlmacen { get; set; }
+
+        [IUPropiedad(
+            Etiqueta = "Almacén",
+            Ayuda = "Almacén al que va la entrega",
+            TipoDeControl = enumTipoControl.ListaDeElemento,
+            SeleccionarDe = typeof(AlmacenDto),
+            Controlador = nameof(enumControladoresLogistica.Almacenes),
+            GuardarEn = nameof(IdAlmacen),
+            MostrarExpresion = nameof(AlmacenDto.Expresion),
+            Obligatorio = false,
+            Fila = 2,
+            Columna = 0,
+            OnChange = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_Recepcion_TrasCambiarAlmacen) + "()"
+            )
+        ]
+        public string Almacen { get; set; }
+
+        [IUPropiedad(Etiqueta = "Id del expediente", Visible = false)]
+        public int? IdExpediente { get; set; }
+
+        [IUPropiedad(
+            Etiqueta = "Obra del expediente",
+            Ayuda = "expediente a cuya obra va la entrega",
+            TipoDeControl = enumTipoControl.ListaDinamica,
+            SeleccionarDe = typeof(ExpedienteDto),
+            GuardarEn = nameof(IdExpediente),
+            MostrarExpresion = nameof(ExpedienteDtm.Expresion),
+            Controlador = nameof(enumControladoresAdministrativos.Expedientes),
+            VistaDondeNavegar = enumVistasAdministrativo.CrudExpedientes,
+            RestrictorFijo = ltrDeUnExpediente.SelectorParaUnPedido + Simbolos.PuntoComa + nameof(enumEtapasDeExpedientes.EXP_Etapa_Ejecucion) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeExpedientes.EXP_Etapa_Terminada),
+            Obligatorio = false,
+            LongitudMinimaParaBuscar = 1,
+            Fila = 2,
+            Columna = 1,
+            trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_Recepcion_TrasSeleccionarExpediente) + "()"
+            )
+        ]
+        public string Expediente { get; set; }
     }
 }

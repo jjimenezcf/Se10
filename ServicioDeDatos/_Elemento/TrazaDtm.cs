@@ -13,7 +13,9 @@ namespace ServicioDeDatos.Elemento
     public enum enumTraza
     {
         [Description("Enviada por correo")]
-        envioDeCorreo
+        envioDeCorreo,
+        [Description("Enviada por WhatsApp")]
+        envioPorWhatsApp
     }
 
     public static class ltrDeTrazas

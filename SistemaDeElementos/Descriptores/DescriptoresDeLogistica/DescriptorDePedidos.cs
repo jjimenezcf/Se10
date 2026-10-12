@@ -64,9 +64,18 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo:"Tarifa", propiedad: nameof(LineaDeUnPedidoDto.Precio), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Descuento), formato: enumFormato.Porcentaje, tamano: 150);
             columnas.Add(titulo: "Importe", propiedad: nameof(LineaDeUnPedidoDto.ImporteDeLinea), formato: enumFormato.Moneda, tamano: 150);
+            // entrega de la línea: si tiene cantidad recibida está entregada (ver CrudEdicionPedido.AplicarEtapaAlGridDeLineas)
+            columnas.Add(titulo: "Recibido", propiedad: nameof(LineaDeUnPedidoDto.CantidadRecibida), formato: enumFormato.Numero_6, tamano: 150);
+            columnas.Add(titulo: "Precio rec.", propiedad: nameof(LineaDeUnPedidoDto.PrecioDeRecepcion), formato: enumFormato.Moneda, tamano: 150);
+            columnas.Add(titulo: "Dto. aplicado", propiedad: nameof(LineaDeUnPedidoDto.DescuentoAplicado), formato: enumFormato.Porcentaje, tamano: 150);
+            // destino de la entrega, para mostrarla en la modal de recepción
+            columnas.Add(titulo: "IdAlmacenDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.IdAlmacenDeRecepcion), mostrar: false);
+            columnas.Add(titulo: "AlmacenDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.AlmacenDeRecepcion), mostrar: false);
+            columnas.Add(titulo: "IdExpedienteDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.IdExpedienteDeRecepcion), mostrar: false);
+            columnas.Add(titulo: "ExpedienteDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.ExpedienteDeRecepcion), mostrar: false);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnPedidoDto.IdElemento), mostrar: false);
             columnas.Add(titulo: "Id", propiedad: nameof(LineaDeUnPedidoDto.Id), mostrar: false);
-            // versión de la línea leída, para validarla en el servidor al recepcionarla (ver PedidosController.epRecibirLinea)
+            // versión de la línea leída, para validarla en el servidor al recepcionarla (ver LineasDeUnPedidoController.epRecibirLinea)
             columnas.Add(titulo: "RowVersion", propiedad: nameof(LineaDeUnPedidoDto.RowVersion), mostrar: false);
 
             var orden = $"{nameof(LineaDeUnPedidoDto.Orden)}:{enumModoOrdenacion.ascendente.Render()}";
@@ -123,6 +132,7 @@ namespace MVCSistemaDeElementos.Descriptores
             Mnt.Filtro.Modales.Add(modalDeRelacion);
             FiltroPorExpediente(modalDeRelacion);
             FiltroPorContrato(modalDeRelacion);
+            FiltroPorAlmacen(modalDeRelacion);
         }
 
         private void FiltroPorProveedor(ModalDeFiltrado<PedidoDto> modal)
@@ -208,6 +218,39 @@ namespace MVCSistemaDeElementos.Descriptores
                 ));
         }
 
+
+        private static void FiltroPorAlmacen(ModalDeFiltrado<PedidoDto> modal)
+        {
+            var lista = new ListasDinamicas<PedidoDto>(modal,
+                etiqueta: enumNegocio.Almacen.Singular(),
+                filtrarPor: ltrDeUnPedido.IdAlmacen,
+                ayuda: "seleccione el almacén",
+                seleccionarDe: nameof(AlmacenDto),
+                buscarPor: nameof(AlmacenDto.Expresion),
+                mostrarExpresion: nameof(AlmacenDto.Expresion),
+                criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                posicion: new Posicion(1, 0),
+                controlador: nameof(AlmacenesController),
+                navegarA: nameof(AlmacenesController.CrudAlmacenes),
+                restringirPor: "",
+                alSeleccionarBlanquearControl: "")
+            {
+                LongitudMinimaParaBuscar = 1
+            };
+
+            var opciones = new Dictionary<string, string> {
+                      { $"{ltrParametrosNeg.MostrarTodos}", "con o sin almacén" }
+                    , { $"{ltrParametrosNeg.ConRelacion}", "pedidos con almacén" }
+                    , { $"{ltrParametrosNeg.SinRelacion}", "pedidos sin almacén" } };
+
+            modal.ControlesDeFiltrado.Add(new FiltroDeRelacion<PedidoDto>(modal,
+                lista: lista,
+                opciones: opciones,
+                propiedad: ltrDeUnPedido.AsociadaAUnAlmacen,
+                filtrarPor: ltrDeUnPedido.AsociadaAUnAlmacen,
+                ayuda: "Filtros de almacenes"
+                ));
+        }
 
         private static void FiltroPorContrato(ModalDeFiltrado<PedidoDto> modal)
         {

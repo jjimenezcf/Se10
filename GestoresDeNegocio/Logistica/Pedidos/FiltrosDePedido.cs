@@ -115,7 +115,6 @@ namespace GestoresDeNegocio.Logistica
             return consulta;
         }
 
-
         public static IQueryable<PedidoDtm> FiltroPorEtapa(this IQueryable<PedidoDtm> consulta, List<ClausulaDeFiltrado> filtros)
         {
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorEtapa.ToLower());

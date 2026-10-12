@@ -460,6 +460,8 @@ namespace Utilidades
         Pedido_RecibirLinea,
         Pedido_LineaNoEntregada,
         Pedido_CalcularImporteEntregado,
+        Pedido_Recepcion_TrasCambiarAlmacen,
+        Pedido_Recepcion_TrasSeleccionarExpediente,
 
         Ral_Tras_Seleccionar_Almacen,
         Ral_Tras_Blanquear_Almacen,
@@ -814,6 +816,7 @@ namespace Utilidades
         public const string Comun_LeerDatosParaExportacion = "leer-datos-para-exportacion";
         public const string Comun_EnviarElemento = "enviar_elemento";
         public const string Comun_EnviarCorreoExterno = "enviar-correo-externo";
+        public const string Comun_EnviarWhatsApp = "enviar-whatsapp";
         public const string Comun_GuardarDisposicionDashBoard = "guardar-disposicion-dashboard";
         public const string Comun_GuardarDisposicionEstados = "guardar-disposicion-estados";
 

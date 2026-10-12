@@ -70,24 +70,96 @@
 
         public get ModalRecepcionarLinea(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Logistica.Pedidos.RecepcionarLinea) as HTMLDivElement; }
 
-        // Línea que se está recepcionando y versión que se leyó en el grid, para validarla en el servidor
-        private _idLineaARecepcionar: number = 0;
-        private _rowVersionDeLaLineaARecepcionar: string = undefined;
+        // Línea que se está recepcionando, con la versión que se leyó en el grid para validarla en el servidor
+        private _lineaARecepcionar: LineaDelGridDePedido = undefined;
 
-        // Se propone lo pedido en la línea, el usuario indica lo que realmente se ha entregado
-        public AbrirModalDeRecepcionarLinea(idLinea: number, rowVersion: string, cantidad: number, precio: number, descuento: number) {
+        private get ListaDeAlmacenesDeLaRecepcion(): HTMLSelectElement {
+            return ApiControl.BuscarListaDeElementos(this.ModalRecepcionarLinea, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Almacen);
+        }
+
+        private get ListaDeExpedientesDeLaRecepcion(): HTMLInputElement {
+            return ApiControl.BuscarListaDinamicaPorPropiedad(this.ModalRecepcionarLinea, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Expediente);
+        }
+
+        private get BotonAceptarDeLaRecepcion(): HTMLInputElement {
+            return document.getElementById(`${this.ModalRecepcionarLinea.id}-aceptar`) as HTMLInputElement;
+        }
+
+        // Sin entrega se propone lo pedido en la línea y el destino de la cabecera, el usuario indica lo que realmente se ha entregado;
+        // con entrega se muestra lo entregado en consulta, sin poder aceptar
+        public AbrirModalDeRecepcionarLinea(linea: LineaDelGridDePedido) {
             const modal = this.ModalRecepcionarLinea;
-            this._idLineaARecepcionar = idLinea;
-            this._rowVersionDeLaLineaARecepcionar = rowVersion;
+            this._lineaARecepcionar = linea;
 
             this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(modal.id, this.crudDeEdicion.ElementoEditado.Id, undefined, new Array<string>(), false);
+
+            if (linea.entregada) {
+                this.MapearDatosDeLaRecepcion(linea.cantidadRecibida, linea.precioDeRecepcion, linea.descuentoAplicado);
+                this.MapearDestinoDeLaRecepcion(linea.idAlmacenDeRecepcion, linea.idExpedienteDeRecepcion, linea.expedienteDeRecepcion);
+            }
+            else {
+                const cabecera = this.crudDeEdicion.Registro;
+                let idAlmacen = Numero(ObtenerPropiedad(cabecera, ltrPropiedades.Logistica.Pedido.IdAlmacen, 0, false));
+                let idExpediente = Numero(ObtenerPropiedad(cabecera, ltrPropiedades.Logistica.Pedido.idExpediente, 0, false));
+                let expediente = ObtenerPropiedad(cabecera, ltrPropiedades.Logistica.Pedido.Expediente, '', false);
+                // el destino por defecto es el almacén de la cabecera y, si no lo tiene, la obra de su expediente (ver ExtensorDePedidos.DestinoDeLasEntregas)
+                if (idAlmacen > 0) idExpediente = 0;
+                this.MapearDatosDeLaRecepcion(linea.cantidad, linea.precio, linea.descuento);
+                this.MapearDestinoDeLaRecepcion(idAlmacen, idExpediente, expediente);
+            }
+            this.BloquearRecepcion(linea.entregada);
+            if (!linea.entregada)
+                ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad).focus();
+        }
+
+        private MapearDatosDeLaRecepcion(cantidad: number, precio: number, descuento: number) {
+            const modal = this.ModalRecepcionarLinea;
             AsignarValor(ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad), cantidad);
             AsignarValor(ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Precio), precio);
             let editorDeDescuento = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento);
             if (descuento > 0) AsignarValor(editorDeDescuento, descuento);
             else editorDeDescuento.value = "";
             this.CalcularImporteEntregado();
-            ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad).focus();
+        }
+
+        private MapearDestinoDeLaRecepcion(idAlmacen: number, idExpediente: number, expediente: string) {
+            const almacenes = this.ListaDeAlmacenesDeLaRecepcion;
+            const expedientes = this.ListaDeExpedientesDeLaRecepcion;
+            if (idAlmacen > 0) MapearAlControl.ListaDeElementos(almacenes, new Array<ClausulaDeFiltrado>(), idAlmacen, null);
+            else almacenes.selectedIndex = 0;
+            if (idExpediente > 0) MapearAlControl.ListaDinamica(expedientes, idExpediente, expediente, false);
+            else ApiListaDinamica.Blanquear(expedientes);
+        }
+
+        // Una entrega ya registrada sólo se consulta: para cambiarla hay que cancelarla y volver a entregar la línea
+        private BloquearRecepcion(bloquear: boolean) {
+            const modal = this.ModalRecepcionarLinea;
+            const propiedades = ltrPropiedades.Logistica.Pedido.RecepcionarLinea;
+            for (const editor of [propiedades.Cantidad, propiedades.Precio, propiedades.Descuento]) {
+                if (bloquear) ApiControl.BloquearEditorPorPropiedad(modal, editor);
+                else ApiControl.DesbloquearEditorPorPropiedad(modal, editor);
+            }
+            if (bloquear) {
+                ApiControl.BloquearListaDeElemento(modal, propiedades.Almacen);
+                ApiControl.BloquearListaDinamicaPorPropiedad(modal, propiedades.Expediente);
+            }
+            else {
+                ApiControl.DesbloquearListaDeElemento(modal, propiedades.Almacen);
+                ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, propiedades.Expediente);
+            }
+            let aceptar = this.BotonAceptarDeLaRecepcion;
+            if (Definido(aceptar)) aceptar.disabled = bloquear;
+        }
+
+        // La entrega va al almacén o a la obra del expediente, nunca a ambos: al elegir uno se blanquea el otro
+        public Recepcion_TrasCambiarAlmacen() {
+            if (Numero(this.ListaDeAlmacenesDeLaRecepcion.value) > 0)
+                ApiListaDinamica.Blanquear(this.ListaDeExpedientesDeLaRecepcion);
+        }
+
+        public Recepcion_TrasSeleccionarExpediente() {
+            if (Numero(this.ListaDeExpedientesDeLaRecepcion.getAttribute(atListasDinamicas.idSeleccionado)) > 0)
+                this.ListaDeAlmacenesDeLaRecepcion.selectedIndex = 0;
         }
 
         public CalcularImporteEntregado() {
@@ -103,15 +175,28 @@
 
         private RecepcionarLinea(modal: HTMLDivElement) {
             const editor = this.crudDeEdicion as CrudEdicionPedido;
+            const linea = this._lineaARecepcionar;
+            if (!Definido(linea) || linea.entregada)
+                return;
+
+            let idAlmacen = Numero(this.ListaDeAlmacenesDeLaRecepcion.value);
+            let idExpediente = Numero(this.ListaDeExpedientesDeLaRecepcion.getAttribute(atListasDinamicas.idSeleccionado));
+            if ((idAlmacen > 0) === (idExpediente > 0)) {
+                MensajesSe.Error('Recepción', 'Indique el almacén o el expediente al que va la entrega, y sólo uno de ellos');
+                return;
+            }
+
             let parametros: Array<Parametro> = new Array<Parametro>();
-            parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, this._idLineaARecepcionar));
+            parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, linea.id));
             // con el RowVersion de la línea, IncluirRowId no añade el del pedido
-            parametros.push(new Parametro(Ajax.Param.RowVersion, this._rowVersionDeLaLineaARecepcionar));
+            parametros.push(new Parametro(Ajax.Param.RowVersion, linea.rowVersion));
+            parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdAlmacen, idAlmacen > 0 ? idAlmacen : 0));
+            parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdExpediente, idExpediente > 0 ? idExpediente : 0));
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad, Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad).value)));
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Precio, Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Precio).value)));
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento, Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento).value)));
 
-            ApiDePeticiones.EjecutarPeticion(editor, this.Controlador, Ajax.EndPoint.Logistica.Pedidos.RecibirLinea, parametros, new Array<Parametro>())
+            ApiDePeticiones.EjecutarPeticion(editor, ltrControladores.Logistica.LineasDeUnPedido, Ajax.EndPoint.Logistica.LineasDeUnPedido.RecibirLinea, parametros, new Array<Parametro>())
                 .then((peticion) => {
                     MensajesSe.Info(peticion.resultado.consola);
                     super.ModalDePedirDatos_Cerrar(modal);
@@ -312,7 +397,30 @@
                 this.AplicarEtapaAlGridDeLineas();
         }
 
-        private static readonly AccionesDeRecepcion = ['Recepcionar', 'NoEntregada', 'Recibida'];
+        public get EstaEnRecepcion(): boolean {
+            let etapas: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.Etapas);
+            return EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Recepcion);
+        }
+
+        // Entrega parcial (Recepcionar) y total (Recibida): con el pedido solicitado o en recepción y si la línea aún no se ha entregado
+        public SePuedeEntregarLaLinea(entregada: boolean): boolean {
+            return this.SePuedeRecepcionar && !entregada;
+        }
+
+        // Aspa: sin entrega marca la línea como no entregada (pedido solicitado o en recepción);
+        // con entrega la cancela, sólo con el pedido en recepción
+        public SePuedeCancelarLaEntrega(entregada: boolean): boolean {
+            return entregada ? this.EstaEnRecepcion : this.SePuedeRecepcionar;
+        }
+
+        // Recepcionar con entrega la muestra en consulta, sin ella abre la modal para entregarla
+        public SePuedeAbrirLaRecepcion(entregada: boolean): boolean {
+            return entregada || this.SePuedeEntregarLaLinea(entregada);
+        }
+
+        private static readonly AccionDeRecepcionar = 'Recepcionar';
+        private static readonly AccionDeEntregaCompleta = 'Recibida';
+        private static readonly AccionDeCancelarLaEntrega = 'NoEntregada';
 
         private AplicarEtapaAlGridDeLineas() {
             const idGrid = this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Lineas);
@@ -326,13 +434,27 @@
                 ApiDeGrid.Expansor_PonerEnConsulta(idGrid);
             ModoAcceso.HabilitarRefSi(this.PanelDeEditar, this.IdReferenciaCrearLinea, sePuedenModificarLasLineas);
 
-            let habilitar = this.SePuedeRecepcionar;
-            for (const accion of CrudEdicionPedido.AccionesDeRecepcion) {
-                grid.querySelectorAll<HTMLAnchorElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${accion}'] a`).forEach(a => {
-                    if (habilitar) ApiControl.ExcluirCss(a, ltrCss.Detalle.AccionDeshabilitada);
-                    else ApiControl.IncluirCss(a, ltrCss.Detalle.AccionDeshabilitada);
-                });
-            }
+            let tbody = grid.querySelector('.' + ltrCss.crud.tbody);
+            if (!Definido(tbody)) return;
+            tbody.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila).forEach(fila => {
+                const entregada = CrudEdicionPedido.LaLineaEstaEntregada(fila);
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeRecepcionar, this.SePuedeAbrirLaRecepcion(entregada));
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeEntregaCompleta, this.SePuedeEntregarLaLinea(entregada));
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeCancelarLaEntrega, this.SePuedeCancelarLaEntrega(entregada));
+            });
+        }
+
+        private static LaLineaEstaEntregada(fila: HTMLDivElement): boolean {
+            const propiedad = ltrPropiedades.Logistica.Pedido.linea.CantidadRecibida.toLowerCase();
+            let cantidadRecibida = fila.querySelector<HTMLInputElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${propiedad}'] input`);
+            return Definido(cantidadRecibida) && !IsNullOrEmpty(cantidadRecibida.value);
+        }
+
+        private static HabilitarAccionDeLaFila(fila: HTMLDivElement, accion: string, habilitar: boolean) {
+            let a = fila.querySelector<HTMLAnchorElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${accion}'] a`);
+            if (!Definido(a)) return;
+            if (habilitar) ApiControl.ExcluirCss(a, ltrCss.Detalle.AccionDeshabilitada);
+            else ApiControl.IncluirCss(a, ltrCss.Detalle.AccionDeshabilitada);
         }
 
         // "Pedir el" mientras el pedido se está cumplimentando o aprobando: es la fecha planificada para solicitarlo;

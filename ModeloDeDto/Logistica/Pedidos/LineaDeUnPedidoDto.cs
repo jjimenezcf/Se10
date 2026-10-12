@@ -231,6 +231,66 @@ namespace ModeloDeDto.Logistica
         ]
         public decimal? ImporteDeLinea => ImporteSinDto - ImporteDeDto;
 
+        //--------------------------------------------
+        // Datos de la entrega de la línea (RecepcionDeLineaDtm), vacíos si aún no se ha entregado (ver GestorDeLineasDeUnPedido.DespuesDeMapearElElemento)
+        [IUPropiedad(
+           Etiqueta = "Cantidad recibida",
+           Tipo = typeof(decimal),
+           Ayuda = "cantidad entregada",
+           TipoDeControl = enumTipoControl.Editor,
+           Alineada = enumAliniacion.derecha,
+           VisibleAlCrear = false,
+           EditableAlEditar = false,
+           Obligatorio = false,
+           Formato = enumFormato.Numero_6,
+           Fila = 5,
+           Columna = 0)
+        ]
+        public decimal? CantidadRecibida { get; set; }
+
+        [IUPropiedad(
+           Etiqueta = "Precio de recepción",
+           Tipo = typeof(decimal),
+           Ayuda = "precio de compra unitario sin iva de lo entregado",
+           TipoDeControl = enumTipoControl.Editor,
+           Alineada = enumAliniacion.derecha,
+           VisibleAlCrear = false,
+           EditableAlEditar = false,
+           Obligatorio = false,
+           Formato = enumFormato.Numero_6,
+           Fila = 5,
+           Columna = 1)
+        ]
+        public decimal? PrecioDeRecepcion { get; set; }
+
+        [IUPropiedad(
+           Etiqueta = "Descuento aplicado(%)",
+           Tipo = typeof(decimal),
+           Ayuda = "porcentaje de descuento aplicado en la entrega",
+           TipoDeControl = enumTipoControl.Editor,
+           Alineada = enumAliniacion.derecha,
+           VisibleAlCrear = false,
+           EditableAlEditar = false,
+           Obligatorio = false,
+           Formato = enumFormato.Porcentaje,
+           Fila = 5,
+           Columna = 2)
+        ]
+        public decimal? DescuentoAplicado { get; set; }
+
+        // Destino de la entrega, para mostrarla en la modal de recepción
+        [IUPropiedad(Etiqueta = "Id del almacén de la entrega", Visible = false)]
+        public int? IdAlmacenDeRecepcion { get; set; }
+
+        [IUPropiedad(Etiqueta = "Almacén de la entrega", Visible = false)]
+        public string AlmacenDeRecepcion { get; set; }
+
+        [IUPropiedad(Etiqueta = "Id del expediente de la entrega", Visible = false)]
+        public int? IdExpedienteDeRecepcion { get; set; }
+
+        [IUPropiedad(Etiqueta = "Expediente de la entrega", Visible = false)]
+        public string ExpedienteDeRecepcion { get; set; }
+
 
         //--------------------------------------------
         [IUPropiedad(

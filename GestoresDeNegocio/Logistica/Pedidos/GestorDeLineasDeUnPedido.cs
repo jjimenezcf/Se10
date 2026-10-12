@@ -8,6 +8,7 @@ using ModeloDeDto.Logistica;
 using Gestor.Errores;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Seguridad;
+using ServicioDeDatos.Expediente;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,14 @@ namespace GestoresDeNegocio.Logistica
                 CreateMap<LineaDeUnPedidoDtm, LineaDeUnPedidoDto>()
                 .ForMember(dto => dto.Unitario, x => x.MapFrom(dtm => dtm.Unitario.Expresion))
                 .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad.Expresion))
-                .ForMember(dto => dto.Clase, x => x.Ignore());
+                .ForMember(dto => dto.Clase, x => x.Ignore())
+                .ForMember(dto => dto.CantidadRecibida, x => x.Ignore())
+                .ForMember(dto => dto.PrecioDeRecepcion, x => x.Ignore())
+                .ForMember(dto => dto.DescuentoAplicado, x => x.Ignore())
+                .ForMember(dto => dto.IdAlmacenDeRecepcion, x => x.Ignore())
+                .ForMember(dto => dto.AlmacenDeRecepcion, x => x.Ignore())
+                .ForMember(dto => dto.IdExpedienteDeRecepcion, x => x.Ignore())
+                .ForMember(dto => dto.ExpedienteDeRecepcion, x => x.Ignore());
                 CreateMap<LineaDeUnPedidoDto, LineaDeUnPedidoDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Naturaleza, dto => dto.Ignore())
@@ -126,6 +134,15 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.Clase = linea.Clase(Contexto)?.ToString();
+
+            var recepcion = linea.Recepcion(Contexto);
+            elemento.CantidadRecibida = recepcion?.Cantidad;
+            elemento.PrecioDeRecepcion = recepcion?.Precio;
+            elemento.DescuentoAplicado = recepcion?.Descuento;
+            elemento.IdAlmacenDeRecepcion = recepcion?.IdAlmacen;
+            elemento.AlmacenDeRecepcion = recepcion?.IdAlmacen is null ? null : Contexto.SeleccionarPorId<AlmacenDtm>((int)recepcion.IdAlmacen).Expresion;
+            elemento.IdExpedienteDeRecepcion = recepcion?.IdExpediente;
+            elemento.ExpedienteDeRecepcion = recepcion?.IdExpediente is null ? null : Contexto.SeleccionarPorId<ExpedienteDtm>((int)recepcion.IdExpediente).Expresion;
 
             // Las líneas sólo se modifican mientras el pedido se cumplimenta (ver AntesDePersistir), en el resto de etapas se consultan
             if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)

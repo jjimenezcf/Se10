@@ -202,6 +202,8 @@ namespace Utilidades
 
 
         public static readonly string Pedido_Total = nameof(Pedido_Total);
+        public static readonly string Pedido_Recepcion = nameof(Pedido_Recepcion);
+        
 
 
         public static readonly string Exp_TienePresupuestos = nameof(Exp_TienePresupuestos);

@@ -105,18 +105,18 @@ namespace GestoresDeNegocio.Logistica
 
         protected override IQueryable<PedidoDtm> AplicarFiltros(IQueryable<PedidoDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
-            parametros.AplicarFiltroQueMostrar = !filtros.OmitirFiltrosPorEstado(new List<string> { ltrDeUnPedido.IdContrato, ltrDeUnPedido.PedidosImputablesAlContrato, ltrDeUnPedido.IdExpediente, ltrDeUnPedido.PedidosImputablesAlExpediente });
+            parametros.AplicarFiltroQueMostrar = !filtros.OmitirFiltrosPorEstado(new List<string> { ltrDeUnPedido.IdContrato, ltrDeUnPedido.PedidosImputablesAlContrato, ltrDeUnPedido.IdExpediente, ltrDeUnPedido.PedidosImputablesAlExpediente, ltrDeUnPedido.IdAlmacen });
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
             consulta = consulta.FiltroPorEjercicio(filtros);
             consulta = consulta.FiltroPorProveedor(filtros);
             consulta = consulta.FiltroPorAsuntoReferenciaPedido(Contexto, filtros);
             consulta = consulta.FiltroPorFechaPedido(filtros);
             consulta = consulta.FiltroPorFechaDeEntrega(filtros);
-            //consulta = consulta.FiltroPorEtapa(filtros);
             consulta = consulta.FiltroPedidosPosiblesDelContrato(Contexto, filtros);
             consulta = consulta.FiltroPedidosPosiblesDeUnExpediente(Contexto, filtros, parametros);
             consulta = consulta.FiltroSiHayDependenciaDe(filtros, nameof(PedidoDtm.IdExpediente), ltrDeUnPedido.AsociadaAUnExpediente, parametros, aplicarFiltroDeEstado: false);
             consulta = consulta.FiltroSiHayDependenciaDe(filtros, nameof(PedidoDtm.IdContrato), ltrDeUnPedido.AsociadaAUnContrato, parametros, aplicarFiltroDeEstado: false);
+            consulta = consulta.FiltroSiHayDependenciaDe(filtros, nameof(PedidoDtm.IdAlmacen), ltrDeUnPedido.AsociadaAUnAlmacen, parametros, aplicarFiltroDeEstado: false);
 
             if (parametros.Peticion == enumPeticion.epTotales)
                 consulta = consulta.ExcluirLosNoTotalizables();
