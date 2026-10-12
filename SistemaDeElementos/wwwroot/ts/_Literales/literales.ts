@@ -573,7 +573,8 @@ const ltrControladores = {
         LineasDeFactura: 'LineasDeUnaFar',
     },
     Logistica: {
-        Pedidos: 'Pedidos'
+        Pedidos: 'Pedidos',
+        LineasDeUnPedido: 'LineasDeUnPedido'
     },
     Guarderias: {
         Cursos: 'CursosDeGuarderia',
@@ -1080,6 +1081,10 @@ const ltrCss = {
         InputConBoton: 'con-boton-de-correo',
         ListaDeArchivos: 'archivos-para-enviar',
         TituloDeLaLista: 'titulo-archivos-para-enviar'
+    },
+    EnviarPorWhatsApp: {
+        Boton: 'boton-enviar-por-whatsapp',
+        InputConBoton: 'con-boton-de-whatsapp'
     },
     crud: {
         cuerpo: 'cuerpo',
@@ -1636,7 +1641,8 @@ const Ajax = {
         },
         Entorno: {
             Correos: {
-                EnviarCorreoExterno: 'epEnviarCorreoExterno'
+                EnviarCorreoExterno: 'epEnviarCorreoExterno',
+                EnviarWhatsApp: 'epEnviarWhatsApp'
             },
             MiCorreo: {
                 Archivar: 'epArchivarCorreo',
@@ -1658,7 +1664,7 @@ const Ajax = {
             }
         },
         Logistica: {
-            Pedidos: {
+            LineasDeUnPedido: {
                 RecibirLinea: 'epRecibirLinea',
                 LineaNoEntregada: 'epLineaNoEntregada'
             }
@@ -2600,6 +2606,11 @@ const ltrPropiedades = {
             Para: 'Para',
             IdElemento: 'idElemento'
         },
+        EnviarWhatsApp: {
+            Telefono: 'Telefono',
+            Para: 'Para',
+            IdElemento: 'idElemento'
+        },
     },
     Maestros: {
         unitario: {
@@ -3318,6 +3329,8 @@ const ltrPropiedades = {
             id: literal.id,
             idExpediente: 'idexpediente',
             Expediente: 'Expediente',
+            IdAlmacen: 'IdAlmacen',
+            Almacen: 'Almacen',
             IdProveedor: 'idproveedor',
             Proveedor: 'proveedor',
             Etapas: 'Etapas',
@@ -3354,14 +3367,25 @@ const ltrPropiedades = {
                 cantidad: 'cantidad',
                 clase: 'Clase',
                 naturaleza: 'Naturaleza',
-                unidad: 'Unidad'
+                unidad: 'Unidad',
+                CantidadRecibida: 'CantidadRecibida',
+                PrecioDeRecepcion: 'PrecioDeRecepcion',
+                DescuentoAplicado: 'DescuentoAplicado',
+                IdAlmacenDeRecepcion: 'IdAlmacenDeRecepcion',
+                AlmacenDeRecepcion: 'AlmacenDeRecepcion',
+                IdExpedienteDeRecepcion: 'IdExpedienteDeRecepcion',
+                ExpedienteDeRecepcion: 'ExpedienteDeRecepcion'
             },
             RecepcionarLinea: {
                 IdLineaPedido: 'IdLineaPedido',
                 Cantidad: 'Cantidad',
                 Precio: 'Precio',
                 Descuento: 'Descuento',
-                ImporteEntregado: 'ImporteEntregado'
+                ImporteEntregado: 'ImporteEntregado',
+                IdAlmacen: 'IdAlmacen',
+                Almacen: 'Almacen',
+                IdExpediente: 'IdExpediente',
+                Expediente: 'Expediente'
             }
         },
         RenombraPedido: {
@@ -4018,6 +4042,7 @@ const ltrMenus = {
         baja: ltrEventos.ModalEdicion.DarDeBaja,
         Comun: {
             EnviarCorreoExterno: 'enviar-correo-externo',
+            EnviarWhatsApp: 'enviar-whatsapp',
             PermisosDeElemento: 'permiso-de-elemento',
             Imprimir: 'abrir-imprimir',
             GuardarEstadosDeExpansores: 'guardar-estados-de-expansores',

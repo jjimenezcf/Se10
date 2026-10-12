@@ -2619,9 +2619,52 @@
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
+        public get ModalEnviarWhatsApp(): HTMLDivElement {
+            return document.getElementById(`${this.IdCrud}-${ltrMenus.eventosDeMf.Comun.EnviarWhatsApp}`) as HTMLDivElement;
+        }
+
+        // Se abre desde el botón del teléfono de la edición (ver CrudEdicion.AnadirBotonDeEnviarPorWhatsApp)
+        public ModalEnviarWhatsApp_Abrir(telefono: string, idElemento: number): void {
+            let modal = this.ModalEnviarWhatsApp;
+            ApiPanel.BlanquearControlesDeIU(modal);
+            modal.setAttribute(atModal.idElemento1, idElemento.toString());
+            ApiControl.MapearEditor(modal, ltrPropiedades.Entorno.EnviarWhatsApp.Para, telefono);
+            ApiPanel.AbrirModal(modal);
+        }
+
+        // El servidor valida el teléfono, deja la traza y devuelve el enlace https://wa.me/ que abre WhatsApp con el mensaje escrito.
+        // La ventana se abre antes de la petición, mientras dura el clic del usuario, porque si se abre al volver la respuesta el
+        // navegador la puede bloquear como ventana emergente; si la petición falla se cierra
+        private ModalEnviarWhatsApp_Enviar(modal: HTMLDivElement): void {
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
+            parametros.push(new Parametro(Ajax.Param.idNegocio, this.IdNegocio));
+            parametros.push(new Parametro(ltrPropiedades.Entorno.EnviarWhatsApp.IdElemento, Numero(modal.getAttribute(atModal.idElemento1))));
+            let ventana = window.open('', '_blank');
+            ApiDePeticiones.EjecutarPeticion(this, ltrControladores.Entorno.Correos, Ajax.EndPoint.Entorno.Correos.EnviarWhatsApp, parametros, new Array<Parametro>())
+                .then((peticion) => {
+                    let enlace: string = peticion.resultado.datos;
+                    if (Definido(ventana)) ventana.location.href = enlace;
+                    else window.open(enlace, '_blank');
+                    MensajesSe.Info(peticion.resultado.mensaje);
+                    this.ModalDePedirDatos_Cerrar(modal);
+                    // la apertura deja una traza en el elemento
+                    this.crudDeEdicion?.RecargarGridDeTrazas();
+                })
+                .catch((peticion) => {
+                    ventana?.close();
+                    ApiDePeticiones.EmitirError(peticion);
+                });
+        }
+
         public ModalDePedirDatos_Aceptar(modal: HTMLDivElement): void {
             if (modal.id === (this.ModalEnviarCorreoExterno?.id ?? '')) {
                 this.ModalEnviarCorreoExterno_Enviar(modal);
+                return;
+            }
+
+            if (modal.id === (this.ModalEnviarWhatsApp?.id ?? '')) {
+                this.ModalEnviarWhatsApp_Enviar(modal);
                 return;
             }
 

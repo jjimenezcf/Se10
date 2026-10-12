@@ -292,8 +292,12 @@ namespace MVCSistemaDeElementos.Descriptores
                 }
 
                 // Los elementos con datos de contacto tienen en la edición, junto al eMail, un botón para enviar por correo enlaces de descarga de los archivos del elemento
+                // y junto al teléfono un botón para escribir un mensaje y abrir WhatsApp con él
                 if (Negocio != enumNegocio.No_Definido && typeof(IDatosDeContactoDto).IsAssignableFrom(typeof(TElemento)))
+                {
                     modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(EnviarCorreoExternoDto), eventosDeMf.Comun_EnviarCorreoExterno, "Enviar por correo"));
+                    modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(EnviarWhatsAppDto), eventosDeMf.Comun_EnviarWhatsApp, "Enviar por WhatsApp"));
+                }
 
                 if (Historial is not null)
                 {

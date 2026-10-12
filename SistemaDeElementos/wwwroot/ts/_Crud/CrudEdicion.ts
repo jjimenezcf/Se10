@@ -1688,6 +1688,7 @@
             if (!IsNullOrEmpty(informacion)) MensajesSe.Info(informacion, informacion);
 
             this.AnadirBotonDeEnviarPorCorreo(panel);
+            this.AnadirBotonDeEnviarPorWhatsApp(panel);
         }
 
         // A la derecha del correo (propiedad eMail) un botón para enviar a esa dirección enlaces de descarga de los archivos del elemento;
@@ -1709,6 +1710,25 @@
             // el input y el botón se pintan como un único control (ver .con-boton-de-correo en CrudEdicion.css)
             ApiControl.IncluirCss(correo, ltrCss.EnviarPorCorreo.InputConBoton);
             correo.parentElement.appendChild(boton);
+        }
+
+        // A la derecha del teléfono (propiedad Telefono) un botón para escribir un mensaje y abrir WhatsApp con él, igual que el del correo
+        private AnadirBotonDeEnviarPorWhatsApp(panel: HTMLDivElement) {
+            if (!Definido(this.CrudDeMnt.ModalEnviarWhatsApp))
+                return;
+
+            let telefono = ApiControl.BuscarEditor(panel, ltrPropiedades.Entorno.EnviarWhatsApp.Telefono) as HTMLInputElement;
+            if (!Definido(telefono) || Definido(telefono.parentElement.querySelector(`.${ltrCss.EnviarPorWhatsApp.Boton}`)))
+                return;
+
+            // el icono de WhatsApp lo pone la clase (ver .boton-enviar-por-whatsapp en CrudEdicion.css)
+            let boton = document.createElement('button');
+            boton.type = 'button';
+            ApiControl.IncluirCss(boton, ltrCss.EnviarPorWhatsApp.Boton);
+            boton.title = 'Enviar WhatsApp';
+            boton.onclick = () => this.CrudDeMnt.ModalEnviarWhatsApp_Abrir(telefono.value, this.ElementoEditado.Id);
+            ApiControl.IncluirCss(telefono, ltrCss.EnviarPorWhatsApp.InputConBoton);
+            telefono.parentElement.appendChild(boton);
         }
 
         protected AplicarBloqueo() {
