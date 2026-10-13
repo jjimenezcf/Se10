@@ -212,16 +212,24 @@
         }
 
         // La entrega va al almacén o a la obra del expediente, nunca a ambos: al elegir uno se blanquea el otro
+        // Al consultar una entrega ya hecha no se toca el destino: el almacén se fija al terminar de cargarse su lista, después de
+        // bloquear la modal, y blanquear el expediente lo desbloquearía (ApiListaDinamica.Blanquear habilita las listas editables)
         public Recepcion_TrasCambiarAlmacen() {
             const modal = this.ModalDeRecepcionAbierta;
+            if (this.ConsultandoUnaEntrega(modal)) return;
             if (Numero(this.ListaDeAlmacenes(modal).value) > 0)
                 ApiListaDinamica.Blanquear(this.ListaDeExpedientes(modal));
         }
 
         public Recepcion_TrasSeleccionarExpediente() {
             const modal = this.ModalDeRecepcionAbierta;
+            if (this.ConsultandoUnaEntrega(modal)) return;
             if (Numero(this.ListaDeExpedientes(modal).getAttribute(atListasDinamicas.idSeleccionado)) > 0)
                 this.ListaDeAlmacenes(modal).selectedIndex = 0;
+        }
+
+        private ConsultandoUnaEntrega(modal: HTMLDivElement): boolean {
+            return modal.id === this.ModalRecepcionarLinea.id && Definido(this._lineaARecepcionar) && this._lineaARecepcionar.entregada;
         }
 
         public CalcularImporteEntregado() {
@@ -481,19 +489,19 @@
             this.AplicarEtiquetaDeLaFechaDePedido(panel, !seEstaCumplimentandoOAprobando);
 
             // El fichero de pedido solo se puede añadir al crear o, en edición, mientras se está cumplimentando
-            ApiControl.MostrarPropiedadSi(panel, ltrPropiedades.Logistica.Pedido.IdArchivoPedido, seEstaCumplimentando);
+            ApiDeArchivos.MostrarSelectorDeArchivoSi(this.PanelDelDto, seEstaCumplimentando);
 
             // Fuera de cumplimentación la cabecera es de consulta, el interventor la corrige con "Modificar cabecera" mientras no esté anulado
             let estaAnulado = EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_Cancelado);
             ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Pedidos.ModificarCabecera, ltrMenus.enumOrigen.edicion, this.EsInterventorSinEstado && !estaAnulado);
 
-            // En recepción el servidor mantiene el permiso sobre el pedido para poder recepcionar las líneas, pero la cabecera es de consulta
-            if (EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Recepcion))
+            // Solicitado y en recepción el servidor mantiene el permiso sobre el pedido para poder recepcionar, pero la cabecera es de consulta
+            if (EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Solicitud) ||
+                EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Recepcion))
                 ApiPanel.PonerEnModoConsulta(this.PanelDelDto);
 
             this.AplicarEtapaAlGridDeLineas();
         }
-
         public get IdReferenciaCrearLinea(): string {
             return this._idPanelEdicion + `-lineasdeunpedido-mcr-${enumPostfijoControl.Referencia}`;
         }
@@ -528,10 +536,10 @@
             return this.SePuedeRecepcionar && !entregada;
         }
 
-        // Aspa: sin entrega marca la línea como no entregada (pedido solicitado o en recepción);
-        // con entrega la cancela, sólo con el pedido en recepción
+        // Aspa: sólo con el pedido en recepción, solicitado no puede haber nada entregado; con entrega la cancela, sin ella marca
+        // la línea como no entregada. Las entregas (parcial, de la línea y "Dar por entregado") sí se permiten solicitado: lo pasan a recepción
         public SePuedeCancelarLaEntrega(entregada: boolean): boolean {
-            return entregada ? this.EstaEnRecepcion : this.SePuedeRecepcionar;
+            return this.EsGestorDelPedido && this.EstaEnRecepcion;
         }
 
         // Recepcionar con entrega la muestra en consulta, sin ella abre la modal para entregarla

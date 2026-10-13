@@ -1294,6 +1294,7 @@ const ltrCss = {
     propiedadId: 'propiedad-id',
     filaVisible: 'fila-visible',
     filaNoVisible: 'fila-no-visible',
+    contenedorDeUnArchivo: 'contenedor-de-un-archivo',
     celdaVisible: 'celda-visible',
     celdaNoVisible: 'celda-no-visible',
     divVisible: 'div-visible',

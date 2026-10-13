@@ -1,5 +1,5 @@
 ﻿
-let OpcionesDeLasListas: Tipos.OpcionesDeUnaLista = new Tipos.OpcionesDeUnaLista();
+ let OpcionesDeLasListas: Tipos.OpcionesDeUnaLista = new Tipos.OpcionesDeUnaLista();
 
 function AlturaCabeceraPnlControl(): number {
     let cabecera: HTMLDivElement = document.getElementById("cabecera-de-pagina") as HTMLDivElement;

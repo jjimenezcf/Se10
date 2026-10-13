@@ -125,8 +125,8 @@ namespace MVCSistemaDeElementos.Controllers
                         eMail = parametros.LeerValor<string>(nameof(ModificarCabeceraDePedidoDto.eMail), null),
                         GuardarEnElProveedor = parametros.LeerValor(nameof(ModificarCabeceraDePedidoDto.GuardarEnElProveedor), false),
                         EntregarEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.EntregarEl), null),
-                        RecibidoEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.RecibidoEl), null),
-                        CerradoEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.CerradoEl), null),
+                        //RecibidoEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.RecibidoEl), null),
+                        //CerradoEl = parametros.LeerValor<DateTime?>(nameof(ModificarCabeceraDePedidoDto.CerradoEl), null),
                         RowVersion = parametros.LeerValor<string>(nameof(ModificarCabeceraDePedidoDto.RowVersion), null)
                     });
                     return new Resultado { Estado = enumEstadoPeticion.Ok, Mensaje = "Cabecera del pedido modificada" };

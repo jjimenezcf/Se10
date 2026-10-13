@@ -1221,12 +1221,20 @@ namespace MVCSistemaDeElementos.Controllers
                 var idTransicion = Convert.ToInt32(parametros.LeerValor<long>(ltrParametrosEp.idTransicion));
                 var idEstadoDestino = negocio.Transiciones(Contexto).First(x => x.Id == idTransicion).IdDestino;
                 var estadoDestino = negocio.Estado(Contexto, idEstadoDestino);
-                var elemento = gestor.PersistirElementoDto(objetoDto, new ParametrosDeNegocio(enumTipoOperacion.Modificar, new Dictionary<string, object>
-                {
-                    {ltrParametrosNeg.Peticion,enumPeticion.epModificarPorId },
-                    {ltrParametrosNeg.EsUnaTransicion, true },
-                    {ltrParametrosNeg.EstadoDestino, estadoDestino }
-                }));
+
+                // Sólo se modifica si lo editado difiere de lo grabado: hay negocios que no permiten modificar en ciertas etapas
+                // (p.e. la cabecera de un pedido fuera de cumplimentación) aunque se transite sin haber cambiado nada
+                var enBd = (RegistroDtm)gestor.LeerRegistroPorId(((IElementoDto)objetoDto).Id, aplicarJoin: false, usarLaCache: false);
+                // todo elemento que se transita implementa IRowVersion; la llamada es dinámica para que T sea el tipo del registro leído
+                ExtensorDeElementos.ValidarRowId((dynamic)enBd, Contexto, VersionEditada(objetoDto, parametros), false);
+                var elemento = HayCambiosQueGuardar(gestor, objetoDto, enBd)
+                    ? gestor.PersistirElementoDto(objetoDto, new ParametrosDeNegocio(enumTipoOperacion.Modificar, new Dictionary<string, object>
+                    {
+                        {ltrParametrosNeg.Peticion,enumPeticion.epModificarPorId },
+                        {ltrParametrosNeg.EsUnaTransicion, true },
+                        {ltrParametrosNeg.EstadoDestino, estadoDestino }
+                    }))
+                    : objetoDto;
 
                 ObtenerIdDeTransicionDelIdEstadoDestino(negocio, (IElementoDeUnProcesoDto)elemento, parametros);
                 var transicionPendiente = negocio.Transicion(Contexto, idTransicion);
@@ -1243,6 +1251,8 @@ namespace MVCSistemaDeElementos.Controllers
                         if (ampliacionDtm is not null)
                         {
                             ((IElementoDto)ampliacionDto).Id = ((IRegistro)ampliacionDtm).Id;
+                            if (!HayCambiosQueGuardar(gestor, ampliacionDto, (RegistroDtm)ampliacionDtm))
+                                continue;
                         }
                         gestor.PersistirElementoDto(ampliacionDto, new ParametrosDeNegocio(((IElementoDto)ampliacionDto).Id == 0 ?
                             enumTipoOperacion.Insertar :
@@ -1268,6 +1278,24 @@ namespace MVCSistemaDeElementos.Controllers
                 Contexto.Rollback(tran);
                 throw;
             }
+        }
+
+        // Versión de lo editado: la enviada en la petición (ver IncluirRowId en ApiDePeticiones.ts) o, si no, la del Dto
+        private static string VersionEditada(object elementoDto, Dictionary<string, object> parametros)
+        {
+            var rowVersion = parametros.LeerValor<string>(nameof(IRowVersion.RowVersion), null);
+            if (rowVersion.IsNullOrEmpty() && elementoDto is ElementoDto dto && dto.RowVersion != null)
+                rowVersion = Convert.ToBase64String(dto.RowVersion);
+            return rowVersion;
+        }
+
+        // Se mapea lo editado sin grabarlo y se compara con lo leído de la BD, sólo en las propiedades que vienen en el Dto
+        // (las que no tiene, como el archivo generado de un pedido, no las cambia la edición)
+        private bool HayCambiosQueGuardar(IGestor gestor, object elementoDto, RegistroDtm enBd)
+        {
+            var editado = gestor.MapearDtm((IElementoDto)elementoDto, new ParametrosDeNegocio(enumTipoOperacion.MapearElDtoAlDtm));
+            var propiedadesDelDto = new HashSet<string>(elementoDto.GetType().GetProperties().Select(p => p.Name), StringComparer.OrdinalIgnoreCase);
+            return !editado.EsIgualA(enBd, Contexto, propiedadesDelDto);
         }
 
         protected virtual IEnumerable<ElementoDto> LeerElementos(int posicion, int cantidad, List<ClausulaDeFiltrado> filtros, List<ClausulaDeOrdenacion> orden, Dictionary<string, object> opcionesDeMapeo)

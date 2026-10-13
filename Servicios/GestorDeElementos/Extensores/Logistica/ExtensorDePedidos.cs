@@ -221,9 +221,12 @@ namespace GestorDeElementos.Extensores
             pedido.CerradoEl = null;
         }
 
-        // Al devolver el pedido de la etapa de entrega a solicitado deja de estar recibido
+        // Al devolver el pedido de la etapa de entrega a solicitado deja de estar recibido; solicitado no puede haber nada entregado,
+        // así que antes se han de cancelar todas las entregas de sus líneas (ver ExtensorDeRecepciones.LineaNoEntregada)
         public static void AntesDeAnularRecepcion(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
         {
+            if (pedido.TieneLineasRecepcionadas(contexto))
+                Emitir($"El pedido '{pedido.Referencia}' tiene líneas recepcionadas, anule todas las recepciones antes de devolverlo a {enumEtapasDePedido.PED_Etapa_De_Solicitud.Nombre()}");
             pedido.RecibidoEl = null;
         }
 

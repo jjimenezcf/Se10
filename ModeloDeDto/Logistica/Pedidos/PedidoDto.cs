@@ -239,7 +239,7 @@ namespace ModeloDeDto.Logistica
         //-------------------------------------------------------------------------------------------------------------
         [IUPropiedad(
               PorAnchoMnt = 15
-            , Etiqueta = "Recibido el"
+            , Etiqueta = "Recibido apartir de"
             , Ordenar = true
             , OrdenarGridPor = nameof(PedidoDto.RecibidoEl)
             , TipoDeControl = enumTipoControl.SelectorDeFecha

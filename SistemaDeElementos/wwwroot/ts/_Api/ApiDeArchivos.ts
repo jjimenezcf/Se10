@@ -2,6 +2,17 @@
 
     var archivosLeidos = new Array<any>();
 
+    // Muestra u oculta la fila (div-tr) del selector de un archivo del panel: va dentro de su propio contenedor (no en uno de control,
+    // que es lo que espera ApiControl.MostrarPropiedadSi), así que se oculta la fila que lo contiene
+    export function MostrarSelectorDeArchivoSi(panel: HTMLDivElement, mostrar: boolean): void {
+        if (!Definido(panel)) return;
+        let selector = panel.querySelector<HTMLDivElement>(`div.${ltrCss.contenedorDeUnArchivo}`);
+        let fila = ApiControl.BuscarFila(selector);
+        if (!Definido(fila)) return;
+        if (mostrar) ApiControl.ExcluirCss(fila, ltrCss.filaNoVisible);
+        else ApiControl.IncluirCss(fila, ltrCss.filaNoVisible);
+    }
+
     export function SisDoc_CarpetasDeUnArchivador(parametros: string) {
         let partes = parametros.split(';');
         let idGrid: string = partes[0];

@@ -6,6 +6,8 @@ using System.Linq;
 using Utilidades;
 using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Seguridad;
+using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Expediente;
 using static Gestor.Errores.GestorDeErrores;
 using static ServicioDeDatos.Elemento.Enumerados;
 
@@ -50,13 +52,25 @@ namespace GestorDeElementos.Extensores
         public static void OlvidarRecepciones(int idPedido) => ServicioDeCaches.EliminarElemento(CacheDe.Pedido_HayRecepciones, idPedido.ToString());
 
         // La entrega va al almacén o a la obra del expediente, nunca a ambos (ver CK_PEDIDO_LINEA_RECEPCION_DESTINO).
-        // El pedido ha de estar en recepción (ver PasarARecepcion) y la fecha no puede ser posterior a hoy ni anterior a la creación del pedido.
+        // El pedido ha de estar en recepción (ver PasarARecepcion) y la fecha no puede ser posterior a hoy ni anterior a la creación del pedido
+        // ni a la fecha en la que se pidió. Si es anterior a la fecha de recepción de la cabecera, ésta pasa a ser la de la entrega.
         // Sin gestor, la auditoría de creación se rellena aquí
         public static RecepcionDeLineaDtm Recibir(this LineaDeUnPedidoDtm linea, ContextoSe contexto, PedidoDtm pedido, DateTime recepcionadaEl, decimal cantidad, decimal precio, decimal? descuento, int? idAlmacen, int? idExpediente)
         {
             if (!pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion))
                 Emitir($"Para recepcionar la línea {linea.Orden} el pedido '{pedido.Referencia}' ha de estar {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
-            return linea.RegistrarRecepcion(contexto, pedido, recepcionadaEl, cantidad, precio, descuento, idAlmacen, idExpediente);
+            var recepcion = linea.RegistrarRecepcion(contexto, pedido, recepcionadaEl, cantidad, precio, descuento, idAlmacen, idExpediente);
+            pedido.AdelantarLaFechaDeRecepcion(contexto, recepcion.RecepcionadaEl);
+            return recepcion;
+        }
+
+        // La fecha de recepción de la cabecera es la de la primera entrega
+        private static void AdelantarLaFechaDeRecepcion(this PedidoDtm pedido, ContextoSe contexto, DateTime recepcionadaEl)
+        {
+            if (pedido.RecibidoEl is not null && pedido.RecibidoEl.Value.Date <= recepcionadaEl.Date)
+                return;
+            pedido.RecibidoEl = recepcionadaEl.Date;
+            pedido.Modificar(contexto, nameof(AdelantarLaFechaDeRecepcion));
         }
 
         // Registra la entrega sin mirar la etapa del pedido: Recibir exige que esté en recepción, al darlo por recibido (de solicitado
@@ -69,6 +83,9 @@ namespace GestorDeElementos.Extensores
                 Emitir($"La fecha de recepción de la línea {linea.Orden} no puede ser posterior a hoy");
             if (recepcionadaEl.Date < pedido.FechaCreacion.Date)
                 Emitir($"La fecha de recepción de la línea {linea.Orden} no puede ser anterior a la creación del pedido '{pedido.Referencia}' ({pedido.FechaCreacion:dd/MM/yyyy})");
+            // la cabecera no admite una fecha de recepción anterior a la de pedido (ver ExtensorDePedidos.ValidarFechas)
+            if (pedido.PedidoEl is not null && recepcionadaEl.Date < pedido.PedidoEl.Value.Date)
+                Emitir($"La fecha de recepción de la línea {linea.Orden} no puede ser anterior a la fecha en la que se pidió el pedido '{pedido.Referencia}' ({pedido.PedidoEl:dd/MM/yyyy})");
             if ((idAlmacen == null) == (idExpediente == null))
                 Emitir($"La entrega de la línea {linea.Orden} ha de ir a un almacén o a la obra de un expediente, y sólo a uno de ellos");
 
@@ -126,7 +143,8 @@ namespace GestorDeElementos.Extensores
             return hayRecepciones;
         }
 
-        // Se borra la entrega leída de la base de datos, no la cacheada, para que su RowVersion sea el actual
+        // Se borra la entrega leída de la base de datos, no la cacheada, para que su RowVersion sea el actual.
+        // Queda una traza en el pedido con quién la ha cancelado y los datos que tenía la entrega
         public static void CancelarRecepcion(this LineaDeUnPedidoDtm linea, ContextoSe contexto)
         {
             var recepcion = contexto.Set<RecepcionDeLineaDtm>().FirstOrDefault(recepcion => recepcion.IdLinea == linea.Id);
@@ -134,13 +152,31 @@ namespace GestorDeElementos.Extensores
                 return;
             try
             {
+                var pedido = contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento);
+                var descripcion = recepcion.DescripcionParaLaTraza(contexto, linea);
                 contexto.Remove(recepcion);
                 contexto.SaveChanges();
+                pedido.CrearTraza(contexto, $"Entrega de la línea {linea.Orden} cancelada", descripcion);
             }
             finally
             {
                 linea.OlvidarRecepcion();
             }
+        }
+
+        // Se anota quién cancela, porque la traza se guarda como administrador (ver ExtensorDeTrazasDtm.CrearTraza)
+        private static string DescripcionParaLaTraza(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, LineaDeUnPedidoDtm linea)
+        {
+            var destino = recepcion.VaAlAlmacen
+                ? $"almacén {contexto.SeleccionarPorId<AlmacenDtm>((int)recepcion.IdAlmacen).Expresion}"
+                : $"obra del expediente {contexto.SeleccionarPorId<ExpedienteDtm>((int)recepcion.IdExpediente).Expresion}";
+            var registradaPor = contexto.SeleccionarPorId<UsuarioDtm>(recepcion.IdUsuaCrea).Expresion;
+
+            return $"Cancelada por {contexto.Usuario.Expresion} el {DateTime.Now:dd/MM/yyyy HH:mm}{Environment.NewLine}" +
+                   $"Línea {linea.Orden}: {linea.Concepto}{Environment.NewLine}" +
+                   $"Recepcionada el {recepcion.RecepcionadaEl:dd/MM/yyyy} en el {destino}{Environment.NewLine}" +
+                   $"Cantidad {recepcion.Cantidad:N2}, precio {recepcion.Precio:N2}, descuento {(recepcion.Descuento ?? 0):N2} %, importe {recepcion.Importe:N2}{Environment.NewLine}" +
+                   $"Registrada por {registradaPor} el {recepcion.FechaCreacion:dd/MM/yyyy HH:mm}";
         }
 
         //---------------------------------------------------------------------------------------------------------------------------
@@ -172,19 +208,17 @@ namespace GestorDeElementos.Extensores
             }
         }
 
-        // Aspa: si la línea tiene entrega la cancela (sólo con el pedido en recepción), si no la marca como no entregada
+        // Aspa: cancela la entrega de la línea, sólo con el pedido en recepción; si la línea no tiene entrega es un error
         public static string LineaNoEntregada(ContextoSe contexto, int idLinea, string rowVersion)
         {
             PedidoDtm pedido = null;
             try
             {
                 LineaDeUnPedidoDtm linea;
+                // valida que la línea tenga entrega y que el pedido esté en recepción
                 (linea, pedido) = LeerLineaParaRecepcionar(contexto, idLinea, rowVersion, esUnaEntrega: false);
-                var estabaEntregada = linea.Recepcion(contexto) != null;
                 linea.CancelarRecepcion(contexto);
-                return estabaEntregada
-                    ? $"Cancelada la entrega de la línea {linea.Orden}"
-                    : $"Línea {linea.Orden} marcada como no entregada";
+                return $"Cancelada la entrega de la línea {linea.Orden}";
             }
             finally
             {
@@ -280,7 +314,8 @@ namespace GestorDeElementos.Extensores
         }
 
         // Lee la línea sin cache, valida que es la versión que el usuario vio en el grid y que el pedido admite recepciones.
-        // esUnaEntrega: la línea no puede estar ya entregada; si no, se cancela la entrega (sólo con el pedido en recepción) o se marca como no entregada
+        // esUnaEntrega: la línea no puede estar ya entregada (solicitado se permite, la entrega lo pasa a recepción); si no, se anula
+        // la entrega, que la línea ha de tener, sólo con el pedido en recepción
         private static (LineaDeUnPedidoDtm linea, PedidoDtm pedido) LeerLineaParaRecepcionar(ContextoSe contexto, int idLinea, string rowVersion, bool esUnaEntrega)
         {
             var linea = contexto.SeleccionarPorId<LineaDeUnPedidoDtm>(idLinea, usarLaCache: false);
@@ -294,7 +329,10 @@ namespace GestorDeElementos.Extensores
             var entregada = linea.Recepcion(contexto) != null;
             if (esUnaEntrega && entregada)
                 Emitir($"La línea {linea.Orden} del pedido '{pedido.Referencia}' ya se ha entregado, para volver a entregarla cancele antes la entrega");
-            if (!esUnaEntrega && entregada && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion))
+            // el aspa anula la entrega: la línea ha de tenerla y, como solicitado no puede haber nada entregado, sólo en recepción
+            if (!esUnaEntrega && !entregada)
+                Emitir($"La línea {linea.Orden} del pedido '{pedido.Referencia}' no tiene entrega asociada");
+            if (!esUnaEntrega && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion))
                 Emitir($"Solo se puede cancelar la entrega de la línea {linea.Orden} con el pedido '{pedido.Referencia}' {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
 
             return (linea, pedido);

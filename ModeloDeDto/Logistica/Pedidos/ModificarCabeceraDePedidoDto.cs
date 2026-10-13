@@ -51,12 +51,13 @@ namespace ModeloDeDto.Logistica
         public string eMail { get; set; }
 
         [IUPropiedad(
-            Etiqueta = "Guardar en el proveedor",
+            Etiqueta = "Actualizar e-mail del proveedor",
             Ayuda = "Si el correo es distinto al del proveedor, se guarda como su nuevo correo de contacto",
             TipoDeControl = enumTipoControl.Check,
+            css = enumCssControles.CheckApilado,
             ValorPorDefecto = false,
-            Fila = 2,
-            Columna = 1
+            Fila = 3,
+            Columna = 0
             )
         ]
         public bool GuardarEnElProveedor { get; set; }
@@ -67,27 +68,27 @@ namespace ModeloDeDto.Logistica
             , Ayuda = "Fecha de entrega solicitada al proveedor"
             , TipoDeControl = enumTipoControl.SelectorDeFecha
             , Formato = enumFormato.Fecha
-            , Fila = 3
-            , Columna = 0)]
+            , Fila = 2
+            , Columna = 1)]
         public DateTime? EntregarEl { get; set; }
 
-        [IUPropiedad(
-              Etiqueta = "Recibido el"
-            , Ayuda = "Fecha de recepción, sólo una vez recibido el pedido: no puede ser posterior a hoy ni anterior a la fecha en la que se creó"
-            , TipoDeControl = enumTipoControl.SelectorDeFecha
-            , Formato = enumFormato.Fecha
-            , Fila = 3
-            , Columna = 1)]
-        public DateTime? RecibidoEl { get; set; }
+        //[IUPropiedad(
+        //      Etiqueta = "Recibido el"
+        //    , Ayuda = "Fecha de recepción, sólo una vez recibido el pedido: no puede ser posterior a hoy ni anterior a la fecha en la que se creó"
+        //    , TipoDeControl = enumTipoControl.SelectorDeFecha
+        //    , Formato = enumFormato.Fecha
+        //    , Fila = 3
+        //    , Columna = 1)]
+        //public DateTime? RecibidoEl { get; set; }
 
-        [IUPropiedad(
-              Etiqueta = "Cerrado el"
-            , Ayuda = "Fecha de cierre, sólo una vez cerrado el pedido: no puede ser posterior a hoy ni anterior a la de recepción"
-            , TipoDeControl = enumTipoControl.SelectorDeFecha
-            , Formato = enumFormato.Fecha
-            , Fila = 3
-            , Columna = 2)]
-        public DateTime? CerradoEl { get; set; }
+        //[IUPropiedad(
+        //      Etiqueta = "Cerrado el"
+        //    , Ayuda = "Fecha de cierre, sólo una vez cerrado el pedido: no puede ser posterior a hoy ni anterior a la de recepción"
+        //    , TipoDeControl = enumTipoControl.SelectorDeFecha
+        //    , Formato = enumFormato.Fecha
+        //    , Fila = 3
+        //    , Columna = 2)]
+        //public DateTime? CerradoEl { get; set; }
 
         // Versión del pedido que se ve en la edición, de donde se toman los datos de la modal: si otro usuario lo ha modificado no se guarda
         [IUPropiedad(Visible = false)]

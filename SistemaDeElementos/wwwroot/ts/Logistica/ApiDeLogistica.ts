@@ -212,8 +212,13 @@ namespace Logistica {
         (Crud.crudMnt as CrudDePedidos).EntregarLineaCompleta(linea);
     }
 
+    // Aspa: anula la entrega de la línea; si no la tiene no hay nada que anular y no se llama al servidor
     export function Pedido_LineaNoEntregada(parametros: string): void {
         let linea = ped_LeerLineaDelGrid_interno(parametros);
+        if (!linea.entregada) {
+            MensajesSe.Error('Recepción', 'La línea no tiene entrega asociada');
+            return;
+        }
         if (!ped_SePuedeCancelarLaEntrega_interno(linea)) return;
         let datos: Array<Parametro> = new Array<Parametro>();
         datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, linea.id));
@@ -279,9 +284,10 @@ namespace Logistica {
     function ped_SePuedeCancelarLaEntrega_interno(linea: LineaDelGridDePedido): boolean {
         if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeCancelarLaEntrega(linea.entregada))
             return true;
-        MensajesSe.Error('Recepción', linea.entregada
-            ? 'Solo se puede cancelar la entrega de una línea con el pedido en recepción'
-            : 'Solo se pueden marcar como no entregadas líneas de pedidos solicitados o en recepción');
+        const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
+        MensajesSe.Error('Recepción', !editor.EsGestorDelPedido
+            ? 'Ha de ser gestor del pedido para cancelar sus entregas'
+            : 'Solo se puede cancelar la entrega de una línea con el pedido en recepción');
         return false;
     }
 
@@ -299,6 +305,8 @@ namespace Logistica {
         .then((peticion) => {
             MensajesSe.Info(peticion.resultado.consola);
             editor.RecargarGridDeLineas();
+            // al cancelar una entrega queda una traza en el pedido
+            editor.RecargarGridDeTrazas();
         })
         .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
     }

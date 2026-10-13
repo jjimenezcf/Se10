@@ -80,10 +80,14 @@ namespace GestoresDeNegocio.Logistica
         // La cabecera sólo se modifica desde el Dto mientras se cumplimenta; las transiciones y acciones del sistema modifican el registro sin pasar por aquí
         protected override void DespuesDeMapearElRegistro(PedidoDto dto, PedidoDtm dtm, ParametrosDeNegocio opciones)
         {
+            base.DespuesDeMapearElRegistro(dto, dtm, opciones);
+
             if (!opciones.Modificando)
                 return;
 
-            var pedidoEnBd = Contexto.SeleccionarPorId<PedidoDtm>(dtm.Id);
+            var pedidoEnBd = Contexto.SeleccionarPorId<PedidoDtm>(dtm.Id, aplicarJoin: true);
+                       
+
             if (!pedidoEnBd.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion))
                 Emitir($"La cabecera del pedido '{pedidoEnBd.Referencia}' solo es modificable mientras se cumplimenta");
         }
@@ -347,38 +351,38 @@ namespace GestoresDeNegocio.Logistica
                     cambios.Add($"Entregar el: {Fecha(pedido.EntregarEl)} → {Fecha(datos.EntregarEl)}");
                 pedido.EntregarEl = datos.EntregarEl;
 
-                if (datos.RecibidoEl?.Date != pedido.RecibidoEl?.Date)
-                {
-                    if (!pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado }))
-                        Emitir($"La fecha de recepción del pedido '{pedido.Referencia}' sólo se puede indicar una vez recibido");
+                //if (datos.RecibidoEl?.Date != pedido.RecibidoEl?.Date)
+                //{
+                //    if (!pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado }))
+                //        Emitir($"La fecha de recepción del pedido '{pedido.Referencia}' sólo se puede indicar una vez recibido");
 
-                    if (datos.RecibidoEl is null)
-                        Emitir($"Ha de indicar la fecha de recepción del pedido '{pedido.Referencia}'");
+                //    if (datos.RecibidoEl is null)
+                //        Emitir($"Ha de indicar la fecha de recepción del pedido '{pedido.Referencia}'");
 
-                    var recibidoEl = ((DateTime)datos.RecibidoEl).Date;
-                    if (recibidoEl > DateTime.Today || recibidoEl < pedido.FechaCreacion.Date)
-                        Emitir($"La fecha de recepción del pedido '{pedido.Referencia}' ha de estar entre el '{pedido.FechaCreacion.ToString("dd-MM-yyyy")}', en el que se creó, y hoy");
+                //    var recibidoEl = ((DateTime)datos.RecibidoEl).Date;
+                //    if (recibidoEl > DateTime.Today || recibidoEl < pedido.FechaCreacion.Date)
+                //        Emitir($"La fecha de recepción del pedido '{pedido.Referencia}' ha de estar entre el '{pedido.FechaCreacion.ToString("dd-MM-yyyy")}', en el que se creó, y hoy");
 
-                    cambios.Add($"Recibido el: {Fecha(pedido.RecibidoEl)} → {Fecha(recibidoEl)}");
-                    pedido.RecibidoEl = recibidoEl;
-                }
+                //    cambios.Add($"Recibido el: {Fecha(pedido.RecibidoEl)} → {Fecha(recibidoEl)}");
+                //    pedido.RecibidoEl = recibidoEl;
+                //}
 
-                if (datos.CerradoEl?.Date != pedido.CerradoEl?.Date)
-                {
-                    if (!pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado))
-                        Emitir($"La fecha de cierre del pedido '{pedido.Referencia}' sólo se puede indicar una vez cerrado");
+                //if (datos.CerradoEl?.Date != pedido.CerradoEl?.Date)
+                //{
+                //    if (!pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado))
+                //        Emitir($"La fecha de cierre del pedido '{pedido.Referencia}' sólo se puede indicar una vez cerrado");
 
-                    if (datos.CerradoEl is null)
-                        Emitir($"Ha de indicar la fecha de cierre del pedido '{pedido.Referencia}'");
+                //    if (datos.CerradoEl is null)
+                //        Emitir($"Ha de indicar la fecha de cierre del pedido '{pedido.Referencia}'");
 
-                    var cerradoEl = ((DateTime)datos.CerradoEl).Date;
-                    if (cerradoEl > DateTime.Today)
-                        Emitir($"La fecha de cierre del pedido '{pedido.Referencia}' no puede ser posterior a hoy");
+                //    var cerradoEl = ((DateTime)datos.CerradoEl).Date;
+                //    if (cerradoEl > DateTime.Today)
+                //        Emitir($"La fecha de cierre del pedido '{pedido.Referencia}' no puede ser posterior a hoy");
 
-                    // que no sea anterior a la de recepción lo valida ValidarFechas al modificar
-                    cambios.Add($"Cerrado el: {Fecha(pedido.CerradoEl)} → {Fecha(cerradoEl)}");
-                    pedido.CerradoEl = cerradoEl;
-                }
+                //    // que no sea anterior a la de recepción lo valida ValidarFechas al modificar
+                //    cambios.Add($"Cerrado el: {Fecha(pedido.CerradoEl)} → {Fecha(cerradoEl)}");
+                //    pedido.CerradoEl = cerradoEl;
+                //}
 
                 var proveedor = pedido.Proveedor(contexto);
                 var guardarEnElProveedor = datos.GuardarEnElProveedor && !datos.eMail.IsNullOrEmpty() && !datos.eMail.Equals(proveedor.eMail, StringComparison.CurrentCultureIgnoreCase);
@@ -546,9 +550,11 @@ namespace GestoresDeNegocio.Logistica
             base.DespuesDeMapearElElemento(pedido, elemento, parametros);
 
             // La cabecera sólo es modificable mientras se cumplimenta, en el resto de etapas se consulta.
-            // En recepción se mantiene el permiso para poder recepcionar las líneas, la cabecera se pone en consulta en el cliente (CrudEdicionPedido)
+            // Solicitado y en recepción se mantiene el permiso para poder recepcionar (entregas de las líneas y "Dar por entregado"),
+            // la cabecera se pone en consulta en el cliente (CrudEdicionPedido)
             if (elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)
                 && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion)
+                && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud)
                 && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion))
                 elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;
 

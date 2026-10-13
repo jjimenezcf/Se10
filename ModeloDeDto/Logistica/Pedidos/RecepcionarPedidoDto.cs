@@ -80,7 +80,8 @@ namespace ModeloDeDto.Logistica
             , Formato = enumFormato.Fecha
             , Obligatorio = true
             , Fila = 2
-            , Columna = 0)]
+            , Columna = 1
+            , MantenerHuecoDeLaIzquierda = true )]
         public DateTime? RecepcionadoEl { get; set; }
     }
 }

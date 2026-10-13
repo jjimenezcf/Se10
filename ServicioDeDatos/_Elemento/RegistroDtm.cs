@@ -18,6 +18,46 @@ namespace ServicioDeDatos.Elemento
         [Column(nameof(ICampos.ID), TypeName = nameof(IDominio.INT))]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
+        // Ni la versión ni la auditoría las indica el usuario, no se comparan
+        private static readonly HashSet<string> NoSeComparan = new HashSet<string>
+        {
+            nameof(IRowVersion.RowVersion),
+            nameof(IAuditoria.IdUsuaCrea),
+            nameof(IAuditoria.FechaCreacion),
+            nameof(IAuditoria.IdUsuaModi),
+            nameof(IAuditoria.FechaModificacion)
+        };
+
+        // Indica si el registro tiene los mismos datos que se graban en la BD que otro del mismo tipo (p.e. lo que viene de la
+        // edición frente a lo leído de la BD), comparando por reflexión las propiedades del modelo de EF. Una cadena vacía es
+        // igual a null. Si se indican propiedades sólo se comparan ésas (p.e. las que tiene el Dto del que se ha mapeado).
+        // Se puede sobrescribir en los registros que tengan su propia forma de compararse (ver DireccionDtm)
+        public virtual bool EsIgualA(RegistroDtm registro, ContextoSe contexto, ICollection<string> propiedades = null)
+        {
+            if (registro is null || registro.GetType() != GetType())
+                return false;
+
+            var entidad = contexto.Model.FindEntityType(GetType());
+            if (entidad is null)
+                return false;
+
+            foreach (var propiedad in entidad.GetProperties())
+            {
+                if (propiedad.PropertyInfo is null || propiedad.IsPrimaryKey() || NoSeComparan.Contains(propiedad.Name))
+                    continue;
+                if (propiedades != null && !propiedades.Contains(propiedad.Name))
+                    continue;
+
+                var valor = propiedad.PropertyInfo.GetValue(this);
+                var otroValor = propiedad.PropertyInfo.GetValue(registro);
+                if (valor is string cadena && cadena.Length == 0) valor = null;
+                if (otroValor is string otraCadena && otraCadena.Length == 0) otroValor = null;
+                if (!Equals(valor, otroValor))
+                    return false;
+            }
+            return true;
+        }
     }
     public abstract class RegistroConNombreDtm : RegistroDtm, INombre
     {

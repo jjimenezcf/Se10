@@ -92,6 +92,10 @@ namespace ServicioDeDatos.Elemento
             };
         }
 
+        // Dos direcciones son iguales si están en el mismo sitio y tienen el mismo calificador
+        public override bool EsIgualA(RegistroDtm registro, ContextoSe contexto, ICollection<string> propiedades = null)
+            => EsIgualA(registro as DireccionDtm, compararCalificador: true);
+
         public bool EsIgualA(DireccionDtm direccion, bool compararCalificador)
         {
             if (direccion == null) {  return false; }

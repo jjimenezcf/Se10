@@ -1687,8 +1687,10 @@
             let informacion: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Informacion, undefined);
             if (!IsNullOrEmpty(informacion)) MensajesSe.Info(informacion, informacion);
 
-            this.AnadirBotonDeEnviarPorCorreo(panel);
-            this.AnadirBotonDeEnviarMensajeWeb(panel);
+            if (!Definido(Crud.Consultor)) {
+                this.AnadirBotonDeEnviarPorCorreo(panel);
+                this.AnadirBotonDeEnviarMensajeWeb(panel);
+            }
         }
 
         // A la derecha del correo (propiedad eMail) un botón para enviar a esa dirección enlaces de descarga de los archivos del elemento;
