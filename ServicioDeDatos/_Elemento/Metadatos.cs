@@ -693,6 +693,7 @@ namespace ServicioDeDatos.Elemento
         public const string PREGUNTA = nameof(PREGUNTA);
         public const string RESPUESTA = nameof(RESPUESTA);        
         public const string RECIBIDA_EL = nameof(RECIBIDA_EL);
+        public const string RECEPCIONADA_EL = nameof(RECEPCIONADA_EL);
         public const string VENCE_EL = nameof(VENCE_EL);
         public const string CONTABILIZADA_EL = nameof(CONTABILIZADA_EL);
         public const string FECHA_CONTABLE = nameof(FECHA_CONTABLE);

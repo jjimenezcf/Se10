@@ -278,7 +278,10 @@ namespace ModeloDeDto.Logistica
         ]
         public decimal? DescuentoAplicado { get; set; }
 
-        // Destino de la entrega, para mostrarla en la modal de recepción
+        // Fecha y destino de la entrega, para mostrarla en la modal de recepción
+        [IUPropiedad(Etiqueta = "Recepcionada el", Visible = false)]
+        public System.DateTime? RecepcionadaEl { get; set; }
+
         [IUPropiedad(Etiqueta = "Id del almacén de la entrega", Visible = false)]
         public int? IdAlmacenDeRecepcion { get; set; }
 

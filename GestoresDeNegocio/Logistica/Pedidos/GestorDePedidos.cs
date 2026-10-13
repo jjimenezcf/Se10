@@ -261,6 +261,10 @@ namespace GestoresDeNegocio.Logistica
             if (SeCancelaLaSolicitud(transicion))
                 pedido.AntesDeCancelarSolicitud(Contexto, parametros);
 
+            // Al darlo por recibido la fecha de recepción de la cabecera es la de las entregas que se registran tras cerrarlo (ver DespuesDeTransitar)
+            if (SeDaPorRecibido(transicion) && parametros != null)
+                parametros[nameof(PedidoDtm.RecibidoEl)] = pedido.FechaDeRecepcionAlDarPorRecibido();
+
             if (SeRecibe(transicion))
                 pedido.AntesDeRecibir(Contexto, parametros);
 
@@ -291,6 +295,12 @@ namespace GestoresDeNegocio.Logistica
         =>
         transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados()) &&
         (transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion.Estados()) || transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados()));
+
+        // "Dar por recibido": de solicitado a cerrado sin pasar por recepción, se recepcionan todas las líneas
+        private static bool SeDaPorRecibido(TransicionDtm transicion)
+        =>
+        transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados()) &&
+        transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados());
 
         private static bool SeAnulaLaRecepcion(TransicionDtm transicion)
         =>
@@ -407,6 +417,10 @@ namespace GestoresDeNegocio.Logistica
                 EmitirPdfPedido(Contexto, pedido);
                 EnviarPedidoAlProveedor(Contexto, pedido);
             }
+
+            // Se recepciona una vez cerrado: Recibir guarda las entregas y no ha de hacerlo en mitad de la transición
+            if (SeDaPorRecibido(transicion))
+                pedido.RecepcionarAlDarPorRecibido(Contexto);
 
             return pedido;
         }

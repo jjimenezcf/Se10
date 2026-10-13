@@ -13421,6 +13421,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("DECIMAL(18,6)")
                         .HasColumnName("PRECIO");
 
+                    b.Property<DateTime>("RecepcionadaEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("RECEPCIONADA_EL");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()

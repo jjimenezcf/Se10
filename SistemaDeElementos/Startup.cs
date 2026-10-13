@@ -78,6 +78,14 @@ public class Startup
         services.AddHttpClient<IGraphClient, HttpGraphClient>();
         ContextoSe.IncluirServiciosParaElCorreo(services);
 
+        // Servicios de mensajes web: el que se usa lo decide la variable CFG_Mensajeria_Canal (ver ExtensorDeMensajesWeb.EnviarMensajeWeb)
+        services.AddHttpClient<ServicioWhatsapp>();
+        services.AddHttpClient<ServicioTelegram>();
+        services.AddHttpClient<ServicioSMS>();
+        services.AddTransient<IServicioDeMensajesWeb>(sp => sp.GetRequiredService<ServicioWhatsapp>());
+        services.AddTransient<IServicioDeMensajesWeb>(sp => sp.GetRequiredService<ServicioTelegram>());
+        services.AddTransient<IServicioDeMensajesWeb>(sp => sp.GetRequiredService<ServicioSMS>());
+
         services.AddAutoMapper(cfg =>
         {
             // Forzar la carga de todos los ensamblados referenciados

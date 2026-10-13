@@ -114,6 +114,9 @@ namespace MVCSistemaDeElementos.Controllers
                 case eventosDeMf.Ped_ModificarCabecera:
                     // la modal se propone con los datos de la edición
                     return null;
+                case eventosDeMf.Ped_RecepcionarPedido:
+                    // "Dar por entregado": la modal se propone con los datos de la edición y al aceptar se llama a epRecepcionarPedido
+                    return null;
                 case eventosDeMf.Ped_GuardarCabecera:
                     GestorDePedidos.ModificarCabecera(Contexto, new ModificarCabeceraDePedidoDto
                     {
@@ -179,6 +182,44 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 ApiController.PrepararError(e, r, "Error al totalizar los pedidos.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
+        // Entrega completa del pedido (ver ExtensorDeRecepciones.RecepcionarPedido): aquí sólo se leen y validan los datos de la modal
+        public JsonResult epRecepcionarPedido(string parametrosJson)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epRecepcionarPedido));
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var parametros = parametrosJson.ToDiccionarioDeParametros();
+
+                var idPedido = (int)parametros.LeerValor<long>(nameof(RecepcionarPedidoDto.IdPedido), 0);
+                if (idPedido == 0)
+                    GestorDeErrores.Emitir("Ha de indicar el pedido a recepcionar");
+                var rowVersion = parametros.LeerValor<string>(nameof(PedidoDtm.RowVersion), null);
+                var recepcionadoEl = parametros.LeerValor<DateTime?>(nameof(RecepcionarPedidoDto.RecepcionadoEl), null);
+                if (recepcionadoEl == null)
+                    GestorDeErrores.Emitir("Ha de indicar la fecha de recepción del pedido");
+                var idAlmacen = (int)parametros.LeerValor<long>(nameof(RecepcionarPedidoDto.IdAlmacen), 0);
+                var idExpediente = (int)parametros.LeerValor<long>(nameof(RecepcionarPedidoDto.IdExpediente), 0);
+
+                r.Consola = ExtensorDeRecepciones.RecepcionarPedido(Contexto, idPedido, rowVersion, recepcionadoEl.Value,
+                    idAlmacen == 0 ? null : idAlmacen, idExpediente == 0 ? null : idExpediente);
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error al recepcionar el pedido.");
             }
             finally
             {

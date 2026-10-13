@@ -96,7 +96,8 @@ namespace Inicializador.Logistica
         public static readonly string n_tran_ped_enviar_a_proveedor = $"{n_ped}: Enviar al proveedor";
         public static readonly string n_tran_ped_devolver_a_cumplimentacion = $"{n_ped}: Devolver a cumplimentación";
 
-        public static readonly string n_tran_ped_recibir = $"{n_ped}: Recibir";
+        public static readonly string n_tran_ped_poner_en_recepcion = $"{n_ped}: Poner en recepción";
+        public static readonly string n_tran_ped_al_recibir_una_linea = $"{n_ped}: Recibir una línea";
         public static readonly string n_tran_ped_dar_por_recibido = $"{n_ped}: Dar por recibido";
         public static readonly string n_tran_ped_cerrado = $"{n_ped}: Cerrar";
         public static readonly string n_tran_ped_reabrir = $"{n_ped}: Reabrir";
@@ -120,9 +121,10 @@ namespace Inicializador.Logistica
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_devolver_a_cumplimentacion, n_estado_ped_en_aprobacion, n_estado_ped_en_cumplimentacion, activo: false);
 
                 //solicitado --> en recepción, en aprobación, cerrado
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_recibir, n_estado_ped_solicitado, n_estado_ped_en_recepcion);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_poner_en_recepcion, n_estado_ped_solicitado, n_estado_ped_en_recepcion);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_al_recibir_una_linea, n_estado_ped_solicitado, n_estado_ped_en_recepcion, delSistema: true);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_devolver_al_cumplimentador, n_estado_ped_solicitado, n_estado_ped_en_cumplimentacion, asunto: "Comunicar al proveedor");
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_dar_por_recibido, n_estado_ped_solicitado, n_estado_ped_cerrado);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_dar_por_recibido, n_estado_ped_solicitado, n_estado_ped_cerrado, delSistema: true);
 
                 // en recepción --> cerrado, en solicitud
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Pedido, n_tran_ped_cerrado, n_estado_ped_en_recepcion, n_estado_ped_cerrado);

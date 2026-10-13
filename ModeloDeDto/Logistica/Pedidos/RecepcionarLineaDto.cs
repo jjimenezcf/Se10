@@ -1,3 +1,4 @@
+using System;
 using ModeloDeDto.Expediente;
 using ServicioDeDatos.Expediente;
 using Utilidades;
@@ -15,6 +16,18 @@ namespace ModeloDeDto.Logistica
         public int IdLineaPedido { get; set; }
 
         //--------------------------------------------
+        // Fila 0: fecha de recepción y destino (obra del expediente o almacén); fila 1: lo recibido
+        [IUPropiedad(
+              Etiqueta = "Recepcionada El"
+            , Ayuda = "Fecha en la que se ha recibido la entrega: no puede ser posterior a hoy ni anterior a la creación del pedido"
+            , TipoDeControl = enumTipoControl.SelectorDeFecha
+            , Formato = enumFormato.Fecha
+            , Obligatorio = true
+            , Fila = 0
+            , Columna = 0)]
+        public DateTime? RecepcionadaEl { get; set; }
+
+        //--------------------------------------------
         [IUPropiedad(
            Etiqueta = "Cantidad",
            Tipo = typeof(decimal),
@@ -24,7 +37,7 @@ namespace ModeloDeDto.Logistica
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_CalcularImporteEntregado) + "()",
            Obligatorio = true,
            Formato = enumFormato.Numero_6,
-           Fila = 0,
+           Fila = 1,
            Columna = 0)
         ]
         public decimal? Cantidad { get; set; }
@@ -39,7 +52,7 @@ namespace ModeloDeDto.Logistica
            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_CalcularImporteEntregado) + "()",
            Obligatorio = true,
            Formato = enumFormato.Numero_6,
-           Fila = 0,
+           Fila = 1,
            Columna = 1)
         ]
         public decimal? Precio { get; set; }
@@ -55,7 +68,7 @@ namespace ModeloDeDto.Logistica
            Obligatorio = false,
            Formato = enumFormato.Porcentaje,
            Fila = 1,
-           Columna = 0)
+           Columna = 2)
         ]
         public decimal? Descuento { get; set; }
 
@@ -71,7 +84,7 @@ namespace ModeloDeDto.Logistica
            Obligatorio = false,
            Formato = enumFormato.Moneda,
            Fila = 1,
-           Columna = 1)
+           Columna = 3)
         ]
         public decimal? ImporteEntregado { get; set; }
 
@@ -90,8 +103,8 @@ namespace ModeloDeDto.Logistica
             GuardarEn = nameof(IdAlmacen),
             MostrarExpresion = nameof(AlmacenDto.Expresion),
             Obligatorio = false,
-            Fila = 2,
-            Columna = 0,
+            Fila = 0,
+            Columna = 2,
             OnChange = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_Recepcion_TrasCambiarAlmacen) + "()"
             )
         ]
@@ -112,7 +125,7 @@ namespace ModeloDeDto.Logistica
             RestrictorFijo = ltrDeUnExpediente.SelectorParaUnPedido + Simbolos.PuntoComa + nameof(enumEtapasDeExpedientes.EXP_Etapa_Ejecucion) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeExpedientes.EXP_Etapa_Terminada),
             Obligatorio = false,
             LongitudMinimaParaBuscar = 1,
-            Fila = 2,
+            Fila = 0,
             Columna = 1,
             trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_Recepcion_TrasSeleccionarExpediente) + "()"
             )

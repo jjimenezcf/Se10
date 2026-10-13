@@ -35,6 +35,7 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.CantidadRecibida, x => x.Ignore())
                 .ForMember(dto => dto.PrecioDeRecepcion, x => x.Ignore())
                 .ForMember(dto => dto.DescuentoAplicado, x => x.Ignore())
+                .ForMember(dto => dto.RecepcionadaEl, x => x.Ignore())
                 .ForMember(dto => dto.IdAlmacenDeRecepcion, x => x.Ignore())
                 .ForMember(dto => dto.AlmacenDeRecepcion, x => x.Ignore())
                 .ForMember(dto => dto.IdExpedienteDeRecepcion, x => x.Ignore())
@@ -139,6 +140,7 @@ namespace GestoresDeNegocio.Logistica
             elemento.CantidadRecibida = recepcion?.Cantidad;
             elemento.PrecioDeRecepcion = recepcion?.Precio;
             elemento.DescuentoAplicado = recepcion?.Descuento;
+            elemento.RecepcionadaEl = recepcion?.RecepcionadaEl;
             elemento.IdAlmacenDeRecepcion = recepcion?.IdAlmacen;
             elemento.AlmacenDeRecepcion = recepcion?.IdAlmacen is null ? null : Contexto.SeleccionarPorId<AlmacenDtm>((int)recepcion.IdAlmacen).Expresion;
             elemento.IdExpedienteDeRecepcion = recepcion?.IdExpediente;

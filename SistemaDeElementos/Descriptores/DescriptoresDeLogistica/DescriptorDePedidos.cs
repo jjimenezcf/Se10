@@ -41,6 +41,9 @@ namespace MVCSistemaDeElementos.Descriptores
 
             // se abre desde la acción Recepcionar de las líneas del pedido (ver Logistica.Pedido_Recepcionar)
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(RecepcionarLineaDto), eventosDeMf.Ped_RecepcionarLinea, "Recepcionar línea"));
+            // "Dar por entregado": recepciona todas las líneas del pedido (ver CrudEdicionPedido.DespuesDeProcesarOpcionMf)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(RecepcionarPedidoDto), eventosDeMf.Ped_RecepcionarPedido, "Dar por entregado"));
+            Editor.IncluirMfIndividual("Dar por entregado", eventosDeMf.Ped_RecepcionarPedido, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
             Editor.IncluirMfIndividual("Quitar expediente", eventosDeMf.Ped_QuitarExpediente, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Quitar contrato", eventosDeMf.Ped_QuitarContrato, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
 
@@ -68,7 +71,8 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo: "Recibido", propiedad: nameof(LineaDeUnPedidoDto.CantidadRecibida), formato: enumFormato.Numero_6, tamano: 150);
             columnas.Add(titulo: "Precio rec.", propiedad: nameof(LineaDeUnPedidoDto.PrecioDeRecepcion), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: "Dto. aplicado", propiedad: nameof(LineaDeUnPedidoDto.DescuentoAplicado), formato: enumFormato.Porcentaje, tamano: 150);
-            // destino de la entrega, para mostrarla en la modal de recepción
+            // fecha y destino de la entrega, para mostrarla en la modal de recepción
+            columnas.Add(titulo: "RecepcionadaEl", propiedad: nameof(LineaDeUnPedidoDto.RecepcionadaEl), formato: enumFormato.Fecha, mostrar: false);
             columnas.Add(titulo: "IdAlmacenDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.IdAlmacenDeRecepcion), mostrar: false);
             columnas.Add(titulo: "AlmacenDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.AlmacenDeRecepcion), mostrar: false);
             columnas.Add(titulo: "IdExpedienteDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.IdExpedienteDeRecepcion), mostrar: false);

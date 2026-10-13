@@ -67,6 +67,7 @@ namespace ServicioDeDatos.Logistica
         public decimal Precio { get; set; }
         public decimal? Descuento { get; set; }
         public decimal Importe { get; set; }
+        public DateTime RecepcionadaEl { get; set; }
 
         public int? IdExpediente { get; set; }
         public ExpedienteDtm Expediente { get; set; }
@@ -102,6 +103,7 @@ namespace ServicioDeDatos.Logistica
             modelBuilder.Entity<RecepcionDeLineaDtm>().Property(nameof(RecepcionDeLineaDtm.Precio)).HasColumnName(ICampos.PRECIO).HasColumnType(IDominio.DECIMAL).IsRequired(true);
             modelBuilder.Entity<RecepcionDeLineaDtm>().Property(nameof(RecepcionDeLineaDtm.Descuento)).HasColumnName(ICampos.DESCUENTO).HasColumnType(IDominio.PORCENTAJE_MENOR_100).IsRequired(false);
             modelBuilder.Entity<RecepcionDeLineaDtm>().Property(nameof(RecepcionDeLineaDtm.Importe)).HasColumnName(ICampos.IMPORTE).HasColumnType(IDominio.DECIMAL).IsRequired(true);
+            modelBuilder.Entity<RecepcionDeLineaDtm>().Property(nameof(RecepcionDeLineaDtm.RecepcionadaEl)).HasColumnName(ICampos.RECEPCIONADA_EL).HasColumnType(IDominio.DATETIME_2).IsRequired(true);
 
             ApiDeRegistroDtm.DefinirCampoFk<RecepcionDeLineaDtm>(modelBuilder, nameof(RecepcionDeLineaDtm.Expediente), nameof(RecepcionDeLineaDtm.IdExpediente), ICampos.ID_EXPEDIENTE, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<RecepcionDeLineaDtm>(modelBuilder, nameof(RecepcionDeLineaDtm.Almacen), nameof(RecepcionDeLineaDtm.IdAlmacen), ICampos.ID_ALMACEN, requerida: false, unico: false);

@@ -5,9 +5,12 @@ ghostscript-8.64
 https://console.cloud.google.com/welcome?project=sistema-de-elementos
 
 
-Almacen - Pedidos
+Almacen - Pedidos - Entregas
 ------------------------------------------------------------------------------
-- Crear entrega de pedido
+- Crear entrega de pedido (*) 12-10-2026
+- Añadir fecha de recepción en la línea recepcionada
+- Añadir check de crear´ nueva línea con lo pendiente
+- crear movimiento de compra de almacén al recepcionar una línea
 
 
 Pedidos
@@ -17,12 +20,15 @@ definir la relación de unitarios dde un proveedor (*) 18-09-2026
 si el proveedor del pedido tiene tarifa al abrir la modal de línes no fijar alzada (*) 18-09-2026
 cargar la tarifa de un proveedor (*) 18-09-2026
 quitar clase de línea en todas las líneas de objetos (*) 29-09-2026
-emitir excel de unitarios para enviar a un proeedor
+emitir excel de unitarios para enviar a un proeedor (*) 02-10-2026
+importar tarifa de un proveedor (*) 02-10-2026
 
 
 Correcciones y ampliaciones
 --------------------------------------------------------------------------------
-Borrar las cache de codigo 2F al minuto de enviarla
+Borrar las cache de codigo 2F al minuto de enviarla (*) 15-09-2026
+Enviar Whatsapp (*) 12-10-2026
+Enviar correos externos (*) 12-10-2026
 Poder acceder al mapa desde el panel de control con todos los elementos activos
 Poder navegar del pago a la remesa bancaria que lo contiene, añadir un restrictor
 Crear una diercción desde el mapa, añadir un botón de + para crear una calle con el mapa
