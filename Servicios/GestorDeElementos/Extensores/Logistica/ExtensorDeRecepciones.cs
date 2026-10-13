@@ -95,7 +95,6 @@ namespace GestorDeElementos.Extensores
                 Cantidad = cantidad,
                 Precio = precio,
                 Descuento = descuento,
-                Importe = cantidad * precio * (1 - (descuento ?? 0) / 100),
                 RecepcionadaEl = recepcionadaEl.Date,
                 IdAlmacen = idAlmacen,
                 IdExpediente = idExpediente,

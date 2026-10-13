@@ -13413,10 +13413,6 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_MODIFICADOR");
 
-                    b.Property<decimal>("Importe")
-                        .HasColumnType("DECIMAL(18,6)")
-                        .HasColumnName("IMPORTE");
-
                     b.Property<decimal>("Precio")
                         .HasColumnType("DECIMAL(18,6)")
                         .HasColumnName("PRECIO");

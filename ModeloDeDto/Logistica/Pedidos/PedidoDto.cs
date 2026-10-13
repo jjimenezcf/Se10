@@ -277,16 +277,33 @@ namespace ModeloDeDto.Logistica
            EditableAlCrear = false,
            EditableAlEditar = false,
            Fila = 12,
-           Columna = 4,
+           Columna = 3,
            Posicion = 0,
            AutoSpan = true,
            MantenerHuecoDeLaIzquierda = true,
-           Formato = enumFormato.Numero_6
+           Formato = enumFormato.Moneda
             )
         ]
         public decimal? Importe { get; set; }
 
 
+        //--------------------------------------------
+        [IUPropiedad(
+           Etiqueta = "Recibido",
+           Tipo = typeof(decimal),
+           Ayuda = "importe del recibido",
+           TipoDeControl = enumTipoControl.Editor,
+           Alineada = enumAliniacion.derecha,
+           EditableAlCrear = false,
+           EditableAlEditar = false,
+           Fila = 12,
+           Columna = 4,
+           Posicion = 0,
+           AutoSpan = true,
+           Formato = enumFormato.Moneda
+            )
+        ]
+        public decimal? Recibido { get; set; }
         //------------------------------------------------------------------------
         [IUPropiedad(
             VisibleEnGrid = false,

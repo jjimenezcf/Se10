@@ -559,6 +559,7 @@ namespace GestoresDeNegocio.Logistica
                 elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;
 
             elemento.Importe = pedido.Importe(Contexto);
+            elemento.Recibido = pedido.Recibido(Contexto);
             if (parametros.LeerPorId)
             {
                 var proveedor = pedido.Proveedor(Contexto);

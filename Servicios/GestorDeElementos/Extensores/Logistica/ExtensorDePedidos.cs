@@ -111,6 +111,14 @@ namespace GestorDeElementos.Extensores
         =>
         pedido.Detalles<LineaDeUnPedidoDtm>(contexto).Sum(linea => linea.ImporteDeLinea);
 
+        // Importe de lo recibido del pedido, sumado en la BD: RecepcionDeLineaDtm.Importe es calculado (no está en la tabla) y EF no
+        // lo puede traducir, se repite aquí su fórmula; si cambia una ha de cambiar la otra
+        public static decimal Recibido(this PedidoDtm pedido, ContextoSe contexto)
+            =>
+            contexto.Set<RecepcionDeLineaDtm>()
+                .Where(r => contexto.Set<LineaDeUnPedidoDtm>().Any(l => l.Id == r.IdLinea && l.IdElemento == pedido.Id))
+                .Sum(r => r.Cantidad * r.Precio * (1 - (r.Descuento ?? 0) / 100));
+
         public static void Validar(this PedidoDtm pedido, ContextoSe contexto, ParametrosDeNegocio parametros)
         {
             pedido.ValidarFechas(parametros);
