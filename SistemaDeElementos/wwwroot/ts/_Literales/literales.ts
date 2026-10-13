@@ -538,6 +538,7 @@ const ltrControladores = {
         Acciones: 'Acciones',
         MiCorreo: 'MiCorreo',
         Correos: 'Correos',
+        MensajesWeb: 'MensajesWeb',
         VisorDeAgenda: 'VisorDeAgenda',
         ArbolDeMenu: 'ArbolDeMenu',
         Menus: 'Menus',
@@ -1082,9 +1083,15 @@ const ltrCss = {
         ListaDeArchivos: 'archivos-para-enviar',
         TituloDeLaLista: 'titulo-archivos-para-enviar'
     },
-    EnviarPorWhatsApp: {
-        Boton: 'boton-enviar-por-whatsapp',
-        InputConBoton: 'con-boton-de-whatsapp'
+    // Botón junto al teléfono: lleva la clase común y la del canal (el icono lo pone la clase del canal, ver CrudEdicion.css)
+    EnviarPorMensajeWeb: {
+        Boton: 'boton-enviar-mensaje-web',
+        InputConBoton: 'con-boton-de-mensaje-web',
+        BotonDelCanal: {
+            WHATSAPP: 'boton-enviar-por-whatsapp',
+            TELEGRAM: 'boton-enviar-por-telegram',
+            SMS: 'boton-enviar-por-sms'
+        }
     },
     crud: {
         cuerpo: 'cuerpo',
@@ -1641,8 +1648,11 @@ const Ajax = {
         },
         Entorno: {
             Correos: {
-                EnviarCorreoExterno: 'epEnviarCorreoExterno',
-                EnviarWhatsApp: 'epEnviarWhatsApp'
+                EnviarCorreoExterno: 'epEnviarCorreoExterno'
+            },
+            MensajesWeb: {
+                EnviarMensajeWeb: 'epEnviarMensajeWeb',
+                LeerConfiguracionDeMensajesWeb: 'epLeerConfiguracionDeMensajesWeb'
             },
             MiCorreo: {
                 Archivar: 'epArchivarCorreo',
@@ -1667,6 +1677,9 @@ const Ajax = {
             LineasDeUnPedido: {
                 RecibirLinea: 'epRecibirLinea',
                 LineaNoEntregada: 'epLineaNoEntregada'
+            },
+            Pedidos: {
+                RecepcionarPedido: 'epRecepcionarPedido'
             }
         },
         Contabilidad: {
@@ -2606,10 +2619,19 @@ const ltrPropiedades = {
             Para: 'Para',
             IdElemento: 'idElemento'
         },
-        EnviarWhatsApp: {
+        EnviarMensajeWeb: {
             Telefono: 'Telefono',
             Para: 'Para',
-            IdElemento: 'idElemento'
+            Mensaje: 'Mensaje',
+            IdElemento: 'idElemento',
+            // respuestas de epLeerConfiguracionDeMensajesWeb y epEnviarMensajeWeb
+            Canal: 'Canal',
+            Modo: 'Modo',
+            Url: 'Url',
+            ModoCliente: 'CLIENTE',
+            CanalWhatsApp: 'WHATSAPP',
+            CanalTelegram: 'TELEGRAM',
+            CanalSms: 'SMS'
         },
     },
     Maestros: {
@@ -3374,7 +3396,8 @@ const ltrPropiedades = {
                 IdAlmacenDeRecepcion: 'IdAlmacenDeRecepcion',
                 AlmacenDeRecepcion: 'AlmacenDeRecepcion',
                 IdExpedienteDeRecepcion: 'IdExpedienteDeRecepcion',
-                ExpedienteDeRecepcion: 'ExpedienteDeRecepcion'
+                ExpedienteDeRecepcion: 'ExpedienteDeRecepcion',
+                RecepcionadaEl: 'RecepcionadaEl'
             },
             RecepcionarLinea: {
                 IdLineaPedido: 'IdLineaPedido',
@@ -3385,7 +3408,12 @@ const ltrPropiedades = {
                 IdAlmacen: 'IdAlmacen',
                 Almacen: 'Almacen',
                 IdExpediente: 'IdExpediente',
-                Expediente: 'Expediente'
+                Expediente: 'Expediente',
+                RecepcionadaEl: 'RecepcionadaEl'
+            },
+            RecepcionarPedido: {
+                IdPedido: 'IdPedido',
+                RecepcionadoEl: 'RecepcionadoEl'
             }
         },
         RenombraPedido: {
@@ -4042,7 +4070,7 @@ const ltrMenus = {
         baja: ltrEventos.ModalEdicion.DarDeBaja,
         Comun: {
             EnviarCorreoExterno: 'enviar-correo-externo',
-            EnviarWhatsApp: 'enviar-whatsapp',
+            EnviarMensajeWeb: 'enviar-mensaje-web',
             PermisosDeElemento: 'permiso-de-elemento',
             Imprimir: 'abrir-imprimir',
             GuardarEstadosDeExpansores: 'guardar-estados-de-expansores',
@@ -4232,7 +4260,8 @@ const ltrMenus = {
             Pedidos: {
                 ModificarCabecera: 'modificar-cabecera-pedido',
                 GuardarCabecera: 'guardar-cabecera-pedido',
-                RecepcionarLinea: 'recepcionar-linea-pedido'
+                RecepcionarLinea: 'recepcionar-linea-pedido',
+                RecepcionarPedido: 'recepcionar-pedido'
             }
         },
         MaestrosTecnico: {

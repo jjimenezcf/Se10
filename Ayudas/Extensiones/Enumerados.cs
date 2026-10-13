@@ -816,7 +816,7 @@ namespace Utilidades
         public const string Comun_LeerDatosParaExportacion = "leer-datos-para-exportacion";
         public const string Comun_EnviarElemento = "enviar_elemento";
         public const string Comun_EnviarCorreoExterno = "enviar-correo-externo";
-        public const string Comun_EnviarWhatsApp = "enviar-whatsapp";
+        public const string Comun_EnviarMensajeWeb = "enviar-mensaje-web";
         public const string Comun_GuardarDisposicionDashBoard = "guardar-disposicion-dashboard";
         public const string Comun_GuardarDisposicionEstados = "guardar-disposicion-estados";
 
@@ -957,6 +957,7 @@ namespace Utilidades
         public const string Ped_ModificarCabecera = "modificar-cabecera-pedido";
         public const string Ped_GuardarCabecera = "guardar-cabecera-pedido";
         public const string Ped_RecepcionarLinea = "recepcionar-linea-pedido";
+        public const string Ped_RecepcionarPedido = "recepcionar-pedido";
 
         public const string Infantes_AsociarCurso = "asociar-curso";
 

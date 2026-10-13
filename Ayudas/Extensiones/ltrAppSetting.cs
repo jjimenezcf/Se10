@@ -41,6 +41,38 @@ namespace Utilidades
             }
         }
 
+        // Sección con la configuración de cada canal de mensajes web (ver IServicioDeMensajesWeb), una subsección por canal con el nombre del canal:
+        //   "ServidorDeMensajes": {
+        //     "WHATSAPP": { "PhoneNumberId": "", "Token": "", "Version": "v21.0", "Plantilla": "", "Idioma": "es" },
+        //     "TELEGRAM": { "BotToken": "", "ChatIds": { "34600123456": "123456789" } },
+        //     "SMS":      { "Proveedor": "TWILIO", "AccountSid": "", "AuthToken": "", "Remitente": "" }
+        //   }
+        // Qué canal y quién envía (cliente o servidor) lo indican las variables CFG_Mensajeria_Canal y CFG_Mensajeria_Modo
+        public static class ServidorDeMensajes
+        {
+            public const string Seccion = nameof(ServidorDeMensajes);
+            public static class Whatsapp
+            {
+                public const string PhoneNumberId = nameof(PhoneNumberId);
+                public const string Token = nameof(Token);
+                public const string Version = nameof(Version);
+                public const string Plantilla = nameof(Plantilla);
+                public const string Idioma = nameof(Idioma);
+            }
+            public static class Telegram
+            {
+                public const string BotToken = nameof(BotToken);
+                public const string ChatIds = nameof(ChatIds);
+            }
+            public static class Sms
+            {
+                public const string Proveedor = nameof(Proveedor);
+                public const string AccountSid = nameof(AccountSid);
+                public const string AuthToken = nameof(AuthToken);
+                public const string Remitente = nameof(Remitente);
+            }
+        }
+
         public static class OpcionesDeEF
         {
             public const string EnableSensitiveDataLogging = nameof(EnableSensitiveDataLogging);

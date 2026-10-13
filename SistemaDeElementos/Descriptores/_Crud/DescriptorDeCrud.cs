@@ -9,6 +9,7 @@ using ModeloDeDto.Negocio;
 using ModeloDeDto.SistemaDocumental;
 using ModeloDeDto.Tarea;
 using ModeloDeDto.Terceros;
+using ModeloDeDto.TrabajosSometidos;
 using MVCSistemaDeElementos.Controllers;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
@@ -292,11 +293,12 @@ namespace MVCSistemaDeElementos.Descriptores
                 }
 
                 // Los elementos con datos de contacto tienen en la edición, junto al eMail, un botón para enviar por correo enlaces de descarga de los archivos del elemento
-                // y junto al teléfono un botón para escribir un mensaje y abrir WhatsApp con él
+                // y junto al teléfono un botón para enviar un mensaje; el canal (WhatsApp, Telegram o SMS) lo indican las variables del sistema,
+                // que la interfaz lee al pintar el botón, por eso el título de la modal no lo menciona (el html del crud puede estar cacheado)
                 if (Negocio != enumNegocio.No_Definido && typeof(IDatosDeContactoDto).IsAssignableFrom(typeof(TElemento)))
                 {
                     modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(EnviarCorreoExternoDto), eventosDeMf.Comun_EnviarCorreoExterno, "Enviar por correo"));
-                    modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(EnviarWhatsAppDto), eventosDeMf.Comun_EnviarWhatsApp, "Enviar por WhatsApp"));
+                    modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(EnviarMensajeWebDto), eventosDeMf.Comun_EnviarMensajeWeb, "Enviar mensaje"));
                 }
 
                 if (Historial is not null)

@@ -14,8 +14,8 @@ namespace ServicioDeDatos.Elemento
     {
         [Description("Enviada por correo")]
         envioDeCorreo,
-        [Description("Enviada por WhatsApp")]
-        envioPorWhatsApp
+        [Description("Mensaje enviado")]
+        envioDeMensajeWeb
     }
 
     public static class ltrDeTrazas

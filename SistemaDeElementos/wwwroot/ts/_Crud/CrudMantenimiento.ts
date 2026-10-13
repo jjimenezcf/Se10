@@ -2619,36 +2619,83 @@
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
-        public get ModalEnviarWhatsApp(): HTMLDivElement {
-            return document.getElementById(`${this.IdCrud}-${ltrMenus.eventosDeMf.Comun.EnviarWhatsApp}`) as HTMLDivElement;
+        // Canal (WHATSAPP, TELEGRAM, SMS) y modo (CLIENTE, SERVIDOR) de los mensajes a un teléfono: los fijan las variables del sistema
+        // CFG_Mensajeria_Canal y CFG_Mensajeria_Modo. Se piden al servidor una sola vez, al pintar el primer botón junto al teléfono, y se
+        // recuerdan en ConfiguracionDeMensajesWeb; no viajan en el html del crud porque éste puede estar cacheado
+        private peticionDeConfiguracionDeMensajesWeb: Promise<any>;
+        public ConfiguracionDeMensajesWeb: { canal: string, modo: string };
+
+        public LeerConfiguracionDeMensajesWeb(): Promise<{ canal: string, modo: string }> {
+            if (!Definido(this.peticionDeConfiguracionDeMensajesWeb)) {
+                this.peticionDeConfiguracionDeMensajesWeb = ApiDePeticiones.EjecutarPeticion(this, ltrControladores.Entorno.MensajesWeb, Ajax.EndPoint.Entorno.MensajesWeb.LeerConfiguracionDeMensajesWeb, new Array<Parametro>(), new Array<Parametro>())
+                    .then((peticion) => {
+                        this.ConfiguracionDeMensajesWeb = {
+                            canal: ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.EnviarMensajeWeb.Canal),
+                            modo: ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.EnviarMensajeWeb.Modo)
+                        };
+                        return this.ConfiguracionDeMensajesWeb;
+                    })
+                    .catch((peticion) => {
+                        // variable mal definida: se avisa y se vuelve a intentar en la siguiente edición
+                        this.peticionDeConfiguracionDeMensajesWeb = undefined;
+                        ApiDePeticiones.EmitirError(peticion);
+                        return undefined;
+                    });
+            }
+            return this.peticionDeConfiguracionDeMensajesWeb;
         }
 
-        // Se abre desde el botón del teléfono de la edición (ver CrudEdicion.AnadirBotonDeEnviarPorWhatsApp)
-        public ModalEnviarWhatsApp_Abrir(telefono: string, idElemento: number): void {
-            let modal = this.ModalEnviarWhatsApp;
+        public get ModalEnviarMensajeWeb(): HTMLDivElement {
+            return document.getElementById(`${this.IdCrud}-${ltrMenus.eventosDeMf.Comun.EnviarMensajeWeb}`) as HTMLDivElement;
+        }
+
+        // Se abre desde el botón del teléfono de la edición (ver CrudEdicion.AnadirBotonDeEnviarMensajeWeb)
+        public ModalEnviarMensajeWeb_Abrir(telefono: string, idElemento: number): void {
+            let modal = this.ModalEnviarMensajeWeb;
             ApiPanel.BlanquearControlesDeIU(modal);
             modal.setAttribute(atModal.idElemento1, idElemento.toString());
-            ApiControl.MapearEditor(modal, ltrPropiedades.Entorno.EnviarWhatsApp.Para, telefono);
+            ApiControl.MapearEditor(modal, ltrPropiedades.Entorno.EnviarMensajeWeb.Para, telefono);
             ApiPanel.AbrirModal(modal);
         }
 
-        // El servidor valida el teléfono, deja la traza y devuelve el enlace https://wa.me/ que abre WhatsApp con el mensaje escrito.
-        // La ventana se abre antes de la petición, mientras dura el clic del usuario, porque si se abre al volver la respuesta el
-        // navegador la puede bloquear como ventana emergente; si la petición falla se cierra
-        private ModalEnviarWhatsApp_Enviar(modal: HTMLDivElement): void {
+        // El servidor valida el teléfono, deja la traza y, según el modo:
+        //  - SERVIDOR: envía el mensaje, no hay nada más que hacer.
+        //  - CLIENTE: devuelve en Url el enlace que abre la aplicación del canal con el mensaje escrito. Con WhatsApp y Telegram (https) la
+        //    ventana se abre antes de la petición, mientras dura el clic del usuario, porque si se abre al volver la respuesta el navegador la
+        //    puede bloquear como ventana emergente; si la petición falla o no hay enlace se cierra. El enlace sms: se abre en la propia
+        //    página (el sistema abre la aplicación de mensajes). Telegram no permite precargar el texto: se copia al portapapeles.
+        private ModalEnviarMensajeWeb_Enviar(modal: HTMLDivElement): void {
             let parametros: Array<Parametro> = new Array<Parametro>();
             ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
             parametros.push(new Parametro(Ajax.Param.idNegocio, this.IdNegocio));
-            parametros.push(new Parametro(ltrPropiedades.Entorno.EnviarWhatsApp.IdElemento, Numero(modal.getAttribute(atModal.idElemento1))));
-            let ventana = window.open('', '_blank');
-            ApiDePeticiones.EjecutarPeticion(this, ltrControladores.Entorno.Correos, Ajax.EndPoint.Entorno.Correos.EnviarWhatsApp, parametros, new Array<Parametro>())
+            parametros.push(new Parametro(ltrPropiedades.Entorno.EnviarMensajeWeb.IdElemento, Numero(modal.getAttribute(atModal.idElemento1))));
+
+            let canal = this.ConfiguracionDeMensajesWeb?.canal;
+            let esCliente = this.ConfiguracionDeMensajesWeb?.modo === ltrPropiedades.Entorno.EnviarMensajeWeb.ModoCliente;
+            let copiarElTexto = esCliente && canal === ltrPropiedades.Entorno.EnviarMensajeWeb.CanalTelegram;
+            if (copiarElTexto) {
+                try {
+                    navigator.clipboard?.writeText(ObtenerPropiedad(parametros, ltrPropiedades.Entorno.EnviarMensajeWeb.Mensaje, ''))?.catch(() => { });
+                } catch { }
+            }
+            let ventana = esCliente && canal !== ltrPropiedades.Entorno.EnviarMensajeWeb.CanalSms ? window.open('', '_blank') : null;
+
+            ApiDePeticiones.EjecutarPeticion(this, ltrControladores.Entorno.MensajesWeb, Ajax.EndPoint.Entorno.MensajesWeb.EnviarMensajeWeb, parametros, new Array<Parametro>())
                 .then((peticion) => {
-                    let enlace: string = peticion.resultado.datos;
-                    if (Definido(ventana)) ventana.location.href = enlace;
-                    else window.open(enlace, '_blank');
-                    MensajesSe.Info(peticion.resultado.mensaje);
+                    let enlace: string = ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Entorno.EnviarMensajeWeb.Url, null);
+                    if (IsNullOrEmpty(enlace))
+                        ventana?.close();
+                    else if (enlace.toLowerCase().startsWith('http')) {
+                        if (Definido(ventana)) ventana.location.href = enlace;
+                        else window.open(enlace, '_blank');
+                    }
+                    else {
+                        ventana?.close();
+                        window.location.href = enlace;
+                    }
+                    MensajesSe.Info(peticion.resultado.mensaje + (copiarElTexto && !IsNullOrEmpty(enlace) ? '. El texto se ha copiado al portapapeles, péguelo en el chat' : ''));
                     this.ModalDePedirDatos_Cerrar(modal);
-                    // la apertura deja una traza en el elemento
+                    // el envío deja una traza en el elemento
                     this.crudDeEdicion?.RecargarGridDeTrazas();
                 })
                 .catch((peticion) => {
@@ -2663,8 +2710,8 @@
                 return;
             }
 
-            if (modal.id === (this.ModalEnviarWhatsApp?.id ?? '')) {
-                this.ModalEnviarWhatsApp_Enviar(modal);
+            if (modal.id === (this.ModalEnviarMensajeWeb?.id ?? '')) {
+                this.ModalEnviarMensajeWeb_Enviar(modal);
                 return;
             }
 

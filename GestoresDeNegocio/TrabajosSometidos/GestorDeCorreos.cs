@@ -240,22 +240,6 @@ namespace GestoresDeNegocio.TrabajosSometidos
             }
         }
 
-        // Valida el teléfono, deja una traza en el elemento y devuelve el enlace https://wa.me/ que abre WhatsApp con el mensaje ya escrito;
-        // el mensaje no lo envía el servidor, lo envía el usuario desde su WhatsApp, así que la traza indica que se abrió, no que se envió
-        public static string EnviarWhatsApp(ContextoSe contexto, enumNegocio negocio, int idElemento, string para, string mensaje)
-        {
-            if (para.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el teléfono al que enviar");
-            var numero = extTelefonos.ANumeroInternacional(para);
-            if (numero is null) GestorDeErrores.Emitir(extTelefonos.MensajeDeTelefonoNoValido(para));
-            if (mensaje.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el mensaje");
-
-            if (negocio.UsaTrazas())
-                ((IElementoDtm)negocio.LeerRegistro(contexto, idElemento)).CrearTraza(contexto, enumTraza.envioPorWhatsApp.Descripcion()
-                    , $"Se ha abierto WhatsApp para enviar al teléfono '+{numero}' el mensaje:{Environment.NewLine}{mensaje}");
-
-            return $"https://wa.me/{numero}?text={Uri.EscapeDataString(mensaje)}";
-        }
-
         private static void ValidarParametrosDeCorreo(ContextoSe contexto, Dictionary<string, object> parametros)
         {
             if (!parametros.ContainsKey(ltrParamCorreos.usuarios) && !parametros.ContainsKey(ltrParamCorreos.puestos))

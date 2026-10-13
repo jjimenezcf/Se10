@@ -1688,7 +1688,7 @@
             if (!IsNullOrEmpty(informacion)) MensajesSe.Info(informacion, informacion);
 
             this.AnadirBotonDeEnviarPorCorreo(panel);
-            this.AnadirBotonDeEnviarPorWhatsApp(panel);
+            this.AnadirBotonDeEnviarMensajeWeb(panel);
         }
 
         // A la derecha del correo (propiedad eMail) un botón para enviar a esa dirección enlaces de descarga de los archivos del elemento;
@@ -1712,23 +1712,32 @@
             correo.parentElement.appendChild(boton);
         }
 
-        // A la derecha del teléfono (propiedad Telefono) un botón para escribir un mensaje y abrir WhatsApp con él, igual que el del correo
-        private AnadirBotonDeEnviarPorWhatsApp(panel: HTMLDivElement) {
-            if (!Definido(this.CrudDeMnt.ModalEnviarWhatsApp))
+        // A la derecha del teléfono (propiedad Telefono) un botón para enviarle un mensaje, igual que el del correo; el canal (WhatsApp,
+        // Telegram o SMS) lo fijan las variables del sistema, así que el botón se pinta al llegar la configuración, con el icono del canal
+        private AnadirBotonDeEnviarMensajeWeb(panel: HTMLDivElement) {
+            if (!Definido(this.CrudDeMnt.ModalEnviarMensajeWeb))
                 return;
 
-            let telefono = ApiControl.BuscarEditor(panel, ltrPropiedades.Entorno.EnviarWhatsApp.Telefono) as HTMLInputElement;
-            if (!Definido(telefono) || Definido(telefono.parentElement.querySelector(`.${ltrCss.EnviarPorWhatsApp.Boton}`)))
+            let telefono = ApiControl.BuscarEditor(panel, ltrPropiedades.Entorno.EnviarMensajeWeb.Telefono) as HTMLInputElement;
+            if (!Definido(telefono) || Definido(telefono.parentElement.querySelector(`.${ltrCss.EnviarPorMensajeWeb.Boton}`)))
                 return;
 
-            // el icono de WhatsApp lo pone la clase (ver .boton-enviar-por-whatsapp en CrudEdicion.css)
-            let boton = document.createElement('button');
-            boton.type = 'button';
-            ApiControl.IncluirCss(boton, ltrCss.EnviarPorWhatsApp.Boton);
-            boton.title = 'Enviar WhatsApp';
-            boton.onclick = () => this.CrudDeMnt.ModalEnviarWhatsApp_Abrir(telefono.value, this.ElementoEditado.Id);
-            ApiControl.IncluirCss(telefono, ltrCss.EnviarPorWhatsApp.InputConBoton);
-            telefono.parentElement.appendChild(boton);
+            this.CrudDeMnt.LeerConfiguracionDeMensajesWeb().then((configuracion) => {
+                // el panel se reutiliza y la lectura es asíncrona: otra llamada pudo pintar ya el botón
+                if (!Definido(configuracion) || Definido(telefono.parentElement.querySelector(`.${ltrCss.EnviarPorMensajeWeb.Boton}`)))
+                    return;
+
+                // el icono lo pone la clase del canal (ver .boton-enviar-por-whatsapp, ... en CrudEdicion.css)
+                let boton = document.createElement('button');
+                boton.type = 'button';
+                ApiControl.IncluirCss(boton, ltrCss.EnviarPorMensajeWeb.Boton);
+                ApiControl.IncluirCss(boton, ltrCss.EnviarPorMensajeWeb.BotonDelCanal[configuracion.canal]);
+                boton.title = `Enviar ${configuracion.canal === ltrPropiedades.Entorno.EnviarMensajeWeb.CanalWhatsApp ? 'WhatsApp'
+                    : configuracion.canal === ltrPropiedades.Entorno.EnviarMensajeWeb.CanalTelegram ? 'Telegram' : 'SMS'}`;
+                boton.onclick = () => this.CrudDeMnt.ModalEnviarMensajeWeb_Abrir(telefono.value, this.ElementoEditado.Id);
+                ApiControl.IncluirCss(telefono, ltrCss.EnviarPorMensajeWeb.InputConBoton);
+                telefono.parentElement.appendChild(boton);
+            });
         }
 
         protected AplicarBloqueo() {

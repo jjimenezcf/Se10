@@ -50,6 +50,8 @@ namespace ServicioDeDatos
         public static readonly string Cfg_Tipo_De_Archivador_Sii = nameof(Cfg_Tipo_De_Archivador_Sii);
         public static readonly string CFG_Tamano_Maximo_Zip = nameof(CFG_Tamano_Maximo_Zip);
         public static readonly string CFG_Horas_De_Validez_De_Enlaces_Archivos = nameof(CFG_Horas_De_Validez_De_Enlaces_Archivos);
+        public static readonly string CFG_Mensajeria_Modo = nameof(CFG_Mensajeria_Modo);
+        public static readonly string CFG_Mensajeria_Canal = nameof(CFG_Mensajeria_Canal);
 
         public static readonly string CFG_Usar_Cache_En_EpLeerPorId = nameof(CFG_Usar_Cache_En_EpLeerPorId);
         public static readonly string CFG_Usar_Cache = ApiDeEnsamblados.CFG_Usar_Cache;
@@ -116,6 +118,8 @@ namespace ServicioDeDatos
         public static readonly string CFG_SeparadorDecimal_En_BD = "Indica el separador decimal usado por la BD";
 
         public static readonly string CFG_Horas_De_Validez_De_Enlaces_Archivos = "Indica las horas durante las que se pueden descargar los archivos de los enlaces con guid que se envían por correo";
+        public static readonly string CFG_Mensajeria_Modo = "Indica quién envía los mensajes a un teléfono: CLIENTE (se abre en su equipo la aplicación del canal con el mensaje escrito, lo envía el usuario) o SERVIDOR (lo envía el servidor llamando al servicio web del canal)";
+        public static readonly string CFG_Mensajeria_Canal = "Indica el canal por el que se envían los mensajes a un teléfono: WHATSAPP, TELEGRAM o SMS (las credenciales de cada canal están en la sección ServidorDeMensajes del appsettings)";
 
         public static readonly string CTA_Cuenta_De_Proveedor = $"Indica el nº de cuenta: {ltrCuenta.ProveedorDescripcion}";
         public static readonly string CTA_Cuenta_De_Cliente = $"Indica el nº de cuenta: {ltrCuenta.ClienteDescripcion}";
@@ -261,6 +265,11 @@ namespace ServicioDeDatos
                 return horas > 0 ? horas : 24;
             }
         }
+
+        // Valores: ver enumModoDeMensajeria y enumCanalDeMensajeria (ServicioDeCorreos), se validan al usarlos en ExtensorDeMensajesWeb.LeerConfiguracionDeMensajesWeb
+        public static string Cfg_Mensajeria_Modo => ObtenerVariable(Variable.CFG_Mensajeria_Modo, Descripciones.CFG_Mensajeria_Modo, "CLIENTE");
+
+        public static string Cfg_Mensajeria_Canal => ObtenerVariable(Variable.CFG_Mensajeria_Canal, Descripciones.CFG_Mensajeria_Canal, "WHATSAPP");
 
         public static string CFG_Usar_Cache_En_EpLeerPorId => ObtenerVariable(Variable.CFG_Usar_Cache_En_EpLeerPorId, "Indica si ha de usar la cache en el EndPoint LeerPorId", "N");
 

@@ -1,12 +1,13 @@
 using Utilidades;
 
-namespace ModeloDeDto.Negocio
+namespace ModeloDeDto.TrabajosSometidos
 {
-    // Modal que se abre desde el botón del teléfono de la edición: CorreosController.epEnviarWhatsApp valida el teléfono, deja una traza
-    // en el elemento y devuelve el enlace https://wa.me/ con el que la interfaz abre WhatsApp (web o escritorio) con el mensaje ya escrito;
-    // el envío lo confirma el usuario en WhatsApp, desde su propia cuenta
+    // Modal que se abre desde el botón del teléfono de la edición (WhatsApp, Telegram o SMS según la variable CFG_Mensajeria_Canal):
+    // MensajesWebController.epEnviarMensajeWeb valida el teléfono, deja una traza en el elemento y, si CFG_Mensajeria_Modo es CLIENTE, devuelve la
+    // url con la que la interfaz abre la aplicación del canal con el mensaje ya escrito (el envío lo confirma el usuario); si es SERVIDOR
+    // lo envía el servidor
     [IUDto(MostrarExpresion = nameof(Para))]
-    public class EnviarWhatsAppDto
+    public class EnviarMensajeWebDto
     {
         //------------------------------------------------------------------------------------------------------
         [IUPropiedad(
@@ -24,7 +25,7 @@ namespace ModeloDeDto.Negocio
         //------------------------------------------------------------------------------------------------------
         [IUPropiedad(
            Etiqueta = "Mensaje",
-           Ayuda = "Mensaje que se escribe en WhatsApp, se envía al pulsar enviar en WhatsApp",
+           Ayuda = "Mensaje que se envía al teléfono indicado",
            TipoDeControl = enumTipoControl.AreaDeTexto,
            Obligatorio = true,
            NumeroDeFilas = 5,

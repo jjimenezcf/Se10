@@ -74,32 +74,6 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
-        // Devuelve en datos el enlace https://wa.me/ con el que la interfaz abre WhatsApp con el mensaje escrito para el teléfono indicado
-        public JsonResult epEnviarWhatsApp(string parametrosJson)
-        {
-            var r = new Resultado();
-            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
-            try
-            {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                var negocio = NegociosDeSe.ToEnumerado((int)parametros.LeerValor<long>(ltrParametrosEp.idNegocio));
-                var idElemento = (int)parametros.LeerValor<long>(ltrParametrosEp.idElemento);
-
-                r.Datos = GestorDeCorreos.EnviarWhatsApp(Contexto, negocio, idElemento
-                    , parametros.LeerValor<string>(nameof(EnviarWhatsAppDto.Para), null)
-                    , parametros.LeerValor<string>(nameof(EnviarWhatsAppDto.Mensaje), null));
-
-                r.Mensaje = "Mensaje preparado, pulse enviar en WhatsApp para mandarlo";
-                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
-                r.Estado = enumEstadoPeticion.Ok;
-            }
-            catch (Exception e)
-            {
-                ApiController.PrepararError(e, r, "Error al preparar el mensaje de WhatsApp.");
-            }
-            return new JsonResult(r);
-        }
-
     }
 
 }
