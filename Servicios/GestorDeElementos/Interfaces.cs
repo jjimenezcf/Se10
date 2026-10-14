@@ -60,6 +60,7 @@ namespace GestorDeElementos
         public object LeerElementoPorId(int id, Dictionary<string, object> opcionesDelMapeo);
         public object TransitarElemento(object elemento, int idTransicion, Dictionary<string, object> parametros);
         public object TransitarRegistro(object registro, int idTransicion, Dictionary<string, object> parametros);
+        public object PersistirAntesDeTransitar(object elemento, string rowVersion, int idTransicion, IEnumerable<IAmpliacionDto> ampliaciones);
 
         public object EliminarRegistroPorId(int id, Dictionary<string, object> parametros);
         public int Contar(List<ClausulaDeFiltrado> clausulaDeFiltrados, ParametrosDeNegocio parametros = null);

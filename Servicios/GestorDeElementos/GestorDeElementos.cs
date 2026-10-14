@@ -2047,6 +2047,67 @@ namespace GestorDeElementos
             return MapearRegistro((TElemento)elemento, parametros);
         }
 
+        object IGestor.PersistirAntesDeTransitar(object elemento, string rowVersion, int idTransicion, IEnumerable<IAmpliacionDto> ampliaciones)
+        {
+            return PersistirAntesDeTransitar((TElemento)elemento, rowVersion, idTransicion, ampliaciones);
+        }
+
+        // Persiste lo editado antes de transitar. El elemento sólo se modifica si difiere de lo grabado: hay negocios que no permiten modificar
+        // en ciertas etapas (p.e. la cabecera de un pedido fuera de cumplimentación) aunque se transite sin haber cambiado nada
+        public virtual TElemento PersistirAntesDeTransitar(TElemento elementoDto, string rowVersion, int idTransicion, IEnumerable<IAmpliacionDto> ampliaciones)
+        {
+            var transicion = Negocio.Transicion(Contexto, idTransicion);
+            var enBd = LeerRegistroPorId(elementoDto.Id, usarLaCache: false, traqueado: false, conBloqueo: false, aplicarJoin: false);
+            // todo elemento que se transita implementa IRowVersion; la llamada es dinámica para que T sea el tipo del registro leído
+            ExtensorDeElementos.ValidarRowId((dynamic)enBd, (ContextoSe)Contexto, rowVersion, false);
+            if (HayCambiosQueGuardar(this, elementoDto, enBd))
+                elementoDto = PersistirElementoDto(elementoDto, new ParametrosDeNegocio(enumTipoOperacion.Modificar, new Dictionary<string, object>
+                {
+                    {ltrParametrosNeg.Peticion,enumPeticion.epModificarPorId },
+                    {ltrParametrosNeg.EsUnaTransicion, true },
+                    {ltrParametrosNeg.EstadoDestino, Negocio.Estado(Contexto, transicion.IdDestino) }
+                }));
+
+            var origen = Negocio.Estado(Contexto, transicion.IdOrigen);
+            if (origen.Cancelado || origen.Terminado)
+                return elementoDto;
+
+            foreach (var ampliacionDto in ampliaciones)
+                PersistirAmpliacion(ampliacionDto, transicion);
+
+            return elementoDto;
+        }
+
+        private void PersistirAmpliacion(IAmpliacionDto ampliacionDto, TransicionDtm transicionPendiente)
+        {
+            var tipoAmpliacionDto = ampliacionDto.GetType();
+            var gestor = NegociosDeSe.CrearGestor(Contexto, tipoAmpliacionDto.ToDtm(), tipoAmpliacionDto);
+            var ampliacionDtm = gestor.LeerRegistro(nameof(IAmpliacionDto.IdElemento), ampliacionDto.IdElemento.ToString(), errorSiNoHay: false);
+            if (ampliacionDtm is not null)
+            {
+                ((IElementoDto)ampliacionDto).Id = ((IRegistro)ampliacionDtm).Id;
+                if (!HayCambiosQueGuardar(gestor, (IElementoDto)ampliacionDto, (RegistroDtm)ampliacionDtm))
+                    return;
+            }
+            gestor.PersistirElementoDto(ampliacionDto, new ParametrosDeNegocio(((IElementoDto)ampliacionDto).Id == 0 ?
+                enumTipoOperacion.Insertar :
+                enumTipoOperacion.Modificar, new Dictionary<string, object>
+                {
+                    {ltrParametrosNeg.Peticion,enumPeticion.epPersistirAmpliacion },
+                    {ltrParametrosNeg.TransionPendienteDeEjecucion,transicionPendiente },
+                    {ltrParametrosNeg.ValidarPermisosDePersistencia, false }
+                }));
+        }
+
+        // Se mapea lo editado sin grabarlo y se compara con lo leído de la BD, sólo en las propiedades que vienen en el Dto
+        // (las que no tiene, como el archivo generado de un pedido, no las cambia la edición)
+        private static bool HayCambiosQueGuardar(IGestor gestor, IElementoDto elementoDto, RegistroDtm enBd)
+        {
+            var editado = gestor.MapearDtm(elementoDto, new ParametrosDeNegocio(enumTipoOperacion.MapearElDtoAlDtm));
+            var propiedadesDelDto = new HashSet<string>(elementoDto.GetType().GetProperties().Select(p => p.Name), StringComparer.OrdinalIgnoreCase);
+            return !editado.EsIgualA(enBd, gestor.Contexto, propiedadesDelDto);
+        }
+
         public TElemento TransitarElemento(TElemento elemento, int idTransicion, Dictionary<string, object> parametros)
         {
             try

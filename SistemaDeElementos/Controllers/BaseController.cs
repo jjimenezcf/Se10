@@ -416,28 +416,6 @@ namespace MVCSistemaDeElementos.Controllers
             return transicion;
         }
 
-        protected virtual void ObtenerIdDeTransicionDelIdEstadoDestino(enumNegocio negocio, IElementoDeUnProcesoDto elemento, Dictionary<string, object> parametros)
-        {
-            var idTransicion = Convert.ToInt32(parametros.LeerValor<long>(ltrParametrosEp.idTransicion, 0));
-            if (idTransicion != 0)
-                return;
-
-            var idEstadoDestino = Convert.ToInt32(parametros.LeerValor<long>(ltrParametrosEp.idEstadoDestino, 0));
-
-            if (idEstadoDestino == 0)
-            {
-                GestorDeErrores.Emitir("Debe indicar la transición a realizar sobre el elemento o el estado destino al que devolver el elemento");
-            }
-            if (idEstadoDestino > 0)
-            {
-                parametros[ltrParametrosEp.asunto] = $"El usuario '{Contexto.Usuario.Login}' ha devuelto el elemento sin indicar el motivo";
-                parametros[ltrParametrosEp.detalleAsunto] = $"El usuario '{Contexto.Usuario.Login}' ha devuelto el elemento sin indicar el motivo";
-            }
-            TransicionDtm transicion;
-            transicion = GestorDeTransiciones.TransicionHasta(Contexto, negocio, elemento.IdEstado, idEstadoDestino, delSistema: false);
-            parametros[ltrParametrosEp.idTransicion] = (long)transicion.Id;
-        }
-
         protected virtual ElementoDeUnProcesoDto DespuesDeTransitar(TransicionDtm transicion, enumNegocio negocio, ElementoDeUnProcesoDto elemento, Dictionary<string, object> parametros)
         {
             return (ElementoDeUnProcesoDto)negocio.LeerElemento(Contexto, elemento.Id, parametros: new Dictionary<string, object> { { ltrParametrosNeg.UsarLaCache, false } });
@@ -1214,56 +1192,9 @@ namespace MVCSistemaDeElementos.Controllers
             var tran = Contexto.IniciarTransaccion();
             try
             {
-                Type tipoDto = negocio.TipoDto();
-                JObject datos = parametros.LeerValor<JObject>(ltrParametrosEp.DatosPrincipales);
-                object objetoDto = datos.ToObject(tipoDto);
-                var gestor = negocio.CrearGestor(Contexto);
+                var objetoDto = parametros.LeerValor<JObject>(ltrParametrosEp.DatosPrincipales).ToObject(negocio.TipoDto());
                 var idTransicion = Convert.ToInt32(parametros.LeerValor<long>(ltrParametrosEp.idTransicion));
-                var idEstadoDestino = negocio.Transiciones(Contexto).First(x => x.Id == idTransicion).IdDestino;
-                var estadoDestino = negocio.Estado(Contexto, idEstadoDestino);
-
-                // Sólo se modifica si lo editado difiere de lo grabado: hay negocios que no permiten modificar en ciertas etapas
-                // (p.e. la cabecera de un pedido fuera de cumplimentación) aunque se transite sin haber cambiado nada
-                var enBd = (RegistroDtm)gestor.LeerRegistroPorId(((IElementoDto)objetoDto).Id, aplicarJoin: false, usarLaCache: false);
-                // todo elemento que se transita implementa IRowVersion; la llamada es dinámica para que T sea el tipo del registro leído
-                ExtensorDeElementos.ValidarRowId((dynamic)enBd, Contexto, VersionEditada(objetoDto, parametros), false);
-                var elemento = HayCambiosQueGuardar(gestor, objetoDto, enBd)
-                    ? gestor.PersistirElementoDto(objetoDto, new ParametrosDeNegocio(enumTipoOperacion.Modificar, new Dictionary<string, object>
-                    {
-                        {ltrParametrosNeg.Peticion,enumPeticion.epModificarPorId },
-                        {ltrParametrosNeg.EsUnaTransicion, true },
-                        {ltrParametrosNeg.EstadoDestino, estadoDestino }
-                    }))
-                    : objetoDto;
-
-                ObtenerIdDeTransicionDelIdEstadoDestino(negocio, (IElementoDeUnProcesoDto)elemento, parametros);
-                var transicionPendiente = negocio.Transicion(Contexto, idTransicion);
-                var origen = negocio.Estado(Contexto, transicionPendiente.IdOrigen);
-                if (!origen.Cancelado && !origen.Terminado)
-                {
-                    foreach (var key in parametros.Keys.Where(x => x.Split(".").Length == 3))
-                    {
-                        var tipoAmpliacionDto = ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelModeloDeDto, key);
-                        datos = parametros.LeerValor<JObject>(key);
-                        var ampliacionDto = datos.ToObject(tipoAmpliacionDto);
-                        gestor = NegociosDeSe.CrearGestor(Contexto, tipoAmpliacionDto.ToDtm(), tipoAmpliacionDto);
-                        var ampliacionDtm = gestor.LeerRegistro(nameof(IAmpliacionDto.IdElemento), ((IAmpliacionDto)ampliacionDto).IdElemento.ToString(), errorSiNoHay: false);
-                        if (ampliacionDtm is not null)
-                        {
-                            ((IElementoDto)ampliacionDto).Id = ((IRegistro)ampliacionDtm).Id;
-                            if (!HayCambiosQueGuardar(gestor, ampliacionDto, (RegistroDtm)ampliacionDtm))
-                                continue;
-                        }
-                        gestor.PersistirElementoDto(ampliacionDto, new ParametrosDeNegocio(((IElementoDto)ampliacionDto).Id == 0 ?
-                            enumTipoOperacion.Insertar :
-                            enumTipoOperacion.Modificar, new Dictionary<string, object>
-                            {
-                                {ltrParametrosNeg.Peticion,enumPeticion.epPersistirAmpliacion },
-                                {ltrParametrosNeg.TransionPendienteDeEjecucion,transicionPendiente },
-                                {ltrParametrosNeg.ValidarPermisosDePersistencia, false }
-                            }));
-                    }
-                }
+                negocio.CrearGestor(Contexto).PersistirAntesDeTransitar(objetoDto, VersionEditada(objetoDto, parametros), idTransicion, AmpliacionesEditadas(parametros));
 
                 var resultado = Transitar(parametros);
                 if (resultado is not null && resultado.Estado == enumEstadoPeticion.Error)
@@ -1289,14 +1220,11 @@ namespace MVCSistemaDeElementos.Controllers
             return rowVersion;
         }
 
-        // Se mapea lo editado sin grabarlo y se compara con lo leído de la BD, sólo en las propiedades que vienen en el Dto
-        // (las que no tiene, como el archivo generado de un pedido, no las cambia la edición)
-        private bool HayCambiosQueGuardar(IGestor gestor, object elementoDto, RegistroDtm enBd)
-        {
-            var editado = gestor.MapearDtm((IElementoDto)elementoDto, new ParametrosDeNegocio(enumTipoOperacion.MapearElDtoAlDtm));
-            var propiedadesDelDto = new HashSet<string>(elementoDto.GetType().GetProperties().Select(p => p.Name), StringComparer.OrdinalIgnoreCase);
-            return !editado.EsIgualA(enBd, Contexto, propiedadesDelDto);
-        }
+        // Las ampliaciones editadas llegan en los parámetros con el tipo de su Dto como clave
+        private static List<IAmpliacionDto> AmpliacionesEditadas(Dictionary<string, object> parametros) =>
+            parametros.Keys.Where(x => x.Split(".").Length == 3)
+                .Select(key => (IAmpliacionDto)parametros.LeerValor<JObject>(key).ToObject(ApiDeEnsamblados.ObtenerType(ApiDeEnsamblados.DllDelModeloDeDto, key)))
+                .ToList();
 
         protected virtual IEnumerable<ElementoDto> LeerElementos(int posicion, int cantidad, List<ClausulaDeFiltrado> filtros, List<ClausulaDeOrdenacion> orden, Dictionary<string, object> opcionesDeMapeo)
         {
