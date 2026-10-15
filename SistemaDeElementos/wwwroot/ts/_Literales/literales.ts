@@ -902,6 +902,8 @@ const atListasDeValores = {
 };
 
 const atListasDinamicas = {
+    // 'S' si la lista de usuarios tiene junto a ella el botón de enviar el elemento por correo (IUPropiedad.PermiteEnviarCorreo)
+    enviarCorreoInterno: 'enviar-correo-interno',
     claseElemento: atListas.claseElemento,
     buscarPor: 'como-buscar',
     criterio: atControl.criterio,
@@ -1082,6 +1084,11 @@ const ltrCss = {
         InputConBoton: 'con-boton-de-correo',
         ListaDeArchivos: 'archivos-para-enviar',
         TituloDeLaLista: 'titulo-archivos-para-enviar'
+    },
+    // Botón (con el sobre de EnviarPorCorreo) junto a una lista de usuarios, delante de su botón de navegación
+    EnviarCorreoInterno: {
+        Boton: 'boton-enviar-correo-interno',
+        InputConBoton: 'con-boton-de-correo-interno'
     },
     // Botón junto al teléfono: lleva la clase común y la del canal (el icono lo pone la clase del canal, ver CrudEdicion.css)
     EnviarPorMensajeWeb: {
@@ -2445,6 +2452,12 @@ const ltrEtiquetas = {
         FacturaEmt: {
             Cobrado: 'Cobrado',
             Abonado: 'Abonado',
+        }
+    },
+    Logistica: {
+        Pedido: {
+            Material: 'Material',
+            Unitario: 'Unitario'
         }
     }
 }

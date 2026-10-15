@@ -102,6 +102,27 @@ namespace GestorDeElementos.Extensores
             movimiento.Preasentar(contexto);
         }
 
+        // Calcula el inventario del movimiento, lo preasienta, lo inserta y barre los movimientos posteriores
+        public static MovimientoDeAlmacenDtm InsertarYBarrer(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            movimiento.CalcularInventarioDelMovimiento(contexto);
+            movimiento.Preasentar(contexto);
+            movimiento = movimiento.InsertarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
+            movimiento.BarrerPosteriores(contexto);
+            return movimiento;
+        }
+
+        // Recalcula y guarda, en orden, los movimientos posteriores del mismo almacén y unitario
+        public static void BarrerPosteriores(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            foreach (var posterior in movimiento.ObtenerMovimientosPosteriores(contexto))
+            {
+                posterior.Barrer(contexto);
+                posterior.ModificarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
+            }
+        }
+
+        // Valor es el precio medio ponderado (por unidad) tras el movimiento; Stock, las unidades que quedan
         public static void CalcularInventarioDelMovimiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var clase = movimiento.TipoMovimiento?.ClaseMovimiento ?? contexto.SeleccionarPorId<TipoMovimientoDtm>(movimiento.IdTipoMovimiento).ClaseMovimiento;
@@ -128,7 +149,9 @@ namespace GestorDeElementos.Extensores
             else
             {
                 movimiento.Stock = anterior.Stock + movimiento.Cantidad;
-                movimiento.Valor = (anterior.Valor + (movimiento.Precio * movimiento.Cantidad)) / (anterior.Cantidad + movimiento.Cantidad);
+                movimiento.Valor = movimiento.Stock == 0
+                    ? movimiento.Precio
+                    : ((anterior.Stock * anterior.Valor) + (movimiento.Cantidad * movimiento.Precio)) / movimiento.Stock;
             }
         }
 
@@ -139,7 +162,12 @@ namespace GestorDeElementos.Extensores
                 Emitir($"No se puede dar salida en el movimiento de almacén Nº '{movimiento.Id}' ya que no hay stock anterior para el almacén y el unitario");
 
             movimiento.Stock = anterior.Stock - movimiento.Cantidad;
-            movimiento.Valor = (anterior.Valor - (movimiento.Precio * movimiento.Cantidad)) / (anterior.Cantidad - movimiento.Cantidad);
+            if (movimiento.Stock < 0)
+                Emitir($"No hay stock suficiente para la salida del movimiento de almacén Nº '{movimiento.Id}': quedan {anterior.Stock} y se piden {movimiento.Cantidad}");
+
+            // la salida se valora al precio medio vigente, que no cambia por salir
+            movimiento.Precio = anterior.Valor;
+            movimiento.Valor = anterior.Valor;
         }
 
         public static void CalcularInventarioInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
@@ -158,9 +186,9 @@ namespace GestorDeElementos.Extensores
             if (anterior is null)
                 Emitir($"El movimiento de almacén Nº '{movimiento.Id}' no puede ser un ajuste de precio ya que no hay movimientos anteriores para el almacén y el unitario, use un stock inicial");
 
-            movimiento.Cantidad = anterior.Cantidad;
-            movimiento.Stock = anterior.Cantidad;
-            movimiento.Valor = movimiento.Cantidad * movimiento.Precio;
+            movimiento.Cantidad = anterior.Stock;
+            movimiento.Stock = anterior.Stock;
+            movimiento.Valor = movimiento.Precio;
         }
 
         public static void CalcularInventarioRegularizacion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
@@ -169,9 +197,9 @@ namespace GestorDeElementos.Extensores
             if (anterior is null)
                 Emitir($"El movimiento de almacén Nº '{movimiento.Id}' no puede ser una regularización ya que no hay movimientos anteriores para el almacén y el unitario, use un stock inicial");
 
-            movimiento.Precio = anterior.Precio;
+            movimiento.Precio = anterior.Valor;
             movimiento.Stock = movimiento.Cantidad;
-            movimiento.Valor = movimiento.Cantidad * movimiento.Precio;
+            movimiento.Valor = anterior.Valor;
         }
     }
 }

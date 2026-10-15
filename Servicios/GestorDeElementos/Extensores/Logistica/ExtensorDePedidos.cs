@@ -185,6 +185,7 @@ namespace GestorDeElementos.Extensores
         public static void AntesDeSolicitar(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
         {
             pedido.ValidarDestinoDeLasEntregas();
+            pedido.ValidarLineasParaElAlmacen(contexto);
             if (pedido.Proveedor(contexto).Baja)
             {
                 pedido.Proveedor(contexto).IndicarQueEstaDeBaja(contexto);

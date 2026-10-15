@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Expediente;
+using ServicioDeDatos.MaestrosTecnico;
 using static Gestor.Errores.GestorDeErrores;
 using static ServicioDeDatos.Elemento.Enumerados;
 
@@ -40,6 +41,23 @@ namespace GestorDeElementos.Extensores
                 Emitir($"Para enviar el pedido '{pedido.Referencia}' al proveedor ha de indicar el almacén o el expediente al que se entregará");
         }
 
+        // Si el pedido va a un almacén sólo puede llevar materiales del catálogo: todas sus líneas (salvo los comentarios) han de ser
+        // unitarios de naturaleza material. Se valida al solicitarlo (ver ExtensorDePedidos.AntesDeSolicitar)
+        public static void ValidarLineasParaElAlmacen(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            if (pedido.IdAlmacen is null)
+                return;
+
+            var lineas = pedido.Detalles<LineaDeUnPedidoDtm>(contexto).Where(linea => linea.TipoDeLinea != enumTipoDeLinea.Comentario)
+                .OrderBy(linea => linea.Orden)
+                .ToList();
+            var noValidas = lineas.Where(linea => linea.TipoDeLinea != enumTipoDeLinea.Unitario || linea.Clase(contexto) != enumClaseUnitario.Material)
+                .Select(linea => linea.Orden.ToString())
+                .ToList();
+            if (noValidas.Count > 0)
+                Emitir($"El pedido '{pedido.Referencia}' va a un almacén y sólo puede llevar materiales del catálogo; revise las líneas {string.Join(", ", noValidas)}");
+        }
+
         // Al recibir o cancelar la entrega de una línea cambian su recepción y si el pedido tiene recepciones
         public static void OlvidarRecepcion(this LineaDeUnPedidoDtm linea) => OlvidarRecepcion(linea.Id, linea.IdElemento);
 
@@ -62,6 +80,32 @@ namespace GestorDeElementos.Extensores
             var recepcion = linea.RegistrarRecepcion(contexto, pedido, recepcionadaEl, cantidad, precio, descuento, idAlmacen, idExpediente);
             pedido.AdelantarLaFechaDeRecepcion(contexto, recepcion.RecepcionadaEl);
             return recepcion;
+        }
+
+        // Al almacén sólo van materiales y ha de estar activo; a la obra de un expediente va cualquier clase, si no está terminado ni cancelado
+        private static void ValidarDestinoDeLaEntrega(this LineaDeUnPedidoDtm linea, ContextoSe contexto, int? idAlmacen, int? idExpediente)
+        {
+            if (idAlmacen is not null)
+            {
+                // al almacén sólo entra lo que está en el catálogo: una partida alzada no, aunque su naturaleza sea de material
+                if (linea.IdUnitario is null)
+                    Emitir($"No se puede hacer la recepción de la línea {linea.Orden} en un almacén: sólo se reciben materiales del catálogo y es una partida alzada");
+
+                var clase = linea.Clase(contexto);
+                if (clase != enumClaseUnitario.Material)
+                    Emitir($"No se puede hacer la recepción de la línea {linea.Orden} en un almacén: sólo se reciben materiales y es de {(clase?.ToString() ?? "una naturaleza sin clase")}");
+
+                var almacen = contexto.SeleccionarPorId<AlmacenDtm>((int)idAlmacen);
+                if (!almacen.EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Activo))
+                    Emitir($"No se puede hacer la recepción de la línea {linea.Orden} en el almacén '{almacen.Expresion}' por no estar activo");
+            }
+
+            if (idExpediente is not null)
+            {
+                var expediente = contexto.SeleccionarPorId<ExpedienteDtm>((int)idExpediente);
+                if (expediente.EstaEnLaEtapa(enumEtapasDeExpedientes.EXP_Etapa_Terminada) || expediente.EstaEnLaEtapa(enumEtapasDeExpedientes.EXP_Etapa_Cancelada))
+                    Emitir($"No se puede hacer la recepción de la línea {linea.Orden} en la obra del expediente '{expediente.Expresion}' por estar terminado o cancelado");
+            }
         }
 
         // La fecha de recepción de la cabecera es la de la primera entrega
@@ -88,6 +132,7 @@ namespace GestorDeElementos.Extensores
                 Emitir($"La fecha de recepción de la línea {linea.Orden} no puede ser anterior a la fecha en la que se pidió el pedido '{pedido.Referencia}' ({pedido.PedidoEl:dd/MM/yyyy})");
             if ((idAlmacen == null) == (idExpediente == null))
                 Emitir($"La entrega de la línea {linea.Orden} ha de ir a un almacén o a la obra de un expediente, y sólo a uno de ellos");
+            linea.ValidarDestinoDeLaEntrega(contexto, idAlmacen, idExpediente);
 
             var recepcion = new RecepcionDeLineaDtm
             {
@@ -105,12 +150,35 @@ namespace GestorDeElementos.Extensores
             {
                 contexto.Add(recepcion);
                 contexto.SaveChanges();
+                if (recepcion.VaAlAlmacen)
+                    recepcion.EntradaDeCompra(contexto, linea);
             }
             finally
             {
                 linea.OlvidarRecepcion();
             }
             return recepcion;
+        }
+
+        // Entrega en un almacén: inserta el movimiento de entrada (compra) con su stock y valor; el movimiento
+        // se valora al precio neto de descuento. Los movimientos posteriores del mismo almacén y material se barren
+        public static MovimientoDeAlmacenDtm EntradaDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, LineaDeUnPedidoDtm linea)
+        {
+            if (recepcion.IdAlmacen is null || linea.IdUnitario is null)
+                Emitir($"La entrega de la línea {linea.Orden} no se puede registrar como entrada de almacén: falta el almacén o el material");
+
+            var idTipoMovimiento = contexto.Set<TipoMovimientoDtm>().Single(x => x.Nombre == enumTiposDeMovimiento.Compra.Descripcion()).Id;
+            var movimiento = new MovimientoDeAlmacenDtm
+            {
+                IdAlmacen = (int)recepcion.IdAlmacen,
+                IdUnitario = (int)linea.IdUnitario,
+                IdTipoMovimiento = idTipoMovimiento,
+                Cantidad = recepcion.Cantidad,
+                Precio = recepcion.Cantidad == 0 ? recepcion.Precio : recepcion.Importe / recepcion.Cantidad,
+                RealizadoEl = recepcion.RecepcionadaEl
+            };
+
+            return movimiento.InsertarYBarrer(contexto);
         }
 
         // Las recepciones se registran con el pedido en recepción: si está solicitado se transita a recepción, anotando como fecha de

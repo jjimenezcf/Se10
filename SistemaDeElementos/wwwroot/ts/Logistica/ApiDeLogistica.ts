@@ -104,7 +104,9 @@ namespace Logistica {
         // Si el proveedor del pedido tiene tarifas definidas (TarifaDtm), se propone elegir un elemento del maestro
         // de unitarios en vez de partida alzada (ver GestorDePedidos.DespuesDeMapearElElemento)
         let usaTarifaDelProveedor = ObtenerPropiedad(editor.Registro, ltrPropiedades.Logistica.Pedido.UsaTarifaDelProveedor, false);
-        let tipoDeLineaPropuesto = usaTarifaDelProveedor ? enumTipoDeLinea.Unitario : (Crud.crudMnt as CrudDePedidos).TipoDeLinea;
+        // si las entregas van al almacén sólo se piden materiales del catálogo
+        let tipoDeLineaPropuesto = usaTarifaDelProveedor || editor.ElDestinoEsUnAlmacen ? enumTipoDeLinea.Unitario : (Crud.crudMnt as CrudDePedidos).TipoDeLinea;
+        ped_AplicarDestinoAlUnitario_interno(modal);
 
         if (Definido(tipoDeLineaPropuesto)) {
             var SelectorDeTipo = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.tipoDeLinea);
@@ -120,7 +122,21 @@ namespace Logistica {
 
     export function Ped_InicializarModalParaEditarLineas() {
         var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionPedido);
+        ped_AplicarDestinoAlUnitario_interno(editor.ModalDeEdicionDeLineas);
         editor.AplicarTipoDeLinea();
+    }
+
+    // Con destino almacén sólo se seleccionan materiales: el unitario se etiqueta como material y se filtra por esa clase
+    function ped_AplicarDestinoAlUnitario_interno(modal: HTMLDivElement) {
+        const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
+        let etiqueta = ApiControl.BuscarEtiqueta(modal, ltrPropiedades.Logistica.Pedido.linea.unitario);
+        if (Definido(etiqueta))
+            etiqueta.innerText = editor.ElDestinoEsUnAlmacen ? ltrEtiquetas.Logistica.Pedido.Material : ltrEtiquetas.Logistica.Pedido.Unitario;
+    }
+
+    export function Ped_FiltrosPorClaseDeUnitario(): Array<ClausulaDeFiltrado> {
+        const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
+        return editor.ElDestinoEsUnAlmacen ? Ral_FiltrosPorClaseDeUnitario() : new Array<ClausulaDeFiltrado>();
     }
 
     export function Ped_Tras_Blanquear_Unitario() {
@@ -129,6 +145,16 @@ namespace Logistica {
 
     export function Ped_Tras_Cambiar_TipoDeLinea() {
         var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionPedido);
+        // con destino almacén no se piden partidas alzadas: se avisa y se vuelve a unitario (lo que vuelve a llamar a este evento)
+        if (editor.ElDestinoEsUnAlmacen) {
+            let modal = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
+            let tipoDeLinea = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Logistica.Pedido.linea.tipoDeLinea);
+            if (tipoDeLinea.value === enumTipoDeLinea.Alzada) {
+                MensajesSe.Error('Líneas del pedido', 'Cuando el destino es un almacén no se pueden seleccionar partidas alzadas, seleccione un material');
+                MapearAlControl.ListaDeValores(tipoDeLinea, enumTipoDeLinea.Unitario);
+                return;
+            }
+        }
         ped_InicializarModalDeLineas_interno();
         editor.AplicarTipoDeLinea();
     }

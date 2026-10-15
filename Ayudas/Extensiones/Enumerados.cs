@@ -456,6 +456,7 @@ namespace Utilidades
         Ped_InicializarModalParaCrearLineas,
         Ped_InicializarModalParaEditarLineas,
         Ped_Parametros_Para_Seleccionar_Unitarios,
+        Ped_FiltrosPorClaseDeUnitario,
         Pedido_Recepcionar,
         Pedido_RecibirLinea,
         Pedido_LineaNoEntregada,

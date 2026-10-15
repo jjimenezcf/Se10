@@ -124,11 +124,7 @@ namespace GestoresDeNegocio.Logistica
                 preasiento.ModificarComoAdministrador(Contexto);
             }
 
-            foreach (var posterior in movimiento.ObtenerMovimientosPosteriores(Contexto))
-            {
-                posterior.Barrer(Contexto);
-                posterior.ModificarComoAdministrador(Contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
-            }
+            movimiento.BarrerPosteriores(Contexto);
         }
 
         protected override void DespuesDeMapearElElemento(MovimientoDeAlmacenDtm movimiento, MovimientoDeAlmacenDto elemento, ParametrosDeNegocio parametros)

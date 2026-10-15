@@ -94,15 +94,7 @@ namespace GestorDeElementos.Extensores
                     IdLineaInventario = linea.Id
                 };
 
-                movimiento.CalcularInventarioDelMovimiento(contexto);
-                movimiento.Preasentar(contexto);
-                movimiento = movimiento.InsertarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
-
-                foreach (var posterior in movimiento.ObtenerMovimientosPosteriores(contexto))
-                {
-                    posterior.Barrer(contexto);
-                    posterior.ModificarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
-                }
+                movimiento.InsertarYBarrer(contexto);
             }
         }
 

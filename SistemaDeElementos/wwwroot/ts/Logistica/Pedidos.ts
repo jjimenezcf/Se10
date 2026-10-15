@@ -547,6 +547,13 @@
             return entregada || this.SePuedeEntregarLaLinea(entregada);
         }
 
+        // Las entregas van al almacén si los datos principales lo tienen indicado (ver ExtensorDeRecepciones.DestinoDeLasEntregas):
+        // entonces sólo se piden materiales del catálogo (ver GestorDeLineasDeUnPedido.AntesDePersistir)
+        public get ElDestinoEsUnAlmacen(): boolean {
+            let almacen = ApiControl.BuscarListaDeElementos(this.PanelDelDto, ltrPropiedades.Logistica.Pedido.Almacen);
+            return Definido(almacen) && Numero(almacen.value) > 0;
+        }
+
         public get EsGestorDelPedido(): boolean {
             return ModoAcceso.HayPermisos(ModoAcceso.enumModoDeAccesoDeDatos.Gestor, this.ModoDeAcceso);
         }

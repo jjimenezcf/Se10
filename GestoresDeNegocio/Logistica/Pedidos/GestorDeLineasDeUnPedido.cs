@@ -128,6 +128,17 @@ namespace GestoresDeNegocio.Logistica
                 linea.IdNaturaleza = null;
             }
 
+            // Al almacén sólo van materiales del catálogo: con almacén en la cabecera (destino por defecto de las entregas) no se piden
+            // partidas alzadas, servicios ni mano de obra
+            if (pedido.IdAlmacen is not null && linea.TipoDeLinea == enumTipoDeLinea.Alzada)
+                GestorDeErrores.Emitir($"El pedido {pedido.Referencia} va a un almacén, no se pueden pedir partidas alzadas, seleccione un material del catálogo");
+            if (pedido.IdAlmacen is not null && linea.TipoDeLinea != enumTipoDeLinea.Comentario && linea.Clase(Contexto) != enumClaseUnitario.Material)
+                GestorDeErrores.Emitir($"El pedido {pedido.Referencia} va a un almacén, sólo se pueden pedir materiales y la línea {linea.Orden} es de {(linea.Clase(Contexto)?.ToString() ?? "una naturaleza sin clase")}");
+        }
+
+        protected override void EliminarCaches(LineaDeUnPedidoDtm linea, ParametrosDeNegocio parametros)
+        {
+            base.EliminarCaches(linea, parametros);
             ServicioDeCaches.EliminarElemento(CacheDe.Pedido_Total, linea.IdElemento.ToString());
         }
 
