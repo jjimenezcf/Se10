@@ -1690,7 +1690,50 @@
             if (!Definido(Crud.Consultor)) {
                 this.AnadirBotonDeEnviarPorCorreo(panel);
                 this.AnadirBotonDeEnviarMensajeWeb(panel);
+                this.AnadirBotonesDeEnviarElemento(panel);
             }
+        }
+
+        // A la derecha de cada lista de usuarios marcada con PermiteEnviarCorreo, y delante de su botón de navegación si lo tiene, un botón con
+        // un sobre que abre la modal de enviar elemento con el usuario de la lista como receptor. El panel de edición se reutiliza, así que el
+        // botón se crea una sola vez por lista y toma el usuario y el elemento al pulsarlo
+        private AnadirBotonesDeEnviarElemento(panel: HTMLDivElement) {
+            if (!Definido(this.CrudDeMnt.ModalEnviarElemento))
+                return;
+
+            let listas = panel.querySelectorAll(`input[${atListasDinamicas.enviarCorreoInterno}="S"]`) as NodeListOf<HTMLInputElement>;
+            for (let i = 0; i < listas.length; i++) {
+                let lista = listas[i];
+                if (Definido(lista.parentElement.querySelector(`.${ltrCss.EnviarCorreoInterno.Boton}`)))
+                    continue;
+
+                // el icono del sobre lo pone la clase del correo (ver .boton-enviar-por-correo en CrudEdicion.css)
+                let boton = document.createElement('button');
+                boton.type = 'button';
+                ApiControl.IncluirCss(boton, ltrCss.EnviarPorCorreo.Boton);
+                ApiControl.IncluirCss(boton, ltrCss.EnviarCorreoInterno.Boton);
+                boton.title = 'Enviar el elemento por correo';
+                boton.onclick = () => this.EnviarElementoA(lista);
+                ApiControl.IncluirCss(lista, ltrCss.EnviarCorreoInterno.InputConBoton);
+
+                let navegador = lista.parentElement.querySelector('a.boton-de-navegacion');
+                if (Definido(navegador))
+                    lista.parentElement.insertBefore(boton, navegador);
+                else
+                    lista.insertAdjacentElement('afterend', boton);
+            }
+        }
+
+        // Abre la modal de enviar elemento con el usuario de la lista como receptor. Si hay cambios pendientes los guarda antes, para que lo
+        // que se envía sea lo que se ve, y a la vuelta de la modificación abre la modal (como las transiciones y las impresiones)
+        public EnviarElementoA(lista: HTMLInputElement, grabar: boolean = true): void {
+            if (this.HayCambiosPendientes && grabar) {
+                let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
+                datosDeEntrada.push(new Parametro(ltrOperacion.AccionTrasGuardar, () => this.EnviarElementoA(lista, false)));
+                this.Modificar(ltrOperacion.ModificarPorId, null, datosDeEntrada);
+                return;
+            }
+            this.CrudDeMnt.ModalEnviarElemento_AbrirDesdeEdicion(Tipos.ListaDinamica.Obtener(lista).IdSeleccionado, lista.value);
         }
 
         // A la derecha del correo (propiedad eMail) un botón para enviar a esa dirección enlaces de descarga de los archivos del elemento;

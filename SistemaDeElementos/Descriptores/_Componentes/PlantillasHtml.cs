@@ -145,8 +145,9 @@ namespace MVCSistemaDeElementos.Descriptores
                                          [{nameof(IUPropiedadAttribute.trasBlanquear)}]
                                          [{nameof(IUPropiedadAttribute.antesDeBuscar)}]
                                          [{nameof(IUPropiedadAttribute.EsAlmacenable)}]
+                                         [{nameof(IUPropiedadAttribute.PermiteEnviarCorreo)}]
                                          ordenar-por=¨[ordenarPor]¨
-                                         guardar-en=¨[GuardarEn]¨ 
+                                         guardar-en=¨[GuardarEn]¨
                                          [LongitudMaxima]
                                          blanquear-al-salir =¨[BlanquearAlSalir]¨
                                          con-navegador='[ConNavegador]'

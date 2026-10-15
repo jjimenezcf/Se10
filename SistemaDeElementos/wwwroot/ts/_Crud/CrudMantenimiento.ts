@@ -2515,15 +2515,67 @@
             if (Definido(tipoctrl)) ApiDelCrud.Neg_Tras_Blanquear_CtrlTipo(tipoctrl);
             if (modal.id == (this.ModalEnviarElemento?.id ?? '')) {
                 var restrictor = ApiControl.BuscarRestrictor(modal, ltrPropiedades.Elemento.IdElemento, ltrTipoControl.restrictorDeEdicion);
-                MapearAlControl.Restrictor(restrictor, this.InfoSelector.IdsSeleccionados[0], this.InfoSelector.TextosSeleccionados[0]);
-
-                var asunto = ApiControl.BuscarEditor(modal, ltrPropiedades.Entorno.EnviarElemento.Asunto);
-                if (IsNullOrEmpty(asunto.value)) asunto.value = "Envío el elemento seleccionado";
-
-                var cuerpo = ApiControl.BuscarAreaDeTexto(modal, ltrPropiedades.Entorno.EnviarElemento.Cuerpo);
-                if (IsNullOrEmpty(cuerpo.value)) cuerpo.value = "Le envío el elemento seleccionado, haga click en el enlace para acceder a él";
-
+                let elemento = this.ElementoAEnviar;
+                MapearAlControl.Restrictor(restrictor, elemento.id, elemento.texto);
+                this.MostrarAdjuntosDeEnviarElemento(modal, elemento);
             }
+        }
+
+        // Div 'Adjuntos' de la modal de enviar elemento, como último hijo de la tabla de controles del Dto (table-enviarelementodto-nuevo);
+        // no es una propiedad del Dto, se crea la primera vez que se abre la modal
+        private AdjuntosDeEnviarElemento(modal: HTMLDivElement): HTMLDivElement {
+            let adjuntos = modal.querySelector(`div.${ltrCss.EnviarElemento.Adjuntos}`) as HTMLDivElement;
+            if (Definido(adjuntos)) return adjuntos;
+
+            adjuntos = document.createElement('div');
+            adjuntos.id = `${modal.id}-adjuntos`;
+            ApiControl.IncluirCss(adjuntos, ltrCss.EnviarElemento.Adjuntos);
+
+            let tabla = modal.querySelector(`#${ltrCss.EnviarElemento.IdDeLaTabla}`) as HTMLElement;
+            if (!Definido(tabla))
+                MensajesSe.EmitirMensajeDeExcepcion('AdjuntosDeEnviarElemento', `No se localiza la tabla '${ltrCss.EnviarElemento.IdDeLaTabla}' de la modal de enviar elemento`);
+            tabla.appendChild(adjuntos);
+            return adjuntos;
+        }
+
+        // Pone en 'Adjuntos' el enlace al elemento que se envía: el que el servicio de envío añade al cuerpo del correo (mismo formato que CompartirElemento)
+        private MostrarAdjuntosDeEnviarElemento(modal: HTMLDivElement, elemento: { id: number, texto: string }): void {
+            let adjuntos = this.AdjuntosDeEnviarElemento(modal);
+            adjuntos.textContent = '';
+
+            let titulo = document.createElement('label');
+            titulo.textContent = 'Adjuntos';
+            titulo.title = 'Enlaces que se añaden al final del correo';
+            adjuntos.appendChild(titulo);
+
+            const url = new URL(window.location.origin + window.location.pathname);
+            url.searchParams.set('Id', elemento.id.toString());
+            let enlace = document.createElement('a');
+            enlace.href = url.toString();
+            enlace.target = '_blank';
+            enlace.textContent = elemento.texto;
+            let fila = document.createElement('div');
+            fila.appendChild(enlace);
+            adjuntos.appendChild(fila);
+        }
+
+        // Elemento que envía la modal de enviar elemento: el que se está editando si la edición está abierta (se abre desde el botón junto a una
+        // lista de usuarios, ver CrudEdicion.AnadirBotonesDeEnviarElemento) y, si no, el único seleccionado en el grid (ver GridDeDatos.EnviarElemento)
+        private get ElementoAEnviar(): { id: number, texto: string } {
+            if (this.EdicionAbierta) {
+                let editado = this.crudDeEdicion.ElementoEditado;
+                return { id: editado.Id, texto: editado.Texto };
+            }
+            return { id: this.InfoSelector.IdsSeleccionados[0], texto: this.InfoSelector.TextosSeleccionados[0] };
+        }
+
+        // Abre la modal de enviar elemento desde la edición, con el usuario indicado (el de la lista junto a la que se pulsó) como receptor
+        public ModalEnviarElemento_AbrirDesdeEdicion(idUsuario: number, textoUsuario: string): void {
+            let modal = this.ModalEnviarElemento;
+            this.ModalDePedirDatos_TrasAbrir(modal);
+            if (idUsuario > 0)
+                MapearAlControl.ListaDinamica(ApiControl.BuscarListaDinamicaPorPropiedad(modal, ltrPropiedades.Entorno.EnviarElemento.Usuario), idUsuario, textoUsuario);
+            ApiPanel.AbrirModal(modal);
         }
 
         public ModalDePedirDatos_Cerrar(modal: HTMLDivElement): void {
@@ -2715,9 +2767,8 @@
                 return;
             }
 
-            if (this.modoTrabajo === enumModoTrabajo.editando)
-                this.crudDeEdicion.Recargar();
-            else if (modal.id === (this.ModalEnviarElemento?.id ?? '')) {
+            // se comprueba antes que la edición: la modal de enviar elemento también se abre desde la edición (ver ModalEnviarElemento_AbrirDesdeEdicion)
+            if (modal.id === (this.ModalEnviarElemento?.id ?? '')) {
                 let parametros: Array<Parametro> = this.ModalEnviarElemento_LeerParametros(modal);
                 ApiDePeticiones.EnviarCorreo(this, this.Controlador, parametros)
                     .then((peticion) => {
@@ -2725,6 +2776,8 @@
                     })
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
             }
+            else if (this.modoTrabajo === enumModoTrabajo.editando)
+                this.crudDeEdicion.Recargar();
             else if (this.modoTrabajo === enumModoTrabajo.mantenimiento) {
                 if (modal.id === this.ModalParaCrearFiltro.id)
                     this.GuardarPlantillaFiltrado();
@@ -2754,7 +2807,8 @@
             let cuerpo: string = ApiControl.BuscarAreaDeTexto(modal, ltrPropiedades.Entorno.EnviarElemento.Cuerpo).value;
 
             let adjuntos: Array<Tipos.ElementoDtoSimple> = [];
-            let adjunto = new Tipos.ElementoDtoSimple(this.Dto, this.InfoSelector.IdsSeleccionados[0], this.InfoSelector.TextosSeleccionados[0]);
+            let elemento = this.ElementoAEnviar;
+            let adjunto = new Tipos.ElementoDtoSimple(this.Dto, elemento.id, elemento.texto);
             adjuntos.push(adjunto);
 
             parametros.push(new Parametro(Ajax.Param.nombreDeNegocio, this.NombreDeNegocio));

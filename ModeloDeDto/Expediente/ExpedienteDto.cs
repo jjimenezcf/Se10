@@ -86,6 +86,7 @@ namespace ModeloDeDto.Expediente
             Ayuda = "Usuario responsable del expediente",
             TipoDeControl = enumTipoControl.ListaDinamica,
             SeleccionarDe = typeof(UsuarioDto),
+            PermiteEnviarCorreo = true,
             GuardarEn = nameof(IdResponsable),
             MostrarExpresion = UsuarioDto.ExpresionElemento,
             Controlador = nameof(enumControladoresEntorno.Usuarios),

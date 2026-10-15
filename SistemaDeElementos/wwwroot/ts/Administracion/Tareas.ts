@@ -220,7 +220,7 @@
             ApiPanel.MostrarOcultarCelda(this.PanelDeEditar, ltrPropiedades.Tarea.IdExpediente, idExpediente > 0)
 
             ApiControl.ColSpan(this.PanelDeEditar, ltrPropiedades.Tarea.IdExpediente, idFactura === 0 ? 2 : 0);
-            ApiControl.ColSpan(this.PanelDeEditar, ltrPropiedades.Tarea.Responsable, incColSpanDeResponsable);
+            //ApiControl.ColSpan(this.PanelDeEditar, ltrPropiedades.Tarea.Responsable, incColSpanDeResponsable);
 
             if (this.EsGestor) {
                 let etapasDeLaTarea: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Tarea.Etapas);

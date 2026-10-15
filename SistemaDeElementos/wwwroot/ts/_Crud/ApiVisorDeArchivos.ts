@@ -61,6 +61,14 @@ namespace ApiVisorDeArchivos {
             if (crud.crudDeEdicion.IdArchivoMostrado > 0) {
                 CalcularTamanoDelVisor();
             }
+            else {
+                // sin visor los anchos en línea que quedaron de un tamaño de ventana anterior superan al actual (el padre recorta con overflow-x hidden y
+                // los datos, al ser el 100% de ese padre, no desbordan ni muestran su scroll); se quitan para que mande el css
+                crud.crudDeEdicion.ContenedorDeCabecera?.style.removeProperty('width');
+                crud.crudDeEdicion.ContenedorDeDatosMasVisor?.style.removeProperty('width');
+                crud.crudDeEdicion.ContenedorDeDatos?.style.removeProperty('width');
+                crud.crudDeEdicion.ContenedorDelVisorDeArchivoConHistorial?.style.removeProperty('width');
+            }
             crud.crudDeEdicion.ContenedorDelVisorDeArchivoConHistorial.style.maxHeight = crud.crudDeEdicion.ContenedorDeDatos.clientHeight + 'px';
         }
     }

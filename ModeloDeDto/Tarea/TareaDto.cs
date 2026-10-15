@@ -108,6 +108,7 @@ namespace ModeloDeDto.Tarea
             Ayuda = "Usuario ejecutor",
             TipoDeControl = enumTipoControl.ListaDinamica,
             SeleccionarDe = typeof(UsuarioDto),
+            PermiteEnviarCorreo = true,
             GuardarEn = nameof(IdResponsable),
             MostrarExpresion = UsuarioDto.ExpresionElemento,
             Controlador = nameof(enumControladoresEntorno.Usuarios),
@@ -121,7 +122,8 @@ namespace ModeloDeDto.Tarea
             OrdenarGridPor = nameof(Responsable) + "." + nameof(UsuarioDtm.Login),
             LongitudMinimaParaBuscar = 1,
             AutoSpan = true,
-            EsAlmacenable = true
+            EsAlmacenable = true,
+            ColSpan = 0
             )
         ]
         public string Responsable { get; set; }

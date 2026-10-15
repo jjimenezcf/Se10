@@ -96,6 +96,7 @@ namespace ModeloDeDto.Presupuesto
             Ayuda = "Usuario ejecutor",
             TipoDeControl = enumTipoControl.ListaDinamica,
             SeleccionarDe = typeof(UsuarioDto),
+            PermiteEnviarCorreo = true,
             GuardarEn = nameof(IdResponsable),
             MostrarExpresion = UsuarioDto.ExpresionElemento,
             Controlador = nameof(enumControladoresEntorno.Usuarios),

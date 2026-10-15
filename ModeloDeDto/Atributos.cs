@@ -358,6 +358,13 @@ namespace ModeloDeDto
         /// </summary>
         public bool SoloEnAlta { get; set; } = true;
 
+        /// <summary>
+        /// En una lista dinámica de usuarios (SeleccionarDe = typeof(UsuarioDto)): en la edición de un elemento ya creado pinta junto a la lista
+        /// (delante de su botón de navegación, si lo tiene) un botón con un sobre que abre la modal de enviar elemento, con el usuario
+        /// seleccionado en la lista como receptor. Si hay cambios pendientes los guarda antes de abrirla (ver CrudEdicion.EnviarElementoA)
+        /// </summary>
+        public bool PermiteEnviarCorreo { get; set; } = false;
+
         public string Controlador { get; set; } = "";
 
         /// <summary>

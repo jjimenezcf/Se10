@@ -103,6 +103,7 @@ namespace ModeloDeDto.Terceros
             Ayuda = "Usuario asociado al trabajador",
             TipoDeControl = enumTipoControl.ListaDinamica,
             SeleccionarDe = typeof(UsuarioDto),
+            PermiteEnviarCorreo = true,
             GuardarEn = nameof(IdUsuario),
             MostrarExpresion = UsuarioDto.ExpresionElemento,
             Controlador = nameof(enumControladoresEntorno.Usuarios),

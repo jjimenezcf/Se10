@@ -78,6 +78,7 @@ namespace ModeloDeDto.Juridico
             Ayuda = "Usuario responsable del contrato",
             TipoDeControl = enumTipoControl.ListaDinamica,
             SeleccionarDe = typeof(UsuarioDto),
+            PermiteEnviarCorreo = true,
             GuardarEn = nameof(IdResponsable),
             MostrarExpresion = UsuarioDto.ExpresionElemento,
             Controlador = nameof(enumControladoresEntorno.Usuarios),

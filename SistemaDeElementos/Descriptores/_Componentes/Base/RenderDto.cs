@@ -488,6 +488,7 @@ namespace MVCSistemaDeElementos.Descriptores
             valores[nameof(IUPropiedadAttribute.OtrosClausulasDeFiltrado)] = atributos.OtrosClausulasDeFiltrado;
             valores[nameof(IUPropiedadAttribute.OtrosParametrosDeFiltrado)] = atributos.OtrosParametrosDeFiltrado;
             valores[nameof(IUPropiedadAttribute.SoloEnAlta)] = atributos.SoloEnAlta;
+            valores[nameof(IUPropiedadAttribute.PermiteEnviarCorreo)] = atributos.PermiteEnviarCorreo ? "enviar-correo-interno='S'" : "";
 
             valores[nameof(IUPropiedadAttribute.ParametrosParaNavegar)] = atributos.ParametrosParaNavegar;
             var a = PlantillasHtml.Render(PlantillasHtml.listaDinamicaDto, valores);

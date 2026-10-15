@@ -1085,6 +1085,11 @@ const ltrCss = {
         ListaDeArchivos: 'archivos-para-enviar',
         TituloDeLaLista: 'titulo-archivos-para-enviar'
     },
+    // Div con los enlaces de lo que se adjunta en la modal de enviar elemento
+    EnviarElemento: {
+        Adjuntos: 'adjuntos',
+        IdDeLaTabla: 'table-enviarelementodto-nuevo'
+    },
     // Botón (con el sobre de EnviarPorCorreo) junto a una lista de usuarios, delante de su botón de navegación
     EnviarCorreoInterno: {
         Boton: 'boton-enviar-correo-interno',
