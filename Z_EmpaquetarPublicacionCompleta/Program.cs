@@ -151,6 +151,8 @@ class Program
         try
         {
             Array.ForEach(Directory.GetFiles(ruta), File.Delete);
+            foreach (string subdir in Directory.GetDirectories(ruta))
+                Directory.Delete(subdir, true);
         }
         catch (Exception e)
         {

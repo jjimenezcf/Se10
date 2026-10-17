@@ -56,7 +56,7 @@ set "DESTINATION=%BASE_PATH%\Se"
 rmdir /s /q "%ORIGEN%"
 
 :: Unzip del archivo 
-powershell -command "Expand-Archive -Path '%ZIPFILE%' -DestinationPath '%DESTINATION%'"
+powershell -NoProfile -Command "$ProgressPreference='SilentlyContinue'; try { Expand-Archive -LiteralPath '%ZIPFILE%' -DestinationPath '%DESTINATION%' -Force -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 }"
 if %errorlevel% neq 0 (
   echo Fallo en la descompresion. Abortando.
   exit /b 1

@@ -2,8 +2,8 @@
 setlocal enabledelayedexpansion
 
 :: Borra de los sitios desplegados, y de la carpeta de origen del despliegue, los ficheros indicados como parámetros
-::   Uso:     BorrarBinario fichero1 [fichero2 ...]
-::   Ejemplo: BorrarBinario SixLabors.ImageSharp.dll MailKit.dll
+::   Uso:     90-BorrarBinario fichero1 [fichero2 ...]
+::   Ejemplo: 90-BorrarBinario SixLabors.ImageSharp.dll MailKit.dll
 :: Solo borra en la raíz de cada directorio y no admite rutas ni comodines, para no borrar de más por error.
 :: Ejecútalo con los sitios parados (después del 01-Descomprimir y antes del 02-Desplegar): así IIS no tiene
 :: los ficheros bloqueados y el 02 copia el deps.json nuevo, que ya no los referencia, antes de arrancar.
@@ -116,7 +116,7 @@ if %FALLIDOS% gtr 0 exit /b 1
 exit /b 0
 
 :uso
-echo Uso:     BorrarBinario fichero1 [fichero2 ...]
-echo Ejemplo: BorrarBinario SixLabors.ImageSharp.dll MailKit.dll
+echo Uso:     90-BorrarBinario fichero1 [fichero2 ...]
+echo Ejemplo: 90-BorrarBinario SixLabors.ImageSharp.dll MailKit.dll
 pause
 exit /b 1

@@ -109,7 +109,6 @@
 		<None Include="wwwroot\css\ControlesDto.css" />
 		<None Include="wwwroot\Acceso\Denegado.html" />
 		<None Include="wwwroot\Acceso\Login.html" />
-		<None Include="Z_EmpaquetarCola\Z_EmpaquetarCola.csproj" />
 		<None Include="Z_EmpaquetarPublicacion\Z_EmpaquetarSitioWeb.csproj" />
 	</ItemGroup>
 	
@@ -136,6 +135,8 @@
 		<PackageReference Include="NuGet.Packaging" Version="7.3.1" />
 		<PackageReference Include="NuGet.Protocol" Version="7.3.1" />
 		<PackageReference Include="RtfPipe" Version="2.0.7677.4303" />
+		<!-- MimeKit, SqlClient, EPPlus y NuGet.Packaging traen versiones vulnerables de Pkcs; se fija la corregida -->
+		<PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
 	</ItemGroup>
 
 	<ItemGroup>
