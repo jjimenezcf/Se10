@@ -1,7 +1,7 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Logistica;
+using ServicioDeDatos.MaestrosTecnico;
 using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
@@ -16,6 +16,124 @@ namespace GestorDeElementos.Extensores
         public static void AntesDeCerrar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarSinRegularizacionViva(contexto, "cerrar");
 
         public static void AntesDeRecontar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarQueNoSSeEstaRecontando(contexto);
+
+        // Los tipos de movimiento se leen todos de una vez y se cachean por nombre (la descripción del enumerado), sin seguimiento porque
+        // la caché se comparte entre peticiones. Se olvidan al persistir un tipo de movimiento (ver GestorDeTiposDeMovimiento)
+        public static TipoMovimientoDtm LeerTipoDeMovimiento(this enumTiposDeMovimiento tipo, ContextoSe contexto)
+        {
+            var tipos = TiposDeMovimiento(contexto).ToDictionary(x => x.Nombre);
+
+            if (!tipos.TryGetValue(tipo.Descripcion(), out var tipoDeMovimiento))
+                Emitir($"No está definido el tipo de movimiento de almacén '{tipo.Descripcion()}'");
+
+            return tipoDeMovimiento;
+        }
+
+        public static TipoMovimientoDtm TipoDeMovimiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            return TiposDeMovimiento(contexto).First(x => x.Id == movimiento.IdTipoMovimiento);
+        }
+
+        public static UnitarioDtm Unitario(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            if (movimiento.Unitario is null || movimiento.IdUnitario != movimiento.Unitario.Id)
+                movimiento.Unitario = contexto.SeleccionarPorId<UnitarioDtm>(movimiento.IdUnitario);
+            return movimiento.Unitario;
+        }
+
+        public static AlmacenDtm Almacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            if (movimiento.Almacen is null || movimiento.IdAlmacen != movimiento.Almacen.Id)
+                movimiento.Almacen = contexto.SeleccionarPorId<AlmacenDtm>(movimiento.IdAlmacen);
+            return movimiento.Almacen;
+        }
+
+        public static PreasientoDtm Preasiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            if (movimiento.IdPreasiento is null)
+                return null;
+
+            if (movimiento.Preasiento is null || movimiento.IdPreasiento != movimiento.Preasiento.Id )
+                movimiento.Preasiento = contexto.SeleccionarPorId<PreasientoDtm>((int)movimiento.IdPreasiento);
+            return movimiento.Preasiento;
+        }
+
+        public static void QuitarPreasiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            if (movimiento.IdPreasiento is null)
+                return;
+
+            var preasiento = movimiento.Preasiento(contexto);
+            if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado))
+                Emitir($"No se puede modificar el movimiento de almacén Nº '{movimiento.Id}' ya que el preasiento '{preasiento.Referencia}' asociado está contabilizado");
+
+            preasiento.CancelarPreasiento(contexto, permitirCancelarUnContabilizado: false);
+            movimiento.IdPreasiento = null;
+            movimiento.Preasiento = null;
+        }
+
+        // Antes de borrar la entrada de compra de una recepción cancelada: su preasiento, si lo tiene, ha de estar pendiente y se anula
+        public static void CancelarPreasientoDeRecepcion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            if (movimiento.IdLineaDeRecepcion is null)
+                Emitir($"El movimiento de referencia '{movimiento.Referencia(contexto)}' no es una entrada de compra, no se puede anular");
+
+            if (movimiento.IdPreasiento is null)
+                return;
+
+            movimiento.CancelarPreasiento(contexto);
+
+        }
+
+        public static string Referencia(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            if (movimiento.Referencia.IsNullOrEmpty())
+            {
+                movimiento.Referencia = movimiento.Almacen(contexto).Referencia+ ": " +
+                    TiposDeMovimiento(contexto).First(x => x.Id == movimiento.IdTipoMovimiento).ClaseMovimiento.Descripcion() + ", Fecha de entrada: " +
+                    movimiento.RealizadoEl.ToString("dd/MM/yyyy") + $" ({movimiento.Id})";    
+            }
+            return movimiento.Referencia;
+        }
+
+        // Recalcula y guarda, en orden, los movimientos posteriores del mismo almacén y unitario
+        public static void BarrerPosteriores(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            foreach (var posterior in movimiento.ObtenerMovimientosPosteriores(contexto))
+            {
+                posterior.Barrer(contexto);
+                posterior.ModificarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
+            }
+        }
+
+        // Valor es el precio medio ponderado (por unidad) tras el movimiento; Stock, las unidades que quedan
+        public static void CalcularInventarioDelMovimiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            var clase = movimiento.TipoMovimiento?.ClaseMovimiento ?? contexto.SeleccionarPorId<TipoMovimientoDtm>(movimiento.IdTipoMovimiento).ClaseMovimiento;
+
+            switch (clase)
+            {
+                case enumClaseDeMovimiento.Entrada: movimiento.CalcularInventarioEntrada(contexto); break;
+                case enumClaseDeMovimiento.Salida: movimiento.CalcularInventarioSalida(contexto); break;
+                case enumClaseDeMovimiento.Inicial: movimiento.CalcularInventarioInicial(contexto); break;
+                case enumClaseDeMovimiento.Ajuste: movimiento.CalcularInventarioAjuste(contexto); break;
+                case enumClaseDeMovimiento.Regularizacion: movimiento.CalcularInventarioRegularizacion(contexto); break;
+                case enumClaseDeMovimiento.Nulo: break;
+            }
+        }
+
+        public static PedidoDtm LeerPedido(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool emitirErrorSiNoEsRecepcion)
+        {
+            if (movimiento.IdLineaDeRecepcion is null)
+            {
+                if (emitirErrorSiNoEsRecepcion)
+                    Emitir($"El movimiento de almacén '{movimiento.Id}' no es de una entrega de pedido");
+                return null;
+            }
+
+            var lineaPedido = ExtensorDeRecepciones.LeerLineaDePedido(contexto, (int)movimiento.IdLineaDeRecepcion);
+            return lineaPedido.DetalleDe<PedidoDtm>(contexto, usarLaCache: true);
+        }
 
         private static void ValidarSinRegularizacionViva(this AlmacenDtm almacen, ContextoSe contexto, string accion)
         {
@@ -55,21 +173,15 @@ namespace GestorDeElementos.Extensores
             return contexto.Set<RegularizacionDtm>().Any(x => x.IdAlmacen == almacen.Id && estadosRecontando.Contains(x.IdEstado));
         }
 
-        public static void QuitarPreasiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static List<TipoMovimientoDtm> TiposDeMovimiento(ContextoSe contexto)
         {
-            if (movimiento.IdPreasiento is null)
-                return;
-
-            var preasiento = movimiento.Preasiento ?? contexto.SeleccionarPorId<PreasientoDtm>((int)movimiento.IdPreasiento);
-            if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado))
-                Emitir($"No se puede modificar el movimiento de almacén Nº '{movimiento.Id}' ya que el preasiento '{preasiento.Referencia}' asociado está contabilizado");
-
-            preasiento.CancelarPreasiento(contexto);
-            movimiento.IdPreasiento = null;
-            movimiento.Preasiento = null;
+            var cache = ServicioDeCaches.Obtener(CacheDe.Alm_TiposDeMovimiento);
+            if (!cache.ContainsKey(nameof(TipoMovimientoDtm)))
+                cache[nameof(TipoMovimientoDtm)] = contexto.Set<TipoMovimientoDtm>().ToDictionary(x => x.Nombre);
+            return cache[nameof(TipoMovimientoDtm)] as List<TipoMovimientoDtm>;
         }
 
-        public static MovimientoDeAlmacenDtm ObtenerMovimientoAnterior(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static MovimientoDeAlmacenDtm ObtenerMovimientoAnterior(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             return contexto.Set<MovimientoDeAlmacenDtm>()
                 .Where(x => x.IdAlmacen == movimiento.IdAlmacen
@@ -81,7 +193,7 @@ namespace GestorDeElementos.Extensores
                 .FirstOrDefault();
         }
 
-        public static List<MovimientoDeAlmacenDtm> ObtenerMovimientosPosteriores(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static List<MovimientoDeAlmacenDtm> ObtenerMovimientosPosteriores(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             return contexto.Set<MovimientoDeAlmacenDtm>()
                 .Where(x => x.IdAlmacen == movimiento.IdAlmacen
@@ -95,50 +207,14 @@ namespace GestorDeElementos.Extensores
         // Orquesta el recálculo completo de un movimiento posterior durante un barrido: quita su preasiento
         // anterior, recalcula su inventario y lo vuelve a preasentar. Tras llamarlo, el movimiento se
         // persiste con EstoyBarriendo=true para que AntesDePersistir/DespuesDePersistir no repitan el trabajo.
-        public static void Barrer(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static void Barrer(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             movimiento.QuitarPreasiento(contexto);
             movimiento.CalcularInventarioDelMovimiento(contexto);
             movimiento.Preasentar(contexto);
         }
 
-        // Calcula el inventario del movimiento, lo preasienta, lo inserta y barre los movimientos posteriores
-        public static MovimientoDeAlmacenDtm InsertarYBarrer(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
-        {
-            movimiento.CalcularInventarioDelMovimiento(contexto);
-            movimiento.Preasentar(contexto);
-            movimiento = movimiento.InsertarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
-            movimiento.BarrerPosteriores(contexto);
-            return movimiento;
-        }
-
-        // Recalcula y guarda, en orden, los movimientos posteriores del mismo almacén y unitario
-        public static void BarrerPosteriores(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
-        {
-            foreach (var posterior in movimiento.ObtenerMovimientosPosteriores(contexto))
-            {
-                posterior.Barrer(contexto);
-                posterior.ModificarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
-            }
-        }
-
-        // Valor es el precio medio ponderado (por unidad) tras el movimiento; Stock, las unidades que quedan
-        public static void CalcularInventarioDelMovimiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
-        {
-            var clase = movimiento.TipoMovimiento?.ClaseMovimiento ?? contexto.SeleccionarPorId<TipoMovimientoDtm>(movimiento.IdTipoMovimiento).ClaseMovimiento;
-
-            switch (clase)
-            {
-                case enumClaseDeMovimiento.Entrada: movimiento.CalcularInventarioEntrada(contexto); break;
-                case enumClaseDeMovimiento.Salida: movimiento.CalcularInventarioSalida(contexto); break;
-                case enumClaseDeMovimiento.Inicial: movimiento.CalcularInventarioInicial(contexto); break;
-                case enumClaseDeMovimiento.Ajuste: movimiento.CalcularInventarioAjuste(contexto); break;
-                case enumClaseDeMovimiento.Regularizacion: movimiento.CalcularInventarioRegularizacion(contexto); break;
-                case enumClaseDeMovimiento.Nulo: break;
-            }
-        }
-
-        public static void CalcularInventarioEntrada(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static void CalcularInventarioEntrada(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
             if (anterior is null)
@@ -155,7 +231,7 @@ namespace GestorDeElementos.Extensores
             }
         }
 
-        public static void CalcularInventarioSalida(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static void CalcularInventarioSalida(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
             if (anterior is null)
@@ -170,7 +246,7 @@ namespace GestorDeElementos.Extensores
             movimiento.Valor = anterior.Valor;
         }
 
-        public static void CalcularInventarioInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static void CalcularInventarioInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
             if (anterior is not null)
@@ -180,7 +256,7 @@ namespace GestorDeElementos.Extensores
             movimiento.Valor = movimiento.Precio;
         }
 
-        public static void CalcularInventarioAjuste(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static void CalcularInventarioAjuste(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
             if (anterior is null)
@@ -191,7 +267,7 @@ namespace GestorDeElementos.Extensores
             movimiento.Valor = movimiento.Precio;
         }
 
-        public static void CalcularInventarioRegularizacion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        private static void CalcularInventarioRegularizacion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
             if (anterior is null)
@@ -202,4 +278,5 @@ namespace GestorDeElementos.Extensores
             movimiento.Valor = anterior.Valor;
         }
     }
+
 }

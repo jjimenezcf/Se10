@@ -35,23 +35,6 @@ namespace GestorDeElementos.Extensores
             return incremento.Valor.Entero();
         }
 
-        private static void AnotarEventoDeEntrega(this PedidoDtm pedido, ContextoSe contexto)
-        {
-            var sociedad = pedido.Sociedad(contexto);
-            var agenda = sociedad.IdAgenda == null ? sociedad.CrearAgenda(contexto) : contexto.SeleccionarPorId<AgendaDtm>((int)sociedad.IdAgenda);
-
-            var evento = new EventoDeAgendaDtm();
-            evento.IdAgenda = agenda.Id;
-            evento.IdElemento = pedido.Id;
-            evento.IdNegocio = enumNegocio.Pedido.IdNegocio();
-            evento.EsDelSistema = true;
-            evento.Inicio = ((DateTime)pedido.EntregarEl).Date;
-            evento.Nombre = ltrDeUnPedido.EventoDeEntrega.Replace($"[{nameof(PedidoDtm.Referencia)}]", pedido.Referencia);
-            evento.Descripcion = $"Entrega del pedido: {pedido.Referencia}";
-            evento.Fin = evento.Inicio;
-            GestorDeVinculos.Vincular(contexto, pedido, evento, new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } });
-        }
-
         public static ContratoDtm Contrato(this PedidoDtm pedido, ContextoSe contexto, bool aplicarJoin = false, bool errorSiNoHay = true)
         {
             if (pedido.Contrato != null) return pedido.Contrato;
@@ -82,6 +65,7 @@ namespace GestorDeElementos.Extensores
             avance.Planificado = avance.Planificado + pedido.Importe(contexto);
             avance.Modificar(contexto);
         }
+
         public static void DecrementarLoPlanificado(this PedidoDtm pedido, ContextoSe contexto, ContratoDtm contrato)
         {
             var avance = contrato.Ampliacion<AvanceDtm>(contexto);
@@ -179,7 +163,6 @@ namespace GestorDeElementos.Extensores
             }
         }
 
-
         // PedidoEl, mientras el pedido se cumplimenta o se aprueba, es la fecha planificada para solicitarlo (un trabajo del sistema lo
         // transitará a solicitado al llegar dicha fecha); una vez solicitado es la fecha en la que se solicitó
         public static void AntesDeSolicitar(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
@@ -247,6 +230,23 @@ namespace GestorDeElementos.Extensores
                 return false;
 
             return contexto.SeleccionarPorId<ArchivoDtm>((int)pedido.IdArchivo).FechaCreacion >= entradaEnSolicitud;
+        }
+
+        private static void AnotarEventoDeEntrega(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            var sociedad = pedido.Sociedad(contexto);
+            var agenda = sociedad.IdAgenda == null ? sociedad.CrearAgenda(contexto) : contexto.SeleccionarPorId<AgendaDtm>((int)sociedad.IdAgenda);
+
+            var evento = new EventoDeAgendaDtm();
+            evento.IdAgenda = agenda.Id;
+            evento.IdElemento = pedido.Id;
+            evento.IdNegocio = enumNegocio.Pedido.IdNegocio();
+            evento.EsDelSistema = true;
+            evento.Inicio = ((DateTime)pedido.EntregarEl).Date;
+            evento.Nombre = ltrDeUnPedido.EventoDeEntrega.Replace($"[{nameof(PedidoDtm.Referencia)}]", pedido.Referencia);
+            evento.Descripcion = $"Entrega del pedido: {pedido.Referencia}";
+            evento.Fin = evento.Inicio;
+            GestorDeVinculos.Vincular(contexto, pedido, evento, new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } });
         }
 
         // Fecha del primer hito de la racha actual de estados de la etapa de solicitud (los hitos vienen ordenados del más reciente al más antiguo)

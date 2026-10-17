@@ -140,6 +140,14 @@ namespace GestoresDeNegocio.Logistica
         {
             base.EliminarCaches(linea, parametros);
             ServicioDeCaches.EliminarElemento(CacheDe.Pedido_Total, linea.IdElemento.ToString());
+            ExtensorDeRecepciones.OlvidarRecepcion(linea);
+            ExtensorDeRecepciones.OlvidarRecepciones(linea.IdElemento);
+
+            var recepcion = linea.LeerRecepcion(Contexto, erroSiNoHay: false);
+            if (recepcion != null)
+            {
+                ServicioDeCaches.EliminarElemento(CacheDe.Pedido_LineaPedidoPorRecepcion, recepcion.Id.ToString());
+            }   
         }
 
         protected override void DespuesDeMapearElElemento(LineaDeUnPedidoDtm linea, LineaDeUnPedidoDto elemento, ParametrosDeNegocio parametros)
@@ -147,7 +155,7 @@ namespace GestoresDeNegocio.Logistica
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.Clase = linea.Clase(Contexto)?.ToString();
 
-            var recepcion = linea.Recepcion(Contexto);
+            var recepcion = linea.LeerRecepcion(Contexto, erroSiNoHay: false);
             elemento.CantidadRecibida = recepcion?.Cantidad;
             elemento.PrecioDeRecepcion = recepcion?.Precio;
             elemento.DescuentoAplicado = recepcion?.Descuento;

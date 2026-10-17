@@ -349,7 +349,7 @@ namespace GestoresDeNegocio.Contabilidad
                             gestor.GenerarPreasiento(new List<int> { preasiento.Referenciado(Contexto).Id });
                         }
                         else
-                            preasiento.CancelarPreasiento(Contexto);
+                            preasiento.CancelarPreasiento(Contexto, permitirCancelarUnContabilizado: true);
                     }
                 }
                 Contexto.Commit(trans);

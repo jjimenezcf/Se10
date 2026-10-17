@@ -1,14 +1,14 @@
 using ServicioDeDatos;
+using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Logistica;
+using ServicioDeDatos.MaestrosTecnico;
+using ServicioDeDatos.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Utilidades;
-using Microsoft.EntityFrameworkCore;
-using ServicioDeDatos.Seguridad;
-using ServicioDeDatos.Entorno;
-using ServicioDeDatos.Expediente;
-using ServicioDeDatos.MaestrosTecnico;
 using static Gestor.Errores.GestorDeErrores;
 using static ServicioDeDatos.Elemento.Enumerados;
 
@@ -20,19 +20,20 @@ namespace GestorDeElementos.Extensores
     {
         // Entrega registrada de una línea del pedido, null si aún no se ha entregado.
         // Se cachea también el null; se lee sin seguimiento porque la instancia cacheada se comparte entre peticiones
-        public static RecepcionDeLineaDtm Recepcion(this LineaDeUnPedidoDtm linea, ContextoSe contexto)
+        public static RecepcionDeLineaDtm LeerRecepcion(this LineaDeUnPedidoDtm linea, ContextoSe contexto, bool erroSiNoHay)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_Recepcion);
-            if (cache.ContainsKey(linea.Id.ToString()))
-                return (RecepcionDeLineaDtm)cache[linea.Id.ToString()];
-            var recepcion = contexto.Set<RecepcionDeLineaDtm>().AsNoTracking().FirstOrDefault(recepcion => recepcion.IdLinea == linea.Id);
-            cache[linea.Id.ToString()] = recepcion;
-            return recepcion;
-        }
+            if (!cache.ContainsKey(linea.Id.ToString()))
+            {
+                var recepcion = contexto.Set<RecepcionDeLineaDtm>().FirstOrDefault(recepcion => recepcion.IdLinea == linea.Id);
+                cache[linea.Id.ToString()] = recepcion;
+            }
 
-        // Destino por defecto de las entregas de un pedido: el almacén de la cabecera y, si no lo tiene, la obra de su expediente
-        public static (int? idAlmacen, int? idExpediente) DestinoDeLasEntregas(this PedidoDtm pedido)
-            => pedido.IdAlmacen != null ? (pedido.IdAlmacen, null) : (null, pedido.IdExpediente);
+            if (cache[linea.Id.ToString()] is null && erroSiNoHay)
+                Emitir($"La línea {linea.Orden} del pedido '{linea.Elemento.Referencia}' no tiene entrega registrada");
+
+            return (RecepcionDeLineaDtm) cache[linea.Id.ToString()];
+        }
 
         // Para enviar el pedido al proveedor ha de saberse dónde se entregará
         public static void ValidarDestinoDeLasEntregas(this PedidoDtm pedido)
@@ -67,7 +68,10 @@ namespace GestorDeElementos.Extensores
             OlvidarRecepciones(idPedido);
         }
 
-        public static void OlvidarRecepciones(int idPedido) => ServicioDeCaches.EliminarElemento(CacheDe.Pedido_HayRecepciones, idPedido.ToString());
+        public static void OlvidarRecepciones(int idPedido)
+        {
+            ServicioDeCaches.EliminarElemento(CacheDe.Pedido_HayRecepciones, idPedido.ToString());
+        }
 
         // La entrega va al almacén o a la obra del expediente, nunca a ambos (ver CK_PEDIDO_LINEA_RECEPCION_DESTINO).
         // El pedido ha de estar en recepción (ver PasarARecepcion) y la fecha no puede ser posterior a hoy ni anterior a la creación del pedido
@@ -80,6 +84,176 @@ namespace GestorDeElementos.Extensores
             var recepcion = linea.RegistrarRecepcion(contexto, pedido, recepcionadaEl, cantidad, precio, descuento, idAlmacen, idExpediente);
             pedido.AdelantarLaFechaDeRecepcion(contexto, recepcion.RecepcionadaEl);
             return recepcion;
+        }
+
+        // Entrega en un almacén: inserta el movimiento de entrada (compra) con su stock y valor; el movimiento
+        // se valora al precio neto de descuento. Queda enganchado a la entrega por IdLineaDeRecepcion (FK).
+        // El gestor de movimientos calcula su inventario, lo preasienta y barre los posteriores del mismo almacén y material
+        public static MovimientoDeAlmacenDtm EntradaDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, LineaDeUnPedidoDtm linea)
+        {
+            if (recepcion.IdAlmacen is null || linea.IdUnitario is null)
+                Emitir($"La entrega de la línea {linea.Orden} no se puede registrar como entrada de almacén: falta el almacén o el material");
+
+            var movimiento = new MovimientoDeAlmacenDtm
+            {
+                IdAlmacen = (int)recepcion.IdAlmacen,
+                IdUnitario = (int)linea.IdUnitario,
+                IdTipoMovimiento = enumTiposDeMovimiento.Compra.LeerTipoDeMovimiento(contexto).Id,
+                Cantidad = recepcion.Cantidad,
+                Precio = recepcion.Cantidad == 0 ? recepcion.Precio : recepcion.Importe / recepcion.Cantidad,
+                RealizadoEl = recepcion.RecepcionadaEl,
+                IdLineaDeRecepcion = recepcion.Id
+            };
+
+            // el gestor toma el semáforo, calcula el inventario, preasienta y barre los posteriores
+            return movimiento.InsertarComoAdministrador(contexto);
+        }
+
+        // Las recepciones se registran con el pedido en recepción: si está solicitado se transita a recepción, anotando como fecha de
+        // recepción de la cabecera la de la entrega (ver ExtensorDePedidos.AntesDeRecibir). Devuelve el pedido releído tras transitar
+        public static PedidoDtm PasarARecepcion(this PedidoDtm pedido, ContextoSe contexto, DateTime recibidoEl)
+        {
+            if (!pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud))
+                return pedido;
+
+            var parametros = new Dictionary<string, object> { { nameof(PedidoDtm.RecibidoEl), recibidoEl.Date } };
+            var etapa = enumEtapasDePedido.PED_Etapa_De_Recepcion.EstadosDeLaEtapa();
+            // se usa la transición del sistema y, si no la hay, la de usuario
+            if (pedido.TransicionPosible(contexto, etapa.etapa, etapa.estados, delSistema: true, emitirErrorSiNoHay: false) != null)
+                pedido.TransitarALaEtapa(contexto, etapa, parametros, delSistema: true);
+            else
+                pedido.TransitarALaEtapa(contexto, etapa, parametros, delSistema: false);
+
+            return contexto.SeleccionarPorId<PedidoDtm>(pedido.Id, usarLaCache: false);
+        }
+
+        // Se cachea también el false; se olvida al recibir o cancelar la entrega de cualquiera de sus líneas (ver OlvidarRecepcion)
+        public static bool TieneLineasRecepcionadas(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_HayRecepciones);
+            if (cache.ContainsKey(pedido.Id.ToString()))
+                return (bool)cache[pedido.Id.ToString()];
+            var hayRecepciones = contexto.Set<RecepcionDeLineaDtm>().Any(recepcion => pedido.Detalles<LineaDeUnPedidoDtm>(contexto).Any(linea => linea.Id == recepcion.IdLinea && linea.IdElemento == pedido.Id));
+            cache[pedido.Id.ToString()] = hayRecepciones;
+            return hayRecepciones;
+        }
+
+        public static LineaDeUnPedidoDtm LeerLineaDePedido(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
+        {
+            return LeerLineaDePedido(contexto, recepcion.Id);
+        }
+
+        public static LineaDeUnPedidoDtm LeerLineaDePedido(ContextoSe contexto, int idDeRecepcion)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_LineaPedidoPorRecepcion);
+            if (cache.ContainsKey(idDeRecepcion.ToString()))
+                return (LineaDeUnPedidoDtm)cache[idDeRecepcion.ToString()];
+
+            var lineaDelPedido = contexto.Set<LineaDeUnPedidoDtm>().FirstOrDefault(lp => contexto.Set<RecepcionDeLineaDtm>().Any(r => r.Id == idDeRecepcion && r.IdLinea == lp.Id));
+            if (lineaDelPedido is null)
+                Emitir($"No se ha encontrado la línea del pedido de la entrega {idDeRecepcion}");
+            cache[idDeRecepcion.ToString()] = lineaDelPedido;
+            return lineaDelPedido;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------------
+        // Operaciones de recepción, se ejecutan dentro de la transacción del llamador. Al acabar, bien o mal, olvidan las cachés de
+        // recepciones que hayan podido leer o cambiar, para que si la transacción se deshace no queden con datos que no se guardaron
+        //---------------------------------------------------------------------------------------------------------------------------
+
+        // Entrega parcial de una línea con lo indicado en la modal de recepción; si no se indica destino va al de la cabecera.
+        // Si el pedido está solicitado pasa a recepción
+        public static string RecepcionarLinea(ContextoSe contexto, int idLineaPedido, string rowVersion, DateTime recepcionadaEl, decimal cantidad, decimal precio, decimal? descuento, int? idAlmacen, int? idExpediente)
+        {
+            PedidoDtm pedido = null;
+            try
+            {
+                LineaDeUnPedidoDtm lineaDePedido;
+                (lineaDePedido, pedido) = LeerLineaParaRecepcionar(contexto, idLineaPedido, rowVersion, esUnaEntrega: true);
+
+                var destino = idAlmacen is null && idExpediente is null ? pedido.DestinoDeLasEntregas() : (idAlmacen, idExpediente);
+                var estabaSolicitado = pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud);
+                pedido = pedido.PasarARecepcion(contexto, recepcionadaEl);
+                var recepcion = lineaDePedido.Recibir(contexto, pedido, recepcionadaEl, cantidad, precio, descuento, destino.idAlmacen, destino.idExpediente);
+
+                return $"Línea {lineaDePedido.Orden} recibida el {recepcion.RecepcionadaEl:dd/MM/yyyy} {(recepcion.VaAlAlmacen ? "en el almacén" : "en la obra del expediente")}: cantidad {cantidad}, precio {precio}, descuento {descuento}, importe entregado {recepcion.Importe:N2}"
+                     + (estabaSolicitado ? $"; el pedido '{pedido.Referencia}' pasa a {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}" : "");
+            }
+            finally
+            {
+                OlvidarRecepcion(idLineaPedido, pedido?.Id ?? 0);
+            }
+        }
+
+        // Aspa: cancela la entrega de la línea, sólo con el pedido en recepción; si la línea no tiene entrega es un error
+        public static string LineaNoEntregada(ContextoSe contexto, int idLineaPedido, string rowVersion)
+        {
+            PedidoDtm pedido = null;
+            try
+            {
+                LineaDeUnPedidoDtm linea;
+                // valida que la línea tenga entrega y que el pedido esté en recepción
+                (linea, pedido) = LeerLineaParaRecepcionar(contexto, idLineaPedido, rowVersion, esUnaEntrega: false);
+                linea.CancelarRecepcion(contexto);
+                return $"Cancelada la entrega de la línea {linea.Orden}";
+            }
+            finally
+            {
+                OlvidarRecepcion(idLineaPedido, pedido?.Id ?? 0);
+            }
+        }
+
+        // Entrega completa: recepciona todas las líneas del pedido con lo pedido en cada una; si no se indica destino va al de la cabecera.
+        // Si el pedido está solicitado pasa a recepción; si alguna línea ya se ha recepcionado no se permite, se han de hacer recepciones parciales
+        // "Dar por entregado": recepciona todas las líneas del pedido con lo pedido en cada una; si no se indica destino va al de la cabecera.
+        // Si el pedido está solicitado pasa a recepción; si alguna línea ya se ha recepcionado no se permite, se han de hacer recepciones parciales
+        public static string RecepcionarPedido(ContextoSe contexto, int idPedido, string rowVersion, DateTime recepcionadoEl, int? idAlmacen, int? idExpediente)
+        {
+            var idsDeLineas = new List<int>();
+            try
+            {
+                var pedido = contexto.SeleccionarPorId<PedidoDtm>(idPedido, usarLaCache: false);
+                pedido.ValidarRowId(contexto, rowVersion, releer: false);
+                pedido.ValidarQueEsGestor(contexto);
+
+                var destino = idAlmacen is null && idExpediente is null ? pedido.DestinoDeLasEntregas() : (idAlmacen, idExpediente);
+
+                if (!pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Solicitud, enumEtapasDePedido.PED_Etapa_De_Recepcion }))
+                    Emitir($"El pedido '{pedido.Referencia}' solo se puede recepcionar {enumEtapasDePedido.PED_Etapa_De_Solicitud.Nombre()} o {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
+
+                pedido = pedido.PasarARecepcion(contexto, recepcionadoEl);
+                var (lineas, importe) = pedido.RecibirTodasLasLineas(contexto, recepcionadoEl, destino, idsDeLineas, estaEnRecepcion: true);
+
+                return $"Pedido '{pedido.Referencia}' recepcionado el {recepcionadoEl:dd/MM/yyyy} {(destino.idAlmacen != null ? "en el almacén" : "en la obra del expediente")}: {lineas} líneas por un importe de {importe:N2}";
+            }
+            finally
+            {
+                foreach (var idLinea in idsDeLineas)
+                    OlvidarRecepcion(idLinea, idPedido);
+                OlvidarRecepciones(idPedido);
+            }
+        }
+
+        // "Dar por recibido" (transición de solicitado a cerrado): la fecha de recepción es la de entrega si ya ha pasado y si no la de hoy
+        public static DateTime FechaDeRecepcionAlDarPorRecibido(this PedidoDtm pedido)
+            => pedido.EntregarEl is null || pedido.EntregarEl.Value.Date > DateTime.Today ? DateTime.Today : pedido.EntregarEl.Value.Date;
+
+        // "Dar por recibido": una vez cerrado el pedido se recepcionan todas sus líneas con lo pedido, en la fecha de recepción de la
+        // cabecera (ver GestorDePedidos.DespuesDeTransitar) y al destino de la cabecera. Un pedido sin líneas que recibir se cierra igualmente
+        public static void RecepcionarAlDarPorRecibido(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            var idsDeLineas = new List<int>();
+            try
+            {
+                var recibidoEl = pedido.RecibidoEl ?? pedido.FechaDeRecepcionAlDarPorRecibido();
+                pedido.RecibirTodasLasLineas(contexto, recibidoEl, pedido.DestinoDeLasEntregas(), idsDeLineas, estaEnRecepcion: false);
+            }
+            finally
+            {
+                foreach (var idLinea in idsDeLineas)
+                    OlvidarRecepcion(idLinea, pedido.Id);
+                OlvidarRecepciones(pedido.Id);
+            }
         }
 
         // Al almacén sólo van materiales y ha de estar activo; a la obra de un expediente va cualquier clase, si no está terminado ni cancelado
@@ -160,65 +334,31 @@ namespace GestorDeElementos.Extensores
             return recepcion;
         }
 
-        // Entrega en un almacén: inserta el movimiento de entrada (compra) con su stock y valor; el movimiento
-        // se valora al precio neto de descuento. Los movimientos posteriores del mismo almacén y material se barren
-        public static MovimientoDeAlmacenDtm EntradaDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, LineaDeUnPedidoDtm linea)
+        // Al cancelar una entrega en un almacén se borra su movimiento de compra, si lo tiene. Sólo se puede si el almacén está activo
+        // y su preasiento, si lo tiene, está pendiente; el preasiento se anula. Desde el movimiento anterior se barren los posteriores
+        private static void AnularEntradaDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
         {
-            if (recepcion.IdAlmacen is null || linea.IdUnitario is null)
-                Emitir($"La entrega de la línea {linea.Orden} no se puede registrar como entrada de almacén: falta el almacén o el material");
+            if (!recepcion.VaAlAlmacen)
+                return;
 
-            var idTipoMovimiento = contexto.Set<TipoMovimientoDtm>().Single(x => x.Nombre == enumTiposDeMovimiento.Compra.Descripcion()).Id;
-            var movimiento = new MovimientoDeAlmacenDtm
-            {
-                IdAlmacen = (int)recepcion.IdAlmacen,
-                IdUnitario = (int)linea.IdUnitario,
-                IdTipoMovimiento = idTipoMovimiento,
-                Cantidad = recepcion.Cantidad,
-                Precio = recepcion.Cantidad == 0 ? recepcion.Precio : recepcion.Importe / recepcion.Cantidad,
-                RealizadoEl = recepcion.RecepcionadaEl
-            };
+            var idTipoMovimiento = enumTiposDeMovimiento.Compra.LeerTipoDeMovimiento(contexto).Id;
+            var movimiento = contexto.Set<MovimientoDeAlmacenDtm>().FirstOrDefault(x => x.IdLineaDeRecepcion == recepcion.Id && x.IdTipoMovimiento == idTipoMovimiento);
+            if (movimiento is null)
+                return;
 
-            return movimiento.InsertarYBarrer(contexto);
-        }
-
-        // Las recepciones se registran con el pedido en recepción: si está solicitado se transita a recepción, anotando como fecha de
-        // recepción de la cabecera la de la entrega (ver ExtensorDePedidos.AntesDeRecibir). Devuelve el pedido releído tras transitar
-        public static PedidoDtm PasarARecepcion(this PedidoDtm pedido, ContextoSe contexto, DateTime recibidoEl)
-        {
-            if (!pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud))
-                return pedido;
-
-            var parametros = new Dictionary<string, object> { { nameof(PedidoDtm.RecibidoEl), recibidoEl.Date } };
-            var etapa = enumEtapasDePedido.PED_Etapa_De_Recepcion.EstadosDeLaEtapa();
-            // se usa la transición del sistema y, si no la hay, la de usuario
-            if (pedido.TransicionPosible(contexto, etapa.etapa, etapa.estados, delSistema: true, emitirErrorSiNoHay: false) != null)
-                pedido.TransitarALaEtapa(contexto, etapa, parametros, delSistema: true);
-            else
-                pedido.TransitarALaEtapa(contexto, etapa, parametros, delSistema: false);
-
-            return contexto.SeleccionarPorId<PedidoDtm>(pedido.Id, usarLaCache: false);
-        }
-
-        // Se cachea también el false; se olvida al recibir o cancelar la entrega de cualquiera de sus líneas (ver OlvidarRecepcion)
-        public static bool TieneLineasRecepcionadas(this PedidoDtm pedido, ContextoSe contexto)
-        {
-            var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_HayRecepciones);
-            if (cache.ContainsKey(pedido.Id.ToString()))
-                return (bool)cache[pedido.Id.ToString()];
-            var hayRecepciones = contexto.Set<RecepcionDeLineaDtm>().Any(recepcion => contexto.Set<LineaDeUnPedidoDtm>().Any(linea => linea.Id == recepcion.IdLinea && linea.IdElemento == pedido.Id));
-            cache[pedido.Id.ToString()] = hayRecepciones;
-            return hayRecepciones;
+            movimiento.EliminarComoAdministrador(contexto, accionEjecutada: ltrDeUnMovimientoDeAlmacen.Accion_AnularEntradaDeCompra);
         }
 
         // Se borra la entrega leída de la base de datos, no la cacheada, para que su RowVersion sea el actual.
         // Queda una traza en el pedido con quién la ha cancelado y los datos que tenía la entrega
-        public static void CancelarRecepcion(this LineaDeUnPedidoDtm linea, ContextoSe contexto)
+        private static void CancelarRecepcion(this LineaDeUnPedidoDtm linea, ContextoSe contexto)
         {
-            var recepcion = contexto.Set<RecepcionDeLineaDtm>().FirstOrDefault(recepcion => recepcion.IdLinea == linea.Id);
+            var recepcion = linea.LeerRecepcion(contexto, erroSiNoHay: false);
             if (recepcion is null)
                 return;
             try
             {
+                recepcion.AnularEntradaDeCompra(contexto);
                 var pedido = contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento);
                 var descripcion = recepcion.DescripcionParaLaTraza(contexto, linea);
                 contexto.Remove(recepcion);
@@ -228,6 +368,7 @@ namespace GestorDeElementos.Extensores
             finally
             {
                 linea.OlvidarRecepcion();
+                ServicioDeCaches.EliminarElemento(CacheDe.Pedido_LineaPedidoPorRecepcion, recepcion.Id.ToString());
             }
         }
 
@@ -246,106 +387,6 @@ namespace GestorDeElementos.Extensores
                    $"Registrada por {registradaPor} el {recepcion.FechaCreacion:dd/MM/yyyy HH:mm}";
         }
 
-        //---------------------------------------------------------------------------------------------------------------------------
-        // Operaciones de recepción, se ejecutan dentro de la transacción del llamador. Al acabar, bien o mal, olvidan las cachés de
-        // recepciones que hayan podido leer o cambiar, para que si la transacción se deshace no queden con datos que no se guardaron
-        //---------------------------------------------------------------------------------------------------------------------------
-
-        // Entrega parcial de una línea con lo indicado en la modal de recepción; si no se indica destino va al de la cabecera.
-        // Si el pedido está solicitado pasa a recepción
-        public static string RecepcionarLinea(ContextoSe contexto, int idLinea, string rowVersion, DateTime recepcionadaEl, decimal cantidad, decimal precio, decimal? descuento, int? idAlmacen, int? idExpediente)
-        {
-            PedidoDtm pedido = null;
-            try
-            {
-                LineaDeUnPedidoDtm linea;
-                (linea, pedido) = LeerLineaParaRecepcionar(contexto, idLinea, rowVersion, esUnaEntrega: true);
-
-                var destino = idAlmacen is null && idExpediente is null ? pedido.DestinoDeLasEntregas() : (idAlmacen, idExpediente);
-                var estabaSolicitado = pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud);
-                pedido = pedido.PasarARecepcion(contexto, recepcionadaEl);
-                var recepcion = linea.Recibir(contexto, pedido, recepcionadaEl, cantidad, precio, descuento, destino.idAlmacen, destino.idExpediente);
-
-                return $"Línea {linea.Orden} recibida el {recepcion.RecepcionadaEl:dd/MM/yyyy} {(recepcion.VaAlAlmacen ? "en el almacén" : "en la obra del expediente")}: cantidad {cantidad}, precio {precio}, descuento {descuento}, importe entregado {recepcion.Importe:N2}"
-                     + (estabaSolicitado ? $"; el pedido '{pedido.Referencia}' pasa a {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}" : "");
-            }
-            finally
-            {
-                OlvidarRecepcion(idLinea, pedido?.Id ?? 0);
-            }
-        }
-
-        // Aspa: cancela la entrega de la línea, sólo con el pedido en recepción; si la línea no tiene entrega es un error
-        public static string LineaNoEntregada(ContextoSe contexto, int idLinea, string rowVersion)
-        {
-            PedidoDtm pedido = null;
-            try
-            {
-                LineaDeUnPedidoDtm linea;
-                // valida que la línea tenga entrega y que el pedido esté en recepción
-                (linea, pedido) = LeerLineaParaRecepcionar(contexto, idLinea, rowVersion, esUnaEntrega: false);
-                linea.CancelarRecepcion(contexto);
-                return $"Cancelada la entrega de la línea {linea.Orden}";
-            }
-            finally
-            {
-                OlvidarRecepcion(idLinea, pedido?.Id ?? 0);
-            }
-        }
-
-        // Entrega completa: recepciona todas las líneas del pedido con lo pedido en cada una; si no se indica destino va al de la cabecera.
-        // Si el pedido está solicitado pasa a recepción; si alguna línea ya se ha recepcionado no se permite, se han de hacer recepciones parciales
-        // "Dar por entregado": recepciona todas las líneas del pedido con lo pedido en cada una; si no se indica destino va al de la cabecera.
-        // Si el pedido está solicitado pasa a recepción; si alguna línea ya se ha recepcionado no se permite, se han de hacer recepciones parciales
-        public static string RecepcionarPedido(ContextoSe contexto, int idPedido, string rowVersion, DateTime recepcionadoEl, int? idAlmacen, int? idExpediente)
-        {
-            var idsDeLineas = new List<int>();
-            try
-            {
-                var pedido = contexto.SeleccionarPorId<PedidoDtm>(idPedido, usarLaCache: false);
-                pedido.ValidarRowId(contexto, rowVersion, releer: false);
-                pedido.ValidarQueEsGestor(contexto);
-
-                var destino = idAlmacen is null && idExpediente is null ? pedido.DestinoDeLasEntregas() : (idAlmacen, idExpediente);
-
-                if (!pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Solicitud, enumEtapasDePedido.PED_Etapa_De_Recepcion }))
-                    Emitir($"El pedido '{pedido.Referencia}' solo se puede recepcionar {enumEtapasDePedido.PED_Etapa_De_Solicitud.Nombre()} o {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
-
-                pedido = pedido.PasarARecepcion(contexto, recepcionadoEl);
-                var (lineas, importe) = pedido.RecibirTodasLasLineas(contexto, recepcionadoEl, destino, idsDeLineas, estaEnRecepcion: true);
-
-                return $"Pedido '{pedido.Referencia}' recepcionado el {recepcionadoEl:dd/MM/yyyy} {(destino.idAlmacen != null ? "en el almacén" : "en la obra del expediente")}: {lineas} líneas por un importe de {importe:N2}";
-            }
-            finally
-            {
-                foreach (var idLinea in idsDeLineas)
-                    OlvidarRecepcion(idLinea, idPedido);
-                OlvidarRecepciones(idPedido);
-            }
-        }
-
-        // "Dar por recibido" (transición de solicitado a cerrado): la fecha de recepción es la de entrega si ya ha pasado y si no la de hoy
-        public static DateTime FechaDeRecepcionAlDarPorRecibido(this PedidoDtm pedido)
-            => pedido.EntregarEl is null || pedido.EntregarEl.Value.Date > DateTime.Today ? DateTime.Today : pedido.EntregarEl.Value.Date;
-
-        // "Dar por recibido": una vez cerrado el pedido se recepcionan todas sus líneas con lo pedido, en la fecha de recepción de la
-        // cabecera (ver GestorDePedidos.DespuesDeTransitar) y al destino de la cabecera. Un pedido sin líneas que recibir se cierra igualmente
-        public static void RecepcionarAlDarPorRecibido(this PedidoDtm pedido, ContextoSe contexto)
-        {
-            var idsDeLineas = new List<int>();
-            try
-            {
-                var recibidoEl = pedido.RecibidoEl ?? pedido.FechaDeRecepcionAlDarPorRecibido();
-                pedido.RecibirTodasLasLineas(contexto, recibidoEl, pedido.DestinoDeLasEntregas(), idsDeLineas, estaEnRecepcion: false);
-            }
-            finally
-            {
-                foreach (var idLinea in idsDeLineas)
-                    OlvidarRecepcion(idLinea, pedido.Id);
-                OlvidarRecepciones(pedido.Id);
-            }
-        }
-
         // Recibe todas las líneas con lo pedido en cada una; si alguna ya se ha recepcionado no se permite, se han de hacer recepciones parciales.
         // estaEnRecepcion: entrega completa del pedido en recepción; si no, se da por recibido al cerrarlo y no es error que no haya líneas
         private static (int lineas, decimal importe) RecibirTodasLasLineas(this PedidoDtm pedido, ContextoSe contexto, DateTime recepcionadoEl, (int? idAlmacen, int? idExpediente) destino, List<int> idsDeLineas, bool estaEnRecepcion)
@@ -354,8 +395,8 @@ namespace GestorDeElementos.Extensores
                 Emitir($"El pedido '{pedido.Referencia}' tiene líneas recepcionadas, recepcione las que falten con recepciones parciales");
 
             // los comentarios no tienen cantidad ni precio, no se reciben
-            var lineas = contexto.Set<LineaDeUnPedidoDtm>()
-                .Where(linea => linea.IdElemento == pedido.Id && linea.TipoDeLinea != enumTipoDeLinea.Comentario && linea.Cantidad > 0 && linea.Precio != null)
+            var lineas = pedido.Detalles<LineaDeUnPedidoDtm>(contexto)
+                .Where(linea => linea.TipoDeLinea != enumTipoDeLinea.Comentario && linea.Cantidad > 0 && linea.Precio != null)
                 .OrderBy(linea => linea.Orden)
                 .ToList();
             if (lineas.Count == 0 && estaEnRecepcion)
@@ -393,7 +434,7 @@ namespace GestorDeElementos.Extensores
             if (!pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Solicitud, enumEtapasDePedido.PED_Etapa_De_Recepcion }))
                 Emitir($"Las líneas del pedido '{pedido.Referencia}' solo se pueden recepcionar con el pedido {enumEtapasDePedido.PED_Etapa_De_Solicitud.Nombre()} o {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
 
-            var entregada = linea.Recepcion(contexto) != null;
+            var entregada = linea.LeerRecepcion(contexto, erroSiNoHay: false) != null;
             if (esUnaEntrega && entregada)
                 Emitir($"La línea {linea.Orden} del pedido '{pedido.Referencia}' ya se ha entregado, para volver a entregarla cancele antes la entrega");
             // el aspa anula la entrega: la línea ha de tenerla y, como solicitado no puede haber nada entregado, sólo en recepción
@@ -404,5 +445,9 @@ namespace GestorDeElementos.Extensores
 
             return (linea, pedido);
         }
+
+        // Destino por defecto de las entregas de un pedido: el almacén de la cabecera y, si no lo tiene, la obra de su expediente
+        private static (int? idAlmacen, int? idExpediente) DestinoDeLasEntregas(this PedidoDtm pedido)
+            => pedido.IdAlmacen != null ? (pedido.IdAlmacen, null) : (null, pedido.IdExpediente);
     }
 }

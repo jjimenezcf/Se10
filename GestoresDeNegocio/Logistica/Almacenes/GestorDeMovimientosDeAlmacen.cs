@@ -70,20 +70,7 @@ namespace GestoresDeNegocio.Logistica
         public override MovimientoDeAlmacenDtm PersistirRegistro(MovimientoDeAlmacenDtm movimiento, ParametrosDeNegocio parametros)
         {
             var barriendo = parametros.Parametros.LeerValor(ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, false);
-
-            var idSemaforo = 0;
-            if (!barriendo)
-            {
-                if (parametros.Eliminando)
-                    GestorDeErrores.Emitir("No se pueden eliminar movimientos de almacén");
-
-                var almacenABloquear = Contexto.SeleccionarPorId<AlmacenDtm>(movimiento.IdAlmacen);
-                if (!almacenABloquear.EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Activo))
-                    GestorDeErrores.Emitir($"El almacén '{almacenABloquear.Referencia}' no está activo, no se pueden generar movimientos");
-
-                var untario = Contexto.SeleccionarPorId<UnitarioDtm>(movimiento.IdUnitario);
-                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(Contexto, enumNegocio.Almacen.IdNegocio(), almacenABloquear.Id, enumOpercionesDeSemaforo.PMA, almacenABloquear.Referencia + ":" + untario.Referencia).Id;
-            }
+            var idSemaforo = !barriendo ? PonerSemaforo(movimiento) : 0;
             try
             {
                 movimiento = base.PersistirRegistro(movimiento, parametros);
@@ -96,12 +83,37 @@ namespace GestoresDeNegocio.Logistica
             return movimiento;
         }
 
+        private int PonerSemaforo(MovimientoDeAlmacenDtm movimiento)
+        {
+            int idSemaforo;
+            var almacenABloquear = movimiento.Almacen(Contexto);
+
+            var etapaNecesaria = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento == enumClaseDeMovimiento.Inicial
+            ? enumEtapasDeAlmacen.ALM_Etapa_En_Inventario
+            : enumEtapasDeAlmacen.ALM_Etapa_Activo;
+
+            if (!almacenABloquear.EstaEnLaEtapa(etapaNecesaria))
+                GestorDeErrores.Emitir($"El almacén '{almacenABloquear.Referencia}' no está en la etapa '{etapaNecesaria.Nombre()}', no se pueden generar movimientos de '{movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento.Descripcion()}'");
+
+            idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(Contexto, enumNegocio.Almacen.IdNegocio(), almacenABloquear.Id, enumOpercionesDeSemaforo.PMA, almacenABloquear.Referencia + ":" + movimiento.Unitario(Contexto).Referencia).Id;
+            return idSemaforo;
+        }
+
         protected override void AntesDePersistir(MovimientoDeAlmacenDtm movimiento, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(movimiento, parametros);
 
             if (parametros.Parametros.LeerValor(ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, false))
                 return;
+
+            // sólo se borran al cancelar la entrega de una recepción en un almacén; los posteriores se barren en DespuesDePersistir
+            if (parametros.Eliminando)
+            {
+                if (parametros.AccionQueSeEjecuta != ltrDeUnMovimientoDeAlmacen.Accion_AnularEntradaDeCompra)
+                    GestorDeErrores.Emitir("No se pueden eliminar movimientos de almacén");
+                movimiento.CancelarPreasientoDeRecepcion(Contexto);
+                return;
+            }
 
             if (parametros.Modificando && movimiento.IdPreasiento is not null)
                 movimiento.QuitarPreasiento(Contexto);
@@ -151,11 +163,15 @@ namespace GestoresDeNegocio.Logistica
             }
         }
 
-        // TODO: sustituir por la referencia real en cuanto existan los Dtm de MovimientoDeObra/LineaDeAlbaran/LineaDeDevolucion/LineaDeInventario
-        private static string ObtenerDocumentoDeOrigenODestino(MovimientoDeAlmacenDtm movimiento)
+        private string ObtenerDocumentoDeOrigenODestino(MovimientoDeAlmacenDtm movimiento)
         {
             if (movimiento.IdMovimiento != null) return $"Movimiento de obra Nº {movimiento.IdMovimiento}";
-            if (movimiento.IdLineaAlbaran != null) return $"Albarán Nº {movimiento.IdLineaAlbaran}";
+            if (movimiento.IdLineaDeRecepcion != null)
+            {
+                var linea = ExtensorDeRecepciones.LeerLineaDePedido(Contexto, (int)movimiento.IdLineaDeRecepcion);
+                var pedido = linea.DetalleDe<PedidoDtm>(Contexto);
+                return $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'";
+            }
             if (movimiento.IdLineaDevolucion != null) return $"Devolución Nº {movimiento.IdLineaDevolucion}";
             if (movimiento.IdLineaInventario != null) return $"Inventario Nº {movimiento.IdLineaInventario}";
             return string.Empty;

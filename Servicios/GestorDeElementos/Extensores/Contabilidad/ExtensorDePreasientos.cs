@@ -45,40 +45,55 @@ namespace GestorDeElementos.Extensores
             return elemento.Preasiento;
         }
 
-        public static void CancelarPreasiento(this IUsaPreasiento elemento, ContextoSe contexto)
+        public static void CancelarPreasiento(this IUsaPreasiento elemento, ContextoSe contexto, bool permitirCancelarUnContabilizado = true)
         {
             var preasiento = elemento.Preasiento(contexto, errorSiNoHay: false);
             if (preasiento == null)
                 return;
 
-            preasiento.CancelarPreasiento(contexto);
+            preasiento.CancelarPreasiento(contexto, permitirCancelarUnContabilizado);
             elemento.IdPreasiento = null;
             elemento.Preasiento = null;
 
         }
 
-        public static void CancelarPreasiento(this PreasientoDtm preasiento, ContextoSe contexto)
+        public static void CancelarPreasiento(this PreasientoDtm preasiento, ContextoSe contexto, bool permitirCancelarUnContabilizado)
         {
             if (preasiento.Estado(contexto).Cancelado)
                 return;
 
+            // el referenciado de un almacén es un movimiento de almacén, que se borra al cancelar la entrega que lo originó
+            var esDeUnAlmacen = preasiento.NegocioReferenciado == enumNegocio.Almacen;
+
             if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Pendiente))
             {
+                var asunto = preasiento.NegocioReferenciado == enumNegocio.Cobro ? "Cancelado al eliminar el cobro"
+                           : esDeUnAlmacen ? "Cancelado al eliminar el movimiento de almacén"
+                           : "Cancelado al regenerar el preasiento";
+
+                var detalle = preasiento.NegocioReferenciado == enumNegocio.Cobro
+                    ? $"Se ha eliminado el cobro asociado a la factura {((CobroDeFaeDtm)preasiento.Referenciado(contexto)).Factura(contexto).Referencia}"
+                    : esDeUnAlmacen
+                    ? $"Se ha cancelado la entrega que originó el movimiento de almacén Nº {preasiento.IdReferenciado} y éste se ha eliminado"
+                    : "Se ha regenerado el preasiento desde la interface";
+
                 preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Cancelado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
                             {
-                                {ltrParametrosEp.asunto, preasiento.NegocioReferenciado == enumNegocio.Cobro? "Cancelado al eliminar el cobro" : "Cancelado al regenerar el preasiento" },
-                                {ltrParametrosEp.detalleAsunto, preasiento.NegocioReferenciado == enumNegocio.Cobro?
-                                     $"Se ha eliminado el cobro asociado a la factura {((CobroDeFaeDtm)preasiento.Referenciado(contexto)).Factura(contexto).Referencia}":
-                                     $"Se ha regenerado el preasiento desde la interface"
-                                }
+                                {ltrParametrosEp.asunto, asunto },
+                                {ltrParametrosEp.detalleAsunto, detalle }
                             });
             }
             else
             {
+                if (!permitirCancelarUnContabilizado)
+                    GestorDeErrores.Emitir($"No se puede cancelar el preasiento '{preasiento.Referencia}' ya que está contabilizado");
+
                 preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Anulado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
                    {
-                       {ltrParametrosEp.asunto, "Anulado al regenerar el preasiento" },
-                       {ltrParametrosEp.detalleAsunto, $"Se ha anulado el preasiento desde la interface, recuerde cancelar su contabilización" }
+                       {ltrParametrosEp.asunto, esDeUnAlmacen ? "Anulado al eliminar el movimiento de almacén" : "Anulado al regenerar el preasiento" },
+                       {ltrParametrosEp.detalleAsunto, esDeUnAlmacen
+                            ? $"Se ha cancelado la entrega que originó el movimiento de almacén Nº {preasiento.IdReferenciado} y éste se ha eliminado, recuerde cancelar su contabilización"
+                            : "Se ha anulado el preasiento desde la interface, recuerde cancelar su contabilización" }
                    });
             }
         }

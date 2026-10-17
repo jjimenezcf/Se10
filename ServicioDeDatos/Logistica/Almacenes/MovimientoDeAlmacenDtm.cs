@@ -63,6 +63,8 @@ namespace ServicioDeDatos.Logistica
 
         public static string EstoyBarriendo => nameof(EstoyBarriendo);
 
+        public static string Accion_AnularEntradaDeCompra => nameof(Accion_AnularEntradaDeCompra);
+
     }
 
     [Table(Tablas.ALMACEN_TIPO_MOVIMIENTO, Schema = Esquemas.LOGISTICA)]
@@ -72,7 +74,7 @@ namespace ServicioDeDatos.Logistica
     }
 
     [Table(Tablas.ALMACEN_MOVIMIENTO, Schema = Esquemas.LOGISTICA)]
-    public class MovimientoDeAlmacenDtm : RegistroDtm, IAuditoria
+    public class MovimientoDeAlmacenDtm : RegistroDtm, IAuditoria, IUsaPreasiento
     {
         public int IdAlmacen { get; set; }
         public AlmacenDtm Almacen { get; set; }
@@ -92,12 +94,13 @@ namespace ServicioDeDatos.Logistica
 
         // Origen o destino del movimiento (según la ClaseMovimiento del TipoMovimiento). Todavía no existen los Dtm de estos negocios.
         public int? IdMovimiento { get; set; }
-        public int? IdLineaAlbaran { get; set; }
+        public int? IdLineaDeRecepcion { get; set; }
         public int? IdLineaDevolucion { get; set; }
         public int? IdLineaInventario { get; set; }
 
         public int? IdPreasiento { get; set; }
         public PreasientoDtm Preasiento { get; set; }
+        public string Referencia { get; set; }
 
         public int IdUsuaCrea { get; set; }
         public int? IdUsuaModi { get; set; }
@@ -122,6 +125,8 @@ namespace ServicioDeDatos.Logistica
 
         public static void Movimiento(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<MovimientoDeAlmacenDtm>().Ignore(p => p.Referencia);
+
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.Almacen), nameof(MovimientoDeAlmacenDtm.IdAlmacen), ICampos.ID_ALMACEN, requerida: true, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.Unitario), nameof(MovimientoDeAlmacenDtm.IdUnitario), ICampos.ID_UNITARIO, requerida: true, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.TipoMovimiento), nameof(MovimientoDeAlmacenDtm.IdTipoMovimiento), ICampos.ID_TIPO_MOVIMIENTO, requerida: true, unico: false);
@@ -135,7 +140,8 @@ namespace ServicioDeDatos.Logistica
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.RealizadoEl).HasColumnName(ICampos.REALIZADO_EL).HasColumnType(IDominio.DATETIME_2).IsRequired(true);
 
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdMovimiento).HasColumnName(ICampos.ID_MOVIMIENTO).HasColumnType(IDominio.INT).IsRequired(false);
-            modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaAlbaran).HasColumnName(ICampos.ID_LINEA_ALBARAN).HasColumnType(IDominio.INT).IsRequired(false);
+            // la entrada de compra apunta a la entrega de la línea del pedido que la origina (RecepcionDeLineaDtm)
+            ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm, RecepcionDeLineaDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.IdLineaDeRecepcion), ICampos.ID_LINEA_RECEPCION, requerida: false, unico: false);
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaDevolucion).HasColumnName(ICampos.ID_LINEA_DEVOLUCION).HasColumnType(IDominio.INT).IsRequired(false);
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaInventario).HasColumnName(ICampos.ID_LINEA_INVENTARIO).HasColumnType(IDominio.INT).IsRequired(false);
 

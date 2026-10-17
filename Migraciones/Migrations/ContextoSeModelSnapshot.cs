@@ -12797,9 +12797,9 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_ALMACEN");
 
-                    b.Property<int?>("IdLineaAlbaran")
+                    b.Property<int?>("IdLineaDeRecepcion")
                         .HasColumnType("INT")
-                        .HasColumnName("ID_LINEA_ALBARAN");
+                        .HasColumnName("ID_LINEA_RECEPCION");
 
                     b.Property<int?>("IdLineaDevolucion")
                         .HasColumnType("INT")
@@ -12858,6 +12858,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdAlmacen")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_ALMACEN");
+
+                    b.HasIndex("IdLineaDeRecepcion")
+                        .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_RECEPCION");
 
                     b.HasIndex("IdPreasiento")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_PREASIENTO");
@@ -36379,6 +36382,12 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_ALMACEN");
+
+                    b.HasOne("ServicioDeDatos.Logistica.RecepcionDeLineaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdLineaDeRecepcion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_LINEA_RECEPCION");
 
                     b.HasOne("ServicioDeDatos.Contabilidad.PreasientoDtm", "Preasiento")
                         .WithMany()

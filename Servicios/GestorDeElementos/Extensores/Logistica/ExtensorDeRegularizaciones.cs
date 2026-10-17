@@ -74,7 +74,7 @@ namespace GestorDeElementos.Extensores
 
         public static void GenerarInventarioInicial(ContextoSe contexto, RegularizacionDtm regularizacion)
         {
-            var idTipoMovimiento = contexto.Set<TipoMovimientoDtm>().Single(x => x.Nombre == enumTiposDeMovimiento.StockInicial.Descripcion()).Id;
+            var idTipoMovimiento = enumTiposDeMovimiento.StockInicial.LeerTipoDeMovimiento(contexto).Id;
 
             var lineas = contexto.Set<LineasDeUnaRegularizacionDtm>()
                 .Where(x => x.IdElemento == regularizacion.Id)
@@ -94,7 +94,7 @@ namespace GestorDeElementos.Extensores
                     IdLineaInventario = linea.Id
                 };
 
-                movimiento.InsertarYBarrer(contexto);
+                movimiento.InsertarComoAdministrador(contexto);
             }
         }
 
