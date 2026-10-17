@@ -87,6 +87,8 @@ namespace ServicioDeDatos.Ventas
         public static readonly string FacturaEnLaAEAT = $"La factura '{nameof(FacturaEmtDtm.Referencia)}' ya se ha enviado al SII, {NoSePuedeReenviar}, se ha localizado en la Aeat'";
         public static readonly string FacturaEnVerifactu = $"La factura '{nameof(FacturaEmtDtm.Referencia)}' ya se ha enviado al SII, {NoSePuedeReenviar}, se ha localizado en el registro Verifactu'";
         public static readonly string VerifactuNoActivo = "Error al acceder a los servidores de la AEAT";
+        public const string TrazaRegistroEnLaAeat = "Registro en la AEAT";
+        public const string ObservacionTrabajoDeEnvio = "Trabajo de envío a la AEAT";
 
         public static class Respuesta
         {
@@ -107,6 +109,7 @@ namespace ServicioDeDatos.Ventas
         public string Codigo { get; set; }
         public string Error { get; set; }
         public required string Huella { get; set; }
+        public string Detalle { get; set; }
     }
 
     public class IrpfEmtJson

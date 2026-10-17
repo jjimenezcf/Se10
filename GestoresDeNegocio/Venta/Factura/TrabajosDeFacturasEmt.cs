@@ -321,6 +321,22 @@ namespace GestoresDeNegocio.Ventas
                 {
                     SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 }
+
+                // Informativa: si falla no debe deshacer la emisión, la AEAT ya tiene la factura
+                try
+                {
+                    var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+                    {
+                        Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
+                        Query = $"id={entorno.TrabajoDeUsuario.Id}"
+                    }.Uri.ToString();
+                    factura.CrearObservacion(contexto, ltrSii.ObservacionTrabajoDeEnvio, urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                }
+                catch (Exception e)
+                {
+                    entorno.CrearTraza($"No se ha podido crear la observación '{ltrSii.ObservacionTrabajoDeEnvio}' en '{factura.Referencia}': {e.Message}");
+                }
+
                 var log = contexto.SeleccionarPorPropiedad<LogDeEnvioDeFacturaDtm>(nameof(LogDeEnvioDeFacturaDtm.IdFactura), factura.Id);
                 log.EnviadaEl = DateTime.Now;
                 log.Modificar(contexto);

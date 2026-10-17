@@ -163,6 +163,16 @@ namespace GestoresDeNegocio.Venta.Factura
                             GestorDeErrores.Detalle(exDb));
                         GestoresDeNegocio.Ventas.TrabajosDeFacturasEmt.SometerReconstruccionVerifactu(Contexto, Factura.Id);
                     }
+
+                    // Informativa: si falla no debe interrumpir, la AEAT ya tiene la factura
+                    try
+                    {
+                        Factura.CrearTraza(Contexto, ltrSii.TrazaRegistroEnLaAeat, auditoriaSii.Detalle);
+                    }
+                    catch (Exception exTraza)
+                    {
+                        Contexto.AnotarTraza($"No se ha podido crear la traza '{ltrSii.TrazaRegistroEnLaAeat}' de '{Factura.Referencia}'", GestorDeErrores.Detalle(exTraza));
+                    }
                 }
                 finally
                 {

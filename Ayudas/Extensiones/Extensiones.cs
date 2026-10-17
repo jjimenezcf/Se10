@@ -1963,9 +1963,9 @@ namespace Utilidades
                     File.Move(rutaTemporal, rutaArchivo);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Loguear el error si tienes sistema de Logs. 
+                // Loguear el error si tienes sistema de Logs.
                 // Si falla la compresión, es mejor dejar pasar el archivo original a que se caiga el proceso.
             }
 

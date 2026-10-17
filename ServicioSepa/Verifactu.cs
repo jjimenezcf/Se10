@@ -272,7 +272,8 @@ namespace ServicioXml
                     contenido.AppendLine($"FicheroDeRespuesta:{invoiceEntry.ResponseFilePath}");
                     contenido.AppendLine($"RutaBlockChain:{Path.Combine(CacheDeVariable.CFG_Ruta_Fichero_De_Sii_Blockchains, invoice.SellerID)}");
 
-                    crearTraza(contenido.ToString());
+                    auditoria.Detalle = contenido.ToString();
+                    crearTraza(auditoria.Detalle);
 
                     return auditoria;
                 }

@@ -14,6 +14,8 @@
 		<PackageReference Include="itext" Version="9.6.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7" />
+		<!-- ConvertApi trae la 1.6.23, vulnerable (CVE-2026-72923); se fija la corregida -->
+		<PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.31" />
 		<PackageReference Include="Newtonsoft.Json.Schema" Version="4.0.1" />
 		<PackageReference Include="RtfPipe" Version="2.0.7677.4303" />
 		<PackageReference Include="SevenZipExtractor" Version="1.0.19" />
