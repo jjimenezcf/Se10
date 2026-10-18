@@ -196,7 +196,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         else elemento = (ElementoDtm)gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
 
         if (!elemento.EsConsultor(Contexto))
-            throw new Exception($"No tiene acceso al elemento {elemento.Referencia(Contexto)}");
+            GestorDeErrores.Emitir($"No tiene acceso al elemento {elemento.Referencia(Contexto)}");
 
         if (!ApiDeArchivos.EsAnexoDelElemento(Contexto, negocio, idElemento, idArchivo) && !((GestorDeArchivos)_GestorDeElementos).EsUnArchivoSueltoDelUsuario(idArchivo))
             GestorDeErrores.Emitir($"El archivo no está anexado al elemento del negocio {negocio.ToNombre()}");
@@ -805,6 +805,39 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         {
             _GestorDeElementos.Rollback(tran);
             ApiController.PrepararError(e, r, "No se ha podido firmar el archivo.");
+        }
+        finally
+        {
+            Contexto.CerrarTraza();
+        }
+
+        return new JsonResult(r);
+    }
+
+    // Convierte a pdf un archivo (docx, xlsx o txt) anexado al elemento y anexa el pdf al mismo elemento
+    public JsonResult epConvertirAPdf(string negocio, int idElemento, int idArchivo)
+    {
+        var r = new Resultado();
+
+        var tran = _GestorDeElementos.IniciarTransaccion();
+        Contexto.IniciarTraza(GetType().Name + "_" + nameof(epConvertirAPdf));
+        try
+        {
+            ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            var negocioSe = NegociosDeSe.ToEnumerado(negocio);
+
+            var pdf = ((GestorDeArchivos)_GestorDeElementos).ConvertirAPdf(negocioSe, idElemento, idArchivo);
+
+            r.Datos = new ArchivoResultado { IdArchivo = pdf.Id, Nombre = pdf.Nombre };
+            r.Estado = enumEstadoPeticion.Ok;
+            r.Mensaje = $"Archivo '{pdf.Nombre}' creado";
+            r.ModoDeAcceso = ApiDePermisos.LeerModoDeAcceso(Contexto, negocioSe, idElemento).Render();
+            _GestorDeElementos.Commit(tran);
+        }
+        catch (Exception e)
+        {
+            _GestorDeElementos.Rollback(tran);
+            ApiController.PrepararError(e, r, "No se ha podido convertir el archivo a pdf.");
         }
         finally
         {

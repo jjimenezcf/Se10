@@ -1270,6 +1270,7 @@ select.form-control:focus::-ms-value {
 
 .descargar-anexado,
 .compartir-con-whatsapp,
+.convertir-a-pdf,
 .compartir-con-guid,
 .consultar-con-guid,
 .procesar-con-ia,
@@ -1280,6 +1281,7 @@ select.form-control:focus::-ms-value {
 }
 
 .compartir-con-whatsapp,
+.convertir-a-pdf,
 .compartir-con-guid,
 .consultar-con-guid,
 .alternar-vista-fichas {
@@ -1316,6 +1318,7 @@ select.form-control:focus::-ms-value {
 
 .descargar-anexado img,
 .compartir-con-whatsapp img,
+.convertir-a-pdf img,
 .compartir-con-guid img,
 .consultar-con-guid img,
 .alternar-vista-fichas img{

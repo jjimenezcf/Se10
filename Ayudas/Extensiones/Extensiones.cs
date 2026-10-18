@@ -1582,6 +1582,205 @@ namespace Utilidades
 
     public static class extPdf
     {
+        private const int MinutosMaximosDeConversion = 2;
+        private static readonly object _bloqueoLibreOffice = new object();
+
+        // Formatos que se pueden convertir a pdf (con LibreOffice y con ConvertApi)
+        // Los html se guardan con extensión txt (ver SubirArchivoInterno), por eso un txt puede ser un html: se distingue por su contenido
+        public static readonly string[] ExtensionesConvertiblesAPdf = { ".docx", ".xlsx", ".txt", ".html", ".htm" };
+
+        public static bool EsConvertibleAPdf(string rutaOnombre)
+        => ExtensionesConvertiblesAPdf.Contains(Path.GetExtension(rutaOnombre).ToLower());
+
+        // Convierte a pdf (junto al fichero y con su nombre) con LibreOffice si se encuentra soffice.exe; si no, con ConvertApi.
+        // La clave de ConvertApi se pide solo si hace falta, porque puede no estar definida.
+        public static string ConvertirAPdf(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi)
+        {
+            // Una hoja de cálculo es ancha: se imprime en A3 y apaisado
+            if (Path.GetExtension(fichero).Equals($".{enumExtensiones.xlsx}", StringComparison.OrdinalIgnoreCase))
+                return ConvertirXlsxAPdf(fichero, rutaLibreOffice, obtenerClaveConvertApi);
+
+            // Un html se sanea antes de dárselo al motor y se convierte como documento, no como texto
+            if (EsHtmlParaConvertir(fichero))
+                return ConvertirHtmlAPdf(fichero, rutaLibreOffice, obtenerClaveConvertApi);
+
+            return ConvertirAPdfConElMotor(fichero, rutaLibreOffice, obtenerClaveConvertApi);
+        }
+
+        private static bool EsHtmlParaConvertir(string fichero)
+        {
+            var extension = Path.GetExtension(fichero).ToLower();
+            if (extension == ".html" || extension == ".htm")
+                return true;
+
+            return extension == ".txt" && extHtml.EsHtml(File.ReadAllText(fichero));
+        }
+
+        // El html se sanea en una copia (el original no se toca) y se convierte con el filtro de LibreOffice para documentos web;
+        // el pdf se deja junto al original, como en el resto de formatos
+        private static string ConvertirHtmlAPdf(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi)
+        {
+            var directorioTemporal = Path.Combine(Path.GetTempPath(), "Se_Conversion", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directorioTemporal);
+            try
+            {
+                var copia = Path.Combine(directorioTemporal, $"{Path.GetFileNameWithoutExtension(fichero)}.html");
+                File.WriteAllText(copia, extHtml.SanitizeHtmlParaPdf(File.ReadAllText(fichero)), new System.Text.UTF8Encoding(false));
+
+                var pdfTemporal = ConvertirAPdfConElMotor(copia, rutaLibreOffice, obtenerClaveConvertApi, filtroDeLibreOffice: "pdf:writer_web_pdf_Export");
+                var pdf = Path.Combine(Path.GetDirectoryName(fichero), Path.GetFileName(pdfTemporal));
+                File.Move(pdfTemporal, pdf, overwrite: true);
+                return pdf;
+            }
+            finally
+            {
+                try { Directory.Delete(directorioTemporal, recursive: true); } catch { }
+            }
+        }
+
+        // Se ajusta la página en una copia, para no modificar el xlsx original; el pdf se deja junto al original, como en el resto de formatos
+        private static string ConvertirXlsxAPdf(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi)
+        {
+            var directorioTemporal = Path.Combine(Path.GetTempPath(), "Se_Conversion", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directorioTemporal);
+            try
+            {
+                var copia = Path.Combine(directorioTemporal, Path.GetFileName(fichero));
+                File.Copy(fichero, copia, overwrite: true);
+
+                try
+                {
+                    extXlsx.ConfigurarPaginaApaisadaA3(copia);
+                }
+                catch (Exception)
+                {
+                    // si no se puede ajustar la página se convierte tal cual: es mejor un pdf con la página por defecto que ninguno
+                    File.Copy(fichero, copia, overwrite: true);
+                }
+
+                var pdfTemporal = ConvertirAPdfConElMotor(copia, rutaLibreOffice, obtenerClaveConvertApi);
+                var pdf = Path.Combine(Path.GetDirectoryName(fichero), Path.GetFileName(pdfTemporal));
+                File.Move(pdfTemporal, pdf, overwrite: true);
+                return pdf;
+            }
+            finally
+            {
+                try { Directory.Delete(directorioTemporal, recursive: true); } catch { }
+            }
+        }
+
+        private static string ConvertirAPdfConElMotor(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi, string filtroDeLibreOffice = "pdf")
+        {
+            var soffice = LocalizarSoffice(rutaLibreOffice);
+
+            if (soffice == null)
+                return ConvertirAPdfConConvertApi(fichero, obtenerClaveConvertApi());
+
+            return ConvertirAPdfConLibreOffice(fichero, soffice, filtroDeLibreOffice);
+        }
+
+        // Admite la ruta de soffice.exe o la de la carpeta donde se descomprimió LibreOffice
+        private static string LocalizarSoffice(string ruta)
+        {
+            if (string.IsNullOrWhiteSpace(ruta)) return null;
+
+            ruta = ruta.Trim().Trim('"');
+
+            if (File.Exists(ruta)) return ruta;
+
+            foreach (var candidata in new[] { Path.Combine(ruta, "program", "soffice.exe"), Path.Combine(ruta, "soffice.exe") })
+                if (File.Exists(candidata)) return candidata;
+
+            return null;
+        }
+
+        private static string ConvertirAPdfConLibreOffice(string fichero, string soffice, string filtroDeExportacion)
+        {
+            var directorioDeSalida = Path.GetDirectoryName(fichero);
+            var ficheroPdf = Path.Combine(directorioDeSalida, $"{Path.GetFileNameWithoutExtension(fichero)}.{enumExtensiones.pdf}");
+
+            // Una sola conversión a la vez por proceso: dos instancias con el mismo perfil se estorban.
+            // El perfil es propio de cada proceso para no chocar con otros sitios ni con un LibreOffice abierto.
+            lock (_bloqueoLibreOffice)
+            {
+                var perfil = new Uri(Path.Combine(Path.GetTempPath(), "Se_LibreOffice", $"perfil_{Environment.ProcessId}")).AbsoluteUri;
+
+                var inicio = new System.Diagnostics.ProcessStartInfo(soffice)
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+                inicio.ArgumentList.Add($"-env:UserInstallation={perfil}");
+                inicio.ArgumentList.Add("--headless");
+                inicio.ArgumentList.Add("--norestore");
+                inicio.ArgumentList.Add("--convert-to");
+                inicio.ArgumentList.Add(filtroDeExportacion);
+                inicio.ArgumentList.Add("--outdir");
+                inicio.ArgumentList.Add(directorioDeSalida);
+                inicio.ArgumentList.Add(fichero);
+
+                // Si hubiera un pdf anterior, que no se confunda con el resultado de esta conversión
+                if (File.Exists(ficheroPdf)) File.Delete(ficheroPdf);
+
+                using (var proceso = System.Diagnostics.Process.Start(inicio))
+                {
+                    var salida = proceso.StandardOutput.ReadToEndAsync();
+                    var errores = proceso.StandardError.ReadToEndAsync();
+
+                    if (!proceso.WaitForExit(MinutosMaximosDeConversion * 60 * 1000))
+                    {
+                        proceso.Kill(entireProcessTree: true);
+                        throw new Exception($"LibreOffice no terminó de convertir '{Path.GetFileName(fichero)}' en {MinutosMaximosDeConversion} minutos.");
+                    }
+
+                    proceso.WaitForExit();
+
+                    if (proceso.ExitCode != 0 || !File.Exists(ficheroPdf) || new FileInfo(ficheroPdf).Length == 0)
+                        throw new Exception($"LibreOffice no ha podido convertir '{Path.GetFileName(fichero)}' a pdf (código {proceso.ExitCode}). {errores.Result} {salida.Result}".Trim());
+                }
+            }
+
+            return ficheroPdf;
+        }
+
+        // El formato de origen es la extensión del fichero (docx, xlsx, txt)
+        private static string ConvertirAPdfConConvertApi(string fichero, string claveConverApi)
+        {
+            Exception excepcionEnTaskRun = null;
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var covertapi = new ConvertApi(claveConverApi);
+                    var formatoOrigen = Path.GetExtension(fichero).TrimStart('.').ToLower();
+                    var resutadoConversion = await covertapi.ConvertAsync(formatoOrigen, enumExtensiones.pdf.ToString(), new ConvertApiFileParam("File", fichero));
+                    if (resutadoConversion.Files.Count() == 1)
+                    {
+                        foreach (var file in resutadoConversion.Files)
+                        {
+                            var directorioDeSalida = Path.GetDirectoryName(fichero);
+                            await resutadoConversion.SaveFilesAsync(directorioDeSalida);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("La conversión no produjo archivos. Revisa el resultado.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    excepcionEnTaskRun = ex;
+                }
+            }).Wait();
+
+            if (excepcionEnTaskRun != null)
+                throw excepcionEnTaskRun;
+
+            return Path.Combine(Path.GetDirectoryName(fichero), $"{Path.GetFileNameWithoutExtension(fichero)}.{enumExtensiones.pdf}");
+        }
+
         public static string SanitizePdf(string rutaConFichero)
         {
             string extension = Path.GetExtension(rutaConFichero).ToLower();
@@ -1720,6 +1919,93 @@ namespace Utilidades
             }
 
             return doc.DocumentNode.OuterHtml;
+        }
+
+        // Saneado para convertir un html a pdf en el servidor. Además de los scripts y los atributos on*, quita todo lo que haría
+        // que el motor de conversión cargase algo de fuera (marcos, objetos, hojas de estilo, imágenes que no estén incrustadas...)
+        // o ejecutase algo; lo que queda es el documento y sus imágenes incrustadas (data:image).
+        // No sustituye a SanitizeHtml, que es el que se aplica a lo que se muestra en el visor.
+        public static string SanitizeHtmlParaPdf(string html)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+
+            var prohibidas = new[] { "script", "iframe", "frame", "frameset", "object", "embed", "applet", "link", "base", "svg", "math", "video", "audio", "source", "track", "portal", "template" };
+            foreach (var etiqueta in prohibidas)
+                QuitarNodos(doc, $"//{etiqueta}");
+            QuitarNodos(doc, "//meta[@http-equiv]"); // refresh y similares
+            QuitarNodos(doc, "//meta[@charset]");    // la codificación se fija más abajo: se escribe siempre en utf-8
+
+            // Sólo se admiten imágenes incrustadas; las que apuntan a una ruta o a una dirección harían que el servidor la leyese o la pidiese
+            var imagenes = doc.DocumentNode.SelectNodes("//img");
+            if (imagenes != null)
+                foreach (var imagen in imagenes.ToList())
+                {
+                    var origen = Regex.Replace(imagen.GetAttributeValue("src", ""), @"[\s\u0000-\u001f]", "");
+                    var incrustada = origen.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase)
+                                  && !origen.StartsWith("data:image/svg", StringComparison.OrdinalIgnoreCase);
+                    if (!incrustada)
+                        imagen.Remove();
+                }
+
+            var elementos = doc.DocumentNode.SelectNodes("//*");
+            if (elementos != null)
+                foreach (var elemento in elementos.ToList())
+                {
+                    foreach (var atributo in elemento.Attributes.ToList())
+                    {
+                        var nombre = atributo.Name.ToLower();
+                        var valor = Regex.Replace(atributo.Value ?? "", @"[\s\u0000-\u001f]", "").ToLower();
+
+                        var esEvento = nombre.StartsWith("on");
+                        var esRecurso = nombre == "background" || nombre == "poster" || nombre == "srcset" || nombre == "ping" || nombre == "data";
+                        var esSrcFueraDeUnaImagen = nombre == "src" && elemento.Name.ToLower() != "img";
+                        var esCodigo = (nombre == "href" || nombre == "src" || nombre == "action" || nombre == "formaction" || nombre == "xlink:href")
+                                    && (valor.StartsWith("javascript:") || valor.StartsWith("vbscript:") || valor.StartsWith("data:text"));
+
+                        if (esEvento || esRecurso || esSrcFueraDeUnaImagen || esCodigo)
+                            elemento.Attributes.Remove(atributo);
+                        else if (nombre == "style")
+                            atributo.Value = LimpiarCss(atributo.Value);
+                    }
+
+                    if (elemento.Name.ToLower() == "style")
+                        elemento.InnerHtml = LimpiarCss(elemento.InnerText);
+                }
+
+            // Se escribe en utf-8: se indica así dentro del documento (si no tuviera cabecera se le crea)
+            var meta = "<meta charset=\"utf-8\">";
+            var cabecera = doc.DocumentNode.SelectSingleNode("//head");
+            var raiz = doc.DocumentNode.SelectSingleNode("//html");
+            if (cabecera != null)
+                cabecera.PrependChild(HtmlNode.CreateNode(meta));
+            else if (raiz != null)
+                raiz.PrependChild(HtmlNode.CreateNode($"<head>{meta}</head>"));
+            else
+                return $"<html><head>{meta}</head><body>{doc.DocumentNode.OuterHtml}</body></html>";
+
+            return doc.DocumentNode.OuterHtml;
+        }
+
+        private static void QuitarNodos(HtmlDocument doc, string xpath)
+        {
+            var nodos = doc.DocumentNode.SelectNodes(xpath);
+            if (nodos == null)
+                return;
+
+            foreach (var nodo in nodos.ToList())
+                nodo.Remove();
+        }
+
+        // Quita de un css lo que cargaría algo de fuera: @import y url() que no sean incrustados. Las barras se eliminan para
+        // que no se pueda escribir "url(" con secuencias de escape.
+        private static string LimpiarCss(string css)
+        {
+            css = (css ?? "").Replace("\\", "");
+            css = Regex.Replace(css, @"@import[^;]*;?", "", RegexOptions.IgnoreCase);
+            css = Regex.Replace(css, @"url\s*\(\s*(?!['""]?\s*data:image/(?!svg))[^)]*\)", "none", RegexOptions.IgnoreCase);
+            css = Regex.Replace(css, @"expression\s*\([^)]*\)", "none", RegexOptions.IgnoreCase);
+            return css;
         }
 
         public static bool EsHtml(string contenido)
@@ -2400,39 +2686,9 @@ namespace Utilidades
             return textoPlano.ToString();
         }
 
-        public static string ToPdf(string ficheroDocx, string claveConverApi)
-        {
-            Exception excepcionEnTaskRun = null;
-            Task.Run(async () =>
-            {
-                try
-                {
-                    var covertapi = new ConvertApi(claveConverApi); // "1CPToQIEOjozKPfq"; 
-                    var resutadoConversion = await covertapi.ConvertAsync(enumExtensiones.docx.ToString(), enumExtensiones.pdf.ToString(), new ConvertApiFileParam("File", ficheroDocx));
-                    if (resutadoConversion.Files.Count() == 1)
-                    {
-                        foreach (var file in resutadoConversion.Files)
-                        {
-                            var directorioDeSalida = System.IO.Path.GetDirectoryName(ficheroDocx);
-                            await resutadoConversion.SaveFilesAsync(directorioDeSalida);
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("La conversión no produjo archivos. Revisa el resultado.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    excepcionEnTaskRun = ex;
-                }
-            }).Wait();
-
-            if (excepcionEnTaskRun != null)
-                throw excepcionEnTaskRun;
-
-            return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(ficheroDocx), $"{System.IO.Path.GetFileNameWithoutExtension(ficheroDocx)}.{enumExtensiones.pdf}");
-        }
+        // La conversión a pdf es común a otros formatos: ver extPdf.ConvertirAPdf
+        public static string ToPdf(string ficheroDocx, string rutaLibreOffice, Func<string> obtenerClaveConvertApi)
+        => extPdf.ConvertirAPdf(ficheroDocx, rutaLibreOffice, obtenerClaveConvertApi);
 
     }
 
@@ -2473,6 +2729,45 @@ namespace Utilidades
 
     public static class extXlsx
     {
+
+        private const uint PapelA3 = 8; // valor de paperSize de Excel para A3 (297 x 420 mm)
+
+        // Deja todas las hojas del libro para imprimirse en A3 y apaisado; modifica el fichero indicado.
+        // Sólo toca la configuración de impresión de cada hoja, no sus datos.
+        public static void ConfigurarPaginaApaisadaA3(string rutaXlsx)
+        {
+            // Orden de los hijos de una hoja según el esquema: lo que va después de pageSetup
+            var posteriores = new[] { "headerFooter", "rowBreaks", "colBreaks", "customProperties", "cellWatches", "ignoredErrors", "smartTags", "drawing", "legacyDrawing", "legacyDrawingHF", "drawingHF", "picture", "oleObjects", "controls", "webPublishItems", "tableParts", "extLst" };
+
+            using (SpreadsheetDocument documento = SpreadsheetDocument.Open(rutaXlsx, true))
+            {
+                foreach (var parteDeHoja in documento.WorkbookPart.WorksheetParts)
+                {
+                    var hoja = parteDeHoja.Worksheet;
+
+                    var margenes = hoja.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.PageMargins>();
+                    if (margenes == null)
+                    {
+                        margenes = new DocumentFormat.OpenXml.Spreadsheet.PageMargins { Left = 0.7, Right = 0.7, Top = 0.75, Bottom = 0.75, Header = 0.3, Footer = 0.3 };
+                        var siguiente = hoja.ChildElements.FirstOrDefault(e => posteriores.Contains(e.LocalName));
+                        if (siguiente != null) hoja.InsertBefore(margenes, siguiente);
+                        else hoja.AppendChild(margenes);
+                    }
+
+                    var configuracion = hoja.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.PageSetup>();
+                    if (configuracion == null)
+                    {
+                        configuracion = new DocumentFormat.OpenXml.Spreadsheet.PageSetup();
+                        hoja.InsertAfter(configuracion, margenes);
+                    }
+
+                    configuracion.PaperSize = PapelA3;
+                    configuracion.Orientation = DocumentFormat.OpenXml.Spreadsheet.OrientationValues.Landscape;
+
+                    hoja.Save();
+                }
+            }
+        }
 
         private static List<ColumnaFecha> _ColumnasFechas = null;
         public static string ToHtml(string filePath)

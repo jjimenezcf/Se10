@@ -9,6 +9,8 @@ namespace ServicioDeDatos.SistemaDocumental
     {
         [Description("Indica la clave del sistema ConvertApi")]
         ARC_Clave_ConvertApi,
+        [Description("Indica la ruta de soffice.exe (o de la carpeta de LibreOffice) con el que convertir docx a pdf; si no se encuentra se usa ConvertApi")]
+        ARC_Ruta_LibreOffice,
         [Description("Indica si al importar un ZIP somete la descompresión")]
         ARC_Someter_Importar_ZIP,
         [Description("Indica para el negocio donde se encuentra, si el estado pertenece a la etapa documental")]
@@ -24,6 +26,7 @@ namespace ServicioDeDatos.SistemaDocumental
     public static class ParametrosDeArchivadores
     {
         public static string ClaveConvertApi => enumNegocio.Archivador.Parametro(enumParametrosDeArchivadores.ARC_Clave_ConvertApi).Valor;
+        public static string RutaLibreOffice => enumNegocio.Archivador.Parametro(enumParametrosDeArchivadores.ARC_Ruta_LibreOffice, crearParametro: true, valorPorDefecto: @"C:\LibreOffice\program\soffice.exe").Valor;
         public static string LugarDeFirma => enumNegocio.Archivador.Parametro(enumParametrosDeArchivadores.CER_Location, crearParametro: true, valorPorDefecto: "España").Valor;
         public static string SistemaInformaticoQueFirma => enumNegocio.Archivador.Parametro(enumParametrosDeArchivadores.CER_Razon, crearParametro: true, valorPorDefecto: "Firmado por S.E.").Valor;
 

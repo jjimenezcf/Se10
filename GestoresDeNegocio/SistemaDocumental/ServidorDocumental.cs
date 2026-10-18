@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos;
 using System;
@@ -25,7 +26,24 @@ using Newtonsoft.Json.Linq;
 
 namespace GestoresDeNegocio.SistemaDocumental
 {
-    public enum enumOperacionesConArchivos { Copiar, Mover, Enlazar }
+    // Operaciones que se pueden hacer con un archivo; la descripción es el verbo que aparece en los mensajes de validación
+    // (ver ServidorDocumental.ValidarPermisosDeOperacion). Copiar, Mover y Enlazar son las que admite ProcesarOperacion.
+    public enum enumOperacionesConArchivos
+    {
+        Copiar,
+        Mover,
+        Enlazar,
+        [Description("bloquear")]
+        Bloquear,
+        [Description("desbloquear")]
+        Desbloquear,
+        [Description("eliminar")]
+        Eliminar,
+        [Description("firmar")]
+        Firmar,
+        [Description("convertir a pdf")]
+        ConvertirAPdf
+    }
 
     public static class ServidorDocumental //: GestorDeElementos<ContextoSe, ArchivoDtm, ArchivoDto>
     {
@@ -813,6 +831,10 @@ namespace GestoresDeNegocio.SistemaDocumental
 
         public static void ProcesarOperacion(ContextoSe contexto, enumOperacionesConArchivos operacion, int idNegocio, int idOrigen, enumNegocio negocioDestino, int idDestino, List<long> idsDeArchivos, bool validarPermisos = true, bool errorSiNoVinculado = true)
         {
+            // la operación llega del cliente como texto: sólo estas son de este proceso
+            if (operacion != enumOperacionesConArchivos.Copiar && operacion != enumOperacionesConArchivos.Mover && operacion != enumOperacionesConArchivos.Enlazar)
+                GestorDeErrores.Emitir($"La operación '{operacion}' no se puede realizar sobre varios archivos a la vez");
+
             var negocioOrigen = NegociosDeSe.ToEnumerado(idNegocio);
             try
             {
@@ -895,7 +917,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             if (motivo != ltrDeUnArchivo.CorreoImportado &&
                 motivo != ltrDeUnArchivo.Exportacion &&
                 motivo != ltrDeUnArchivo.ZipGenerado)
-                ValidarPermisosDeOperacion(contexto, archivo, negocio, registro, "bloquear", validarSiEstaTerminado);
+                ValidarPermisosDeOperacion(contexto, archivo, negocio, registro, enumOperacionesConArchivos.Bloquear, validarSiEstaTerminado);
 
             var bloqueo = contexto.SeleccionarPorFk<BloqueoDeUnArchivoDtm>(nameof(BloqueoDeUnArchivoDtm.IdArchivo), archivo.Id, errorSiNoHay: false);
             try
@@ -953,7 +975,7 @@ namespace GestoresDeNegocio.SistemaDocumental
                 GestorDeErrores.Emitir($"Está intentando desbloquear el archivo '{archivo.Nombre}' y no está vinculado directamente a '{registro.Nombre}' edite su '{(negocio == enumNegocio.Archivador ? enumNegocio.Carpeta.Singular(true) : enumNegocio.Archivador.Singular(true))}' y bloqueelo ahí");
             }
 
-            ValidarPermisosDeOperacion(contexto, archivo, negocio, registro, operacion: "desbloquear");
+            ValidarPermisosDeOperacion(contexto, archivo, negocio, registro, enumOperacionesConArchivos.Desbloquear);
 
             var bloqueo = contexto.SeleccionarPorFk<BloqueoDeUnArchivoDtm>(nameof(BloqueoDeUnArchivoDtm.IdArchivo), archivo.Id, errorSiNoHay: false);
             if (bloqueo is null || !bloqueo.Bloqueado)
@@ -970,8 +992,10 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
         }
 
-        public static void ValidarPermisosDeOperacion(ContextoSe contexto, ArchivoDtm archivo, enumNegocio negocio, RegistroConNombreDtm registro, string operacion, bool validarSiEstaTerminado = true)
+        public static void ValidarPermisosDeOperacion(ContextoSe contexto, ArchivoDtm archivo, enumNegocio negocio, RegistroConNombreDtm registro, enumOperacionesConArchivos operacionConArchivo, bool validarSiEstaTerminado = true)
         {
+            var operacion = operacionConArchivo.Descripcion();
+
             if (negocio == enumNegocio.Carpeta)
                 registro = contexto.SeleccionarPorId<ArchivadorDtm>(GestorDeCarpetas.LeerRegistroPorId(contexto, registro.Id).IdArchivador);
 
@@ -991,11 +1015,12 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
 
             if (negocio == enumNegocio.Archivador)
-                ValidarQueLosVinculadosEstanVivos(contexto, archivo, registro, operacion, validarSiEstaTerminado);
+                ValidarQueLosVinculadosEstanVivos(contexto, archivo, registro, operacionConArchivo, validarSiEstaTerminado);
         }
 
-        private static void ValidarQueLosVinculadosEstanVivos(ContextoSe contexto, ArchivoDtm archivo, RegistroConNombreDtm registro, string operacion, bool validarSiEstaTerminado)
+        private static void ValidarQueLosVinculadosEstanVivos(ContextoSe contexto, ArchivoDtm archivo, RegistroConNombreDtm registro, enumOperacionesConArchivos operacionConArchivo, bool validarSiEstaTerminado)
         {
+            var operacion = operacionConArchivo.Descripcion();
             var lista = enumNegocio.Archivador.VinculosCon(contexto);
             foreach (var tipoDtm in lista)
             {

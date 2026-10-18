@@ -581,6 +581,38 @@ namespace ApiDePeticiones {
         });
     }
 
+    export function ConvertirAPdf(llamador: any, negocio: string, idElemento: number, idArchivo: number): Promise<ApiDeAjax.DescriptorAjax> {
+        return new Promise((resolve, reject) => {
+
+            let url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.ConvertirAPdf}` + '?'
+                + `negocio=${negocio}&`
+                + `idElemento=${idElemento}&`
+                + `idArchivo=${idArchivo}`;
+
+            let datosDeEntrada: any = {
+                "negocio": negocio,
+                "idElemento": idElemento,
+                "idArchivo": idArchivo
+            };
+
+            let a = new ApiDeAjax.DescriptorAjax(llamador
+                , Ajax.Archivos.accion.ConvertirAPdf
+                , datosDeEntrada
+                , url
+                , ApiDeAjax.TipoPeticion.Asincrona
+                , ApiDeAjax.ModoPeticion.Get
+                , (peticion) => {
+                    resolve(peticion);
+                }
+                , (peticion) => {
+                    reject(peticion);
+                }
+            );
+
+            a.Ejecutar();
+        });
+    }
+
     export function BloquearArchivo(llamador: any, accion: string, idNegocio: number, idElemento: number, idArchivo: number, motivo: string): Promise<ApiDeAjax.DescriptorAjax> {
         return new Promise((resolve, reject) => {
 

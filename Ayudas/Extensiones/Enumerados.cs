@@ -1454,6 +1454,7 @@ namespace Utilidades
         ProcesarConIa,
         PasarOcr,
         CompartirConWhatsApp,
+        ConvertirAPdf,
         CompartirConGuid,
         AlternarVistaFichas,
         ConsultarConGuid,
@@ -1842,6 +1843,7 @@ namespace Utilidades
                 case enumCssControles.ProcesarConIa: return "procesar-con-ia";
                 case enumCssControles.PasarOcr: return "pasar-ocr";
                 case enumCssControles.CompartirConWhatsApp: return "compartir-con-whatsapp";
+                case enumCssControles.ConvertirAPdf: return "convertir-a-pdf";
                 case enumCssControles.CompartirConGuid: return "compartir-con-guid";
                 case enumCssControles.AlternarVistaFichas: return "alternar-vista-fichas";
                 case enumCssControles.ConsultarConGuid: return "consultar-con-guid";

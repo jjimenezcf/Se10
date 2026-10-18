@@ -307,7 +307,7 @@ namespace GestoresDeNegocio.SistemaDocumental
 
             var validarPermisos = !negocio.UsaFlujo() || !((IElementoDeProcesoDtm)registro).Estado(Contexto).Terminado || !((IElementoDeProcesoDtm)registro).PermitirDesvincularArchivoAlEstarTerminado(Contexto);
             if (validarPermisos)
-                ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, operacion: "eliminar");
+                ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, enumOperacionesConArchivos.Eliminar);
 
             if (anexadoMasDeUno && sonCarpetas)
             {
@@ -339,7 +339,7 @@ namespace GestoresDeNegocio.SistemaDocumental
 
             var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
             var registro = gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
-            ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, operacion: "firmar");
+            ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, enumOperacionesConArchivos.Firmar);
 
             if (negocio == enumNegocio.Carpeta)
                 gestor.ValidarPermisosDePersistencia(enumTipoOperacion.Modificar, enumNegocio.Archivador, GestorDeCarpetas.LeerRegistroPorId(Contexto, idElemento).IdArchivador);
@@ -370,6 +370,56 @@ namespace GestoresDeNegocio.SistemaDocumental
                 $"ha firmado el archivo '{Contexto.Set<ArchivoDtm>().Where(x => x.Id == idArchivo).First().Nombre}' " +
                 $"con el certificado '{Contexto.SeleccionarPorId<CertificadoDtm>(idCertificado).Expresion}'";
             traza.Insertar(Contexto);
+        }
+
+        // Convierte a pdf un archivo (docx, xlsx o txt) anexado al elemento y anexa el pdf resultante al mismo elemento
+        public ArchivoDtm ConvertirAPdf(enumNegocio negocio, int idElemento, int idArchivo)
+        {
+            if (negocio == enumNegocio.No_Definido || idElemento <= 0)
+                GestorDeErrores.Emitir("Para convertir un archivo a pdf se ha de indicar el elemento al que está anexado");
+
+            var gestor = NegociosDeSe.CrearGestor(Contexto, negocio);
+            var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            var registro = gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
+
+            // Gestor del elemento (y que no esté de baja, cancelado o terminado)
+            ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, enumOperacionesConArchivos.ConvertirAPdf);
+
+            // Vinculado directamente al elemento
+            ApiDeArchivos.ValidarQueEstaAnexado(Contexto, negocio, idElemento, idArchivo);
+
+            if (!extPdf.EsConvertibleAPdf(archivo.Nombre))
+                GestorDeErrores.Emitir($"El archivo '{archivo.Nombre}' no se puede convertir a pdf, sólo se convierten los archivos {string.Join(", ", extPdf.ExtensionesConvertiblesAPdf.Select(e => e.TrimStart('.')))}");
+
+            var rutaDeOrigen = ApiDeArchivos.ObtenerRutaArchivo(archivo);
+
+            // Se convierte en una carpeta propia: el pdf se deja junto al original y con el mismo nombre, y no debe pisar
+            // (ni mezclarse con) lo que haya descargado otro usuario con un archivo del mismo nombre
+            var directorioDeTrabajo = Path.Combine(CacheDeVariable.Cfg_RutaDeDescarga, Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(directorioDeTrabajo);
+                var original = Path.Combine(directorioDeTrabajo, Path.GetFileName(rutaDeOrigen));
+                File.Copy(rutaDeOrigen, original, overwrite: true);
+
+                var pdf = extPdf.ConvertirAPdf(original, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
+
+                var archivoPdf = ServidorDocumental.AnexarArchivo(Contexto, negocio, idElemento, pdf, sanitizar: true);
+
+                var traza = negocio == enumNegocio.Carpeta ? enumNegocio.Archivador.NuevaTrazaDtm<TrazaDtm>() : negocio.NuevaTrazaDtm<TrazaDtm>();
+                traza.IdElemento = negocio == enumNegocio.Carpeta ? GestorDeCarpetas.LeerRegistroPorId(Contexto, idElemento).IdArchivador : idElemento;
+                traza.Nombre = "Archivo convertido a pdf";
+                traza.Descripcion = $"El usuario {Contexto.SeleccionarPorId<UsuarioDtm>(Contexto.DatosDeConexion.IdUsuario).Expresion} " +
+                    $"ha convertido el archivo '{archivo.Nombre}' a pdf, anexando '{archivoPdf.Nombre}'";
+                traza.Insertar(Contexto);
+
+                return archivoPdf;
+            }
+            finally
+            {
+                try { Directory.Delete(directorioDeTrabajo, recursive: true); } catch { }
+                try { File.Delete(rutaDeOrigen); } catch { }
+            }
         }
 
         public void AnularFirma(enumNegocio negocio, int idElemento, int idArchivo)

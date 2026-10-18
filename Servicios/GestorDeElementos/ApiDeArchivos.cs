@@ -456,10 +456,15 @@ namespace GestorDeElementos
             return ficherpParaDevolverConRuta;
         }
 
+        /// <summary>
+        /// Indica si el archivo está vinculado directamente al elemento (sin contar los archivos propios del elemento ni los de sus archivadores)
+        /// </summary>
+        public static bool EstaAnexadoDirectamente(ContextoSe contexto, enumNegocio negocio, int idElemento, int idArchivo)
+        => VinculoSql.LeerVinculo(contexto, NegociosDeSe.TipoDtm(negocio), enumNegocio.Archivos, idElemento, idArchivo, false) != null;
+
         public static void ValidarQueEstaAnexado(ContextoSe contexto, enumNegocio negocio, int idElemento, int idArchivo)
         {
-            var vinculo = VinculoSql.LeerVinculo(contexto, NegociosDeSe.TipoDtm(negocio), enumNegocio.Archivos, idElemento, idArchivo, false);
-            if (vinculo == null)
+            if (!EstaAnexadoDirectamente(contexto, negocio, idElemento, idArchivo))
                 GestorDeErrores.Emitir($"El archivo no está anexado al elemento del negocio {negocio.ToNombre()}");
         }
 
@@ -469,7 +474,7 @@ namespace GestorDeElementos
         /// </summary>
         public static bool EsAnexoDelElemento(ContextoSe contexto, enumNegocio negocio, int idElemento, int idArchivo)
         {
-            if (VinculoSql.LeerVinculo(contexto, NegociosDeSe.TipoDtm(negocio), enumNegocio.Archivos, idElemento, idArchivo, false) != null)
+            if (EstaAnexadoDirectamente(contexto, negocio, idElemento, idArchivo))
                 return true;
 
             if (negocio == enumNegocio.Carpeta)

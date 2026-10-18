@@ -75,6 +75,34 @@ namespace ApiVisorDeArchivos {
 
     // ─── Renderización de archivos en el visor ───────────────────────────────
 
+    const TipoMimeDocx = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const TipoMimeXlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    // Formatos que el servidor sabe convertir a pdf (ver extPdf.ExtensionesConvertiblesAPdf)
+    // (un html se guarda como txt: el servidor distingue por el contenido si es un html)
+    const ExtensionesConvertiblesAPdf = ['.docx', '.xlsx', '.txt', '.html', '.htm'];
+
+    // Se decide por la extensión del nombre (la que valida el servidor); sólo si no la tuviera se recurre al tipo del archivo
+    function EsConvertibleAPdf(nombre: string, tipoMime: string): boolean {
+        const extension = (nombre ?? '').toLowerCase().match(/\.[a-z0-9]+$/)?.[0];
+        if (Definido(extension))
+            return ExtensionesConvertiblesAPdf.includes(extension);
+
+        return tipoMime === TipoMimeDocx || tipoMime === TipoMimeXlsx || tipoMime === 'text/plain' || tipoMime === 'text/html';
+    }
+
+    // El botón de convertir a pdf está en la barra del visor y sólo es visible mientras lo renderizado es un txt, html, xlsx o docx
+    function MostrarBotonConvertirAPdf(crud: Crud.CrudMnt, mostrar: boolean): void {
+        const boton = crud.ContenedorDelVisor?.getElementsByClassName(ltrCss.crud.panelDeEdicion.ConvertirAPdf)[0] as HTMLElement;
+        if (!Definido(boton))
+            return;
+
+        if (mostrar)
+            ApiControl.ExcluirCss(boton, ltrCss.divNoVisible);
+        else
+            ApiControl.IncluirCss(boton, ltrCss.divNoVisible);
+    }
+
     export async function RenderizarUrlsEnVisor(crud: Crud.CrudMnt, idArchivo: number, nombre: string, ajustarVisor: boolean) {
         var visor = crud.EstoyCreando ? crud.crudDeCreacion.DivVisor : crud.crudDeEdicion.DivVisor;
         if (!Definido(visor))
@@ -89,6 +117,7 @@ namespace ApiVisorDeArchivos {
         let input = contenedorDelVisor.getElementsByClassName(ltrCss.crud.panelDeEdicion.VisorDeNombreAnexados) as HTMLCollectionOf<HTMLInputElement>;
 
         visor.innerHTML = 'Cargando...';
+        MostrarBotonConvertirAPdf(crud, false);
         let url: string = undefined;
         if (crud.EstoyCreando) {
             let parametros = `idArchivo=${idArchivo}`;
@@ -126,6 +155,9 @@ namespace ApiVisorDeArchivos {
             else
                 crud.crudDeEdicion.AsignarIdArchivo(idArchivo, ajustarVisor);
 
+            // convertir a pdf sólo se ofrece sobre un txt, xlsx o docx renderizado de un elemento ya creado (el archivo ha de estar anexado a él)
+            MostrarBotonConvertirAPdf(crud, renderizado && !crud.EstoyCreando && EsConvertibleAPdf(nombre, blob.type));
+
             input[0].value = nombre;
             if (ajustarVisor) {
                 const contenedor = crud.EstoyCreando ? contenedorDelVisor : contenedorDelVisor.parentElement as HTMLDivElement;
@@ -156,7 +188,7 @@ namespace ApiVisorDeArchivos {
         else if (blob.type === 'application/rtf') {
             ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarRtfToHtml));
         }
-        else if (blob.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        else if (blob.type === TipoMimeDocx) {
             ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarDocxToHtml));
         }
         else if (blob.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || blob.type === 'application/vnd.ms-excel') {
@@ -193,6 +225,7 @@ namespace ApiVisorDeArchivos {
             return true;
 
         actualizarMensajeVisor(visor, accion);
+        MostrarBotonConvertirAPdf(crud, false);
 
         try {
             const url = construirUrl(crud, idArchivo, accion);

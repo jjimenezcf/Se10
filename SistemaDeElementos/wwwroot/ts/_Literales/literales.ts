@@ -1205,6 +1205,7 @@ const ltrCss = {
             FiltroSelectorDeArchivos: 'filtro-selector-archivos',
             ProcesarConIa: 'procesar-con-ia',
             PasarOcr: 'pasar-ocr',
+            ConvertirAPdf: 'convertir-a-pdf',
             Acciones: {
                 plegar: 'img-detalle-dto-plegar',
                 Desplegar: 'img-detalle-dto-desplegar',
@@ -1563,6 +1564,7 @@ const Ajax = {
             RegistrarDescargaConGuid: 'epRegistrarDescargaConGuid',
             DescargaConGuid: 'epDescargaConGuid',
             AnularFirma: 'epAnularFirma',
+            ConvertirAPdf: 'epConvertirAPdf',
             LeerAnexados: 'epLeerAnexados',
             LeerAnexadosDirectos: 'epLeerAnexadosDirectos',
             LeerAnexadosPorGuid: 'epLeerAnexadosPorGuid',
@@ -2234,6 +2236,7 @@ const ltrEventos = {
         ZoomMenos: 'zoom-menos',
         DescargarArchivo: 'descargar-archivo',
         CompartirConWhatsApp: 'compartir-con-whatsapp',
+        ConvertirAPdf: 'convertir-a-pdf',
         CompartirConGuid: 'compartir-con-guid',
         CompartirElemento: 'compartir-elemento',
         ConsultarConGuid: 'consultar-con-guid',
