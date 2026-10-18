@@ -382,8 +382,9 @@ namespace GestoresDeNegocio.SistemaDocumental
             var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
             var registro = gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
 
-            // Gestor del elemento (y que no esté de baja, cancelado o terminado)
-            ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, enumOperacionesConArchivos.ConvertirAPdf);
+            // Gestor del elemento y que no esté de baja ni cancelado. Si está terminado SÍ se permite: el pdf es una copia del documento
+            // que ya está anexado, no un cambio del elemento; por eso también se salta, al anexarlo, la validación de etapa documental.
+            ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, enumOperacionesConArchivos.ConvertirAPdf, validarSiEstaTerminado: false);
 
             // Vinculado directamente al elemento
             ApiDeArchivos.ValidarQueEstaAnexado(Contexto, negocio, idElemento, idArchivo);
@@ -409,7 +410,8 @@ namespace GestoresDeNegocio.SistemaDocumental
 
                 var pdf = ExtensorDePdf.ConvertirAPdf(original, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
 
-                var archivoPdf = ServidorDocumental.AnexarArchivo(Contexto, negocio, idElemento, pdf, sanitizar: true);
+                // Ya se ha validado arriba (gestor, no de baja, no cancelado): se salta la validación de elemento terminado
+                var archivoPdf = ServidorDocumental.AnexarArchivo(Contexto, negocio, idElemento, pdf, sanitizar: true, validarPermisosDelElemento: false);
 
                 var traza = negocio == enumNegocio.Carpeta ? enumNegocio.Archivador.NuevaTrazaDtm<TrazaDtm>() : negocio.NuevaTrazaDtm<TrazaDtm>();
                 traza.IdElemento = negocio == enumNegocio.Carpeta ? GestorDeCarpetas.LeerRegistroPorId(Contexto, idElemento).IdArchivador : idElemento;

@@ -121,9 +121,11 @@ namespace GestoresDeNegocio.SistemaDocumental
             return null;
         }
 
-        public static ArchivoDtm AnexarArchivo(ContextoSe contexto, enumNegocio negocio, int idElemento, string rutaConFichero, bool sanitizar)
+        // validarPermisosDelElemento: false sólo lo usa quien ya ha validado por su cuenta que se puede anexar (p. ej. convertir a pdf, que se permite
+        // sobre un elemento terminado): se salta la validación de etapa documental, de elemento terminado y de vínculo
+        public static ArchivoDtm AnexarArchivo(ContextoSe contexto, enumNegocio negocio, int idElemento, string rutaConFichero, bool sanitizar, bool validarPermisosDelElemento = true)
         =>
-        AnexarArchivo(contexto, negocio, idElemento, rutaConFichero, copiar: false, quitarExtensionHtml:true, sanitizar: sanitizar);
+        AnexarArchivo(contexto, negocio, idElemento, rutaConFichero, copiar: false, quitarExtensionHtml:true, sanitizar: sanitizar, validarPermisosDelElemento: validarPermisosDelElemento);
 
         public static ArchivoDtm CopiarArchivo(ContextoSe contexto, enumNegocio negocio, int idElemento, string rutaConFichero, bool sanitizar)
         {
@@ -135,9 +137,9 @@ namespace GestoresDeNegocio.SistemaDocumental
             return archivo;
         }
 
-        public static ArchivoDtm AnexarArchivo(ContextoSe contexto, enumNegocio negocio, int idElemento, string rutaConFichero, bool copiar, bool quitarExtensionHtml , bool sanitizar )
+        public static ArchivoDtm AnexarArchivo(ContextoSe contexto, enumNegocio negocio, int idElemento, string rutaConFichero, bool copiar, bool quitarExtensionHtml , bool sanitizar, bool validarPermisosDelElemento = true)
         {
-            ValidarPermisos(contexto, negocio, idElemento);
+            ValidarPermisos(contexto, negocio, idElemento, validarPermisosDelElemento);
 
             var nombreOriginal = Path.GetFileName(rutaConFichero);
             var nombreActualizado = ProponerNombreDeArchivo(contexto, negocio, idElemento, nombreOriginal);
@@ -148,13 +150,16 @@ namespace GestoresDeNegocio.SistemaDocumental
                 rutaConFichero = rutaActualizada;
             }
             var archivo = ApiDeArchivos.SubirArchivoInterno(contexto, rutaConFichero, sincronizar: false, nombreFicheroParaAlmacenar: null, copiar, quitarExtensionHtml, sanitizar: sanitizar);
-            GestorDeVinculos.Vincular(contexto, negocio, enumNegocio.Archivos, idElemento, archivo.Id);
+
+            // Sin parámetros, el vínculo valida como siempre; el vínculo sólo se salta su validación si se pidió expresamente
+            GestorDeVinculos.Vincular(contexto, negocio, enumNegocio.Archivos, idElemento, archivo.Id,
+                validarPermisosDelElemento ? null : new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDePersistencia, false } });
             if (negocio == enumNegocio.Archivador) GestorDeArchivadores.ExportarArchivo(contexto, idArchivador: idElemento, archivo);
             if (negocio == enumNegocio.Carpeta) GestorDeCarpetas.ExportarArchivo(contexto, idCarpeta: idElemento, archivo);
             return archivo;
         }
 
-        private static void ValidarPermisos(ContextoSe contexto, enumNegocio negocio, int idElemento)
+        private static void ValidarPermisos(ContextoSe contexto, enumNegocio negocio, int idElemento, bool validarPermisosDelElemento = true)
         {
             if (negocio == enumNegocio.Carpeta)
             {
@@ -168,7 +173,7 @@ namespace GestoresDeNegocio.SistemaDocumental
                 if (resultado.Degradado)
                     GestorDeErrores.Emitir(resultado.Mensaje);
             }
-            else
+            else if (validarPermisosDelElemento)
             {
                 var gestor = negocio.CrearGestor(contexto);
                 gestor.ValidarPermisosDePersistencia(enumTipoOperacion.Modificar, gestor.Negocio, idElemento, new Dictionary<string, object>() { { ltrParametrosNeg.ValidarEtapaDocumental, true } });
