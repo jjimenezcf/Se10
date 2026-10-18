@@ -10,6 +10,48 @@ namespace Utilidades
 
     public static class ExtensorDeDocx
     {
+        // Pone el tamaño y la orientación de la página SÓLO si el documento no declara ninguno (Word y LibreOffice usan entonces Letter, 612 x 792 pt).
+        // Si el documento ya trae su página (apaisado, A3...) no se toca. Modifica el fichero indicado; devuelve si lo ha modificado.
+        public static bool PonerPaginaSiNoLaDefine(string rutaDocx, OpcionesDePaginaPdf opciones)
+        {
+            using (WordprocessingDocument documento = WordprocessingDocument.Open(rutaDocx, true))
+            {
+                var cuerpo = documento.MainDocumentPart.Document.Body;
+                if (cuerpo.Descendants<PageSize>().Any())
+                    return false;
+
+                // La sección del final del documento (la que define su última página) puede no existir: se crea
+                var secciones = cuerpo.Descendants<SectionProperties>().ToList();
+                if (!cuerpo.Elements<SectionProperties>().Any())
+                {
+                    var final = new SectionProperties();
+                    cuerpo.AppendChild(final);
+                    secciones.Add(final);
+                }
+
+                var (ancho, alto) = opciones.MedidasEnTwips;
+                foreach (var seccion in secciones)
+                {
+                    // Orden del esquema dentro de una sección: referencias, notas, tipo, y luego el tamaño y los márgenes
+                    var anterior = seccion.ChildElements.LastOrDefault(e => e is HeaderReference || e is FooterReference || e is FootnoteProperties || e is EndnoteProperties || e is SectionType);
+                    var tamano = new PageSize
+                    {
+                        Width = opciones.EsHorizontal ? alto : ancho,
+                        Height = opciones.EsHorizontal ? ancho : alto,
+                        Orient = opciones.EsHorizontal ? PageOrientationValues.Landscape : PageOrientationValues.Portrait
+                    };
+                    if (anterior != null) seccion.InsertAfter(tamano, anterior);
+                    else seccion.PrependChild(tamano);
+
+                    if (!seccion.Elements<PageMargin>().Any())
+                        seccion.InsertAfter(new PageMargin { Top = 1134, Right = 1134u, Bottom = 1134, Left = 1134u, Header = 709u, Footer = 709u, Gutter = 0u }, tamano);
+                }
+
+                documento.MainDocumentPart.Document.Save();
+                return true;
+            }
+        }
+
         public static string SanitizeDocx(string rutaConFichero)
         {
             if (!File.Exists(rutaConFichero))

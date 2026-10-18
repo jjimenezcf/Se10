@@ -373,10 +373,21 @@ namespace GestoresDeNegocio.SistemaDocumental
         }
 
         // Convierte a pdf un archivo (docx, xlsx o txt) anexado al elemento y anexa el pdf resultante al mismo elemento
-        public ArchivoDtm ConvertirAPdf(enumNegocio negocio, int idElemento, int idArchivo)
+        // opcionesDePaginaJson: { "tamano": "A4|A3", "orientacion": "Vertical|Horizontal" }; es opcional y sólo se aplica a las hojas de cálculo (xlsx)
+        public ArchivoDtm ConvertirAPdf(enumNegocio negocio, int idElemento, int idArchivo, string opcionesDePaginaJson = null)
         {
             if (negocio == enumNegocio.No_Definido || idElemento <= 0)
                 GestorDeErrores.Emitir("Para convertir un archivo a pdf se ha de indicar el elemento al que está anexado");
+
+            OpcionesDePaginaPdf opcionesDePagina = null;
+            try
+            {
+                opcionesDePagina = OpcionesDePaginaPdf.Parsear(opcionesDePaginaJson);
+            }
+            catch (ArgumentException e)
+            {
+                GestorDeErrores.Emitir(e.Message);
+            }
 
             var gestor = NegociosDeSe.CrearGestor(Contexto, negocio);
             var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
@@ -408,7 +419,7 @@ namespace GestoresDeNegocio.SistemaDocumental
                 var original = Path.Combine(directorioDeTrabajo, Path.GetFileName(rutaDeOrigen));
                 File.Copy(rutaDeOrigen, original, overwrite: true);
 
-                var pdf = ExtensorDePdf.ConvertirAPdf(original, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
+                var pdf = ExtensorDePdf.ConvertirAPdf(original, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi, opcionesDePagina);
 
                 // Ya se ha validado arriba (gestor, no de baja, no cancelado): se salta la validación de elemento terminado
                 var archivoPdf = ServidorDocumental.AnexarArchivo(Contexto, negocio, idElemento, pdf, sanitizar: true, validarPermisosDelElemento: false);

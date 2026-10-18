@@ -55,16 +55,23 @@ namespace Utilidades
 
         // Convierte a pdf (junto al fichero y con su nombre) con LibreOffice si se encuentra soffice.exe; si no, con ConvertApi.
         // La clave de ConvertApi se pide solo si hace falta, porque puede no estar definida.
-        public static string ConvertirAPdf(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi)
+        // opcionesDePagina: tamaño y orientación de la página; sólo se aplican a una hoja de cálculo (xlsx). Sin ellas, el xlsx sale con la
+        // página que traiga el libro. Un docx que no declare página (sale en Letter) se deja en A4 vertical; si la declara, se respeta.
+        // El resto de formatos no tienen página que configurar: txt y html salen en A4 vertical.
+        public static string ConvertirAPdf(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi, OpcionesDePaginaPdf opcionesDePagina = null)
         {
             // Quien llama debería haberlo comprobado antes (para avisar al usuario sin haber hecho nada más); aquí se asegura
             var motivo = MotivoPorElQueNoSePuedeConvertir(rutaLibreOffice, obtenerClaveConvertApi);
             if (motivo != null)
                 throw new InvalidOperationException(motivo);
 
-            // Una hoja de cálculo es ancha: se imprime en A3 y apaisado
-            if (Path.GetExtension(fichero).Equals($".{enumExtensiones.xlsx}", StringComparison.OrdinalIgnoreCase))
-                return ConvertirXlsxAPdf(fichero, rutaLibreOffice, obtenerClaveConvertApi);
+            var extension = Path.GetExtension(fichero).ToLower();
+
+            if (extension == $".{enumExtensiones.xlsx}" && opcionesDePagina != null)
+                return ConvertirAjustandoUnaCopia(fichero, rutaLibreOffice, obtenerClaveConvertApi, copia => ExtensorDeXlsx.ConfigurarPagina(copia, opcionesDePagina));
+
+            if (extension == $".{enumExtensiones.docx}")
+                return ConvertirAjustandoUnaCopia(fichero, rutaLibreOffice, obtenerClaveConvertApi, copia => ExtensorDeDocx.PonerPaginaSiNoLaDefine(copia, new OpcionesDePaginaPdf()));
 
             // Un html se sanea antes de dárselo al motor y se convierte como documento, no como texto
             if (EsHtmlParaConvertir(fichero))
@@ -104,8 +111,8 @@ namespace Utilidades
             }
         }
 
-        // Se ajusta la página en una copia, para no modificar el xlsx original; el pdf se deja junto al original, como en el resto de formatos
-        private static string ConvertirXlsxAPdf(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi)
+        // Se ajusta el fichero (su página) en una copia, para no modificar el original; el pdf se deja junto al original, como en el resto de formatos
+        private static string ConvertirAjustandoUnaCopia(string fichero, string rutaLibreOffice, Func<string> obtenerClaveConvertApi, Action<string> ajustarLaCopia)
         {
             var directorioTemporal = Path.Combine(Path.GetTempPath(), "Se_Conversion", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(directorioTemporal);
@@ -116,7 +123,7 @@ namespace Utilidades
 
                 try
                 {
-                    ExtensorDeXlsx.ConfigurarPaginaApaisadaA3(copia);
+                    ajustarLaCopia(copia);
                 }
                 catch (Exception)
                 {

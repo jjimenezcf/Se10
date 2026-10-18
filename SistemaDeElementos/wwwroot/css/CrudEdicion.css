@@ -1034,6 +1034,23 @@ div[propiedad="Dar de alta"] a[href^="javascript:Crud.EventosDeExpansores('dar-d
     resize: none;
 }
 
+/* Modal para elegir el tamaño y la orientación de la página al convertir una hoja de cálculo a pdf: tarjeta estrecha y listas a todo el ancho */
+.modal-mostrar-propiedad > div.modal-opciones-pdf {
+    width: 360px;
+}
+
+.modal-opciones-pdf .modal-body select {
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+    margin-bottom: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background-color: white;
+}
+
 
 /* Botón a la derecha del correo (propiedad eMail) de la edición: abre la modal de enviar por correo enlaces de descarga de los archivos.
    El input y el botón se ven como un único control: el input pierde las esquinas derechas y el botón continúa su borde sin separación.

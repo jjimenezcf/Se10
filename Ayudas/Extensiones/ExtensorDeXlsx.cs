@@ -19,11 +19,9 @@ namespace Utilidades
     public static class ExtensorDeXlsx
     {
 
-        private const uint PapelA3 = 8; // valor de paperSize de Excel para A3 (297 x 420 mm)
-
-        // Deja todas las hojas del libro para imprimirse en A3 y apaisado; modifica el fichero indicado.
+        // Deja todas las hojas del libro para imprimirse con el tamaño y la orientación indicados; modifica el fichero indicado.
         // Sólo toca la configuración de impresión de cada hoja, no sus datos.
-        public static void ConfigurarPaginaApaisadaA3(string rutaXlsx)
+        public static void ConfigurarPagina(string rutaXlsx, OpcionesDePaginaPdf opciones)
         {
             // Orden de los hijos de una hoja según el esquema: lo que va después de pageSetup
             var posteriores = new[] { "headerFooter", "rowBreaks", "colBreaks", "customProperties", "cellWatches", "ignoredErrors", "smartTags", "drawing", "legacyDrawing", "legacyDrawingHF", "drawingHF", "picture", "oleObjects", "controls", "webPublishItems", "tableParts", "extLst" };
@@ -50,8 +48,10 @@ namespace Utilidades
                         hoja.InsertAfter(configuracion, margenes);
                     }
 
-                    configuracion.PaperSize = PapelA3;
-                    configuracion.Orientation = DocumentFormat.OpenXml.Spreadsheet.OrientationValues.Landscape;
+                    configuracion.PaperSize = opciones.PapelDeExcel;
+                    configuracion.Orientation = opciones.EsHorizontal
+                        ? DocumentFormat.OpenXml.Spreadsheet.OrientationValues.Landscape
+                        : DocumentFormat.OpenXml.Spreadsheet.OrientationValues.Portrait;
 
                     hoja.Save();
                 }

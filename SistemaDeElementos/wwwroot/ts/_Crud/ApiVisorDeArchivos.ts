@@ -91,6 +91,61 @@ namespace ApiVisorDeArchivos {
         return tipoMime === TipoMimeDocx || tipoMime === TipoMimeXlsx || tipoMime === 'text/plain' || tipoMime === 'text/html';
     }
 
+    // Página con la que se convierte a pdf una hoja de cálculo; es lo que se envía al servidor como parametrosJson de epConvertirAPdf
+    export interface OpcionesDePdf {
+        tamano: string;       // 'A4' | 'A3'
+        orientacion: string;  // 'Vertical' | 'Horizontal'
+    }
+
+    // Sólo en una hoja de cálculo la página es una decisión del usuario; en el resto de formatos no se pregunta nada
+    export function EsXlsx(nombre: string): boolean {
+        return (nombre ?? '').trim().toLowerCase().endsWith('.xlsx');
+    }
+
+    // Abre una modal con el tamaño (A4 por defecto) y la orientación (Horizontal por defecto) y devuelve lo elegido al aceptar,
+    // o null si se cancela (botón Cancelar, tecla Escape o clic fuera de la ventana)
+    export function PedirOpcionesDePdf(): Promise<OpcionesDePdf | null> {
+        return new Promise((resolve) => {
+            const modalOverlay = document.createElement('div') as HTMLDivElement;
+            ApiControl.IncluirCss(modalOverlay, ltrCss.crud.modal.dinamica);
+            modalOverlay.innerHTML = ltrHtml.Modales.OpcionesDePdf;
+            document.body.appendChild(modalOverlay);
+
+            const lista = modalOverlay.querySelector('#pdf-tamano') as HTMLSelectElement;
+            const orientacion = modalOverlay.querySelector('#pdf-orientacion') as HTMLSelectElement;
+            const btnAceptar = modalOverlay.querySelector('#btn-pdf-aceptar') as HTMLButtonElement;
+            const btnCancelar = modalOverlay.querySelector('#btn-pdf-cancelar') as HTMLButtonElement;
+            ApiControl.IncluirCss(btnAceptar, ltrCss.Modal.BotonPrincipal);
+            ApiControl.IncluirCss(btnCancelar, ltrCss.Modal.BotonSecundario);
+
+            setTimeout(() => ApiControl.IncluirCss(modalOverlay, 'fade-in'), 10);
+
+            let resuelta = false;
+            const cerrar = (resultado: OpcionesDePdf | null) => {
+                if (resuelta)
+                    return;
+                resuelta = true;
+                document.removeEventListener('keydown', alPulsarUnaTecla);
+                ApiControl.ExcluirCss(modalOverlay, 'fade-in');
+                setTimeout(() => modalOverlay.remove(), 300);
+                resolve(resultado);
+            };
+            const aceptar = () => cerrar({ tamano: lista.value, orientacion: orientacion.value });
+            const alPulsarUnaTecla = (e: KeyboardEvent) => {
+                if (e.key === 'Escape')
+                    cerrar(null);
+                else if (e.key === 'Enter')
+                    aceptar();
+            };
+
+            btnAceptar.addEventListener('click', aceptar);
+            btnCancelar.addEventListener('click', () => cerrar(null));
+            modalOverlay.onclick = (e) => { if (e.target === modalOverlay) cerrar(null); };
+            document.addEventListener('keydown', alPulsarUnaTecla);
+            setTimeout(() => lista.focus(), 100);
+        });
+    }
+
     // El botón de convertir a pdf está en la barra del visor y sólo es visible mientras lo renderizado es un txt, html, xlsx o docx
     function MostrarBotonConvertirAPdf(crud: Crud.CrudMnt, mostrar: boolean): void {
         const boton = crud.ContenedorDelVisor?.getElementsByClassName(ltrCss.crud.panelDeEdicion.ConvertirAPdf)[0] as HTMLElement;

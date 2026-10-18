@@ -815,7 +815,8 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
     }
 
     // Convierte a pdf un archivo (docx, xlsx o txt) anexado al elemento y anexa el pdf al mismo elemento
-    public JsonResult epConvertirAPdf(string negocio, int idElemento, int idArchivo)
+    // parametrosJson (opcional): { "tamano": "A4|A3", "orientacion": "Vertical|Horizontal" }; sólo se aplica a las hojas de cálculo (xlsx)
+    public JsonResult epConvertirAPdf(string negocio, int idElemento, int idArchivo, string parametrosJson = null)
     {
         var r = new Resultado();
 
@@ -826,7 +827,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
             var negocioSe = NegociosDeSe.ToEnumerado(negocio);
 
-            var pdf = ((GestorDeArchivos)_GestorDeElementos).ConvertirAPdf(negocioSe, idElemento, idArchivo);
+            var pdf = ((GestorDeArchivos)_GestorDeElementos).ConvertirAPdf(negocioSe, idElemento, idArchivo, parametrosJson);
 
             r.Datos = new ArchivoResultado { IdArchivo = pdf.Id, Nombre = pdf.Nombre };
             r.Estado = enumEstadoPeticion.Ok;

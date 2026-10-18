@@ -2713,16 +2713,31 @@
 
         private _convirtiendoAPdf: boolean = false;
 
-        // Convierte a pdf el archivo (docx, xlsx o txt) mostrado en el visor; el servidor valida que esté anexado al elemento y que se sea gestor de él,
-        // y anexa el pdf resultante al elemento, tras lo que se recarga el span de archivos
+        // Convierte a pdf el archivo (docx, xlsx, txt o html) mostrado en el visor; el servidor valida que esté anexado al elemento y que se sea gestor de él,
+        // y anexa el pdf resultante al elemento, tras lo que se recarga el span de archivos.
+        // Sólo si es una hoja de cálculo (xlsx) se abre una modal para elegir la página (tamaño y orientación); en el resto no se pregunta nada
         public ConvertirAPdf(): void {
             if (!Definido(this.IdArchivoMostrado) || this.IdArchivoMostrado === 0 || this._convirtiendoAPdf)
                 return;
 
+            const input = this.ContenedorDelVisor.getElementsByClassName(ltrCss.crud.panelDeEdicion.VisorDeNombreAnexados)[0] as HTMLInputElement;
+            const pedirLaPagina = Definido(input) && ApiVisorDeArchivos.EsXlsx(input.value);
+            const idArchivo = this.IdArchivoMostrado;
+
             this._convirtiendoAPdf = true;
-            MensajesSe.Info('Convirtiendo a pdf, puede tardar unos segundos...');
-            ApiDePeticiones.ConvertirAPdf(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.IdDelElementoDelVisor, this.IdArchivoMostrado)
-                .then((peticion) => this.DespuesDeConvertirAPdf(peticion))
+            const opciones: Promise<ApiVisorDeArchivos.OpcionesDePdf | null | undefined> = pedirLaPagina
+                ? ApiVisorDeArchivos.PedirOpcionesDePdf()
+                : Promise.resolve(undefined);
+
+            opciones
+                .then((elegidas) => {
+                    if (elegidas === null)
+                        return; // canceló la modal: no se convierte nada
+
+                    MensajesSe.Info('Convirtiendo a pdf, puede tardar unos segundos...');
+                    return ApiDePeticiones.ConvertirAPdf(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.IdDelElementoDelVisor, idArchivo, elegidas ?? undefined)
+                        .then((peticion) => this.DespuesDeConvertirAPdf(peticion));
+                })
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion))
                 .finally(() => { this._convirtiendoAPdf = false; });
         }

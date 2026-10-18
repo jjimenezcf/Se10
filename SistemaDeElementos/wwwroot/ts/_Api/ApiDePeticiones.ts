@@ -581,19 +581,23 @@ namespace ApiDePeticiones {
         });
     }
 
-    export function ConvertirAPdf(llamador: any, negocio: string, idElemento: number, idArchivo: number): Promise<ApiDeAjax.DescriptorAjax> {
+    // opciones: página con la que se convierte una hoja de cálculo; sin ellas no se envía el parámetro (txt, html y docx no lo necesitan)
+    export function ConvertirAPdf(llamador: any, negocio: string, idElemento: number, idArchivo: number, opciones?: ApiVisorDeArchivos.OpcionesDePdf): Promise<ApiDeAjax.DescriptorAjax> {
         return new Promise((resolve, reject) => {
 
             let url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.ConvertirAPdf}` + '?'
                 + `negocio=${negocio}&`
                 + `idElemento=${idElemento}&`
-                + `idArchivo=${idArchivo}`;
+                + `idArchivo=${idArchivo}`
+                + (Definido(opciones) ? `&parametrosJson=${encodeURIComponent(JSON.stringify(opciones))}` : '');
 
             let datosDeEntrada: any = {
                 "negocio": negocio,
                 "idElemento": idElemento,
                 "idArchivo": idArchivo
             };
+            if (Definido(opciones))
+                datosDeEntrada["parametrosJson"] = opciones;
 
             let a = new ApiDeAjax.DescriptorAjax(llamador
                 , Ajax.Archivos.accion.ConvertirAPdf

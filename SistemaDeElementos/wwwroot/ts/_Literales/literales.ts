@@ -4442,6 +4442,27 @@ const ltrHtml = {
             </div>`
     },
     Modales: {
+        // Modal para elegir la página con la que se convierte una hoja de cálculo a pdf (ver ApiVisorDeArchivos.PedirOpcionesDePdf)
+        OpcionesDePdf: `
+                 <div class="modal-opciones-pdf">
+                     <h2>Convertir a PDF</h2>
+                     <div class="${ltrCss.crud.modal.cuerpo}">
+                         <label class="label-propiedad" for="pdf-tamano">Tamaño de la hoja</label>
+                         <select id="pdf-tamano">
+                             <option value="A4" selected>A4</option>
+                             <option value="A3">A3</option>
+                         </select>
+                         <label class="label-propiedad" for="pdf-orientacion">Orientación</label>
+                         <select id="pdf-orientacion">
+                             <option value="Horizontal" selected>Horizontal</option>
+                             <option value="Vertical">Vertical</option>
+                         </select>
+                     </div>
+                     <div class="${ltrCss.crud.modal.pie}">
+                         <button id="btn-pdf-cancelar">Cancelar</button>
+                         <button id="btn-pdf-aceptar">Aceptar</button>
+                     </div>
+                 </div>`,
         PreguntasIa: `
                  <div id="modal-ia-container">
                      <div class="grafica-conteo-cabecera">
