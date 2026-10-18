@@ -652,7 +652,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 trabajo.Encolado = DateTime.Now;
                 trabajo.Iniciado = default;
                 trabajo.Terminado = default;
-                extJson.ValidarJson(trabajo.Parametros);
+                ExtensorDeJson.ValidarJson(trabajo.Parametros);
                 if (trabajo.Planificado.Millisecond > 0 || trabajo.Planificado.Second > 0)
                 {
                     trabajo.Planificado = trabajo.Planificado.AddMilliseconds(1000 - trabajo.Planificado.Millisecond);

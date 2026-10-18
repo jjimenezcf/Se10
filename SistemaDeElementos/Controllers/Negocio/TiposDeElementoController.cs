@@ -71,7 +71,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-                var parametros = extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 var guid = parametros.LeerValor<string>(ltrParametrosEp.guid);
                 var id = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
                 ValidarConsultaPorGuid(NegociosDeSe.ToEnumerado(enumNegocio), id, guid);
@@ -97,7 +97,7 @@ namespace MVCSistemaDeElementos.Controllers
             Contexto.IniciarTraza("Leer tipo por id");
             try
             {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext, extJson.ToDiccionarioDeParametros(parametrosJson));
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext, ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson));
                 var negocio = NegociosDeSe.ToEnumerado(enumNegocio);
                 r.Datos = negocio.CrearGestorDeTipo(Contexto).LeerElementoPorId(idTipo, new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDeConsulta, false } });
                 r.Estado = enumEstadoPeticion.Ok;
@@ -248,7 +248,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         public JsonResult epBorrarPlantilla(int id, string parametrosJson)
         {
-            var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+            var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
             var r = new Resultado();
             var tran = Contexto.IniciarTransaccion();
             try
@@ -364,7 +364,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         public JsonResult epBorrarClase(int id, string parametrosJson)
         {
-            var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+            var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
             var negocio = NegociosDeSe.ToEnumerado((int)parametros.LeerValor<long>(ltrParametrosEp.idNegocio));
             return ApiController.BorrarElemento<ClaseDelTipoDto>(Contexto, HttpContext, id, negocio.ObtenerMetadatos().ClasesDelTipoDtm);
         }

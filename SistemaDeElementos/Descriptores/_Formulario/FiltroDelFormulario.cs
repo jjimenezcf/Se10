@@ -53,13 +53,13 @@ namespace MVCSistemaDeElementos.Descriptores
                           <input type=¨text¨ id=¨{IdHtml}_Cerrar¨  
                               class=¨{enumCssModal.BotonSecundario.Render()}¨ 
                               value=¨Cerrar¨ 
-                              clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
+                              clase=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ 
                               readonly 
                               onclick=¨{enumAccionDeFormulario.CerrarFiltro.Render()}¨ />
                           <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ 
                               class=¨{enumCssModal.BotonPrincipal.Render()}¨ 
                               value=¨Filtrar¨ 
-                              clase=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
+                              clase=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ 
                               readonly 
                               onclick=¨{enumAccionDeFormulario.AplicarFiltro.Render()}¨/>
                        </div>

@@ -894,32 +894,32 @@ namespace GestorDeElementos
 
         private static string SanitizeFile(string rutaConFichero)
         {
-            if (extHtml.EsHtml(rutaConFichero))
+            if (ExtensorDeHtml.EsHtml(rutaConFichero))
             {
-                var rutaSanitizada = extHtml.SanitizeFile(rutaConFichero);
+                var rutaSanitizada = ExtensorDeHtml.SanitizeFile(rutaConFichero);
                 return rutaSanitizada;
             }
 
-            if (extPdf.EsPdf(rutaConFichero))
+            if (ExtensorDePdf.EsPdf(rutaConFichero))
             {
-                var rutaSanitizada = extPdf.SanitizePdf(rutaConFichero);
+                var rutaSanitizada = ExtensorDePdf.SanitizePdf(rutaConFichero);
                 return rutaSanitizada;
             }
 
-            if (extDocx.EsDoc(rutaConFichero))
+            if (ExtensorDeDocx.EsDoc(rutaConFichero))
             {
                 GestorDeErrores.Emitir($"El archivo que está intentando subir es un Doc, formato antiguo, reconviertalo a docx o a pdf antes de almacenarlo");
             }
 
-            if (extDocx.EsDocx(rutaConFichero))
+            if (ExtensorDeDocx.EsDocx(rutaConFichero))
             {
-                var rutaSanitizada = extDocx.SanitizeDocx(rutaConFichero);
+                var rutaSanitizada = ExtensorDeDocx.SanitizeDocx(rutaConFichero);
                 return rutaSanitizada;
             }
 
-            if (extImagenes.EsImagen(rutaConFichero))
+            if (ExtensorDeImagenes.EsImagen(rutaConFichero))
             {
-                var rutaSanitizada = extImagenes.SanitizeImage(rutaConFichero);
+                var rutaSanitizada = ExtensorDeImagenes.SanitizeImage(rutaConFichero);
                 return rutaSanitizada;
             }
 
@@ -964,19 +964,19 @@ namespace GestorDeElementos
                     contenido = Task.Run(() => new ProcesadorOcr.ProcesadorOcr().ProcesarFichero(idArchivo: 0, rutaArchivo)).Result;
                     break;
                 case enumExtensiones.docx:
-                    contenido = extDocx.ToTexto(rutaArchivo);
+                    contenido = ExtensorDeDocx.ToTexto(rutaArchivo);
                     break;
                 case enumExtensiones.rtf:
-                    contenido = extRtf.ToTexto(rutaArchivo);
+                    contenido = ExtensorDeRtf.ToTexto(rutaArchivo);
                     break;
                 case enumExtensiones.html:
-                    contenido = extHtml.ToTexto(rutaArchivo);
+                    contenido = ExtensorDeHtml.ToTexto(rutaArchivo);
                     break;
                 case enumExtensiones.txt:
                     contenido = File.ReadAllText(rutaArchivo);
                     break;
                 default:
-                    if (extTexto.EsTexto(rutaArchivo))
+                    if (ExtensorDeTexto.EsTexto(rutaArchivo))
                     {
                         contenido = File.ReadAllText(rutaArchivo);
                         break;
@@ -1032,7 +1032,7 @@ namespace GestorDeElementos
                 Path = $"/{nameof(enumControladoresSistemaDocumental.Archivos)}/{ltrEndPoint.epDescargaConGuid}",
                 Query = $"guid={guid}&id={archivo.Id}"
             };
-            return $"<a href='{uri}' target='_blank'>{System.Net.WebUtility.HtmlEncode(archivo.Nombre)}</a> (válido hasta {caducaEl.ToString(extFechas.DiaHora)})";
+            return $"<a href='{uri}' target='_blank'>{System.Net.WebUtility.HtmlEncode(archivo.Nombre)}</a> (válido hasta {caducaEl.ToString(ExtensorDeFechas.DiaHora)})";
         }
     }
 }

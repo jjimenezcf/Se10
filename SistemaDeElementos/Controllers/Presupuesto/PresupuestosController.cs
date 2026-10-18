@@ -229,7 +229,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, _GestorDeElementos.Mapeador, HttpContext);
-                var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 var idNegocio = (int)parametros.LeerValor<long>(ltrParametrosEp.idNegocio);
                 if (NegociosDeSe.ToEnumerado(idNegocio) != enumNegocio.Expediente)
                     GestorDeErrores.Emitir("Esta opción es para desasociar un expediente de un presupuesto");

@@ -54,8 +54,8 @@ namespace GestoresDeNegocio
             else if (tipo == typeof(float) || tipo == typeof(float?)) datos[propiedad.Name] = valor;
             else if (tipo == typeof(DateTime) || tipo == typeof(DateTime?)) datos[propiedad.Name] = valor;
             else if (tipo == typeof(string)) datos[propiedad.Name] = valor;
-            else if (tipo == typeof(bool)) datos[propiedad.Name] = valor is true ? extCadenas.enumCadenas.Si : extCadenas.enumCadenas.No;
-            else if (tipo == typeof(bool?)) datos[propiedad.Name] = valor is null ? null : valor is true ? extCadenas.enumCadenas.Si.ToString() : extCadenas.enumCadenas.No.ToString();
+            else if (tipo == typeof(bool)) datos[propiedad.Name] = valor is true ? ExtensorDeCadenas.enumCadenas.Si : ExtensorDeCadenas.enumCadenas.No;
+            else if (tipo == typeof(bool?)) datos[propiedad.Name] = valor is null ? null : valor is true ? ExtensorDeCadenas.enumCadenas.Si.ToString() : ExtensorDeCadenas.enumCadenas.No.ToString();
             else if (tipo.IsEnum) datos[propiedad.Name] = valor is null ? null : ((Enum)valor).Descripcion();
             else if (tipo.IsGenericType && tipo.GetGenericTypeDefinition() == typeof(Nullable<>) && tipo.GetGenericArguments()[0].IsEnum)
                 datos[propiedad.Name] = valor is null ? null : ((Enum)valor).Descripcion();
@@ -68,7 +68,7 @@ namespace GestoresDeNegocio
             {
                 var tipo = (ITipoDtm)negocio.CrearGestorDeTipo(Contexto).LeerRegistroPorId(((IUsaTipo)elemento).IdTipo, aplicarJoin: false);
                 datos[$"{nameof(IUsaTipo.Tipo)}.{nameof(INombre.Nombre)}"] = tipo.Nombre;
-                datos[$"{nameof(IUsaTipo.Tipo)}.{nameof(ITipoDtm.Activo)}"] = tipo.Activo ? extCadenas.enumCadenas.Si : extCadenas.enumCadenas.No;
+                datos[$"{nameof(IUsaTipo.Tipo)}.{nameof(ITipoDtm.Activo)}"] = tipo.Activo ? ExtensorDeCadenas.enumCadenas.Si : ExtensorDeCadenas.enumCadenas.No;
                 datos[$"{nameof(IUsaTipo.Tipo)}.{nameof(ITipoDtm.Sigla)}"] = tipo.Sigla;
             }
 
@@ -80,7 +80,7 @@ namespace GestoresDeNegocio
                 datos[$"CG.{nameof(CentroGestorDtm.eMail)}"] = cg.eMail;
                 datos[$"CG.{nameof(CentroGestorDtm.Sigla)}"] = cg.Sigla;
                 datos[$"CG.{nameof(CentroGestorDtm.Expresion)}"] = cg.Expresion;
-                datos[$"CG.{nameof(CentroGestorDtm.Baja)}"] = cg.Baja ? extCadenas.enumCadenas.Si : extCadenas.enumCadenas.No;
+                datos[$"CG.{nameof(CentroGestorDtm.Baja)}"] = cg.Baja ? ExtensorDeCadenas.enumCadenas.Si : ExtensorDeCadenas.enumCadenas.No;
                 datos[$"CG.{nameof(CentroGestorDtm.Archivo)}"] = cg.IdArchivo is not null ? ServidorDocumental.DescargarArchivo(Contexto, (int)cg.IdArchivo, solicitadoPorLaCola: false) : ApiDeArchivos.FicheroNoEncontrado;
 
                 datos[$"CG.{nameof(CentroGestorDtm.Responsable)}.{nameof(UsuarioDtm.Login)}"] = cg.IdResponsable is not null ? cg.Responsable.Login : "";
@@ -104,9 +104,9 @@ namespace GestoresDeNegocio
             {
                 var estado = negocio.Estado(Contexto, ((IUsaEstado)elemento).IdEstado);
                 datos[$"{nameof(IUsaEstado.Estado)}.{nameof(EstadoDtm.Nombre)}"] = estado.Nombre;
-                datos[$"{nameof(IUsaEstado.Estado)}.{nameof(EstadoDtm.Inicial)}"] = estado.Inicial ? extCadenas.enumCadenas.Si : extCadenas.enumCadenas.No;
-                datos[$"{nameof(IUsaEstado.Estado)}.{nameof(EstadoDtm.Cancelado)}"] = estado.Cancelado ? extCadenas.enumCadenas.Si : extCadenas.enumCadenas.No;
-                datos[$"{nameof(IUsaEstado.Estado)}.{nameof(EstadoDtm.Terminado)}"] = estado.Terminado ? extCadenas.enumCadenas.Si : extCadenas.enumCadenas.No;
+                datos[$"{nameof(IUsaEstado.Estado)}.{nameof(EstadoDtm.Inicial)}"] = estado.Inicial ? ExtensorDeCadenas.enumCadenas.Si : ExtensorDeCadenas.enumCadenas.No;
+                datos[$"{nameof(IUsaEstado.Estado)}.{nameof(EstadoDtm.Cancelado)}"] = estado.Cancelado ? ExtensorDeCadenas.enumCadenas.Si : ExtensorDeCadenas.enumCadenas.No;
+                datos[$"{nameof(IUsaEstado.Estado)}.{nameof(EstadoDtm.Terminado)}"] = estado.Terminado ? ExtensorDeCadenas.enumCadenas.Si : ExtensorDeCadenas.enumCadenas.No;
             }
         }
 

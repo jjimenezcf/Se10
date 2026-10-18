@@ -297,7 +297,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var a = AtributosHtml.AtributosComunes($"div-{idHtml}", idHtml, propiedadHtml, enumTipoControl.Check, Ayuda);
 
             Dictionary<string, object> valores = AtributosHtmlExtension.MapearComunes(a);
-            valores["CssContenedor"] = Css.Render(enumCssFiltro.ContenedorCheck) + $"{(otraClaseDelContenedor.IsNullOrEmpty() ? "" : " " + otraClaseDelContenedor)}";
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssFiltro.ContenedorCheck) + $"{(otraClaseDelContenedor.IsNullOrEmpty() ? "" : " " + otraClaseDelContenedor)}";
             valores["Checked"] = chequeado ? "true" : "false";
             valores["Etiqueta"] = etiqueta;
             valores["Accion"] = accion;
@@ -487,7 +487,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 htmlOpcion = $@"<input id='{idOpcion}' 
                                        type='button' 
                                        tipo='{enumTipoControl.Opcion.Render()}'
-                                       clase='{Css.Render(claseBoton)}' 
+                                       clase='{ExtensorDeCss.Render(claseBoton)}' 
                                        class='{enumCssModal.BotonPrincipal.Render()}' 
                                        permisos-necesarios='{permisosNecesarios.Render()}' 
                                        value='{opcion}' 
@@ -497,7 +497,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var htmlCerrar = $@"<input id='{idHtml}-cerrar' 
                                        type='button' 
                                        tipo='{enumTipoControl.Opcion.Render()}'
-                                       clase='{Css.Render(enumCssOpcionMenu.Basico)}' 
+                                       clase='{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}' 
                                        class='{(hayBotonPrimario ? enumCssModal.BotonSecundario.Render() : enumCssModal.BotonPrincipal.Render())} btn' 
                                        permisos-necesarios='{enumModoDeAccesoDeDatos.SinPermiso.Render()}' 
                                        value='{(tituloOpcionCerrar.IsNullOrEmpty() ? "Cerrar" : tituloOpcionCerrar)}'
@@ -559,7 +559,7 @@ namespace MVCSistemaDeElementos.Descriptores
                              </button>
 
                            <a id=¨{idHtml}.ref¨ 
-                              class=¨{Css.Render(enumCssControlesFormulario.SelectorArchivo)} {enumCssControles.Etiqueta.Render()}¨ 
+                              class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.SelectorArchivo)} {enumCssControles.Etiqueta.Render()}¨ 
                               href=¨javascript:ApiDeArchivos.SeleccionarArchivo('{idHtml}')¨>
                               {etiqueta}
                            </a>";
@@ -595,7 +595,7 @@ namespace MVCSistemaDeElementos.Descriptores
                              </button>
 
                              <a id=¨{idHtml}.ref¨ 
-                                class=¨{Css.Render(enumCssControlesFormulario.SelectorArchivo)} {enumCssControles.Etiqueta.Render()}¨ 
+                                class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.SelectorArchivo)} {enumCssControles.Etiqueta.Render()}¨ 
                                 en-consulta-ocultar=true 
                                 href=¨javascript:ApiDeArchivos.SeleccionarImagen('{idHtml}')¨>
                                 {etiqueta}

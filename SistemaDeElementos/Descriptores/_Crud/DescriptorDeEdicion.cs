@@ -189,7 +189,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 htmContenedorEdt =
                  $@"
                    <div id=¨{IdHtml}¨ 
-                        class=¨{Css.Render(enumCssDiv.DivOculto)} {Css.Render(enumCssEdicion.CuerpoDeEdicion)}¨
+                        class=¨{ExtensorDeCss.Render(enumCssDiv.DivOculto)} {ExtensorDeCss.Render(enumCssEdicion.CuerpoDeEdicion)}¨
                         controlador=¨{Crud.Controlador}¨
                         solo-consulta='{!Editable || !Mnt.Crud.NegocioActivo}'
                         {propiedadesNoMapeables.First().Key} = '{propiedadesNoMapeables[propiedadesNoMapeables.First().Key]}'>
@@ -269,7 +269,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var htmlModal = Pagina != null
                 ? $@"
                    <div id=¨{IdHtml}.cabecera¨ class=¨{enumCssEdicion.ContenedorDeEdicionCabecera.Render()} {enumCssEdicion.ContenedorDeEdicionCabeceraSoloConsulta.Render()}¨>
-                      <div id=¨{IdHtml}.titulo¨ class=¨{Css.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
+                      <div id=¨{IdHtml}.titulo¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
                       <div id=¨{IdHtml}.flujo¨ class='{enumCssEdicion.AccionesDelPanelDeEdicion.Render()}'>                       
                          <a id=¨mostrar.{IdHtml}.flujo.visor.ref¨ style=¨margin-left: 2px;¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDeEdicion}('{eventosDeEdicion.MostrarOcultarVisor}');¨> 
                             <img id=¨imagen.{IdHtml}.flujo.visor¨ title='Mostrar o ocultar el visor' class='{enumCssAccionesPanelEdicion.Visor.Descripcion()} {enumCssAccionesPanelEdicion.SinVisor.Descripcion()}'> 
@@ -283,9 +283,9 @@ namespace MVCSistemaDeElementos.Descriptores
                       </div> 
                    </div>"
                 : $@"
-                  <div id=¨{IdHtml}.cabecera¨ class=¨{Css.Render(enumCssEdicion.ContenedorDeEdicionCabecera)}¨>
+                  <div id=¨{IdHtml}.cabecera¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.ContenedorDeEdicionCabecera)}¨>
                      {MenuDeEdicion.RenderControl()}
-                     <div id=¨{IdHtml}.titulo¨ class=¨{Css.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
+                     <div id=¨{IdHtml}.titulo¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
                      <div id=¨{IdHtml}.flujo¨ class='{enumCssEdicion.AccionesDelPanelDeEdicion.Render()}'>                       
                         <a id=¨mostrar.{IdHtml}.flujo.retroceder.ref¨ style=¨margin-left: 2px;¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDeEdicion}('{eventosDeEdicion.Retroceder}');¨> 
                           <img id=¨imagen.{IdHtml}.flujo.retroceder¨ title='devolver' class='{enumCssAccionesPanelEdicion.Retroceder.Descripcion()}'> 
@@ -303,7 +303,7 @@ namespace MVCSistemaDeElementos.Descriptores
                            <img id=¨imagen.{IdHtml}.flujo.desplegar¨ title='Desplegar todos los apartados'  class='{enumCssAccionesPanelEdicion.Desplegar.Descripcion()}'> 
                          </a>    
                      </div> 
-                     <div id=¨{IdHtml}.{DescriptorDeCrud<TElemento>.menuEdicion}¨ class=¨{Css.Render(enumCssEdicion.MenuIndividual)}¨ offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuEdicion}'> </div> 
+                     <div id=¨{IdHtml}.{DescriptorDeCrud<TElemento>.menuEdicion}¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.MenuIndividual)}¨ offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuEdicion}'> </div> 
                   </div>";
             return htmlModal;
         }
@@ -363,7 +363,7 @@ namespace MVCSistemaDeElementos.Descriptores
             }
             else
             {
-                htmlModal = $@"<div id=¨{idHtmlCuerpoDeEdicion}¨ class=¨{Css.Render(enumCssEdicion.ContenedorDeEdicionCuerpo)}¨>
+                htmlModal = $@"<div id=¨{idHtmlCuerpoDeEdicion}¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.ContenedorDeEdicionCuerpo)}¨>
                               {htmlDatosPrincipales}
                               {htmlAmpliaciones}                                
                               {htmlExpanes}
@@ -513,7 +513,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public static string RenderContenedorDeEdicionPie(string idHtml, string idHtmlDeLaTabla, bool abrirEnModal, bool UsaCompartir = false, bool permiteConsultar = false)
         {
-            var htmlModal = $@"<div id=¨contenedor_edicion_pie_{idHtml}¨ class=¨{Css.Render(enumCssEdicion.ContenedorDeEdicionPie)}¨>
+            var htmlModal = $@"<div id=¨contenedor_edicion_pie_{idHtml}¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.ContenedorDeEdicionPie)}¨>
                                   {htmlRenderPie(idHtml, idHtmlDeLaTabla)}
                                   {(abrirEnModal ? "" : HtmlRenderNavegadorDeSeleccionados(idHtml, abrirEnModal, UsaCompartir, permiteConsultar))}
                                </div>";
@@ -579,7 +579,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var htmContenedorPie =
                    $@"
-                   <Div id=¨{idHtml}-contenedor-id¨ class=¨{Css.Render(enumCssEdicion.ContenedorId)}¨>
+                   <Div id=¨{idHtml}-contenedor-id¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.ContenedorId)}¨>
                      {RenderInputId(idHtmlDeLaTabla)}
                   </Div>
                 ";

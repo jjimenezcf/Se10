@@ -23,7 +23,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         public JsonResult epBorrarRelacionPorId(int id, string parametrosJson)
         {
-            var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+            var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
             return BorrarIds(new List<int> {id}, parametros);
         }
 

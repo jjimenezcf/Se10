@@ -131,15 +131,15 @@ namespace MVCSistemaDeElementos.Descriptores
                 ?
                 $@"<div id=¨contenedor_creacion_cabecera_{idHtml}¨ class=¨{enumCssEdicion.ContenedorDeEdicionCabecera.Render()}¨>
                                  {menuCreacion.RenderControl()}
-                                 <div id=¨{IdHtml}.titulo¨ class=¨{Css.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
-                                 <div id=¨{IdHtml}.flujo¨ class=¨{Css.Render(enumCssEdicion.MenuDelProceso)}¨> </div> 
-                                 <div id=¨{IdHtml}.{DescriptorDeCrud<TElemento>.menuCreacion}¨ class=¨{Css.Render(enumCssEdicion.MenuIndividual)}¨ offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuCreacion}'> </div> 
+                                 <div id=¨{IdHtml}.titulo¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
+                                 <div id=¨{IdHtml}.flujo¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.MenuDelProceso)}¨> </div> 
+                                 <div id=¨{IdHtml}.{DescriptorDeCrud<TElemento>.menuCreacion}¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.MenuIndividual)}¨ offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuCreacion}'> </div> 
                               </div>"
                 :
                 $@"<div id=¨contenedor_creacion_cabecera_{idHtml}¨ class=¨{enumCssEdicion.ContenedorDeEdicionCabecera.Render()}¨>
                                  {menuCreacion.RenderControl()}
-                                 <div id=¨{IdHtml}.titulo¨ class=¨{Css.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
-                                 <div id=¨{IdHtml}.flujo¨ class=¨{Css.Render(enumCssEdicion.MenuDelProceso)}¨> </div> 
+                                 <div id=¨{IdHtml}.titulo¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.Titulo)}¨>{Etiqueta}</div>
+                                 <div id=¨{IdHtml}.flujo¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.MenuDelProceso)}¨> </div> 
                                  <div id=¨{IdHtml}.flotante¨> </div> 
                               </div>";
 
@@ -179,7 +179,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var htmlModal = crud is not null &&  incluirVisorDeArchivo ?
                 $@"<div id='{idHtmlCuerpoDeCreacion}' class='{enumCssCreacion.ContenedorDeCreacioCuerpo.Render()} {enumCssCreacion.VisorOculto.Render()}'>
                         <div id=¨{idHtmlCuerpoDeCreacion}_Datos¨ class=¨{enumCssCreacion.ContenedorDeCreacioDatos.Render()}¨>
-                                 {DescriptorDeTabla.htmlRenderObjetoVacio(padre, dto, controlador, idHtmlCuerpoDeCreacion, Css.Render(enumCssCreacion.TablaDeCreacion), enumModoDeTrabajo.Nuevo)}
+                                 {DescriptorDeTabla.htmlRenderObjetoVacio(padre, dto, controlador, idHtmlCuerpoDeCreacion, ExtensorDeCss.Render(enumCssCreacion.TablaDeCreacion), enumModoDeTrabajo.Nuevo)}
                                  {ampliacionesEnElCuerpo}
                         </div>
                         <div class='splitter'></div>
@@ -196,7 +196,7 @@ namespace MVCSistemaDeElementos.Descriptores
                      </div>"
                 :           
                 $@"<div id=¨{idHtmlCuerpoDeCreacion}¨ class=¨{enumCssEdicion.ContenedorDeEdicionCuerpo.Render()}¨>
-                                 {DescriptorDeTabla.htmlRenderObjetoVacio(padre, dto, controlador, idHtmlCuerpoDeCreacion, Css.Render(enumCssCreacion.TablaDeCreacion), enumModoDeTrabajo.Nuevo)}
+                                 {DescriptorDeTabla.htmlRenderObjetoVacio(padre, dto, controlador, idHtmlCuerpoDeCreacion, ExtensorDeCss.Render(enumCssCreacion.TablaDeCreacion), enumModoDeTrabajo.Nuevo)}
                                  {ampliacionesEnElCuerpo}
                    </div>";
             return htmlModal;
@@ -205,11 +205,11 @@ namespace MVCSistemaDeElementos.Descriptores
         public static string RenderContenedorDeCreacionPie(string idHtml, bool abrirEnModal, string htmlDeCreacionEspecifico, bool renderCheck = true)
         {
             var html = renderCheck
-                ? $@"<div id=¨contenedor_creacion_pie_{idHtml}¨ class=¨{Css.Render(enumCssEdicion.ContenedorDeEdicionPie)} ¨>
+                ? $@"<div id=¨contenedor_creacion_pie_{idHtml}¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.ContenedorDeEdicionPie)} ¨>
                        {htmlDeCreacionEspecifico}
                        {(abrirEnModal ? "" : htmlRenderOpciones(idHtml, abrirEnModal))}
                     </div>"
-                : $@"<div id=¨contenedor_creacion_pie_{idHtml}¨ class=¨{Css.Render(enumCssEdicion.ContenedorDeEdicionPie)} ¨>
+                : $@"<div id=¨contenedor_creacion_pie_{idHtml}¨ class=¨{ExtensorDeCss.Render(enumCssEdicion.ContenedorDeEdicionPie)} ¨>
                 
                      </div>";
             return html;
@@ -224,7 +224,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var htmContenedorPie =
                    $@"
-                   <div id=¨opciones-{idHtml}¨ class=¨{(!abrirEnModal ? enumCssControles.ContenedorCheck.Render() : Css.Render(enumCssCreacion.ContenedorPieModalOpciones))}¨>
+                   <div id=¨opciones-{idHtml}¨ class=¨{(!abrirEnModal ? enumCssControles.ContenedorCheck.Render() : ExtensorDeCss.Render(enumCssCreacion.ContenedorPieModalOpciones))}¨>
                     {htmdDescriptorControl}
                   </div>
                 ";

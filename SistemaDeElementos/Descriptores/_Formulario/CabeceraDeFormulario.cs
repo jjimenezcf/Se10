@@ -28,7 +28,7 @@ namespace MVCSistemaDeElementos.Descriptores
         public override string RenderControl()
         {
             var mf = OpcionesIndividuales.Count > 0
-                ? $@"<div id='{IdHtml}.{Formulario.MenuFormulario}' class='{Css.Render(enumCssMnt.MenuFormulario)}' offset-x = 70 menu-flotante='{Formulario.MenuFormulario}'> </div> "
+                ? $@"<div id='{IdHtml}.{Formulario.MenuFormulario}' class='{ExtensorDeCss.Render(enumCssMnt.MenuFormulario)}' offset-x = 70 menu-flotante='{Formulario.MenuFormulario}'> </div> "
                 : "";
             var onkeypress = $"onkeypress = ¨{enumAccionDeFormulario.TeclaPulsada.Render()}¨";
             return $@"

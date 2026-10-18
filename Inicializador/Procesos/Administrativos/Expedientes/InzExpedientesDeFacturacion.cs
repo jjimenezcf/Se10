@@ -309,7 +309,7 @@ namespace Inicializador.Expedientes
                     parametro: parametroDeTransicion.Replace($"@{AccionesDeFacturacion.enumParametros.IdTipoArchivador}", tipoArchivador.Id.ToString())
                                                     .Replace($"@{AccionesDeFacturacion.enumParametros.Mes}", $"{i}"),
                     orden: 10,
-                    descripcion: $"Cierro el archivador del mes de {extFechas.Mes(i)}");
+                    descripcion: $"Cierro el archivador del mes de {ExtensorDeFechas.Mes(i)}");
 
                 //Al cerrar enero abro  marzo
                 //Al cerrar octubre abro diciembre
@@ -321,7 +321,7 @@ namespace Inicializador.Expedientes
                                           parametro: parametroDeTransicion.Replace($"@{AccionesDeFacturacion.enumParametros.IdTipoArchivador}", tipoArchivador.Id.ToString())
                                                                           .Replace($"@{AccionesDeFacturacion.enumParametros.Mes}", $"{i + 2}"),
                                           orden: 10,
-                                          descripcion: $"Abro un archivador para el mes de {extFechas.Mes(i + 2)}");
+                                          descripcion: $"Abro un archivador para el mes de {ExtensorDeFechas.Mes(i + 2)}");
 
                 //Creo un nuevo expediente al cerrar diciembre
                 if (i == 12)
@@ -347,7 +347,7 @@ namespace Inicializador.Expedientes
                     parametro: parametroDeTransicion.Replace($"@{AccionesDeFacturacion.enumParametros.IdTipoArchivador}", tipoArchivador.Id.ToString())
                                                     .Replace($"@{AccionesDeFacturacion.enumParametros.Mes}", $"{i + 2}"),
                     orden: 10,
-                    descripcion: $"cierro el archivador para el mes de {extFechas.Mes(i + 2)}");
+                    descripcion: $"cierro el archivador para el mes de {ExtensorDeFechas.Mes(i + 2)}");
 
                 //Al reabrir enero abro  enero
                 //Al reabrir noviembre abro noviembre
@@ -359,7 +359,7 @@ namespace Inicializador.Expedientes
                     parametro: parametroDeTransicion.Replace($"@{AccionesDeFacturacion.enumParametros.IdTipoArchivador}", tipoArchivador.Id.ToString())
                                                     .Replace($"@{AccionesDeFacturacion.enumParametros.Mes}", $"{i}"),
                     orden: 10,
-                    descripcion: $"Reabro el archivador del mes de {extFechas.Mes(i)}");
+                    descripcion: $"Reabro el archivador del mes de {ExtensorDeFechas.Mes(i)}");
             }
 
             //reapertura de ejercicio
@@ -371,7 +371,7 @@ namespace Inicializador.Expedientes
                 parametro: parametroDeTransicion.Replace($"@{AccionesDeFacturacion.enumParametros.IdTipoArchivador}", tipoArchivador.Id.ToString())
                                                 .Replace($"@{AccionesDeFacturacion.enumParametros.Mes}", $"{12}"),
                 orden: 10,
-                descripcion: $"Reabro el archivador del mes de {extFechas.Mes(12)}");
+                descripcion: $"Reabro el archivador del mes de {ExtensorDeFechas.Mes(12)}");
         }
 
         private static string AlCerrarElMesDe(int mes)

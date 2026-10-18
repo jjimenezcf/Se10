@@ -323,7 +323,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var valores = new Dictionary<string, object>();
 
-            valores["CssContenedor"] = Css.Render(enumCssExpansor.GridDeRelacion);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssExpansor.GridDeRelacion);
             valores[nameof(IdHtmlContenedor)] = IdHtmlContenedor;
             valores[nameof(IdHtml)] = IdHtml;
             valores[nameof(Controlador)] = Controlador.Name.Replace(ltrEndPoint.Controller, "");

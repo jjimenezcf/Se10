@@ -569,8 +569,8 @@ namespace GestoresDeNegocio.Venta.Factura
                     var verifactuAnt = anterior.Verifactu(Contexto, errorSiNoHay: false);
                     if (verifactuAnt is not null)
                     {
-                        var cuota = extNumeros.Formatear(anterior.Ivas(Contexto).Sum(iva => iva.Cuota), alineacion: false, separadorDecimal: ".");
-                        var total = extNumeros.Formatear(anterior.BiConIva(Contexto) - anterior.Irpf(Contexto), alineacion: false, separadorDecimal: ".");
+                        var cuota = ExtensorDeNumeros.Formatear(anterior.Ivas(Contexto).Sum(iva => iva.Cuota), alineacion: false, separadorDecimal: ".");
+                        var total = ExtensorDeNumeros.Formatear(anterior.BiConIva(Contexto) - anterior.Irpf(Contexto), alineacion: false, separadorDecimal: ".");
                         datosAnteriores = $"[IDEmisorFactura={Sociedad.NIFSinIsoEs}&NumSerieFactura={anterior.NumeroDeFactura}&FechaExpedicionFactura={anterior.EmitidaEl.FechaCorta()}&TipoFactura={facturaAeat.TipoAeat}&CuotaTotal={cuota}&ImporteTotal={total}&Huella={verifactuAnt.Huella}&FechaHoraHusoGenRegistro={anterior.EmitidaEl.FechaFormatoIso8601()}]";
                     }
                 }

@@ -518,7 +518,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 : (Modales.Count > 0 ? RenderBloqueParaAbrirLasModalesDeFiltrado() : "");
 
             return $@"<!-- ******************* Filtro ******************* -->
-                      <div id = ¨{IdHtml}¨ class=¨{Css.Render(enumCssCuerpo.CuerpoDatosFiltro)}¨ onkeypress=¨eventoTeclaPulsada¨ {estilo}>  
+                      <div id = ¨{IdHtml}¨ class=¨{ExtensorDeCss.Render(enumCssCuerpo.CuerpoDatosFiltro)}¨ onkeypress=¨eventoTeclaPulsada¨ {estilo}>  
                          {renderModales}
                          {RenderDeBloquesDeFiltro()}
                       </div> 

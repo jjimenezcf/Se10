@@ -341,8 +341,8 @@ namespace GestoresDeNegocio.Logistica
                     cambios.Add($"Nombre: {Texto(pedido.Nombre)} → {Texto(datos.Nombre)}");
                 pedido.Nombre = datos.Nombre;
 
-                if (!datos.eMail.IsNullOrEmpty() && !extCorreos.EsUnCorreo(datos.eMail))
-                    Emitir(extCorreos.MensajeDeCorreoNoValido(datos.eMail));
+                if (!datos.eMail.IsNullOrEmpty() && !Utilidades.ExtensorDeCorreos.EsUnCorreo(datos.eMail))
+                    Emitir(Utilidades.ExtensorDeCorreos.MensajeDeCorreoNoValido(datos.eMail));
                 if ((pedido.eMail ?? "") != (datos.eMail ?? ""))
                     cambios.Add($"Correo: {Texto(pedido.eMail)} → {Texto(datos.eMail)}");
                 pedido.eMail = datos.eMail;

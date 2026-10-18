@@ -16,21 +16,21 @@ namespace ModeloDeDto.Reporte
         public abstract string Logo { get; set; }
         public T Datos { get; set; }
         public Dictionary<string, object> Parametros { get; set; }
-        public bool IndicarFila => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.IndicarFila, false);
-        public bool MostrarCalificadorDireccion => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarCalificadorDireccion, false);
-        public bool MostrarImpresoEl => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarImpresoEl, false);
-        public bool ImprimirFechaCreacion => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.ImprimirFechaCreacion, false);
-        public string ColorTitulo => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.ColorTitulo, "#2196f3");
-        public float Marco => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.Marco, 50F);
-        public float AnchoLogo => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.AnchoLogo, 100);
-        public float AltoLogo => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.AltoLogo, 50);
-        public float PaddingMargenIzquierdo => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.PaddingMargenIzquierdo, 20);
-        public float PaddingTopPie => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.PaddingTopPie, 25);
-        public float TamanoTitulo => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoTitulo, 16);
-        public float TamanoPieDePagina => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoPieDePagina, 5);
-        public float TamanoEncabezado => extDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoEncabezado, 8);
-        public bool MostrarLogo => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarLogo, true) && File.Exists(Logo);
-        public bool AjustarReferencia => extDiccionarios.LeerValor(Parametros, ltrParametrosRpt.AjustarReferencia, true);
+        public bool IndicarFila => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.IndicarFila, false);
+        public bool MostrarCalificadorDireccion => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarCalificadorDireccion, false);
+        public bool MostrarImpresoEl => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarImpresoEl, false);
+        public bool ImprimirFechaCreacion => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.ImprimirFechaCreacion, false);
+        public string ColorTitulo => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.ColorTitulo, "#2196f3");
+        public float Marco => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.Marco, 50F);
+        public float AnchoLogo => ExtensorDeDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.AnchoLogo, 100);
+        public float AltoLogo => ExtensorDeDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.AltoLogo, 50);
+        public float PaddingMargenIzquierdo => ExtensorDeDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.PaddingMargenIzquierdo, 20);
+        public float PaddingTopPie => ExtensorDeDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.PaddingTopPie, 25);
+        public float TamanoTitulo => ExtensorDeDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoTitulo, 16);
+        public float TamanoPieDePagina => ExtensorDeDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoPieDePagina, 5);
+        public float TamanoEncabezado => ExtensorDeDiccionarios.LeerValor<float>(Parametros, ltrParametrosRpt.TamanoEncabezado, 8);
+        public bool MostrarLogo => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.MostrarLogo, true) && File.Exists(Logo);
+        public bool AjustarReferencia => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosRpt.AjustarReferencia, true);
 
         public virtual bool VerificarVersionDeParametros()
         {

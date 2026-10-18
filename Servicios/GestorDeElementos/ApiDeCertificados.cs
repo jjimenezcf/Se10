@@ -551,7 +551,11 @@ namespace GestorDeElementos
                         else
                             if (extension == enumExtensiones.docx.ToString())
                             {
-                                var ficheroPdf = extDocx.ToPdf(fichero, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
+                                var motivo = ExtensorDePdf.MotivoPorElQueNoSePuedeConvertir(ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
+                                if (motivo != null)
+                                    GestorDeErrores.Emitir(motivo);
+
+                                var ficheroPdf = ExtensorDeDocx.ToPdf(fichero, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
 
                                 // Lo firmado es el pdf: el destino ha de tener su extensión antes de firmar, o se escribiría un pdf con extensión docx
                                 destino = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(destino), $"{System.IO.Path.GetFileNameWithoutExtension(destino)}.{enumExtensiones.pdf}");

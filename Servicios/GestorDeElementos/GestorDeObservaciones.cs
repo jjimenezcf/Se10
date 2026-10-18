@@ -142,7 +142,7 @@ namespace GestorDeElementos
                 var ultimaCreada = ObservacionSql.UltimaCreada(Contexto, _Tabla, observacion.IdElemento);
                 if (ultimaCreada != null && observacion.Nombre == ultimaCreada.Nombre && ultimaCreada.Descripcion == observacion.Descripcion)
                 {
-                    GestorDeErrores.Emitir($"Ya ha creado con fecha '{ultimaCreada.CreadaEl.ToString(extFechas.DiaHora)}' una observación para el mismo elemento con la misma información");
+                    GestorDeErrores.Emitir($"Ya ha creado con fecha '{ultimaCreada.CreadaEl.ToString(ExtensorDeFechas.DiaHora)}' una observación para el mismo elemento con la misma información");
                 }
                 observacion.Id = ObservacionSql.Insertar(Contexto, _Tabla, observacion.IdElemento, observacion.Nombre, observacion.Descripcion, idUsuario).Id;
                 return;

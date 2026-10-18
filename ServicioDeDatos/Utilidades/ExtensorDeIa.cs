@@ -85,7 +85,7 @@ namespace ServicioDeDatos.Utilidades
                 .Replace(IIaPromptFiltrar.ReglasEspecíficas, Environment.NewLine + reglasEspecificas)
                 .Replace(IIaPromptFiltrar.NegocioTratado, Environment.NewLine + negocio.Plural())
                 .Replace(IIaPromptFiltrar.ListaDeUsuarios, Environment.NewLine + listaUsuarios)
-                .Replace(IIaPromptFiltrar.FechaDeHoy, extFechas.FechaFormatoIso8601(DateTime.Now))
+                .Replace(IIaPromptFiltrar.FechaDeHoy, ExtensorDeFechas.FechaFormatoIso8601(DateTime.Now))
                 .Replace(IIaPromptFiltrar.ListaDeEtapas, Environment.NewLine + etapas)
                 .Replace(IIaPromptFiltrar.HistorialDeSesion, historial);
 
@@ -127,7 +127,7 @@ namespace ServicioDeDatos.Utilidades
             var promptFiltroCompleto = IIaPromptFiltrar.Prompt
                 .Replace(IIaPromptFiltrar.Texto,                  texto)
                 .Replace(IIaPromptFiltrar.NegocioTratado,         negocio.Plural())
-                .Replace(IIaPromptFiltrar.FechaDeHoy,             extFechas.FechaFormatoIso8601(DateTime.Now))
+                .Replace(IIaPromptFiltrar.FechaDeHoy,             ExtensorDeFechas.FechaFormatoIso8601(DateTime.Now))
                 .Replace(IIaPromptFiltrar.ListaDeCentrosGestores, Environment.NewLine + listaDeCg)
                 .Replace(IIaPromptFiltrar.ListaDeTipos,           Environment.NewLine + listaDeTipos)
                 .Replace(IIaPromptFiltrar.ListaDeEstados,         Environment.NewLine + listaDeEstados)
@@ -140,7 +140,7 @@ namespace ServicioDeDatos.Utilidades
             ((IIaPromptConteo)ia).PromptConteo = IIaPromptConteo.Prompt
                 .Replace(IIaPromptConteo.Texto,                  texto)
                 .Replace(IIaPromptConteo.NegocioTratado,         negocio.Plural())
-                .Replace(IIaPromptConteo.FechaDeHoy,             extFechas.FechaFormatoIso8601(DateTime.Now))
+                .Replace(IIaPromptConteo.FechaDeHoy,             ExtensorDeFechas.FechaFormatoIso8601(DateTime.Now))
                 .Replace(IIaPromptConteo.ListaDeCentrosGestores, Environment.NewLine + listaDeCg)
                 .Replace(IIaPromptConteo.ListaDeTipos,           Environment.NewLine + listaDeTipos)
                 .Replace(IIaPromptConteo.ListaDeEstados,         Environment.NewLine + listaDeEstados)
@@ -158,7 +158,7 @@ namespace ServicioDeDatos.Utilidades
 
         public async static Task<string> ProcesarFactura(int idArchivo, string rutaArchivo, IIa ia, ProcesadorOcr.ProcesadorOcr procesadorOcr)
         {
-            if (extJson.EsArchivoJsonValido(rutaArchivo))
+            if (ExtensorDeJson.EsArchivoJsonValido(rutaArchivo))
             {
                 return null;
             }

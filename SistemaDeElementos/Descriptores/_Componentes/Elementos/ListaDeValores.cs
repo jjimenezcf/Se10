@@ -56,8 +56,8 @@ namespace MVCSistemaDeElementos.Descriptores
             var atributos = a.MapearComunes();
 
             var otraCalse = Padre is ModalDeFiltrado<TElemento> ? enumCssFiltro.ContenedorEnModalDeFiltros.Render() : "";
-            atributos["CssContenedor"] = $"{Css.Render(enumCssFiltro.ContenedorListaDeElementos)} {otraCalse}";
-            atributos["Css"] = Css.Render(enumCssFiltro.ListaDeElementos);
+            atributos["CssContenedor"] = $"{ExtensorDeCss.Render(enumCssFiltro.ContenedorListaDeElementos)} {otraCalse}";
+            atributos["Css"] = ExtensorDeCss.Render(enumCssFiltro.ListaDeElementos);
 
             var lista = PlantillasHtml.Render(PlantillasHtml.listaDeValoresFlt, atributos);
             var opciones = !Ayuda.IsNullOrEmpty() ? $"<option value='-1'>{Ayuda}</option>" : "";

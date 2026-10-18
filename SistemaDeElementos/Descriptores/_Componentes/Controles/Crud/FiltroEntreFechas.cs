@@ -50,14 +50,14 @@ namespace MVCSistemaDeElementos.Descriptores
             var otraCalse = Padre is ModalDeFiltrado<TElemento> ? enumCssFiltro.ContenedorEnModalDeFiltros.Render() : "";
 
             valores["CssContenedor"] = Padre is ModalDeFiltrado<TElemento> && MostrarEtiqueta
-                ? $"{Css.Render(enumCssFiltro.ContenedorEntreFechasModal)} {otraCalse}"
-                : Css.Render(enumCssFiltro.ContenedorEntreFechas);
+                ? $"{ExtensorDeCss.Render(enumCssFiltro.ContenedorEntreFechasModal)} {otraCalse}"
+                : ExtensorDeCss.Render(enumCssFiltro.ContenedorEntreFechas);
 
             if (Bloque != null)
                 valores["CssContenedor"] = $"{enumCssImportant.SinMarginTop.Render()} {valores["CssContenedor"]}";
 
-            valores["Css"] = Css.Render(enumCssFiltro.Fecha);
-            valores["CssHora"] = Css.Render(enumCssFiltro.Hora);
+            valores["Css"] = ExtensorDeCss.Render(enumCssFiltro.Fecha);
+            valores["CssHora"] = ExtensorDeCss.Render(enumCssFiltro.Hora);
             valores["Placeholder"] = atributos.Ayuda;
             valores["Ayuda"] = atributos.Ayuda;
 

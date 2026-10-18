@@ -963,7 +963,7 @@ namespace ServicioDeDatos.Ventas
                 Valor = "N"
             };
 
-            if (extJson.JsonEquals(jsonLeido, _jsonDeFAE_SSII_EnProductivo))
+            if (ExtensorDeJson.JsonEquals(jsonLeido, _jsonDeFAE_SSII_EnProductivo))
             {
                 enumNegocio.FacturaEmitida.Actualizar(parametro, SerializarSSII_EnProductivo(new List<SSII_EnProductivo> { enproductivo }));
                 return false;
@@ -1120,7 +1120,7 @@ namespace ServicioDeDatos.Ventas
                 Valor = $"{contexto.DatosDeConexion.Bd}-{sociedad.NIF}-{sociedad.Id}"
             };
 
-            if (extJson.JsonEquals(jsonLeido, ltrParametrosDelSii.Pendiente))
+            if (ExtensorDeJson.JsonEquals(jsonLeido, ltrParametrosDelSii.Pendiente))
             {
                 return SerializarSSII_Implantacion(new List<SSII_Implantacion> { implantacion });
             }

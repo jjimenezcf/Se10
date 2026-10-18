@@ -125,7 +125,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var otrosAtributosEtiqueta = new Dictionary<string, string>();
             otrosAtributosEtiqueta["estilo"] = "style='padding :0.5em;'";
 
-            var html = $@"<div class=¨{Css.Render(enumCssDeTransitar.ContenedorAnotacion)}¨>
+            var html = $@"<div class=¨{ExtensorDeCss.Render(enumCssDeTransitar.ContenedorAnotacion)}¨>
                          {RenderEditorConEtiquetaEncima($"{IdHtml}_asunto", "Anotación", "asunto", "para dejar constancia del motivo de la transición", otrosAtributosEditor, otrosAtributosEtiqueta)}
                          {RenderTextArea($"{IdHtml}_detalle", "cuerpo del asunto", "detalleAsunto", "indique el detalle de la anotación")}
                       </div>";

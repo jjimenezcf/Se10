@@ -107,7 +107,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         public JsonResult epExcluirDeLaFactura(int id, string parametrosJson)
         {
-            var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+            var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
             var r = new Resultado();
             var tran = Contexto.IniciarTransaccion();
             try

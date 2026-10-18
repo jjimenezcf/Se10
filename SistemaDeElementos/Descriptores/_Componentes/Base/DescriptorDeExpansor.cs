@@ -80,12 +80,12 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var valores = new Dictionary<string, object>();
             valores["IdHtml"] = IdHtml;
-            valores["cssClase"] = Css.Render(enumCssExpansor.Contenedor);
-            valores["cssCabecera"] = Css.Render(enumCssExpansor.Cabecera);
-            valores["cssCuerpo"] = compuesto ? Css.Render(enumCssExpansor.CuerpoCompuesto) : Css.Render(enumCssExpansor.CuerpoSimple);
-            valores["cssCuerpoControles"] = Css.Render(enumCssExpansor.CuerpoDeControles);
-            valores["cssCuerpoDetalle"] = Css.Render(enumCssExpansor.CuerpoDeDetalle);
-            valores["cssPie"] = Css.Render(enumCssExpansor.Pie);
+            valores["cssClase"] = ExtensorDeCss.Render(enumCssExpansor.Contenedor);
+            valores["cssCabecera"] = ExtensorDeCss.Render(enumCssExpansor.Cabecera);
+            valores["cssCuerpo"] = compuesto ? ExtensorDeCss.Render(enumCssExpansor.CuerpoCompuesto) : ExtensorDeCss.Render(enumCssExpansor.CuerpoSimple);
+            valores["cssCuerpoControles"] = ExtensorDeCss.Render(enumCssExpansor.CuerpoDeControles);
+            valores["cssCuerpoDetalle"] = ExtensorDeCss.Render(enumCssExpansor.CuerpoDeDetalle);
+            valores["cssPie"] = ExtensorDeCss.Render(enumCssExpansor.Pie);
             valores["RenderCabeceraDelExpansor"] = _renderCabecera ? RenderCabeceraExpansor() : "";
             valores["RenderCuerpoControles"] = RenderControlesDelCuerpoExpansor();
             valores["RenderGridDeDetalle"] = RenderGridDeRelacion();
@@ -109,7 +109,7 @@ namespace MVCSistemaDeElementos.Descriptores
                         </a>
                         <label id='titulo.{IdHtml}.ref' class='{enumCssEdicion.TituloDeDetalle.Render()}'>{Etiqueta}</label>  
                         <input id=¨expandir.{IdHtml}.input¨ type=¨hidden¨ value={(MostrarPlegado ? "0" : "1")}> 
-                        <div id=¨{IdHtml}¨  class=¨{Css.Render(MostrarPlegado ? enumCssDiv.DivOculto : enumCssDiv.DivVisible)}¨>
+                        <div id=¨{IdHtml}¨  class=¨{ExtensorDeCss.Render(MostrarPlegado ? enumCssDiv.DivOculto : enumCssDiv.DivVisible)}¨>
                            <div id=¨[IdHtml]-cuerpo-detalle¨ class=¨[cssCuerpoDetalle]¨>
                                [RenderGridDeDetalle]
                            </div>
@@ -130,13 +130,13 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var valores = new Dictionary<string, object>();
             valores["IdHtml"] = IdHtml;
-            valores["cssClase"] = Css.Render(enumCssExpansor.Contenedor);
-            valores["cssCabecera"] = Css.Render(enumCssExpansor.Cabecera);
-            valores["cssPie"] = Css.Render(enumCssExpansor.Pie);
+            valores["cssClase"] = ExtensorDeCss.Render(enumCssExpansor.Contenedor);
+            valores["cssCabecera"] = ExtensorDeCss.Render(enumCssExpansor.Cabecera);
+            valores["cssPie"] = ExtensorDeCss.Render(enumCssExpansor.Pie);
             valores["RenderCabeceraDelExpansor"] = RenderCabeceraExpansor();
             valores["RenderCuerpo"] = cuerpoDelExpansor;
             valores["RenderPieDelExpansor"] = RenderPieExpansor();
-            valores["cssCuerpo"] = Css.Render(enumCssExpansor.CuerpoSimple);
+            valores["cssCuerpo"] = ExtensorDeCss.Render(enumCssExpansor.CuerpoSimple);
             valores["cssCuerpo"] = $"{valores["cssCuerpo"]}{(MostrarPlegado ? $" {enumCssDiv.DivOculto.Render()}" : "")}";
             valores["cssPie"] = $"{valores["cssPie"]}{(MostrarPlegado ? $" {enumCssDiv.DivOculto.Render()}" : "")}";
 
@@ -180,7 +180,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var valores = new Dictionary<string, object>();
             valores["IdHtml"] = IdHtml;
-            valores["cssClase"] = Css.Render(enumCssExpansor.Expansor);
+            valores["cssClase"] = ExtensorDeCss.Render(enumCssExpansor.Expansor);
             valores["Evento"] = $"Crud.{enumGestorDeEventos.EventosDeExpansores}('{eventosDeExpansor.OcultarMostrarBloque}','expandir.{IdHtml}.input;{IdHtml}-cuerpo')";
             valores["Titulo"] = Etiqueta;
             valores["mostrarPlegado"] = MostrarPlegado ? Literal.Cero : Literal.Uno;
@@ -203,7 +203,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var valores = new Dictionary<string, object>();
             valores["IdHtml"] = control.IdHtml;
-            valores["cssClase"] = Css.Render(enumCssExpansor.ContenedorDeControl);
+            valores["cssClase"] = ExtensorDeCss.Render(enumCssExpansor.ContenedorDeControl);
 
             valores["RenderEtiqueta"] = control.Tipo == enumTipoControl.Opcion
                    ? ""

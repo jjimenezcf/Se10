@@ -50,9 +50,9 @@ namespace MVCSistemaDeElementos.Descriptores
             var otraCalse = Padre is ModalDeFiltrado<TElemento> ? enumCssFiltro.ContenedorEnModalDeFiltros.Render() : "";
 
             valores["CssContenedor"] = Padre is ModalDeFiltrado<TElemento> && MostrarEtiqueta
-                ? $"{Css.Render(enumCssFiltro.ContenedorEntreImportesModal)} {otraCalse}"
-                : Css.Render(enumCssFiltro.ContenedorEntreImportes);
-            valores["Css"] = Css.Render(enumCssFiltro.Importe);
+                ? $"{ExtensorDeCss.Render(enumCssFiltro.ContenedorEntreImportesModal)} {otraCalse}"
+                : ExtensorDeCss.Render(enumCssFiltro.ContenedorEntreImportes);
+            valores["Css"] = ExtensorDeCss.Render(enumCssFiltro.Importe);
             valores["Placeholder"] = atributos.Ayuda;
             valores["Ayuda"] = atributos.Ayuda;
 

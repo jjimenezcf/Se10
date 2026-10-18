@@ -138,7 +138,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var htmContenedorMnt =
                 $@"
                    <div id=¨{IdHtml}¨ 
-                     class=¨{enumCssModal.ContenedorCuerpoConGrid.Render()} {Css.Render(enumCssDiv.DivVisible)}¨ 
+                     class=¨{enumCssModal.ContenedorCuerpoConGrid.Render()} {ExtensorDeCss.Render(enumCssDiv.DivVisible)}¨ 
                      grid-del-mnt=¨{Datos.IdHtml}¨ 
                      filtro =¨{Filtro.IdHtml}¨
                      controlador = ¨{Crud.Controlador}¨>
@@ -228,7 +228,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
 
             var propiedades = $@" id='{IdHtml}' 
-                        class='{Css.Render(enumCssCuerpo.CuerpoCabecera)}' 
+                        class='{ExtensorDeCss.Render(enumCssCuerpo.CuerpoCabecera)}' 
                         grid-del-mnt='{Datos.IdHtml}' 
                         zona-de-filtro='{Filtro.IdHtml}' 
                         zona-de-menu='{ZonaMenu.IdHtml}' 
@@ -257,7 +257,7 @@ namespace MVCSistemaDeElementos.Descriptores
         private object RenderCuerpoDatos(string htmlFiltro, string htmlDatos)
         {
             return
-            $@"<div id='cuerpo.datos.{IdHtml}' class='{Css.Render(enumCssCuerpo.CuerpoDatos)}'>
+            $@"<div id='cuerpo.datos.{IdHtml}' class='{ExtensorDeCss.Render(enumCssCuerpo.CuerpoDatos)}'>
                      {htmlFiltro}
                      {htmlDatos}
                </div>";
@@ -271,7 +271,7 @@ namespace MVCSistemaDeElementos.Descriptores
             //           </div>
             //         </div>";
 
-            return $@"<div id='{IdHtmlZonaNavegador}' class='{Css.Render(enumCssCuerpo.CuerpoPie)}'>
+            return $@"<div id='{IdHtmlZonaNavegador}' class='{ExtensorDeCss.Render(enumCssCuerpo.CuerpoPie)}'>
                        {Datos.Grid.NavegadorToHtml()}
                      </div>";
         }
@@ -300,24 +300,24 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var htmlParteSuperiror = $@"
             <!--  ******************* menú ******************* -->
-            <div id = ¨contenedor.{IdHtml}.MenuDelMnt¨ class=¨{Css.Render(enumCssMnt.MntMenuContenedor)} {sinMfs}¨>  
-               <div id = '{ZonaMenu.IdHtml}'  class=¨{Css.Render(enumCssDiv.DivVisible)} {Css.Render(enumCssMnt.MntMenuZona)}¨>     
+            <div id = ¨contenedor.{IdHtml}.MenuDelMnt¨ class=¨{ExtensorDeCss.Render(enumCssMnt.MntMenuContenedor)} {sinMfs}¨>  
+               <div id = '{ZonaMenu.IdHtml}'  class=¨{ExtensorDeCss.Render(enumCssDiv.DivVisible)} {ExtensorDeCss.Render(enumCssMnt.MntMenuZona)}¨>     
                  {ZonaMenu.RenderControl()} 
                 </div> 
-                <div id=¨{IdHtml}.menu.del.flujo¨ class='{Css.Render(enumCssMnt.MenuDelProceso)} {Css.Render(enumCssEdicion.Titulo)}'> 
+                <div id=¨{IdHtml}.menu.del.flujo¨ class='{ExtensorDeCss.Render(enumCssMnt.MenuDelProceso)} {ExtensorDeCss.Render(enumCssEdicion.Titulo)}'> 
                 {Etiqueta}
                 </div> 
-                <div id =¨div.mostrar.{IdHtml}¨ class=¨{Css.Render(enumCssDiv.DivVisible)} {Css.Render(enumCssMnt.MntFiltroExpansor)}¨>     
+                <div id =¨div.mostrar.{IdHtml}¨ class=¨{ExtensorDeCss.Render(enumCssDiv.DivVisible)} {ExtensorDeCss.Render(enumCssMnt.MntFiltroExpansor)}¨>     
                   <a id = ¨mostrar.{IdHtml}.ref¨ title=¨Ocultar filtro¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.OcultarMostrarFiltro}', '{("")}');¨>Ocultar filtro</a>
                   <input id=¨expandir.{IdHtml}¨ type=¨hidden¨ value=¨1¨ >  
                 </div>
                 {htmlModalConDireccion}
                 {htmlVisorDeDetalle}
-                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeFiltro}' class='{Css.Render(enumCssMnt.MenuDeFiltro)} {cssDivNulo}' offset-x = 110 menu-flotante='{DescriptorDeCrud<TElemento>.menuDeFiltro}'> </div>
-                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuContextual}' class='{Css.Render(enumCssMnt.MenuContextual)} {cssDivNulo}' offset-x = 110 menu-flotante='{DescriptorDeCrud<TElemento>.menuContextual}'> </div>
-                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuIndividual}' class='{Css.Render(enumCssMnt.MenuIndividual)} {cssDivNulo}' offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuIndividual}'> </div> 
-                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeRelaciones}' class='{Css.Render(enumCssMnt.MenuDeRelaciones)} {cssDivNulo}' offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuDeRelaciones}'> </div> 
-                <div id='{IdHtml}.menu.vacio' class='{Css.Render(enumCssMnt.DivVacioDeLaDerecha)}'> </div>
+                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeFiltro}' class='{ExtensorDeCss.Render(enumCssMnt.MenuDeFiltro)} {cssDivNulo}' offset-x = 110 menu-flotante='{DescriptorDeCrud<TElemento>.menuDeFiltro}'> </div>
+                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuContextual}' class='{ExtensorDeCss.Render(enumCssMnt.MenuContextual)} {cssDivNulo}' offset-x = 110 menu-flotante='{DescriptorDeCrud<TElemento>.menuContextual}'> </div>
+                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuIndividual}' class='{ExtensorDeCss.Render(enumCssMnt.MenuIndividual)} {cssDivNulo}' offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuIndividual}'> </div> 
+                <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuDeRelaciones}' class='{ExtensorDeCss.Render(enumCssMnt.MenuDeRelaciones)} {cssDivNulo}' offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuDeRelaciones}'> </div> 
+                <div id='{IdHtml}.menu.vacio' class='{ExtensorDeCss.Render(enumCssMnt.DivVacioDeLaDerecha)}'> </div>
             </div>";
             return htmlParteSuperiror;
         }

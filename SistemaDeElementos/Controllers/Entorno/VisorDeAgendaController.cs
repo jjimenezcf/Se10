@@ -247,7 +247,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-                var parametros = extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 var guid = parametros.LeerValor<string>(ltrParametrosEp.guid);
                 var id = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
 

@@ -144,7 +144,7 @@ namespace ModeloDeDto.Terceros
             VisibleEnGrid = true
             )
         ]
-        public string EstaDeBaja => Baja ? nameof(extCadenas.enumCadenas.Si) : nameof(extCadenas.enumCadenas.No);
+        public string EstaDeBaja => Baja ? nameof(ExtensorDeCadenas.enumCadenas.Si) : nameof(ExtensorDeCadenas.enumCadenas.No);
 
         //----------------------------------------------
         [IUPropiedad(

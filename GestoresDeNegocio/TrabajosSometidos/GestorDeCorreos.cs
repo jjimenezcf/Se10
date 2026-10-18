@@ -191,7 +191,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
         public static CorreoDtm EnviarCorreoExterno(ContextoSe contexto, enumNegocio negocio, int idElemento, string para, string asunto, string cuerpo, List<int> idsDeArchivos)
         {
             if (para.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el correo al que enviar");
-            if (!extCorreos.EsUnCorreo(para)) GestorDeErrores.Emitir(extCorreos.MensajeDeCorreoNoValido(para));
+            if (!Utilidades.ExtensorDeCorreos.EsUnCorreo(para)) GestorDeErrores.Emitir(Utilidades.ExtensorDeCorreos.MensajeDeCorreoNoValido(para));
             if (asunto.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el asunto");
             if (cuerpo.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el cuerpo");
 

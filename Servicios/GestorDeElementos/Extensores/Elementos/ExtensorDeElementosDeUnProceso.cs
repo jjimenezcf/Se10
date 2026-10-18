@@ -664,15 +664,15 @@ namespace GestorDeElementos.Extensores
             switch (prioridad)
             {
                 case enumPrioridad.Urgente:
-                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Urgente.Css()}";
+                    return $"{ExtensorDeCss.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Urgente.Css()}";
                 case enumPrioridad.Alta:
-                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Alta.Css()}";
+                    return $"{ExtensorDeCss.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Alta.Css()}";
                 case enumPrioridad.Media:
-                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Media.Css()}";
+                    return $"{ExtensorDeCss.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Media.Css()}";
                 case enumPrioridad.Baja:
-                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Baja.Css()}";
+                    return $"{ExtensorDeCss.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.Baja.Css()}";
                 default:
-                    return $"{Css.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.NoDefinida.Css()}";
+                    return $"{ExtensorDeCss.SemaforoEnGrid}{Simbolos.separadorCss}{enumPrioridad.NoDefinida.Css()}";
             }
         }
     }

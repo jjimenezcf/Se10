@@ -46,7 +46,7 @@ namespace MVCSistemaDeElementos.Descriptores
         public string RenderEditor()
         {
             var navegador = Controlador.IsNullOrEmpty() ? "" : RenderDto.DefinirNavegador(IdHtml, Controlador, VistaDondeNavegar, Negocio, OnClick);
-            return $@"<div class=¨{Css.Render(enumCssFiltro.ContenedorEditor)}¨>
+            return $@"<div class=¨{ExtensorDeCss.Render(enumCssFiltro.ContenedorEditor)}¨>
                          <input id=¨{IdHtml}¨ type = ¨text¨ class=¨{enumCssControles.RestrictorDeFiltro.Render()}¨ {RenderAtributos()} readonly placeholder=¨{Ayuda}¨>
                          {navegador}
                       </div>

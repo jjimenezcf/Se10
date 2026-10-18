@@ -13,7 +13,7 @@ public interface IServicioDeMensajesWeb
 {
     enumCanalDeMensajeria Canal { get; }
 
-    // Los teléfonos llegan en formato internacional sólo con dígitos, sin '+' (ver extTelefonos.ANumeroInternacional)
+    // Los teléfonos llegan en formato internacional sólo con dígitos, sin '+' (ver ExtensorDeTelefonos.ANumeroInternacional)
 
     // Enlace que abre en el cliente la aplicación del canal con el mensaje ya escrito; null si el canal no lo permite
     string UrlParaElCliente(string telefono, string mensaje);

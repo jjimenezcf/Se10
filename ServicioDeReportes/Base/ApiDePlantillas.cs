@@ -827,7 +827,7 @@ namespace ServicioDeReportes.Base
         private static string AsignarCadena(string sustituir, string texto, string valor) => texto.Replace(sustituir, valor.IsNullOrEmpty() ? "" : valor);
 
         private static string AsignarFecha(string sustituir, string texto, DateTime fecha) => texto.Replace(sustituir, fecha.ToString("dd-MM-yyyy"));
-        private static string AsignarBooleano(string sustituir, string texto, bool valor) => texto.Replace(sustituir, valor ? extCadenas.enumCadenas.Si.ToString() : extCadenas.enumCadenas.No.ToString());
+        private static string AsignarBooleano(string sustituir, string texto, bool valor) => texto.Replace(sustituir, valor ? ExtensorDeCadenas.enumCadenas.Si.ToString() : ExtensorDeCadenas.enumCadenas.No.ToString());
 
         private static string AsignarEnumerado(string sustituir, string texto, Enum valor) => texto.Replace(sustituir, valor.Descripcion());
 

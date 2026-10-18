@@ -147,7 +147,7 @@ namespace ServicioDeDatos.Ventas
 
         public static FacturaEmtJson Parsear(string facturaJson)
         {
-            var jsonRoot = extJson.Deserializar(facturaJson);
+            var jsonRoot = ExtensorDeJson.Deserializar(facturaJson);
             var factura = new FacturaEmtJson();
 
             foreach (var parClaveValor in jsonRoot)

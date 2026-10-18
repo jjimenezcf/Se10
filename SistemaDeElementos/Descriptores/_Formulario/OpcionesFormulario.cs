@@ -67,10 +67,10 @@ namespace MVCSistemaDeElementos.Descriptores
         public string RenderOpcion()
         {           
 
-            return $@"<div id = ¨{IdHtml}¨ class=¨{Css.Render(enumCssControlesFormulario.ContenedorOpcion)}¨>
+            return $@"<div id = ¨{IdHtml}¨ class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.ContenedorOpcion)}¨>
                         <input id=¨{IdHtml}¨ 
                                type=¨button¨ 
-                               class=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
+                               class=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ 
                                value=¨{Etiqueta}¨ 
                                onClick=¨{Accion.Render()}¨
                                title=¨{Ayuda}¨/>
@@ -115,11 +115,11 @@ namespace MVCSistemaDeElementos.Descriptores
         }
         public string RenderOpcion()
         {
-            return $@"<div id = ¨{IdHtml}.contenedor¨ class=¨{Css.Render(enumCssControlesFormulario.ContenedorOpcion)}¨>
+            return $@"<div id = ¨{IdHtml}.contenedor¨ class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.ContenedorOpcion)}¨>
                         <input id=¨{IdHtml}¨ 
                                type=¨button¨ 
                                Tipo = 'opcion'
-                               class=¨{Css.Render(enumCssOpcionMenu.Basico)}¨ 
+                               class=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ 
                                value=¨{Etiqueta}¨ 
                                onClick=¨{(Accion is enumAccionDeFormulario ? ((enumAccionDeFormulario)Accion).Render(): ((enumAccionDeJerarquia)Accion).Render(Menu.Pie.Formulario.namespaceTs))}¨
                                title=¨{Ayuda}¨/>

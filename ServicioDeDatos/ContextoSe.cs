@@ -717,7 +717,7 @@ end";
         }
         public void AsignarParametros(string parametros)
         {
-            _parametros = extJson.ToDiccionarioDeParametros(parametros);
+            _parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametros);
         }
         public void AsignarParametros(Dictionary<string, object> parametros)
         {

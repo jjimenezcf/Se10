@@ -11,7 +11,7 @@ namespace ServicioDeDatos
         // El 'tipoClaseValidadora' es el Type de la clase donde residen tus métodos estáticos (ej: typeof(MiClaseDeMapeo))
         public static void ValidarPropiedadesJson(string jsonString, ContextoSe contexto, Type tipoClaseValidadora)
         {
-            JObject jsonObject = extJson.Deserializar(jsonString);
+            JObject jsonObject = ExtensorDeJson.Deserializar(jsonString);
 
             // 2. Recorrer las propiedades (claves) del objeto JSON
             foreach (var parClaveValor in jsonObject)

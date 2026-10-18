@@ -90,7 +90,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             var contexto = entorno.contextoDelProceso;
             var carpetas = origen.LeerJerarquiaDeCarpetas(contexto, new Dictionary<string, object>());
 
-            var rutaInicial = Path.Combine(CacheDeVariable.Cfg_RutaDeDescarga, extCadenas.NormalizarFichero(origen.Referencia).Replace(" ", Simbolos.Subrrallado));
+            var rutaInicial = Path.Combine(CacheDeVariable.Cfg_RutaDeDescarga, ExtensorDeCadenas.NormalizarFichero(origen.Referencia).Replace(" ", Simbolos.Subrrallado));
             if (Path.Exists(rutaInicial))
             {
                 GestorDeErrores.Emitir($"No se puede exportar ya que actualmente existe la rura '{rutaInicial}', inténtelo más tarde");

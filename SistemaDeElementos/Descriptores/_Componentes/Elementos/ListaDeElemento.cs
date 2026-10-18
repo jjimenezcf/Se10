@@ -53,8 +53,8 @@ namespace MVCSistemaDeElementos.Descriptores
             var valores = a.MapearComunes();
 
             var otraCalse = Padre is ModalDeFiltrado<TElemento> ? enumCssFiltro.ContenedorEnModalDeFiltros.Render() : "";
-            valores["CssContenedor"] = Css.Render(enumCssFiltro.ContenedorListaDeElementos) + " " + otraCalse;
-            valores["Css"] = Css.Render(enumCssFiltro.ListaDeElementos);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssFiltro.ContenedorListaDeElementos) + " " + otraCalse;
+            valores["Css"] = ExtensorDeCss.Render(enumCssFiltro.ListaDeElementos);
             valores["ClaseElemento"] = SeleccionarDe;
             valores[nameof(MostrarExpresion)] = MostrarExpresionHtml;
             valores[nameof(Controlador)] = Controlador;

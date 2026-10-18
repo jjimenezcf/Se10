@@ -26,16 +26,16 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var maximoNumeroDeFila = Izquierdo.Count > Derecho.Count ? Izquierdo.Count : Derecho.Count;
 
-            var bloqueHtml = $@"<div id = {IdHtml}-izquierdo class = {Css.Render(enumCssFormulario.BloqueIzquierdo)}>
-                                    <div class = '{enumCssDiv.Tabla.Render()} {Css.Render(enumCssFormulario.Tabla)}'>
+            var bloqueHtml = $@"<div id = {IdHtml}-izquierdo class = {ExtensorDeCss.Render(enumCssFormulario.BloqueIzquierdo)}>
+                                    <div class = '{enumCssDiv.Tabla.Render()} {ExtensorDeCss.Render(enumCssFormulario.Tabla)}'>
                                     <div class = '{enumCssDiv.Thead.Render()}></div>
                                     <div class = '{enumCssDiv.Tbody.Render()}>
                                          {RenderTbody(Izquierdo, maximoNumeroDeFila)}
                                     </div>
                                 </div>
                                 </div>
-                                <div id = {IdHtml}-derecho class = {Css.Render(enumCssFormulario.BloqueDerecho)}>
-                                    <div class = '{enumCssDiv.Tabla.Render()} {Css.Render(enumCssFormulario.Tabla)}'>
+                                <div id = {IdHtml}-derecho class = {ExtensorDeCss.Render(enumCssFormulario.BloqueDerecho)}>
+                                    <div class = '{enumCssDiv.Tabla.Render()} {ExtensorDeCss.Render(enumCssFormulario.Tabla)}'>
                                     <div class = '{enumCssDiv.Thead.Render()}></div>
                                     <div class = '{enumCssDiv.Tbody.Render()}>
                                          {RenderTbody(Derecho, maximoNumeroDeFila)}
@@ -65,17 +65,17 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public string RenderFilaVacia()
         {
-            return $@"<div class = ¨{enumCssDiv.Tr.Render()} {Css.Render(enumCssFormulario.fila)}¨>
-                        <div class = ¨{enumCssDiv.Td.Render()} {Css.Render(enumCssFormulario.columnaLabel)}¨>
+            return $@"<div class = ¨{enumCssDiv.Tr.Render()} {ExtensorDeCss.Render(enumCssFormulario.fila)}¨>
+                        <div class = ¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssFormulario.columnaLabel)}¨>
                         </div>
-                        <div class = ¨{enumCssDiv.Td.Render()} {Css.Render(enumCssFormulario.columnaControl)}¨>
+                        <div class = ¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssFormulario.columnaControl)}¨>
                         </div>
                       </div>";
         }
 
         public string RenderFila(ControlDeFormulario control)
         {
-            return $@"<div class = ¨{enumCssDiv.Tr.Render()} {Css.Render(enumCssFormulario.fila)}¨>
+            return $@"<div class = ¨{enumCssDiv.Tr.Render()} {ExtensorDeCss.Render(enumCssFormulario.fila)}¨>
                         {RenderContenidoDeLaFila(control)}
                       </div>";
         }
@@ -94,10 +94,10 @@ namespace MVCSistemaDeElementos.Descriptores
         private object RenderEditor(ControlDeFormulario control)
         {
             var htmlfilaEditor = $@"
-                        <div class = ¨{enumCssDiv.Td.Render()} {Css.Render(enumCssFormulario.columnaLabel)}¨>
+                        <div class = ¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssFormulario.columnaLabel)}¨>
                            <label for=¨{control.IdHtml}¨>{control.Etiqueta}</label>
                         </div>
-                        <div class = ¨{enumCssDiv.Td.Render()} {Css.Render(enumCssFormulario.columnaControl)}¨>
+                        <div class = ¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssFormulario.columnaControl)}¨>
                            {((ControlDeEdicion)control).RenderEditor()}
                         </div>";
             return htmlfilaEditor;
@@ -106,14 +106,14 @@ namespace MVCSistemaDeElementos.Descriptores
         private object RenderArchivo(ControlDeArchivoEnFormulario control)
         {
             var htmlfilaArchivo = $@"
-                        <div class = ¨{enumCssDiv.Td.Render()} {Css.Render(enumCssFormulario.columnaLabel)}¨>
+                        <div class = ¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssFormulario.columnaLabel)}¨>
                            <a id=¨{control.IdHtmlSelector}¨ 
-                              class=¨{Css.Render(enumCssControlesFormulario.SelectorArchivo)}¨ 
+                              class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.SelectorArchivo)}¨ 
                               href=¨javascript:ApiDeArchivos.SeleccionarArchivo('{control.IdHtml}')¨>
                               {control.Etiqueta}
                            </a>
                         </div>
-                        <div class = ¨{enumCssDiv.Td.Render()} {Css.Render(enumCssFormulario.columnaControl)}¨>
+                        <div class = ¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssFormulario.columnaControl)}¨>
                            {control.RenderArchivo()}
                         </div>";
             return htmlfilaArchivo;

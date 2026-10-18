@@ -284,7 +284,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 CumplimentarDatosDeUsuarioDeConexion(gestor.Contexto, gestor.Mapeador, httpContext);
-                var parametros = extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 var elemento = LeerPorId(gestor, id, parametros);
                 AntesDeBorrar(elemento);
                 parametros[ltrParametrosNeg.EsUnaPeticion] = true;
@@ -316,7 +316,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 CumplimentarDatosDeUsuarioDeConexion(gestor.Contexto, gestor.Mapeador, httpContext);
-                var parametros = extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 var elemento = LeerPorId(gestor, id, parametros);
                 AntesDeBorrar(elemento);
                 parametros[ltrParametrosNeg.EsUnaPeticion] = true;
@@ -374,7 +374,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var parametros = AntesDePersistir(elemento);
                 parametros.EsUnaPeticion = true;
                 parametros.Peticion = enumPeticion.PersistirElemento;
-                parametros.Parametros = extJson.ToDiccionarioDeParametros(parametrosDeCreacion);
+                parametros.Parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametrosDeCreacion);
                 r.Datos = gestor.PersistirElementoDto(elemento, parametros);
                 r.Estado = enumEstadoPeticion.Ok;
                 r.Mensaje = "Petición realizada";

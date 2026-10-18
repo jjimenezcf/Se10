@@ -74,7 +74,7 @@ namespace MVCSistemaDeElementos.Descriptores
                         </a>
                         <label id='titulo.{IdHtml}.ref' class='{enumCssEdicion.TituloDeAmpliacion.Render()}'>{Etiqueta}</label>  
                         <input id=¨expandir.{IdHtml}.input¨ type=¨hidden¨ value={(!Plegado ? Literal.Uno : Literal.Cero)}> 
-                        <div id=¨{IdHtml}¨  class=¨{Css.Render(!Plegado ? enumCssDiv.DivVisible : enumCssDiv.DivOculto)}¨>
+                        <div id=¨{IdHtml}¨  class=¨{ExtensorDeCss.Render(!Plegado ? enumCssDiv.DivVisible : enumCssDiv.DivOculto)}¨>
                           {RenderContenedorDeCuerpo()}
                         </div>
                    </div>";

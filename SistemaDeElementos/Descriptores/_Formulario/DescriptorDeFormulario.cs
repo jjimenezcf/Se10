@@ -92,7 +92,7 @@ namespace MVCSistemaDeElementos.Descriptores
                                        id-vista = '{formulario.IdVista}'
                                     >
                                     <div id=¨{idhtmContenedorDto}¨ grid-area='contenedor-dto' class=¨{enumCssFormulario.DatosDto.Render()}¨ >
-                                       {DescriptorDeTabla.htmlRenderObjetoVacio(formulario.Cuerpo, formulario.Dto, formulario.Controlador, idHtmlDelCuerpoDto, Css.Render(enumCssCreacion.TablaDeCreacion), enumModoDeTrabajo.Jerarquia)}
+                                       {DescriptorDeTabla.htmlRenderObjetoVacio(formulario.Cuerpo, formulario.Dto, formulario.Controlador, idHtmlDelCuerpoDto, ExtensorDeCss.Render(enumCssCreacion.TablaDeCreacion), enumModoDeTrabajo.Jerarquia)}
                                        [divExpansores]
                                     </div>
                                        {DescriptorDeEdicion<ElementoDto>.htmlRenderPie(idHtmlDelCuerpoDto, idHtmlDeLaTabla)}

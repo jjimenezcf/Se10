@@ -27,10 +27,10 @@ namespace ProcesadorOcr
             switch (fileExtension)
             {
                 case ".docx":
-                    extractedText = await Task.Run(() => extDocx.ToTexto(filePath));
+                    extractedText = await Task.Run(() => ExtensorDeDocx.ToTexto(filePath));
                     break;
                 case ".rtf":
-                    extractedText = await Task.Run(() => extRtf.ToTexto(filePath));
+                    extractedText = await Task.Run(() => ExtensorDeRtf.ToTexto(filePath));
                     break;
                 case ".pdf":
                     extractedText = await PdfToTexto(filePath, keyWords ?? new List<string>());
@@ -42,7 +42,7 @@ namespace ProcesadorOcr
                     extractedText = await Task.Run(() => RealizarOcr(filePath));
                     break;
                 default:
-                    if (extTexto.EsTexto(filePath))
+                    if (ExtensorDeTexto.EsTexto(filePath))
                         return File.ReadAllText(filePath);
                     throw new NotSupportedException("Formato de archivo no soportado.");
             }

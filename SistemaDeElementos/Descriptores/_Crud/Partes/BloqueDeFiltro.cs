@@ -197,14 +197,14 @@ namespace MVCSistemaDeElementos.Descriptores
 
                 var contenedor = 
                     $@"
-                     <div id=¨mostrar.{IdHtml}¨ class=¨{Css.Render(enumCssCuerpo.CuerpoDatosFiltroBloque)}¨> 
+                     <div id=¨mostrar.{IdHtml}¨ class=¨{ExtensorDeCss.Render(enumCssCuerpo.CuerpoDatosFiltroBloque)}¨> 
                            {(!ConSpan ? "" : espan)}
                            [bloque]
                       </div>";
 
                 bloqueHtml = ConSpan
                    ? @$"
-                       <div id=¨{IdHtml}¨  class=¨{Css.Render(!Plegado ? enumCssDiv.DivVisible : enumCssDiv.DivOculto)}¨>
+                       <div id=¨{IdHtml}¨  class=¨{ExtensorDeCss.Render(!Plegado ? enumCssDiv.DivVisible : enumCssDiv.DivOculto)}¨>
                          {Tabla.RenderTabla(enumCssFiltro.FilaFiltro)}
                        </div>
                    "

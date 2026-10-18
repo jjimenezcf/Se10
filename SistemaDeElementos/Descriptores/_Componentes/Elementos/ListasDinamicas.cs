@@ -104,8 +104,8 @@ namespace MVCSistemaDeElementos.Descriptores
             var a = AtributosHtml.AtributosComunes($"div_{IdHtml}", IdHtml, PropiedadHtml, Tipo, Ayuda);
             var valores = a.MapearComunes();
             var otraCalse = Padre is ModalDeFiltrado<TElemento> ? enumCssFiltro.ContenedorEnModalDeFiltros.Render() : "";
-            valores["CssContenedor"] = $"{Css.Render(enumCssFiltro.ContenedorListaDinamica)} {otraCalse}";
-            valores["Css"] = Css.Render(enumCssFiltro.ListaDinamica);
+            valores["CssContenedor"] = $"{ExtensorDeCss.Render(enumCssFiltro.ContenedorListaDinamica)} {otraCalse}";
+            valores["Css"] = ExtensorDeCss.Render(enumCssFiltro.ListaDinamica);
             valores["ClaseElemento"] = SeleccionarDe;
             valores["MostrarExpresion"] = MostrarExpresion.ToLower();
             valores["BuscarPor"] = BuscarPor;

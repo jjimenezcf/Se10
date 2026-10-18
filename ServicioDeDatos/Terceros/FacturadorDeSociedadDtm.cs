@@ -93,7 +93,7 @@ namespace ServicioDeDatos.Terceros
 
         public MapeosDelFacturador ParsearMapeos()
         {
-            var json = extJson.Deserializar(MapeosJson);
+            var json = ExtensorDeJson.Deserializar(MapeosJson);
             var mapeos = new MapeosDelFacturador();
 
             foreach (var parClaveValor in json)

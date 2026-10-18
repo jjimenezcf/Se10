@@ -40,8 +40,8 @@ namespace GestoresDeNegocio.TrabajosSometidos
         public static string EnviarMensajeWeb(this ContextoSe contexto, enumNegocio negocio, int idElemento, string para, string mensaje)
         {
             if (para.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el teléfono al que enviar");
-            var numero = extTelefonos.ANumeroInternacional(para);
-            if (numero is null) GestorDeErrores.Emitir(extTelefonos.MensajeDeTelefonoNoValido(para));
+            var numero = ExtensorDeTelefonos.ANumeroInternacional(para);
+            if (numero is null) GestorDeErrores.Emitir(ExtensorDeTelefonos.MensajeDeTelefonoNoValido(para));
             if (mensaje.IsNullOrEmpty()) GestorDeErrores.Emitir("Debe indicar el mensaje");
 
             var (modo, canal) = Configuracion();

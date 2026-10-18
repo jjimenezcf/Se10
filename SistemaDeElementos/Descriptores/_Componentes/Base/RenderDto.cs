@@ -390,8 +390,8 @@ namespace MVCSistemaDeElementos.Descriptores
             var atributos = descriptorControl.Atributos;
 
             Dictionary<string, object> valores = ValoresDeAtributosComunes(tabla, descriptorControl, atributos);
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorListaDeElementos);
-            valores["Css"] = Css.Render(enumCssControles.ListaDeElementos);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorListaDeElementos);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.ListaDeElementos);
             valores["GuardarEn"] = descriptorControl.propiedad;
 
             var htmlSelect = PlantillasHtml.Render(PlantillasHtml.listaDeValoresDto, valores);
@@ -438,8 +438,8 @@ namespace MVCSistemaDeElementos.Descriptores
 
             //valores["EstiloDelContenedor"] = atributos.ModoDisplayDelContenedor.IsNullOrEmpty() ? "" : $"display: {atributos.ModoDisplayDelContenedor};";
 
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorListaDinamica);
-            valores["Css"] = Css.Render(enumCssControles.ListaDinamica);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorListaDinamica);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.ListaDinamica);
             if (atributos.SeleccionarDe == null)
             {
                 if (atributos.Negocio != enumNegocio.No_Definido)
@@ -517,8 +517,8 @@ namespace MVCSistemaDeElementos.Descriptores
             //    throw new Exception($"no se ha definido el atributo {nameof(atributos.PropiedadRestrictora)}  para el restrictor de la propiedad {descriptorControl.propiedad}");
 
             Dictionary<string, object> valores = ValoresDeAtributosComunes(tabla, descriptorControl, atributos);
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorEditor);
-            valores["Css"] = Css.Render(enumCssControles.EditorRestrictor);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorEditor);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.EditorRestrictor);
             valores["MostrarPropiedad"] = atributos.MostrarExpresion.ToLower();
             valores[$"{nameof(IUPropiedadAttribute.PropiedadRestrictora)}"] = atributos.PropiedadRestrictora.ToLower();
             valores["Placeholder"] = atributos.Ayuda.Replace("[Negocio]", tabla.Negocio.ConArticulo());
@@ -677,8 +677,8 @@ namespace MVCSistemaDeElementos.Descriptores
                 GestorDeErrores.Emitir($"Debe definir el controlador para la clase de elemento {atributos.SeleccionarDe.Name}");
 
             Dictionary<string, object> valores = ValoresDeAtributosComunes(tabla, descriptorControl, atributos);
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorListaDeElementos);
-            valores["Css"] = Css.Render(enumCssControles.ListaDeElementos);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorListaDeElementos);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.ListaDeElementos);
             valores["ClaseElemento"] = atributos.SeleccionarDe.Name;
             valores["MostrarExpresion"] = atributos.MostrarExpresion.IsNullOrEmpty() ?
                 ApiDeAtributos.ValorDelAtributo(atributos.SeleccionarDe, nameof(IUDtoAttribute.MostrarExpresion)) :
@@ -723,10 +723,10 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var atributos = descriptorControl.Atributos;
             Dictionary<string, object> valores = ValoresDeAtributosComunes(tabla, descriptorControl, atributos);
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorFecha);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorFecha);
             if (descriptorControl.Atributos.Alineada == enumAliniacion.derecha)
                 valores["CssContenedor"] = valores["CssContenedor"] + " " + enumCssControles.ContenedorFechaDerecha.Render();
-            valores["Css"] = Css.Render(enumCssControles.SelectorDeFecha);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.SelectorDeFecha);
             valores["Placeholder"] = atributos.Ayuda;
             valores["ValorPorDefecto"] = atributos.ValorPorDefecto;
             valores["Estilos"] = atributos.AnchoMaximo.IsNullOrEmpty() ? "cursor:pointer; width:100%;" : $"cursor:pointer; max-width: {atributos.AnchoMaximo};";
@@ -805,7 +805,7 @@ namespace MVCSistemaDeElementos.Descriptores
                     : enumCssControles.ContenedorAreaDeTexto.Render() + " " + atributos.CssDelContenedor.Render();
             valores["Css"] = enumCssControles.AreaDeTexto.Render();
             if (atributos.CssDelArea != enumCssControles.Nulo)
-                valores["Css"] = valores["Css"] + " " + Css.Render(enumCssControles.MonoSpaceText);
+                valores["Css"] = valores["Css"] + " " + ExtensorDeCss.Render(enumCssControles.MonoSpaceText);
             valores["Placeholder"] = atributos.Ayuda.Replace("[Negocio]", tabla.Negocio.ConArticulo());
             valores["ValorPorDefecto"] = atributos.ValorPorDefecto?.ToString().Replace("\"", "&quot;").Replace(Environment.NewLine, "&#10;"); ;
 
@@ -829,7 +829,7 @@ namespace MVCSistemaDeElementos.Descriptores
         private static string RenderSelectorDeUnArcivo(DescriptorDeTabla tabla, DescriptorDeControlDeLaTabla descriptorControl, double ancho)
         {
             var atributos = descriptorControl.Atributos;
-            var htmlContenedor = RenderContenedorDto(descriptorControl, ancho, Css.Render(enumCssControles.ContenedorArchivo), onPaste: false);
+            var htmlContenedor = RenderContenedorDto(descriptorControl, ancho, ExtensorDeCss.Render(enumCssControles.ContenedorArchivo), onPaste: false);
             var idHtmlContenedorBarra = $"{descriptorControl.IdHtml}.contenedor.barra";
             var idHtmlBarra = $"{descriptorControl.IdHtml}.barra";
             var idHtmlInfoArchivo = $"nombre-{descriptorControl.IdHtml}";
@@ -849,8 +849,8 @@ namespace MVCSistemaDeElementos.Descriptores
                                        [{nameof(IUPropiedadAttribute.trasSeleccionar)}]/>
                                    <input {ControlHtml.RenderAtributos(propiedad: "", idHtmlInfoArchivo, enumTipoControl.Editor, enumCssControlesFormulario.InfoArchivo.Render(), ayuda: "", $"type = ¨{enumInputType.text.Render()}¨")} readonly>
                                    </input>
-                                   <div id = ¨{idHtmlContenedorBarra}¨ class=¨{Css.Render(enumCssControlesFormulario.InfoArchivo)}¨ style=¨display: none;¨>
-                                      <div id = ¨{idHtmlBarra}¨ class=¨{Css.Render(enumCssControles.BarraAzulArchivo)}¨ contenedor-barra = ¨{idHtmlContenedorBarra}¨ style=¨display: none;¨>
+                                   <div id = ¨{idHtmlContenedorBarra}¨ class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.InfoArchivo)}¨ style=¨display: none;¨>
+                                      <div id = ¨{idHtmlBarra}¨ class=¨{ExtensorDeCss.Render(enumCssControles.BarraAzulArchivo)}¨ contenedor-barra = ¨{idHtmlContenedorBarra}¨ style=¨display: none;¨>
                                          <span></span>
                                       </div>
                                    </div>
@@ -869,7 +869,7 @@ namespace MVCSistemaDeElementos.Descriptores
         private static string RenderSelectorImagen(DescriptorDeTabla tabla, DescriptorDeControlDeLaTabla descriptorControl, double ancho)
         {
             var atributos = descriptorControl.Atributos;
-            var htmlContenedor = RenderContenedorDto(descriptorControl, ancho, Css.Render(enumCssControles.ContenedorArchivo), onPaste: true);
+            var htmlContenedor = RenderContenedorDto(descriptorControl, ancho, ExtensorDeCss.Render(enumCssControles.ContenedorArchivo), onPaste: true);
 
             var idHtmlBarra = $"barra-{descriptorControl.IdHtml}";
             var idHtmlImg = $"img-{descriptorControl.IdHtml}";
@@ -879,11 +879,11 @@ namespace MVCSistemaDeElementos.Descriptores
             htmlContenedor = DefinirFuncionPegarArchivo(htmlContenedor,tabla,descriptorControl);
 
             var htmlArchivo = @$"
-            <form class=¨{Css.Render(enumCssControles.FormDeArchivo)}¨ method=¨post¨ enctype=¨multipart/form-data¨>
-              <div class=¨{enumCssDiv.Tabla.Render()} {Css.Render(enumCssControles.TablaDeArchivo)}¨>
-                 <div class=¨{enumCssDiv.Tr.Render()} {Css.Render(enumCssControles.FilaDeArchivo)}¨>
-                   <div class=¨{enumCssDiv.Td.Render()} {Css.Render(enumCssControles.ColumnaDeArchivo)}¨>   
-                      <input  {RenderAtributosComunes(tabla, descriptorControl, Css.Render(enumCssControles.SelectorDeImagen))}
+            <form class=¨{ExtensorDeCss.Render(enumCssControles.FormDeArchivo)}¨ method=¨post¨ enctype=¨multipart/form-data¨>
+              <div class=¨{enumCssDiv.Tabla.Render()} {ExtensorDeCss.Render(enumCssControles.TablaDeArchivo)}¨>
+                 <div class=¨{enumCssDiv.Tr.Render()} {ExtensorDeCss.Render(enumCssControles.FilaDeArchivo)}¨>
+                   <div class=¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssControles.ColumnaDeArchivo)}¨>   
+                      <input  {RenderAtributosComunes(tabla, descriptorControl, ExtensorDeCss.Render(enumCssControles.SelectorDeImagen))}
                               type=¨file¨ 
                               name=¨fichero¨  
                               style=¨display: none;¨
@@ -896,16 +896,16 @@ namespace MVCSistemaDeElementos.Descriptores
                               placeholder =¨{atributos.Ayuda}¨
                               onChange=¨ApiDeArchivos.MostrarCanvas('{tabla.Controlador}','{descriptorControl.IdHtml}','{idHtmlCanva}')¨ />
                   </div>
-                   <div class=¨{enumCssDiv.Td.Render()} {Css.Render(enumCssControles.ColumnaDeArchivo)}¨>
+                   <div class=¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssControles.ColumnaDeArchivo)}¨>
 
                    </div>
                  </div>
-                 <div class=¨{enumCssDiv.Tr.Render()} {Css.Render(enumCssControles.FilaDeArchivo)}¨>
-                   <div class=¨{enumCssDiv.Td.Render()} {Css.Render(enumCssControles.ColumnaDeArchivo)}¨>
+                 <div class=¨{enumCssDiv.Tr.Render()} {ExtensorDeCss.Render(enumCssControles.FilaDeArchivo)}¨>
+                   <div class=¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssControles.ColumnaDeArchivo)}¨>
                       <canvas id=¨{idHtmlCanva}¨ style='border: ridge;'></canvas>
                    </div>
-                   <div class=¨{enumCssDiv.Td.Render()} {Css.Render(enumCssControles.ColumnaDeArchivo)}¨>
-                      <div id = ¨{idHtmlBarra}¨ class=¨{Css.Render(enumCssControles.BarraAzulArchivo)}¨>
+                   <div class=¨{enumCssDiv.Td.Render()} {ExtensorDeCss.Render(enumCssControles.ColumnaDeArchivo)}¨>
+                      <div id = ¨{idHtmlBarra}¨ class=¨{ExtensorDeCss.Render(enumCssControles.BarraAzulArchivo)}¨>
                           <span></span>
                       </div>
                        <div style=¨display: none;¨>

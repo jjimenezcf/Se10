@@ -116,7 +116,7 @@ namespace ValidacionesDeRn
                     if (archivadores[j].Nombre == expediente.NombreDeArchivadorFCT(i))
                     {
                         if (!archivadores[j].Baja)
-                            GestorDeErrores.Emitir($"El archivador de {extFechas.Mes(i)} debería estar de baja");
+                            GestorDeErrores.Emitir($"El archivador de {ExtensorDeFechas.Mes(i)} debería estar de baja");
                         break;
                     }
 
@@ -125,20 +125,20 @@ namespace ValidacionesDeRn
 
         private static ExpedienteDtm ReabrirElMesDe(ContextoSe contexto, ExpedienteDtm expediente, string transicion, int mes)
         {
-            expediente = expediente.Transitar(contexto, transicion, new Dictionary<string, object> { { ltrParametrosEp.detalleAsunto, $"Reabriendo el mes de {extFechas.Mes(mes)}" } });
+            expediente = expediente.Transitar(contexto, transicion, new Dictionary<string, object> { { ltrParametrosEp.detalleAsunto, $"Reabriendo el mes de {ExtensorDeFechas.Mes(mes)}" } });
             var archivadores = expediente.Vinculados<ArchivadorDtm>(contexto, new Dictionary<string, object> { { ltrParametrosNeg.IncluirBajas, true } }).Where(x => x.Nombre.Contains(expediente.PrefijoArchivadorFCT())).ToList();
             bool activo = false;
             for (var j = 0; j < archivadores.Count(); j++)
                 if (archivadores[j].Nombre == expediente.NombreDeArchivadorFCT(mes))
                 {
                     if (archivadores[j].Baja)
-                        GestorDeErrores.Emitir($"El archivador de {extFechas.Mes(mes)} debería estar abierto");
+                        GestorDeErrores.Emitir($"El archivador de {ExtensorDeFechas.Mes(mes)} debería estar abierto");
                     activo = true;
                     break;
                 }
 
             if (!activo)
-                GestorDeErrores.Emitir($"El expediente debería tener un archivador activo para el mes de {extFechas.Mes(mes)}");
+                GestorDeErrores.Emitir($"El expediente debería tener un archivador activo para el mes de {ExtensorDeFechas.Mes(mes)}");
 
             return expediente;
         }

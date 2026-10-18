@@ -34,7 +34,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 menu = $@"{menu}{opcion.RenderOpcion()}";
                 i++;
             }
-            return $@"<div id=¨{IdHtml}¨ class=¨{Css.Render(enumCssControlesFormulario.MenuPie)}¨>{menu}</div>";
+            return $@"<div id=¨{IdHtml}¨ class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.MenuPie)}¨>{menu}</div>";
         }
 
 

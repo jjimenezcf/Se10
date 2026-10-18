@@ -188,7 +188,7 @@ namespace MVCSistemaDeElementos.Controllers
         {
             var r = new ResultadoHtml();
             ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-            var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+            var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
 
 
             PanelDeControl layout = new PanelDeControl(Contexto, "layout-Se");

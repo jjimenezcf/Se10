@@ -185,18 +185,18 @@ namespace MVCSistemaDeElementos.Descriptores
             var htmlParteSuperiror = $@"
             <!--  ******************* menú ******************* -->
             <div id = ¨contenedor.{IdHtml}.MenuDelHistorial¨ class=¨{enumCssHistorial.ContenedorMenu.Render()}¨>  
-                <div id = ¨contenedor.{IdHtml}.ZonaMenuDelHistorial¨  class=¨{Css.Render(enumCssDiv.DivVisible)} {enumCssHistorial.ZonaMenu.Render()}¨>     
+                <div id = ¨contenedor.{IdHtml}.ZonaMenuDelHistorial¨  class=¨{ExtensorDeCss.Render(enumCssDiv.DivVisible)} {enumCssHistorial.ZonaMenu.Render()}¨>     
                  {MenuHistorial.RenderControl()} 
                 </div> 
                 <div id=¨{IdHtml}.menu.del.flujo¨ class='{enumCssHistorial.Proceso.Render()} {enumCssHistorial.Titulo.Render()}'> 
                 {Etiqueta}
                 </div> 
-                <div id =¨div.mostrar.{IdHtml}¨ class=¨{Css.Render(enumCssDiv.DivVisible)} {enumCssHistorial.FiltroExpansor.Render()}¨>     
+                <div id =¨div.mostrar.{IdHtml}¨ class=¨{ExtensorDeCss.Render(enumCssDiv.DivVisible)} {enumCssHistorial.FiltroExpansor.Render()}¨>     
                   <a id = ¨mostrar.{IdHtml}.ref¨ href=¨javascript:{enumNameSpaceTs.Crud}.{enumGestorDeEventos.EjecutarMenuHistorial}('{eventosDeHistorial.OcultarMostrarFiltro}', '{("")}');¨>Ocultar filtro</a>
                   <input id=¨expandir.{IdHtml}¨ type=¨hidden¨ value=¨1¨ >  
                 </div>
                 <div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuHistorial}' class='{enumCssHistorial.MenuMfHistorial.Render()}' offset-x = 150 menu-flotante='{DescriptorDeCrud<TElemento>.menuHistorial}'> </div> 
-                <div id='{IdHtml}.menu.vacio' class='{Css.Render(enumCssMnt.DivVacioDeLaDerecha)}'> </div>
+                <div id='{IdHtml}.menu.vacio' class='{ExtensorDeCss.Render(enumCssMnt.DivVacioDeLaDerecha)}'> </div>
             </div>";
             return htmlParteSuperiror;
         }

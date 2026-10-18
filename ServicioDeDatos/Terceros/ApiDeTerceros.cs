@@ -165,7 +165,7 @@ namespace ServicioDeDatos.Terceros
         {
             //Buscamos algunas cadenas no permitidas.
 
-            if (extCadenas.IsNullOrEmpty(sociedad.NIF)) GestorDeErrores.Emitir($"No se ha indicado el NIF a la sociedad {sociedad.Nombre}");
+            if (ExtensorDeCadenas.IsNullOrEmpty(sociedad.NIF)) GestorDeErrores.Emitir($"No se ha indicado el NIF a la sociedad {sociedad.Nombre}");
 
             var nif = sociedad.NIF;
             if (!sociedad.NIF.StartsWith(ltrIsoPaises.Brasil))
@@ -269,7 +269,7 @@ namespace ServicioDeDatos.Terceros
                 else // Posiciones impares
                 {
                     aux = aux * 2;
-                    sumaImpares += extNumeros.SumarDigitos(aux);
+                    sumaImpares += ExtensorDeNumeros.SumarDigitos(aux);
                 }
             }
 
@@ -346,15 +346,15 @@ namespace ServicioDeDatos.Terceros
                 var dc = numeroCif.Substring(9, 1).Entero();
                 numeroCif = numeroCif.Substring(0, 9);
 
-                int s = extNumeros.SumarDigitos(numeroCif.Substring(0, 1).Entero() * 2) +
+                int s = ExtensorDeNumeros.SumarDigitos(numeroCif.Substring(0, 1).Entero() * 2) +
                          numeroCif.Substring(1, 1).Entero() +
-                         extNumeros.SumarDigitos(numeroCif.Substring(2, 1).Entero() * 2) +
+                         ExtensorDeNumeros.SumarDigitos(numeroCif.Substring(2, 1).Entero() * 2) +
                          numeroCif.Substring(3, 1).Entero() +
-                         extNumeros.SumarDigitos(numeroCif.Substring(4, 1).Entero() * 2) +
+                         ExtensorDeNumeros.SumarDigitos(numeroCif.Substring(4, 1).Entero() * 2) +
                          numeroCif.Substring(5, 1).Entero() +
-                         extNumeros.SumarDigitos(numeroCif.Substring(6, 1).Entero() * 2) +
+                         ExtensorDeNumeros.SumarDigitos(numeroCif.Substring(6, 1).Entero() * 2) +
                          numeroCif.Substring(7, 1).Entero() +
-                         extNumeros.SumarDigitos(numeroCif.Substring(8, 1).Entero() * 2);
+                         ExtensorDeNumeros.SumarDigitos(numeroCif.Substring(8, 1).Entero() * 2);
 
                 int c = 10 - s % 10;
                 if (c == 10) { c = 0; }
@@ -399,7 +399,7 @@ namespace ServicioDeDatos.Terceros
                     }
                     else // Posiciones impares (1,3,5,7,9)
                     {
-                        suma += extNumeros.SumarDigitos(digito * 2);
+                        suma += ExtensorDeNumeros.SumarDigitos(digito * 2);
                     }
                 }
 

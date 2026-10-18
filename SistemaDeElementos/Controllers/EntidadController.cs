@@ -114,7 +114,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
     public JsonResult epModificarPorId(string elementoJson, string parametrosJson)
     {
         var r = new Resultado();
-        var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+        var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
         parametros[ltrParametrosNeg.EsUnaPeticion] = true;
         parametros[ltrParametrosNeg.Peticion] = enumPeticion.epModificarPorId;
 
@@ -991,7 +991,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
             resultado.Datos = GestorDeConsultasConGuid.RegistrarConsultaConGuid((IElementoDtm)registro, Contexto, caducaEl, maximoDeDescargas: null);
             resultado.Mensaje = resultado.Datos == null
                 ? "Se han desactivado las consultas por guid del elemento seleccionado"
-                : $"La URL para consultar el elemento se ha copiado al porta papeles con validez hasta '{((DateTime)caducaEl).ToString(extFechas.DiaHora)}'";
+                : $"La URL para consultar el elemento se ha copiado al porta papeles con validez hasta '{((DateTime)caducaEl).ToString(ExtensorDeFechas.DiaHora)}'";
             resultado.Estado = enumEstadoPeticion.Ok;
             _GestorDeElementos.Commit(tran);
         }
@@ -1250,7 +1250,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
     public async Task<JsonResult> epLeerDirecciones()
     {
         var body = ApiController.LeerBody(HttpContext);
-        var parametros = Utilidades.extJson.ToDiccionarioDeParametros(body.parametrosJson);
+        var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(body.parametrosJson);
         var ids = parametros.LeerValor(ltrParametrosEp.idsDeElementos, (List<int>)null);
         var r = new Resultado();
         Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerDirecciones));

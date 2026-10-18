@@ -42,8 +42,8 @@ namespace MVCSistemaDeElementos.Descriptores
             var valores = a.MapearComunes();
 
             var otraCalse = Padre is ModalDeFiltrado<TElemento> ? enumCssFiltro.ContenedorEnModalDeFiltros.Render() : "";
-            valores["CssContenedor"] = Css.Render(enumCssFiltro.ContenedorCheck) + " " + otraCalse;
-            valores["Css"] = Css.Render(enumCssFiltro.Check);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssFiltro.ContenedorCheck) + " " + otraCalse;
+            valores["Css"] = ExtensorDeCss.Render(enumCssFiltro.Check);
             valores["Etiqueta"] = Etiqueta;
             valores["Checked"] = ValorInicial.ToString().ToLower();
             valores["Accion"] = Accion;

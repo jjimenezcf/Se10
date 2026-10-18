@@ -559,7 +559,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                     correo.Emisor = eMail.Envelope.From.ToString();
                     correo.To = string.Join(",", eMail.Envelope.To);
                     correo.Cuerpo = message.TextBody ?? "";
-                    correo.CuerpoHtml = !string.IsNullOrEmpty(message.HtmlBody) ? extHtml.SanitizeHtml(message.HtmlBody) : extHtml.TextoToHtml(correo.Cuerpo);
+                    correo.CuerpoHtml = !string.IsNullOrEmpty(message.HtmlBody) ? ExtensorDeHtml.SanitizeHtml(message.HtmlBody) : ExtensorDeHtml.TextoToHtml(correo.Cuerpo);
                     correo.Fecha = eMail.Date.ToLocalTime().DateTime;
                     correo.IdMensaje = IdMensaje(eMail).ToString();
                     correo.ModoDeAcceso = ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Consultor;
@@ -761,7 +761,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
         private int IdMensaje(IMessageSummary eMail)
         {
-            return extEncriptacion.GenerarEntero(eMail.Envelope.MessageId);
+            return ExtensorDeEncriptacion.GenerarEntero(eMail.Envelope.MessageId);
             //eMail.EmailId ?? eMail.Envelope.MessageId
         }
 

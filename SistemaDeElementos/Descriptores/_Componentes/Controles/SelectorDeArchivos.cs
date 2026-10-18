@@ -28,7 +28,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var idSelector = $"{IdHtml}-de-archivos"; // -selector-de-archivos";
             var idContenedorDeArchivosSeleccionados = $"{IdHtml}-seleccionados";
-            var htmlArchivo = $@"<div id = ¨{idSelector}¨ class=¨{Css.Render(enumCssControles.SelectorDeArchivos)}¨ >
+            var htmlArchivo = $@"<div id = ¨{idSelector}¨ class=¨{ExtensorDeCss.Render(enumCssControles.SelectorDeArchivos)}¨ >
                                    <div class='{enumCssControles.ContenedorDeOpcion.Render()}'>
                                      <button id='{idSelector}-seleccionar' title='Seleccionar archivos' onclick={enumNameSpaceTs.ApiDeArchivos}.SeleccionarArchivos('{IdHtml}')>
                                          <img src='/images/menu/SeleccionarArchivo.png' >
@@ -80,7 +80,7 @@ namespace MVCSistemaDeElementos.Descriptores
                                         </div>
                                       </div>
                                  </div>
-                                 <div id = ¨{idContenedorDeArchivosSeleccionados}¨ class=¨{Css.Render(enumCssControles.ArchivosSeleccionados)}¨ >
+                                 <div id = ¨{idContenedorDeArchivosSeleccionados}¨ class=¨{ExtensorDeCss.Render(enumCssControles.ArchivosSeleccionados)}¨ >
                                  </div>
                                    <div>
                                       <input  {RenderAtributos(Id, IdHtml, Tipo, enumCssControlesFormulario.Archivo.Render(), Ayuda)}
@@ -96,8 +96,8 @@ namespace MVCSistemaDeElementos.Descriptores
                                          barra-vinculada = ¨{IdHtmlBarra}¨ 
                                          onChange=¨ApiDeArchivos.CrearArchivosPendietesDeSubir('{IdHtml}', null)¨ />
                                    </div>
-                                 <div id = ¨{IdHtmlContenedorBarra}¨ class=¨{Css.Render(enumCssControlesFormulario.InfoArchivo)}¨ style=¨display: none;¨>
-                                    <div id = ¨{IdHtmlBarra}¨ class=¨{Css.Render(enumCssControles.BarraAzulArchivo)}¨ contenedor-barra = ¨{IdHtmlContenedorBarra}¨ style=¨display: none;¨>
+                                 <div id = ¨{IdHtmlContenedorBarra}¨ class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.InfoArchivo)}¨ style=¨display: none;¨>
+                                    <div id = ¨{IdHtmlBarra}¨ class=¨{ExtensorDeCss.Render(enumCssControles.BarraAzulArchivo)}¨ contenedor-barra = ¨{IdHtmlContenedorBarra}¨ style=¨display: none;¨>
                                        <span></span>
                                     </div>
                                  </div>

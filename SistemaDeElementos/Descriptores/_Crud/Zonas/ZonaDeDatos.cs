@@ -210,7 +210,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var htmlDiv = @$" <!-- ********************  grid de datos ******************** -->
                               <div id = ¨{IdHtml}¨ 
-                                  class=¨{Css.Render(enumCssCuerpo.CuerpoDatosGrid)}¨ 
+                                  class=¨{ExtensorDeCss.Render(enumCssCuerpo.CuerpoDatosGrid)}¨ 
                                   seleccionables = ¨-1¨ 
                                   zona-de-filtro = ¨{idHtmlZonaFiltro}¨ 
                                   expresion-elemento = ¨{mostrarExpresion.ToLower()}¨ 

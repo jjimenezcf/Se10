@@ -34,8 +34,8 @@ namespace MVCSistemaDeElementos.Descriptores
         public static string RenderEditorDeTexto(AtributosHtml atributos)
         {
             var valores = atributos.MapearComunes();
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorEditor);
-            valores["Css"] = Css.Render(enumCssControles.Editor);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorEditor);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.Editor);
             valores["LongitudMaxima"] = atributos.LongitudMaxima > 0 ? $"{Environment.NewLine}maxlength=¨{atributos.LongitudMaxima}¨" : "";
             valores["Placeholder"] = atributos.Ayuda;
             valores["ValorPorDefecto"] = atributos.ValorPorDefecto;
@@ -54,8 +54,8 @@ namespace MVCSistemaDeElementos.Descriptores
         public static string RenderEditorDeTextoParaFiltrar(AtributosHtml atributos)
         {
             var valores = atributos.MapearComunes();
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorEditor);
-            valores["Css"] = Css.Render(enumCssControles.Editor);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorEditor);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.Editor);
             valores["LongitudMaxima"] = atributos.LongitudMaxima > 0 ? $"{Environment.NewLine}maxlength=¨{atributos.LongitudMaxima}¨" : "";
             valores["Placeholder"] = atributos.Ayuda;
             valores["ValorPorDefecto"] = atributos.ValorPorDefecto;

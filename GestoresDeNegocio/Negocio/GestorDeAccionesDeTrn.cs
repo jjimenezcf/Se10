@@ -143,7 +143,7 @@ namespace GestoresDeNegocio.Negocio
         protected override void Persistir(AccionesDeTrnDtm registro, ParametrosDeNegocio parametros)
         {
             if (!registro.Parametros.IsNullOrEmpty())
-                extJson.ToDiccionarioDeParametros(registro.Parametros);
+                ExtensorDeJson.ToDiccionarioDeParametros(registro.Parametros);
 
             if (parametros.Operacion == enumTipoOperacion.Insertar)
                 registro.Id = AccionDeTrnSql.Insertar(Contexto, _tabla, registro).Id;

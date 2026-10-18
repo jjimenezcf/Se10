@@ -52,13 +52,13 @@ namespace MVCSistemaDeElementos.Descriptores
             var otraClase = Padre is ModalDeFiltrado<TElemento> ? enumCssFiltro.ContenedorEnModalDeFiltros.Render() : "";
 
             var ccsContenedor = Padre is ModalDeFiltrado<TElemento> && MostrarEtiqueta
-                ? $"{Css.Render(enumCssFiltro.ContenedorEntreRangosModal)} {otraClase}"
-                : Css.Render(enumCssFiltro.ContenedorEntreRangos);
+                ? $"{ExtensorDeCss.Render(enumCssFiltro.ContenedorEntreRangosModal)} {otraClase}"
+                : ExtensorDeCss.Render(enumCssFiltro.ContenedorEntreRangos);
 
             if (Bloque != null)
                 ccsContenedor = $"{enumCssImportant.SinMarginTop.Render()} {ccsContenedor}";
 
-            valores["Css"] = Css.Render(enumCssFiltro.Rango);
+            valores["Css"] = ExtensorDeCss.Render(enumCssFiltro.Rango);
             valores["CssContenedor"] = ccsContenedor;
             valores["Placeholder"] = PlaceHolder;
             valores["Ayuda"] = atributos.Ayuda;

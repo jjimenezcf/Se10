@@ -99,10 +99,10 @@ namespace UtilidadesParaIu
                 ? RenderAccionOrdenar(padre, padreEsEditor, columna)
                 : columna.Titulo;
 
-            string claseCss = columna.Visible ? Css.Render(enumCssGrid.ColumnaCabecera) : Css.Render(enumCssGrid.ColumnaOculta);
+            string claseCss = columna.Visible ? ExtensorDeCss.Render(enumCssGrid.ColumnaCabecera) : ExtensorDeCss.Render(enumCssGrid.ColumnaOculta);
 
             if (columna.Visible && columna.CssDeLaColumna == enumCssGrid.ColumnaOculta)
-                claseCss = Css.Render(enumCssGrid.ColumnaOculta);
+                claseCss = ExtensorDeCss.Render(enumCssGrid.ColumnaOculta);
 
             string claseCssAlineacion = columna.Alineada == enumAliniacion.derecha
                 ? $"class=¨{enumCssGrid.ColumnaDiv.Render()} {enumCssGrid.ColumnaAlineadaDerecha.Render()}¨"
@@ -185,7 +185,7 @@ namespace UtilidadesParaIu
 
             string htmlRef = $"href =¨javascript: Crud.{gestorDeEventos}('ordenar-por', '{parametros}')¨";
 
-            return $@"<a {htmlRef} class=¨{Css.Render(columna.cssOrdenacion)}¨>{columna.Titulo}</a>";
+            return $@"<a {htmlRef} class=¨{ExtensorDeCss.Render(columna.cssOrdenacion)}¨>{columna.Titulo}</a>";
         }
 
         private static string RenderEventoPuslsa(CeldaDelGrid celda, string idControlHtml)
@@ -311,7 +311,7 @@ namespace UtilidadesParaIu
                 cabeceraHtml.Append(RenderColumnaCabecera(columna));
             }
 
-            return $@"<div id='{grid.IdHtmlCabeceraDeTabla}' class=¨{enumCssDiv.Thead.Render()} {Css.Render(enumCssCuerpo.CuerpoDatosGridThead)}¨ >{Environment.NewLine}
+            return $@"<div id='{grid.IdHtmlCabeceraDeTabla}' class=¨{enumCssDiv.Thead.Render()} {ExtensorDeCss.Render(enumCssCuerpo.CuerpoDatosGridThead)}¨ >{Environment.NewLine}
                          <div id=¨{grid.IdHtmlFilaCabecera}¨ class='{enumCssDiv.Tr.Render()}'>
                             {cabeceraHtml}
                          </div>
@@ -323,17 +323,17 @@ namespace UtilidadesParaIu
         {
             if (mostrarElNavegadorEnElGrid)
             {
-                return Css.Render(claseCss);
+                return ExtensorDeCss.Render(claseCss);
             }
             else
             {
                 switch (claseCss)
                 {
-                    case enumCssNavegadorEnModal.InfoGrid: return Css.Render(enumCssNavegadorEnMnt.InfoGrid);
-                    case enumCssNavegadorEnModal.Mensaje: return Css.Render(enumCssNavegadorEnMnt.Mensaje);
-                    case enumCssNavegadorEnModal.Cantidad: return Css.Render(enumCssNavegadorEnMnt.Cantidad);
-                    case enumCssNavegadorEnModal.Opcion: return Css.Render(enumCssNavegadorEnMnt.Opcion);
-                    case enumCssNavegadorEnModal.Navegador: return Css.Render(enumCssNavegadorEnMnt.Navegador);
+                    case enumCssNavegadorEnModal.InfoGrid: return ExtensorDeCss.Render(enumCssNavegadorEnMnt.InfoGrid);
+                    case enumCssNavegadorEnModal.Mensaje: return ExtensorDeCss.Render(enumCssNavegadorEnMnt.Mensaje);
+                    case enumCssNavegadorEnModal.Cantidad: return ExtensorDeCss.Render(enumCssNavegadorEnMnt.Cantidad);
+                    case enumCssNavegadorEnModal.Opcion: return ExtensorDeCss.Render(enumCssNavegadorEnMnt.Opcion);
+                    case enumCssNavegadorEnModal.Navegador: return ExtensorDeCss.Render(enumCssNavegadorEnMnt.Navegador);
                 }
 
             }
@@ -373,7 +373,7 @@ namespace UtilidadesParaIu
             var htmlContenedorNavegador = !navegadorEnFinDePagina
                 ? $@"
                    <!-- ***************** Navegador del grid ****************** -->
-                   <div id= ¨{grid.IdHtml}_pie¨ class=¨{Css.Render(enumCssNavegadorEnModal.Contenedor)}¨>
+                   <div id= ¨{grid.IdHtml}_pie¨ class=¨{ExtensorDeCss.Render(enumCssNavegadorEnModal.Contenedor)}¨>
                      htmlNavegadorGrid
                    </div>
                  "

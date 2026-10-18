@@ -388,8 +388,13 @@ namespace GestoresDeNegocio.SistemaDocumental
             // Vinculado directamente al elemento
             ApiDeArchivos.ValidarQueEstaAnexado(Contexto, negocio, idElemento, idArchivo);
 
-            if (!extPdf.EsConvertibleAPdf(archivo.Nombre))
-                GestorDeErrores.Emitir($"El archivo '{archivo.Nombre}' no se puede convertir a pdf, sólo se convierten los archivos {string.Join(", ", extPdf.ExtensionesConvertiblesAPdf.Select(e => e.TrimStart('.')))}");
+            if (!ExtensorDePdf.EsConvertibleAPdf(archivo.Nombre))
+                GestorDeErrores.Emitir($"El archivo '{archivo.Nombre}' no se puede convertir a pdf, sólo se convierten los archivos {string.Join(", ", ExtensorDePdf.ExtensionesConvertiblesAPdf.Select(e => e.TrimStart('.')))}");
+
+            // Antes de descargar nada: ha de haber LibreOffice o licencia de ConvertApi
+            var motivo = ExtensorDePdf.MotivoPorElQueNoSePuedeConvertir(ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
+            if (motivo != null)
+                GestorDeErrores.Emitir(motivo);
 
             var rutaDeOrigen = ApiDeArchivos.ObtenerRutaArchivo(archivo);
 
@@ -402,7 +407,7 @@ namespace GestoresDeNegocio.SistemaDocumental
                 var original = Path.Combine(directorioDeTrabajo, Path.GetFileName(rutaDeOrigen));
                 File.Copy(rutaDeOrigen, original, overwrite: true);
 
-                var pdf = extPdf.ConvertirAPdf(original, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
+                var pdf = ExtensorDePdf.ConvertirAPdf(original, ParametrosDeArchivadores.RutaLibreOffice, () => ParametrosDeArchivadores.ClaveConvertApi);
 
                 var archivoPdf = ServidorDocumental.AnexarArchivo(Contexto, negocio, idElemento, pdf, sanitizar: true);
 

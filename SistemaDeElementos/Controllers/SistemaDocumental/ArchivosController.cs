@@ -100,7 +100,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
 
                 if (caducaEl == null) caducaEl = DateTime.Now.AddHours(1);
                 resultado.Datos = ((GestorDeArchivos)_GestorDeElementos).RegistrarDescargaConGuid(id, caducaEl: caducaEl, maximoDeDescargas: null);
-                resultado.Mensaje = $"La URL para descargar el archivo se ha copiado al porta papeles con validez hasta '{((DateTime)caducaEl).ToString(extFechas.DiaHora)}'";
+                resultado.Mensaje = $"La URL para descargar el archivo se ha copiado al porta papeles con validez hasta '{((DateTime)caducaEl).ToString(ExtensorDeFechas.DiaHora)}'";
                 resultado.Estado = enumEstadoPeticion.Ok;
                 _GestorDeElementos.Commit(tran);
             }
@@ -238,7 +238,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
                 string contenidoRtf = System.IO.File.ReadAllText(rutaRtf);
                 string contenidoHtml = Rtf.ToHtml(contenidoRtf);
                 System.IO.File.WriteAllText(rutaHtml, contenidoHtml);
-                rutaHtml = extHtml.SanitizeFile(rutaHtml);
+                rutaHtml = ExtensorDeHtml.SanitizeFile(rutaHtml);
                 pendienteDeBorrar.Add(rutaRtf);
             }
             pendienteDeBorrar.Add(rutaHtml);
@@ -267,9 +267,9 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
                     throw new FileNotFoundException($"El archivo '{archivo.Nombre}' no se ha encontrado.");
                 }
 
-                string contenidoHtml = extDocx.ToHtml(rutaDocx);
+                string contenidoHtml = ExtensorDeDocx.ToHtml(rutaDocx);
                 System.IO.File.WriteAllText(rutaHtml, contenidoHtml);
-                rutaHtml = extHtml.SanitizeFile(rutaHtml);
+                rutaHtml = ExtensorDeHtml.SanitizeFile(rutaHtml);
                 pendienteDeBorrar.Add(rutaDocx);
             }
             pendienteDeBorrar.Add(rutaHtml);
@@ -298,9 +298,9 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
                     throw new FileNotFoundException($"El archivo '{archivo.Nombre}' no se ha encontrado.");
                 }
 
-                string contenidoHtml = extXlsx.ToHtml(rutaXlsx);
+                string contenidoHtml = ExtensorDeXlsx.ToHtml(rutaXlsx);
                 System.IO.File.WriteAllText(rutaHtml, contenidoHtml);
-                rutaHtml = extHtml.SanitizeFile(rutaHtml);
+                rutaHtml = ExtensorDeHtml.SanitizeFile(rutaHtml);
                 pendienteDeBorrar.Add(rutaXlsx);
             }
             pendienteDeBorrar.Add(rutaHtml);
@@ -329,7 +329,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
                     throw new FileNotFoundException($"El archivo '{archivo.Nombre}' no se ha encontrado.");
                 }
 
-                string contenidoHtml = extCsv.ToHtml(rutaCsv);
+                string contenidoHtml = ExtensorDeCsv.ToHtml(rutaCsv);
                 System.IO.File.WriteAllText(rutaHtml, contenidoHtml);
                 pendienteDeBorrar.Add(rutaCsv);
             }
@@ -360,9 +360,9 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
                 }
                 var mime = MimeTypeMap.GetMimeType(Path.GetExtension(rutaZip));
                 //string contenidoHtml = mime == MimeTypeMap.GetMimeType(enumExtensiones.zip.ToString()) ? Ext7z.ToHtml(rutaZip) : Ext7z.ToHtml(rutaZip);
-                string contenidoHtml = ext7z.ToHtml(rutaZip);
+                string contenidoHtml = ExtensorDe7z.ToHtml(rutaZip);
                 System.IO.File.WriteAllText(rutaHtml, contenidoHtml);
-                rutaHtml = extHtml.SanitizeFile(rutaHtml);
+                rutaHtml = ExtensorDeHtml.SanitizeFile(rutaHtml);
                 pendienteDeBorrar.Add(rutaZip);
             }
             pendienteDeBorrar.Add(rutaHtml);
@@ -395,10 +395,10 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
 
                 string contenido = System.IO.File.ReadAllText(rutaOriginal);
                 // Comprobar si es texto plano y convertir a HTML si es necesario
-                if (extHtml.EsHtml(contenido))
+                if (ExtensorDeHtml.EsHtml(contenido))
                 {
                     System.IO.File.WriteAllText(rutaHtmlSanitizado, contenido);
-                    rutaHtmlSanitizado = extHtml.SanitizeFile(rutaHtmlSanitizado);
+                    rutaHtmlSanitizado = ExtensorDeHtml.SanitizeFile(rutaHtmlSanitizado);
                 }
                 else
                 {

@@ -469,10 +469,10 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 }
                 else
                 {
-                    extFechas.MilisegundosToFecha(mail.InternalDate);
+                    ExtensorDeFechas.MilisegundosToFecha(mail.InternalDate);
                 }
             }
-            return extFechas.MilisegundosToFecha(mail.InternalDate);
+            return ExtensorDeFechas.MilisegundosToFecha(mail.InternalDate);
         }
 
         internal static bool EstaProcesado(this Message mensaje, ContextoSe contexto)
@@ -548,7 +548,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
             sb.AppendLine($"{correo.Cuerpo}");
             sb.AppendLine($"Adjuntos: {servicioGmail.Adjuntos(mensaje).ToString(x => x.Fichero, ",")}");
             var rawMessage = sb.ToString();
-            var decodedMessage = extCadenas.Base64UrlDecode(rawMessage);
+            var decodedMessage = ExtensorDeCadenas.Base64UrlDecode(rawMessage);
             // Crear un nuevo documento PDF
             var nombre = correo.Emisor;
             Match match = Regex.Match(correo.Emisor, @"^(.*?)\s<(.*)>$");
@@ -582,13 +582,13 @@ namespace GestoresDeNegocio.TrabajosSometidos
             var sender = mail.Payload.Headers.FirstOrDefault(h => h.Name == "From");
             var to = mail.Payload.Headers.FirstOrDefault(h => h.Name == "Delivered-To");
             if (to is null) to = mail.Payload.Headers.FirstOrDefault(h => h.Name == "To");
-            correo.Id = extEncriptacion.GenerarEntero(mail.Id);
+            correo.Id = ExtensorDeEncriptacion.GenerarEntero(mail.Id);
             correo.Buzon = buzon;
             correo.Asunto = subjectHeader?.Value ?? "(Sin Asunto}";
             correo.Emisor = sender.Value;
             correo.To = to.Value;
             correo.Cuerpo = mail.Cuerpo_3();
-            correo.CuerpoHtml = extHtml.SanitizeHtml(mail.CuerpoHtml());
+            correo.CuerpoHtml = ExtensorDeHtml.SanitizeHtml(mail.CuerpoHtml());
             correo.Fecha = mail.Fecha();
             correo.IdMensaje = mail.Id;
             correo.ModoDeAcceso = ServicioDeDatos.Seguridad.enumModoDeAccesoDeDatos.Consultor;
@@ -624,7 +624,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
         {
             if (mail.Payload.Body.Data != null)
             {
-                return extCadenas.DecodeBase64String(mail.Payload.Body.Data);
+                return ExtensorDeCadenas.DecodeBase64String(mail.Payload.Body.Data);
             }
 
             if (mail.Payload.Parts != null)
@@ -633,7 +633,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 {
                     if (part.MimeType == "text/html" || part.MimeType == "text/plain")
                     {
-                        return extCadenas.DecodeBase64String(part.Body.Data);
+                        return ExtensorDeCadenas.DecodeBase64String(part.Body.Data);
                     }
                 }
             }
@@ -644,7 +644,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
         {
             if (mail.Payload.Body.Data != null)
             {
-                var cuerpo = extCadenas.DecodeBase64String(mail.Payload.Body.Data);
+                var cuerpo = ExtensorDeCadenas.DecodeBase64String(mail.Payload.Body.Data);
                 return cuerpo.IsNullOrEmpty() || cuerpo == Environment.NewLine ? "<p>(Sin cuerpo)</p>" : cuerpo;
             }
 
@@ -656,14 +656,14 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 {
                     if (part.MimeType == "text/html")
                     {
-                        cuerpoHtml.Append(extCadenas.DecodeBase64String(part.Body.Data));
+                        cuerpoHtml.Append(ExtensorDeCadenas.DecodeBase64String(part.Body.Data));
                     }
                     else if (part.MimeType == "multipart/alternative")
                     {
                         var htmlPart = part.Parts.FirstOrDefault(p => p.MimeType == "text/html");
                         if (htmlPart != null)
                         {
-                            cuerpoHtml.Append(extCadenas.DecodeBase64String(htmlPart.Body.Data));
+                            cuerpoHtml.Append(ExtensorDeCadenas.DecodeBase64String(htmlPart.Body.Data));
                         }
                     }
                 }
@@ -683,7 +683,7 @@ namespace GestoresDeNegocio.TrabajosSometidos
         {
             if (mail.Payload.Body.Data != null)
             {
-                var cuerpo = extCadenas.DecodeBase64String(mail.Payload.Body.Data);
+                var cuerpo = ExtensorDeCadenas.DecodeBase64String(mail.Payload.Body.Data);
                 return cuerpo.IsNullOrEmpty() || cuerpo == Environment.NewLine ? "(Sin cuerpo)" : cuerpo;
             }
 
@@ -695,11 +695,11 @@ namespace GestoresDeNegocio.TrabajosSometidos
                 {
                     if (part.MimeType == "text/html")
                     {
-                        cuerpo.AppendLine(extCadenas.ConvertHtmlToPlainText(extCadenas.DecodeBase64String(part.Body.Data)));
+                        cuerpo.AppendLine(ExtensorDeCadenas.ConvertHtmlToPlainText(ExtensorDeCadenas.DecodeBase64String(part.Body.Data)));
                     }
                     else if (part.MimeType == "text/plain")
                     {
-                        cuerpo.AppendLine(extCadenas.DecodeBase64String(part.Body.Data));
+                        cuerpo.AppendLine(ExtensorDeCadenas.DecodeBase64String(part.Body.Data));
                     }
                     else if (part.MimeType == "multipart/alternative")
                     {
@@ -708,12 +708,12 @@ namespace GestoresDeNegocio.TrabajosSometidos
 
                         if (htmlPart != null)
                         {
-                            cuerpo.AppendLine(extCadenas.ConvertHtmlToPlainText(extCadenas.DecodeBase64String(htmlPart.Body.Data)));
+                            cuerpo.AppendLine(ExtensorDeCadenas.ConvertHtmlToPlainText(ExtensorDeCadenas.DecodeBase64String(htmlPart.Body.Data)));
                         }
 
                         if (plainPart != null)
                         {
-                            cuerpo.AppendLine(extCadenas.DecodeBase64String(plainPart.Body.Data));
+                            cuerpo.AppendLine(ExtensorDeCadenas.DecodeBase64String(plainPart.Body.Data));
                         }
 
                     }

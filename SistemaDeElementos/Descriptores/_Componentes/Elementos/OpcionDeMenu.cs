@@ -389,7 +389,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var htmlOpcionMenu = $@"<input id=¨{IdHtml}¨
                                            type=¨button¨
                                            tipo=¨{Tipo.Render()}¨
-                                           clase=¨{Css.Render(ClaseBoton)}¨
+                                           clase=¨{ExtensorDeCss.Render(ClaseBoton)}¨
                                            permisos-necesarios=¨{PermisosNecesarios.Render()}¨
                                            permite-multi-seleccion=¨{permite}¨
                                            numero-maximo-seleccionable={numero}
@@ -416,7 +416,7 @@ namespace MVCSistemaDeElementos.Descriptores
                         <input id=¨{IdHtml}-orden¨ type=¨hidden¨ name = ¨orden¨ >
                         <input type=¨button¨ 
                                tipo=¨{Tipo.Render()}¨
-                               clase=¨{Css.Render(ClaseBoton)}¨ 
+                               clase=¨{ExtensorDeCss.Render(ClaseBoton)}¨ 
                                permisos-necesarios=¨{PermisosNecesarios.Render()}¨ 
                                permite-multi-seleccion=¨N¨
                                value=¨{Etiqueta}¨ 
@@ -439,7 +439,7 @@ namespace MVCSistemaDeElementos.Descriptores
                         <input id=¨{IdHtml}-orden¨ type=¨hidden¨ name=¨orden¨/>
                         <input type=¨button¨ 
                                tipo=¨{Tipo.Render()}¨
-                               clase=¨{Css.Render(ClaseBoton)}¨ 
+                               clase=¨{ExtensorDeCss.Render(ClaseBoton)}¨ 
                                permisos-necesarios=¨{PermisosNecesarios.Render()}¨ 
                                permite-multi-seleccion=¨N¨
                                value=¨{Etiqueta}¨ 

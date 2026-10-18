@@ -269,10 +269,10 @@ namespace ServicioDeDatos.SistemaDocumental
                     GestorDeErrores.Emitir($"El periodo '{periodosToken}' está mal definido, debe ser con el formato mm:dd,mm:dd");
 
                 var anio = DateTime.Now.Year;
-                int mesDesde = extFechas.ValidarMes(desde[0], "desde");
-                int diaDesde = extFechas.ValidarDia(desde[1], mesDesde, anio, "desde");
-                int mesHasta = extFechas.ValidarMes(hasta[0], "hasta");
-                int diaHasta = extFechas.ValidarDia(hasta[1], mesHasta, anio, "hasta");
+                int mesDesde = ExtensorDeFechas.ValidarMes(desde[0], "desde");
+                int diaDesde = ExtensorDeFechas.ValidarDia(desde[1], mesDesde, anio, "desde");
+                int mesHasta = ExtensorDeFechas.ValidarMes(hasta[0], "hasta");
+                int diaHasta = ExtensorDeFechas.ValidarDia(hasta[1], mesHasta, anio, "hasta");
 
                 return new PeriodosTemporales
                 {

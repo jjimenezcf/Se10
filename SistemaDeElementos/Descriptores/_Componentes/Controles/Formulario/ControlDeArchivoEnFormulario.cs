@@ -40,8 +40,8 @@ namespace MVCSistemaDeElementos.Descriptores
                                        , $"type = ¨{enumInputType.text.Render()}¨")}
                                        readonly>
                                    </input>
-                                   <div id = ¨{IdHtmlContenedorBarra}¨ class=¨{Css.Render(enumCssControlesFormulario.InfoArchivo)}¨ style=¨display: none;¨>
-                                      <div id = ¨{IdHtmlBarra}¨ class=¨{Css.Render(enumCssControles.BarraAzulArchivo)}¨ contenedor-barra = ¨{IdHtmlContenedorBarra}¨ style=¨display: none;¨>
+                                   <div id = ¨{IdHtmlContenedorBarra}¨ class=¨{ExtensorDeCss.Render(enumCssControlesFormulario.InfoArchivo)}¨ style=¨display: none;¨>
+                                      <div id = ¨{IdHtmlBarra}¨ class=¨{ExtensorDeCss.Render(enumCssControles.BarraAzulArchivo)}¨ contenedor-barra = ¨{IdHtmlContenedorBarra}¨ style=¨display: none;¨>
                                          <span></span>
                                       </div>
                                    </div>

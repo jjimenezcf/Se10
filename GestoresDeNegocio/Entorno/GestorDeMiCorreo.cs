@@ -50,7 +50,7 @@ namespace GestoresDeNegocio.Entorno
         {
             var fichero = Path.Combine(enumRutas.RutaDeDescarga, ExtensorDeMiCorreo.NombreFicheroCurpoHtml);
             
-            correo.CuerpoHtml = extHtml.ReemplazarImagenesEnHtml(correo.CuerpoHtml, rutas);
+            correo.CuerpoHtml = ExtensorDeHtml.ReemplazarImagenesEnHtml(correo.CuerpoHtml, rutas);
 
             File.WriteAllText(fichero, $"<div>Usuario incorporador: {contexto.DatosDeConexion.Login} </div>" + correo.CuerpoHtml);
             var archivo = ServidorDocumental.AnexarArchivo(contexto, negocio, elemento.Id, fichero, copiar: false, quitarExtensionHtml: false, sanitizar: true);

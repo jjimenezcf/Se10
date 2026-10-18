@@ -33,7 +33,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             var htmlTabla = $@" 
                 <!--  ***************** tabla de edición: {((BloqueApilado)Padre).Titulo} ******************* -->
-                <div id=¨{IdHtml}¨ class=¨{Css.Render(enumCssMnt.MntTablaDeFiltro)}¨>
+                <div id=¨{IdHtml}¨ class=¨{ExtensorDeCss.Render(enumCssMnt.MntTablaDeFiltro)}¨>
                     filas
                 </div>";
             var htmlFilas = "";

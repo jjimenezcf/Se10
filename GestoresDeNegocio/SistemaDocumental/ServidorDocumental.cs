@@ -71,7 +71,7 @@ namespace GestoresDeNegocio.SistemaDocumental
                 {
                     using (StreamWriter writer = new StreamWriter(rutaArchivo))
                     {
-                        writer.Write(sanitizar ? extHtml.SanitizeContenido(contenido) : contenido);
+                        writer.Write(sanitizar ? ExtensorDeHtml.SanitizeContenido(contenido) : contenido);
                     }
                     intentar = false;
                 }
@@ -472,7 +472,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             var idsDeArchivosJson = parametros[ltrDeUnArchivo.IdsDeArchivos].ToString();
             List<int> idsDeArchivos = JsonConvert.DeserializeObject<List<long>>(idsDeArchivosJson).ConvertAll(x => (int)x).ToList();
 
-            var ficheroZip = Path.Combine(CacheDeVariable.Cfg_RutaDeDescarga, extCadenas.NormalizarFichero((string)parametros[ltrDeUnArchivo.NombreDeArchivo]).Replace(" ", Simbolos.Subrrallado)) + ".Zip";
+            var ficheroZip = Path.Combine(CacheDeVariable.Cfg_RutaDeDescarga, ExtensorDeCadenas.NormalizarFichero((string)parametros[ltrDeUnArchivo.NombreDeArchivo]).Replace(" ", Simbolos.Subrrallado)) + ".Zip";
             ficheroZip = ApiDeArchivos.ObtenerNombreUnico(ficheroZip);
 
             var contexto = entorno.contextoDelProceso;

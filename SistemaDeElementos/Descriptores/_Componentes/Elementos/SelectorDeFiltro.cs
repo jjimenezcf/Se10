@@ -43,7 +43,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             ControlHtml edt = CrudModal.Mnt.Filtro.BuscarControlPorPropiedad(PropiedadDondeMapear);
 
-            return $@"<div class=¨{Css.Render(enumCssFiltro.ContenedorSelector)}¨>
+            return $@"<div class=¨{ExtensorDeCss.Render(enumCssFiltro.ContenedorSelector)}¨>
                        <input id=¨{IdHtml}¨ 
                               type = ¨text¨ 
                               class=¨form-control¨ 

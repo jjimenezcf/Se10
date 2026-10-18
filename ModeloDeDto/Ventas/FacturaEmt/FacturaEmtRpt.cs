@@ -33,8 +33,8 @@ namespace ModeloDeDto.Ventas
         public string PieDeFactura { get; set; }
         public string InscritoEn { get; set; }
         public bool HayDescuento => Lineas.Any(linea => linea.ImporteDeDto is not null && linea.ImporteDeDto > 0);
-        public bool ImprimirVencimiento => extDiccionarios.LeerValor(Parametros, ltrParametrosFaeRpt.ImprimirVencimiento, false);
-        public bool MostrarPalabraCopia => extDiccionarios.LeerValor(Parametros, ltrParametrosFaeRpt.MostrarPalabraCopia, true);
+        public bool ImprimirVencimiento => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosFaeRpt.ImprimirVencimiento, false);
+        public bool MostrarPalabraCopia => ExtensorDeDiccionarios.LeerValor(Parametros, ltrParametrosFaeRpt.MostrarPalabraCopia, true);
 
         public decimal BiConIva { get; set; }
 

@@ -163,7 +163,7 @@ namespace ServicioDeCorreos
             // Con manejador (correo encolado) el error se anota en el correo como cualquier otro fallo de envío; sin él se relanza al llamador
             try
             {
-                receptores.ForEach(extCorreos.ValidarMail);
+                receptores.ForEach(ExtensorDeCorreos.ValidarMail);
             }
             catch (Exception ex) when (manejador != null)
             {
@@ -176,7 +176,7 @@ namespace ServicioDeCorreos
                 mensaje = mensaje + Environment.NewLine + $"Receptores: '{string.Join(Simbolos.separadorDeCorreos, receptores)}'";
             }
 
-            if (esHtlm) mensaje = extCadenas.ConvertPlainTextToHtml(mensaje);
+            if (esHtlm) mensaje = ExtensorDeCadenas.ConvertPlainTextToHtml(mensaje);
 
             if (enumSistema == enumSistemaDeCorreo.GRAPH)
             {

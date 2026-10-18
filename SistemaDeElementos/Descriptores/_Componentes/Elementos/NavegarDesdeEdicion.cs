@@ -40,11 +40,11 @@ namespace MVCSistemaDeElementos.Descriptores
         public static string RenderAbrirEnPestana(AtributosHtml atributos)
         {
             Dictionary<string, object> valores = atributos.MapearComunes();
-            valores["CssContenedor"] = Css.Render(enumCssControles.ContenedorEditor);
-            valores["Css"] = Css.Render(enumCssControles.BotonComoReferencia);
+            valores["CssContenedor"] = ExtensorDeCss.Render(enumCssControles.ContenedorEditor);
+            valores["Css"] = ExtensorDeCss.Render(enumCssControles.BotonComoReferencia);
             valores["PermisosNecesarios"] = enumModoDeAccesoDeDatos.SerAdministrador;
             valores["Accion"] = $"{atributos.NameSpaceTs}.EventosDeExpansores('{eventosDeExpansor.NavegarDesdeEdicion}','{atributos.Url};{atributos.IdPaginaDestino}')";
-            valores["claseBoton"] = $"{Css.Render(enumCssOpcionMenu.DeElemento)}";
+            valores["claseBoton"] = $"{ExtensorDeCss.Render(enumCssOpcionMenu.DeElemento)}";
 
             var htmlOpcionDeNavegar = PlantillasHtml.Render(PlantillasHtml.opcionNavegar, valores);
             htmlOpcionDeNavegar = htmlOpcionDeNavegar.Replace("[disbled]", "");

@@ -250,7 +250,7 @@ namespace MVCSistemaDeElementos.Controllers
         public JsonResult epLeerDatosParaInicializarVista(string negocio, string parametrosJson)
         {
             var r = new Resultado();
-            var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+            var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
             Contexto.IniciarTraza(GetType().Name + "_" + nameof(epVincular));
             try
             {
@@ -517,7 +517,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 parametros[ltrParametrosNeg.Peticion] = baja ? enumPeticion.epDarDeBaja : enumPeticion.epDarDeAlta;
                 var negocio = ObtenerNegocio(parametros);
 
@@ -584,8 +584,8 @@ namespace MVCSistemaDeElementos.Controllers
             Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerPorId));
             try
             {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext, extJson.ToDiccionarioDeParametros(parametrosJson));
-                var parametros = Utilidades.extJson.ToDiccionarioDeParametros(parametrosJson);
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext, ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson));
+                var parametros = Utilidades.ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 parametros[ltrParametrosDto.DescargarGestionDocumental] = true;
                 parametros[ltrParametrosNeg.UsarLaCache] = CacheDeVariable.CFG_Usar_Cache_En_EpLeerPorId.EsTrue();
                 parametros[ltrParametrosNeg.Peticion] = enumPeticion.epLeerPorId;
@@ -621,7 +621,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-                var parametros = extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 var guid = parametros.LeerValor<string>(ltrParametrosEp.guid);
                 var id = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
                 List<ClausulaDeFiltrado> filtros = JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtrosJson);
@@ -649,7 +649,7 @@ namespace MVCSistemaDeElementos.Controllers
             Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerElementos));
             try
             {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext, extJson.ToDiccionarioDeParametros(parametrosJson));
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext, ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson));
                 var parametros = parametrosJson.ToDiccionarioDeParametros();
                 parametros[ltrParametrosNeg.EsUnaPeticion] = true;
                 parametros[ltrParametrosNeg.Peticion] = enumPeticion.epLeerElementos;
@@ -841,7 +841,7 @@ namespace MVCSistemaDeElementos.Controllers
             try
             {
                 Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
-                var parametros = extJson.ToDiccionarioDeParametros(parametrosJson);
+                var parametros = ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson);
                 var guid = parametros.LeerValor<string>(ltrParametrosEp.guid);
                 var id = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
                 var negocio = NegociosDeSe.ToEnumerado(NegociosDeSe.ToDtm(typeof(TElemento)));
@@ -1476,7 +1476,7 @@ namespace MVCSistemaDeElementos.Controllers
 
         protected void ValidarConsultaPorGuid(int id, string parametrosJson)
         {
-            ValidarConsultaPorGuid(id, extJson.ToDiccionarioDeParametros(parametrosJson));
+            ValidarConsultaPorGuid(id, ExtensorDeJson.ToDiccionarioDeParametros(parametrosJson));
         }
 
         private void ValidarConsultaPorGuid(int id, Dictionary<string, object> parametros)
