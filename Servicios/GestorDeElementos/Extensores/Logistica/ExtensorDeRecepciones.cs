@@ -133,7 +133,9 @@ namespace GestorDeElementos.Extensores
             var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_HayRecepciones);
             if (cache.ContainsKey(pedido.Id.ToString()))
                 return (bool)cache[pedido.Id.ToString()];
-            var hayRecepciones = contexto.Set<RecepcionDeLineaDtm>().Any(recepcion => pedido.Detalles<LineaDeUnPedidoDtm>(contexto).Any(linea => linea.Id == recepcion.IdLinea && linea.IdElemento == pedido.Id));
+            // las líneas salen de la caché de detalles; una lista en memoria no se traduce a SQL dentro de la consulta, sus ids sí (IN)
+            var idsDeLineas = pedido.Detalles<LineaDeUnPedidoDtm>(contexto).Select(linea => linea.Id).ToList();
+            var hayRecepciones = idsDeLineas.Count > 0 && contexto.Set<RecepcionDeLineaDtm>().Any(recepcion => idsDeLineas.Contains(recepcion.IdLinea));
             cache[pedido.Id.ToString()] = hayRecepciones;
             return hayRecepciones;
         }
