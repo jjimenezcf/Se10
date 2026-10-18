@@ -21,12 +21,12 @@ namespace GestorDeElementos.Extensores
         // la caché se comparte entre peticiones. Se olvidan al persistir un tipo de movimiento (ver GestorDeTiposDeMovimiento)
         public static TipoMovimientoDtm LeerTipoDeMovimiento(this enumTiposDeMovimiento tipo, ContextoSe contexto)
         {
-            var tipos = TiposDeMovimiento(contexto).ToDictionary(x => x.Nombre);
+            var tipos = TiposDeMovimiento(contexto);
 
-            if (!tipos.TryGetValue(tipo.Descripcion(), out var tipoDeMovimiento))
+            if (!tipos.Any(t => t.Nombre == tipo.Descripcion()))
                 Emitir($"No está definido el tipo de movimiento de almacén '{tipo.Descripcion()}'");
 
-            return tipoDeMovimiento;
+            return tipos.First(x => x.Nombre == tipo.Descripcion());
         }
 
         public static TipoMovimientoDtm TipoDeMovimiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
@@ -53,7 +53,7 @@ namespace GestorDeElementos.Extensores
             if (movimiento.IdPreasiento is null)
                 return null;
 
-            if (movimiento.Preasiento is null || movimiento.IdPreasiento != movimiento.Preasiento.Id )
+            if (movimiento.Preasiento is null || movimiento.IdPreasiento != movimiento.Preasiento.Id)
                 movimiento.Preasiento = contexto.SeleccionarPorId<PreasientoDtm>((int)movimiento.IdPreasiento);
             return movimiento.Preasiento;
         }
@@ -85,13 +85,31 @@ namespace GestorDeElementos.Extensores
 
         }
 
+        // La referencia no se guarda (se ignora en el modelo), se calcula como la de los cobros (ver ExtensorDeCobrosDeFae.CalcularReferencia):
+        // al mapear, al persistir y al leer (ver GestorDeMovimientosDeAlmacen). Al insertar aún no hay Id y acaba en "(0)", se recalcula al leerlo
+        // Url de la edición del documento que generó el movimiento: el pedido de la recepción o la regularización del inventario.
+        // Los movimientos de obra y las devoluciones aún no tienen negocio al que navegar
+        public static string UrlDelDocumento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            (enumNegocio negocio, int id) documento = (enumNegocio.No_Definido, 0);
+            if (movimiento.IdLineaDeRecepcion != null)
+                documento = (enumNegocio.Pedido, ExtensorDeRecepciones.LeerLineaDePedido(contexto, (int)movimiento.IdLineaDeRecepcion).IdElemento);
+            else if (movimiento.IdLineaInventario != null)
+                documento = (enumNegocio.Regularizacion, contexto.SeleccionarPorId<LineasDeUnaRegularizacionDtm>((int)movimiento.IdLineaInventario).IdElemento);
+
+            if (documento.negocio == enumNegocio.No_Definido)
+                Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no tiene un documento de origen o destino al que navegar");
+
+            return $"{documento.negocio.Controlador()}/{documento.negocio.VistaMvc(contexto).Accion}?Id={documento.id}";
+        }
+
         public static string Referencia(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
-            if (movimiento.Referencia.IsNullOrEmpty())
+            if (movimiento.Referencia.IsNullOrEmpty() || movimiento.Referencia.EndsWith("(0)"))
             {
-                movimiento.Referencia = movimiento.Almacen(contexto).Referencia+ ": " +
-                    TiposDeMovimiento(contexto).First(x => x.Id == movimiento.IdTipoMovimiento).ClaseMovimiento.Descripcion() + ", Fecha de entrada: " +
-                    movimiento.RealizadoEl.ToString("dd/MM/yyyy") + $" ({movimiento.Id})";    
+                movimiento.Referencia = movimiento.Almacen(contexto).Referencia + ": " +
+                    TiposDeMovimiento(contexto).First(x => x.Id == movimiento.IdTipoMovimiento).ClaseMovimiento.Descripcion() + ", Fecha: " +
+                    movimiento.RealizadoEl.ToString("dd/MM/yyyy") + $" ({movimiento.Id})";
             }
             return movimiento.Referencia;
         }
@@ -177,7 +195,10 @@ namespace GestorDeElementos.Extensores
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Alm_TiposDeMovimiento);
             if (!cache.ContainsKey(nameof(TipoMovimientoDtm)))
-                cache[nameof(TipoMovimientoDtm)] = contexto.Set<TipoMovimientoDtm>().ToDictionary(x => x.Nombre);
+            {
+                var tipos = contexto.Set<TipoMovimientoDtm>().ToList();
+                cache[nameof(TipoMovimientoDtm)] = tipos;
+            }
             return cache[nameof(TipoMovimientoDtm)] as List<TipoMovimientoDtm>;
         }
 

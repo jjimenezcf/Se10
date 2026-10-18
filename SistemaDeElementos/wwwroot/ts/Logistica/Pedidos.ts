@@ -109,16 +109,25 @@
         private FechaDeEntregaPropuesta(): Date {
             const hoy = CrudDePedidos.Hoy();
             const entregarEl = this.FechaDeLaCabecera(ltrPropiedades.Logistica.Pedido.EntregarEl);
-            return Definido(entregarEl) && entregarEl < hoy ? entregarEl : hoy;
+            return this.NoAnteriorAlPedido(Definido(entregarEl) && entregarEl < hoy ? entregarEl : hoy);
         }
 
         // En recepción se propone la fecha de recepción de la cabecera; solicitado, la de entrega o la de hoy
         private FechaDeRecepcionDeLineaPropuesta(): Date {
             if ((this.crudDeEdicion as CrudEdicionPedido).EstaEnRecepcion) {
                 const recibidoEl = this.FechaDeLaCabecera(ltrPropiedades.Logistica.Pedido.RecibidoEl);
-                if (Definido(recibidoEl)) return recibidoEl;
+                if (Definido(recibidoEl)) return this.NoAnteriorAlPedido(recibidoEl);
             }
             return this.FechaDeEntregaPropuesta();
+        }
+
+        // Una recepción no puede ser anterior a la fecha en la que se pidió (ver ExtensorDeRecepciones.RegistrarRecepcion):
+        // si la fecha propuesta lo es, se propone la del pedido
+        private NoAnteriorAlPedido(fecha: Date): Date {
+            const pedidoEl = this.FechaDeLaCabecera(ltrPropiedades.Logistica.Pedido.PedidoEl);
+            if (!Definido(pedidoEl)) return fecha;
+            pedidoEl.setHours(0, 0, 0, 0);
+            return fecha < pedidoEl ? pedidoEl : fecha;
         }
 
         private MapearFecha(modal: HTMLDivElement, propiedad: string, fecha: Date) {

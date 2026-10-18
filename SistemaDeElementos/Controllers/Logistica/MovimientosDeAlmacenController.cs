@@ -6,6 +6,11 @@ using MVCSistemaDeElementos.Descriptores;
 using ServicioDeDatos;
 using ServicioDeDatos.Logistica;
 using System;
+using System.Collections.Generic;
+using GestorDeElementos;
+using GestorDeElementos.Extensores;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Seguridad;
 using Utilidades;
 
 namespace MVCSistemaDeElementos.Controllers
@@ -47,6 +52,29 @@ namespace MVCSistemaDeElementos.Controllers
                 return RenderizarErrorDe(indice, e);
             }
 
+        }
+
+        // Url de la edición del documento (pedido, regularización...) que generó el movimiento, para navegar desde el origen o el destino del grid
+        public JsonResult epObtenerUrlAlDocumento(string parametrosJson)
+        {
+            var r = new Resultado();
+            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+
+                var idMovimiento = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
+                var movimiento = Contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(idMovimiento);
+                r.Datos = movimiento.UrlDelDocumento(Contexto);
+                r.Consola = $"Documento del movimiento obtenido correctamente";
+                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "No se puede obtener acceso al documento del movimiento.");
+            }
+            return new JsonResult(r);
         }
     }
 }

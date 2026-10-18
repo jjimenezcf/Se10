@@ -8,6 +8,16 @@ namespace Logistica {
         };
     }
 
+    // Navega a la edición del documento que generó el movimiento (pedido, regularización...), sea su origen o su destino
+    export function Mal_IrAlDocumento(numeroDeFila: number) {
+        let idMovimiento = Numero(ApiDeGrid.ObtenerValorDeLaFilaParaLaPropiedad(Crud.crudMnt.Tabla, numeroDeFila, ltrPropiedades.Elemento.Id));
+        let parametros: Array<Parametro> = new Array<Parametro>();
+        parametros.push(new Parametro(literal.id, idMovimiento));
+        ApiDePeticiones.EjecutarPeticion(Crud.crudMnt, Crud.crudMnt.Controlador, Ajax.EndPoint.Logistica.MovimientosDeAlmacen.ObtenerUrlAlDocumento, parametros, new Array<Parametro>())
+            .then((peticion) => EntornoSe.AbrirPestana(`${window.location.origin}/${peticion.resultado.datos}`))
+            .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+    }
+
     export class CrudDeMovimientosDeAlmacen extends Crud.CrudMnt {
         constructor(idPanelMnt: string) {
             super(idPanelMnt, undefined);

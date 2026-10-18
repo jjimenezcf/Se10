@@ -472,6 +472,8 @@ namespace Utilidades
         Ral_CalcularImportesDeLinea,
         Ral_FiltrosPorClaseDeUnitario,
 
+        Mal_IrAlDocumento,
+
         Neg_ProcesarOpcionDeMenuLista,
 
         Expotacion_AlCambiar_Plantilla,

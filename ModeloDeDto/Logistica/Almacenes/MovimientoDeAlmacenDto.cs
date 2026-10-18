@@ -24,10 +24,16 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Valor", Ayuda = "valor del movimiento", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Moneda)]
         public decimal Valor { get; set; }
 
-        [IUPropiedad(Etiqueta = "Destino", Ayuda = "destino del movimiento", VisibleEnGrid = true, Obligatorio = false)]
+        // Origen y destino navegan al documento (pedido, regularización...) que generó el movimiento; si es el almacén, el destino queda
+        // en blanco (ver GestorDeMovimientosDeAlmacen.DespuesDeMapearElElemento)
+        [IUPropiedad(Etiqueta = "Destino", Ayuda = "destino del movimiento", VisibleEnGrid = true, Obligatorio = false
+            , TipoDeControl = enumTipoControl.Referencia
+            , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlDocumento) + "(numeroDeFila)")]
         public string Destino { get; set; }
 
-        [IUPropiedad(Etiqueta = "Origen", Ayuda = "origen del movimiento", VisibleEnGrid = true, Obligatorio = false)]
+        [IUPropiedad(Etiqueta = "Origen", Ayuda = "origen del movimiento", VisibleEnGrid = true, Obligatorio = false
+            , TipoDeControl = enumTipoControl.Referencia
+            , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlDocumento) + "(numeroDeFila)")]
         public string Origen { get; set; }
 
         [IUPropiedad(Etiqueta = "Realizado el", Ayuda = "fecha en la que se realizó el movimiento", TipoDeControl = enumTipoControl.SelectorDeFechaHora, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false)]

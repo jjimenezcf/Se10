@@ -67,8 +67,24 @@ namespace GestoresDeNegocio.Logistica
         protected override IQueryable<MovimientoDeAlmacenDtm> AplicarSeguridad(IQueryable<MovimientoDeAlmacenDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
             => base.AplicarSeguridad(consulta, filtros, parametros);
 
+        protected override void DespuesDeMapearElRegistro(MovimientoDeAlmacenDto elemento, MovimientoDeAlmacenDtm movimiento, ParametrosDeNegocio opciones)
+        {
+            base.DespuesDeMapearElRegistro(elemento, movimiento, opciones);
+            movimiento.Referencia(Contexto);
+        }
+
+        protected override void DespuesDeLeer(List<MovimientoDeAlmacenDtm> registros, ParametrosDeNegocio parametros)
+        {
+            base.DespuesDeLeer(registros, parametros);
+            foreach (var movimiento in registros)
+                movimiento.Referencia(Contexto);
+        }
+
         public override MovimientoDeAlmacenDtm PersistirRegistro(MovimientoDeAlmacenDtm movimiento, ParametrosDeNegocio parametros)
         {
+            // los movimientos que se insertan o barren desde los extensores no pasan por el mapeo; sin referencia no se valida el registro
+            movimiento.Referencia(Contexto);
+
             var barriendo = parametros.Parametros.LeerValor(ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, false);
             var idSemaforo = !barriendo ? PonerSemaforo(movimiento) : 0;
             try
@@ -143,27 +159,26 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(movimiento, elemento, parametros);
 
-            var almacen = movimiento.Almacen?.Expresion;
-            var documento = ObtenerDocumentoDeOrigenODestino(movimiento);
+            var almacen = movimiento.Almacen(Contexto).Expresion;
+            var claseDeMovimiento = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento;
+            var documento = ObtenerDocumentoDeOrigenODestino(movimiento, claseDeMovimiento);
 
-            switch (movimiento.TipoMovimiento?.ClaseMovimiento)
+            // el almacén no se muestra como destino: en las entradas el destino queda en blanco y en las salidas es el documento.
+            // Al pulsar el documento se navega a su edición (ver ExtensorDeAlmacenes.UrlDelDocumento)
+            switch (claseDeMovimiento)
             {
-                case enumClaseDeMovimiento.Entrada:
-                    elemento.Origen = documento;
-                    elemento.Destino = almacen;
-                    break;
                 case enumClaseDeMovimiento.Salida:
-                    elemento.Origen = almacen;
+                    elemento.Origen = string.Empty;
                     elemento.Destino = documento;
                     break;
                 default:
-                    elemento.Origen = almacen;
-                    elemento.Destino = almacen;
+                    elemento.Origen = documento;
+                    elemento.Destino = string.Empty;
                     break;
             }
         }
 
-        private string ObtenerDocumentoDeOrigenODestino(MovimientoDeAlmacenDtm movimiento)
+        private string ObtenerDocumentoDeOrigenODestino(MovimientoDeAlmacenDtm movimiento, enumClaseDeMovimiento claseDeMovimiento)
         {
             if (movimiento.IdMovimiento != null) return $"Movimiento de obra Nº {movimiento.IdMovimiento}";
             if (movimiento.IdLineaDeRecepcion != null)
@@ -173,7 +188,12 @@ namespace GestoresDeNegocio.Logistica
                 return $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'";
             }
             if (movimiento.IdLineaDevolucion != null) return $"Devolución Nº {movimiento.IdLineaDevolucion}";
-            if (movimiento.IdLineaInventario != null) return $"Inventario Nº {movimiento.IdLineaInventario}";
+            if (movimiento.IdLineaInventario != null)
+            {
+                var linea = Contexto.SeleccionarPorId<LineasDeUnaRegularizacionDtm>((int)movimiento.IdLineaInventario);
+                var regularizacion = linea.DetalleDe<RegularizacionDtm>(Contexto);
+                return $"{claseDeMovimiento.Descripcion()} '{regularizacion.Referencia}', línea nº {linea.Orden}";
+            }
             return string.Empty;
         }
     }
