@@ -145,10 +145,10 @@ namespace GestoresDeNegocio.Tarea
                         var planificacion = new PlfDeTareaDtm
                         {
                             IdElemento = tarea.Id,
-                            PlfDeInicio = hitoDeAsignacion == null ? null : extFechas.RedondearAlMinuto(hitoDeAsignacion.Fecha, siguiente: true),
-                            Iniciada = hitoDeIniciada == null ? null : extFechas.RedondearAlMinuto(hitoDeIniciada.Fecha, siguiente: true),
-                            PlfDeFin = hitoDeFinalizacion == null ? null : extFechas.RedondearAlMinuto(hitoDeFinalizacion.Fecha, siguiente: false),
-                            Finalizada = hitoDeFinalizacion == null ? null : extFechas.RedondearAlMinuto(hitoDeFinalizacion.Fecha, siguiente: false),
+                            PlfDeInicio = hitoDeAsignacion == null ? null : ExtensorDeFechas.RedondearAlMinuto(hitoDeAsignacion.Fecha, siguiente: true),
+                            Iniciada = hitoDeIniciada == null ? null : ExtensorDeFechas.RedondearAlMinuto(hitoDeIniciada.Fecha, siguiente: true),
+                            PlfDeFin = hitoDeFinalizacion == null ? null : ExtensorDeFechas.RedondearAlMinuto(hitoDeFinalizacion.Fecha, siguiente: false),
+                            Finalizada = hitoDeFinalizacion == null ? null : ExtensorDeFechas.RedondearAlMinuto(hitoDeFinalizacion.Fecha, siguiente: false),
                             MedidoEn = Enumerados.enumDurabilidad.Dias,
                             Duracion = hitoDeAsignacion is not null && hitoDeFinalizacion is not null
                             ? (hitoDeFinalizacion.Fecha - hitoDeAsignacion.Fecha).Days

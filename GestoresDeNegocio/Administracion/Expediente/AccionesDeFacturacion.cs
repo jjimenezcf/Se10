@@ -23,7 +23,7 @@ namespace GestoresDeNegocio.Expediente
         public static string PrefijoArchivadorFCT(this ExpedienteDtm expediente) => $"Archivador del {expediente.Referencia} correspondiente al mes de";
         private static string PrefijoExpedienteFCT(this ExpedienteDtm expediente) => $"Control de facturas del año [anyo], relacionado con el {expediente.Referencia}";
 
-        public static string NombreDeArchivadorFCT(this ExpedienteDtm expediente, int mes) => $"{expediente.PrefijoArchivadorFCT()} {extFechas.Mes(mes)}";
+        public static string NombreDeArchivadorFCT(this ExpedienteDtm expediente, int mes) => $"{expediente.PrefijoArchivadorFCT()} {ExtensorDeFechas.Mes(mes)}";
         public static string NombreDeExpedienteFCT(this ExpedienteDtm expediente, int anyo) => expediente.PrefijoExpedienteFCT().Replace("[anyo]", $"{anyo}");
 
         public static void AbrirArchivadorDeFacturasParaElMes(EntornoDeUnaAccion entorno)
@@ -95,7 +95,7 @@ namespace GestoresDeNegocio.Expediente
                 IdCg = expediente.IdCg,
                 IdTipo = parametros.idTipoArchivador,
                 Nombre = expediente.NombreDeArchivadorFCT(parametros.mes),
-                Descripcion = $"Facturas del periodo {extFechas.Mes(parametros.mes)} del ejercicio {DateTime.Now.Year}"
+                Descripcion = $"Facturas del periodo {ExtensorDeFechas.Mes(parametros.mes)} del ejercicio {DateTime.Now.Year}"
             }.Insertar(entorno.Contexto, nameof(AbrirArchivadorDeFacturasParaElMes));
             expediente.Vincular(entorno.Contexto, archivador);
             return archivador;
