@@ -68,7 +68,7 @@ namespace Utilidades
         {
             using (var fileStream = new FileStream(rutaFichero, FileMode.Open, FileAccess.Read))
             {
-                if (extJson.EsJsonValido(fileStream))
+                if (ExtensorDeJson.EsJsonValido(fileStream))
                 {
                     // Reset the stream position to the beginning
                     fileStream.Position = 0;
@@ -159,7 +159,7 @@ namespace Utilidades
 
             foreach (JObject paginaJson in paginasJson)
             {
-                extJson.QuitarPropiedades(paginaJson, new List<string> { "boundingRegions", "confidence", "spans" });
+                ExtensorDeJson.QuitarPropiedades(paginaJson, new List<string> { "boundingRegions", "confidence", "spans" });
             }
 
             JObject result = new JObject();

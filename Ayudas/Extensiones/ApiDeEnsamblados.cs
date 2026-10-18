@@ -75,6 +75,10 @@ namespace Utilidades
             var path = AppContext.BaseDirectory;
             return Path.GetDirectoryName(path);
         }
+        public static bool EsNulable(this Type type)
+        {
+            return Nullable.GetUnderlyingType(type) != null;
+        }
 
         public static Assembly ObtenerDll(string dll)
         {
