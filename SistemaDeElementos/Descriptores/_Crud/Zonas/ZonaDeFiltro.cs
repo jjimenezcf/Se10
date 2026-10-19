@@ -173,7 +173,7 @@ namespace MVCSistemaDeElementos.Descriptores
                  ayuda: "seleccione los procesos a los que se les aplicó la transición ... entre las fechas indicadas",
                  seleccionarDe: nameof(TransicionDto),
                  buscarPor: nameof(TransicionDto.Nombre),
-                 mostrarExpresion: $"[{nameof(TransicionDto.Nombre)}]",
+                 mostrarExpresion: $"[{nameof(TransicionDto.Nombre)}] ([{nameof(TransicionDto.Origen)}] --> [{nameof(TransicionDto.Destino)}])",
                  criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
                  posicion: new Posicion(5, 0),
                  controlador: nameof(TransicionesController),
