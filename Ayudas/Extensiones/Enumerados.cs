@@ -174,7 +174,6 @@ namespace Utilidades
         Neg_Tras_Seleccionar_CG,
         Neg_Tras_Blanquear_CG,
         Neg_Tras_Pulsar_Bloquear,
-        Neg_Tras_Pulsar_Mostrar_Colores,
 
         Negocio_TrasSeleccionarAccion,
         Negocio_TrasSeleccionarAccionDeRelacion,
@@ -816,6 +815,7 @@ namespace Utilidades
         public const string Comun_Mostrar_Visor_Al_iniciar = "MostrarVisorAlIniciar";
         public const string Comun_EliminarPlantillaCreacion = "eliminar-plantillas-creacion";
         public const string Comun_EliminarPlantillaFiltrado = "eliminar-plantillas-filtrado";
+        public const string Comun_BlanquearFiltros = "blanquear-filtros";
         public const string Comun_LeerDatosParaExportacion = "leer-datos-para-exportacion";
         public const string Comun_EnviarElemento = "enviar_elemento";
         public const string Comun_EnviarCorreoExterno = "enviar-correo-externo";

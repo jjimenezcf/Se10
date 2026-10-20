@@ -465,6 +465,9 @@ namespace UtilidadesParaIu
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' >
                                  <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AnularOrden}', '{IdHtmlModal}');¨>anular orden</a>
                             </li>
+                            <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' >
+                                 <a href=¨javascript:ApiDelCrud.BlanquearFiltros();¨>Blanquear filtros</a>
+                            </li>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' {(!conReseteo ? "style = 'padding-bottom: 3px;'" : "")} >
                                  <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AplicarOrdenInicial}', '{IdHtmlModal}');¨>orden inicial</a>
                             </li>

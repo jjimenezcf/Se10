@@ -101,6 +101,8 @@ namespace MVCSistemaDeElementos.Descriptores
                 IncluirMfDeFiltro($"<li id='{DescriptorDeCrud<TElemento>.menuDeFiltro}.{eventosDeMf.Comun_GuardarPlantillaFiltrado}' accion-menu='{eventosDeMf.Comun_GuardarPlantillaFiltrado}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Guardar filtros</li>");
                 IncluirMfDeFiltro($"<li id='{DescriptorDeCrud<TElemento>.menuDeFiltro}.{eventosDeMf.Comun_EliminarPlantillaFiltrado}' accion-menu='{eventosDeMf.Comun_EliminarPlantillaFiltrado}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Eliminar filtros</li>");
 
+                IncluirMfDeFiltro($"<li id='{DescriptorDeCrud<TElemento>.menuDeFiltro}.{eventosDeMf.Comun_BlanquearFiltros}' accion-menu='{eventosDeMf.Comun_BlanquearFiltros}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Blanquear filtros</li>");
+
                 Crud.modalesParaPedirDatos.Add(new ModalParaOcultarColumnas(Crud, eventosDeMf.Comun_OcultarColumnas, $"Mostrar las columnas marcadas"));
                 IncluirMfDeFiltro($"<li id='{DescriptorDeCrud<TElemento>.menuDeFiltro}.{eventosDeMf.Comun_OcultarColumnas}' accion-menu='{eventosDeMf.Comun_OcultarColumnas}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Columnas visibles</li>");
             }

@@ -175,7 +175,7 @@ body.resizing-en-progreso * {
     width: 100%;
     padding: 0.2em;
     display: grid;
-    grid-template-columns: auto 35% auto 1.5em 1.5em 1.5em 1.5em 1.5em 1.5em 0em;
+    grid-template-columns: auto 15% auto 1.5em 1.5em 1.5em 1.5em 1.5em 1.5em 0em;
     grid-template-rows: 1fr;
     column-gap: 0.5em;
 }

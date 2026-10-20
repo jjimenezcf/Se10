@@ -220,11 +220,6 @@
             return document.getElementById(ltrMantenimiento.idCuerpoDePagina) as HTMLDivElement;
         };
 
-        public get ColorearFilas(): boolean {
-            const check = document.getElementById('mostrar-colores') as HTMLInputElement;
-            return check ? check.checked : false;
-        }
-
         public get MenuLista(): HTMLSelectElement {
             return document.getElementById(this.IdCuerpoCabecera + '_zona-menu-otras') as HTMLSelectElement;
         }
@@ -451,6 +446,7 @@
         }
 
         public ModalesDeSeleccion: Array<ModalSeleccion> = new Array<ModalSeleccion>();
+        private _modalesDeSeleccionPorId: Map<string, ModalSeleccion> = new Map<string, ModalSeleccion>();
         public ModalesParaRelacionar: Array<ModalParaRelacionar> = new Array<ModalParaRelacionar>();
         public ModalesParaImputar: Array<ModalParaImputar> = new Array<ModalParaImputar>();
         public ModalesParaConsultarRelaciones: Array<ModalParaConsultarRelaciones> = new Array<ModalParaConsultarRelaciones>();
@@ -1147,6 +1143,10 @@
                 this.InicializarPanelDeFiltro(divs[i]);
         }
 
+        public InicializarControlesDeFiltro(div: HTMLDivElement): void {
+            this.InicializarPanelDeFiltro(div);
+        }
+
         protected InicializarPanelDeFiltro(div: HTMLDivElement): void {
             ApiDeInicializacion.InicializarEditores(div);
             ApiDeInicializacion.InicializarListasDeElementos(div);
@@ -1154,6 +1154,7 @@
             ApiDeInicializacion.InicializarSelectoresDeFecha(div);
             ApiDeInicializacion.InicializarEntreFechas(div);
             ApiDeInicializacion.Checkes(div);
+            ApiDeInicializacion.ListasDeValores(div, false);
             this.InicializarSelectores(div);
         }
 
@@ -1827,9 +1828,13 @@
             let selectores: NodeListOf<HTMLSelector> = div.querySelectorAll(`input[${atControl.tipo}="${ltrTipoControl.SelectorDeFiltro}"]`) as NodeListOf<HTMLSelector>;
             selectores.forEach((selector) => {
                 let idModal: string = selector.getAttribute(atSelectorDeFiltro.idModal);
-                let modal: ModalSeleccion = new ModalSeleccion(idModal);
+                let modal: ModalSeleccion = this._modalesDeSeleccionPorId.get(idModal);
+                if (!modal) {
+                    modal = new ModalSeleccion(idModal);
+                    this._modalesDeSeleccionPorId.set(idModal, modal);
+                    this.ModalesDeSeleccion.push(modal);
+                }
                 modal.InicializarModalDeSeleccion();
-                this.ModalesDeSeleccion.push(modal);
             });
         }
 
@@ -3520,6 +3525,10 @@
 
 
         public ProcesarOpcionMf(idNegocio: number, opcion: string, esContextual: boolean): void {
+            if (opcion === ltrMenus.eventosDeMf.Parametrizacion.Negocio.Comun_BlanquearFiltros) {
+                ApiDelCrud.BlanquearFiltros();
+                return;
+            }
             if (opcion.startsWith(`${ltrPropiedades.Negocio.PlantillaDeFiltrado.Plantilla}${ltrSimbolos.subrayado}`)) {
                 let parametros: Array<Parametro> = new Array<Parametro>();
                 let datosDeEntrada: Array<Parametro> = new Array<Parametro>();
@@ -3744,28 +3753,6 @@
             crudMnt.MenuGrid_DeselecionarTodasLasFilas();
             crudMnt.EventoDeFilaPulsada(idCheck, idDelInput, false, false, false);
             crudMnt.IraEditar();
-        }
-    }
-
-
-    export function Neg_Tras_Pulsar_Mostrar_Colores(check: HTMLInputElement) {
-        if (Crud.crudMnt.Inicializando)
-            return;
-        const filas = Crud.crudMnt.Tabla.querySelectorAll('.' + ltrCss.crud.fila) as NodeListOf<HTMLDivElement>;
-        let i: number = 1;
-        if (check.checked) {
-            Crud.crudMnt.RestaurarPagina();
-        }
-        else {
-            for (i = 1; i < filas.length; i++) {
-                const fila = filas[i];
-                const clases = fila.classList;
-                clases.forEach((clase) => {
-                    if (clase.startsWith(ltrCss.filaEstado)) {
-                        fila.classList.remove(clase);
-                    }
-                });
-            }
         }
     }
 }

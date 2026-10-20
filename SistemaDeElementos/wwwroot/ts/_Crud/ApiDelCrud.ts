@@ -1,5 +1,30 @@
 ﻿namespace ApiDelCrud {
 
+    // Deja todos los filtros del mantenimiento en su estado inicial: inicializa los controles de las modales de filtrado
+    // y de los bloques del panel de filtro (aplicando su valor por defecto), quita la pregunta activa de la IA y las marcas "con-filtro".
+    export function BlanquearFiltros(): void {
+        const crud = Crud.crudMnt;
+        if (!Definido(crud))
+            return;
+
+        const modales = Array.from(crud.Cuerpo.querySelectorAll(`div[${atControl.tipoModal}="${enumTipoDeModal.ModalDeFiltrado}"]`)) as HTMLDivElement[];
+        const bloques = Array.from(crud.Cuerpo.querySelectorAll('div.cuerpo-datos-filtro-bloque')) as HTMLDivElement[];
+        const paneles = [...modales, ...bloques];
+
+        // un control contenido en otro panel ya se inicializa con éste: evitar inicializarlo (y recargar sus listas) dos veces
+        paneles
+            .filter(panel => !paneles.some(otro => otro !== panel && otro.contains(panel)))
+            .forEach(panel => crud.InicializarControlesDeFiltro(panel));
+
+        crud.Pregunta = null;
+        crud.FiltrosPrecomputados = null;
+
+        document.querySelectorAll(`.${ltrCss.modalesDeFiltro.conFiltro}`)
+            .forEach(etiqueta => etiqueta.classList.remove(ltrCss.modalesDeFiltro.conFiltro));
+
+        crud.CargarGrid();
+    }
+
     export function ProponerSolicitante(editor: Crud.CrudEdicion, modal: HTMLDivElement) {
         if (editor.ModoTrabajo === enumModoTrabajo.mantenimiento) {
             let id: number = ObtenerPropiedad(editor.CrudDeMnt.InfoSelector.Seleccionados[0].Registro, literal.IdSolicitante, 0);

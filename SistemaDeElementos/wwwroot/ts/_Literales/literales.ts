@@ -4120,6 +4120,7 @@ const ltrMenus = {
                 EliminarPlantillaCreacion: 'eliminar-plantillas-creacion',
                 Comun_GuardarPlantillaFiltrado: 'guardar-plantillas-filtrado',
                 Comun_EliminarPlantillaFiltrado: 'eliminar-plantillas-filtrado',
+                Comun_BlanquearFiltros: 'blanquear-filtros',
                 Comun_OcultarColumnas: 'ocultar-columnas',
                 Comun_LeerDatosParaExportacion: 'leer-datos-para-exportacion'
             },

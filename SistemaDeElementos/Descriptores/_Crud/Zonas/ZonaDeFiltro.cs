@@ -245,20 +245,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 Negocio = Mnt.Crud.Negocio
             };
 
-            var mostrarColores = new CheckFiltro<TElemento>(padre: modal,
-                etiqueta: "Mostra colores",
-                filtrarPor: "",
-                ayuda: "Mostrar colores por estado",
-                valorInicial: true,
-                filtrarPorFalse: false,
-                posicion: new Posicion(0, 1))
-            {
-                EsOnOff = true,
-            };
-            mostrarColores.Accion = "onclick = javascript:" + nameof(enumNameSpaceTs.Crud) + "." + nameof(enumFunctionTs.Neg_Tras_Pulsar_Mostrar_Colores) + $"(this)";
-            mostrarColores.ModificarId("mostrar-colores");
-
-            modal.ControlesDeFiltrado.Add(new ListaDinamicaConCheck<TElemento>(estados, mostrarColores));
+            modal.ControlesDeFiltrado.Add(estados);
 
             var opciones = new Dictionary<string, string> {
                      { $"{ltrParametrosNeg.TodosMenosCanceladas}", "todos menos cancelados" }

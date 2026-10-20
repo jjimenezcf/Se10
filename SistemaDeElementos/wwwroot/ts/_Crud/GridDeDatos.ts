@@ -1866,19 +1866,10 @@
             else if (ObtenerPropiedad(registro, ltrPropiedades.Elemento.EstaTerminada, false))
                 fila.classList.add(ltrCss.filaTerminada);
             else {
-                if (crudMnt.ColorearFilas) {
-                    const idEstado = Numero(ObtenerPropiedad(registro, ltrPropiedades.Elemento.DeProceso.IdEstado, 0));
-                    if (idEstado > 0) {
-                        const estadoIndex = (idEstado % 20) + 1; // Aseguramos que el rango sea de 1 a 20
-                        fila.classList.add(ltrCss.filaEstado + '-' + estadoIndex.toString());
-                    }
-                }
-                else {
-                    const idTipo = Numero(ObtenerPropiedad(registro, ltrPropiedades.Elemento.ConTipo.IdTipo, 0));
-                    if (idTipo > 0) {
-                        const tipoIndex = (idTipo % 20) + 1; // Aseguramos que el rango sea de 1 a 20
-                        fila.classList.add(ltrCss.filaEstado + '-' + tipoIndex.toString());
-                    }
+                const idEstado = Numero(ObtenerPropiedad(registro, ltrPropiedades.Elemento.DeProceso.IdEstado, 0));
+                if (idEstado > 0) {
+                    const estadoIndex = (idEstado % 20) + 1; // Aseguramos que el rango sea de 1 a 20
+                    fila.classList.add(ltrCss.filaEstado + '-' + estadoIndex.toString());
                 }
             }
 
