@@ -85,6 +85,7 @@ namespace ServicioDeDatos.Utilidades
                 .Replace(IIaPromptFiltrar.ReglasEspecíficas, Environment.NewLine + reglasEspecificas)
                 .Replace(IIaPromptFiltrar.NegocioTratado, Environment.NewLine + negocio.Plural())
                 .Replace(IIaPromptFiltrar.ListaDeUsuarios, Environment.NewLine + listaUsuarios)
+                .Replace(IIaPromptFiltrar.UsuarioConectado, UsuarioConectadoParaIa(contexto))
                 .Replace(IIaPromptFiltrar.FechaDeHoy, ExtensorDeFechas.FechaFormatoIso8601(DateTime.Now))
                 .Replace(IIaPromptFiltrar.ListaDeEtapas, Environment.NewLine + etapas)
                 .Replace(IIaPromptFiltrar.HistorialDeSesion, historial);
@@ -97,10 +98,21 @@ namespace ServicioDeDatos.Utilidades
                 contexto.AnotarTraza($"Json de respuesta: {texto}", json);
                 return json;
             }
+            catch (Exception ex) when (!ex.Data.Contains(GestorDeErrores.Datos.Mostrar))
+            {
+                EmitirErrorLegibleDeIa(ia, ex);
+                throw;
+            }
             finally
             {
                 contexto.CerrarTraza();
             }
+        }
+
+        private static string UsuarioConectadoParaIa(ContextoSe contexto)
+        {
+            var u = contexto.Usuario;
+            return $"{u.Id}|{u.Nombre}|{u.Apellido}|{u.Login}";
         }
 
         public async static Task<string> AnalizarPreguntaDeConteo(ContextoSe contexto, enumNegocio negocio, IIa ia, string texto, string listaDeCg, string listaDeTipos, string listaDeEstados, string etapas, string listaDePropiedades, string listaDeTransiciones, string historial = null)
@@ -133,6 +145,7 @@ namespace ServicioDeDatos.Utilidades
                 .Replace(IIaPromptFiltrar.ListaDeEstados,         Environment.NewLine + listaDeEstados)
                 .Replace(IIaPromptFiltrar.ListaDeTransiciones,    Environment.NewLine + listaDeTransiciones)
                 .Replace(IIaPromptFiltrar.ListaDeUsuarios,        Environment.NewLine + listaUsuarios)
+                .Replace(IIaPromptFiltrar.UsuarioConectado,       UsuarioConectadoParaIa(contexto))
                 .Replace(IIaPromptFiltrar.ListaDeEtapas,          Environment.NewLine + etapas)
                 .Replace(IIaPromptFiltrar.ReglasEspecíficas,      Environment.NewLine + reglasEspecificas)
                 .Replace(IIaPromptFiltrar.HistorialDeSesion,      string.Empty);
@@ -151,9 +164,48 @@ namespace ServicioDeDatos.Utilidades
                 .Replace(IIaPromptConteo.HistorialDeSesion,      string.IsNullOrEmpty(historial) ? "(Sin preguntas anteriores)" : historial);
 
                 contexto.AnotarTraza($"Prompt conteo: {texto}", ((IIaPromptConteo)ia).PromptConteo);
+            try
+            {
                 var json = await  ((IIaPromptConteo)ia).AnalizarPreguntaDeConteo(texto);
                 contexto.AnotarTraza($"Json de conteo: {texto}", json);
                 return json;
+            }
+            catch (Exception ex) when (!ex.Data.Contains(GestorDeErrores.Datos.Mostrar))
+            {
+                EmitirErrorLegibleDeIa(ia, ex);
+                throw;
+            }
+        }
+
+        // Traduce los errores HTTP de los proveedores de IA (clave bloqueada, sin cuota, servicio caído...) a un mensaje comprensible.
+        // Si no reconoce el error no hace nada y el llamador relanza la excepción original.
+        private static void EmitirErrorLegibleDeIa(IIa ia, Exception ex)
+        {
+            var nombreIa = ia.GetType().Name;
+            if (nombreIa.StartsWith("Ia") && nombreIa.Length > 2) nombreIa = nombreIa.Substring(2);
+
+            System.Net.HttpStatusCode? codigo = null;
+            for (var e = ex; e != null && codigo == null; e = e.InnerException)
+                if (e is System.Net.Http.HttpRequestException h) codigo = h.StatusCode;
+
+            var texto = ex.ToString();
+            bool Contiene(System.Net.HttpStatusCode c) =>
+                codigo == c
+                || texto.Contains(c.ToString(), StringComparison.OrdinalIgnoreCase)
+                || System.Text.RegularExpressions.Regex.IsMatch(texto, $@"\b{(int)c}\b");
+
+            string mensaje = null;
+            if (Contiene(System.Net.HttpStatusCode.Forbidden))
+                mensaje = $"La API key asociada a la IA '{nombreIa}' está bloqueada o no tiene permisos para realizar la consulta (403). Revise las restricciones de la clave en el proveedor (sitio web/IP autorizados, cuota o facturación) o seleccione otra IA.";
+            else if (Contiene(System.Net.HttpStatusCode.Unauthorized))
+                mensaje = $"La API key asociada a la IA '{nombreIa}' no es válida o ha caducado (401). Revise la clave configurada o seleccione otra IA.";
+            else if (Contiene(System.Net.HttpStatusCode.TooManyRequests))
+                mensaje = $"La IA '{nombreIa}' ha rechazado la consulta por exceso de peticiones o cuota agotada (429). Inténtelo de nuevo más tarde o seleccione otra IA.";
+            else if (Contiene(System.Net.HttpStatusCode.ServiceUnavailable) || Contiene(System.Net.HttpStatusCode.BadGateway) || Contiene(System.Net.HttpStatusCode.GatewayTimeout) || Contiene(System.Net.HttpStatusCode.InternalServerError))
+                mensaje = $"El servicio de la IA '{nombreIa}' no está disponible en este momento. Inténtelo de nuevo más tarde o seleccione otra IA.";
+
+            if (mensaje != null)
+                GestorDeErrores.Emitir(mensaje, ex);
         }
 
         public async static Task<string> ProcesarFactura(int idArchivo, string rutaArchivo, IIa ia, ProcesadorOcr.ProcesadorOcr procesadorOcr)

@@ -332,6 +332,17 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
             var clausulasPantalla = string.IsNullOrWhiteSpace(filtro)
                 ? new List<ClausulaDeFiltrado>()
                 : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtro);
+
+            // Al consultar una respuesta de la IA se muestran todos los elementos (también terminados y cancelados),
+            // salvo que la propia respuesta ya indique qué estados mostrar.
+            bool EsFiltroDeEstado(ClausulaDeFiltrado c) =>
+                c.Clausula.Equals(ltrParametrosNeg.QueMostrar, StringComparison.OrdinalIgnoreCase)
+             || c.Clausula.Equals(nameof(IUsaEstado.IdEstado), StringComparison.OrdinalIgnoreCase);
+            if (!clausulasPrecomputadas.Any(EsFiltroDeEstado))
+            {
+                clausulasPantalla.RemoveAll(EsFiltroDeEstado);
+                clausulasPrecomputadas.Add(new ClausulaDeFiltrado(ltrParametrosNeg.QueMostrar, enumCriteriosDeFiltrado.igual, ltrParametrosNeg.MostrarTodos));
+            }
             filtro = Filtrar.FusionarFiltros(clausulasPantalla, clausulasPrecomputadas);
         }
         return await epLeerDatosParaElGrid(modo, accion, posicion, cantidad, filtro, body.parametros.LeerValor<string>(ltrParametrosEp.Orden), body.parametrosJson);

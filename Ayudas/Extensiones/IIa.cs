@@ -266,6 +266,7 @@ Te adjunto el contenido a analizar
         public const string ReglasEspecíficas = "[ReglasEspecíficas]";
         public const string NegocioTratado = "[NegocioTratado]";
         public const string ListaDeUsuarios = "[ListaDeUsuarios]";
+        public const string UsuarioConectado = "[UsuarioConectado]";
         public const string HistorialDeSesion = "[HistorialDeSesion]";
 
         public string PromptFiltrar { get; set; }
@@ -455,6 +456,8 @@ El modelo debe mapear los conceptos del usuario (ej: ""pagada"", ""pendiente"") 
 - **Estados (ID - Nombre - Flags):**[ListaDeEstados]
 - **Transiciones (ID - Estado Origen- Nombre - Estado final):** [ListaDeTransiciones]
 - **Usuarios (ID - Nombre):** [ListaDeUsuarios]
+- **Usuario conectado (quien hace la pregunta) (ID|Nombre|Apellido|Login):** [UsuarioConectado]
+  - Cuando la pregunta use la primera persona (""mi"", ""mis"", ""yo"", ""por mí"", ""creadas por mí"", ""las mías"", ""las que he hecho/creado/terminado"") sustituye esa referencia por el usuario conectado: usa SU ID en la cláusula de usuario que corresponda (`IdUsuaCrea`, `IdResponsable`, `UsuarioDeEstado`, etc.). Nunca busques ""mí"" ni ""yo"" por nombre en la lista de usuarios ni los devuelvas como texto.
 - **Etapas (Nombre etapa - Descripción):** [ListaDeEtapas]
 
 ---
@@ -490,6 +493,31 @@ Preguntas anteriores
 
         // Clave virtual de agrupación temporal: devuelve "yyyy-MM" del hito con el estado filtrado.
         public const string ClaveAnoMesDeEstado = "AnoMesDeEstado";
+
+        // Clave virtual de agrupación temporal: devuelve "yyyy" del hito con el estado filtrado.
+        public const string ClaveAnoDeEstado = "AnoDeEstado";
+
+        // Clave virtual de agrupación temporal: devuelve "yyyy" de FechaCreacion del elemento.
+        public const string ClaveAnoDeCreacion = "AnoDeCreacion";
+
+        // Clave virtual de agrupación temporal: devuelve "yyyy-MM" de FechaCreacion del elemento.
+        public const string ClaveAnoMesDeCreacion = "AnoMesDeCreacion";
+
+        // Claves virtuales de agrupación temporal: "yyyy-Www" (semana ISO), "yyyy-Tn" (trimestre) y "yyyy-Sn" (semestre) de FechaCreacion.
+        public const string ClaveAnoSemanaDeCreacion    = "AnoSemanaDeCreacion";
+        public const string ClaveAnoTrimestreDeCreacion = "AnoTrimestreDeCreacion";
+        public const string ClaveAnoSemestreDeCreacion  = "AnoSemestreDeCreacion";
+
+        // Devuelve la etiqueta del período de creación para la clave indicada, o null si la clave no es de período.
+        public static string PeriodoDeCreacion(string clave, DateTime fecha)
+        {
+            if (clave.Equals(ClaveAnoDeCreacion, StringComparison.OrdinalIgnoreCase))          return fecha.Year.ToString();
+            if (clave.Equals(ClaveAnoMesDeCreacion, StringComparison.OrdinalIgnoreCase))       return fecha.ToString("yyyy-MM");
+            if (clave.Equals(ClaveAnoSemanaDeCreacion, StringComparison.OrdinalIgnoreCase))    return $"{System.Globalization.ISOWeek.GetYear(fecha)}-W{System.Globalization.ISOWeek.GetWeekOfYear(fecha):00}";
+            if (clave.Equals(ClaveAnoTrimestreDeCreacion, StringComparison.OrdinalIgnoreCase)) return $"{fecha.Year}-T{(fecha.Month - 1) / 3 + 1}";
+            if (clave.Equals(ClaveAnoSemestreDeCreacion, StringComparison.OrdinalIgnoreCase))  return $"{fecha.Year}-S{(fecha.Month - 1) / 6 + 1}";
+            return null;
+        }
 
         public static readonly string SinReglas = "Sin reglas específicas";
 
@@ -534,9 +562,15 @@ Lista de claves válidas (usa el nombre exacto):
 - Si la pregunta dice ""por estado"" → incluye `""IdEstado""`
 - Si la pregunta dice ""por etapa"" o ""por situación"" → incluye `""IdEstado""` (los estados representan la etapa actual)
 - Si la pregunta dice ""por centro gestor"" o ""por CG"" → incluye `""IdCg""`
+- Si la pregunta dice ""por cliente"" o ""de cada cliente"" y `IdCliente` figura en `Propiedades disponibles` → incluye `""IdCliente""` (ej: facturas emitidas). Si dice ""por proveedor"" y figura `IdProveedor` → incluye `""IdProveedor""`.
+- Si la pregunta dice ""por solicitante"" o ""de cada solicitante"" y `IdSolicitante` figura en `Propiedades disponibles` → incluye `""IdSolicitante""` (ej: expedientes, presupuestos, tareas, pagos). Si el negocio no tiene `IdSolicitante` pero sí `IdCliente`, usa `""IdCliente""`.
 - Si la pregunta pide un total global sin desglose → devuelve `[]`
 - Puede haber más de una propiedad de agrupación si la pregunta lo indica (ej: ""por tipo y por CG"")
 - **Agrupación por mes en que el elemento alcanzó un estado (historial):** si el usuario pide resultados ""por mes"", ""mes a mes"", ""desglosado por meses"" y la consulta ya filtra por historial de estados (R4.1: IdsDeEstado + FechasDeEstado) → usa la clave virtual `""AnoMesDeEstado""`. El sistema calcula automáticamente el mes (formato `yyyy-MM`) del hito del estado filtrado. **No uses** `FechaCreacion` ni ninguna propiedad de fecha del DTM para este caso. Ejemplo: ""por meses del año 2026 cuántas jornadas se han dedicado a terminar tareas"" → filtros R4.1 (IdsDeEstado con Terminado=True + FechasDeEstado=2026) + `""agruparPor"": [""AnoMesDeEstado""]`.
+- **Agrupación por año en que el elemento alcanzó un estado (terminación, cobro, cierre, contabilización...):** si el usuario pide resultados ""por año de terminación"", ""por año de cobro"", ""por año de cierre"", ""por año de contabilización"" (o ""por año"" sobre elementos ya filtrados por historial de estados) → usa la clave virtual `""AnoDeEstado""` (formato `yyyy`, año del hito del estado filtrado). OBLIGATORIO añadir además el filtro R4.1 `IdsDeEstado` con el estado concreto de `CONTEXTO DE DATOS :: Estados` (terminación → estado Terminado; cobro → estado de cobrada; cierre → estado de cerrado; contabilización → estado de contabilizada); sin ese filtro el año sería el de cualquier hito. Ejemplo: ""tareas terminadas por año"" → `IdsDeEstado` (Terminado=True) + `""agruparPor"": [""AnoDeEstado""]`. Para meses usa `""AnoMesDeEstado""`.
+- **Agrupación por año de creación:** si el usuario pide resultados ""por año"", ""año a año"", ""de cada año"", ""desglosado por años"" sin mencionar historial de estados → usa la clave virtual `""AnoDeCreacion""`. El sistema extrae automáticamente el año (formato `yyyy`) de `FechaCreacion`. **No uses** `FechaCreacion` directamente. Ejemplo: ""jornadas dedicadas a la resolución de tareas por año"" → sin filtros de estado + `""agruparPor"": [""AnoDeCreacion""]`. Si el usuario además filtra por un rango de fechas de creación, añade el filtro correspondiente sobre `FechaCreacion`.
+- **Agrupación por mes de creación:** si el usuario pide resultados ""por mes"", ""mes a mes"", ""desglosado por meses"" sin mencionar historial de estados → usa la clave virtual `""AnoMesDeCreacion""`. El sistema extrae automáticamente el año-mes (formato `yyyy-MM`) de `FechaCreacion`. Ejemplo: ""tareas creadas por mes en 2026"" → filtro de fechas de creación de 2026 + `""agruparPor"": [""AnoMesDeCreacion""]`. Si la consulta filtra por historial de estados (R4.1), usa en su lugar `""AnoMesDeEstado""`.
+- **Agrupación por semana, trimestre o semestre de creación:** sin mencionar historial de estados → usa `""AnoSemanaDeCreacion""` (""por semana"", formato `yyyy-Www`, semana ISO), `""AnoTrimestreDeCreacion""` (""por trimestre"", formato `yyyy-Tn`) o `""AnoSemestreDeCreacion""` (""por semestre"", formato `yyyy-Sn`). El sistema los calcula de `FechaCreacion`. Ejemplo: ""tareas creadas por trimestre en 2026"" → filtro de fechas de creación de 2026 + `""agruparPor"": [""AnoTrimestreDeCreacion""]`.
 
 ---
 

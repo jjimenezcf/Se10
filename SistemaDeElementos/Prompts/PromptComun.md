@@ -182,6 +182,8 @@ El modelo debe mapear los conceptos del usuario (ej: "pagada", "pendiente") a lo
 - **Estados (ID - Nombre - Flags):**[ListaDeEstados]
 - **Transiciones (ID - Estado Origen- Nombre - Estado final):** [ListaDeTransiciones]
 - **Usuarios (ID - Nombre):** [ListaDeUsuarios]
+- **Usuario conectado (quien hace la pregunta) (ID|Nombre|Apellido|Login):** [UsuarioConectado]
+  - Cuando la pregunta use la primera persona ("mi", "mis", "yo", "por mí", "creadas por mí", "las mías", "las que he hecho/creado/terminado") sustituye esa referencia por el usuario conectado: usa SU ID en la cláusula de usuario que corresponda (`IdUsuaCrea`, `IdResponsable`, `UsuarioDeEstado`, etc.). Nunca busques "mí" ni "yo" por nombre en la lista de usuarios ni los devuelvas como texto.
 - **Etapas (Nombre etapa - Descripción):** [ListaDeEtapas]
 
 ---

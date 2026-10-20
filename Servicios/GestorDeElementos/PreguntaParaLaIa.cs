@@ -120,9 +120,10 @@ namespace GestorDeElementos
                 // --- Batch load direcciones si la consulta agrupa por propiedades de dirección ---
                 var idElementos2 = registros.Select(r => r.Id).ToHashSet();
 
-                // --- Batch load hitos por fecha si la consulta agrupa por AnoMesDeEstado ---
-                Dictionary<int, string> cacheAnoMesDeEstado = null;
-                if (respuesta.AgruparPor.Any(p => p.Equals(IIaPromptConteo.ClaveAnoMesDeEstado, StringComparison.OrdinalIgnoreCase)))
+                // --- Batch load hitos por fecha si la consulta agrupa por AnoMesDeEstado o AnoDeEstado ---
+                Dictionary<int, DateTime> cacheAnoMesDeEstado = null;
+                if (respuesta.AgruparPor.Any(p => p.Equals(IIaPromptConteo.ClaveAnoMesDeEstado, StringComparison.OrdinalIgnoreCase)
+                                               || p.Equals(IIaPromptConteo.ClaveAnoDeEstado, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Extraer los IDs de estado del filtro IdsDeEstado para saber qué hitos buscar
                     var idsEstadoParaMes = respuesta.Filtros
@@ -139,9 +140,9 @@ namespace GestorDeElementos
                             .GroupBy(h => h.IdElemento)
                             .ToDictionary(
                                 g => g.Key,
-                                g => g.OrderByDescending(h => h.Fecha).First().Fecha.ToString("yyyy-MM"));
+                                g => g.OrderByDescending(h => h.Fecha).First().Fecha);
                     }
-                    catch { cacheAnoMesDeEstado = new Dictionary<int, string>(); }
+                    catch { cacheAnoMesDeEstado = new Dictionary<int, DateTime>(); }
                 }
 
                 Dictionary<int, List<DireccionDtm>> cacheDirecciones = null;
@@ -180,9 +181,12 @@ namespace GestorDeElementos
                     catch { /* si falla el batch-load, simplemente no hay resolver */ }
                 }
 
-                // Fusionar: resolver de negocio + AnoMesDeEstado + direcciones
+                // --- Claves de período de creación (año, semestre, trimestre, mes, semana): se calculan de FechaCreacion ---
+                var necesitaAnoDeCreacion = respuesta.AgruparPor.Any(p => IIaPromptConteo.PeriodoDeCreacion(p, DateTime.Now) != null);
+
+                // Fusionar: resolver de negocio + AnoMesDeEstado + períodos de creación + direcciones
                 Func<string, ElementoDeProcesoDtm, string> resolverClaveVirtual = null;
-                if (resolverClavesNegocio != null || cacheAnoMesDeEstado != null || cacheDirecciones != null)
+                if (resolverClavesNegocio != null || cacheAnoMesDeEstado != null || necesitaAnoDeCreacion || cacheDirecciones != null)
                 {
                     resolverClaveVirtual = (prop, r) =>
                     {
@@ -192,7 +196,14 @@ namespace GestorDeElementos
                             if (val != null) return val;
                         }
                         if (cacheAnoMesDeEstado != null && prop.Equals(IIaPromptConteo.ClaveAnoMesDeEstado, StringComparison.OrdinalIgnoreCase))
-                            return cacheAnoMesDeEstado.TryGetValue(r.Id, out var mes) ? mes : "—";
+                            return cacheAnoMesDeEstado.TryGetValue(r.Id, out var fMes) ? fMes.ToString("yyyy-MM") : "—";
+                        if (cacheAnoMesDeEstado != null && prop.Equals(IIaPromptConteo.ClaveAnoDeEstado, StringComparison.OrdinalIgnoreCase))
+                            return cacheAnoMesDeEstado.TryGetValue(r.Id, out var fAno) ? fAno.Year.ToString() : "—";
+                        if (necesitaAnoDeCreacion)
+                        {
+                            var periodo = IIaPromptConteo.PeriodoDeCreacion(prop, r.FechaCreacion);
+                            if (periodo != null) return periodo;
+                        }
                         if (cacheDirecciones != null && EsPropiedadDeDireccion(prop))
                             return ResolverClaveDireccion(prop, r.Id, cacheDirecciones);
                         return null;
@@ -652,6 +663,12 @@ namespace GestorDeElementos
         private static string NombreColumna(string prop) => prop.ToLowerInvariant() switch
         {
             "anomesdeestado"        => "Mes",
+            "anodecreacion"         => "Año",
+            "anodeestado"           => "Año",
+            "anomesdecreacion"      => "Mes",
+            "anosemanadecreacion"   => "Semana",
+            "anotrimestredecreacion"=> "Trimestre",
+            "anosemestredecreacion" => "Semestre",
             "idtipo"                => "Tipo",
             "idestado"              => "Estado",
             "idcg"                  => "Centro Gestor",
