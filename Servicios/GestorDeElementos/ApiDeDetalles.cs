@@ -29,8 +29,12 @@ namespace GestorDeElementos
 
         public static T DetalleDe<T>(this IDetalle detalle, ContextoSe contexto, bool aplicarJoin = false, bool usarLaCache = true)
         where T : IElementoDtm
-        =>
-        (T)NegociosDeSe.CrearGestor(contexto, detalle.Negocio).LeerRegistroPorId(detalle.IdElemento, aplicarJoin, usarLaCache);
+        {
+            if (detalle.Elemento is not null && detalle.Elemento.Id == detalle.IdElemento)
+                return (T)detalle.Elemento;
+
+            return (T) NegociosDeSe.CrearGestor(contexto, detalle.Negocio).LeerRegistroPorId(detalle.IdElemento, aplicarJoin, usarLaCache);
+        }
 
         public static List<T> Detalles<T>(this IElementoDtm registro, ContextoSe contexto, bool errorSiNoHay = false, bool aplicarJoin = false, bool usarLaCache = true, List<ClausulaDeFiltrado> filtros = null)
         where T : IDetalle
@@ -191,7 +195,7 @@ namespace GestorDeElementos
             return false;
         }
 
-        public static void CebarCacheDeDetalles<T>(ContextoSe contexto, List<int> idsDeElemento,  bool leerElemento = false,  Func<IQueryable<T>, IQueryable<T>> incluyeExtras = null)
+        public static void CebarCacheDeDetalles<T>(ContextoSe contexto, List<int> idsDeElemento, bool leerElemento = false, Func<IQueryable<T>, IQueryable<T>> incluyeExtras = null)
         where T : RegistroDtm, IDetalle
         {
             var cacheDeDetalle = ServicioDeCaches.Obtener(CacheDe.Detalle);

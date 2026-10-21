@@ -11,6 +11,8 @@ namespace GestorDeElementos.Extensores
 {
     public static class ExtensorDeAlmacenes
     {
+        public static bool EstaActivo(this AlmacenDtm almacen) => almacen.EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Activo);
+
         public static void AntesDeCancelar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarSinRegularizacionViva(contexto, "cancelar");
 
         public static void AntesDeCerrar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarSinRegularizacionViva(contexto, "cerrar");
@@ -115,11 +117,11 @@ namespace GestorDeElementos.Extensores
         }
 
         // Recalcula y guarda, en orden, los movimientos posteriores del mismo almacén y unitario
-        public static void BarrerPosteriores(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        public static void Barrer(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             foreach (var posterior in movimiento.ObtenerMovimientosPosteriores(contexto))
             {
-                posterior.Barrer(contexto);
+                posterior.CalcularTotalesDelMovimiento(contexto);
                 posterior.ModificarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
             }
         }
@@ -127,7 +129,7 @@ namespace GestorDeElementos.Extensores
         // Valor es el precio medio ponderado (por unidad) tras el movimiento; Stock, las unidades que quedan
         public static void CalcularInventarioDelMovimiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
-            var clase = movimiento.TipoMovimiento?.ClaseMovimiento ?? contexto.SeleccionarPorId<TipoMovimientoDtm>(movimiento.IdTipoMovimiento).ClaseMovimiento;
+            var clase = movimiento.TipoDeMovimiento(contexto).ClaseMovimiento;
 
             switch (clase)
             {
@@ -225,12 +227,15 @@ namespace GestorDeElementos.Extensores
                 .ToList();
         }
 
-        // Orquesta el recálculo completo de un movimiento posterior durante un barrido: quita su preasiento
-        // anterior, recalcula su inventario y lo vuelve a preasentar. Tras llamarlo, el movimiento se
-        // persiste con EstoyBarriendo=true para que AntesDePersistir/DespuesDePersistir no repitan el trabajo.
-        private static void Barrer(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        // Recalcula un movimiento ya existente: cancela su preasiento (no puede estar contabilizado), recalcula su inventario y lo
+        // vuelve a preasentar. Lo usan el barrido de los posteriores (que luego persisten con EstoyBarriendo=true para que
+        // AntesDePersistir/DespuesDePersistir no repitan el trabajo) y la modificación de un movimiento (ver GestorDeMovimientosDeAlmacen)
+        public static void CalcularTotalesDelMovimiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
-            movimiento.QuitarPreasiento(contexto);
+            if (movimiento.Id > 0)
+            {
+                movimiento.QuitarPreasiento(contexto);
+            }
             movimiento.CalcularInventarioDelMovimiento(contexto);
             movimiento.Preasentar(contexto);
         }

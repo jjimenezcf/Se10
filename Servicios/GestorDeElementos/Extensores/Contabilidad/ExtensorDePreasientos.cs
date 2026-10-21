@@ -805,7 +805,7 @@ namespace GestorDeElementos.Extensores
             if (!almacen.Sociedad(contexto).UsaPreasientos(contexto, enumNegocio.Almacen))
                 return movimiento;
 
-            var clase = movimiento.TipoMovimiento?.ClaseMovimiento ?? contexto.SeleccionarPorId<TipoMovimientoDtm>(movimiento.IdTipoMovimiento).ClaseMovimiento;
+            var clase = movimiento.TipoDeMovimiento(contexto).ClaseMovimiento;
 
             switch (clase)
             {
@@ -814,6 +814,18 @@ namespace GestorDeElementos.Extensores
                 case enumClaseDeMovimiento.Inicial: movimiento.PreasentarStockInicial(contexto); break;
                 case enumClaseDeMovimiento.Ajuste: movimiento.PreasentarNuevoPrecioDeUnitario(contexto); break;
                 case enumClaseDeMovimiento.Regularizacion: movimiento.PreasentarRegularizacion(contexto); break;
+            }
+
+            // si el movimiento ya existe (se modifica o se barre) el preasiento nuevo se engancha aquí; al insertar aún no hay Id
+            // y lo engancha GestorDeMovimientosDeAlmacen.DespuesDePersistir
+            if (movimiento.Id > 0 && movimiento.IdPreasiento is not null)
+            {
+                var preasiento = movimiento.Preasiento(contexto);
+                if (preasiento.IdReferenciado != movimiento.Id)
+                {
+                    preasiento.IdReferenciado = movimiento.Id;
+                    preasiento.ModificarComoAdministrador(contexto);
+                }
             }
 
             return movimiento;

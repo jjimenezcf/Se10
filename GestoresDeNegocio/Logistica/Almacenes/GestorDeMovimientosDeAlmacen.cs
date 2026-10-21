@@ -131,11 +131,7 @@ namespace GestoresDeNegocio.Logistica
                 return;
             }
 
-            if (parametros.Modificando && movimiento.IdPreasiento is not null)
-                movimiento.QuitarPreasiento(Contexto);
-
-            movimiento.CalcularInventarioDelMovimiento(Contexto);
-            movimiento.Preasentar(Contexto);
+            movimiento.CalcularTotalesDelMovimiento(Contexto);
         }
 
         protected override void DespuesDePersistir(MovimientoDeAlmacenDtm movimiento, ParametrosDeNegocio parametros)
@@ -145,14 +141,17 @@ namespace GestoresDeNegocio.Logistica
             if (parametros.Parametros.LeerValor(ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, false))
                 return;
 
-            if (movimiento.IdPreasiento is not null && parametros.Insertando)
+            if (parametros.Insertando)
             {
-                var preasiento = movimiento?.Preasiento ?? Contexto.SeleccionarPorId<PreasientoDtm>(movimiento.IdPreasiento.Value);
-                preasiento.IdReferenciado = movimiento.Id;
-                preasiento.ModificarComoAdministrador(Contexto);
+                var preasiento = movimiento.Preasiento(Contexto);
+                if (preasiento is not null && preasiento.IdReferenciado != movimiento.Id)
+                {
+                    preasiento.IdReferenciado = movimiento.Id;
+                    preasiento.ModificarComoAdministrador(Contexto);
+                }
             }
 
-            movimiento.BarrerPosteriores(Contexto);
+            movimiento.Barrer(Contexto);
         }
 
         protected override void DespuesDeMapearElElemento(MovimientoDeAlmacenDtm movimiento, MovimientoDeAlmacenDto elemento, ParametrosDeNegocio parametros)

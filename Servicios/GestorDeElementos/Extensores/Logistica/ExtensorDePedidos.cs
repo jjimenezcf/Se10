@@ -17,6 +17,8 @@ namespace GestorDeElementos.Extensores
 {
     public static class ExtensorDePedidos
     {
+        public static bool EstaEnRecepcion(this PedidoDtm pedido) => pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion);
+
         public static bool UsaElDetalleDe(Type tipoDeDetalle)
         {
             if (tipoDeDetalle == typeof(LineaDeUnPedidoDtm))

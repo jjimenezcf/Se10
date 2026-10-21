@@ -1,3 +1,4 @@
+using Gestor.Errores;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Entorno;
@@ -145,6 +146,21 @@ namespace GestorDeElementos.Extensores
             return LeerLineaDePedido(contexto, recepcion.Id);
         }
 
+        public static AlmacenDtm LeerAlmacen(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, bool erroSiNoVaAlAlmacen = true)
+        {
+            if (recepcion.IdAlmacen is null && erroSiNoVaAlAlmacen)
+                Emitir("La recepción indicada no es de almacén");
+
+            if (recepcion.IdAlmacen is null) return null;
+
+
+            if (recepcion.Almacen != null && recepcion.Almacen.Id == (int)recepcion.IdAlmacen)
+                return recepcion.Almacen;
+
+            recepcion.Almacen = contexto.Set<AlmacenDtm>().First(a => a.Id == recepcion.IdAlmacen);
+            return recepcion.Almacen;
+        }
+
         public static LineaDeUnPedidoDtm LeerLineaDePedido(ContextoSe contexto, int idDeRecepcion)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_LineaPedidoPorRecepcion);
@@ -154,6 +170,8 @@ namespace GestorDeElementos.Extensores
             var lineaDelPedido = contexto.Set<LineaDeUnPedidoDtm>().FirstOrDefault(lp => contexto.Set<RecepcionDeLineaDtm>().Any(r => r.Id == idDeRecepcion && r.IdLinea == lp.Id));
             if (lineaDelPedido is null)
                 Emitir($"No se ha encontrado la línea del pedido de la entrega {idDeRecepcion}");
+
+            lineaDelPedido.Elemento = lineaDelPedido.DetalleDe<PedidoDtm>(contexto);
             cache[idDeRecepcion.ToString()] = lineaDelPedido;
             return lineaDelPedido;
         }
@@ -340,8 +358,17 @@ namespace GestorDeElementos.Extensores
         // y su preasiento, si lo tiene, está pendiente; el preasiento se anula. Desde el movimiento anterior se barren los posteriores
         private static void AnularEntradaDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
         {
+            var linea = recepcion.LeerLineaDePedido(contexto);
+            var pedido = linea.Elemento;
+            if (!pedido.EstaEnRecepcion())
+                Emitir($"No se puede cancelar la entrega de la línea {linea.Orden}: el pedido '{pedido.Referencia}' ha de estar {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
+
             if (!recepcion.VaAlAlmacen)
                 return;
+
+            var almacen = recepcion.LeerAlmacen(contexto);
+            if (!almacen.EstaActivo())
+                Emitir($"No se puede cancelar la entrega de la línea {linea.Orden}: el almacén '{almacen.Expresion}' no está activo y no se puede borrar su entrada de compra");
 
             var idTipoMovimiento = enumTiposDeMovimiento.Compra.LeerTipoDeMovimiento(contexto).Id;
             var movimiento = contexto.Set<MovimientoDeAlmacenDtm>().FirstOrDefault(x => x.IdLineaDeRecepcion == recepcion.Id && x.IdTipoMovimiento == idTipoMovimiento);
