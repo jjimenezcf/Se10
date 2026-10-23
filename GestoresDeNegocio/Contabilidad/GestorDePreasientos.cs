@@ -4,6 +4,8 @@ using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Gastos;
 using GestoresDeNegocio.Ventas;
+using GestoresDeNegocio.Logistica;
+using ServicioDeDatos.Logistica;
 using ModeloDeDto;
 using ModeloDeDto.Contabilidad;
 using Newtonsoft.Json;
@@ -193,6 +195,15 @@ namespace GestoresDeNegocio.Contabilidad
                     elemento.Importe = cobro.Cobrado;
                 }
             }
+            else if (spr.NegocioReferenciado == enumNegocio.Almacen)
+            {
+                var movimiento = (MovimientoDeAlmacenDtm)spr.Referenciado(Contexto, errorSiNoHay: false);
+                if (movimiento != null)
+                {
+                    elemento.Origen = "AL: " + movimiento.Referencia(Contexto);
+                    elemento.Importe = Math.Round(movimiento.Cantidad * movimiento.Precio, 2);
+                }
+            }
         }
 
         private string FormatearAsiento(PreasientoDtm spr)
@@ -341,6 +352,9 @@ namespace GestoresDeNegocio.Contabilidad
                                     break;
                                 case enumNegocio.Cobro:
                                     gestor = GestorDeCobrosDeFae.Gestor(Contexto, Mapeador);
+                                    break;
+                                case enumNegocio.Almacen:
+                                    gestor = GestorDeMovimientosDeAlmacen.Gestor(Contexto, Mapeador);
                                     break;
                                 default:
                                     GestorDeErrores.Emitir($"No se puede cancelar el preasiento por estar referenciado por '{preasiento.NegocioReferenciado}: {preasiento.Referenciado(Contexto).Referencia}', regenérelo");

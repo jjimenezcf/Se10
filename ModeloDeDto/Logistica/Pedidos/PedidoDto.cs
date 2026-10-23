@@ -162,6 +162,8 @@ namespace ModeloDeDto.Logistica
             Controlador = nameof(enumControladoresAdministrativos.Expedientes),
             VistaDondeNavegar = enumVistasAdministrativo.CrudExpedientes,
             RestrictorFijo = ltrDeUnExpediente.SelectorParaUnPedido + Simbolos.PuntoComa + nameof(enumEtapasDeExpedientes.EXP_Etapa_Ejecucion) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeExpedientes.EXP_Etapa_Terminada),
+            RestringidoPorControl = nameof(IdSociedadDelCg),
+            PropiedadRestrictora = nameof(IdSociedadDelCg),
             Fila = 4,
             Columna = 1,
             Posicion = 0,

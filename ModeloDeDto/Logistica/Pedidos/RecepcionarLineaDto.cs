@@ -110,6 +110,10 @@ namespace ModeloDeDto.Logistica
         ]
         public string Almacen { get; set; }
 
+        // Sociedad del pedido, restringe el almacén y el expediente a los de su sociedad (ver CrudDePedidos.MapearSociedadDelPedido)
+        [IUPropiedad(Oculto = true, Fila = 0, Columna = 1, Posicion = 0)]
+        public int? IdSociedadDelCg { get; set; }
+
         [IUPropiedad(Etiqueta = "Id del expediente", Visible = false)]
         public int? IdExpediente { get; set; }
 
@@ -123,10 +127,13 @@ namespace ModeloDeDto.Logistica
             Controlador = nameof(enumControladoresAdministrativos.Expedientes),
             VistaDondeNavegar = enumVistasAdministrativo.CrudExpedientes,
             RestrictorFijo = ltrDeUnExpediente.SelectorParaUnPedido + Simbolos.PuntoComa + nameof(enumEtapasDeExpedientes.EXP_Etapa_Ejecucion) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeExpedientes.EXP_Etapa_Terminada),
+            RestringidoPorControl = nameof(IdSociedadDelCg),
+            PropiedadRestrictora = nameof(IdSociedadDelCg),
             Obligatorio = false,
             LongitudMinimaParaBuscar = 1,
             Fila = 0,
             Columna = 1,
+            Posicion = 1,
             trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_Recepcion_TrasSeleccionarExpediente) + "()"
             )
         ]

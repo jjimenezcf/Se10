@@ -2,7 +2,9 @@ using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Logistica;
 using ServicioDeDatos.MaestrosTecnico;
+using ServicioDeDatos.Terceros;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Utilidades;
 using static Gestor.Errores.GestorDeErrores;
@@ -36,10 +38,10 @@ namespace GestorDeElementos.Extensores
             return TiposDeMovimiento(contexto).First(x => x.Id == movimiento.IdTipoMovimiento);
         }
 
-        public static UnitarioDtm Unitario(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        public static UnitarioDtm Unitario(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool aplicarJoin = false)
         {
             if (movimiento.Unitario is null || movimiento.IdUnitario != movimiento.Unitario.Id)
-                movimiento.Unitario = contexto.SeleccionarPorId<UnitarioDtm>(movimiento.IdUnitario);
+                movimiento.Unitario = contexto.SeleccionarPorId<UnitarioDtm>(movimiento.IdUnitario, aplicarJoin: aplicarJoin);
             return movimiento.Unitario;
         }
 
@@ -95,7 +97,7 @@ namespace GestorDeElementos.Extensores
         {
             (enumNegocio negocio, int id) documento = (enumNegocio.No_Definido, 0);
             if (movimiento.IdLineaDeRecepcion != null)
-                documento = (enumNegocio.Pedido, ExtensorDeRecepciones.LeerLineaDePedido(contexto, (int)movimiento.IdLineaDeRecepcion).IdElemento);
+                documento = (enumNegocio.Pedido, ExtensorDeRecepciones.LineaDePedido(contexto, (int)movimiento.IdLineaDeRecepcion).IdElemento);
             else if (movimiento.IdLineaInventario != null)
                 documento = (enumNegocio.Regularizacion, contexto.SeleccionarPorId<LineasDeUnaRegularizacionDtm>((int)movimiento.IdLineaInventario).IdElemento);
 
@@ -142,17 +144,58 @@ namespace GestorDeElementos.Extensores
             }
         }
 
-        public static PedidoDtm LeerPedido(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool emitirErrorSiNoEsRecepcion)
+        public static RecepcionDeLineaDtm Recepcion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool emitirErrorSiNoEsRecepcion)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Alm_Movimiento_Recepcion);
+
+            if(movimiento.Id == 0)
+                return movimiento.LineaDeRecepcion(contexto, emitirErrorSiNoEsRecepcion);
+
+            if (!cache.ContainsKey(movimiento.Id.ToString()))
+            {
+                cache[movimiento.Id.ToString()] = movimiento.LineaDeRecepcion(contexto, emitirErrorSiNoEsRecepcion);
+            }
+
+            if (emitirErrorSiNoEsRecepcion && cache[movimiento.Id.ToString()] is null)
+                Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no es de una entrega de pedido");
+
+            return (RecepcionDeLineaDtm)cache[movimiento.Id.ToString()];
+        }
+
+        public static RecepcionDeLineaDtm LineaDeRecepcion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool emitirErrorSiNoEsRecepcion)
+        {
+            if (movimiento.LineaDeRecepcion is not null && movimiento.IdLineaDeRecepcion is not null && movimiento.IdLineaDeRecepcion == movimiento.LineaDeRecepcion.Id)
+                return movimiento.LineaDeRecepcion;
+            
+            if (movimiento.IdLineaDeRecepcion is null)
+            {
+                if (emitirErrorSiNoEsRecepcion)
+                    Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no es de una entrega de pedido");
+                return null;
+            }
+
+            return movimiento.LineaDeRecepcion = contexto.SeleccionarPorId<RecepcionDeLineaDtm>((int)movimiento.IdLineaDeRecepcion, aplicarJoin: true);
+        }
+
+        public static PedidoDtm Pedido(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool emitirErrorSiNoEsRecepcion)
         {
             if (movimiento.IdLineaDeRecepcion is null)
             {
                 if (emitirErrorSiNoEsRecepcion)
-                    Emitir($"El movimiento de almacén '{movimiento.Id}' no es de una entrega de pedido");
+                    Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no es de una entrega de pedido");
                 return null;
             }
 
-            var lineaPedido = ExtensorDeRecepciones.LeerLineaDePedido(contexto, (int)movimiento.IdLineaDeRecepcion);
+            var lineaPedido = ExtensorDeRecepciones.LineaDePedido(contexto, (int)movimiento.IdLineaDeRecepcion);
             return lineaPedido.DetalleDe<PedidoDtm>(contexto, usarLaCache: true);
+        }
+
+        public static ProveedorDtm Proveedor(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool emitirErrorSiNoEsRecepcion)
+        {
+            var pedido = movimiento.Pedido(contexto, emitirErrorSiNoEsRecepcion);
+            if (pedido is null)
+                return null;
+            return pedido.Proveedor(contexto);
         }
 
         private static void ValidarSinRegularizacionViva(this AlmacenDtm almacen, ContextoSe contexto, string accion)

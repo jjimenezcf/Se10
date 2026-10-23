@@ -7,6 +7,7 @@ using ServicioDeDatos;
 using ServicioDeDatos.Callejero;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Terceros;
@@ -1615,7 +1616,18 @@ namespace GestorDeElementos
                 filtroQueMostrar.Aplicado = true;
         }
 
-
+        public static IQueryable<T> FiltrarPorSociedadDelCg<T>(this IQueryable<T> consulta, List<ClausulaDeFiltrado> filtros)
+            where T : IElementoDeProcesoDtm
+        {
+            var filtroPorSociedad = filtros.FirstOrDefault(x => !x.Aplicado && x.Clausula.Equals(nameof(ElementoDeUnProcesoDto.IdSociedadDelCg), StringComparison.CurrentCultureIgnoreCase));
+            if (filtroPorSociedad != null)
+            {
+                var idSociedad = filtroPorSociedad.Valor.Entero();
+                consulta = consulta.Where(x => x.Cg.IdSociedad == idSociedad);
+                filtroPorSociedad.Aplicado = true;
+            }
+            return consulta;
+        }
     }
 
 }

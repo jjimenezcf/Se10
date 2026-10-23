@@ -207,7 +207,8 @@ namespace Utilidades
         public static readonly string Pedido_LineaPedidoPorRecepcion = nameof(Pedido_LineaPedidoPorRecepcion);
 
         public static readonly string Alm_TiposDeMovimiento = nameof(Alm_TiposDeMovimiento);
-        
+        public static readonly string Alm_Movimiento_Recepcion = nameof(Alm_Movimiento_Recepcion);
+
 
 
         public static readonly string Exp_TienePresupuestos = nameof(Exp_TienePresupuestos);

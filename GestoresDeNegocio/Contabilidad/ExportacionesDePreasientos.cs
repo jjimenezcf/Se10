@@ -35,6 +35,126 @@ namespace GestoresDeNegocio.Contabilidad
             var trabajo = entornoTrabajo?.TrabajoDeUsuario ?? null; // entorno.Entrada.LeerValor<TrabajoDeUsuarioDtm>(nameof(TrabajoDeUsuarioDtm), null);
             var contextoDelTrabajo = entornoTrabajo?.ContextoDelEntorno ?? null; // entorno.Entrada.LeerValor<ContextoSe>(nameof(ContextoSe), null);
 
+            var seleccion = SeleccionarPreasientosParaContabilizar(entorno, enumSistemaContable.NCS);
+            if (seleccion is null)
+                return;
+            var (preasientosParaContabilizar, sociedad, ejercicio, fechaContable, respetarFechaContable) = seleccion.Value;
+
+            var generadorNcs = new LoteContableConNcs(contextoDeLaAccion, preasientosParaContabilizar, sociedad, ejercicio,respetarFechaContable, fechaContable);
+            try
+            {
+                generadorNcs.GenerarLoteContable();
+
+                var nombre = entorno.Accion.Expresion + $" el {DateTime.Now.ToString("yyyy-MM-dd HH-mm")}";
+
+                var circuito = ExtensorDePreasientos.CrearCircuitoDeLotes(contextoDeLaAccion, sociedad, nombre, ejercicio, fechaContable);
+                var archivoDeAsientos = circuito.AnexarArchivo(contextoDeLaAccion, generadorNcs.DiarioXml);
+                new BloqueoDeUnArchivoDtm
+                {
+                    IdArchivo = archivoDeAsientos.Id,
+                    Bloqueado = true
+                }.Insertar(contextoDeLaAccion, new Dictionary<string, object> { { nameof(AuditoriaDeUnArchivoDtm.Auditoria), ltrDeUnArchivo.Migrado } });
+
+                entornoTrabajo?.CrearTraza($"Preasientos de la sociedad '{sociedad.Expresion}' asociados a documento de envío");
+                var terceros = VincularPreasientos(contextoDeLaAccion, trabajo, contextoDelTrabajo, preasientosParaContabilizar, circuito, enumSistemaContable.NCS);
+
+                ExportarTercerosNcs(generadorNcs, circuito, terceros);
+
+                EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudLotesContables);
+            }
+            finally
+            {
+                generadorNcs.Deshacer();
+            }
+
+        }
+
+        // Como ContabilizarEnNcs, pero genera un zip con los ficheros de importación de ContaSol (APU, IVS, IVR, PRO y CLI)
+        // Se configura en el parámetro SPR_Contabilizar_En de la sociedad: {"IdSociedad": n, "Metodo": "ContabilizarEnContasol", "Nombre": "...", "Digitos": 8}
+        public static void ContabilizarEnContasol(EntornoDeUnaAccion entorno)
+        {
+            var contextoDeLaAccion = entorno.Contexto;
+
+            var entornoTrabajo = entorno.Entrada.LeerValor<EntornoDeTrabajo>(nameof(EntornoDeTrabajo), null);
+            var trabajo = entornoTrabajo?.TrabajoDeUsuario ?? null;
+            var contextoDelTrabajo = entornoTrabajo?.ContextoDelEntorno ?? null;
+
+            var seleccion = SeleccionarPreasientosParaContabilizar(entorno, enumSistemaContable.ContaSol);
+            if (seleccion is null)
+                return;
+            var (preasientosParaContabilizar, sociedad, ejercicio, fechaContable, respetarFechaContable) = seleccion.Value;
+
+            var generador = new LoteContableConContasol(contextoDeLaAccion, preasientosParaContabilizar, sociedad, ejercicio, respetarFechaContable, fechaContable);
+            try
+            {
+                var nombre = entorno.Accion.Expresion + $" el {DateTime.Now.ToString("yyyy-MM-dd HH-mm")}";
+                var circuito = ExtensorDePreasientos.CrearCircuitoDeLotes(contextoDeLaAccion, sociedad, nombre, ejercicio, fechaContable);
+
+                entornoTrabajo?.CrearTraza($"Preasientos de la sociedad '{sociedad.Expresion}' asociados a documento de envío");
+                var terceros = VincularPreasientos(contextoDeLaAccion, trabajo, contextoDelTrabajo, preasientosParaContabilizar, circuito, enumSistemaContable.ContaSol);
+
+                generador.GenerarLoteContable(terceros);
+                AnexarLoteContasol(contextoDeLaAccion, circuito, generador, terceros);
+
+                EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudLotesContables);
+            }
+            finally
+            {
+                generador.Deshacer();
+            }
+        }
+
+        public static void RegenerarLoteContasol(EntornoDeUnaAccion entorno)
+        {
+            var contexto = entorno.Contexto;
+            var idLote = entorno.Entrada.LeerValor<int>(ltrDeUnLoteContable.IdLoteContable);
+            var lote = contexto.SeleccionarPorId<CircuitoDocDtm>(idLote);
+            var preasientos = lote.Vinculados<PreasientoDtm>(contexto);
+            if (preasientos.Count == 0)
+                GestorDeErrores.Emitir($"El lote contable '{lote.Referencia}' no tiene preasientos asociados, no se puede regenerar el lote contable");
+
+            lote.MarcarArchivosComoCancelados(contexto);
+            var generador = new LoteContableConContasol(contexto, preasientos, preasientos.First().Sociedad(contexto), ejercicio: DateTime.Now.Year, respetarFechaContable: true, fechaContable: null);
+            try
+            {
+                // al regenerar se vuelven a incluir todos los terceros del lote, ContaSol sustituye los que ya existan si se marca el chequeo de duplicados
+                var proveedores = preasientos.Select(p => p.Proveedor(contexto, errorSiNoHay: false)).Where(p => p is not null).GroupBy(p => p.Id).Select(g => g.First()).ToList();
+                var clientes = preasientos.Select(p => p.Cliente(contexto, errorSiNoHay: false)).Where(c => c is not null).GroupBy(c => c.Id).Select(g => g.First()).ToList();
+                generador.GenerarLoteContable((proveedores, clientes));
+                AnexarLoteContasol(contexto, lote, generador, (proveedores, clientes));
+                lote.CrearTraza(contexto, nombre: ltrTrazasDeUnLoteContable.RegenerarlLote, descripción: $"El lote ha sido regenerado por el usuario '{contexto.Usuario.Login}'");
+            }
+            finally
+            {
+                generador.Deshacer();
+            }
+        }
+
+        private static void AnexarLoteContasol(ContextoSe contexto, CircuitoDocDtm circuito, LoteContableConContasol generador, (List<ProveedorDtm> proveedores, List<ClienteDtm> clientes) terceros)
+        {
+            var archivo = circuito.AnexarArchivo(contexto, generador.LoteZip);
+            new BloqueoDeUnArchivoDtm
+            {
+                IdArchivo = archivo.Id,
+                Bloqueado = true
+            }.Insertar(contexto, new Dictionary<string, object> { { nameof(AuditoriaDeUnArchivoDtm.Auditoria), ltrDeUnArchivo.Migrado } });
+
+            var planContable = generador.Sociedad.PlanContable().IdPlanContable;
+            foreach (var proveedor in terceros.proveedores.Where(p => !p.Migrado(contexto, enumSistemaContable.ContaSol, planContable)))
+                proveedor.MarcarComoMigrado(contexto, enumSistemaContable.ContaSol, planContable);
+            foreach (var cliente in terceros.clientes.Where(c => !c.Migrado(contexto, enumSistemaContable.ContaSol, planContable)))
+                cliente.MarcarComoMigrado(contexto, enumSistemaContable.ContaSol, planContable);
+        }
+
+        // Selecciona los preasientos pendientes de la sociedad que cumplen los filtros y los transita a contabilizados;
+        // devuelve null si no hay nada que contabilizar y se está ejecutando como trabajo (ya se ha anotado el motivo)
+        private static (List<PreasientoDtm> preasientos, SociedadDtm sociedad, int ejercicio, DateTime? fechaContable, bool respetarFechaContable)? SeleccionarPreasientosParaContabilizar(EntornoDeUnaAccion entorno, enumSistemaContable sistema)
+        {
+            var contextoDeLaAccion = entorno.Contexto;
+
+            var entornoTrabajo = entorno.Entrada.LeerValor<EntornoDeTrabajo>(nameof(EntornoDeTrabajo), null);
+            var trabajo = entornoTrabajo?.TrabajoDeUsuario ?? null;
+
 
             var filtrosJson = entorno.Entrada.LeerValor(ltrFiltros.filtro, "");
             var filtros = filtrosJson.IsNullOrEmpty() ? new List<ClausulaDeFiltrado>() : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtrosJson);
@@ -76,7 +196,7 @@ namespace GestoresDeNegocio.Contabilidad
                 var mensaje = "";
                 if (!preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Pendiente))
                 {
-                    mensaje = $"El preasiento '{preasiento.Referencia}' no se puede enviar a Ncs por no estar pendiente";
+                    mensaje = $"El preasiento '{preasiento.Referencia}' no se puede enviar a {sistema} por no estar pendiente";
                     if (trabajo is null)
                         GestorDeErrores.Emitir(mensaje);
                 }
@@ -85,7 +205,7 @@ namespace GestoresDeNegocio.Contabilidad
                     var circuitos = preasiento.Vinculados<CircuitoDocDtm>(contextoDeLaAccion);
                     if (circuitos.Count > 0)
                     {
-                        mensaje = $"El preasiento '{preasiento.Referencia}' no se puede enviar a Ncs por estar vinculado al lote contable '{circuitos[0].Referencia}'";
+                        mensaje = $"El preasiento '{preasiento.Referencia}' no se puede enviar a {sistema} por estar vinculado al lote contable '{circuitos[0].Referencia}'";
                         if (trabajo is null)
                             GestorDeErrores.Emitir(mensaje);
                     }
@@ -99,18 +219,18 @@ namespace GestoresDeNegocio.Contabilidad
                     if (entornoTrabajo is not null)
                         entornoTrabajo.AnotarError($"{preasiento.NegocioReferenciado.Singular()}: {preasiento.Referencia}", mensaje);
 
-                    preasiento.CrearTraza(contextoDeLaAccion, "No se pudo enviar a Ncs", "El envío a Ncs no se pudo realizar: " + mensaje);
+                    preasiento.CrearTraza(contextoDeLaAccion, $"No se pudo enviar a {sistema}", $"El envío a {sistema} no se pudo realizar: " + mensaje);
                 }
             }
 
             var sociedad = contextoDeLaAccion.SeleccionarPorId<SociedadDtm>(idSociedad);
             if (preasientosParaTransitar.Count == 0)
             {
-                var m = $"No hay preasientos para enviar a Ncs para la sociedad '{sociedad.Expresion}'";
+                var m = $"No hay preasientos para enviar a {sistema} para la sociedad '{sociedad.Expresion}'";
                 if (entornoTrabajo is not null)
                 {
                     entornoTrabajo.CrearTraza(m);
-                    return;
+                    return null;
                 }
                 else
                     GestorDeErrores.Emitir(m);
@@ -126,7 +246,7 @@ namespace GestoresDeNegocio.Contabilidad
                 if (entornoTrabajo is not null)
                 {
                     entornoTrabajo.CrearTraza(m);
-                    return;
+                    return null;
                 }
                 else
                     GestorDeErrores.Emitir(m);
@@ -138,7 +258,7 @@ namespace GestoresDeNegocio.Contabilidad
                 if (entornoTrabajo is not null)
                 {
                     entornoTrabajo.CrearTraza(m);
-                    return;
+                    return null;
                 }
                 else
                     GestorDeErrores.Emitir(m);
@@ -181,7 +301,7 @@ namespace GestoresDeNegocio.Contabilidad
                         if (preasientosParaTransitar.Count == 1)
                             throw;
                     }
-                    preasiento.CrearTraza(contextoDeLaAccion, "No se pudo enviar a Ncs", "El envío de preasiento a Ncs falló por: " + e.Message);
+                    preasiento.CrearTraza(contextoDeLaAccion, $"No se pudo enviar a {sistema}", $"El envío de preasiento a {sistema} falló por: " + e.Message);
                 }
             }
 
@@ -191,36 +311,10 @@ namespace GestoresDeNegocio.Contabilidad
                     GestorDeErrores.Emitir($"No hay preasientos a transitar a la etapa '{enumEtapasDePreasiento.SPR_Etapa_Contabilizado.Nombre()}', consulte los motivos");
 
                 if (preasientosParaContabilizar.Count == 0)
-                    return;
+                    return null;
             }
 
-            var generadorNcs = new LoteContableConNcs(contextoDeLaAccion, preasientosParaContabilizar, sociedad, ejercicio,respetarFechaContable, fechaContable);
-            try
-            {
-                generadorNcs.GenerarLoteContable();
-
-                var nombre = entorno.Accion.Expresion + $" el {DateTime.Now.ToString("yyyy-MM-dd HH-mm")}";
-
-                var circuito = ExtensorDePreasientos.CrearCircuitoDeLotes(contextoDeLaAccion, sociedad, nombre, ejercicio, fechaContable);
-                var archivoDeAsientos = circuito.AnexarArchivo(contextoDeLaAccion, generadorNcs.DiarioXml);
-                new BloqueoDeUnArchivoDtm
-                {
-                    IdArchivo = archivoDeAsientos.Id,
-                    Bloqueado = true
-                }.Insertar(contextoDeLaAccion, new Dictionary<string, object> { { nameof(AuditoriaDeUnArchivoDtm.Auditoria), ltrDeUnArchivo.Migrado } });
-
-                entornoTrabajo?.CrearTraza($"Preasientos de la sociedad '{sociedad.Expresion}' asociados a documento de envío");
-                var terceros = VincularPreasientos(contextoDeLaAccion, trabajo, contextoDelTrabajo, preasientosParaContabilizar, circuito);
-
-                ExportarTercerosNcs(generadorNcs, circuito, terceros);
-
-                EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudLotesContables);
-            }
-            finally
-            {
-                generadorNcs.Deshacer();
-            }
-
+            return (preasientosParaContabilizar, sociedad, ejercicio, fechaContable, respetarFechaContable);
         }
 
         public static void EstimacionDirectaEnNcs(EntornoDeUnaAccion entorno)
@@ -305,7 +399,7 @@ namespace GestoresDeNegocio.Contabilidad
             }
         }
 
-        private static (List<ProveedorDtm> proveedoresContables, List<ClienteDtm> clientesContables) VincularPreasientos(ContextoSe contextoDeLaAccion, TrabajoDeUsuarioDtm trabajo, ContextoSe contextoDelTrabajo, List<PreasientoDtm> contabilizarEnNcs, CircuitoDocDtm circuito)
+        private static (List<ProveedorDtm> proveedoresContables, List<ClienteDtm> clientesContables) VincularPreasientos(ContextoSe contextoDeLaAccion, TrabajoDeUsuarioDtm trabajo, ContextoSe contextoDelTrabajo, List<PreasientoDtm> contabilizarEnNcs, CircuitoDocDtm circuito, enumSistemaContable sistema)
         {
             var proveedoresContables = new List<ProveedorDtm>();
             var clientesContables = new List<ClienteDtm>();
@@ -323,7 +417,7 @@ namespace GestoresDeNegocio.Contabilidad
                 var proveedor = preasiento.Proveedor(contextoDeLaAccion, errorSiNoHay: false);
                 if (proveedor is not null && !proveedoresContables.Any(p => p.Id == proveedor.Id))
                 {
-                    if (!proveedor.Migrado(contextoDeLaAccion, enumSistemaContable.NCS, preasiento.Cg(contextoDeLaAccion).Sociedad(contextoDeLaAccion).PlanContable().IdPlanContable))
+                    if (!proveedor.Migrado(contextoDeLaAccion, sistema, preasiento.Cg(contextoDeLaAccion).Sociedad(contextoDeLaAccion).PlanContable().IdPlanContable))
                     {
                         proveedoresContables.Add(proveedor);
                     }
@@ -332,7 +426,7 @@ namespace GestoresDeNegocio.Contabilidad
                 var cliente = preasiento.Cliente(contextoDeLaAccion, errorSiNoHay: false);
                 if (cliente is not null && !clientesContables.Any(c => c.Id == cliente.Id))
                 {
-                    if (!cliente.Migrado(contextoDeLaAccion, enumSistemaContable.NCS, preasiento.Cg(contextoDeLaAccion).Sociedad(contextoDeLaAccion).PlanContable().IdPlanContable))
+                    if (!cliente.Migrado(contextoDeLaAccion, sistema, preasiento.Cg(contextoDeLaAccion).Sociedad(contextoDeLaAccion).PlanContable().IdPlanContable))
                     {
                         clientesContables.Add(cliente);
                     }

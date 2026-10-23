@@ -95,6 +95,9 @@ namespace ServicioDeDatos.Logistica
         // Origen o destino del movimiento (según la ClaseMovimiento del TipoMovimiento). Todavía no existen los Dtm de estos negocios.
         public int? IdMovimiento { get; set; }
         public int? IdLineaDeRecepcion { get; set; }
+
+        public RecepcionDeLineaDtm LineaDeRecepcion { get; set; }
+
         public int? IdLineaDevolucion { get; set; }
         public int? IdLineaInventario { get; set; }
 
@@ -141,7 +144,7 @@ namespace ServicioDeDatos.Logistica
 
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdMovimiento).HasColumnName(ICampos.ID_MOVIMIENTO).HasColumnType(IDominio.INT).IsRequired(false);
             // la entrada de compra apunta a la entrega de la línea del pedido que la origina (RecepcionDeLineaDtm)
-            ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm, RecepcionDeLineaDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.IdLineaDeRecepcion), ICampos.ID_LINEA_RECEPCION, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeRecepcion), nameof(MovimientoDeAlmacenDtm.IdLineaDeRecepcion), ICampos.ID_LINEA_RECEPCION, requerida: false, unico: false);
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaDevolucion).HasColumnName(ICampos.ID_LINEA_DEVOLUCION).HasColumnType(IDominio.INT).IsRequired(false);
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaInventario).HasColumnName(ICampos.ID_LINEA_INVENTARIO).HasColumnType(IDominio.INT).IsRequired(false);
 

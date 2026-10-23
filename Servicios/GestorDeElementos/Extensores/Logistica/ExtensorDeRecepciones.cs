@@ -6,6 +6,7 @@ using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Logistica;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Seguridad;
+using ServicioDeDatos.Terceros;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -141,12 +142,7 @@ namespace GestorDeElementos.Extensores
             return hayRecepciones;
         }
 
-        public static LineaDeUnPedidoDtm LeerLineaDePedido(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
-        {
-            return LeerLineaDePedido(contexto, recepcion.Id);
-        }
-
-        public static AlmacenDtm LeerAlmacen(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, bool erroSiNoVaAlAlmacen = true)
+        public static AlmacenDtm Almacen(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, bool erroSiNoVaAlAlmacen = true)
         {
             if (recepcion.IdAlmacen is null && erroSiNoVaAlAlmacen)
                 Emitir("La recepción indicada no es de almacén");
@@ -160,8 +156,13 @@ namespace GestorDeElementos.Extensores
             recepcion.Almacen = contexto.Set<AlmacenDtm>().First(a => a.Id == recepcion.IdAlmacen);
             return recepcion.Almacen;
         }
+               
+        public static LineaDeUnPedidoDtm LineaDePedido(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
+        {
+            return LineaDePedido(contexto, recepcion.Id);
+        }
 
-        public static LineaDeUnPedidoDtm LeerLineaDePedido(ContextoSe contexto, int idDeRecepcion)
+        public static LineaDeUnPedidoDtm LineaDePedido(ContextoSe contexto, int idDeRecepcion)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Pedido_LineaPedidoPorRecepcion);
             if (cache.ContainsKey(idDeRecepcion.ToString()))
@@ -276,6 +277,13 @@ namespace GestorDeElementos.Extensores
             }
         }
 
+        public static ProveedorDtm Proveedor(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
+        {
+            var linea = recepcion.LineaDePedido(contexto);
+            return linea.Elemento.Proveedor(contexto);
+        }
+
+
         // Al almacén sólo van materiales y ha de estar activo; a la obra de un expediente va cualquier clase, si no está terminado ni cancelado
         private static void ValidarDestinoDeLaEntrega(this LineaDeUnPedidoDtm linea, ContextoSe contexto, int? idAlmacen, int? idExpediente)
         {
@@ -327,6 +335,7 @@ namespace GestorDeElementos.Extensores
             if ((idAlmacen == null) == (idExpediente == null))
                 Emitir($"La entrega de la línea {linea.Orden} ha de ir a un almacén o a la obra de un expediente, y sólo a uno de ellos");
             linea.ValidarDestinoDeLaEntrega(contexto, idAlmacen, idExpediente);
+            pedido.ValidarSociedadDelDestino(contexto, idAlmacen, idExpediente);
 
             var recepcion = new RecepcionDeLineaDtm
             {
@@ -358,7 +367,7 @@ namespace GestorDeElementos.Extensores
         // y su preasiento, si lo tiene, está pendiente; el preasiento se anula. Desde el movimiento anterior se barren los posteriores
         private static void AnularEntradaDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
         {
-            var linea = recepcion.LeerLineaDePedido(contexto);
+            var linea = recepcion.LineaDePedido(contexto);
             var pedido = linea.Elemento;
             if (!pedido.EstaEnRecepcion())
                 Emitir($"No se puede cancelar la entrega de la línea {linea.Orden}: el pedido '{pedido.Referencia}' ha de estar {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
@@ -366,7 +375,7 @@ namespace GestorDeElementos.Extensores
             if (!recepcion.VaAlAlmacen)
                 return;
 
-            var almacen = recepcion.LeerAlmacen(contexto);
+            var almacen = recepcion.Almacen(contexto);
             if (!almacen.EstaActivo())
                 Emitir($"No se puede cancelar la entrega de la línea {linea.Orden}: el almacén '{almacen.Expresion}' no está activo y no se puede borrar su entrada de compra");
 
@@ -388,7 +397,7 @@ namespace GestorDeElementos.Extensores
             try
             {
                 recepcion.AnularEntradaDeCompra(contexto);
-                var pedido = contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento);
+                var pedido = linea.DetalleDe<PedidoDtm>(contexto);
                 var descripcion = recepcion.DescripcionParaLaTraza(contexto, linea);
                 contexto.Remove(recepcion);
                 contexto.SaveChanges();

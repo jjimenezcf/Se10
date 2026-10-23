@@ -36,6 +36,10 @@ namespace ModeloDeDto.Logistica
             , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlDocumento) + "(numeroDeFila)")]
         public string Origen { get; set; }
 
+        // Proveedor del pedido si el movimiento es la entrada de una recepción, vacío en el resto (ver GestorDeMovimientosDeAlmacen.DespuesDeMapearElElemento)
+        [IUPropiedad(Etiqueta = "Proveedor", Ayuda = "proveedor del pedido recepcionado", VisibleEnGrid = true, Obligatorio = false)]
+        public string Proveedor { get; set; }
+
         [IUPropiedad(Etiqueta = "Realizado el", Ayuda = "fecha en la que se realizó el movimiento", TipoDeControl = enumTipoControl.SelectorDeFechaHora, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false)]
         public DateTime RealizadoEl { get; set; }
     }

@@ -65,6 +65,7 @@ namespace GestoresDeNegocio.Logistica
         {
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
             consulta = consulta.FiltrarParaRegularizar(filtros);
+            consulta = consulta.FiltrarPorSociedadDelCg(filtros);
             return consulta;
         }
 

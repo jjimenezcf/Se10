@@ -8,6 +8,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
     using ModeloDeDto.Negocio;
     using ServicioDeDatos.Elemento;
     using ServicioDeDatos.Gastos;
+    using ServicioDeDatos.Logistica;
     using ServicioDeDatos.Terceros;
     using ServicioDeDatos.Ventas;
     using System;
@@ -292,6 +293,9 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 case enumNegocio.FacturaRecibida:
                     AsientoDeFacturaRecibida(xmlWriter, preasiento);
                     break;
+                case enumNegocio.Almacen:
+                    AsientoDeAlmacen(xmlWriter, preasiento);
+                    break;
                 default:
                     GestorDeErrores.Emitir($"Falta implementar cómo definir un asiento para el negocio '{preasiento.NegocioReferenciado.Singular()}'");
                     break;
@@ -314,6 +318,42 @@ namespace GestorDeElementos.Extensores.Contabilidad
             xmlWriter.WriteEndElement();
             WriteAsientoDeCobro(xmlWriter, preasiento);
         }
+        // Entrada de compra en un almacén (ver ExtensorDePreasientos.PreasentarEntradaDeAlmacen): asiento libre sin registro de iva
+        //   1º apunte: albaranes pendientes de recibir factura del proveedor (Alm_Albaran) al haber --> importe en negativo
+        //   2º apunte: gasto de la naturaleza del unitario (Alm_Gasto) al debe --> importe en positivo
+        private void AsientoDeAlmacen(XmlWriter xmlWriter, PreasientoDtm preasiento)
+        {
+            WriteCabecera(xmlWriter, preasiento);
+            xmlWriter.WriteStartElement("LISTAREGIVA");
+            xmlWriter.WriteEndElement();
+
+            var apuntes = preasiento.Detalles<ApunteDeUnPreasientoDtm>(Contexto);
+            xmlWriter.WriteStartElement("LISTAAPUNTES");
+            foreach (var apunte in apuntes.Where(apunte => apunte.Clase == enumClaseDeApunte.Alm_Albaran))
+                ApunteDeAlmacen(xmlWriter, preasiento, CuentaDelTercero(apunte.Cuenta), -1 * apunte.Importe, apunte.Concepto);
+            foreach (var apunte in apuntes.Where(apunte => apunte.Clase == enumClaseDeApunte.Alm_Gasto))
+                ApunteDeAlmacen(xmlWriter, preasiento, CuentaDeNcs(apunte.Cuenta), apunte.Importe, apunte.Concepto);
+            xmlWriter.WriteEndElement(); // LISTAAPUNTES
+        }
+
+        private static void ApunteDeAlmacen(XmlWriter xmlWriter, PreasientoDtm preasiento, string cuenta, decimal importe, string concepto)
+        {
+            xmlWriter.WriteStartElement("APUNTE");
+            xmlWriter.WriteElementString("CODIGOCTA", cuenta);
+            xmlWriter.WriteElementString("IMPORTE", importe.Formatear(decimales: 6, alineacion: false, separadorDecimal: ","));
+            xmlWriter.WriteElementString("PORCIVA", "");
+            xmlWriter.WriteElementString("OBSERVACION", concepto.Left(250));
+            xmlWriter.WriteElementString("PUNTEO", "0");
+            xmlWriter.WriteElementString("NUMDOCUMENTO", preasiento.IdReferenciado.ToString().Right(7));
+            xmlWriter.WriteElementString("EXPLOTACION", "");
+            xmlWriter.WriteElementString("TIPOOPERMEMO", "");
+            xmlWriter.WriteElementString("TIPOCOBRO_CODIGO", "");
+            xmlWriter.WriteElementString("TIPOCOBRO_NOMBRE", "");
+            xmlWriter.WriteElementString("TIPOCOBRO_ACUMULA", "");
+            xmlWriter.WriteElementString("EJERMETALICO", "");
+            xmlWriter.WriteEndElement(); // APUNTE
+        }
+
         private void WriteAsientoDePago(XmlWriter xmlWriter, PreasientoDtm preasiento)
         {
             xmlWriter.WriteStartElement("LISTAAPUNTES");
@@ -466,6 +506,8 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 ? (DateTime)((FacturaEmtDtm)preasiento.Referenciado(Contexto)).FacturadaEl
                 : preasiento.NegocioReferenciado == enumNegocio.Cobro
                 ? (DateTime)((CobroDeFaeDtm)preasiento.Referenciado(Contexto)).CobradoEl
+                : preasiento.NegocioReferenciado == enumNegocio.Almacen
+                ? ((MovimientoDeAlmacenDtm)preasiento.Referenciado(Contexto)).RealizadoEl.Date
                 : (DateTime)((FacturaRecDtm)preasiento.Referenciado(Contexto)).FacturadaEl;
             }
             else
@@ -973,6 +1015,10 @@ namespace GestorDeElementos.Extensores.Contabilidad
             if (negocio == enumNegocio.Cobro)
                 return enumNcsCodigoConcepto.CobrosFacturasClientes;
 
+            // como el pago de un gasto por naturaleza, es un asiento libre sin iva
+            if (negocio == enumNegocio.Almacen)
+                return enumNcsCodigoConcepto.PlanCuentasMayor;
+
             throw new Exception($"Ha de indicar el código del concepto asentado en la contabilidad de Ncs para el negocio '{negocio.Singular()}'");
         }
 
@@ -992,6 +1038,8 @@ namespace GestorDeElementos.Extensores.Contabilidad
                     return ((FacturaRecDtm)preasiento.Referenciado(Contexto)).FacturadaEl;
                 case enumNegocio.Cobro:
                     return ((CobroDeFaeDtm)preasiento.Referenciado(Contexto)).CobradoEl;
+                case enumNegocio.Almacen:
+                    return ((MovimientoDeAlmacenDtm)preasiento.Referenciado(Contexto)).RealizadoEl.Date;
             }
             throw new Exception($"Falta implementar cómo obtener la 'Fecha De Emision' para '{preasiento.NegocioReferenciado.Singular()}'");
         }

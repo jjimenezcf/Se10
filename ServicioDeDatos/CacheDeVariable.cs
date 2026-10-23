@@ -72,6 +72,7 @@ namespace ServicioDeDatos
         public static readonly string Cola_Receptor = nameof(Cola_Receptor);
 
         public static readonly string CTA_Cuenta_De_Proveedor = nameof(CTA_Cuenta_De_Proveedor);
+        public static readonly string CTA_Cuenta_De_Albaran = nameof(CTA_Cuenta_De_Albaran);
         public static readonly string CTA_Cuenta_De_Cliente = nameof(CTA_Cuenta_De_Cliente);
         public static readonly string CTA_Cuenta_De_Sueldos = nameof(CTA_Cuenta_De_Sueldos);
         public static readonly string CTA_Cuenta_De_Consultoria = nameof(CTA_Cuenta_De_Consultoria);
@@ -122,6 +123,7 @@ namespace ServicioDeDatos
         public static readonly string CFG_Mensajeria_Canal = "Indica el canal por el que se envían los mensajes a un teléfono: WHATSAPP, TELEGRAM o SMS (las credenciales de cada canal están en la sección ServidorDeMensajes del appsettings)";
 
         public static readonly string CTA_Cuenta_De_Proveedor = $"Indica el nº de cuenta: {ltrCuenta.ProveedorDescripcion}";
+        public static readonly string CTA_Cuenta_De_Albaran = $"Indica el nº de cuenta: {ltrCuenta.AlbaranDescripcion}";
         public static readonly string CTA_Cuenta_De_Cliente = $"Indica el nº de cuenta: {ltrCuenta.ClienteDescripcion}";
         public static readonly string CTA_Cuenta_De_Sueldos = $"Indica el nº de cuenta: {ltrCuenta.SueldosDescripcion}";
         public static readonly string CTA_Cuenta_De_Consultoria = $"Indica el nº de cuenta: {ltrCuenta.ServiciosProfesionales}";

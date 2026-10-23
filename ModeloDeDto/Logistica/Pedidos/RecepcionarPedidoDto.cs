@@ -31,6 +31,10 @@ namespace ModeloDeDto.Logistica
         //--------------------------------------------
         // Destino de las entregas: el almacén o la obra del expediente, nunca ambos (al seleccionar uno se blanquea el otro).
         // Se propone el de la cabecera del pedido (ver CrudDePedidos.AbrirModalDeRecepcionarPedido)
+        // Sociedad del pedido, restringe el almacén y el expediente a los de su sociedad (ver CrudDePedidos.MapearSociedadDelPedido)
+        [IUPropiedad(Oculto = true, Fila = 1, Columna = 0, Posicion = 0)]
+        public int? IdSociedadDelCg { get; set; }
+
         [IUPropiedad(Etiqueta = "Id del expediente", Visible = false)]
         public int? IdExpediente { get; set; }
 
@@ -44,10 +48,13 @@ namespace ModeloDeDto.Logistica
             Controlador = nameof(enumControladoresAdministrativos.Expedientes),
             VistaDondeNavegar = enumVistasAdministrativo.CrudExpedientes,
             RestrictorFijo = ltrDeUnExpediente.SelectorParaUnPedido + Simbolos.PuntoComa + nameof(enumEtapasDeExpedientes.EXP_Etapa_Ejecucion) + Simbolos.separadorDeEtapas + nameof(enumEtapasDeExpedientes.EXP_Etapa_Terminada),
+            RestringidoPorControl = nameof(IdSociedadDelCg),
+            PropiedadRestrictora = nameof(IdSociedadDelCg),
             Obligatorio = false,
             LongitudMinimaParaBuscar = 1,
             Fila = 1,
             Columna = 0,
+            Posicion = 1,
             trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Pedido_Recepcion_TrasSeleccionarExpediente) + "()"
             )
         ]

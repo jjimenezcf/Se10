@@ -22,6 +22,42 @@
         crudDePedidos = Crud.crudMnt as CrudDePedidos;
     }
 
+    // Un pedido sólo puede ir a almacenes de su sociedad (ver ExtensorDePedidos.ValidarSociedadDelDestino): se leen los almacenes de la
+    // sociedad y se fija el indicado si está entre ellos (como Pag_Tras_Seleccionar_Acreedor con las cuentas del acreedor); sin sociedad
+    // (al crear, antes de elegir el CG) la lista queda vacía
+    function CargarAlmacenesDeLaSociedad(lista: HTMLSelectElement, idSociedad: number, idAlmacen: number) {
+        if (!Definido(lista))
+            return;
+
+        // si la lista se está cargando se espera a que acabe, para que su respuesta no se mezcle con la de los almacenes de la sociedad
+        if (EsTrue(lista.getAttribute(atListasDeElemento.Cargando))) {
+            setTimeout(() => CargarAlmacenesDeLaSociedad(lista, idSociedad, idAlmacen), 500);
+            return;
+        }
+
+        ApiControl.BlanquearListaDeElementos(lista);
+        if (!(idSociedad > 0))
+            return;
+
+        const filtros = new Array<ClausulaDeFiltrado>();
+        filtros.push(new ClausulaDeFiltrado(ltrPropiedades.Elemento.ConCg.IdSociedadDelCg, atCriterio.igual, idSociedad.toString()));
+
+        const parametros = new Array<Parametro>();
+        parametros.push(new Parametro(Ajax.Param.aplicarJoin, false));
+        parametros.push(new Parametro(Ajax.Param.cantidad, -1));
+        parametros.push(new Parametro(Ajax.Param.obtenerSeguridad, false));
+        parametros.push(new Parametro(Ajax.Param.cargarListaDeElementos, true));
+
+        const claseElemento = lista.getAttribute(atListas.claseElemento);
+        const datosDeEntrada = `{"ClaseDeElemento":"${claseElemento}", "IdLista":"${lista.id}", "IdFijar":${idAlmacen > 0 ? idAlmacen : 0}}`;
+
+        lista.setAttribute(atListasDeElemento.Cargando, "S");
+        ApiDePeticiones.LeerElementos(lista, lista.getAttribute(atControl.controlador), Ajax.EndPoint.LeerElementos, filtros, parametros, datosDeEntrada)
+            .then((peticion: ApiDeAjax.DescriptorAjax) => MapearAlControl.MapearElementosEnLista(peticion))
+            .catch((peticion: ApiDeAjax.DescriptorAjax) => ApiDePeticiones.EmitirError(peticion))
+            .finally(() => lista.setAttribute(atListasDeElemento.Cargando, "N"));
+    }
+
     export class CrudDePedidos extends Crud.CrudMnt {
 
         private _IdDeUnidadDeMedida: number = 0;
@@ -189,11 +225,16 @@
             this.MapearDestino(modal, idAlmacen, idExpediente, expediente);
         }
 
+        // El almacén y el expediente sólo se eligen entre los de la sociedad del pedido: el control oculto de la sociedad restringe el
+        // selector de expedientes y la lista de almacenes se carga con los de la sociedad
         private MapearDestino(modal: HTMLDivElement, idAlmacen: number, idExpediente: number, expediente: string) {
+            const idSociedad = Numero(ObtenerPropiedad(this.crudDeEdicion.Registro, ltrPropiedades.Elemento.ConCg.IdSociedadDelCg, 0, false));
+            const sociedad = ApiControl.BuscarEditor(modal, ltrPropiedades.Elemento.ConCg.IdSociedadDelCg) as HTMLInputElement;
+            if (Definido(sociedad)) sociedad.value = idSociedad > 0 ? idSociedad.toString() : '';
+
             const almacenes = this.ListaDeAlmacenes(modal);
             const expedientes = this.ListaDeExpedientes(modal);
-            if (idAlmacen > 0) MapearAlControl.ListaDeElementos(almacenes, new Array<ClausulaDeFiltrado>(), idAlmacen, null);
-            else almacenes.selectedIndex = 0;
+            CargarAlmacenesDeLaSociedad(almacenes, idSociedad, idAlmacen);
             if (idExpediente > 0) MapearAlControl.ListaDinamica(expedientes, idExpediente, expediente, false);
             else ApiListaDinamica.Blanquear(expedientes);
         }
@@ -403,14 +444,33 @@
             super(crud, idPanelCreacion);
         }
 
+        public InicializarControlesDeCreacion(peticion: ApiDeAjax.DescriptorAjax): void {
+            super.InicializarControlesDeCreacion(peticion);
+            this.AplicarSociedadAlDestino(false);
+        }
+
         public TrasSeleccionarCg(idLista: string): void {
             super.TrasSeleccionarCg(idLista);
             this.LeerDireccionDeEntrega();
+            this.AplicarSociedadAlDestino(true);
         }
 
         public TrasBlanquearCg() {
             super.TrasBlanquearCg();
             ApiPanel.BlanquearControlesDeIU(this.PanelDeDireccion);
+            this.AplicarSociedadAlDestino(true);
+        }
+
+        // El almacén y el expediente han de ser de la sociedad del CG: al cambiar de CG se quitan y los almacenes se cargan con los de su
+        // sociedad (el selector de expedientes se restringe con el control de la sociedad, ver PedidoDto.Expediente)
+        private AplicarSociedadAlDestino(cambiaElCg: boolean) {
+            if (cambiaElCg) {
+                const expediente = ApiControl.BuscarListaDinamicaPorPropiedad(this.PanelDeCrear, ltrPropiedades.Logistica.Pedido.Expediente) as HTMLInputElement;
+                if (Definido(expediente)) ApiListaDinamica.Blanquear(expediente);
+            }
+            const almacen = ApiControl.BuscarListaDeElementos(this.PanelDeCrear, ltrPropiedades.Logistica.Pedido.Almacen);
+            const idSociedad = Definido(this.Sociedad) ? Numero(this.Sociedad.value) : 0;
+            CargarAlmacenesDeLaSociedad(almacen, idSociedad, cambiaElCg || !Definido(almacen) ? 0 : Numero(almacen.value));
         }
 
 
@@ -492,6 +552,8 @@
 
             let etapas: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.Etapas);
             let seEstaCumplimentando = EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Cumplimentacion);
+
+            this.AplicarSociedadAlAlmacen(seEstaCumplimentando);
             let seEstaCumplimentandoOAprobando =
                 seEstaCumplimentando ||
                 EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Aprobacion);
@@ -511,6 +573,22 @@
 
             this.AplicarEtapaAlGridDeLineas();
         }
+        // En cumplimentación la cabecera se puede cambiar: se leen los almacenes de la sociedad del CG del pedido y se fija el de la cabecera.
+        // En el resto de etapas la cabecera es de consulta y basta con el almacén mapeado, salvo que la lista se cargara antes con los
+        // almacenes de otra sociedad (al editar otro pedido) y no lo tenga
+        private AplicarSociedadAlAlmacen(seEstaCumplimentando: boolean) {
+            const lista = ApiControl.BuscarListaDeElementos(this.PanelDelDto, ltrPropiedades.Logistica.Pedido.Almacen);
+            if (!Definido(lista))
+                return;
+
+            const idAlmacen = Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.IdAlmacen, 0, false));
+            const estaEnLaLista = Array.from(lista.options).some(opcion => Numero(opcion.value) === idAlmacen);
+            if (!seEstaCumplimentando && (idAlmacen === 0 || estaEnLaLista || EsTrue(lista.getAttribute(atListasDeElemento.Cargando))))
+                return;
+
+            CargarAlmacenesDeLaSociedad(lista, Numero(ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.ConCg.IdSociedadDelCg, 0, false)), idAlmacen);
+        }
+
         public get IdReferenciaCrearLinea(): string {
             return this._idPanelEdicion + `-lineasdeunpedido-mcr-${enumPostfijoControl.Referencia}`;
         }

@@ -10,7 +10,8 @@ public enum enumClaseDeApunte
     Far_Gasto, Far_Iva, Far_Irpf, Far_Proveedor,
     Pag_Acreedor, Pag_Pago, Pag_Gasto,
     Fae_Iva, Fae_Cliente, Fae_Ingreso, Fae_Irpf,
-    Cob_Deudor, Cob_Cobro
+    Cob_Deudor, Cob_Cobro,
+    Alm_Gasto, Alm_Albaran
 }
 public static class ltrTipoDeApunte 
 { 

@@ -18,7 +18,9 @@ namespace ServicioDeDatos.Contabilidad
     public enum enumSistemaContable
     {
         [Description("Contablidad Ncs")]
-        NCS
+        NCS,
+        [Description("Contabilidad ContaSol")]
+        ContaSol
     }
 
     public enum enumEtapasDePreasiento
@@ -79,10 +81,10 @@ namespace ServicioDeDatos.Contabilidad
         SPR_Generar_Preasiento_De_FacturaRecibida,
         [Description("Indica si ha de generar asientos de cobros")]
         SPR_Generar_Preasiento_De_Cobro,
-        [Description("Indica el concepto de gatos en la Estimación Directa de NCS")]
-        SPR_NCS_Conceptos_De_Gasto,
         [Description("Indica si ha de generar asientos de movimientos de almacén, por defecto no se generan")]
-        SPR_Generar_Preasiento_De_Almacen
+        SPR_Generar_Preasiento_De_Almacen,
+        [Description("Indica el concepto de gatos en la Estimación Directa de NCS")]
+        SPR_NCS_Conceptos_De_Gasto
     }
 
     internal class CtaContablePorCtaBancaria
@@ -133,6 +135,8 @@ namespace ServicioDeDatos.Contabilidad
         public int IdSociedad { get; set; }
         public string Metodo { get; set; }
         public string Nombre { get; set; }
+        // dígitos de las cuentas auxiliares en el sistema contable (ContaSol), opcional en el json
+        public int Digitos { get; set; }
     }
 
     public class RegenerarLotePara
@@ -367,6 +371,7 @@ namespace ServicioDeDatos.Contabilidad
                     IdSociedad = item["IdSociedad"].Value<int>(),
                     Metodo = item["Metodo"].Value<string>(),
                     Nombre = item["Nombre"].Value<string>(),
+                    Digitos = item["Digitos"]?.Value<int>() ?? 0,
                 }).ToList();
             }
             catch (Exception ex)
@@ -545,6 +550,18 @@ namespace ServicioDeDatos.Contabilidad
             return relacion.IdNegocio;
         }
 
+
+        // Al revés que IdNegocio: el tipo de preasiento que tiene como origen el negocio indicado (ha de haber uno y sólo uno)
+        public static int IdTipoPreasientoDelNegocio(int idNegocio, string negocio)
+        {
+            var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Negocio_Origen, valorPorDefecto: _jsonDeSPR_Negocio_Origen).Valor;
+
+            var relaciones = ParsearNegocios(json).Where(x => x.IdNegocio == idNegocio).ToList();
+            if (relaciones.Count != 1)
+                GestorDeErrores.Emitir($"Ha de configurar en el parámetro '{enumParametrosDePreasiento.SPR_Negocio_Origen}' un único tipo de preasiento para el negocio '{negocio}' (id {idNegocio}), hay {relaciones.Count}");
+
+            return relaciones[0].IdTipoPreasiento;
+        }
 
         private static List<Negocios> ParsearNegocios(string json)
         {

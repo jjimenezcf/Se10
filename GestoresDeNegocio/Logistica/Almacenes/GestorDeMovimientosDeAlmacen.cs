@@ -11,11 +11,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Utilidades;
-using ServicioDeDatos.MaestrosTecnico;
 
 namespace GestoresDeNegocio.Logistica
 {
-    public class GestorDeMovimientosDeAlmacen : GestorDeElementos<ContextoSe, MovimientoDeAlmacenDtm, MovimientoDeAlmacenDto>
+    public class GestorDeMovimientosDeAlmacen : GestorDeElementos<ContextoSe, MovimientoDeAlmacenDtm, MovimientoDeAlmacenDto>, IGeneradorDePreasiento
     {
 
         public class MapearMovimientosDeAlmacen : Profile
@@ -41,6 +40,33 @@ namespace GestoresDeNegocio.Logistica
         }
 
         public static GestorDeMovimientosDeAlmacen Gestor(ContextoSe contexto, IMapper mapeador) => new GestorDeMovimientosDeAlmacen(contexto, mapeador);
+
+        // Regenera el preasiento de los movimientos (ver GestorDePreasientos al regenerar): cancela el actual y lo vuelve a generar sin
+        // recalcular el inventario ni barrer, por eso se guarda con EstoyBarriendo; el preasiento nuevo lo engancha Preasentar
+        public void GenerarPreasiento(List<int> ids)
+        {
+            var trans = Contexto.IniciarTransaccion();
+            try
+            {
+                foreach (int id in ids)
+                {
+                    var movimiento = Contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(id, usarLaCache: false);
+
+                    if (!movimiento.Almacen(Contexto).Sociedad(Contexto).UsaPreasientos(Contexto, enumNegocio.Almacen))
+                        GestorDeErrores.Emitir($"La sociedad del movimiento de almacén '{movimiento.Referencia(Contexto)}' no usa preasientos de almacén, configúrela en '{enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen}'");
+
+                    movimiento.CancelarPreasiento(Contexto);
+                    movimiento.Preasentar(Contexto);
+                    movimiento.ModificarComoAdministrador(Contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
+                }
+                Contexto.Commit(trans);
+            }
+            catch
+            {
+                Contexto.Rollback(trans);
+                throw;
+            }
+        }
 
         protected override IQueryable<MovimientoDeAlmacenDtm> AplicarJoins(IQueryable<MovimientoDeAlmacenDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
@@ -154,6 +180,12 @@ namespace GestoresDeNegocio.Logistica
             movimiento.Barrer(Contexto);
         }
 
+        protected override void EliminarCaches(MovimientoDeAlmacenDtm movimiento, ParametrosDeNegocio parametros)
+        {
+            base.EliminarCaches(movimiento, parametros);
+            if (movimiento.IdLineaDeRecepcion != null) ServicioDeCaches.EliminarElemento(CacheDe.Alm_Movimiento_Recepcion, movimiento.Id.ToString());
+        }
+
         protected override void DespuesDeMapearElElemento(MovimientoDeAlmacenDtm movimiento, MovimientoDeAlmacenDto elemento, ParametrosDeNegocio parametros)
         {
             base.DespuesDeMapearElElemento(movimiento, elemento, parametros);
@@ -161,6 +193,7 @@ namespace GestoresDeNegocio.Logistica
             var almacen = movimiento.Almacen(Contexto).Expresion;
             var claseDeMovimiento = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento;
             var documento = ObtenerDocumentoDeOrigenODestino(movimiento, claseDeMovimiento);
+            elemento.Proveedor = movimiento.Proveedor(Contexto, emitirErrorSiNoEsRecepcion: false)?.Referencia(Contexto) ?? string.Empty;
 
             // el almacén no se muestra como destino: en las entradas el destino queda en blanco y en las salidas es el documento.
             // Al pulsar el documento se navega a su edición (ver ExtensorDeAlmacenes.UrlDelDocumento)
@@ -182,7 +215,7 @@ namespace GestoresDeNegocio.Logistica
             if (movimiento.IdMovimiento != null) return $"Movimiento de obra Nº {movimiento.IdMovimiento}";
             if (movimiento.IdLineaDeRecepcion != null)
             {
-                var linea = ExtensorDeRecepciones.LeerLineaDePedido(Contexto, (int)movimiento.IdLineaDeRecepcion);
+                var linea = ExtensorDeRecepciones.LineaDePedido(Contexto, (int)movimiento.IdLineaDeRecepcion);
                 var pedido = linea.DetalleDe<PedidoDtm>(Contexto);
                 return $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'";
             }

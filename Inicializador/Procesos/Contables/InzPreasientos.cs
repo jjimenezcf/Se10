@@ -108,6 +108,7 @@ namespace Inicializador.Contabilidad
                 GestorDeTiposDePreasiento.PersistirTipo(contexto, "GAS: Recibidas", estadoInicial.Id, enumClaseDeLibro.POR_CG_TIPO, "FAR" , permitirCrear: true);
                 GestorDeTiposDePreasiento.PersistirTipo(contexto, "ING: Emitidas", estadoInicial.Id, enumClaseDeLibro.POR_CG_TIPO, "FAE", permitirCrear: true);
                 GestorDeTiposDePreasiento.PersistirTipo(contexto, "ING: Cobros", estadoInicial.Id, enumClaseDeLibro.POR_CG_TIPO, "COB", permitirCrear: true);
+                GestorDeTiposDePreasiento.PersistirTipo(contexto, "ALM: Almacén", estadoInicial.Id, enumClaseDeLibro.POR_CG_TIPO, "ALM", permitirCrear: true);
             }
             finally
             {

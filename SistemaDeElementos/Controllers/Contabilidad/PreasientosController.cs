@@ -9,6 +9,8 @@ using MVCSistemaDeElementos.Descriptores;
 using Newtonsoft.Json;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Logistica;
+using GestorDeElementos.Extensores;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.SistemaDocumental;
@@ -18,7 +20,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Utilidades;
-using GestorDeElementos.Extensores;
 
 namespace MVCSistemaDeElementos.Controllers
 {
@@ -128,6 +129,14 @@ namespace MVCSistemaDeElementos.Controllers
                     if (cobro is null)
                         GestorDeErrores.Emitir("El cobro ha sido eliminado de la BD, por tanto no se puede editar");
                     r.Datos = $"{enumNegocio.FacturaEmitida.Controlador()}/{vista.Accion}?Id={cobro.IdElemento}";
+                }
+                else if (spr.NegocioReferenciado == enumNegocio.Almacen)
+                {
+                    // el origen es el documento que generó el movimiento de almacén (el pedido de la recepción...)
+                    var movimiento = Contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(spr.IdReferenciado.Entero(), errorSiNoHay: false);
+                    if (movimiento is null)
+                        GestorDeErrores.Emitir("El movimiento de almacén ha sido eliminado de la BD, por tanto no se puede editar");
+                    r.Datos = movimiento.UrlDelDocumento(Contexto);
                 }
                 else
                 {

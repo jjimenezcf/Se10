@@ -23,6 +23,7 @@ namespace ServicioDeDatos.Contabilidad
 
         public static readonly string ClienteDescripcion = "Cuenta de clientes";
         public static readonly string ProveedorDescripcion = "Cuenta de proveedores";
+        public static readonly string AlbaranDescripcion = "Cuenta de albaranes";
         public static readonly string SueldosDescripcion = "Cuenta de gastos de sueldos y salarios";
         public static readonly string ServiciosProfesionales = "Cuenta de servicios profesionales";
         public static readonly string PrestacionDeServicios = "Cuenta de prestación de servicios";
@@ -36,6 +37,7 @@ namespace ServicioDeDatos.Contabilidad
     {
         public static string Sueldos => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Sueldos, Descripciones.CTA_Cuenta_De_Sueldos, "640000");
         public static string Proveedores => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Proveedor, Descripciones.CTA_Cuenta_De_Proveedor, "400000");
+        public static string Albaranes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Albaran, Descripciones.CTA_Cuenta_De_Albaran, "400900");
         public static string Clientes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Cliente, Descripciones.CTA_Cuenta_De_Cliente, "430000");
     }
 

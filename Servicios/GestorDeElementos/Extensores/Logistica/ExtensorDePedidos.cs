@@ -51,7 +51,7 @@ namespace GestorDeElementos.Extensores
 
         public static ExpedienteDtm Expediente(this PedidoDtm pedido, ContextoSe contexto, bool aplicarJoin = false, bool errorSiNoHay = true)
         {
-            if (pedido.Expediente != null) return pedido.Expediente;
+            if (pedido.Expediente != null && pedido.IdExpediente is not null && (int)pedido.IdExpediente == pedido.Expediente.Id) return pedido.Expediente;
 
             if (pedido.IdExpediente is null && errorSiNoHay)
                 Emitir($"El pedido '{pedido.Referencia}' no tiene expediente asociado");
@@ -59,6 +59,19 @@ namespace GestorDeElementos.Extensores
             if (pedido.IdExpediente is null) return null;
 
             return pedido.Expediente = contexto.SeleccionarPorId<ExpedienteDtm>((int)pedido.IdExpediente, aplicarJoin);
+        }
+
+        public static AlmacenDtm Almacen(this PedidoDtm pedido, ContextoSe contexto, bool aplicarJoin = false, bool errorSiNoHay = true)
+        {
+            if (pedido.Almacen != null && pedido.IdAlmacen is not null && (int)pedido.IdAlmacen == pedido.Almacen.Id)
+                return pedido.Almacen;
+
+            if (pedido.IdAlmacen is null && errorSiNoHay)
+                Emitir($"El pedido '{pedido.Referencia}' no tiene almacén asociado");
+
+            if (pedido.IdAlmacen is null) return null;
+
+            return pedido.Almacen = contexto.SeleccionarPorId<AlmacenDtm>((int)pedido.IdAlmacen, aplicarJoin);
         }
 
         public static void IncrementarLoPlanificado(this PedidoDtm pedido, ContextoSe contexto, ContratoDtm contrato)
@@ -110,6 +123,25 @@ namespace GestorDeElementos.Extensores
             pedido.ValidarFechas(parametros);
             pedido.ValidarExpediente(contexto);
             pedido.ValidarContrato(contexto);
+            pedido.ValidarSociedadDelDestino(contexto, pedido.IdAlmacen, pedido.IdExpediente);
+        }
+
+        // El almacén y el expediente (de la cabecera o de una entrega) han de ser de la misma sociedad que el pedido
+        public static void ValidarSociedadDelDestino(this PedidoDtm pedido, ContextoSe contexto, int? idAlmacen, int? idExpediente)
+        {
+            var idSociedad = pedido.Cg(contexto).IdSociedad;
+            if (idAlmacen is not null)
+            {
+                var almacen = contexto.SeleccionarPorId<AlmacenDtm>((int)idAlmacen);
+                if (almacen.Cg(contexto).IdSociedad != idSociedad)
+                    Emitir($"El almacén '{almacen.Expresion}' no es de la misma sociedad que el pedido '{pedido.Referencia}'");
+            }
+            if (idExpediente is not null)
+            {
+                var expediente = contexto.SeleccionarPorId<ExpedienteDtm>((int)idExpediente);
+                if (expediente.Cg(contexto).IdSociedad != idSociedad)
+                    Emitir($"El expediente '{expediente.Expresion}' no es de la misma sociedad que el pedido '{pedido.Referencia}'");
+            }
         }
 
         public static void ValidarFechas(this PedidoDtm pedido, ParametrosDeNegocio parametros)
