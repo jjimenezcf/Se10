@@ -150,35 +150,6 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
-        public IActionResult About()
-        {
-            try
-            {
-                int[] a = { 2, 4 };
-                var b = 0;
-                b = a[5];
-                ViewData["Message"] = "Your application description page.";
-            }
-            catch(Exception e)
-            {
-
-                return Error(e);
-            }
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            int[] a = { 2, 4 };
-            var b = 0;
-            b = a[5];
-
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
         public IActionResult Privacy()
         {
             return View();
