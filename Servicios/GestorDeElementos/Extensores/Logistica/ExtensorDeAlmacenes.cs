@@ -107,6 +107,13 @@ namespace GestorDeElementos.Extensores
             return $"{documento.negocio.Controlador()}/{documento.negocio.VistaMvc(contexto).Accion}?Id={documento.id}";
         }
 
+        // Url de la edición del proveedor del pedido cuya recepción generó el movimiento
+        public static string UrlDelProveedor(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            var proveedor = movimiento.Proveedor(contexto, emitirErrorSiNoEsRecepcion: true);
+            return $"{enumNegocio.Proveedor.Controlador()}/{enumNegocio.Proveedor.VistaMvc(contexto).Accion}?Id={proveedor.Id}";
+        }
+
         public static string Referencia(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             if (movimiento.Referencia.IsNullOrEmpty() || movimiento.Referencia.EndsWith("(0)"))

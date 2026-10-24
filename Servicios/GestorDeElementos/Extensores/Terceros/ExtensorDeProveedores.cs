@@ -219,10 +219,11 @@ namespace GestorDeElementos.Extensores
 
         public static ArchivoDtm AnexarArchivo(this ProveedorDtm proveedor, ContextoSe contexto, string rutaConFichero)
         {
+            var sanitizar = true;
             return (ArchivoDtm)ApiDeEnsamblados.EjecutarMetodoEstatico(ApiDeEnsamblados.GestoresDeNegocio,
                 ApiDeEnsamblados.ClaseDelServidorDocumental,
                 ApiDeEnsamblados.MetodoDeAnexarArchivo,
-                new object[] { contexto, enumNegocio.Proveedor, ((IRegistro)proveedor).Id, rutaConFichero });
+                new object[] { contexto, enumNegocio.Proveedor, ((IRegistro)proveedor).Id, rutaConFichero, sanitizar });
         }
 
         public static ProveedorDtm CrearProveedor(ContextoSe contexto, SociedadDtm datos, bool errorSiEsGestionada = true)

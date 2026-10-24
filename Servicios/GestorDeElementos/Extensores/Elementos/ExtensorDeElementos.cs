@@ -542,18 +542,6 @@ namespace GestorDeElementos.Extensores
                                 new object[] { contexto, negocio, ((IRegistro)elemento).Id, rutaConFichero, sanitizar });
         }
 
-        public static ArchivoDtm QuitarArchivo(this IUsaReferencia elemento, ContextoSe contexto, string rutaConFichero)
-        {
-            var negocio = elemento.GetType().NegocioDeUnDtm();
-            if (!negocio.UsaArchivos())
-                GestorDeErrores.Emitir($"Ha solicitado anexar un archivo al elemento '{elemento.Referencia}' del negocio '{negocio.Singular(true)}', y éste no usa archivos");
-
-            return (ArchivoDtm)ApiDeEnsamblados.EjecutarMetodoEstatico(ApiDeEnsamblados.GestoresDeNegocio,
-                ApiDeEnsamblados.ClaseDelServidorDocumental,
-                ApiDeEnsamblados.MetodoDeAnexarArchivo,
-                new object[] { contexto, negocio, ((IRegistro)elemento).Id, rutaConFichero });
-        }
-
         public static void ValidarQueReferenciaA<T>(this IElementoDtm elemento, ContextoSe contexto, string propiedad, string nombreDelObjeto = null)
         where T : RegistroDtm
         {

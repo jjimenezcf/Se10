@@ -1697,7 +1697,8 @@ const Ajax = {
                 RecepcionarPedido: 'epRecepcionarPedido'
             },
             MovimientosDeAlmacen: {
-                ObtenerUrlAlDocumento: 'epObtenerUrlAlDocumento'
+                ObtenerUrlAlDocumento: 'epObtenerUrlAlDocumento',
+                ObtenerUrlAlProveedor: 'epObtenerUrlAlProveedorDelMovimiento'
             }
         },
         Contabilidad: {

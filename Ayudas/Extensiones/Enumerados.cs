@@ -472,6 +472,7 @@ namespace Utilidades
         Ral_FiltrosPorClaseDeUnitario,
 
         Mal_IrAlDocumento,
+        Mal_IrAlProveedor,
 
         Neg_ProcesarOpcionDeMenuLista,
 

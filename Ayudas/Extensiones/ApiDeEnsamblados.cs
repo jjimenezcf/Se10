@@ -168,17 +168,69 @@ namespace Utilidades
 
         public static object EjecutarMetodoEstatico(string dll, string clase, string metodo, object[] parametros)
         {
-            var metodoInvocable = ObtenerMetodoEstatico(dll, clase, metodo);
+            parametros ??= Array.Empty<object>();
+            var tipo = ObtenerType(dll, clase);
+            if (tipo == null)
+                throw new Exception($"Error al ejecutar el método '{metodo}': no se encuentra la clase '{clase}' en la dll '{dll}'");
+
+            var sobrecargas = tipo.GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.Name.ToLower() == metodo.ToLower()).ToList();
+            if (sobrecargas.Count == 0)
+                throw new Exception($"Error al ejecutar el método '{metodo}': no existe como método público y estático en la clase '{clase}' de la dll '{dll}'");
+
+            var metodoInvocable = ObtenerSobrecarga(sobrecargas, parametros.Length);
+            if (metodoInvocable == null)
+                throw ErrorDeFirma(dll, clase, metodo, parametros, sobrecargas);
+
             try
             {
-                return metodoInvocable.Invoke(null, parametros);
+                return metodoInvocable.Invoke(null, CompletarOpcionales(metodoInvocable, parametros));
             }
-            catch (Exception e)
+            catch (TargetInvocationException e) when (e.InnerException != null)
             {
-                if (e.InnerException != null)
-                    throw e.InnerException;
-                throw;
+                // el error se ha producido dentro del método invocado
+                throw e.InnerException;
             }
+            catch (Exception e) when (e is TargetParameterCountException || e is ArgumentException)
+            {
+                // los argumentos no encajan con la firma (número o tipos)
+                throw ErrorDeFirma(dll, clase, metodo, parametros, sobrecargas, e);
+            }
+        }
+
+        // Entre las sobrecargas elige la que admite ese número de argumentos (contando sus parámetros opcionales);
+        // si hay varias, la de menos parámetros
+        private static MethodInfo ObtenerSobrecarga(List<MethodInfo> sobrecargas, int numeroDeArgumentos)
+        {
+            return sobrecargas
+                .Where(m =>
+                {
+                    var parametros = m.GetParameters();
+                    return numeroDeArgumentos <= parametros.Length && numeroDeArgumentos >= parametros.Count(p => !p.IsOptional);
+                })
+                .OrderBy(m => m.GetParameters().Length)
+                .FirstOrDefault();
+        }
+
+        private static Exception ErrorDeFirma(string dll, string clase, string metodo, object[] parametros, List<MethodInfo> sobrecargas, Exception causa = null)
+        {
+            var indicados = string.Join(", ", parametros.Select(p => p?.GetType().Name ?? "null"));
+            var firmas = string.Join(Environment.NewLine, sobrecargas.Select(m =>
+                $"   {m.Name}({string.Join(", ", m.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}{(p.IsOptional ? $" = {p.DefaultValue ?? "null"}" : "")}"))})"));
+            return new Exception($"Error al ejecutar el método '{metodo}' de la clase '{clase}' de la dll '{dll}', ya que los parámetros indicados ({indicados}) no coinciden con los de la firma:{Environment.NewLine}{firmas}", causa);
+        }
+
+        // MethodInfo.Invoke no aplica los valores por defecto: se añaden los de los parámetros opcionales que no se han pasado
+        private static object[] CompletarOpcionales(MethodInfo metodo, object[] argumentos)
+        {
+            var parametros = metodo.GetParameters();
+            if (argumentos.Length >= parametros.Length)
+                return argumentos;
+
+            var completos = new object[parametros.Length];
+            Array.Copy(argumentos, completos, argumentos.Length);
+            for (var i = argumentos.Length; i < parametros.Length; i++)
+                completos[i] = parametros[i].IsOptional ? parametros[i].DefaultValue : null;
+            return completos;
         }
 
         public static PropertyInfo ObtenerPropiedad(string dll, string nombreCompletoDeClase, string nombrePropiedad)

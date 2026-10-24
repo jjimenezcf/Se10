@@ -943,6 +943,11 @@ namespace GestorDeElementos.Extensores
 
         public static bool HayQueCancelarlo(this PreasientoDtm spr, ContextoSe contexto)
         {
+            // un movimiento de almacén no tiene etapas: mientras existe es contabilizable; si se ha eliminado (al anular la entrada
+            // de compra) y su preasiento quedó pendiente, se cancela (ver CancelarPreasientoPorEstarloSuReferenciado)
+            if (spr.NegocioReferenciado == enumNegocio.Almacen)
+                return spr.Referenciado(contexto, errorSiNoHay: false) is null;
+
             var referenciado = spr.Referenciado(contexto);
 
             if (spr.NegocioReferenciado == enumNegocio.FacturaRecibida)
@@ -962,9 +967,6 @@ namespace GestorDeElementos.Extensores
                 var fae = ((CobroDeFaeDtm)referenciado).Factura(contexto);
                 return fae.EstaEnEtapaNoContabilizada();
             }
-            // un movimiento de almacén no tiene etapas: mientras existe es contabilizable (al anularlo se cancela su preasiento)
-            if (spr.NegocioReferenciado == enumNegocio.Almacen)
-                return false;
             throw new Exception($"Los elementos del negocio '{spr.NegocioReferenciado}' no usan preasientos");
         }
 
