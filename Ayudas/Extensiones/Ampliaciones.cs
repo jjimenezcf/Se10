@@ -35,6 +35,8 @@
         {
             public static readonly string Parametros = nameof(Parametros);
             public static readonly string SpanDeParametros = "Parámetros";
+            public static readonly string InformacionContable = nameof(InformacionContable);
+            public static readonly string SpanDeInformacionContable = "Información contable";
             public static readonly string DireccionAlCrear = Comunes.DireccionAlCrear;
         }
 

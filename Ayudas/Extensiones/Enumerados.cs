@@ -479,6 +479,7 @@ namespace Utilidades
 
         Mal_IrAlDocumento,
         Mal_IrAlProveedor,
+        Mal_IrAlPreasiento,
 
         Neg_ProcesarOpcionDeMenuLista,
 

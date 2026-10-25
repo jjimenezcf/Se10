@@ -34,6 +34,7 @@ namespace MVCSistemaDeElementos.Descriptores
             DefinirMfMnt(menuIndividual, Mnt.OpcionesPorElemento);
             DefinirMfEdt(menuEdicion, Editor.OpcionesMf);
             DescriptorDeParametrosDeMiSociedad();
+            DescriptorDeInformacionContable();
             DescriptorDeCuentasDeMiSociedad();
             DescriptorDeTarjetasDeMiSociedad();
             DescriptorDeFacturador();
@@ -284,6 +285,15 @@ namespace MVCSistemaDeElementos.Descriptores
             parametros.Dto = typeof(ParametrosDeMiSociedadDto);
             parametros.Controlador = nameof(ParametrosDeMiSociedadController);
             Editor.Ampliaciones.Add(parametros);
+        }
+
+        // Solo consulta y solo para gestores de la sociedad: si no lo es, el controlador devuelve sin permiso y el span se oculta
+        private void DescriptorDeInformacionContable()
+        {
+            var informacion = new AmpliacionDeEdicion(Editor, Ampliaciones.Sociedad.InformacionContable, Ampliaciones.Sociedad.SpanDeInformacionContable, new Dimension(1, 3), ayuda: "Cómo se contabiliza la sociedad");
+            informacion.Dto = typeof(InformacionContableDeSociedadDto);
+            informacion.Controlador = nameof(InformacionContableDeSociedadController);
+            Editor.Ampliaciones.Add(informacion);
         }
 
         public override string RenderControl()

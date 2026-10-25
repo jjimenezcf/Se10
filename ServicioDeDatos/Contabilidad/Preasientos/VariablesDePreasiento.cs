@@ -17,7 +17,7 @@ namespace ServicioDeDatos.Contabilidad
 
     public enum enumSistemaContable
     {
-        [Description("Contablidad Ncs")]
+        [Description("Contabilidad Ncs")]
         NCS,
         [Description("Contabilidad ContaSol")]
         ContaSol
