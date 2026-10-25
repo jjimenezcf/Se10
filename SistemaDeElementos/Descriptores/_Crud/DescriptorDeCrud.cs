@@ -144,6 +144,8 @@ namespace MVCSistemaDeElementos.Descriptores
         public DescriptorDeCrud(ContextoSe contexto, string renderCache) : base()
         {
             Contexto = contexto;
+            // la vista usa Etiqueta como título de la página: sin ella, al servir desde la caché, el navegador muestra la url en la pestaña
+            Etiqueta = typeof(TElemento).Name.Replace("Dto", "");
 
             if (renderCache.StartsWith("<input id=error>"))
             {
