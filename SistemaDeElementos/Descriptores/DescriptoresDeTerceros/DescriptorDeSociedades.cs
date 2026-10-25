@@ -287,10 +287,11 @@ namespace MVCSistemaDeElementos.Descriptores
             Editor.Ampliaciones.Add(parametros);
         }
 
-        // Solo consulta y solo para gestores de la sociedad: si no lo es, el controlador devuelve sin permiso y el span se oculta
+        // Solo para gestores de una sociedad gestionada (si no, el controlador devuelve sin permiso y el span se oculta); editable si además
+        // el usuario puede parametrizar, si no, de consulta
         private void DescriptorDeInformacionContable()
         {
-            var informacion = new AmpliacionDeEdicion(Editor, Ampliaciones.Sociedad.InformacionContable, Ampliaciones.Sociedad.SpanDeInformacionContable, new Dimension(1, 3), ayuda: "Cómo se contabiliza la sociedad");
+            var informacion = new AmpliacionDeEdicion(Editor, Ampliaciones.Sociedad.InformacionContable, Ampliaciones.Sociedad.SpanDeInformacionContable, new Dimension(4, 3), ayuda: "Cómo se contabiliza la sociedad");
             informacion.Dto = typeof(InformacionContableDeSociedadDto);
             informacion.Controlador = nameof(InformacionContableDeSociedadController);
             Editor.Ampliaciones.Add(informacion);

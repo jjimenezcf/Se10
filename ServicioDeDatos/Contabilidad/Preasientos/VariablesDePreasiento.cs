@@ -558,7 +558,8 @@ namespace ServicioDeDatos.Contabilidad
             }
             return null;
         }
-        public static int IdCgDocumentalDeSpr(this SociedadDtm sociedad)
+        // CG donde se crean los lotes contables de la sociedad: ha de estar configurado y ser de la sociedad
+        public static int IdCgDocumentalDeSpr(this SociedadDtm sociedad, ContextoSe contexto)
         {
             var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Sociedad_CG_Documental, valorPorDefecto: _jsonDeSPR_Sociedad_Cg_Documental).Valor;
 
@@ -567,6 +568,7 @@ namespace ServicioDeDatos.Contabilidad
             if (cgDocumental == null)
                 GestorDeErrores.Emitir($"Ha de configurar el parámetro '{enumParametrosDePreasiento.SPR_Sociedad_CG_Documental.ToString()}' para la sociedad '{sociedad.NIF}'");
 
+            sociedad.ValidarCgDocumental(contexto, cgDocumental.IdCgDocumental);
             return cgDocumental.IdCgDocumental;
         }
 
@@ -688,15 +690,7 @@ namespace ServicioDeDatos.Contabilidad
 
         public static bool UsaPreasientos(this SociedadDtm sociedad, ContextoSe contexto, enumNegocio negocio)
         {
-            var parametro = negocio == enumNegocio.Pago
-                   ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Pago
-                   : negocio == enumNegocio.FacturaEmitida
-                   ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaEmitida
-                   : negocio == enumNegocio.FacturaRecibida
-                   ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaRecibida
-                   : negocio == enumNegocio.Almacen
-                   ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen
-                   : enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Cobro;
+            var parametro = ParametroDeGenerarPreasiento(negocio);
 
             var json = enumNegocio.Preasiento.Parametro(parametro, crearParametro: true, valorPorDefecto: _jsonDeSPR_Genera_Preasiento).Valor;
             if (json == _jsonDeSPR_Genera_Preasiento)
@@ -740,6 +734,89 @@ namespace ServicioDeDatos.Contabilidad
                 GestorDeErrores.Emitir($"Error al parsear el json: '{json}' al objeto del tipo '{_jsonDeSPR_Genera_Preasiento}'", ex);
             }
             return null;
+        }
+
+        // ---------- Parámetros contables por sociedad: lectura sin errores (null si no están definidos) y escritura de la entrada de una sociedad ----------
+
+        public static enumParametrosDePreasiento ParametroDeGenerarPreasiento(enumNegocio negocio) =>
+            negocio == enumNegocio.Pago ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Pago
+            : negocio == enumNegocio.FacturaEmitida ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaEmitida
+            : negocio == enumNegocio.FacturaRecibida ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaRecibida
+            : negocio == enumNegocio.Almacen ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen
+            : enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Cobro;
+
+        // Si la sociedad genera preasientos del negocio; null si no está configurado para ella
+        public static bool? GeneraPreasientos(this SociedadDtm sociedad, enumNegocio negocio)
+        {
+            var json = enumNegocio.Preasiento.Parametro(ParametroDeGenerarPreasiento(negocio), crearParametro: true, valorPorDefecto: _jsonDeSPR_Genera_Preasiento).Valor;
+            var relacion = ParsearUsaPreasiento(json).FirstOrDefault(x => x.IdSociedad == sociedad.Id);
+            return relacion is null ? null : relacion.Valor.EsTrue();
+        }
+
+        public static string IdPlanContableDe(this SociedadDtm sociedad)
+        {
+            var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Plan_Contable, crearParametro: true, valorPorDefecto: _jsonDeSPR_Sociedad_PlanContable).Valor;
+            return ParsearPlanesContables(json).FirstOrDefault(x => x.IdSociedad == sociedad.Id)?.IdPlanContable;
+        }
+
+        // Id del CG documental de la sociedad (null si no está configurado); emite un error si el configurado no existe o no es de la sociedad
+        public static int? IdCgDocumentalDe(this SociedadDtm sociedad, ContextoSe contexto)
+        {
+            var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Sociedad_CG_Documental, crearParametro: true, valorPorDefecto: _jsonDeSPR_Sociedad_Cg_Documental).Valor;
+            var idCgDocumental = ParsearCGDocumental(json).FirstOrDefault(x => x.IdSociedad == sociedad.Id)?.IdCgDocumental;
+            if (idCgDocumental is null)
+                return null;
+
+            sociedad.ValidarCgDocumental(contexto, (int)idCgDocumental);
+            return idCgDocumental;
+        }
+
+        // El CG documental donde se crean los lotes contables ha de existir y ser de la sociedad; se valida al leerlo y antes de grabarlo
+        public static CentroGestorDtm ValidarCgDocumental(this SociedadDtm sociedad, ContextoSe contexto, int idCgDocumental)
+        {
+            var cg = contexto.Set<CentroGestorDtm>().FirstOrDefault(x => x.Id == idCgDocumental);
+            if (cg is null)
+                GestorDeErrores.Emitir($"El cg con id '{idCgDocumental}' definido en el parámetro '{enumParametrosDePreasiento.SPR_Sociedad_CG_Documental}' para la sociedad '{sociedad.Expresion}' no existe");
+            if (cg.IdSociedad != sociedad.Id)
+                GestorDeErrores.Emitir($"El cg '{cg.Expresion}' no es de la sociedad '{sociedad.Expresion}'");
+
+            return cg;
+        }
+
+        // Json del parámetro con la entrada de la sociedad creada o actualizada con los campos indicados; null si no cambia
+        public static string JsonDelParametroConLaSociedad(enumParametrosDePreasiento parametro, int idSociedad, Dictionary<string, object> campos)
+        {
+            var json = enumNegocio.Preasiento.Parametro(parametro, crearParametro: true, valorPorDefecto: ValorPorDefectoDelParametroPorSociedad(parametro)).Valor;
+            var original = JArray.Parse(json);
+            var jsonArray = JArray.Parse(json);
+            var item = jsonArray.FirstOrDefault(x => x["IdSociedad"]?.Value<int>() == idSociedad) as JObject;
+            if (item is null)
+            {
+                item = new JObject { ["IdSociedad"] = idSociedad };
+                jsonArray.Add(item);
+            }
+            foreach (var campo in campos)
+                item[campo.Key] = JToken.FromObject(campo.Value);
+
+            var nuevo = jsonArray.ToString(Newtonsoft.Json.Formatting.None);
+            return nuevo == original.ToString(Newtonsoft.Json.Formatting.None) ? null : nuevo;
+        }
+
+        private static string ValorPorDefectoDelParametroPorSociedad(enumParametrosDePreasiento parametro)
+        {
+            switch (parametro)
+            {
+                case enumParametrosDePreasiento.SPR_Plan_Contable: return _jsonDeSPR_Sociedad_PlanContable;
+                case enumParametrosDePreasiento.SPR_Sociedad_CG_Documental: return _jsonDeSPR_Sociedad_Cg_Documental;
+                case enumParametrosDePreasiento.SPR_Contabilizar_En: return _jsonDeSPR_Contabilizar_En;
+                case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Pago:
+                case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaEmitida:
+                case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaRecibida:
+                case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Cobro:
+                case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen:
+                    return _jsonDeSPR_Genera_Preasiento;
+            }
+            throw new Exception($"El parámetro '{parametro}' no se define por sociedad");
         }
 
         public static string CuentaContableDelCobro(this CobroDeFaeDtm cobro, ContextoSe contexto)

@@ -547,6 +547,11 @@
         //const modal: HTMLDivElement = document.getElementById(idModal) as HTMLDivElement;
     }
 
+    // El CG documental donde se crean los lotes contables ha de ser de la sociedad que se está editando
+    export function Sociedad_Antes_De_Buscar_CgDocumental(filtros: Array<ClausulaDeFiltrado>, parametros: Array<Parametro>) {
+        filtros.push(new ClausulaDeFiltrado(ltrPropiedades.Elemento.ConCg.IdSociedadDelCg, literal.filtro.criterio.igual, crudDeSociedad.crudDeEdicion.Id.toString()));
+    }
+
     export function Sociedad_RecargarGridDeArchivos() {
         ApiDeArchivos.MostrarArchivosAnexados(crudDeSociedad.crudDeEdicion.PanelDeArchivos.id, crudDeSociedad.NombreDeNegocio, crudDeSociedad.crudDeEdicion.Registro.id);
         crudDeSociedad.crudDeEdicion.RecargarGridDeTrazas();

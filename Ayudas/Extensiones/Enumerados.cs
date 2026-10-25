@@ -216,6 +216,7 @@ namespace Utilidades
         Sociedad_InicializarModalParaFacturador,
         Sociedad_RecargarGridDeArchivos,
         Sociedad_AbrirAgenda,
+        Sociedad_Antes_De_Buscar_CgDocumental,
 
         CG_Tras_Seleccionar_Responsable,
         CG_Tras_Blanquear_Responsable,
@@ -460,6 +461,7 @@ namespace Utilidades
         Ped_CalcularImportesDeLinea,
         Ped_InicializarModalParaCrearLineas,
         Ped_InicializarModalParaEditarLineas,
+        Obs_OcultarArchivo,
         Ped_Parametros_Para_Seleccionar_Unitarios,
         Ped_FiltrosPorClaseDeUnitario,
         Pedido_Recepcionar,

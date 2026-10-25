@@ -1141,7 +1141,7 @@ namespace GestorDeElementos.Extensores
 
             var cad = new CircuitoDocDtm
             {
-                IdCg = sociedad.IdCgDocumentalDeSpr(),
+                IdCg = sociedad.IdCgDocumentalDeSpr(contexto),
                 IdTipo = tipoCad,
                 Nombre = nombre,
                 Descripcion = descripcion.Left(2000)
@@ -1158,7 +1158,7 @@ namespace GestorDeElementos.Extensores
 
             var cad = new CircuitoDocDtm
             {
-                IdCg = sociedad.IdCgDocumentalDeSpr(),
+                IdCg = sociedad.IdCgDocumentalDeSpr(contexto),
                 IdTipo = tipoCad,
                 Nombre = nombre,
                 Descripcion = descripcion.Left(2000)
@@ -1188,7 +1188,7 @@ namespace GestorDeElementos.Extensores
             }
             var archivador = new ArchivadorDtm
             {
-                IdCg = sociedad.IdCgDocumentalDeSpr(),
+                IdCg = sociedad.IdCgDocumentalDeSpr(contexto),
                 IdTipo = tipoArchivador,
                 Nombre = nombre,
                 Descripcion = descripcion.Left(2000)
