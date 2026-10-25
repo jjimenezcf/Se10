@@ -1700,7 +1700,8 @@ const Ajax = {
             },
             MovimientosDeAlmacen: {
                 ObtenerUrlAlDocumento: 'epObtenerUrlAlDocumento',
-                ObtenerUrlAlProveedor: 'epObtenerUrlAlProveedorDelMovimiento'
+                ObtenerUrlAlProveedor: 'epObtenerUrlAlProveedorDelMovimiento',
+                ObtenerUrlAlPreasiento: 'epObtenerUrlAlPreasiento'
             }
         },
         Contabilidad: {

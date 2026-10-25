@@ -194,6 +194,7 @@ namespace GestoresDeNegocio.Logistica
             var claseDeMovimiento = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento;
             var documento = ObtenerDocumentoDeOrigenODestino(movimiento, claseDeMovimiento);
             elemento.Proveedor = movimiento.Proveedor(Contexto, emitirErrorSiNoEsRecepcion: false)?.Referencia(Contexto) ?? string.Empty;
+            elemento.Preasiento = movimiento.Preasiento(Contexto)?.Referencia ?? string.Empty;
 
             // el almacén no se muestra como destino: en las entradas el destino queda en blanco y en las salidas es el documento.
             // Al pulsar el documento se navega a su edición (ver ExtensorDeAlmacenes.UrlDelDocumento)

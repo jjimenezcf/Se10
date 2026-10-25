@@ -107,6 +107,15 @@ namespace GestorDeElementos.Extensores
             return $"{documento.negocio.Controlador()}/{documento.negocio.VistaMvc(contexto).Accion}?Id={documento.id}";
         }
 
+        // Url de la edición del preasiento contable del movimiento
+        public static string UrlDelPreasiento(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            var preasiento = movimiento.Preasiento(contexto);
+            if (preasiento is null)
+                Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no tiene preasiento contable");
+            return $"{enumNegocio.Preasiento.Controlador()}/{enumNegocio.Preasiento.VistaMvc(contexto).Accion}?Id={preasiento.Id}";
+        }
+
         // Url de la edición del proveedor del pedido cuya recepción generó el movimiento
         public static string UrlDelProveedor(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {

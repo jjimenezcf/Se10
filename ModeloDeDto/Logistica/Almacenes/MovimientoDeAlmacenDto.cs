@@ -42,6 +42,12 @@ namespace ModeloDeDto.Logistica
             , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlProveedor) + "(numeroDeFila)")]
         public string Proveedor { get; set; }
 
+        // Referencia del preasiento contable del movimiento, vacía si no lo tiene (ver GestorDeMovimientosDeAlmacen.DespuesDeMapearElElemento)
+        [IUPropiedad(Etiqueta = "Preasiento", Ayuda = "preasiento contable del movimiento", VisibleEnGrid = true, Obligatorio = false
+            , TipoDeControl = enumTipoControl.Referencia
+            , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlPreasiento) + "(numeroDeFila)")]
+        public string Preasiento { get; set; }
+
         [IUPropiedad(Etiqueta = "Realizado el", Ayuda = "fecha en la que se realizó el movimiento", TipoDeControl = enumTipoControl.SelectorDeFechaHora, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false)]
         public DateTime RealizadoEl { get; set; }
     }

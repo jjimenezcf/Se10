@@ -78,6 +78,29 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        // Url de la edición del preasiento contable del movimiento, para navegar desde la columna del preasiento del grid
+        public JsonResult epObtenerUrlAlPreasiento(string parametrosJson)
+        {
+            var r = new Resultado();
+            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+
+                var idMovimiento = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
+                var movimiento = Contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(idMovimiento);
+                r.Datos = movimiento.UrlDelPreasiento(Contexto);
+                r.Consola = $"Preasiento del movimiento obtenido correctamente";
+                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "No se puede obtener acceso al preasiento del movimiento.");
+            }
+            return new JsonResult(r);
+        }
+
         // Url de la edición del documento (pedido, regularización...) que generó el movimiento, para navegar desde el origen o el destino del grid
         public JsonResult epObtenerUrlAlDocumento(string parametrosJson)
         {
