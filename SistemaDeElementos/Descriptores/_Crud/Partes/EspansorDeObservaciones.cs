@@ -1,4 +1,5 @@
-﻿using ModeloDeDto;
+﻿using GestorDeElementos;
+using ModeloDeDto;
 using ModeloDeDto.Entorno;
 using ModeloDeDto.Negocio;
 using MVCSistemaDeElementos.Controllers;
@@ -56,8 +57,16 @@ namespace MVCSistemaDeElementos.Descriptores
             }
             else
             {
-                expansor.DescriptorDeCrearRelaciones(Padre.Contexto, typeof(ObservacionDto), typeof(ObservacionesController), nameof(ObservacionDto.IdElemento), "Añadir observación");
-                expansor.DescriptorDeEditarRelaciones(Padre.Contexto, typeof(ObservacionDto), typeof(ObservacionesController), "Editar observacion", soloConsulta: false);
+                var modalDeCreacion = expansor.DescriptorDeCrearRelaciones(Padre.Contexto, typeof(ObservacionDto), typeof(ObservacionesController), nameof(ObservacionDto.IdElemento), "Añadir observación");
+                var modalDeEdicion = expansor.DescriptorDeEditarRelaciones(Padre.Contexto, typeof(ObservacionDto), typeof(ObservacionesController), "Editar observacion", soloConsulta: false);
+
+                // el archivo de la observación se vincula al elemento, si su negocio no usa archivos no se puede asociar
+                if (!NegociosDeSe.ToEnumerado(Padre.IdNegocio).UsaArchivos())
+                {
+                    var ocultarArchivo = $"javascript: {enumNameSpaceTs.ApiDelCrud}.{enumFunctionTs.Obs_OcultarArchivo}(this)";
+                    modalDeCreacion.AccionTrasAbrirModal = ocultarArchivo;
+                    modalDeEdicion.AccionTrasAbrirModal = ocultarArchivo;
+                }
             }
         }
 

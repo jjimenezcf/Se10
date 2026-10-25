@@ -87,6 +87,11 @@ namespace GestorDeElementos
         protected override void AntesDePersistir(ObservacionDtm registro, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(registro, parametros);
+
+            // el archivo de la observación se vincula al elemento (ver DespuesDePersistir): su negocio ha de usar archivos
+            if (!parametros.Eliminando && parametros.Parametros.LeerValor(nameof(IUsaArchivo.IdArchivo), 0) > 0 && !Negocio.UsaArchivos())
+                GestorDeErrores.Emitir($"Los elementos del negocio '{Negocio.Singular()}' no admiten archivos, no puede asociar un archivo a la observación");
+
             if (Negocio.UsaBaja())
             {
                 var elemento = gestor.LeerRegistroPorId(registro.IdElemento, false);
@@ -226,7 +231,8 @@ namespace GestorDeElementos
                     elemento.Nombre = elemento.Nombre + ": (" + tareaEnlazada.Referencia + ") " + tareaEnlazada.Nombre;
             }
 
-            if (parametros.LeerPorIdParaEditar)
+            // solo los negocios con tabla de vínculos con archivos pueden tener el fichero asociado a la observación (los preasientos no)
+            if (parametros.LeerPorIdParaEditar && Negocio.UsaArchivos())
             {
                 var padre = Negocio.LeerRegistro(Contexto, elemento.IdElemento);
                 var anexados = padre.LeerAnexados(Contexto);

@@ -1,5 +1,18 @@
 ﻿namespace ApiDelCrud {
 
+    // Acción tras abrir las modales de observaciones de un negocio que no usa archivos (ver EspansorDeObservaciones):
+    // se ocultan el selector del archivo asociado a la observación y el enlace para descargarlo
+    export function Obs_OcultarArchivo(modal: HTMLDivElement): void {
+        [ltrPropiedades.Elemento.IdArchivo, ltrPropiedades.Elemento.Accion].forEach(propiedad => {
+            modal.querySelectorAll<HTMLElement>(`[${atControl.propiedad}="${propiedad}"]`).forEach(control => {
+                if (control instanceof HTMLAnchorElement)
+                    ApiControl.OcultarHtmlAnchor(control, true);
+                else
+                    ApiControl.OcultarControlSi(control, true);
+            });
+        });
+    }
+
     // Deja todos los filtros del mantenimiento en su estado inicial: inicializa los controles de las modales de filtrado
     // y de los bloques del panel de filtro (aplicando su valor por defecto), quita la pregunta activa de la IA y las marcas "con-filtro".
     export function BlanquearFiltros(): void {

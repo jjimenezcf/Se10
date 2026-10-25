@@ -2850,6 +2850,7 @@ const ltrPropiedades = {
         EsInterventor: 'esinterventor',
         EsGestor: 'esgestor',
         IdArchivo: 'idArchivo',
+        Accion: 'accion',
         IdCreador: 'idCreador',
         Textos: 'textos',
         FitrarPorBaja: 'filtrarporbaja',
