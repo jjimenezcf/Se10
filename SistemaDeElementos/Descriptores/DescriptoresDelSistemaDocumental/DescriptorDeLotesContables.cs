@@ -17,6 +17,7 @@ namespace MVCSistemaDeElementos.Descriptores
     {
         public DescriptorDeLotesContables(ContextoSe contexto, string renderCache) : base(contexto,renderCache)
         {
+            Etiqueta = VariablesDeCircuitosDoc.LotesContables;
         }
 
         public DescriptorDeLotesContables(ContextoSe contexto, ModoDescriptor modo)
@@ -27,6 +28,7 @@ namespace MVCSistemaDeElementos.Descriptores
                , rutaBase: enumNameSpaceTs.SistemaDocumental
                , eliminarCreacion: true)
         {
+            Etiqueta = VariablesDeCircuitosDoc.LotesContables;
             Mnt.OrdenacionInicial = $"{nameof(CircuitoDocDto.Referencia)}:{nameof(CircuitoDocDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
             Mnt.Filtro.FiltroDeNombre.CambiarAtributos("Varios", nameof(ltrDeUnLoteContable.BuscarPorLotePreasiento), "nombre del lote (l:) o referencia del preasiento (p:)");
 

@@ -124,6 +124,9 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public NegocioDtm NegocioDtm { get; internal set; }
 
+        // la vista usa Etiqueta como título de la página: con negocio es su plural y sin él se deja el indicado
+        private string TituloDeLaPagina(string tituloPorDefecto) => Negocio == enumNegocio.No_Definido ? tituloPorDefecto : Negocio.Plural();
+
 
         public static DescriptorDeCrud<TElemento> CrearDescriptor(ContextoSe contexto, ModoDescriptor modo, Func<DescriptorDeCrud<TElemento>> constructor, int vecesEjecutado = 0)
         {
@@ -145,7 +148,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Contexto = contexto;
             // la vista usa Etiqueta como título de la página: sin ella, al servir desde la caché, el navegador muestra la url en la pestaña
-            Etiqueta = typeof(TElemento).Name.Replace("Dto", "");
+            Etiqueta = TituloDeLaPagina(typeof(TElemento).Name.Replace("Dto", ""));
 
             if (renderCache.StartsWith("<input id=error>"))
             {
@@ -238,6 +241,7 @@ namespace MVCSistemaDeElementos.Descriptores
             Controlador = controlador.Replace(ltrEndPoint.Controller, "");
             Vista = vista;
             Modo = modo;
+            if (titulo.IsNullOrEmpty()) Etiqueta = TituloDeLaPagina(Etiqueta);
 
             NegocioDtm = Negocio == enumNegocio.No_Definido ? null : GestorDeNegocios.LeerNegocio(contexto, Negocio);
         }
@@ -272,6 +276,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             Negocio = NegociosDeSe.NegocioDeUnDto(typeof(TElemento));
             NegocioDtm = Negocio == enumNegocio.No_Definido ? null : GestorDeNegocios.LeerNegocio(contexto, NegociosDeSe.NegocioDeUnDto(typeof(TElemento)));
+            Etiqueta = TituloDeLaPagina(Etiqueta);
 
             DefinirColumnasDelGrid();
             Historial = typeof(TElemento).ImplementaProcesoDto() && Modo == ModoDescriptor.Mantenimiento

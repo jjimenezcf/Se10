@@ -15,7 +15,8 @@ namespace ModeloDeDto.Contabilidad
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(Nombre), OpcionDeCrear = false, OpcionDeBorrar = false, OpcionDeEnviar = false, OpcionDeTransitar = false)]
     public class CierreContableDto : ElmentoAuditadoDto
     {
-        [IUPropiedad(Etiqueta = "Cierre", Ayuda = "cierre contable", VisibleEnGrid = true, Ordenar = true, PorAnchoMnt = 25)]
+        // AutoSpan: en la edición ocupa las columnas vacías (sociedad y lote solo se ven en el grid) hasta la fecha desde
+        [IUPropiedad(Etiqueta = "Cierre", Ayuda = "cierre contable", VisibleEnGrid = true, Ordenar = true, PorAnchoMnt = 25, AutoSpan = true)]
         public string Nombre { get; set; }
 
         //----------------------------------------------

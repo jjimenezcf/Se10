@@ -18,6 +18,7 @@ namespace MVCSistemaDeElementos.Descriptores
     {
         public DescriptorDeEstimacionesDirectas(ContextoSe contexto, string renderCache) : base(contexto,renderCache)
         {
+            Etiqueta = VariablesDeCircuitosDoc.EstimacionesDirectas;
         }
 
         public DescriptorDeEstimacionesDirectas(ContextoSe contexto, ModoDescriptor modo)
@@ -28,6 +29,7 @@ namespace MVCSistemaDeElementos.Descriptores
                , rutaBase: enumNameSpaceTs.SistemaDocumental
                , eliminarCreacion: true)
         {
+            Etiqueta = VariablesDeCircuitosDoc.EstimacionesDirectas;
             Mnt.OrdenacionInicial = $"{nameof(CircuitoDocDto.Referencia)}:{nameof(CircuitoDocDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
 
             Mnt.Etiqueta = $"Gestión de {VariablesDeCircuitosDoc.EstimacionesDirectas.ToLower()} ";

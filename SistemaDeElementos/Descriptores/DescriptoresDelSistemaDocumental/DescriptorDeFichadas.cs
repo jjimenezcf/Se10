@@ -11,6 +11,7 @@ namespace MVCSistemaDeElementos.Descriptores
     {
         public DescriptorDeFichadas(ContextoSe contexto, string renderCache) : base(contexto,renderCache)
         {
+            Etiqueta = VariablesDeCircuitosDoc.Fichadas;
         }
 
         public DescriptorDeFichadas(ContextoSe contexto, ModoDescriptor modo)
@@ -21,6 +22,7 @@ namespace MVCSistemaDeElementos.Descriptores
                , rutaBase: enumNameSpaceTs.SistemaDocumental
                , eliminarCreacion: true)
         {
+            Etiqueta = VariablesDeCircuitosDoc.Fichadas;
             Mnt.OrdenacionInicial = $"{nameof(CircuitoDocDto.Referencia)}:{nameof(CircuitoDocDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
 
             Mnt.Etiqueta = $"Gestión de {VariablesDeCircuitosDoc.Fichadas.ToLower()}";
