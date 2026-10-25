@@ -76,7 +76,7 @@
 
         public ModalDePedirDatos_TrasAbrir(modal: HTMLDivElement): void {
             super.ModalDePedirDatos_TrasAbrir(modal);
-            if (modal.id === this.ModalContabilizar.id) {
+            if (modal.id === this.ModalContabilizar?.id) {
                 var ejercicioCrtl = ApiControl.BuscarEditor(this.ModalContabilizar, ltrPropiedades.Contabilidad.CrearLote.Ejercicio);
                 ejercicioCrtl.value = new Date().getFullYear().toString();
                 var check = ApiControl.BuscarCheck(this.ModalContabilizar, ltrPropiedades.Contabilidad.CrearLote.Descontabilizar);
@@ -89,7 +89,7 @@
             let parametros: Array<Parametro> = new Array<Parametro>();
             ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
 
-            if (modal.id === (Crud.crudMnt as CrudDeLotesContables).ModalContabilizar.id) {
+            if (modal.id === (Crud.crudMnt as CrudDeLotesContables).ModalContabilizar?.id) {
                 parametros.push(new Parametro(Ajax.Param.filtro, Crud.crudMnt.ObtenerFiltros(ltrOperacion.CargarDatos)));
                 ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Contabilidad.Preasientos.CrearLoteContable, parametros, datosDeEntrada)
                     .then((peticion) => {

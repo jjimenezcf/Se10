@@ -276,6 +276,12 @@ namespace Utilidades
         Preasiento_IrAlLoteContable,
         Preasiento_IrAlOrigenDeLaFila,
 
+        CierreContable_IrALaSociedad,
+        CierreContable_IrAlLote,
+        CierreContable_TrasSeleccionarSociedad,
+        CierreContable_TrasBlanquearSociedad,
+        CierreContable_TrasCambiarContabilidad,
+
         Cli_InicializarModalParaCrearCuentas,
         Cli_RecargarGridDeArchivos,
         Cli_RecargarGridDeTrazas,
@@ -972,6 +978,9 @@ namespace Utilidades
         public const string Spr_CrearLoteConUnPreasiento = "contabilizar-preasiento";
         public const string Spr_RegenerarPreasiento = "regenerar-preasiento";
         public const string Spr_AnularEstimacionDirecta = "anular-estimacion";
+
+        public const string Ccc_CrearCierre = "crear-cierre";
+        public const string Ccc_EliminarCierre = "eliminar-cierre";
 
         public const string Uni_ImportarCatalogo = "importar-catalogo-unitarios";
         public const string Uni_ImportarTarifa = "importar-tarifa";

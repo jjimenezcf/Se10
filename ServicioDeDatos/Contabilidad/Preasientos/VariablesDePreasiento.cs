@@ -286,6 +286,56 @@ namespace ServicioDeDatos.Contabilidad
             return contabilizarEn;
         }
 
+        // Dígitos de las cuentas auxiliares de ContaSol cuando no se indican en el parámetro SPR_Contabilizar_En
+        public const int DigitosPorDefectoDeContasol = 8;
+
+        // Ncs siempre trabaja con cuentas de 11 dígitos
+        public const int DigitosDeNcs = 11;
+
+        // Sistema contable configurado para la sociedad y dígitos de sus cuentas; (null, 0) si la sociedad no tiene sistema contable
+        public static (enumSistemaContable? sistema, int digitos) SistemaYDigitosParaContabilizar(this SociedadDtm sociedad)
+        {
+            var contabilizarEn = sociedad.ContabilizarEn(errorSiNoDefinido: false);
+            if (contabilizarEn is null)
+                return (null, 0);
+
+            var sistema = contabilizarEn.SistemaContable();
+            if (sistema == enumSistemaContable.NCS)
+                return (sistema, DigitosDeNcs);
+
+            return (sistema, contabilizarEn.Digitos > 0 ? contabilizarEn.Digitos : DigitosPorDefectoDeContasol);
+        }
+
+        // Sistema contable al que apunta el método configurado (la estimación directa también es de Ncs)
+        public static enumSistemaContable SistemaContable(this ContabilizarEn contabilizarEn) =>
+            contabilizarEn?.Metodo == MetodoParaContabilizar(enumSistemaContable.ContaSol) ? enumSistemaContable.ContaSol : enumSistemaContable.NCS;
+
+        public static string MetodoParaContabilizar(this enumSistemaContable sistema) =>
+            sistema == enumSistemaContable.ContaSol ? "ContabilizarEnContasol" : "ContabilizarEnNcs";
+
+        // Json del parámetro SPR_Contabilizar_En con la sociedad apuntando al sistema contable y dígitos indicados (los dígitos solo se guardan
+        // para ContaSol, Ncs siempre usa 11); null si ya estaba así configurada
+        public static string JsonParaContabilizarEn(this SociedadDtm sociedad, enumSistemaContable sistema, int digitos)
+        {
+            var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Contabilizar_En, valorPorDefecto: _jsonDeSPR_Contabilizar_En).Valor;
+            var actual = ParsearContabilizarEn(json).FirstOrDefault(x => x.IdSociedad == sociedad.Id);
+            if (actual is not null && actual.SistemaContable() == sistema && (sistema == enumSistemaContable.NCS || actual.Digitos == digitos))
+                return null;
+
+            var jsonArray = JArray.Parse(json);
+            var item = jsonArray.FirstOrDefault(x => x["IdSociedad"]?.Value<int>() == sociedad.Id) as JObject;
+            if (item is null)
+            {
+                item = new JObject { ["IdSociedad"] = sociedad.Id };
+                jsonArray.Add(item);
+            }
+            item["Metodo"] = sistema.MetodoParaContabilizar();
+            item["Nombre"] = sistema.Descripcion();
+            if (sistema == enumSistemaContable.ContaSol)
+                item["Digitos"] = digitos > 0 ? digitos : DigitosPorDefectoDeContasol;
+            return jsonArray.ToString(Newtonsoft.Json.Formatting.None);
+        }
+
         public static RegenerarLotePara RegenerarLotePara(this SociedadDtm sociedad)
         {
             var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_RegenerarLote_Para, valorPorDefecto: _jsonDeSPR_RegenerarLote_Para).Valor;

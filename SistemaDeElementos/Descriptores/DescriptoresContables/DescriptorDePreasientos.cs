@@ -30,14 +30,15 @@ namespace MVCSistemaDeElementos.Descriptores
             modalesParaPedirDatos.Add(new ModalDeTotales(this, typeof(TotalesPorCuenta), eventosDeMf.Totalizador_Mostrar, $"{ltrTotalizador.Menu_MostrarTotales} de la selección"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Totalizador_Mostrar}' accion-menu='{eventosDeMf.Totalizador_Mostrar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>{ltrTotalizador.Menu_MostrarTotales}</li>");
 
-            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CrearLoteContableDto), eventosDeMf.Spr_CrearLote, ltrDeUnPreasiento.Menu_CrearLoteContable));
-            Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Spr_CrearLote}' accion-menu='{eventosDeMf.Spr_CrearLote}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>{ltrDeUnPreasiento.Menu_CrearLoteContable}</li>");
+            // Los lotes contables se crean desde el negocio de cierres contables (Realizar cierre), ya no desde los preasientos
+            //modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CrearLoteContableDto), eventosDeMf.Spr_CrearLote, ltrDeUnPreasiento.Menu_CrearLoteContable));
+            //Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Spr_CrearLote}' accion-menu='{eventosDeMf.Spr_CrearLote}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>{ltrDeUnPreasiento.Menu_CrearLoteContable}</li>");
 
             var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
             if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
             {
                 Editor.IncluirMfIndividual(ltrDeUnPreasiento.Menu_RegenerarPreasiento, eventosDeMf.Spr_RegenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
-                Editor.IncluirMfIndividual(ltrDeUnPreasiento.Menu_CrearLoteContable, eventosDeMf.Spr_CrearLoteConUnPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+                //Editor.IncluirMfIndividual(ltrDeUnPreasiento.Menu_CrearLoteContable, eventosDeMf.Spr_CrearLoteConUnPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
             }
             var modal = new ModalDeFiltrado<PreasientoDto>(Mnt.Filtro, "filtrosDelSpr", "Datos de preasientos");
             Mnt.Filtro.Modales.Add(modal);

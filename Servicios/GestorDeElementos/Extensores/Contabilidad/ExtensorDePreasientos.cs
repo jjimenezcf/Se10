@@ -327,7 +327,8 @@ namespace GestorDeElementos.Extensores
                 IdCg = recibida.IdCg,
                 IdTipo = recibida.IdTipoPreasiento(contexto),
                 Nombre = recibida.Nombre,
-                Ejercicio = recibida.FacturadaEl.Year,
+                // el ejercicio es el de la fecha contable, no el de la factura, para que el cierre de ese periodo la traspase
+                Ejercicio = recibida.ContabilizadaEl.Fecha().Year,
                 CodigoDiario = tipoDePreasiento.CodigoDeDiario(contexto),
                 SociedadContable = recibida.Sociedad(contexto).CodigoContable,
                 NegocioReferenciado = enumNegocio.FacturaRecibida,
@@ -482,17 +483,19 @@ namespace GestorDeElementos.Extensores
 
             VariablesDePreasiento.ValidarNaturalezasContables();
 
+            // la factura emitida se contabiliza con la fecha de emisión (la de devengo, FacturadaEl, puede ser anterior)
+            var fechaContable = ((DateTime)emitida.EmitidaEl).Date;
             emitida.Preasiento = new PreasientoDtm
             {
                 IdCg = emitida.IdCg,
                 IdTipo = emitida.IdTipoPreasiento(contexto),
                 Nombre = emitida.Nombre,
-                Ejercicio = ((DateTime)emitida.FacturadaEl).Year,
+                Ejercicio = fechaContable.Year,
                 CodigoDiario = tipoDePreasiento.CodigoDeDiario(contexto),
                 SociedadContable = emitida.Sociedad(contexto).CodigoContable,
                 NegocioReferenciado = enumNegocio.FacturaEmitida,
                 IdReferenciado = emitida.Id,
-                FechaContable = emitida.FacturadaEl.Fecha()
+                FechaContable = fechaContable
             }.InsertarComoAdministrador(contexto);
 
             emitida.IdPreasiento = emitida.Preasiento.Id;

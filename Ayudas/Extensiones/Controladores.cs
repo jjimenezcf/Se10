@@ -180,7 +180,8 @@ namespace Utilidades
         IvasSoportado,
         IvasRepercutido,
         Irpfs,
-        Preasientos
+        Preasientos,
+        CierresContables
     }
 
     public enum enumControladoresTerceros
@@ -545,6 +546,7 @@ namespace Utilidades
         public const string MaestrosDePreasientos = nameof(MaestrosDePreasientos);
         public const string CrudPreasientos = nameof(CrudPreasientos);
         public const string TiposDePreasiento = nameof(TiposDePreasiento);
+        public const string CrudCierresContables = nameof(CrudCierresContables);
     }
 
 

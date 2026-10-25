@@ -91,7 +91,8 @@ enum enumNegocio {
     Pedido = 'Pedido',
     Preasiento = 'Preasiento',
     Almacen = 'Almacen',
-    Regularizacion = 'Regularizacion'
+    Regularizacion = 'Regularizacion',
+    CierreContable = 'CierreContable'
 }
 
 const literal = {
@@ -514,7 +515,8 @@ const ltrControladores = {
     },
     Contabilidad: {
         Cuentas: 'Cuentas',
-        Preasientos: 'Preasientos'
+        Preasientos: 'Preasientos',
+        CierresContables: 'CierresContables'
     },
     Terceros: {
         Sociedad: {
@@ -1706,6 +1708,10 @@ const Ajax = {
                 ObtenerUrlAlOrigen: 'epObtenerUrlAlOrigen',
                 ObtenerUrlAlLoteContable: 'epObtenerUrlAlLoteContable',
                 CrearLoteContable: 'epCrearLoteContable'
+            },
+            CierresContables: {
+                CrearCierre: 'epCrearCierre',
+                EliminarCierre: 'epEliminarCierre'
             }
         },
         Guarderias: {
@@ -2007,6 +2013,7 @@ const ltrUrls = {
     SistemaDocumental: {
         Archivadores: 'Archivadores/CrudArchivadores',
         Carpetas: 'Carpetas/CrudCarpetas',
+        LotesContables: 'CircuitosDoc/CrudLotesContables',
         Descargar: `${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.Descargar}`,
     },
     Administracion: {
@@ -3042,6 +3049,24 @@ const ltrPropiedades = {
             Descontabilizar: 'descontabilizar',
             RespetarFechaContable: 'RespetarFechaContable',
             FechaContable: 'FechaContable'
+        },
+        CierreContable: {
+            IdSociedad: 'IdSociedad',
+            IdLote: 'IdLote',
+            EsElUltimoCierre: 'EsElUltimoCierre'
+        },
+        CrearCierre: {
+            IdSociedad: 'IdSociedad',
+            Sociedad: 'Sociedad',
+            UltimoCierre: 'UltimoCierre',
+            CerrarHasta: 'CerrarHasta',
+            Contabilidad: 'Contabilidad',
+            Digitos: 'Digitos',
+            SistemaContable: 'SistemaContable',
+            FechaUltimoCierre: 'FechaUltimoCierre',
+            SinSeleccionar: '-1',
+            Ncs: 'NCS',
+            ContaSol: 'ContaSol'
         }
     },
     Terceros: {
@@ -4226,6 +4251,10 @@ const ltrMenus = {
                 LoteTerceros: 'lote-terceros',
                 ContabilizarPreasiento: 'contabilizar-preasiento',
                 RegenerarPreasiento: 'regenerar-preasiento'
+            },
+            CierresContables: {
+                CrearCierre: 'crear-cierre',
+                EliminarCierre: 'eliminar-cierre'
             }
         },
         Guarderias: {

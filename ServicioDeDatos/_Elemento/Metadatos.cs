@@ -230,7 +230,8 @@ namespace ServicioDeDatos.Elemento
         internal const string FORMA_DE_PAGO = nameof(FORMA_DE_PAGO);
         internal const string FORMA_DE_COBRO = nameof(FORMA_DE_COBRO);
         internal const string PREASIENTO = nameof(PREASIENTO);
-        
+        internal const string CIERRE_CONTABLE = nameof(CIERRE_CONTABLE);
+
 
         internal const string PRESUPUESTO = nameof(PRESUPUESTO);
         internal const string PARTE_TR = nameof(PARTE_TR);
@@ -745,6 +746,7 @@ namespace ServicioDeDatos.Elemento
         public const string ENTREGAR_EL = nameof(ENTREGAR_EL);
         public const string RECIBIDO_EL = nameof(RECIBIDO_EL);
         public const string CERRADO_EL = nameof(CERRADO_EL);
+        public const string CERRADA_EL = nameof(CERRADA_EL);
 
         public const string ENTREGADA_EL = nameof(ENTREGADA_EL);
         public const string ENVIADA_EL = nameof(ENVIADA_EL);

@@ -112,6 +112,11 @@ namespace GestoresDeNegocio.Contabilidad
                     GestorDeErrores.Emitir($"Antes de preasentar el '{preasiento.Referenciado(Contexto).Referencia}', del negocio '{spr.NegocioReferenciado}' ha de cancelar el existente, '{preasiento.Referencia}'");
                 }
 
+                // no se puede contabilizar con fecha anterior al último cierre de la sociedad; se deja constancia en una traza tras insertarlo
+                var fechaDelDocumento = GestorDeCierresContables.AjustarFechaContableAlUltimoCierre(Contexto, spr);
+                if (fechaDelDocumento is not null)
+                    parametros.Parametros[ltrDeUnPreasiento.FechaContableDelDocumento] = fechaDelDocumento;
+
                 //var ejercicioValido = preasiento.Ejercicio == DateTime.Now.Year || (preasiento.Ejercicio == DateTime.Now.Year - 1 && DateTime.Now.Month < 6);
 
                 //if (!ejercicioValido)
@@ -124,6 +129,11 @@ namespace GestoresDeNegocio.Contabilidad
         protected override void DespuesDePersistir(PreasientoDtm spr, ParametrosDeNegocio parametros)
         {
             base.DespuesDePersistir(spr, parametros);
+
+            var fechaDelDocumento = parametros.Parametros.LeerValor<DateTime?>(ltrDeUnPreasiento.FechaContableDelDocumento, null);
+            if (parametros.Insertando && fechaDelDocumento is not null)
+                spr.CrearTraza(Contexto, "Fecha contable ajustada al último cierre",
+                    $"La fecha del documento '{fechaDelDocumento:dd/MM/yyyy}' es anterior al último cierre de la sociedad, se contabiliza con fecha '{spr.FechaContable:dd/MM/yyyy}'");
         }
 
         protected override PreasientoDtm AntesDeTransitar(PreasientoDtm spr, TransicionDtm transicion, Dictionary<string, object> parametros)

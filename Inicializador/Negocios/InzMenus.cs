@@ -507,6 +507,10 @@ namespace SistemaDeElementos.Inicializador
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Irpf, descripcion: "Irpf", icono: "irpf.svg", padre, vista: enumVistas.Contabilidad.Irpfs, orden: 15);
 
             GestorDeMenus.CrearMenuSiNoExiste(gestor
+                , nombre: enumVistas.Contabilidad.CierresContables
+                , descripcion: $"Gestión de {enumVistas.Contabilidad.CierresContables.ToLower()}"
+                , icono: enumNegocio.CierreContable.Icono(), padre: ModuloContable, vista: enumVistas.Contabilidad.CierresContables, orden: 40);
+            GestorDeMenus.CrearMenuSiNoExiste(gestor
                 , nombre: enumVistas.Contabilidad.Preasientos
                 , descripcion: $"Gestión de {enumNegocio.Preasiento.Plural()}"
                 , icono: enumNegocio.Preasiento.Icono(), padre: ModuloContable, vista: enumVistas.Contabilidad.Preasientos, orden: 45);

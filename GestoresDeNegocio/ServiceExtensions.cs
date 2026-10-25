@@ -234,6 +234,7 @@ public static class ServiceExtensions
         services.AddScoped<GestorDeIvasSoportado>();
         services.AddScoped<GestorDeIrpfs>();
         services.AddScoped<GestorDePreasientos>();
+        services.AddScoped<GestorDeCierresContables>();
     }
 
     public static void ConfigurePresupuestos(this IServiceCollection services)

@@ -1,4 +1,6 @@
 ﻿using GestorDeElementos;
+using GestorDeElementos.Extensores;
+using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos;
 using System.Linq;
 using System.Collections.Generic;
@@ -95,6 +97,54 @@ namespace GestoresDeNegocio.Terceros
 
             return consulta;
         }
+
+        // Sociedades gestionadas (con centros gestores) que no son de autónomos. Equivale a !SociedadDtm.Autonomo pero traducible a SQL:
+        // es de autónomo si el NIF empieza por dígito (9 caracteres) o es ES + dígito (11 caracteres)
+        public static IQueryable<SociedadDtm> FiltrarPorSociedadesGestionadasNoAutonomas(this IQueryable<SociedadDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(ltrDeSociedad.FiltroParaSociedadesGestionadasNoAutonomas).ToLower());
+            if (filtro != null)
+            {
+                consulta = GestionadasNoAutonomas(consulta, contexto);
+                if (!filtro.Valor.EsTrue())
+                {
+                    consulta = filtroInternoPorExpresion(consulta, filtro);
+                }
+
+                filtro.Aplicado = true;
+            }
+
+            return consulta;
+        }
+
+        // Sociedades que se pueden cerrar contablemente: gestionadas, no de autónomos y de las que el usuario conectado es interventor.
+        // Ser interventor no es traducible a SQL, así que se resuelve en memoria sobre las candidatas y se filtra por sus ids
+        public static IQueryable<SociedadDtm> FiltrarPorSociedadesACerrar(this IQueryable<SociedadDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(ltrDeSociedad.FiltroParaSociedadesACerrar).ToLower());
+            if (filtro != null)
+            {
+                var intervenidas = GestionadasNoAutonomas(contexto.Set<SociedadDtm>(), contexto).ToList()
+                    .Where(s => s.EsInterventor(contexto))
+                    .Select(s => s.Id)
+                    .ToList();
+
+                consulta = consulta.Where(soc => intervenidas.Contains(soc.Id));
+                if (!filtro.Valor.EsTrue())
+                {
+                    consulta = filtroInternoPorExpresion(consulta, filtro);
+                }
+
+                filtro.Aplicado = true;
+            }
+
+            return consulta;
+        }
+
+        private static IQueryable<SociedadDtm> GestionadasNoAutonomas(IQueryable<SociedadDtm> consulta, ContextoSe contexto) =>
+            consulta.Where(soc => contexto.Set<CentroGestorDtm>().Any(cg => cg.IdSociedad == soc.Id) &&
+                                  !EF.Functions.Like(soc.NIF.Trim(), "[0-9]________") &&
+                                  !EF.Functions.Like(soc.NIF.Trim(), "ES[0-9]________"));
 
         public static IQueryable<SociedadDtm> FiltrarPorSociedadesGestionadas(this IQueryable<SociedadDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
         {

@@ -44,7 +44,10 @@ namespace GestorDeElementos.Extensores.Contabilidad
             RespetarFechacontable = respetarFechaContable;
             Ejercicio = fechaContable is null ? ejercicio : ((DateTime)fechaContable).Year;
 
+            // si no se indican los dígitos en el parámetro, se usan los de por defecto de ContaSol
             Digitos = sociedad.ContabilizarEn().Digitos;
+            if (Digitos == 0)
+                Digitos = VariablesDePreasiento.DigitosPorDefectoDeContasol;
             if (Digitos < 4 || Digitos > 10)
                 GestorDeErrores.Emitir($"Ha de indicar en el parámetro '{enumParametrosDePreasiento.SPR_Contabilizar_En}' de la sociedad '{sociedad.NIF}' los dígitos de las cuentas de ContaSol (\"Digitos\": entre 4 y 10)");
 

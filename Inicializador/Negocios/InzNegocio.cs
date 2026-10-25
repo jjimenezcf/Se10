@@ -136,6 +136,7 @@ namespace SistemaDeElementos.Inicializador
 
                     //Módulo de gestión contable
                     GestorDeNegocios.CrearNegocioSiNoExiste(gestor, enumNegocio.Preasiento, enumNegocio.Preasiento.Plural(), typeof(PreasientoDtm), typeof(PreasientoDto), enumNegocio.Preasiento.Icono(), esDeParametrizacion: false, usaCg: true, usaSeguridad: true);
+                    GestorDeNegocios.CrearNegocioSiNoExiste(gestor, enumNegocio.CierreContable, enumNegocio.CierreContable.Plural(), typeof(CierreContableDtm), typeof(CierreContableDto), enumNegocio.CierreContable.Icono(), esDeParametrizacion: false, usaCg: false, usaSeguridad: false);
 
                     //Módulo de guarderias
                     GestorDeNegocios.CrearNegocioSiNoExiste(gestor, enumNegocio.Infante, enumNegocio.Infante.Plural(), typeof(InfanteDtm), typeof(InfanteDto), enumNegocio.Infante.Icono(), esDeParametrizacion: false, usaCg: false, usaSeguridad: true);

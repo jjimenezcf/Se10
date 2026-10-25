@@ -35,10 +35,11 @@ namespace MVCSistemaDeElementos.Descriptores
             Editor.PermiteConsultasConGuid = false;
 
 
-            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CrearLoteContableDto), eventosDeMf.Spr_CrearLote, ltrDeUnPreasiento.Menu_CrearLoteContable));
-            Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Spr_CrearLote}' accion-menu='{eventosDeMf.Spr_CrearLote}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>{ltrDeUnPreasiento.Menu_CrearLoteContable}</li>");
-            Editor.IncluirMfIndividual("Anular lote contable", eventosDeMf.Spr_AnularLote, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
-            Editor.IncluirMfIndividual("Regenerar lote contable", eventosDeMf.Spr_RegenerarLote, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+            // Los lotes contables se crean y se anulan desde el negocio de cierres contables (Realizar cierre / Eliminar cierre)
+            //modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CrearLoteContableDto), eventosDeMf.Spr_CrearLote, ltrDeUnPreasiento.Menu_CrearLoteContable));
+            //Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Spr_CrearLote}' accion-menu='{eventosDeMf.Spr_CrearLote}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>{ltrDeUnPreasiento.Menu_CrearLoteContable}</li>");
+            //Editor.IncluirMfIndividual("Anular lote contable", eventosDeMf.Spr_AnularLote, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+            //Editor.IncluirMfIndividual("Regenerar lote contable", eventosDeMf.Spr_RegenerarLote, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
 
 
             DefinirDescriptorDePreasientos();

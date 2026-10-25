@@ -221,6 +221,7 @@ namespace SistemaDeElementos.Inicializador
             public static readonly string TipoDePreasiento = $"Tipos de {enumNegocio.Preasiento.Singular().ToLower()}";
             public static readonly string MaestrosDePreasientos = $"Maestros de {enumNegocio.Preasiento.Plural().ToLower()}";
             public static readonly string Preasientos = enumNegocio.Preasiento.Plural();
+            public static readonly string CierresContables = "Cierres contables";
         }
 
         public static class Guarderias
@@ -443,6 +444,7 @@ namespace SistemaDeElementos.Inicializador
             gestor.CrearVistaSiNoExiste(enumVistas.Contabilidad.MaestrosDePreasientos, enumControladoresContables.Preasientos, enumVistasContables.MaestrosDePreasientos, true, null);
             gestor.CrearVistaSiNoExiste(enumVistas.Contabilidad.TipoDePreasiento, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.Preasiento), true, typeof(TipoDePreasientoDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.Contabilidad.Preasientos, enumControladoresContables.Preasientos, enumVistasContables.CrudPreasientos, false, typeof(PreasientoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Contabilidad.CierresContables, enumControladoresContables.CierresContables, enumVistasContables.CrudCierresContables, false, typeof(CierreContableDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.SistemaDocumental.EstimacionesDirectas, enumControladoresSistemaDocumental.CircuitosDoc, enumVistasSistemaDocumental.CrudEstimacionesDirectas, false, typeof(CircuitoDocDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.SistemaDocumental.LotesContables, enumControladoresSistemaDocumental.CircuitosDoc, enumVistasSistemaDocumental.CrudLotesContables, false, typeof(CircuitoDocDto).FullName);
         }

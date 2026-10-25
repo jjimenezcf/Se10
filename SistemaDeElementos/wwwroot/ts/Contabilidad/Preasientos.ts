@@ -63,7 +63,7 @@
             let parametros: Array<Parametro> = new Array<Parametro>();
             ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
 
-            if (modal.id === (Crud.crudMnt as CrudDePreasientos).ModalContabilizar.id) {
+            if (modal.id === (Crud.crudMnt as CrudDePreasientos).ModalContabilizar?.id) {
                 parametros.push(new Parametro(Ajax.Param.filtro, Crud.crudMnt.ObtenerFiltros(ltrOperacion.CargarDatos)));
                 ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Contabilidad.Preasientos.CrearLoteContable, parametros, datosDeEntrada)
                     .then((peticion) => {

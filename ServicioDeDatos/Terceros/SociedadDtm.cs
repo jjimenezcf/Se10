@@ -16,6 +16,8 @@ namespace ServicioDeDatos.Terceros
     {
         public const string FiltroParaSociedadesDeClientes = nameof(FiltroParaSociedadesDeClientes);
         public const string FiltroParaSociedadesGestionadas = nameof(FiltroParaSociedadesGestionadas);
+        public const string FiltroParaSociedadesGestionadasNoAutonomas = nameof(FiltroParaSociedadesGestionadasNoAutonomas);
+        public const string FiltroParaSociedadesACerrar = nameof(FiltroParaSociedadesACerrar);
         public const string CentroGestorDeClientesWeb = "Clientes WEB";
         public const string CentroGestorDeDocumentacion = "Documentacion del sistema";
         public const string CodigoCgClienteWeb = "WEB";

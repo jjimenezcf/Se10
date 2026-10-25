@@ -28,6 +28,9 @@ namespace ServicioDeDatos.Contabilidad
 
         public const string Menu_CrearLoteContable = "Crear lote contable";
         public const string Menu_RegenerarPreasiento = "Regenerar preasiento";
+
+        // fecha del documento cuando al crear el preasiento se ha ajustado su fecha contable a la del último cierre
+        public const string FechaContableDelDocumento = nameof(FechaContableDelDocumento);
     }
 
     public class ltrTrazasDeUnPreasiento

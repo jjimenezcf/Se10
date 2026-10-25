@@ -528,6 +528,8 @@ namespace ServicioDeDatos
             ModeloContable.IvasSoportados(modelBuilder);
             ModeloContable.Irpfs(modelBuilder);
             ModeloContable.CuentasBancarias(modelBuilder);
+            ModeloContable.CierresContables(modelBuilder);
+            ModeloContable.AuditoriaDeCierresContables(modelBuilder);
 
             ModeloDePreasiento.EstadosDeUnPreasiento(modelBuilder);
             ModeloDePreasiento.TransicionesDeUnPreasiento(modelBuilder);

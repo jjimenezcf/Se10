@@ -61,6 +61,7 @@ namespace GestoresDeNegocio.Contabilidad
                 ExportarTercerosNcs(generadorNcs, circuito, terceros);
 
                 EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudLotesContables);
+                entorno.Salida[nameof(CierreContableDtm.IdLote)] = circuito.Id;
             }
             finally
             {
@@ -97,6 +98,7 @@ namespace GestoresDeNegocio.Contabilidad
                 AnexarLoteContasol(contextoDeLaAccion, circuito, generador, terceros);
 
                 EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudLotesContables);
+                entorno.Salida[nameof(CierreContableDtm.IdLote)] = circuito.Id;
             }
             finally
             {
@@ -178,6 +180,14 @@ namespace GestoresDeNegocio.Contabilidad
                 Valor = VariablesDePreasiento.Estados(enumEtapasDePreasiento.SPR_Etapa_Pendiente) + $"{(descontabilizar ? $",{VariablesDePreasiento.Estados(enumEtapasDePreasiento.SPR_Etapa_Contabilizado)}" : "")}"
             });
             var preasientos = contextoDeLaAccion.SeleccionarTodos<PreasientoDtm>(filtros).OrderBy(x => x.NegocioReferenciado).ThenBy(x => x.IdReferenciado).ToList();
+
+            // en un cierre contable solo se traspasan los preasientos con fecha contable desde el último cierre (incluida) hasta la fecha de cierre (no incluida)
+            var cerrarHasta = entorno.Entrada.LeerValor<DateTime?>(nameof(CrearCierreContableDto.CerrarHasta), null);
+            if (cerrarHasta is not null)
+                preasientos = preasientos.Where(p => p.FechaContable.Date < ((DateTime)cerrarHasta).Date).ToList();
+            var cerrarDesde = entorno.Entrada.LeerValor<DateTime?>(nameof(CierreContableDto.Desde), null);
+            if (cerrarDesde is not null)
+                preasientos = preasientos.Where(p => p.FechaContable.Date >= ((DateTime)cerrarDesde).Date).ToList();
             var preasientosParaTransitar = new List<PreasientoDtm>();
 
             if (descontabilizar)

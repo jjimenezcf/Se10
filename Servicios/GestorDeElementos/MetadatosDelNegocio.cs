@@ -196,6 +196,9 @@ namespace GestorDeElementos
                 case enumNegocio.Preasiento:
                     metadatos = MetadatosDePreasientos();
                     break;
+                case enumNegocio.CierreContable:
+                    metadatos = MetadatosDeCierresContables();
+                    break;
                 case enumNegocio.Cliente:
                     metadatos = MetadatosDeClientes();
                     break;
@@ -400,6 +403,24 @@ namespace GestorDeElementos
             TipoEtapas = typeof(enumEtapasDePreasiento),
             EstadosDeLaEtapa = etapa => VariablesDePreasiento.Lista((enumEtapasDePreasiento)etapa),
             DireccionesDtm = null
+        };
+
+        // Sin tipo ni flujo: solo tiene la tabla de auditoría
+        public static Metadatos MetadatosDeCierresContables() => new Metadatos
+        {
+            TipoDto = null,
+            TipoDtm = null,
+            EstadoDtm = null,
+            HitosDtm = null,
+            ObservacionesDtm = null,
+            TrazaDtm = null,
+            ArchivadoresDtm = null,
+            ArchivosDtm = null,
+            DireccionesDtm = null,
+            TipoParametros = null,
+            TipoEtapas = null,
+            EstadosDeLaEtapa = etapa => new List<int>(),
+            PlantillasPorTipoDtm = null
         };
 
         public static Metadatos MetadatosDeExpedientes() => new Metadatos

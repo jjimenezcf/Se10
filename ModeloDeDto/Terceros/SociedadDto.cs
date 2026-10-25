@@ -381,5 +381,16 @@ namespace ModeloDeDto.Terceros
         [IUPropiedad(Visible = false)]
         public string TipoDeTercero { get; set; }
 
+        //----------------------------------------------------------------
+        // Solo se rellenan al seleccionar la sociedad para un cierre contable (ver GestorDeSociedades.DespuesDeMapearElElemento)
+        [IUPropiedad(Visible = false)]
+        public string SistemaContable { get; set; }
+
+        [IUPropiedad(Visible = false)]
+        public int Digitos { get; set; }
+
+        [IUPropiedad(Visible = false)]
+        public System.DateTime? FechaUltimoCierre { get; set; }
+
     }
 }

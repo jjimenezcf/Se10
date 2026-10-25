@@ -1206,6 +1206,53 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Contabilidad.AuditoriaDeUnCierreContableDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AuditadoEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("AUDITADO_EL");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_USUARIO");
+
+                    b.Property<string>("Operacion")
+                        .IsRequired()
+                        .HasColumnType("CHAR(1)")
+                        .HasColumnName("OPERACION");
+
+                    b.Property<string>("registroJson")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(MAX)")
+                        .HasColumnName("REGISTRO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_CIERRE_CONTABLE_AUDITORIA_ID_ELEMENTO");
+
+                    b.HasIndex("IdUsuario")
+                        .HasDatabaseName("I_CIERRE_CONTABLE_AUDITORIA_ID_USUARIO");
+
+                    b.ToTable("CIERRE_CONTABLE_AUDITORIA", "CONTABILIDAD", t =>
+                        {
+                            t.HasTrigger("CIERRE_CONTABLE_AUDITORIA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Contabilidad.AuditoriaDeUnPreasientoDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -1248,6 +1295,79 @@ namespace Migraciones.Migrations
                     b.ToTable("PREASIENTO_AUDITORIA", "CONTABILIDAD", t =>
                         {
                             t.HasTrigger("PREASIENTO_AUDITORIA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Contabilidad.CierreContableDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CerradaEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("CERRADA_EL");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECCRE");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECMOD");
+
+                    b.Property<int>("IdLote")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LOTE");
+
+                    b.Property<int>("IdSociedad")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_SOCIEDAD");
+
+                    b.Property<int>("IdUsuaCrea")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CREADOR");
+
+                    b.Property<int?>("IdUsuaModi")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_MODIFICADOR");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("NOMBRE");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdLote")
+                        .IsUnique()
+                        .HasDatabaseName("I_CIERRE_CONTABLE_ID_LOTE");
+
+                    b.HasIndex("IdSociedad")
+                        .HasDatabaseName("I_CIERRE_CONTABLE_ID_SOCIEDAD");
+
+                    b.HasIndex("IdUsuaCrea")
+                        .HasDatabaseName("I_CIERRE_CONTABLE_ID_CREADOR");
+
+                    b.HasIndex("IdUsuaModi")
+                        .HasDatabaseName("I_CIERRE_CONTABLE_ID_MODIFICADOR");
+
+                    b.HasIndex("Nombre")
+                        .HasDatabaseName("I_CIERRE_CONTABLE_NOMBRE");
+
+                    b.ToTable("CIERRE_CONTABLE", "CONTABILIDAD", t =>
+                        {
+                            t.HasTrigger("CIERRE_CONTABLE_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -31644,6 +31764,44 @@ namespace Migraciones.Migrations
                     b.Navigation("Preasiento");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Contabilidad.CierreContableDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.CircuitoDocDtm", "Lote")
+                        .WithMany()
+                        .HasForeignKey("IdLote")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIERRE_CONTABLE_ID_LOTE");
+
+                    b.HasOne("ServicioDeDatos.Terceros.SociedadDtm", "Sociedad")
+                        .WithMany()
+                        .HasForeignKey("IdSociedad")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIERRE_CONTABLE_ID_SOCIEDAD");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaCrea")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CIERRE_CONTABLE_ID_CREADOR");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioModificador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaModi")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_CIERRE_CONTABLE_ID_MODIFICADOR");
+
+                    b.Navigation("Lote");
+
+                    b.Navigation("Sociedad");
+
+                    b.Navigation("UsuarioCreador");
+
+                    b.Navigation("UsuarioModificador");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Contabilidad.CircuitoDocDeUnPreasientoDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Contabilidad.PreasientoDtm", "Preasiento")
@@ -36383,7 +36541,7 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_ALMACEN");
 
-                    b.HasOne("ServicioDeDatos.Logistica.RecepcionDeLineaDtm", null)
+                    b.HasOne("ServicioDeDatos.Logistica.RecepcionDeLineaDtm", "LineaDeRecepcion")
                         .WithMany()
                         .HasForeignKey("IdLineaDeRecepcion")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -36423,6 +36581,8 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_MODIFICADOR");
 
                     b.Navigation("Almacen");
+
+                    b.Navigation("LineaDeRecepcion");
 
                     b.Navigation("Preasiento");
 

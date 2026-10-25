@@ -2,6 +2,7 @@
 using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
+using GestoresDeNegocio.Contabilidad;
 using GestoresDeNegocio.Juridico.Procedimiento;
 using GestoresDeNegocio.Venta.Factura;
 using GestoresDeNegocio.Ventas;
@@ -121,6 +122,13 @@ namespace GestoresDeNegocio.Terceros
             consulta = consulta.FiltrarPorConCertificados(Contexto, filtros);
             consulta = consulta.FiltrarPorSerInterlocutor(Contexto, filtros);
             consulta = consulta.FiltrarPorSociedadesGestionadas(Contexto, filtros);
+            consulta = consulta.FiltrarPorSociedadesGestionadasNoAutonomas(Contexto, filtros);
+            consulta = consulta.FiltrarPorSociedadesACerrar(Contexto, filtros);
+
+            // se anota que la lectura es para un cierre contable para devolver al mapear su sistema contable y dígitos
+            if (filtros.Any(f => f.Clausula.ToLower() == ltrDeSociedad.FiltroParaSociedadesACerrar.ToLower()))
+                parametros.Parametros[ltrDeSociedad.FiltroParaSociedadesACerrar] = true;
+
             return consulta;
         }
         protected override IQueryable<SociedadDtm> AplicarSeguridad(IQueryable<SociedadDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
@@ -293,6 +301,16 @@ namespace GestoresDeNegocio.Terceros
             base.DespuesDeMapearElElemento(sociedad, elemento, parametros);
 
             elemento.TipoDeTercero = ApiDeTerceros.TipoDeTerceroEsp(sociedad.NIF).ToString();
+
+            // al seleccionarla para un cierre contable se devuelve el sistema contable configurado y sus dígitos (Ncs siempre 11)
+            if (parametros.Parametros.LeerValor(ltrDeSociedad.FiltroParaSociedadesACerrar, false))
+            {
+                var (sistema, digitos) = sociedad.SistemaYDigitosParaContabilizar();
+                elemento.SistemaContable = sistema?.ToString();
+                elemento.Digitos = digitos;
+                elemento.FechaUltimoCierre = GestorDeCierresContables.FechaDelUltimoCierre(Contexto, sociedad.Id);
+            }
+
             if (parametros.Parametros.LeerValor(ltrParametrosNeg.ObtenerDatosFiscales, false))
                 elemento.DireccionFiscal = sociedad.DireccionFiscal(Contexto).Expresion;
 
