@@ -6,14 +6,17 @@ using ModeloDeDto;
 using ModeloDeDto.Contabilidad;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.TrabajosSometidos;
+using ServicioDeDatos.Ventas;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using Utilidades;
 
@@ -32,7 +35,9 @@ namespace GestoresDeNegocio.Contabilidad
         [Description("Crear cierre contable")]
         CrearCierreContable,
         [Description("Eliminar cierre contable")]
-        EliminarCierreContable
+        EliminarCierreContable,
+        [Description("Activar preasientos de la sociedad")]
+        ActivarPreasientosDeLaSociedad
     }
 
     public class TrabajosContables
@@ -65,6 +70,183 @@ namespace GestoresDeNegocio.Contabilidad
             sociedad.ValidarCuentasDeTesoreriaParaContasol(contexto);
 
             return SometerLoteContable(contexto, enumTrabajosContables.CrearCierreContable, idSociedad, ejercicio, descontabilizar: false, respetarFechaContable: true, fechaContable: null, filtros: "", cerrarHasta: cerrarHasta.Date);
+        }
+
+        //------------------------------------------------------------------------ activar los preasientos de una clase en una sociedad
+
+        // Al activar en SPR_Generar_Preasiento_De_xxx los preasientos de un negocio para una sociedad, se preasientan sus documentos que no
+        // tienen preasiento (ver ActivacionDePreasientos). Antes de someterlo se valida que estén definidos los parámetros que se necesitan
+        // para generarlos; si no hay documentos que preasentar no se somete. Las sociedades autónomas no usan preasientos
+        public static void ValidarActivarPreasientosDeLaSociedad(ContextoSe contexto, int idSociedad, enumNegocio negocio)
+        {
+            var sociedad = contexto.SeleccionarPorId<SociedadDtm>(idSociedad);
+            if (sociedad.Autonomo)
+                return;
+
+            var faltan = ActivacionDePreasientos.ParametrosQueFaltan(contexto, sociedad, negocio, ActivacionDePreasientos.DocumentosSinPreasiento(contexto, idSociedad, negocio));
+            if (faltan.Count > 0)
+                GestorDeErrores.Emitir($"No se pueden activar los preasientos de {negocio.Plural(enMinusculas: true)} de la sociedad '{sociedad.Expresion}', falta por definir: {string.Join("; ", faltan)}");
+        }
+
+        public static TrabajoDeUsuarioDtm SometerActivarPreasientosDeLaSociedad(ContextoSe contexto, int idSociedad, enumNegocio negocio)
+        {
+            if (contexto.SeleccionarPorId<SociedadDtm>(idSociedad).Autonomo || ActivacionDePreasientos.DocumentosSinPreasiento(contexto, idSociedad, negocio).Count == 0)
+                return null;
+
+            ValidarActivarPreasientosDeLaSociedad(contexto, idSociedad, negocio);
+            return SometerActivacion(contexto, idSociedad, new List<enumNegocio> { negocio });
+        }
+
+        // Se relanza desde la información contable de la sociedad cuando la última activación terminó con errores, una vez subsanados:
+        // vuelve a preasentar los documentos sin preasiento de todos los negocios que la sociedad tiene activados
+        public static TrabajoDeUsuarioDtm SometerRelanzarActivacionDePreasientos(ContextoSe contexto, int idSociedad)
+        {
+            var sociedad = contexto.SeleccionarPorId<SociedadDtm>(idSociedad);
+            if (sociedad.Autonomo)
+                GestorDeErrores.Emitir($"La sociedad '{sociedad.Expresion}' es de estimación directa y no genera preasientos");
+
+            var negocios = ActivacionDePreasientos.NegociosConPreasientosPorActivar(contexto, sociedad).ToList();
+            if (negocios.Count == 0)
+                GestorDeErrores.Emitir($"La sociedad '{sociedad.Expresion}' no tiene documentos pendientes de preasentar");
+
+            foreach (var negocio in negocios)
+                ValidarActivarPreasientosDeLaSociedad(contexto, idSociedad, negocio);
+
+            return SometerActivacion(contexto, idSociedad, negocios);
+        }
+
+        private static TrabajoDeUsuarioDtm SometerActivacion(ContextoSe contexto, int idSociedad, List<enumNegocio> negocios)
+        {
+            var trabajo = enumTrabajosContables.ActivarPreasientosDeLaSociedad;
+            var dll = Assembly.GetExecutingAssembly().GetName().Name;
+            var clase = typeof(TrabajosContables).FullName;
+            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, trabajo.Descripcion(), dll, clase, trabajo.ToString(), comunicarFin: true);
+
+            var parametrosEntrada = new Dictionary<string, object> {
+                { nameof(SociedadDtm.Id), idSociedad },
+                { NegociosAActivar, string.Join(",", negocios) }
+            };
+            var datosDeCreacion = new Dictionary<string, object>
+            {
+                    { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() }
+            };
+            return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion);
+        }
+
+        private const string NegociosAActivar = nameof(NegociosAActivar);
+
+        // Cada documento se preasienta en su propia transacción: si uno falla se anota y se sigue con los demás. Los preasientos con fecha contable
+        // anterior a la del último cierre (o al 1 de enero si no hay cierres) se dan por contabilizados. Al terminar deja en la sociedad la traza
+        // con el resultado por negocio; si hay errores, la información contable de la sociedad ofrece relanzarlo
+        public static void ActivarPreasientosDeLaSociedad(EntornoDeTrabajo entorno)
+        {
+            var contexto = entorno.contextoDelProceso;
+            Dictionary<string, object> parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
+            var idSociedad = Convert.ToInt32(parametros.LeerValor<long>(nameof(SociedadDtm.Id)));
+            // los trabajos sometidos antes de poder activar varios negocios a la vez traen uno solo
+            var negocios = parametros.LeerValor<string>(NegociosAActivar, parametros.LeerValor<string>(nameof(PreasientoDtm.NegocioReferenciado), ""))
+                .ToLista<string>(separador: ",")
+                .Select(n => ApiDeEnsamblados.ToEnumerado<enumNegocio>(n))
+                .ToList();
+            var sociedad = contexto.SeleccionarPorId<SociedadDtm>(idSociedad);
+
+            var resultado = new List<string>();
+            var conErrores = false;
+            var cierreEnCurso = GestorDeCierresContables.CierreEnCursoHasta(contexto, idSociedad);
+            if (cierreEnCurso is not null)
+            {
+                entorno.CrearTraza($"Se está realizando el cierre de la sociedad '{sociedad.Expresion}' hasta el '{cierreEnCurso:dd/MM/yyyy}', vuelva a someter el trabajo cuando termine");
+                resultado.Add($"no se ha procesado por estar realizándose el cierre de la sociedad hasta el '{cierreEnCurso:dd/MM/yyyy}'");
+                conErrores = true;
+            }
+            else
+            {
+                var cerradaHasta = GestorDeCierresContables.FechaDelUltimoCierre(contexto, idSociedad);
+                foreach (var negocio in negocios)
+                {
+                    var (correctos, erroneos) = ActivarPreasientosDelNegocio(entorno, contexto, sociedad, negocio, cerradaHasta);
+                    if (erroneos > 0)
+                        conErrores = true;
+                    resultado.Add(erroneos == 0
+                        ? $"preasientos de {negocio.Plural(enMinusculas: true)} generados: {correctos}"
+                        : $"preasientos de {negocio.Plural(enMinusculas: true)}: correctos {correctos}, con errores {erroneos}");
+                }
+            }
+
+            resultado.Insert(0, conErrores ? ltrDeUnPreasiento.ActivacionConErrores : ltrDeUnPreasiento.ActivacionTodoCorrecto);
+            sociedad.CrearTraza(contexto, ltrDeUnPreasiento.TrazaDeActivacionDePreasientos, string.Join(Environment.NewLine, resultado));
+            AnotarElTrabajoEnLaSociedad(entorno, contexto, sociedad);
+        }
+
+        // Como en la emisión de facturas: observación de administrador en la sociedad con la url del trabajo, numerada por las veces que se ha
+        // lanzado. Es informativa: si falla no afecta a los preasientos generados
+        private static void AnotarElTrabajoEnLaSociedad(EntornoDeTrabajo entorno, ContextoSe contexto, SociedadDtm sociedad)
+        {
+            try
+            {
+                var lanzado = enumNegocio.Sociedad.Observaciones(contexto)
+                    .Count(o => o.IdElemento == sociedad.Id && o.Nombre.StartsWith(ltrDeUnPreasiento.ObservacionTrabajoDeActivacion)) + 1;
+                var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+                {
+                    Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
+                    Query = $"id={entorno.TrabajoDeUsuario.Id}"
+                }.Uri.ToString();
+                sociedad.CrearObservacion(contexto, $"{ltrDeUnPreasiento.ObservacionTrabajoDeActivacion} ({lanzado})", urlDelTrabajo,
+                    new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+            }
+            catch (Exception e)
+            {
+                entorno.CrearTraza($"No se ha podido crear la observación '{ltrDeUnPreasiento.ObservacionTrabajoDeActivacion}' en la sociedad '{sociedad.Expresion}': {e.Message}");
+            }
+        }
+
+        // Devuelve cuántos documentos del negocio se han preasentado y cuántos han fallado
+        private static (int correctos, int erroneos) ActivarPreasientosDelNegocio(EntornoDeTrabajo entorno, ContextoSe contexto, SociedadDtm sociedad, enumNegocio negocio, DateTime cerradaHasta)
+        {
+            if (!sociedad.UsaPreasientos(contexto, negocio))
+            {
+                entorno.CrearTraza($"La sociedad '{sociedad.Expresion}' ya no genera preasientos de {negocio.Plural(enMinusculas: true)}, no se hace nada");
+                return (0, 0);
+            }
+
+            var documentos = ActivacionDePreasientos.DocumentosSinPreasiento(contexto, sociedad.Id, negocio);
+            entorno.CrearTraza($"{negocio.Plural()} de la sociedad '{sociedad.Expresion}' sin preasiento: {documentos.Count}; los de fecha contable anterior al '{cerradaHasta:dd/MM/yyyy}' se dan por contabilizados");
+
+            var pendientes = 0;
+            var contabilizados = 0;
+            var erroneos = 0;
+            foreach (var documento in documentos)
+            {
+                var tran = contexto.IniciarTransaccion();
+                try
+                {
+                    var preasiento = ActivacionDePreasientos.Preasentar(contexto, documento, negocio);
+                    if (preasiento is null)
+                        GestorDeErrores.Emitir("no se ha generado el preasiento");
+
+                    if (preasiento.FechaContable < cerradaHasta)
+                    {
+                        preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Contabilizado.EstadosDeLaEtapa(),
+                            new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } }, delSistema: true);
+                        preasiento.CrearTraza(contexto, "Contabilizado al activar los preasientos",
+                            $"Preasiento creado al activar los preasientos de la sociedad; su fecha contable '{preasiento.FechaContable:dd/MM/yyyy}' es anterior al último cierre '{cerradaHasta:dd/MM/yyyy}' y se da por contabilizado");
+                        contabilizados++;
+                    }
+                    else
+                        pendientes++;
+
+                    contexto.Commit(tran);
+                }
+                catch (Exception e)
+                {
+                    contexto.Rollback(tran);
+                    entorno.AnotarError(ActivacionDePreasientos.Referencia(contexto, documento), e.Message);
+                    erroneos++;
+                }
+            }
+
+            entorno.CrearTraza($"Preasientos de {negocio.Plural(enMinusculas: true)} creados: {pendientes + contabilizados} ({contabilizados} dados por contabilizados y {pendientes} pendientes de contabilizar); con errores: {erroneos}");
+            return (pendientes + contabilizados, erroneos);
         }
 
         private static void ValidarRangoDelEjercicio(int ejercicio)

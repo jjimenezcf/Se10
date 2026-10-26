@@ -233,6 +233,7 @@
             if (this.EsLaAmpliacionDe(ampliacion, ltrAmpliaciones.sociedades.informacionContable)) {
                 this.BloquearPreasientosActivos(ampliacion);
                 InicializarDigitos(ampliacion);
+                AjustarRelanzarActivacionDePreasientos(ampliacion);
             }
         }
 
@@ -622,6 +623,37 @@
             digitos.value = '';
             digitos.readOnly = true;
         }
+    }
+
+    //------------------------------------------------------------------------ información contable: relanzar la activación de preasientos
+    // La acción lleva en su href si se puede relanzar la activación de preasientos (AccionRef con [PuedeRelanzarActivacionDePreasientos]): solo se
+    // muestra en ese caso y si el usuario puede editar la información contable
+    function AjustarRelanzarActivacionDePreasientos(ampliacion: HTMLDivElement) {
+        let informacion = ltrPropiedades.Terceros.Sociedad.InformacionContable;
+        let relanzar = ApiControl.BuscarReferencia(ampliacion, informacion.RelanzarActivacionDePreasientos);
+        if (!Definido(relanzar))
+            return;
+
+        let lista = ApiControl.BuscarListaDeValores(ampliacion, informacion.Contabilidad);
+        let conErrores = relanzar.href.includes('(true)');
+        ApiControl.OcultarHtmlAnchor(relanzar, !conErrores || !Definido(lista) || lista.disabled);
+    }
+
+    export function Sociedad_Relanzar_Activacion_De_Preasientos(conErrores: boolean) {
+        if (!conErrores)
+            return;
+
+        let edicion = crudDeSociedad.crudDeEdicion;
+        let parametros: Array<Parametro> = new Array<Parametro>();
+        parametros.push(new Parametro(literal.id, edicion.Id));
+        ApiDePeticiones.EjecutarPeticion(edicion, ltrControladores.Terceros.InformacionContableDeSociedad, Ajax.EndPoint.Terceros.InformacionContable.RelanzarActivacionDePreasientos, parametros, new Array<Parametro>())
+            .then((peticion) => {
+                MensajesSe.Info(peticion.resultado.mensaje);
+                let relanzar = ApiControl.BuscarReferencia(AmpliacionDeInformacionContable(), ltrPropiedades.Terceros.Sociedad.InformacionContable.RelanzarActivacionDePreasientos);
+                if (Definido(relanzar))
+                    ApiControl.OcultarHtmlAnchor(relanzar, true);
+            })
+            .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
     }
 
     function DigitosPropuestosDeContaSol(): number {

@@ -2,6 +2,7 @@
 using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
+using GestoresDeNegocio.Contabilidad;
 using Microsoft.AspNetCore.Mvc;
 using ModeloDeDto.Terceros;
 using Newtonsoft.Json;
@@ -29,7 +30,12 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
 
-                var informacion = Contexto.SeleccionarPorId<SociedadDtm>(idElemento).InformacionContable(Contexto);
+                var sociedad = Contexto.SeleccionarPorId<SociedadDtm>(idElemento);
+                var informacion = sociedad.InformacionContable(Contexto);
+                // además de tras una activación con errores, se puede relanzar si hay negocios activados con documentos sin preasiento
+                // (esto se calcula aquí porque ActivacionDePreasientos está en GestoresDeNegocio)
+                if (informacion is not null && !informacion.PuedeRelanzarActivacionDePreasientos && informacion.ModoDeAcceso == enumModoDeAccesoDeDatos.Gestor)
+                    informacion.PuedeRelanzarActivacionDePreasientos = ActivacionDePreasientos.HayPreasientosPorActivar(Contexto, sociedad);
                 r.Datos = informacion;
                 r.ModoDeAcceso = (informacion?.ModoDeAcceso ?? enumModoDeAccesoDeDatos.SinPermiso).Render();
                 r.Estado = enumEstadoPeticion.Ok;
@@ -39,6 +45,34 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 ApiController.PrepararError(e, r, "No se ha podido leer la información contable de la sociedad.");
+            }
+
+            return new JsonResult(r);
+        }
+
+        // Vuelve a someter la activación de los preasientos de la sociedad cuando la última terminó con errores (ya subsanados por el usuario)
+        public JsonResult epRelanzarActivacionDePreasientos(string parametrosJson)
+        {
+            var r = new Resultado();
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var parametros = parametrosJson.ToDiccionarioDeParametros();
+                var sociedad = Contexto.SeleccionarPorId<SociedadDtm>((int)parametros.LeerValor<long>(ltrParametrosEp.id));
+                if (sociedad.ModoDeAccesoALaInformacionContable(Contexto) != enumModoDeAccesoDeDatos.Gestor)
+                    GestorDeErrores.Emitir($"No puede relanzar la activación de los preasientos de la sociedad '{sociedad.Expresion}': ha de poder parametrizar y ser gestor de la sociedad");
+
+                TrabajosContables.SometerRelanzarActivacionDePreasientos(Contexto, sociedad.Id);
+
+                Contexto.Commit(tran);
+                r.Estado = enumEstadoPeticion.Ok;
+                r.Mensaje = $"Se ha sometido el trabajo de '{enumTrabajosContables.ActivarPreasientosDeLaSociedad.Descripcion()}', al terminar deja el resultado en las trazas de la sociedad";
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "No se ha podido relanzar la activación de los preasientos de la sociedad.");
             }
 
             return new JsonResult(r);

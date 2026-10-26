@@ -12,6 +12,7 @@ using Gestor.Errores;
 using ServicioDeDatos.Ventas;
 using ServicioDeDatos.Terceros;
 using ServicioDeDatos.Contabilidad;
+using GestoresDeNegocio.Contabilidad;
 
 namespace GestoresDeNegocio.Negocio
 {
@@ -59,6 +60,39 @@ namespace GestoresDeNegocio.Negocio
                 GestorDeErrores.Emitir($"El nombre del parámetro '{((ParametroDeNegocioDtm)parametros.registroEnBd).Nombre}' no se puede cambiar por el usuario");
 
             ValidarQueNoSeDesactivaLaGeneracionDePreasientos(parametro, parametros);
+            ValidarLaActivacionDePreasientos(parametro, parametros);
+        }
+
+        // Sociedades que pasan a generar preasientos del negocio del parámetro: antes de grabar se valida que se puedan generar los de sus
+        // documentos sin preasiento y se guardan para someter tras grabar el trabajo que los genera
+        private const string SociedadesQueActivanPreasientos = nameof(SociedadesQueActivanPreasientos);
+
+        private void ValidarLaActivacionDePreasientos(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)
+        {
+            if (parametros.Eliminando || parametro.IdNegocio != enumNegocio.Preasiento.IdNegocio())
+                return;
+
+            var negocio = VariablesDePreasiento.NegocioDelParametroDeGenerarPreasiento(parametro.Nombre);
+            if (negocio is null)
+                return;
+
+            var anterior = parametros.Insertando ? null : ((ParametroDeNegocioDtm)parametros.registroEnBd)?.Valor;
+            var activadas = VariablesDePreasiento.SociedadesQueEmpiezanAGenerarPreasientos(anterior, parametro.Valor);
+            foreach (var idSociedad in activadas)
+                TrabajosContables.ValidarActivarPreasientosDeLaSociedad(Contexto, idSociedad, (enumNegocio)negocio);
+
+            parametros.Parametros[SociedadesQueActivanPreasientos] = activadas;
+        }
+
+        private void SometerLaActivacionDePreasientos(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)
+        {
+            var activadas = parametros.Parametros.LeerValor<List<int>>(SociedadesQueActivanPreasientos, null);
+            if (activadas is null || activadas.Count == 0)
+                return;
+
+            var negocio = (enumNegocio)VariablesDePreasiento.NegocioDelParametroDeGenerarPreasiento(parametro.Nombre);
+            foreach (var idSociedad in activadas)
+                TrabajosContables.SometerActivarPreasientosDeLaSociedad(Contexto, idSociedad, negocio);
         }
 
         // Una vez que una sociedad genera preasientos de un negocio no se puede desactivar, ni desde la interface ni por proceso:
@@ -88,6 +122,7 @@ namespace GestoresDeNegocio.Negocio
         protected override void DespuesDePersistir(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)
         {
             base.DespuesDePersistir(parametro, parametros);
+            SometerLaActivacionDePreasientos(parametro, parametros);
         }
 
         protected override void EliminarCaches(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)

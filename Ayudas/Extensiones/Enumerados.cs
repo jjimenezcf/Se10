@@ -219,6 +219,7 @@ namespace Utilidades
         Sociedad_Antes_De_Buscar_CgDocumental,
         Sociedad_Tras_Cambiar_Contabilidad,
         Sociedad_Tras_Salir_De_Digitos,
+        Sociedad_Relanzar_Activacion_De_Preasientos,
 
         CG_Tras_Seleccionar_Responsable,
         CG_Tras_Blanquear_Responsable,
@@ -581,6 +582,7 @@ namespace Utilidades
         public const string CerrarFiltro = "cerrar-filtro";
         public const string AplicarFiltro = "aplicar-filtro";
         public const string AbrirFiltro = "abrir-filtro";
+        public const string LimpiarFiltro = "limpiar-filtro";
         public const string TeclaPulsada = "tecla-pulsada";
     }
 

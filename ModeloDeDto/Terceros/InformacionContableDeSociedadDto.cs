@@ -104,5 +104,24 @@ namespace ModeloDeDto.Terceros
 
         [IUPropiedad(Etiqueta = "Preasientos de almacén", Ayuda = "Genera preasientos de las entradas de almacén", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 4)]
         public bool GenerarAlmacen { get; set; }
+
+        //------------------------------------------------------------------------------------------- fila 2: relanzar la activación de preasientos
+        // la última activación de preasientos terminó con errores (su traza en la sociedad) o hay negocios activados con documentos sin
+        // preasiento (lo completa InformacionContableDeSociedadController); no se pinta, la usa la acción
+        [IUPropiedad(Visible = false)]
+        public bool PuedeRelanzarActivacionDePreasientos { get; set; }
+
+        // solo se muestra si se puede relanzar (ver Sociedades.ts); resomete el trabajo ActivarPreasientosDeLaSociedad
+        [IUPropiedad(
+            Etiqueta = "Relanzar la activación de preasientos",
+            Ayuda = "hay documentos de negocios activados sin preasiento (o la última activación terminó con errores), una vez subsanado vuelva a generarlos",
+            TipoDeControl = enumTipoControl.Referencia,
+            css = enumCssControles.RefApilado,
+            EnConsultaOcultar = true,
+            AccionRef = "javascript:" + nameof(enumNameSpaceTs.Terceros) + "." + nameof(enumFunctionTs.Sociedad_Relanzar_Activacion_De_Preasientos) + "([" + nameof(PuedeRelanzarActivacionDePreasientos) + "])",
+            Obligatorio = false,
+            Fila = 2,
+            Columna = 0)]
+        public string RelanzarActivacionDePreasientos { get; }
     }
 }

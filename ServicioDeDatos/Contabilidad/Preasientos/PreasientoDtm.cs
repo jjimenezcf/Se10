@@ -15,6 +15,14 @@ namespace ServicioDeDatos.Contabilidad
         public const string Accion_AnularPreasiento = nameof(Accion_AnularPreasiento);
         public const string FiltroDeEjercicioAnterior = nameof(FiltroDeEjercicioAnterior);
         public const string FiltroSinReferencia = nameof(FiltroSinReferencia);
+        // al activar los preasientos de una sociedad se crean los de documentos antiguos: no se ajusta su fecha contable al último cierre
+        public const string GenerandoPreasientosAntiguos = nameof(GenerandoPreasientosAntiguos);
+        // traza que deja en la sociedad el trabajo de activar sus preasientos; si contiene ActivacionConErrores se puede relanzar
+        public const string TrazaDeActivacionDePreasientos = "Resultado de: Activación de Preasientos";
+        public const string ActivacionTodoCorrecto = "todo correcto";
+        public const string ActivacionConErrores = "ejecución con errores";
+        // observación de administrador en la sociedad con la url del trabajo, numerada por las veces que se ha lanzado: "... (n)"
+        public const string ObservacionTrabajoDeActivacion = "Trabajo de generación de preasientos";
 
         public const string IdFacturaRecibida = nameof(IdFacturaRecibida);
         public const string IdFacturaEmitida = nameof(IdFacturaEmitida);

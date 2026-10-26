@@ -767,6 +767,10 @@ namespace ServicioDeDatos.Contabilidad
                 .ToList();
         }
 
+        // Sociedades que en el json nuevo generan preasientos ("S") y en el anterior no (otro valor o sin entrada); la entrada 0 es la plantilla
+        public static List<int> SociedadesQueEmpiezanAGenerarPreasientos(string jsonAnterior, string jsonNuevo) =>
+            SociedadesQueDejanDeGenerarPreasientos(jsonNuevo, jsonAnterior);
+
         // Si la sociedad genera preasientos del negocio; null si no está configurado para ella
         public static bool? GeneraPreasientos(this SociedadDtm sociedad, enumNegocio negocio)
         {

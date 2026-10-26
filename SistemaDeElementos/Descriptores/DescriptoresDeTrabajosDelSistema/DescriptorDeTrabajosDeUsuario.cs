@@ -92,7 +92,6 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private void DefinirMf(string idMenu, List<string> opciones)
         {
-            DescriptorDeEdicion<TrabajoDeUsuarioDto>.IncluirMfIndividual(opciones, "<hr>");
             DescriptorDeEdicion<TrabajoDeUsuarioDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.1' accion-menu='{eventosDeMfDeTrabajos.MfEjecutar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Ejecutar trabajo</li>");
             DescriptorDeEdicion<TrabajoDeUsuarioDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.2' accion-menu='{eventosDeMfDeTrabajos.MfBloquear}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Bloquear</li>");
             DescriptorDeEdicion<TrabajoDeUsuarioDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.3' accion-menu='{eventosDeMfDeTrabajos.MfDesbloquear}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Desbloquear</li>");

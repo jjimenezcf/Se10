@@ -466,8 +466,19 @@ namespace GestorDeElementos.Extensores
                 GenerarCobros = sociedad.GeneraPreasientos(enumNegocio.Cobro) ?? false,
                 GenerarPagos = sociedad.GeneraPreasientos(enumNegocio.Pago) ?? false,
                 GenerarAlmacen = sociedad.GeneraPreasientos(enumNegocio.Almacen) ?? false,
+                PuedeRelanzarActivacionDePreasientos = sociedad.ActivacionDePreasientosConErrores(contexto),
                 ModoDeAcceso = modoDeAcceso
             };
+        }
+
+        // La última traza del trabajo de activar los preasientos de la sociedad indica que terminó con errores
+        public static bool ActivacionDePreasientosConErrores(this SociedadDtm sociedad, ContextoSe contexto)
+        {
+            var ultima = enumNegocio.Sociedad.Trazas(contexto)
+                .Where(t => t.IdElemento == sociedad.Id && t.Nombre == ltrDeUnPreasiento.TrazaDeActivacionDePreasientos)
+                .OrderByDescending(t => t.Id)
+                .FirstOrDefault();
+            return ultima?.Descripcion?.Contains(ltrDeUnPreasiento.ActivacionConErrores) == true;
         }
 
         // Graba la información contable en los parámetros de preasientos que se definen por sociedad; solo si el usuario puede editarla

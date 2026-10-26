@@ -81,87 +81,95 @@
             panel.classList.add(ltrCss.Espan.noVisible);
     }
 
-    export function HayEditoresConValor(panel: HTMLDivElement, tipoFiltro: string): boolean {
+    export function ContarEditoresConValor(panel: HTMLDivElement, tipoFiltro: string): number {
+        let cantidad: number = 0;
         let editores: NodeListOf<HTMLInputElement> = panel.querySelectorAll(`input[${atControl.tipo}="${tipoFiltro}"]`) as NodeListOf<HTMLInputElement>;
         for (let i = 0; i < editores.length; i++) {
             let editor: HTMLInputElement = editores[i];
             if (!IsNullOrEmpty(editor.value))
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
-    export function HayFiltroEntreFechasConValor(panel: HTMLDivElement): boolean {
+    export function ContarFiltroEntreFechasConValor(panel: HTMLDivElement): number {
+        let cantidad: number = 0;
         let fechas: NodeListOf<HTMLInputElement> = panel.querySelectorAll(`input[${atControl.tipo}="${ltrTipoControl.FiltroEntreFechas}"]`) as NodeListOf<HTMLInputElement>;
         for (let i = 0; i < fechas.length; i++) {
             let fecha: HTMLInputElement = fechas[i];
             let valor: string = ApiControl.LeerEntreFechas(fecha);
             if (valor.trim() !== ltrSimbolos.separadorDeDosFechas)
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
-    export function HayFiltroEntreImportesConValor(panel: HTMLDivElement): boolean {
+    export function ContarFiltroEntreImportesConValor(panel: HTMLDivElement): number {
+        let cantidad: number = 0;
         let importes: NodeListOf<HTMLInputElement> = panel.querySelectorAll(`input[${atControl.tipo}="${ltrTipoControl.FiltroEntreImportes}"]`) as NodeListOf<HTMLInputElement>;
         for (let i = 0; i < importes.length; i++) {
             let importe: HTMLInputElement = importes[i];
             let entreImportes: string = ApiControl.LeerEntreImportes(importe);
             if (entreImportes.trim() !== literal.undefined + ltrSimbolos.separadorDeRangos + literal.undefined)
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
-    export function HayFiltroEntreRangosConValor(panel: HTMLDivElement): boolean {
+    export function ContarFiltroEntreRangosConValor(panel: HTMLDivElement): number {
+        let cantidad: number = 0;
         let rangos: NodeListOf<HTMLInputElement> = panel.querySelectorAll(`input[${atControl.tipo}="${ltrTipoControl.FiltroEntreRangos}"]`) as NodeListOf<HTMLInputElement>;
         for (let i = 0; i < rangos.length; i++) {
             let rango: HTMLInputElement = rangos[i];
             let entrerangos: string = ApiControl.LeerEntreRangos(rango);
             if (entrerangos.trim() !== literal.undefined + ltrSimbolos.separadorDeRangos + literal.undefined)
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
-    export function HayRestrictoresDeFiltroConValor(panel: HTMLDivElement): boolean {
+    export function ContarRestrictoresDeFiltroConValor(panel: HTMLDivElement): number {
+        let cantidad: number = 0;
         let restrictores: NodeListOf<HTMLInputElement> = panel.querySelectorAll(`input[${atControl.tipo}="${ltrTipoControl.restrictorDeFiltro}"]`) as NodeListOf<HTMLInputElement>;
         for (let i = 0; i < restrictores.length; i++) {
             let restrictor: HTMLInputElement = restrictores[i];
             if (Numero(restrictor.getAttribute(atControl.restrictor)) > 0)
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
-    export function HayListasDinamicasConValor(panel: HTMLDivElement): boolean {
+    export function ContarListasDinamicasConValor(panel: HTMLDivElement): number {
+        let cantidad: number = 0;
         let listas: NodeListOf<HTMLInputElement> = panel.querySelectorAll(`input[${atControl.tipo}="${ltrTipoControl.ListaDinamica}"]`) as NodeListOf<HTMLInputElement>;
         for (let i = 0; i < listas.length; i++) {
             let lista: HTMLInputElement = listas[i];
             if (Numero(lista.getAttribute(atListasDinamicas.idSeleccionado)) > 0)
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
-    export function HayListasDeElementosConValor(panel: HTMLDivElement): boolean {
+    export function ContarListasDeElementosConValor(panel: HTMLDivElement): number {
+        let cantidad: number = 0;
         let listas: NodeListOf<HTMLSelectElement> = panel.querySelectorAll(`select[${atControl.tipo}="${ltrTipoControl.ListaDeElementos}"]`) as NodeListOf<HTMLSelectElement>;
         for (let i = 0; i < listas.length; i++) {
             let lista: HTMLSelectElement = listas[i];
             if (lista.selectedIndex > 0)
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
-    export function HayListasDeValoresConValor(panel: HTMLDivElement): boolean {
+    export function ContarListasDeValoresConValor(panel: HTMLDivElement): number {
+        let cantidad: number = 0;
         let listas: NodeListOf<HTMLSelectElement> = panel.querySelectorAll(`select[${atControl.tipo}="${ltrTipoControl.ListaDeValores}"]`) as NodeListOf<HTMLSelectElement>;
         for (let i = 0; i < listas.length; i++) {
             let lista: HTMLSelectElement = listas[i];
             if (lista.selectedIndex > 0)
-                return true;
+                cantidad++;
         }
-        return false;
+        return cantidad;
     }
 
     export function AnadirIdsDeControlesDeFiltroDeTipoInput(panel: HTMLDivElement, arrayIds: string[]): void {
@@ -711,15 +719,19 @@
         return undefined;
     }
 
+    const listenerDelIntro = '_listenerDelIntro';
+
     export function AbrirModal(modal: HTMLDivElement): void {
 
         let introPulsadoEnAreaDeTexto: boolean = false;
 
         const listener = function (event: KeyboardEvent) {
-            if (event.key === 'Enter') {
+            // un intro ya tratado por un control (p.e. seleccionar una opción del desplegable de una lista dinámica) no pulsa el botón
+            if (event.key === 'Enter' && !event.defaultPrevented) {
                 if (!introPulsadoEnAreaDeTexto) {
                     boton.click();
                     modal.removeEventListener('keydown', listener);
+                    modal[listenerDelIntro] = undefined;
                 }
                 else {
                     introPulsadoEnAreaDeTexto = false;
@@ -729,8 +741,15 @@
 
         modal.style.display = ltrStyle.display.block;
 
+        // si la modal se cerró sin pulsar intro su listener sigue enganchado: quitarlo para no pulsar el botón varias veces
+        if (Definido(modal[listenerDelIntro])) modal.removeEventListener('keydown', modal[listenerDelIntro]);
+        modal[listenerDelIntro] = undefined;
+
         let boton: HTMLInputElement = ApiControl.BuscarBotonPorClase(modal, ltrCss.Modal.BotonPorDefecto) as HTMLInputElement;
-        if (Definido(boton)) modal.addEventListener('keydown', listener);
+        if (Definido(boton)) {
+            modal.addEventListener('keydown', listener);
+            modal[listenerDelIntro] = listener;
+        }
 
 
         let areas: NodeListOf<HTMLTextAreaElement> = modal.querySelectorAll(`textarea[${atControl.tipo}="${ltrTipoControl.AreaDeTexto}"]`) as NodeListOf<HTMLTextAreaElement>;

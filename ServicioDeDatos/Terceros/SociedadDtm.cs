@@ -38,7 +38,7 @@ namespace ServicioDeDatos.Terceros
 
 
     [Table(Tablas.SOCIEDAD, Schema = Esquemas.TERCEROS)]
-    public class SociedadDtm : ElementoDtm, IUsaTraza, IUsaBaja, IEsUnTercero, ITieneReferencia, IUsaArchivo, IPuedeUsarAgenda, IUsaAmpliaciones, IUsaDirecciones
+    public class SociedadDtm : ElementoDtm, IUsaTraza, IUsaBaja, IEsUnTercero, ITieneReferencia, IUsaArchivo, IPuedeUsarAgenda, IUsaAmpliaciones, IUsaDirecciones, IUsaObservacion
     {
         public string RazonSocial { get; set; }
         public string CodigoFiscal { get; set; }

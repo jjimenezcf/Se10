@@ -27,6 +27,11 @@ namespace GestorDeElementos.Extensores
             return false;
         }
 
+        // al activar los preasientos de una sociedad (trabajo ActivarPreasientosDeLaSociedad) se crean los de documentos antiguos: el gestor
+        // de preasientos no ajusta su fecha contable al último cierre
+        private static Dictionary<string, object> ParametrosDeInsercion(bool generandoPreasientosAntiguos) =>
+            new Dictionary<string, object> { { ltrDeUnPreasiento.GenerandoPreasientosAntiguos, generandoPreasientosAntiguos } };
+
         public static PreasientoDtm Preasiento(this IUsaPreasiento elemento, ContextoSe contexto, bool aplicarJoin = false, bool errorSiNoHay = true)
         {
             if (elemento.Preasiento != null)
@@ -302,7 +307,7 @@ namespace GestorDeElementos.Extensores
         }
 
 
-        public static FacturaRecDtm Preasentar(this FacturaRecDtm recibida, ContextoSe contexto)
+        public static FacturaRecDtm Preasentar(this FacturaRecDtm recibida, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
             if (!recibida.Sociedad(contexto).UsaPreasientos(contexto, enumNegocio.FacturaRecibida))
             {
@@ -334,7 +339,7 @@ namespace GestorDeElementos.Extensores
                 NegocioReferenciado = enumNegocio.FacturaRecibida,
                 IdReferenciado = recibida.Id,
                 FechaContable = recibida.ContabilizadaEl.Fecha()
-            }.InsertarComoAdministrador(contexto);
+            }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
 
             recibida.IdPreasiento = recibida.Preasiento.Id;
 
@@ -464,7 +469,9 @@ namespace GestorDeElementos.Extensores
             return recibida;
         }
 
-        public static FacturaEmtDtm Preasentar(this FacturaEmtDtm emitida, ContextoSe contexto)
+        // generandoPreasientosAntiguos: al activar los preasientos de la sociedad, el preasiento se crea con la fecha de la factura aunque sea
+        // anterior al último cierre (el trabajo de activación lo da por contabilizado)
+        public static FacturaEmtDtm Preasentar(this FacturaEmtDtm emitida, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
             if (!emitida.Sociedad(contexto).UsaPreasientos(contexto, enumNegocio.FacturaEmitida))
             {
@@ -494,7 +501,7 @@ namespace GestorDeElementos.Extensores
                 NegocioReferenciado = enumNegocio.FacturaEmitida,
                 IdReferenciado = emitida.Id,
                 FechaContable = emitida.FacturadaEl.Fecha()
-            }.InsertarComoAdministrador(contexto);
+            }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
 
             emitida.IdPreasiento = emitida.Preasiento.Id;
 
@@ -623,7 +630,7 @@ namespace GestorDeElementos.Extensores
             return emitida;
         }
 
-        public static CobroDeFaeDtm Preasentar(this CobroDeFaeDtm cobro, ContextoSe contexto)
+        public static CobroDeFaeDtm Preasentar(this CobroDeFaeDtm cobro, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
             if (!cobro.Sociedad(contexto).UsaPreasientos(contexto, enumNegocio.Cobro))
             {
@@ -658,7 +665,7 @@ namespace GestorDeElementos.Extensores
                 NegocioReferenciado = enumNegocio.Cobro,
                 IdReferenciado = cobro.Id,
                 FechaContable = cobro.CobradoEl
-            }.InsertarComoAdministrador(contexto);
+            }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
             cobro.IdPreasiento = cobro.Preasiento.Id;
 
             var orden = 10;
@@ -695,7 +702,7 @@ namespace GestorDeElementos.Extensores
             return cobro;
         }
 
-        public static PagoDtm Preasentar(this PagoDtm pago, ContextoSe contexto)
+        public static PagoDtm Preasentar(this PagoDtm pago, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
             if (!pago.Sociedad(contexto).UsaPreasientos(contexto, enumNegocio.Pago))
             {
@@ -729,7 +736,7 @@ namespace GestorDeElementos.Extensores
                 NegocioReferenciado = enumNegocio.Pago,
                 IdReferenciado = pago.Id,
                 FechaContable = pago.PagadoEl.Fecha()
-            }.InsertarComoAdministrador(contexto);
+            }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
 
             pago.IdPreasiento = pago.Preasiento.Id;
 
@@ -795,7 +802,7 @@ namespace GestorDeElementos.Extensores
             return pago;
         }
 
-        public static MovimientoDeAlmacenDtm Preasentar(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        public static MovimientoDeAlmacenDtm Preasentar(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
             var almacen = movimiento.Almacen(contexto);
 
@@ -812,7 +819,7 @@ namespace GestorDeElementos.Extensores
 
             switch (clase)
             {
-                case enumClaseDeMovimiento.Entrada: movimiento.PreasentarEntradaDeAlmacen(contexto); break;
+                case enumClaseDeMovimiento.Entrada: movimiento.PreasentarEntradaDeAlmacen(contexto, generandoPreasientosAntiguos); break;
                 case enumClaseDeMovimiento.Salida: movimiento.PreasentarSalidaDelmacen(contexto); break;
                 case enumClaseDeMovimiento.Inicial: movimiento.PreasentarStockInicial(contexto); break;
                 case enumClaseDeMovimiento.Ajuste: movimiento.PreasentarNuevoPrecioDeUnitario(contexto); break;
@@ -840,7 +847,7 @@ namespace GestorDeElementos.Extensores
         // por la base imponible de la entrega (cantidad * precio - % de descuento). El resto de entradas aún no se preasientan.
         // El tipo de preasiento es el que tiene como origen el negocio de almacén (parámetro SPR_Negocio_Origen); el referenciado es el
         // movimiento, que al insertarlo aún no tiene Id (lo engancha GestorDeMovimientosDeAlmacen.DespuesDePersistir)
-        public static void PreasentarEntradaDeAlmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        public static void PreasentarEntradaDeAlmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
             if (movimiento.IdLineaDeRecepcion is null)
                 GestorDeErrores.Emitir($"No se puede preasentar la entrada de compra del movimiento de almacén '{movimiento.Referencia(contexto)}' porque no tiene línea de recepción asociada");
@@ -880,7 +887,7 @@ namespace GestorDeElementos.Extensores
                 NegocioReferenciado = enumNegocio.Almacen,
                 IdReferenciado = movimiento.Id,
                 FechaContable = movimiento.RealizadoEl.Date
-            }.InsertarComoAdministrador(contexto);
+            }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
 
             movimiento.IdPreasiento = movimiento.Preasiento.Id;
 

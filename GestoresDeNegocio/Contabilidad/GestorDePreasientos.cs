@@ -112,10 +112,14 @@ namespace GestoresDeNegocio.Contabilidad
                     GestorDeErrores.Emitir($"Antes de preasentar el '{preasiento.Referenciado(Contexto).Referencia}', del negocio '{spr.NegocioReferenciado}' ha de cancelar el existente, '{preasiento.Referencia}'");
                 }
 
-                // no se puede contabilizar con fecha anterior al último cierre de la sociedad; se deja constancia en una traza tras insertarlo
-                var fechaDelDocumento = GestorDeCierresContables.AjustarFechaContableAlUltimoCierre(Contexto, spr);
-                if (fechaDelDocumento is not null)
-                    parametros.Parametros[ltrDeUnPreasiento.FechaContableDelDocumento] = fechaDelDocumento;
+                // no se puede contabilizar con fecha anterior al último cierre de la sociedad; se deja constancia en una traza tras insertarlo.
+                // Al activar los preasientos de una sociedad se crean los de documentos antiguos con su fecha y se dan por contabilizados
+                if (!parametros.Parametros.LeerValor(ltrDeUnPreasiento.GenerandoPreasientosAntiguos, false))
+                {
+                    var fechaDelDocumento = GestorDeCierresContables.AjustarFechaContableAlUltimoCierre(Contexto, spr);
+                    if (fechaDelDocumento is not null)
+                        parametros.Parametros[ltrDeUnPreasiento.FechaContableDelDocumento] = fechaDelDocumento;
+                }
 
                 GestorDeCierresContables.ValidarQueNoHayCierreEnCurso(Contexto, spr, "crear");
 
