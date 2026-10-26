@@ -60,6 +60,8 @@ namespace MVCSistemaDeElementos.Controllers
         {
             Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
             ViewBag.DatosDeConexion = DatosDeConexion;
+            // se abre desde el móvil sin sesión: el layout no ha de pedir el usuario de conexión
+            ViewData["PaginaPublica"] = true;
             try
             {
                 var firma = ((GestorDeFacturasEmt)_GestorDeElementos).ValidarFactura(nif, numserie, fecha, importe);

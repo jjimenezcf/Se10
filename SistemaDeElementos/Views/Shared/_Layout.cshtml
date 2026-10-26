@@ -3,6 +3,8 @@
 @{
         // Evalúa si el acceso es anónimo (true) o no (false)
         var accesoAnonimo = (ViewData["AccesoAnonimo"] is bool anon) && anon;
+        // Página pública con los estilos del sistema pero sin usuario de conexión (p.e. validar el QR de una factura): no se inicia el entorno
+        var paginaPublica = (ViewData["PaginaPublica"] is bool publica) && publica;
 }
 <head>
     <meta http-equiv="Expires" content="-1">
@@ -207,7 +209,7 @@
             // });
 
             document.addEventListener('DOMContentLoaded', function() {
-            @if (!accesoAnonimo)
+            @if (!accesoAnonimo && !paginaPublica)
             {
                     @:EntornoSe.IniciarEntorno();
             }
