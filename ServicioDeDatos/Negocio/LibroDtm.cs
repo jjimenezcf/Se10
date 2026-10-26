@@ -39,6 +39,9 @@ namespace ServicioDeDatos.Negocio
         AETD,
         [Description("Persistir movimientos de almacén: {Referencia}")]
         PMA,
+        // la referencia es la fecha hasta la que se cierra (aaaa-mm-dd), la leen las validaciones de los preasientos
+        [Description("Cierre contable hasta: {Referencia}")]
+        CCT,
     }
 
     [Table(Tablas.LIBRO, Schema = Esquemas.NEGOCIO)]

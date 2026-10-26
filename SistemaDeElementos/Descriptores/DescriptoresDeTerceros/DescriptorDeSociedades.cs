@@ -291,7 +291,7 @@ namespace MVCSistemaDeElementos.Descriptores
         // el usuario puede parametrizar, si no, de consulta
         private void DescriptorDeInformacionContable()
         {
-            var informacion = new AmpliacionDeEdicion(Editor, Ampliaciones.Sociedad.InformacionContable, Ampliaciones.Sociedad.SpanDeInformacionContable, new Dimension(4, 3), ayuda: "Cómo se contabiliza la sociedad");
+            var informacion = new AmpliacionDeEdicion(Editor, Ampliaciones.Sociedad.InformacionContable, Ampliaciones.Sociedad.SpanDeInformacionContable, new Dimension(2, 5), ayuda: "Cómo se contabiliza la sociedad");
             informacion.Dto = typeof(InformacionContableDeSociedadDto);
             informacion.Controlador = nameof(InformacionContableDeSociedadController);
             Editor.Ampliaciones.Add(informacion);

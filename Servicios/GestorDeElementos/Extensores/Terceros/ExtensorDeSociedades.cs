@@ -123,26 +123,6 @@ namespace GestorDeElementos.Extensores
             return contacto.MapearDto<ContactoDto, ContactoDtm>(contexto);
         }
 
-        private static ContactoDtm CrearContacto(ContextoSe contexto, int idSociedad, string nombre, string email, string telefono, string detalle, bool crearInterlocutor)
-        {
-            var clave = new Dictionary<string, object>();
-            clave.Add(nameof(ContactoDtm.IdSociedad), idSociedad);
-            clave.Add(nameof(ContactoDtm.Nombre), nombre);
-            var contacto = contexto.SeleccionarPorAk<ContactoDtm>(clave, errorSiNoHay: false);
-            if (contacto == null)
-            {
-                var parametros = new Dictionary<string, object> { { nameof(ContactoDto.CrearInterlocutor), crearInterlocutor } };
-                contacto = new ContactoDtm();
-                contacto.Nombre = nombre;
-                contacto.Descripcion = detalle;
-                contacto.IdSociedad = idSociedad;
-                contacto.eMail = email;
-                contacto.Telefono = telefono;
-                contacto = contacto.Insertar(contexto, parametros);
-            }
-            return contacto;
-        }
-
         public static CentroGestorDtm CrearCg(this SociedadDtm sociedad, ContextoSe contexto, string nombreCg)
         {
             var f1 = new ClausulaDeFiltrado(nameof(CentroGestorDtm.IdSociedad), enumCriteriosDeFiltrado.igual, sociedad.Id);
@@ -440,6 +420,141 @@ namespace GestorDeElementos.Extensores
             }
 
             return (List<int>)cache[ltrDeBuzonesDeMiSociedad.PermisosDeBuzones];
+        }
+
+        //----------------------------------------------------------------------------------------------- información contable de la sociedad
+
+        // Las sociedades de autónomos, o configuradas para contabilizar con la estimación directa de Ncs, no llevan cierres contables:
+        // se contabilizan desde las estimaciones directas
+        public static bool EsDeEstimacionDirecta(this SociedadDtm sociedad) =>
+            sociedad.Autonomo || sociedad.ContabilizarEn(errorSiNoDefinido: false)?.Metodo == ApiDeEnsamblados.MetodoDeEstimacionDirectaEnNcs;
+
+        // Sin permiso si es de estimación directa o el usuario no es gestor de una sociedad gestionada; editable (gestor) si además puede
+        // parametrizar; si no, de consulta
+        public static enumModoDeAccesoDeDatos ModoDeAccesoALaInformacionContable(this SociedadDtm sociedad, ContextoSe contexto)
+        {
+            if (sociedad.EsDeEstimacionDirecta())
+                return enumModoDeAccesoDeDatos.SinPermiso;
+
+            var modoDeAcceso = ApiDePermisos.LeerModoDeAcceso(contexto, enumNegocio.Sociedad, sociedad.Id);
+            if (!modoDeAcceso.SoyGestor() || !sociedad.EsGestionada(contexto))
+                return enumModoDeAccesoDeDatos.SinPermiso;
+
+            return contexto.SePuedeParametrizar() ? enumModoDeAccesoDeDatos.Gestor : enumModoDeAccesoDeDatos.Consultor;
+        }
+
+        // Información contable de la sociedad para su ampliación; null si el usuario no tiene acceso a ella
+        public static InformacionContableDeSociedadDto InformacionContable(this SociedadDtm sociedad, ContextoSe contexto)
+        {
+            var modoDeAcceso = sociedad.ModoDeAccesoALaInformacionContable(contexto);
+            if (modoDeAcceso == enumModoDeAccesoDeDatos.SinPermiso)
+                return null;
+
+            var (sistema, digitos) = sociedad.SistemaYDigitosParaContabilizar();
+            var idCgDocumental = sociedad.IdCgDocumentalDe(contexto);
+            return new InformacionContableDeSociedadDto
+            {
+                IdElemento = sociedad.Id,
+                IdCgDocumental = idCgDocumental,
+                CgDocumental = idCgDocumental is null ? null : contexto.SeleccionarPorId<CentroGestorDtm>((int)idCgDocumental).Expresion,
+                UltimoCierre = UltimoCierreContable(contexto, sociedad.Id)?.CerradaEl.Date,
+                Contabilidad = sistema?.ToString(),
+                Digitos = digitos,
+                PlanContable = sociedad.IdPlanContableDe(),
+                GenerarEmitidas = sociedad.GeneraPreasientos(enumNegocio.FacturaEmitida) ?? false,
+                GenerarRecibidas = sociedad.GeneraPreasientos(enumNegocio.FacturaRecibida) ?? false,
+                GenerarCobros = sociedad.GeneraPreasientos(enumNegocio.Cobro) ?? false,
+                GenerarPagos = sociedad.GeneraPreasientos(enumNegocio.Pago) ?? false,
+                GenerarAlmacen = sociedad.GeneraPreasientos(enumNegocio.Almacen) ?? false,
+                ModoDeAcceso = modoDeAcceso
+            };
+        }
+
+        // Graba la información contable en los parámetros de preasientos que se definen por sociedad; solo si el usuario puede editarla
+        public static void PersistirInformacionContable(this SociedadDtm sociedad, ContextoSe contexto, InformacionContableDeSociedadDto informacion)
+        {
+            if (sociedad.ModoDeAccesoALaInformacionContable(contexto) != enumModoDeAccesoDeDatos.Gestor)
+                GestorDeErrores.Emitir($"No puede modificar la información contable de la sociedad '{sociedad.Expresion}': ha de poder parametrizar, ser gestor de la sociedad, que esta sea gestionada y no sea de estimación directa");
+
+            foreach (var generar in GenerarPreasientos)
+                sociedad.ResetearParametroDeLaSociedad(contexto, VariablesDePreasiento.ParametroDeGenerarPreasiento(generar.Key),
+                    new Dictionary<string, object> { { "Valor", generar.Value(informacion) ? "S" : "N" } });
+
+            if (!informacion.PlanContable.IsNullOrEmpty())
+                sociedad.ResetearParametroDeLaSociedad(contexto, enumParametrosDePreasiento.SPR_Plan_Contable,
+                    new Dictionary<string, object> { { "IdPlanContable", informacion.PlanContable.Trim() } });
+
+            if (informacion.IdCgDocumental > 0)
+            {
+                // antes de almacenar el json se valida que el cg sea de la sociedad
+                var cg = sociedad.ValidarCgDocumental(contexto, (int)informacion.IdCgDocumental);
+                sociedad.ResetearParametroDeLaSociedad(contexto, enumParametrosDePreasiento.SPR_Sociedad_CG_Documental,
+                    new Dictionary<string, object> { { "IdCgDocumental", cg.Id } });
+            }
+
+            // "-1" es la opción "Seleccionar..." de la lista: no se cambia la contabilidad
+            if (Enum.TryParse<enumSistemaContable>(informacion.Contabilidad, out var sistema) && Enum.IsDefined(sistema))
+            {
+                var digitos = sistema == enumSistemaContable.NCS
+                    ? VariablesDePreasiento.DigitosDeNcs
+                    : informacion.Digitos > 0 ? informacion.Digitos : VariablesDePreasiento.DigitosPorDefectoDeContasol;
+                sociedad.CambiarSistemaContable(contexto, sistema, digitos);
+            }
+        }
+
+        // Si se elige una contabilidad o dígitos distintos de los configurados, se actualiza el parámetro SPR_Contabilizar_En de la sociedad
+        public static void CambiarSistemaContable(this SociedadDtm sociedad, ContextoSe contexto, enumSistemaContable sistema, int digitos)
+        {
+            if (sistema == enumSistemaContable.NCS && digitos != VariablesDePreasiento.DigitosDeNcs)
+                GestorDeErrores.Emitir($"En la contabilidad Ncs las cuentas son de '{VariablesDePreasiento.DigitosDeNcs}' dígitos");
+            if (sistema == enumSistemaContable.ContaSol && (digitos < 4 || digitos > 10))
+                GestorDeErrores.Emitir($"En la contabilidad ContaSol los dígitos de las cuentas han de estar entre 4 y 10");
+
+            var json = sociedad.JsonParaContabilizarEn(sistema, digitos);
+            if (json is not null)
+                enumNegocio.Preasiento.ResetearParametro(contexto, enumParametrosDePreasiento.SPR_Contabilizar_En, json);
+        }
+
+        public static CierreContableDtm UltimoCierreContable(ContextoSe contexto, int idSociedad) =>
+            contexto.Set<CierreContableDtm>().Where(c => c.IdSociedad == idSociedad).OrderByDescending(c => c.CerradaEl).ThenByDescending(c => c.Id).FirstOrDefault();
+
+        //----------------------------------------------------------------------------------------------- privados
+
+        // negocios que generan preasientos y la propiedad de la información contable que indica si la sociedad los genera
+        private static readonly Dictionary<enumNegocio, Func<InformacionContableDeSociedadDto, bool>> GenerarPreasientos = new()
+        {
+            { enumNegocio.FacturaEmitida, informacion => informacion.GenerarEmitidas },
+            { enumNegocio.FacturaRecibida, informacion => informacion.GenerarRecibidas },
+            { enumNegocio.Cobro, informacion => informacion.GenerarCobros },
+            { enumNegocio.Pago, informacion => informacion.GenerarPagos },
+            { enumNegocio.Almacen, informacion => informacion.GenerarAlmacen }
+        };
+
+        private static void ResetearParametroDeLaSociedad(this SociedadDtm sociedad, ContextoSe contexto, enumParametrosDePreasiento parametro, Dictionary<string, object> campos)
+        {
+            var json = VariablesDePreasiento.JsonDelParametroConLaSociedad(parametro, sociedad.Id, campos);
+            if (json is not null)
+                enumNegocio.Preasiento.ResetearParametro(contexto, parametro, json);
+        }
+
+        private static ContactoDtm CrearContacto(ContextoSe contexto, int idSociedad, string nombre, string email, string telefono, string detalle, bool crearInterlocutor)
+        {
+            var clave = new Dictionary<string, object>();
+            clave.Add(nameof(ContactoDtm.IdSociedad), idSociedad);
+            clave.Add(nameof(ContactoDtm.Nombre), nombre);
+            var contacto = contexto.SeleccionarPorAk<ContactoDtm>(clave, errorSiNoHay: false);
+            if (contacto == null)
+            {
+                var parametros = new Dictionary<string, object> { { nameof(ContactoDto.CrearInterlocutor), crearInterlocutor } };
+                contacto = new ContactoDtm();
+                contacto.Nombre = nombre;
+                contacto.Descripcion = detalle;
+                contacto.IdSociedad = idSociedad;
+                contacto.eMail = email;
+                contacto.Telefono = telefono;
+                contacto = contacto.Insertar(contexto, parametros);
+            }
+            return contacto;
         }
     }
 

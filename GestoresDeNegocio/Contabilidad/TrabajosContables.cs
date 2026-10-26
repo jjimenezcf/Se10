@@ -61,7 +61,7 @@ namespace GestoresDeNegocio.Contabilidad
                 GestorDeErrores.Emitir(sinPreasientos);
 
             GestorDeCierresContables.ValidarEjercicioDelCierre(contexto, sociedad, ejercicio);
-            GestorDeCierresContables.CambiarSistemaContable(contexto, sociedad, sistema, digitos);
+            sociedad.CambiarSistemaContable(contexto, sistema, digitos);
 
             return SometerLoteContable(contexto, enumTrabajosContables.CrearCierreContable, idSociedad, ejercicio, descontabilizar: false, respetarFechaContable: true, fechaContable: null, filtros: "", cerrarHasta: cerrarHasta.Date);
         }
@@ -207,12 +207,15 @@ namespace GestoresDeNegocio.Contabilidad
             // el lote toma los preasientos con fecha contable desde el último cierre (incluida) hasta la fecha de cierre (no incluida)
             parametros[nameof(CierreContableDto.Desde)] = GestorDeCierresContables.FechaDelUltimoCierre(contexto, idSociedad);
 
-            // el ajuste de fechas y la creación del lote van en la misma transacción: si algo falla se deshace todo
+            // el ajuste de fechas y la creación del lote van en la misma transacción: si algo falla se deshace todo; mientras dura, el semáforo
+            // impide crear, eliminar o cancelar desde otros procesos preasientos de la sociedad con fecha contable anterior a la de cierre
+            var idSemaforo = 0;
             contexto.IniciarTraza(nameof(CrearCierreContable));
             entorno.CrearTraza($"Traza informativa del proceso");
             var tran = contexto.IniciarTransaccion();
             try
             {
+                idSemaforo = GestorDeCierresContables.PonerSemaforoDeCierre(contexto, idSociedad, (DateTime)cerrarHasta);
                 GestorDeCierresContables.AjustarPreasientosAnterioresAlUltimoCierre(contexto, idSociedad, mensaje => entorno.CrearTraza(mensaje));
                 GenerarLoteContable(entorno, contexto, parametros);
                 contexto.Commit(tran);
@@ -224,6 +227,7 @@ namespace GestoresDeNegocio.Contabilidad
             }
             finally
             {
+                SemaforoDeProcesoSql.QuitarSemaforo(contexto, idSemaforo);
                 contexto.CerrarTraza();
             }
         }

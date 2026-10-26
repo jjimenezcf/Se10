@@ -117,12 +117,16 @@ namespace GestoresDeNegocio.Contabilidad
                 if (fechaDelDocumento is not null)
                     parametros.Parametros[ltrDeUnPreasiento.FechaContableDelDocumento] = fechaDelDocumento;
 
+                GestorDeCierresContables.ValidarQueNoHayCierreEnCurso(Contexto, spr, "crear");
+
                 //var ejercicioValido = preasiento.Ejercicio == DateTime.Now.Year || (preasiento.Ejercicio == DateTime.Now.Year - 1 && DateTime.Now.Month < 6);
 
                 //if (!ejercicioValido)
                 //    GestorDeErrores.Emitir($"No se puede crear un preasiento para el ejercicio {preasiento.Ejercicio} por estar cerrado");
             }
 
+            if (parametros.Eliminando)
+                GestorDeCierresContables.ValidarQueNoHayCierreEnCurso(Contexto, (PreasientoDtm)parametros.registroEnBd ?? spr, "eliminar");
         }
 
 
@@ -139,6 +143,9 @@ namespace GestoresDeNegocio.Contabilidad
         protected override PreasientoDtm AntesDeTransitar(PreasientoDtm spr, TransicionDtm transicion, Dictionary<string, object> parametros)
         {
             spr = base.AntesDeTransitar(spr, transicion, parametros);
+
+            if (enumEtapasDePreasiento.SPR_Etapa_Cancelado.Lista().Contains(transicion.IdDestino))
+                GestorDeCierresContables.ValidarQueNoHayCierreEnCurso(Contexto, spr, "cancelar");
 
             //if (transicion.EntreEtapas(enumEtapasDePreasiento.SPR_Etapa_Contabilizado.Estados(), enumEtapasDePreasiento.SPR_Etapa_Pendiente.Estados()))
             //    spr.AntesDeDevolverAPendiente(Contexto);

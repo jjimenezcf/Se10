@@ -483,19 +483,17 @@ namespace GestorDeElementos.Extensores
 
             VariablesDePreasiento.ValidarNaturalezasContables();
 
-            // la factura emitida se contabiliza con la fecha de emisión (la de devengo, FacturadaEl, puede ser anterior)
-            var fechaContable = ((DateTime)emitida.EmitidaEl).Date;
             emitida.Preasiento = new PreasientoDtm
             {
                 IdCg = emitida.IdCg,
                 IdTipo = emitida.IdTipoPreasiento(contexto),
                 Nombre = emitida.Nombre,
-                Ejercicio = fechaContable.Year,
+                Ejercicio = ((DateTime)emitida.FacturadaEl).Year,
                 CodigoDiario = tipoDePreasiento.CodigoDeDiario(contexto),
                 SociedadContable = emitida.Sociedad(contexto).CodigoContable,
                 NegocioReferenciado = enumNegocio.FacturaEmitida,
                 IdReferenciado = emitida.Id,
-                FechaContable = fechaContable
+                FechaContable = emitida.FacturadaEl.Fecha()
             }.InsertarComoAdministrador(contexto);
 
             emitida.IdPreasiento = emitida.Preasiento.Id;

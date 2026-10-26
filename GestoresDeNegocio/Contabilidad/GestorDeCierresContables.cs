@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using ModeloDeDto.Contabilidad;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Negocio;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
 using Utilidades;
@@ -75,8 +76,7 @@ namespace GestoresDeNegocio.Contabilidad
             Gestor(contexto, contexto.Mapeador).PersistirRegistro(cierre, new ParametrosDeNegocio(enumTipoOperacion.Eliminar, new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } }));
         }
 
-        public static CierreContableDtm UltimoCierre(ContextoSe contexto, int idSociedad) =>
-            contexto.Set<CierreContableDtm>().Where(c => c.IdSociedad == idSociedad).OrderByDescending(c => c.CerradaEl).ThenByDescending(c => c.Id).FirstOrDefault();
+        public static CierreContableDtm UltimoCierre(ContextoSe contexto, int idSociedad) => ExtensorDeSociedades.UltimoCierreContable(contexto, idSociedad);
 
         private static IQueryable<PreasientoDtm> PreasientosPendientes(ContextoSe contexto, int idSociedad)
         {
@@ -149,6 +149,7 @@ namespace GestoresDeNegocio.Contabilidad
             var anteriores = PreasientosPendientes(contexto, idSociedad).Where(p => p.FechaContable < fechaDelCierre).ToList();
             foreach (var preasiento in anteriores)
             {
+                ValidarQueNoEsDeUnaFacturaEmitida(preasiento, fechaDelCierre);
                 anotar($"El preasiento '{preasiento.Referencia}' tenía fecha contable '{preasiento.FechaContable:dd/MM/yyyy}' anterior al último cierre, se contabiliza con fecha '{fechaDelCierre:dd/MM/yyyy}'");
                 preasiento.FechaContable = fechaDelCierre;
                 preasiento.Ejercicio = fechaDelCierre.Year;
@@ -157,7 +158,8 @@ namespace GestoresDeNegocio.Contabilidad
         }
 
         // Al crear un preasiento, si la fecha del documento es anterior al último cierre de su sociedad se contabiliza con la fecha de ese
-        // cierre (y su ejercicio), ya que lo anterior ya está cerrado; devuelve la fecha original si se ha ajustado, o null si no
+        // cierre (y su ejercicio), ya que lo anterior ya está cerrado; devuelve la fecha original si se ha ajustado, o null si no.
+        // Las facturas emitidas no se ajustan: dan error (ver ValidarQueNoEsDeUnaFacturaEmitida)
         public static DateTime? AjustarFechaContableAlUltimoCierre(ContextoSe contexto, PreasientoDtm preasiento)
         {
             var idSociedad = contexto.Set<CentroGestorDtm>().Where(cg => cg.Id == preasiento.IdCg).Select(cg => cg.IdSociedad).FirstOrDefault();
@@ -165,23 +167,51 @@ namespace GestoresDeNegocio.Contabilidad
             if (ultimoCierre is null || preasiento.FechaContable.Date >= ultimoCierre.CerradaEl.Date)
                 return null;
 
+            ValidarQueNoEsDeUnaFacturaEmitida(preasiento, ultimoCierre.CerradaEl.Date);
             var fechaDelDocumento = preasiento.FechaContable;
             preasiento.FechaContable = ultimoCierre.CerradaEl.Date;
             preasiento.Ejercicio = preasiento.FechaContable.Year;
             return fechaDelDocumento;
         }
 
-        // Si se elige una contabilidad distinta de la configurada, se actualiza el parámetro SPR_Contabilizar_En de la sociedad
-        public static void CambiarSistemaContable(ContextoSe contexto, SociedadDtm sociedad, enumSistemaContable sistema, int digitos)
+        // La factura emitida se contabiliza con su fecha de devengo, que es la que se declara en Verifactu como fecha de operación: moverla
+        // llevaría el IVA repercutido a otro periodo, así que si es anterior al último cierre no se ajusta, se ha de eliminar el cierre
+        private static void ValidarQueNoEsDeUnaFacturaEmitida(PreasientoDtm preasiento, DateTime fechaDelUltimoCierre)
         {
-            if (sistema == enumSistemaContable.NCS && digitos != VariablesDePreasiento.DigitosDeNcs)
-                GestorDeErrores.Emitir($"En la contabilidad Ncs las cuentas son de '{VariablesDePreasiento.DigitosDeNcs}' dígitos");
-            if (sistema == enumSistemaContable.ContaSol && (digitos < 4 || digitos > 10))
-                GestorDeErrores.Emitir($"En la contabilidad ContaSol los dígitos de las cuentas han de estar entre 4 y 10");
+            if (preasiento.NegocioReferenciado == enumNegocio.FacturaEmitida)
+                GestorDeErrores.Emitir($"No se puede contabilizar la factura emitida '{preasiento.Nombre}' con fecha de devengo '{preasiento.FechaContable:dd/MM/yyyy}' " +
+                                       $"porque es anterior al último cierre contable de su sociedad '{fechaDelUltimoCierre:dd/MM/yyyy}'; elimine los cierres posteriores a su fecha de devengo para contabilizarla en su periodo");
+        }
 
-            var json = sociedad.JsonParaContabilizarEn(sistema, digitos);
-            if (json is not null)
-                enumNegocio.Preasiento.ResetearParametro(contexto, enumParametrosDePreasiento.SPR_Contabilizar_En, json);
+        //------------------------------------------------------------------------------------- semáforo del cierre en curso
+        private const string FormatoDeFechaDelSemaforo = "yyyy-MM-dd";
+
+        // Mientras se ejecuta el cierre de una sociedad hay un semáforo con la fecha hasta la que se cierra; devuelve su id para quitarlo al terminar
+        public static int PonerSemaforoDeCierre(ContextoSe contexto, int idSociedad, DateTime cerrarHasta) =>
+            SemaforoDeProcesoSql.PonerSemaforo(contexto, enumNegocio.CierreContable.IdNegocio(), idSociedad, enumOpercionesDeSemaforo.CCT,
+                cerrarHasta.ToString(FormatoDeFechaDelSemaforo)).Id;
+
+        // Fecha hasta la que se está cerrando la sociedad en otro proceso; null si no hay ningún cierre en curso (el del propio proceso no cuenta,
+        // ya que el cierre también cancela preasientos)
+        public static DateTime? CierreEnCursoHasta(ContextoSe contexto, int idSociedad)
+        {
+            var semaforo = SemaforoDeProcesoSql.LeerSemaforos(contexto, enumNegocio.CierreContable.IdNegocio(), enumOpercionesDeSemaforo.CCT)
+                .FirstOrDefault(s => s.IdElemento == idSociedad && s.IdProceso != contexto.IdOperacion);
+            if (semaforo is null)
+                return null;
+
+            var fecha = semaforo.Anotacion.Right(FormatoDeFechaDelSemaforo.Length);
+            return DateTime.ParseExact(fecha, FormatoDeFechaDelSemaforo, System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        // Mientras se cierra una sociedad no se pueden crear, eliminar ni cancelar preasientos suyos con fecha contable anterior a la de cierre
+        public static void ValidarQueNoHayCierreEnCurso(ContextoSe contexto, PreasientoDtm preasiento, string accion)
+        {
+            var idSociedad = contexto.Set<CentroGestorDtm>().Where(cg => cg.Id == preasiento.IdCg).Select(cg => cg.IdSociedad).FirstOrDefault();
+            var cerrandoHasta = CierreEnCursoHasta(contexto, idSociedad);
+            if (cerrandoHasta is not null && preasiento.FechaContable.Date < ((DateTime)cerrandoHasta).Date)
+                GestorDeErrores.Emitir($"No se puede {accion} el preasiento '{preasiento.Referencia ?? preasiento.Nombre}' con fecha contable '{preasiento.FechaContable:dd/MM/yyyy}' " +
+                                       $"porque se está ejecutando el cierre contable de su sociedad hasta el '{cerrandoHasta:dd/MM/yyyy}', inténtelo cuando termine");
         }
 
         // Solo se puede anular el último cierre realizado de una sociedad; devuelve el motivo si no se puede, o null si el lote no tiene cierre o es el último
