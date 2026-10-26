@@ -55,6 +55,7 @@ namespace ModeloDeDto.Terceros
             Tipo = typeof(enumSistemaContable),
             GuardarEn = nameof(Contabilidad),
             Obligatorio = false,
+            OnChange = "javascript:" + nameof(enumNameSpaceTs.Terceros) + "." + nameof(enumFunctionTs.Sociedad_Tras_Cambiar_Contabilidad) + "()",
             Fila = 0,
             Columna = 2)]
         public string Contabilidad { get; set; }
@@ -68,6 +69,7 @@ namespace ModeloDeDto.Terceros
             Alineada = enumAliniacion.derecha,
             Obligatorio = false,
             LongitudMaxima = 2,
+            OnBlur = "javascript:" + nameof(enumNameSpaceTs.Terceros) + "." + nameof(enumFunctionTs.Sociedad_Tras_Salir_De_Digitos) + "()",
             Fila = 0,
             Columna = 3,
             Posicion = 0,

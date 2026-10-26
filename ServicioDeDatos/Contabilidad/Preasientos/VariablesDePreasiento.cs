@@ -745,6 +745,28 @@ namespace ServicioDeDatos.Contabilidad
             : negocio == enumNegocio.Almacen ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen
             : enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Cobro;
 
+        // Negocio cuyo parámetro SPR_Generar_Preasiento_De_xxx tiene el nombre indicado; null si no es uno de ellos
+        public static enumNegocio? NegocioDelParametroDeGenerarPreasiento(string nombreDelParametro)
+        {
+            foreach (var negocio in new[] { enumNegocio.FacturaEmitida, enumNegocio.FacturaRecibida, enumNegocio.Cobro, enumNegocio.Pago, enumNegocio.Almacen })
+                if (ParametroDeGenerarPreasiento(negocio).ToString() == nombreDelParametro)
+                    return negocio;
+            return null;
+        }
+
+        // Sociedades que en el json anterior generaban preasientos ("S") y en el nuevo no (otro valor o sin entrada); la entrada 0 es la plantilla
+        public static List<int> SociedadesQueDejanDeGenerarPreasientos(string jsonAnterior, string jsonNuevo)
+        {
+            var anteriores = ParsearUsaPreasiento(jsonAnterior.IsNullOrEmpty() ? "[]" : jsonAnterior);
+            var nuevos = ParsearUsaPreasiento(jsonNuevo.IsNullOrEmpty() ? "[]" : jsonNuevo);
+            return anteriores
+                .Where(a => a.IdSociedad > 0 && a.Valor.EsTrue())
+                .Where(a => !nuevos.Any(n => n.IdSociedad == a.IdSociedad && n.Valor.EsTrue()))
+                .Select(a => a.IdSociedad)
+                .Distinct()
+                .ToList();
+        }
+
         // Si la sociedad genera preasientos del negocio; null si no está configurado para ella
         public static bool? GeneraPreasientos(this SociedadDtm sociedad, enumNegocio negocio)
         {

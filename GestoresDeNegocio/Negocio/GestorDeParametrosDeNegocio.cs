@@ -10,6 +10,8 @@ using ModeloDeDto.Negocio;
 using GestorDeElementos.Extensores;
 using Gestor.Errores;
 using ServicioDeDatos.Ventas;
+using ServicioDeDatos.Terceros;
+using ServicioDeDatos.Contabilidad;
 
 namespace GestoresDeNegocio.Negocio
 {
@@ -55,6 +57,32 @@ namespace GestoresDeNegocio.Negocio
 
             if (parametro.PropiedadCambiada<string>(nameof(ParametroDeNegocioDtm.Nombre), parametros))
                 GestorDeErrores.Emitir($"El nombre del parámetro '{((ParametroDeNegocioDtm)parametros.registroEnBd).Nombre}' no se puede cambiar por el usuario");
+
+            ValidarQueNoSeDesactivaLaGeneracionDePreasientos(parametro, parametros);
+        }
+
+        // Una vez que una sociedad genera preasientos de un negocio no se puede desactivar, ni desde la interface ni por proceso:
+        // dejaría documentos sin contabilizar entre otros que sí lo están. Si hiciese falta, lo ha de hacer el administrador en la bd
+        private void ValidarQueNoSeDesactivaLaGeneracionDePreasientos(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)
+        {
+            if (parametros.Insertando)
+                return;
+
+            var enBd = (ParametroDeNegocioDtm)parametros.registroEnBd;
+            if (enBd is null || enBd.IdNegocio != enumNegocio.Preasiento.IdNegocio())
+                return;
+
+            var negocio = VariablesDePreasiento.NegocioDelParametroDeGenerarPreasiento(enBd.Nombre);
+            if (negocio is null)
+                return;
+
+            var desactivadas = VariablesDePreasiento.SociedadesQueDejanDeGenerarPreasientos(enBd.Valor, parametros.Eliminando ? null : parametro.Valor);
+            if (desactivadas.Count == 0)
+                return;
+
+            var sociedades = Contexto.Set<SociedadDtm>().Where(s => desactivadas.Contains(s.Id)).ToList()
+                .Select(s => $"'{s.Expresion}'");
+            GestorDeErrores.Emitir($"No se puede desactivar la generación de preasientos de {((enumNegocio)negocio).Plural(enMinusculas: true)} para {string.Join(", ", sociedades)}: una vez activada no se puede desactivar. Si fuese necesario, lo ha de hacer el administrador en la base de datos");
         }
 
         protected override void DespuesDePersistir(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)

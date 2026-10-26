@@ -1055,6 +1055,7 @@ const ltrAmpliaciones = {
     },
     sociedades: {
         parametros: 'Parametros',
+        informacionContable: 'InformacionContable',
     },
     contratos: {
         datosDeVenta: 'CtrVenta',
@@ -3115,6 +3116,17 @@ const ltrPropiedades = {
             Agenda: 'agenda',
             EsUnaDeMisSociedades: 'EsUnaDeMisSociedades',
             UsaVerifactu: 'UsaVerifactu',
+            GenerarPreasientos: ['GenerarEmitidas', 'GenerarRecibidas', 'GenerarCobros', 'GenerarPagos', 'GenerarAlmacen'],
+            InformacionContable: {
+                Contabilidad: 'Contabilidad',
+                Digitos: 'Digitos',
+                Ncs: 'NCS',
+                ContaSol: 'ContaSol',
+                DigitosDeNcs: 11,
+                DigitosPorDefectoDeContaSol: 8,
+                MinimoDeDigitosDeContaSol: 4,
+                MaximoDeDigitosDeContaSol: 10
+            },
             VerifactuEnProductivo: 'VerifactuEnProductivo',
             Nombre: literal.nombre,
             NIF: 'Nif',

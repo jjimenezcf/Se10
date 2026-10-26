@@ -228,6 +228,20 @@
             super.Expansor_TrasCargarAmpliacion(ampliacion);
             let esDeMisSociedades: boolean = ObtenerPropiedad(this.Registro, ltrPropiedades.Terceros.Sociedad.EsUnaDeMisSociedades);
             ApiPanel.OcultarMostrarPanel(this.DivDeAmpliacion(ltrAmpliaciones.sociedades.parametros), !esDeMisSociedades);
+
+            if (ampliacion === this.DivDeAmpliacion(ltrAmpliaciones.sociedades.informacionContable)) {
+                this.BloquearPreasientosActivos(ampliacion);
+                InicializarDigitos(ampliacion);
+            }
+        }
+
+        // una vez que la sociedad genera preasientos de un negocio no se puede desactivar (el servidor también lo valida)
+        private BloquearPreasientosActivos(ampliacion: HTMLDivElement): void {
+            for (let propiedad of ltrPropiedades.Terceros.Sociedad.GenerarPreasientos) {
+                let check: HTMLInputElement = ApiControl.BuscarCheck(ampliacion, propiedad);
+                if (Definido(check) && check.checked)
+                    ApiControl.BloquearInput(check);
+            }
         }
 
 
@@ -550,6 +564,72 @@
     // El CG documental donde se crean los lotes contables ha de ser de la sociedad que se está editando
     export function Sociedad_Antes_De_Buscar_CgDocumental(filtros: Array<ClausulaDeFiltrado>, parametros: Array<Parametro>) {
         filtros.push(new ClausulaDeFiltrado(ltrPropiedades.Elemento.ConCg.IdSociedadDelCg, literal.filtro.criterio.igual, crudDeSociedad.crudDeEdicion.Id.toString()));
+    }
+
+    //------------------------------------------------------------------------ información contable: dígitos según la contabilidad
+    // Ncs: 11 dígitos y bloqueado; ContaSol: editable entre 4 y 10 (los de la sociedad o 8); sin contabilidad: vacío y bloqueado
+    let digitosDeContaSolDeLaSociedad: number = 0;
+
+    function AmpliacionDeInformacionContable(): HTMLDivElement {
+        return crudDeSociedad.crudDeEdicion.DivDeAmpliacion(ltrAmpliaciones.sociedades.informacionContable);
+    }
+
+    function InicializarDigitos(ampliacion: HTMLDivElement) {
+        let informacion = ltrPropiedades.Terceros.Sociedad.InformacionContable;
+        let contabilidad = ApiControl.BuscarListaDeValores(ampliacion, informacion.Contabilidad).value;
+        let digitos = Numero(ApiControl.BuscarEditor(ampliacion, informacion.Digitos).value);
+        digitosDeContaSolDeLaSociedad = contabilidad === informacion.ContaSol && DigitosDeContaSolValidos(digitos) ? digitos : 0;
+        AjustarDigitos(ampliacion, false);
+    }
+
+    export function Sociedad_Tras_Cambiar_Contabilidad() {
+        AjustarDigitos(AmpliacionDeInformacionContable(), true);
+    }
+
+    export function Sociedad_Tras_Salir_De_Digitos() {
+        let informacion = ltrPropiedades.Terceros.Sociedad.InformacionContable;
+        let ampliacion = AmpliacionDeInformacionContable();
+        if (ApiControl.BuscarListaDeValores(ampliacion, informacion.Contabilidad).value !== informacion.ContaSol)
+            return;
+
+        let digitos = ApiControl.BuscarEditor(ampliacion, informacion.Digitos);
+        if (!DigitosDeContaSolValidos(Numero(digitos.value))) {
+            MensajesSe.Error('Información contable', `En la contabilidad ContaSol los dígitos de las cuentas han de estar entre ${informacion.MinimoDeDigitosDeContaSol} y ${informacion.MaximoDeDigitosDeContaSol}`);
+            digitos.value = DigitosPropuestosDeContaSol().toString();
+        }
+    }
+
+    function AjustarDigitos(ampliacion: HTMLDivElement, proponerValor: boolean) {
+        let informacion = ltrPropiedades.Terceros.Sociedad.InformacionContable;
+        let lista = ApiControl.BuscarListaDeValores(ampliacion, informacion.Contabilidad);
+        let digitos = ApiControl.BuscarEditor(ampliacion, informacion.Digitos);
+        if (!Definido(lista) || !Definido(digitos))
+            return;
+
+        // si el usuario no puede editar la información contable la lista está desactivada y los dígitos no se liberan
+        let editable = !lista.disabled;
+        if (lista.value === informacion.Ncs) {
+            digitos.value = informacion.DigitosDeNcs.toString();
+            digitos.readOnly = true;
+        }
+        else if (lista.value === informacion.ContaSol) {
+            if (proponerValor || !DigitosDeContaSolValidos(Numero(digitos.value)))
+                digitos.value = DigitosPropuestosDeContaSol().toString();
+            digitos.readOnly = !editable;
+        }
+        else {
+            digitos.value = '';
+            digitos.readOnly = true;
+        }
+    }
+
+    function DigitosPropuestosDeContaSol(): number {
+        return digitosDeContaSolDeLaSociedad > 0 ? digitosDeContaSolDeLaSociedad : ltrPropiedades.Terceros.Sociedad.InformacionContable.DigitosPorDefectoDeContaSol;
+    }
+
+    function DigitosDeContaSolValidos(digitos: number): boolean {
+        let informacion = ltrPropiedades.Terceros.Sociedad.InformacionContable;
+        return Number.isInteger(digitos) && digitos >= informacion.MinimoDeDigitosDeContaSol && digitos <= informacion.MaximoDeDigitosDeContaSol;
     }
 
     export function Sociedad_RecargarGridDeArchivos() {

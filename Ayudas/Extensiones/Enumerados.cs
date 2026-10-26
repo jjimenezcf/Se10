@@ -217,6 +217,8 @@ namespace Utilidades
         Sociedad_RecargarGridDeArchivos,
         Sociedad_AbrirAgenda,
         Sociedad_Antes_De_Buscar_CgDocumental,
+        Sociedad_Tras_Cambiar_Contabilidad,
+        Sociedad_Tras_Salir_De_Digitos,
 
         CG_Tras_Seleccionar_Responsable,
         CG_Tras_Blanquear_Responsable,
