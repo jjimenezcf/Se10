@@ -214,7 +214,30 @@ a {
     border: 1px solid #6c757d;
     text-align: center;
     padding-top: 0.2em;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 13px 13px;
+    cursor: pointer;
 }
+
+    .boton-de-navegacion:hover {
+        background-color: #6c757d;
+    }
+
+    /* abre otra pestaña: cuadro con flecha saliendo por la esquina */
+    .boton-de-navegacion.navegar-a-pestana {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4h6v6'/%3E%3Cpath d='M20 4l-9 9'/%3E%3Cpath d='M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'/%3E%3C/svg%3E");
+    }
+
+    /* abre la modal del flujo de estados: nodos conectados */
+    .boton-de-navegacion.navegar-al-flujo {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='5' r='2.5'/%3E%3Ccircle cx='6' cy='19' r='2.5'/%3E%3Ccircle cx='18' cy='12' r='2.5'/%3E%3Cpath d='M6 7.5v9'/%3E%3Cpath d='M8.2 6.2l7.6 4.6'/%3E%3C/svg%3E");
+    }
+
+    /* ejecuta una acción en la misma página */
+    .boton-de-navegacion.navegar-en-pagina {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
+    }
 
 .boton-de-compartir {
     background-image: url(../images/compartir.png) !important;
@@ -1775,6 +1798,23 @@ a.deshabilitado {
 .con-filtro {
     color: indianred !important;
 }
+
+    /* cantidad de filtros activos de una modal de filtrado, junto a la referencia que la abre (ver IndicaSiHayFiltros) */
+    .con-filtro[filtros-activos]::after {
+        content: attr(filtros-activos);
+        display: inline-block;
+        min-width: 1.5em;
+        margin-left: 0.4em;
+        padding: 0 0.45em;
+        border-radius: 1em;
+        background-color: indianred;
+        color: #fff;
+        font-size: 0.75em;
+        font-weight: 600;
+        line-height: 1.5em;
+        text-align: center;
+        vertical-align: middle;
+    }
 
 .con-Contenido {
     color: indianred !important;

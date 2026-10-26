@@ -526,7 +526,8 @@ const ltrControladores = {
         CentrosGestores: 'CentrosGestores',
         Clientes: 'Clientes',
         Interlocutores: 'Interlocutores',
-        Proveedores: 'Proveedores'
+        Proveedores: 'Proveedores',
+        InformacionContableDeSociedad: 'InformacionContableDeSociedad'
     },
     MaestrosTecnico: {
         Tarifas: 'Tarifas',
@@ -982,6 +983,7 @@ const atModal = {
     NombreNegocio: literal.nombreNegocio,
     trasFirmar: 'tras-firmar',
     referenciaDeFiltrado: 'referencia-de-filtrado',
+    filtrosActivos: 'filtros-activos',
     controlador: literal.controlador,
     accion: 'accion-controlador',
 };
@@ -1794,6 +1796,9 @@ const Ajax = {
                 AsociarCertificado: 'epAsociarCertificado',
                 LeerDatosDeSociedad: 'epLeerDatosDeSociedad'
             },
+            InformacionContable: {
+                RelanzarActivacionDePreasientos: 'epRelanzarActivacionDePreasientos'
+            },
             Interlocutor: {
                 LeerCuentaDeIngreso: 'epLeerCuentaDeIngreso'
             },
@@ -2071,7 +2076,8 @@ const ltrEventos = {
         Abrir: 'abrir-filtro',
         TeclaPulsada: 'tecla-pulsada',
         Cerrar: 'cerrar-filtro',
-        AplicarFiltro: 'aplicar-filtro'
+        AplicarFiltro: 'aplicar-filtro',
+        LimpiarFiltro: 'limpiar-filtro'
     },
     ModalDePedirDatos: {
         TrasAbrir: 'accion-tras-abrir',
@@ -3125,7 +3131,8 @@ const ltrPropiedades = {
                 DigitosDeNcs: 11,
                 DigitosPorDefectoDeContaSol: 8,
                 MinimoDeDigitosDeContaSol: 4,
-                MaximoDeDigitosDeContaSol: 10
+                MaximoDeDigitosDeContaSol: 10,
+                RelanzarActivacionDePreasientos: 'RelanzarActivacionDePreasientos'
             },
             VerifactuEnProductivo: 'VerifactuEnProductivo',
             Nombre: literal.nombre,

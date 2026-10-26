@@ -2433,6 +2433,12 @@
             this.IndicaSiHayFiltros(modal);
         }
 
+        // deja los controles de la modal con su valor por defecto, sin cerrarla ni aplicar el filtro
+        public LimpiarModalDeFiltro(modal: HTMLDivElement): void {
+            this.InicializarControlesDeFiltro(modal);
+            this.IndicaSiHayFiltros(modal);
+        }
+
 
         public ModalDeTotales_TrasAbrir(modal: HTMLDivElement): void {
 
@@ -2842,23 +2848,32 @@
             let referencia = document.getElementById(referenciaDeFiltrado) as HTMLAnchorElement;
             if (!Definido(referencia))
                 return;
-            if (this.HayFiltros(modal))
+            // la cantidad se muestra junto a la etiqueta de la referencia mediante css (::after con attr(filtros-activos))
+            let cantidad: number = this.ContarFiltros(modal);
+            if (cantidad > 0) {
                 referencia.classList.add(ltrCss.modalesDeFiltro.conFiltro);
-            else
+                referencia.setAttribute(atModal.filtrosActivos, cantidad.toString());
+            }
+            else {
                 referencia.classList.remove(ltrCss.modalesDeFiltro.conFiltro);
+                referencia.removeAttribute(atModal.filtrosActivos);
+            }
         }
 
         public HayFiltros(modal: HTMLDivElement): boolean {
-            if (ApiPanel.HayEditoresConValor(modal, ltrTipoControl.Editor)) return true;
-            if (ApiPanel.HayEditoresConValor(modal, ltrTipoControl.ConEditor)) return true;
-            if (ApiPanel.HayRestrictoresDeFiltroConValor(modal)) return true;
-            if (ApiPanel.HayListasDinamicasConValor(modal)) return true;
-            if (ApiPanel.HayListasDeElementosConValor(modal)) return true;
-            if (ApiPanel.HayListasDeValoresConValor(modal)) return true;
-            if (ApiPanel.HayFiltroEntreFechasConValor(modal)) return true;
-            if (ApiPanel.HayFiltroEntreImportesConValor(modal)) return true;
-            if (ApiPanel.HayFiltroEntreRangosConValor(modal)) return true;
-            return false;
+            return this.ContarFiltros(modal) > 0;
+        }
+
+        public ContarFiltros(modal: HTMLDivElement): number {
+            return ApiPanel.ContarEditoresConValor(modal, ltrTipoControl.Editor)
+                + ApiPanel.ContarEditoresConValor(modal, ltrTipoControl.ConEditor)
+                + ApiPanel.ContarRestrictoresDeFiltroConValor(modal)
+                + ApiPanel.ContarListasDinamicasConValor(modal)
+                + ApiPanel.ContarListasDeElementosConValor(modal)
+                + ApiPanel.ContarListasDeValoresConValor(modal)
+                + ApiPanel.ContarFiltroEntreFechasConValor(modal)
+                + ApiPanel.ContarFiltroEntreImportesConValor(modal)
+                + ApiPanel.ContarFiltroEntreRangosConValor(modal);
         }
 
         public RestaurarPagina(): void {

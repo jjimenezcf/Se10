@@ -372,6 +372,8 @@
                         }
                         break;
                     case 'Escape':
+                        // evita que el escape cierre también la modal que contiene la lista
+                        e.preventDefault();
                         this.ocultarDropdown();
                         break;
                 }

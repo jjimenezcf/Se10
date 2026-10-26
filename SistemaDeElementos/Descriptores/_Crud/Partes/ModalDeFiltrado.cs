@@ -7,7 +7,7 @@ using Utilidades;
 namespace MVCSistemaDeElementos.Descriptores
 {
 
-    public enum enumAccionesModalDeFiltrado { AplicarFiltro, AbrirFiltro, CerrarFiltro, TeclaPulsada }
+    public enum enumAccionesModalDeFiltrado { AplicarFiltro, AbrirFiltro, CerrarFiltro, LimpiarFiltro, TeclaPulsada }
 
 
     static class AccionesModalDeFiltradoExtension
@@ -18,6 +18,7 @@ namespace MVCSistemaDeElementos.Descriptores
             {
                 case enumAccionesModalDeFiltrado.AplicarFiltro: return $"javascript:Crud.{enumGestorDeEventos.EventosModalDeFiltrado}('{eventosDeFormulario.AplicarFiltro}', '{parametros}');";
                 case enumAccionesModalDeFiltrado.CerrarFiltro: return $"javascript:Crud.{enumGestorDeEventos.EventosModalDeFiltrado}('{eventosDeFormulario.CerrarFiltro}', '{parametros}');";
+                case enumAccionesModalDeFiltrado.LimpiarFiltro: return $"javascript:Crud.{enumGestorDeEventos.EventosModalDeFiltrado}('{eventosDeFormulario.LimpiarFiltro}', '{parametros}');";
                 case enumAccionesModalDeFiltrado.AbrirFiltro: return $"javascript:Crud.{enumGestorDeEventos.EventosModalDeFiltrado}('{eventosDeFormulario.AbrirFiltro}', '{parametros}');";
                 case enumAccionesModalDeFiltrado.TeclaPulsada: return $"javascript:Crud.{enumGestorDeEventos.EventosModalDeFiltrado}('{eventosDeFormulario.TeclaPulsada}', '{parametros}');";
             }
@@ -62,26 +63,32 @@ namespace MVCSistemaDeElementos.Descriptores
         public override string RenderControl()
         {
 
-            var onkeypress = $"onkeypress = ¨{enumAccionesModalDeFiltrado.TeclaPulsada.Render("")}¨";
-            // <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpo.Render()}¨ {onkeypress} >
+            // el intro lo trata ApiPanel.AbrirModal (pulsa Filtrar), aquí se recoge el escape para cerrar
+            var onkeydown = $"onkeydown = ¨{enumAccionesModalDeFiltrado.TeclaPulsada.Render(IdHtml)}¨";
             string _htmlMiModal =
                 $@"
                  <!--  ******************  Filtro de {Etiqueta}  ********************************* -->
-                 <div id=¨{IdHtml}¨ class=¨contenedor-modal¨ tipo=¨{Tipo.Render()}¨ tipomodal = ¨{enumTipoDeModal.ModalDeFiltrado.Render()}¨ zona-filtrado=¨{ZonaDeFiltrado.IdHtml}¨ referencia-de-filtrado=¨{IdHtml}-ref.ref¨>
+                 <div id=¨{IdHtml}¨ class=¨contenedor-modal¨ tipo=¨{Tipo.Render()}¨ tipomodal = ¨{enumTipoDeModal.ModalDeFiltrado.Render()}¨ zona-filtrado=¨{ZonaDeFiltrado.IdHtml}¨ referencia-de-filtrado=¨{IdHtml}-ref.ref¨ {onkeydown}>
                     <div id=¨{IdHtml}_contenido¨ class=¨{enumCssModal.ContenidoModal.Render()}¨ >
                  	   <div id=¨{IdHtml}_cabecera¨ class=¨{enumCssModal.ContenidoCabecera.Render()}¨>
-                 		    	{Etiqueta}
+                          <span class=¨titulo-modal-de-filtrado¨>
+                             <svg class=¨icono-modal-de-filtrado¨ viewBox=¨0 0 24 24¨ aria-hidden=¨true¨><path d=¨M3 4h18l-7 8.5V19l-4 2v-8.5z¨/></svg>
+                             {Etiqueta}
+                          </span>
+                          <span class=¨cerrar-modal-de-filtrado¨ title=¨Cerrar¨ onclick=¨{enumAccionesModalDeFiltrado.CerrarFiltro.Render(IdHtml)}¨>&times;</span>
                        </div>
                  	   <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpo.Render()}¨>
                  	      {RenderControlesDeFiltrado()}
                        </div>
                        <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
-                          <input type=¨text¨ id=¨{IdHtml}_Cerrar¨  
-                              class=¨{enumCssModal.BotonSecundario.Render()}¨ 
-                              value=¨Cerrar¨ 
-                              clase=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ 
-                              readonly 
-                              onclick=¨{enumAccionesModalDeFiltrado.CerrarFiltro.Render(IdHtml)}¨ />
+                          <!-- se cierra con la × de la cabecera o con escape -->
+                          <input type=¨text¨ id=¨{IdHtml}_Limpiar¨
+                              class=¨{enumCssModal.BotonSecundario.Render()}¨
+                              value=¨Limpiar¨
+                              title=¨Deja los filtros de esta ventana con su valor por defecto¨
+                              clase=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨
+                              readonly
+                              onclick=¨{enumAccionesModalDeFiltrado.LimpiarFiltro.Render(IdHtml)}¨ />
                           <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ 
                               class=¨{enumCssModal.BotonPrincipal.Render()}¨ 
                               value=¨Filtrar¨ 

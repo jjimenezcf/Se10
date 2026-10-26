@@ -561,33 +561,42 @@ namespace MVCSistemaDeElementos.Descriptores
             if (vistaDondeNavegar == enumVistasNegocio.CrudDeEstados)
                 return $@"<a id=¨{idHtml}-navegador¨
                               tipo=¨{enumTipoControl.Referencia}¨
-                              class=¨boton-de-navegacion¨
+                              class=¨boton-de-navegacion navegar-al-flujo¨
+                              title=¨Ver el flujo de estados¨
+                              aria-label=¨Ver el flujo de estados¨
                               controlador='{controlador.Replace(ltrEndPoint.Controller, "")}'
                               vista='{vistaDondeNavegar}'
                               negocio='{negocio.ToNombre()}'
                               href=¨#¨
-                              onclick='return Flujo.MostrarFlujoDeEstado(this);'/>></a>";
+                              onclick='return Flujo.MostrarFlujoDeEstado(this);'></a>";
 
+            // con al-pulsar se ejecuta una acción en la misma página, sin él se navega a una pestaña nueva
+            var enPestanaNueva = onClick.IsNullOrEmpty();
+            var titulo = enPestanaNueva ? "Abrir en una pestaña nueva" : "Ir al elemento";
             onClick = onClick.IsNullOrEmpty() ? "" : $"al-pulsar = '{onClick}'";
             return $@"<a id =¨{idHtml}-navegador¨
                           tipo =¨{enumTipoControl.Referencia}¨
-                          class=¨boton-de-navegacion¨
-                          {(onClick.IsNullOrEmpty() ? $"target=¨_blank¨" : "")}
+                          class=¨boton-de-navegacion {(enPestanaNueva ? "navegar-a-pestana" : "navegar-en-pagina")}¨
+                          title=¨{titulo}¨
+                          aria-label=¨{titulo}¨
+                          {(enPestanaNueva ? $"target=¨_blank¨" : "")}
                           controlador='{controlador.Replace(ltrEndPoint.Controller, "")}'
                           vista='{vistaDondeNavegar}'
                           negocio = '{negocio.ToNombre()}'
                           {onClick}
-                          href=¨{(!onClick.IsNullOrEmpty() ? "#" : "")}¨/>></a>";
+                          href=¨{(!enPestanaNueva ? "#" : "")}¨></a>";
         }
 
         internal static string DefinirBotonNavegador(string idHtml, bool urlExterna)
         {
-            return $@"<a id =¨{idHtml}-navegador¨ 
+            return $@"<a id =¨{idHtml}-navegador¨
                       tipo=¨{enumTipoControl.Navegador.Render()}¨
                       url-externa='{urlExterna}'
-                      class=¨boton-de-navegacion¨ 
-                      target=¨_blank¨ 
-                      href=¨¨/>></a>";
+                      class=¨boton-de-navegacion navegar-a-pestana¨
+                      title=¨Abrir en una pestaña nueva¨
+                      aria-label=¨Abrir en una pestaña nueva¨
+                      target=¨_blank¨
+                      href=¨¨></a>";
         }
 
 

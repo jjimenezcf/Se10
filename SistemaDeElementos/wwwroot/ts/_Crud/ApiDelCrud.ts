@@ -34,7 +34,10 @@
         crud.FiltrosPrecomputados = null;
 
         document.querySelectorAll(`.${ltrCss.modalesDeFiltro.conFiltro}`)
-            .forEach(etiqueta => etiqueta.classList.remove(ltrCss.modalesDeFiltro.conFiltro));
+            .forEach(etiqueta => {
+                etiqueta.classList.remove(ltrCss.modalesDeFiltro.conFiltro);
+                etiqueta.removeAttribute(atModal.filtrosActivos);
+            });
 
         crud.CargarGrid();
     }

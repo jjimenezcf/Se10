@@ -1217,6 +1217,19 @@
                     crudMnt.CerrarModalDeFiltro(modal);
                     break;
                 }
+                case ltrEventos.ModalDeFiltrado.LimpiarFiltro: {
+                    crudMnt.LimpiarModalDeFiltro(modal);
+                    break;
+                }
+                case ltrEventos.ModalDeFiltrado.TeclaPulsada: {
+                    // el intro lo trata ApiPanel.AbrirModal pulsando el botón por defecto (Filtrar)
+                    let tecla = event as KeyboardEvent;
+                    if (tecla.key === 'Escape' && !tecla.defaultPrevented) {
+                        tecla.preventDefault();
+                        crudMnt.CerrarModalDeFiltro(modal);
+                    }
+                    break;
+                }
                 default: {
                     MensajesSe.Apilar(MensajesSe.enumTipoMensaje.error, `la opción ${accion} no está definida en el gestor de eventos de selección`);
                     break;
