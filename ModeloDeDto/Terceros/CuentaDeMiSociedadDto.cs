@@ -65,6 +65,21 @@ namespace ModeloDeDto.Terceros
         public string Alias { get; set; }
 
         //----------------------------------------------------------
+        // no está en la tabla: se guarda en el parámetro de preasientos SPR_CtaBancaria_CtaContable (ver GestorDeCuentasDeMiSociedad)
+        [IUPropiedad(
+            Etiqueta = "Cuenta contable",
+            Ayuda = "Cuenta contable del grupo 5 (hasta 11 dígitos en Ncs, entre 4 y 10 en ContaSol)",
+            Fila = 2,
+            Columna = 2,
+            VisibleAlCrear = true,
+            EditableAlEditar = true,
+            LongitudMaxima = 11,
+            Obligatorio = false
+            )
+        ]
+        public string CuentaContable { get; set; }
+
+        //----------------------------------------------------------
         [IUPropiedad(
             Etiqueta = "Banco",
             Ayuda = "Banco asociado a la cuenta",

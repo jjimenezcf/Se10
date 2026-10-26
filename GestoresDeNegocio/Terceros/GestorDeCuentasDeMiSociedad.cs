@@ -110,6 +110,10 @@ namespace GestoresDeNegocio.Terceros
             if (opciones.Insertando)
                 csDtm.IdCuenta =
                     ExtensorDeCuentasBancarias.Leer(Contexto, csDto.Iban.Substring(0, 2), csDto.Iban.Substring(2, 2), csDto.Entidad, csDto.Oficina, csDto.DcCcc, csDto.Numero).Id;
+
+            // la cuenta contable no está en la tabla: se guarda para validarla antes de persistir y grabarla en el parámetro después
+            if (!opciones.Eliminando)
+                opciones.Parametros[nameof(CuentaDeMiSociedadDto.CuentaContable)] = csDto.CuentaContable?.Trim();
         }
 
         protected override void AntesDePersistir(CuentaDeMiSociedadDtm cc, ParametrosDeNegocio parametros)
@@ -122,6 +126,9 @@ namespace GestoresDeNegocio.Terceros
                     GestorDeErrores.Emitir($"Debe indicar un número de cuenta para la sociedad '{Contexto.SeleccionarPorId<SociedadDtm>(cc.IdElemento).NIF}'");
                 cc.Cuenta(Contexto).Validar();
             }
+
+            if (!parametros.Eliminando)
+                Contexto.SeleccionarPorId<SociedadDtm>(cc.IdElemento).ValidarCuentaContableDeTesoreria(CuentaContableIndicada(parametros));
 
             if (parametros.Operacion == enumTipoOperacion.Modificar)
             {
@@ -159,6 +166,8 @@ namespace GestoresDeNegocio.Terceros
             if (parametros.Eliminando)
                 ((SociedadDtm)cs.DetalleDe(Contexto)).CrearTraza(Contexto, "Se ha eliminado la cuenta de la sociedad", $"La cuenta {cs.Cuenta(Contexto).NumeroIban} ha sido eliminada por el usuario {Contexto.DatosDeConexion.Login}");
 
+            PersistirCuentaContable(cs, parametros);
+
             if (cs.IdArchivo != default)
             {
                 if (parametros.Insertando || (parametros.Modificando && !GestorDeVinculos.Existe(Contexto, enumNegocio.Sociedad, enumNegocio.Archivos, cs.IdElemento, (int)cs.IdArchivo)))
@@ -195,7 +204,24 @@ namespace GestoresDeNegocio.Terceros
             var banco = ctaDeSociedad.Cuenta.Banco(Contexto, errorSiNoHay: false);
             elemento.Banco = banco is not null ? banco.Expresion : ltrBanco.BancoNoDefinido;
             elemento.Elemento = Contexto.SeleccionarPorId<SociedadDtm>(ctaDeSociedad.IdElemento).Expresion;
+            elemento.CuentaContable = VariablesDePreasiento.CuentaContableDeLaCuentaBancaria(ctaDeSociedad.Id);
         }
+
+        // Al crear o modificar con cuenta contable se añade o modifica la de la cuenta en el parámetro SPR_CtaBancaria_CtaContable;
+        // al eliminar se quita (si no queda ninguna se deja el valor por defecto)
+        private void PersistirCuentaContable(CuentaDeMiSociedadDtm cs, ParametrosDeNegocio parametros)
+        {
+            var cuentaContable = CuentaContableIndicada(parametros);
+            if (!parametros.Eliminando && cuentaContable.IsNullOrEmpty())
+                return;
+
+            var json = VariablesDePreasiento.JsonConCuentaContableDeLaCuentaBancaria(cs.Id, parametros.Eliminando ? null : cuentaContable);
+            if (json is not null)
+                enumNegocio.Preasiento.ResetearParametro(Contexto, enumParametrosDePreasiento.SPR_CtaBancaria_CtaContable, json);
+        }
+
+        private static string CuentaContableIndicada(ParametrosDeNegocio parametros) =>
+            parametros.Parametros.TryGetValue(nameof(CuentaDeMiSociedadDto.CuentaContable), out var cuenta) ? (string)cuenta : null;
 
     }
 }

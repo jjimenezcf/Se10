@@ -81,6 +81,7 @@ namespace ModeloDeDto.Terceros
             Ayuda = "Alias de la tarjeta",
             Fila = 1,
             Columna =3,
+            Posicion = 0,
             VisibleAlCrear = true,
             EditableAlEditar = true,
             AutoSpan = true,
@@ -89,6 +90,22 @@ namespace ModeloDeDto.Terceros
             )
         ]
         public string Alias { get; set; }
+
+        //----------------------------------------------------------
+        // no está en la tabla: se guarda en el parámetro de preasientos SPR_Tarjeta_CtaContable (ver GestorDeTarjetasDeMiSociedad)
+        [IUPropiedad(
+            Etiqueta = "Cuenta contable",
+            Ayuda = "Cuenta contable del grupo 5 (hasta 11 dígitos en Ncs, entre 4 y 10 en ContaSol)",
+            Fila = 1,
+            Columna = 3,
+            Posicion = 1,
+            VisibleAlCrear = true,
+            EditableAlEditar = true,
+            LongitudMaxima = 11,
+            Obligatorio = false
+            )
+        ]
+        public string CuentaContable { get; set; }
 
         //------------------------------------------------------------------------
         [IUPropiedad(

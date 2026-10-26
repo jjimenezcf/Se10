@@ -67,7 +67,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
         internal const string PerceptorDeRetencion = "40000000001";
         internal const string OrigenDeDatos = "3";
         internal const string VersionProveedores = "3.615";
-        internal const int LongitudDeCuenta = 11;
+        internal const int LongitudDeCuenta = VariablesDePreasiento.DigitosDeNcs;
         internal static readonly string AsientoLibre = "20";
         internal static readonly string AsientoConIva = "21";
         internal static readonly string DevolucionCompra = "3";
@@ -1122,7 +1122,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
         //475101 --> 47500000101
         private static string CuentaDeNcs(string cuenta)
         {
-            const int longitudObjetivo = 11;
+            const int longitudObjetivo = ltrNcsPlanContable.LongitudDeCuenta;
 
             // Buscar el último cero desde el final
             int ultimoCero = cuenta.LastIndexOf('0');

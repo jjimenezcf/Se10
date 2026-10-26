@@ -62,6 +62,7 @@ namespace GestoresDeNegocio.Contabilidad
 
             GestorDeCierresContables.ValidarEjercicioDelCierre(contexto, sociedad, ejercicio);
             sociedad.CambiarSistemaContable(contexto, sistema, digitos);
+            sociedad.ValidarCuentasDeTesoreriaParaContasol(contexto);
 
             return SometerLoteContable(contexto, enumTrabajosContables.CrearCierreContable, idSociedad, ejercicio, descontabilizar: false, respetarFechaContable: true, fechaContable: null, filtros: "", cerrarHasta: cerrarHasta.Date);
         }

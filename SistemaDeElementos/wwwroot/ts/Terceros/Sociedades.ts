@@ -229,7 +229,8 @@
             let esDeMisSociedades: boolean = ObtenerPropiedad(this.Registro, ltrPropiedades.Terceros.Sociedad.EsUnaDeMisSociedades);
             ApiPanel.OcultarMostrarPanel(this.DivDeAmpliacion(ltrAmpliaciones.sociedades.parametros), !esDeMisSociedades);
 
-            if (ampliacion === this.DivDeAmpliacion(ltrAmpliaciones.sociedades.informacionContable)) {
+            // la ampliación que llega es el div 'contenedor_dto_...', DivDeAmpliacion devuelve el 'mostrar....' que la contiene
+            if (this.EsLaAmpliacionDe(ampliacion, ltrAmpliaciones.sociedades.informacionContable)) {
                 this.BloquearPreasientosActivos(ampliacion);
                 InicializarDigitos(ampliacion);
             }

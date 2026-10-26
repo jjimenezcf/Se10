@@ -884,6 +884,8 @@ namespace ServicioDeDatos.Contabilidad
                     {
                         if (relacion.CodigoDeCuenta == ltrCuenta.Tarjeta)
                             return (relacion.CodigoDeCuenta.Entero() + (int)pago.IdTarjetaDePago).ToString();
+
+                        return relacion.CodigoDeCuenta;
                     }
                 }
             }
@@ -907,6 +909,101 @@ namespace ServicioDeDatos.Contabilidad
             }
 
             return enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Cuenta_De_Caja, crearParametro: true, valorPorDefecto: ltrCuenta.Caja).Valor;
+        }
+
+        // ---------- Cuentas contables (grupo 5) de las cuentas bancarias y tarjetas de mis sociedades: parámetros SPR_CtaBancaria_CtaContable y SPR_Tarjeta_CtaContable
+
+        // Cuenta contable definida para la cuenta bancaria de la sociedad; null si no tiene
+        public static string CuentaContableDeLaCuentaBancaria(int idCuentaDeMiSociedad)
+        {
+            var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_CtaBancaria_CtaContable, crearParametro: true, valorPorDefecto: _jsonDeSPR_CtaBancaria_CtaContable).Valor;
+            return ParsearCtaBancariaParaCtaContable(json).FirstOrDefault(x => x.IdCuentaBancaria == idCuentaDeMiSociedad)?.CodigoDeCuenta;
+        }
+
+        // Cuenta contable definida para la tarjeta de la sociedad; null si no tiene
+        public static string CuentaContableDeLaTarjeta(int idTarjetaDeMiSociedad)
+        {
+            var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Tarjeta_CtaContable, crearParametro: true, valorPorDefecto: _jsonDeSPR_Tarjeta_CtaContable).Valor;
+            return ParsearTarjetaParaCtaContable(json).FirstOrDefault(x => x.IdTarjeta == idTarjetaDeMiSociedad)?.CodigoDeCuenta;
+        }
+
+        // Json del parámetro con la cuenta contable de la cuenta bancaria añadida, modificada o, si no se indica, quitada; null si no cambia
+        public static string JsonConCuentaContableDeLaCuentaBancaria(int idCuentaDeMiSociedad, string codigoDeCuenta) =>
+            JsonConCuentaContable(enumParametrosDePreasiento.SPR_CtaBancaria_CtaContable, nameof(CtaContablePorCtaBancaria.IdCuentaBancaria), idCuentaDeMiSociedad, codigoDeCuenta, _jsonDeSPR_CtaBancaria_CtaContable);
+
+        // Json del parámetro con la cuenta contable de la tarjeta añadida, modificada o, si no se indica, quitada; null si no cambia
+        public static string JsonConCuentaContableDeLaTarjeta(int idTarjetaDeMiSociedad, string codigoDeCuenta) =>
+            JsonConCuentaContable(enumParametrosDePreasiento.SPR_Tarjeta_CtaContable, nameof(TarjetaPorCtaBancaria.IdTarjeta), idTarjetaDeMiSociedad, codigoDeCuenta, _jsonDeSPR_Tarjeta_CtaContable);
+
+        // La cuenta contable ha de ser numérica, del grupo 5 y con los dígitos de la contabilidad de la sociedad: hasta 11 en Ncs, entre 4 y 10 en ContaSol
+        public static void ValidarCuentaContableDeTesoreria(this SociedadDtm sociedad, string codigoDeCuenta)
+        {
+            if (codigoDeCuenta.IsNullOrEmpty())
+                return;
+
+            if (!codigoDeCuenta.All(char.IsDigit))
+                GestorDeErrores.Emitir($"La cuenta contable '{codigoDeCuenta}' solo puede contener dígitos");
+            if (codigoDeCuenta[0] != '5')
+                GestorDeErrores.Emitir($"La cuenta contable '{codigoDeCuenta}' ha de ser del grupo 5");
+
+            var (sistema, _) = sociedad.SistemaYDigitosParaContabilizar();
+            if (sistema is null)
+                GestorDeErrores.Emitir($"Antes de indicar la cuenta contable ha de definir en qué contabilidad se contabiliza la sociedad '{sociedad.Expresion}' (información contable de la sociedad)");
+
+            // en Ncs las cuentas con menos dígitos las extiende a 11 la generación del lote
+            if (sistema == enumSistemaContable.NCS && codigoDeCuenta.Length > DigitosDeNcs)
+                GestorDeErrores.Emitir($"La sociedad '{sociedad.Expresion}' contabiliza en Ncs y la cuenta contable no puede tener más de {DigitosDeNcs} dígitos");
+            if (sistema == enumSistemaContable.ContaSol && (codigoDeCuenta.Length < 4 || codigoDeCuenta.Length > 10))
+                GestorDeErrores.Emitir($"La sociedad '{sociedad.Expresion}' contabiliza en ContaSol y la cuenta contable ha de tener entre 4 y 10 dígitos");
+        }
+
+        // Antes de exportar a ContaSol: las cuentas contables indicadas en las cuentas bancarias y tarjetas de la sociedad han de tener los dígitos
+        // de sus cuentas auxiliares; si no, se avisa para que el usuario las cambie (la exportación las ajustaría sin avisar). Las que usan la
+        // cuenta por defecto (572000 / 520100 + id) no se validan
+        public static void ValidarCuentasDeTesoreriaParaContasol(this SociedadDtm sociedad, ContextoSe contexto)
+        {
+            var (sistema, digitos) = sociedad.SistemaYDigitosParaContabilizar();
+            if (sistema != enumSistemaContable.ContaSol)
+                return;
+
+            var malConfiguradas = new List<string>();
+            foreach (var cuenta in contexto.Set<CuentaDeMiSociedadDtm>().Where(c => c.IdElemento == sociedad.Id).ToList())
+            {
+                var codigo = CuentaContableDeLaCuentaBancaria(cuenta.Id);
+                if (!codigo.IsNullOrEmpty() && codigo != ltrCuenta.Banco && codigo.Length != digitos)
+                    malConfiguradas.Add($"la cuenta bancaria '{(cuenta.Alias.IsNullOrEmpty() ? cuenta.Id.ToString() : cuenta.Alias)}' tiene la cuenta contable '{codigo}'");
+            }
+
+            foreach (var tarjeta in contexto.Set<TarjetaDeMiSociedadDtm>().Where(t => t.IdElemento == sociedad.Id).ToList())
+            {
+                var codigo = CuentaContableDeLaTarjeta(tarjeta.Id);
+                if (!codigo.IsNullOrEmpty() && codigo != ltrCuenta.Tarjeta && codigo.Length != digitos)
+                    malConfiguradas.Add($"la tarjeta '{tarjeta.Expresion}' tiene la cuenta contable '{codigo}'");
+            }
+
+            if (malConfiguradas.Count > 0)
+                GestorDeErrores.Emitir($"La sociedad '{sociedad.Expresion}' contabiliza en ContaSol con cuentas de {digitos} dígitos y {string.Join(", ", malConfiguradas)}. Cámbielas en las cuentas y tarjetas de la sociedad antes de contabilizar");
+        }
+
+        // Si no queda ninguna cuenta informada (id > 0) se deja el valor por defecto del parámetro
+        private static string JsonConCuentaContable(enumParametrosDePreasiento parametro, string clave, int id, string codigoDeCuenta, string porDefecto)
+        {
+            var json = enumNegocio.Preasiento.Parametro(parametro, crearParametro: true, valorPorDefecto: porDefecto).Valor;
+            var original = JArray.Parse(json);
+            var jsonArray = JArray.Parse(json);
+            var item = jsonArray.FirstOrDefault(x => x[clave]?.Value<int>() == id) as JObject;
+
+            if (codigoDeCuenta.IsNullOrEmpty())
+                item?.Remove();
+            else if (item is null)
+                jsonArray.Add(new JObject { [clave] = id, ["CodigoDeCuenta"] = codigoDeCuenta });
+            else
+                item["CodigoDeCuenta"] = codigoDeCuenta;
+
+            if (!jsonArray.Any(x => x[clave]?.Value<int>() > 0))
+                return json == porDefecto ? null : porDefecto;
+
+            return JToken.DeepEquals(original, jsonArray) ? null : jsonArray.ToString(Newtonsoft.Json.Formatting.None);
         }
 
         private static List<ActividadesEstimacionDirecta> ParsearActividades(string json)

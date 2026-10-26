@@ -84,6 +84,7 @@ namespace GestoresDeNegocio.Contabilidad
             if (seleccion is null)
                 return;
             var (preasientosParaContabilizar, sociedad, ejercicio, fechaContable, respetarFechaContable) = seleccion.Value;
+            sociedad.ValidarCuentasDeTesoreriaParaContasol(contextoDeLaAccion);
 
             var generador = new LoteContableConContasol(contextoDeLaAccion, preasientosParaContabilizar, sociedad, ejercicio, respetarFechaContable, fechaContable);
             try
@@ -115,6 +116,7 @@ namespace GestoresDeNegocio.Contabilidad
             if (preasientos.Count == 0)
                 GestorDeErrores.Emitir($"El lote contable '{lote.Referencia}' no tiene preasientos asociados, no se puede regenerar el lote contable");
 
+            preasientos.First().Sociedad(contexto).ValidarCuentasDeTesoreriaParaContasol(contexto);
             lote.MarcarArchivosComoCancelados(contexto);
             var generador = new LoteContableConContasol(contexto, preasientos, preasientos.First().Sociedad(contexto), ejercicio: DateTime.Now.Year, respetarFechaContable: true, fechaContable: null);
             try

@@ -10,6 +10,7 @@ using ModeloDeDto.Terceros;
 using GestorDeElementos.Extensores;
 using Gestor.Errores;
 using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Contabilidad;
 
 namespace GestoresDeNegocio.Terceros
 {
@@ -84,9 +85,21 @@ namespace GestoresDeNegocio.Terceros
             }
         }
 
+        // la cuenta contable no está en la tabla: se guarda para validarla antes de persistir y grabarla en el parámetro después
+        protected override void DespuesDeMapearElRegistro(TarjetaDeMiSociedadDto tarjetaDto, TarjetaDeMiSociedadDtm tarjeta, ParametrosDeNegocio opciones)
+        {
+            base.DespuesDeMapearElRegistro(tarjetaDto, tarjeta, opciones);
+            if (!opciones.Eliminando)
+                opciones.Parametros[nameof(TarjetaDeMiSociedadDto.CuentaContable)] = tarjetaDto.CuentaContable?.Trim();
+        }
+
         protected override void AntesDePersistir(TarjetaDeMiSociedadDtm tarjeta, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(tarjeta, parametros);
+
+            if (!parametros.Eliminando)
+                Contexto.SeleccionarPorId<SociedadDtm>(tarjeta.IdElemento).ValidarCuentaContableDeTesoreria(CuentaContableIndicada(parametros));
+
             if (parametros.Insertando)
             {
                 if (!tarjeta.CuentaDeCargo(Contexto).Activa)
@@ -142,6 +155,8 @@ namespace GestoresDeNegocio.Terceros
 
             if (parametros.Eliminando)
                 ((SociedadDtm)tarjeta.DetalleDe(Contexto)).CrearTraza(Contexto, "Se ha eliminado la tarjeta de la sociedad", $"La tarjeta {tarjeta.IbanDeCuentaDeCargo(Contexto)} ha sido eliminada por el usuario {Contexto.DatosDeConexion.Login}");
+
+            PersistirCuentaContable(tarjeta, parametros);
         }
 
         protected override void EliminarCaches(TarjetaDeMiSociedadDtm registro, ParametrosDeNegocio parametros)
@@ -158,8 +173,24 @@ namespace GestoresDeNegocio.Terceros
             tarjeta.CuentaDeCargo = tarjeta.CuentaDeCargo(Contexto);
             elemento.Elemento = Contexto.SeleccionarPorId<SociedadDtm>(tarjeta.IdElemento).Expresion;
             elemento.Expresion = tarjeta.Expresion;
-
+            elemento.CuentaContable = VariablesDePreasiento.CuentaContableDeLaTarjeta(tarjeta.Id);
         }
+
+        // Al crear o modificar con cuenta contable se añade o modifica la de la tarjeta en el parámetro SPR_Tarjeta_CtaContable;
+        // al eliminar se quita (si no queda ninguna se deja el valor por defecto)
+        private void PersistirCuentaContable(TarjetaDeMiSociedadDtm tarjeta, ParametrosDeNegocio parametros)
+        {
+            var cuentaContable = CuentaContableIndicada(parametros);
+            if (!parametros.Eliminando && cuentaContable.IsNullOrEmpty())
+                return;
+
+            var json = VariablesDePreasiento.JsonConCuentaContableDeLaTarjeta(tarjeta.Id, parametros.Eliminando ? null : cuentaContable);
+            if (json is not null)
+                enumNegocio.Preasiento.ResetearParametro(Contexto, enumParametrosDePreasiento.SPR_Tarjeta_CtaContable, json);
+        }
+
+        private static string CuentaContableIndicada(ParametrosDeNegocio parametros) =>
+            parametros.Parametros.TryGetValue(nameof(TarjetaDeMiSociedadDto.CuentaContable), out var cuenta) ? (string)cuenta : null;
 
     }
 }
