@@ -515,6 +515,11 @@ namespace GestorDeElementos.Extensores
                 enumNegocio.Preasiento.ResetearParametro(contexto, enumParametrosDePreasiento.SPR_Contabilizar_En, json);
         }
 
+        // Quita de la caché los parámetros SPR_ de preasientos: se llama al terminar la transacción (commit o rollback) para que
+        // ningún proceso se quede con un valor no confirmado leído mientras la transacción estaba abierta
+        public static void VaciarCacheDeLaInformacionContable() =>
+            ServicioDeCaches.EliminarElementosComiencenPor(CacheDe.Negocio_ParametrosDeNegocio, $"{enumNegocio.Preasiento}-SPR_");
+
         public static CierreContableDtm UltimoCierreContable(ContextoSe contexto, int idSociedad) =>
             contexto.Set<CierreContableDtm>().Where(c => c.IdSociedad == idSociedad).OrderByDescending(c => c.CerradaEl).ThenByDescending(c => c.Id).FirstOrDefault();
 

@@ -67,6 +67,10 @@ namespace MVCSistemaDeElementos.Controllers
                 Contexto.Rollback(tran);
                 ApiController.PrepararError(e, r, "No se ha podido grabar la información contable de la sociedad.");
             }
+            finally
+            {
+                ExtensorDeSociedades.VaciarCacheDeLaInformacionContable();
+            }
 
             return new JsonResult(r);
         }
