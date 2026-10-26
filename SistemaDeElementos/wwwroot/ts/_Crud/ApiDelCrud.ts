@@ -1,14 +1,15 @@
 ﻿namespace ApiDelCrud {
 
     // Acción tras abrir las modales de observaciones de un negocio que no usa archivos (ver EspansorDeObservaciones):
-    // se ocultan el selector del archivo asociado a la observación y el enlace para descargarlo
+    // se ocultan el selector del archivo asociado a la observación y el enlace para descargarlo.
+    // El input del selector está oculto dentro de un form y lo visible es su etiqueta (botones de subir y pegar),
+    // que se pinta en la misma celda (td-propiedad, ver RenderDto): se oculta la celda completa
     export function Obs_OcultarArchivo(modal: HTMLDivElement): void {
         [ltrPropiedades.Elemento.IdArchivo, ltrPropiedades.Elemento.Accion].forEach(propiedad => {
-            modal.querySelectorAll<HTMLElement>(`[${atControl.propiedad}="${propiedad}"]`).forEach(control => {
-                if (control instanceof HTMLAnchorElement)
-                    ApiControl.OcultarHtmlAnchor(control, true);
-                else
-                    ApiControl.OcultarControlSi(control, true);
+            modal.querySelectorAll<HTMLElement>(`[${atControl.propiedad}="${propiedad}" i]`).forEach(control => {
+                const celda = control.closest<HTMLElement>(`[name="${atNombre.tdPropiedad}"]`);
+                if (Definido(celda))
+                    ApiControl.IncluirCss(celda, ltrCss.divNoVisible);
             });
         });
     }

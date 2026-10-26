@@ -668,7 +668,8 @@ const atControl = {
 };
 
 const atNombre = {
-    contenedorControl: 'contenedor-control'
+    contenedorControl: 'contenedor-control',
+    tdPropiedad: 'td-propiedad'
 }
 
 const atRef = {
