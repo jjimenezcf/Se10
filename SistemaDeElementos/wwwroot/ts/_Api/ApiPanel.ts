@@ -685,17 +685,8 @@
 
         for (var i = 0; i < controles.length; i++) {
             var control = controles[i];
-            if (valores.has(control.id)) {
-                var valor = valores.get(control.id);
-                if (control instanceof HTMLInputElement && valor !== control.value) {
-                    return true;
-                }
-                if (control instanceof HTMLTextAreaElement && valor !== control.value) {
-                    return true;
-                }
-                if (control instanceof HTMLSelectElement && valor !== control.value) {
-                    return true;
-                }
+            if (valores.has(control.id) && valores.get(control.id) !== ValorParaDetectarCambios(control)) {
+                return true;
             }
         }
         return false;
@@ -705,16 +696,19 @@
 
         for (var i = 0; i < controles.length; i++) {
             var control = controles[i];
-            if (control instanceof HTMLInputElement) {
-                valores.set(control.id, control.value);
-            }
-            if (control instanceof HTMLTextAreaElement) {
-                valores.set(control.id, control.value);
-            }
-            if (control instanceof HTMLSelectElement) {
-                valores.set(control.id, control.value);
+            if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement || control instanceof HTMLSelectElement) {
+                valores.set(control.id, ValorParaDetectarCambios(control));
             }
         }
+    }
+
+    // en un checkbox o radio el value es el texto que se envía, no cambia al marcarlo: lo que cambia es checked
+    function ValorParaDetectarCambios(control: Element): any {
+        if (control instanceof HTMLInputElement && (control.type === 'checkbox' || control.type === 'radio'))
+            return control.checked;
+        if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement || control instanceof HTMLSelectElement)
+            return control.value;
+        return undefined;
     }
 
     export function AbrirModal(modal: HTMLDivElement): void {
