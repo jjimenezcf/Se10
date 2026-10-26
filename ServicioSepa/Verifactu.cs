@@ -20,6 +20,26 @@ using VeriFactu.Net.Core.Src.Business.Operations;
 
 namespace ServicioXml
 {
+    // Registro de facturación tal como lo tiene la AEAT, con su encadenamiento (ver Verifactu.RegistrosDeLaCadena)
+    public class RegistroDeLaCadenaVerifactu
+    {
+        public string IDEmisor { get; set; }
+        public string NumSerie { get; set; }
+        // fecha de expedición en el formato de Verifactu (dd-MM-yyyy)
+        public string FechaExpedicion { get; set; }
+        // fecha, hora y huso de generación del registro (ISO 8601), es lo que ordena la cadena
+        public string FechaHoraHusoGenRegistro { get; set; }
+        public string Huella { get; set; }
+        public bool PrimerRegistro { get; set; }
+        public string NumSerieAnterior { get; set; }
+        public string FechaExpedicionAnterior { get; set; }
+        public string HuellaAnterior { get; set; }
+        public string Estado { get; set; }
+        public string TimestampUltimaModificacion { get; set; }
+
+        public DateTimeOffset Generado => DateTimeOffset.Parse(FechaHoraHusoGenRegistro, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     public static class Verifactu
     {
         public static void ValidarNif(this FacturaEmtDtm facturaEmt, ContextoSe contexto, Certificado certificado, string numeroDeInstalacion)
@@ -122,6 +142,49 @@ namespace ServicioXml
             return facturasAeat.OrderBy(f => f.FechaFactura).ThenBy(f => f.Id).ToList();
         }
 
+
+        // Registros de facturación de la sociedad que tiene la AEAT en el periodo, con los datos de su encadenamiento, para reconstruir la
+        // cadena (Orden HAC/1177/2024, art. 7): solo los generados por este sistema informático e instalación, ya que cada sistema lleva
+        // su propia cadena por obligado tributario
+        public static List<RegistroDeLaCadenaVerifactu> RegistrosDeLaCadena(this SociedadDtm sociedad, Certificado certificado, string numeroDeInstalacion, int ano, int mes)
+        {
+            AjustarSetting(certificado, numeroDeInstalacion);
+
+            var invoiceQuery = new InvoiceQuery(sociedad.NIFSinIsoEs, sociedad.RazonSocial);
+            var registros = new List<RegistroDeLaCadenaVerifactu>();
+            VeriFactu.Xml.Factu.Consulta.ClavePaginacion pagina = null;
+            do
+            {
+                var respuesta = invoiceQuery.GetSales(ano.ToString(), mes.ToString(), pagina);
+                foreach (var registro in respuesta.RegistroRespuestaConsultaFactuSistemaFacturacion ?? Array.Empty<VeriFactu.Xml.Factu.Consulta.Respuesta.RegistroRespuestaConsultaFactuSistemaFacturacion>())
+                {
+                    var datos = registro.DatosRegistroFacturacion;
+                    var sistema = datos?.SistemaInformatico;
+                    if (sistema is not null && (sistema.NombreSistemaInformatico != ParametrosDelSii.SSII_NombreDelSistema || sistema.NumeroInstalacion != numeroDeInstalacion))
+                        continue;
+
+                    var anterior = datos?.Encadenamiento?.RegistroAnterior;
+                    registros.Add(new RegistroDeLaCadenaVerifactu
+                    {
+                        IDEmisor = registro.IDFactura.IDEmisorFactura,
+                        NumSerie = registro.IDFactura.NumSerieFactura,
+                        FechaExpedicion = registro.IDFactura.FechaExpedicionFactura,
+                        FechaHoraHusoGenRegistro = datos?.FechaHoraHusoGenRegistro,
+                        Huella = datos?.Huella,
+                        PrimerRegistro = datos?.Encadenamiento?.PrimerRegistro == "S",
+                        NumSerieAnterior = anterior?.NumSerieFactura,
+                        FechaExpedicionAnterior = anterior?.FechaExpedicionFactura,
+                        HuellaAnterior = anterior?.Huella,
+                        Estado = registro.EstadoRegistro?.EstadoReg,
+                        TimestampUltimaModificacion = registro.EstadoRegistro?.TimestampUltimaModificacion
+                    });
+                }
+                pagina = respuesta.IndicadorPaginacion == "S" ? respuesta.ClavePaginacion : null;
+            }
+            while (pagina is not null);
+
+            return registros;
+        }
 
         public static AuditoriaSii AltaDeFacturaSIF(this FacturaEmtDtm facturaEmt, ContextoSe contexto, Certificado certificado, string numeroDeInstalacion, Func<string, ServicioDeDatos.TrabajosSometidos.TrazaDeUnTrabajoDtm> crearTraza)
         {

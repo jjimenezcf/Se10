@@ -426,39 +426,127 @@ namespace GestoresDeNegocio.Venta.Factura
             return null;
         }
 
+        // Reconstruye los ficheros de la cadena de registros de facturación del año en curso que usa la librería VeriFactu, con los registros que
+        // tiene la AEAT. La cadena es única para la sociedad en este sistema informático y se ordena por fecha y hora de generación, sin separar
+        // series (Orden HAC/1177/2024, art. 7). Formato de la librería (Blockchain.GetControlFileLine y GetVarFileLine):
+        //   - aaaamm.csv (mes de generación), una línea por registro: id;fecha y hora de generación;huella;fecha de expedición (dd-MM-yyyy);nif;número[;encadenamiento]
+        //   - _nif.csv, solo el último registro, sin salto de línea: de él toma la librería el registro anterior de la siguiente alta
         public void RecomponerBlockChain()
         {
             var ano = DateTime.Now.Year;
-            var mesActual = DateTime.Now.Month;
-            var indice = 0;
+            var registros = RegistrosDeLaCadenaEnLaAeat(ano, DateTime.Now.Month);
+            if (registros.Count == 0)
+                GestorDeErrores.Emitir($"La AEAT no tiene registros de facturación de la sociedad '{Sociedad.Referencia}' generados por este sistema en el año '{ano}'");
 
+            var ultimo = registros.Last();
+            var anuladoDespues = registros.FirstOrDefault(r => EsAnulado(r) && UltimaModificacion(r) > ultimo.Generado);
+            if (anuladoDespues is not null)
+                GestorDeErrores.Emitir($"La factura '{anuladoDespues.NumSerie}' se anuló después del último alta '{ultimo.NumSerie}'; el registro de anulación es el último de la cadena " +
+                                       $"y la consulta de la AEAT no devuelve sus datos, así que no se puede recomponer la cadena de forma fiable");
+
+            var rutaCadena = Path.Combine(CacheDeVariable.CFG_Ruta_Fichero_De_Sii_Blockchains, Sociedad.NIFSinIsoEs);
+            Directory.CreateDirectory(rutaCadena);
             var blockChain = CancelarArchivosDeBlockChain(ano);
+            foreach (var fichero in Directory.GetFiles(rutaCadena, $"{ano}??*.csv"))
+                File.Delete(fichero);
 
-            for (int mes = 1; mes <= mesActual; mes++)
+            var id = UltimoIdDeAnosAnteriores(rutaCadena, ano);
+            var avisos = new List<string>();
+            RegistroDeLaCadenaVerifactu anterior = null;
+            string lineaDelUltimo = null;
+            foreach (var registrosDelMes in registros.GroupBy(r => r.Generado.LocalDateTime.ToString("yyyyMM")))
             {
-                var nombreArchivo = $"{ano}{mes.ToString().PadLeft(2, '0')}.csv";
-                var rutaBc = Path.Combine(CacheDeVariable.CFG_Ruta_Fichero_De_Sii_Blockchains, Sociedad.NIFSinIsoEs, nombreArchivo);
-                if (File.Exists(rutaBc)) File.Delete(rutaBc);
-                FacturaEmtDtm ultimaDelMes = null;
-                (indice, ultimaDelMes) = RecomponerBlockChain(ano, mes, indice, blockChain);
-                if (ultimaDelMes is not null)
+                var lineas = new StringBuilder();
+                foreach (var registro in registrosDelMes)
                 {
-                    blockChain.AnexarArchivo(Contexto, rutaBc, copiar: true);
+                    id++;
+                    if (anterior is not null && registro.HuellaAnterior != anterior.Huella)
+                        avisos.Add($"'{registro.NumSerie}' no encadena con '{anterior.NumSerie}', entre ambos hay registros que la consulta no devuelve (subsanaciones o anulaciones)");
+
+                    lineaDelUltimo = $"{id};{registro.FechaHoraHusoGenRegistro};{registro.Huella};{registro.FechaExpedicion};{registro.IDEmisor};{registro.NumSerie}";
+                    lineas.Append($"{lineaDelUltimo};[{Encadenamiento(registro)}]\n");
+                    AsociarALaCadena(registro, blockChain);
+                    anterior = registro;
                 }
+
+                var rutaDelMes = Path.Combine(rutaCadena, $"{registrosDelMes.Key}.csv");
+                File.WriteAllText(rutaDelMes, lineas.ToString());
+                blockChain.AnexarArchivo(Contexto, rutaDelMes, copiar: true);
             }
 
-            if (indice == 0)
-                return;
+            File.WriteAllText(Path.Combine(rutaCadena, $"_{Sociedad.NIFSinIsoEs}.csv"), lineaDelUltimo);
 
-            var ultima = Sociedad.UltimaFactura(Contexto, ano, errorSiNoHay: false);
-            if (ultima is null)
-                return;
+            Sociedad.CrearTraza(Contexto, "Cadena de registros de Verifactu recompuesta",
+                $"Se ha recompuesto la cadena del año '{ano}' con {registros.Count} registros de la AEAT; el último es '{ultimo.NumSerie}' generado el '{ultimo.FechaHoraHusoGenRegistro}'" +
+                (avisos.Count == 0 ? "" : $"{Environment.NewLine}Avisos:{Environment.NewLine}{string.Join(Environment.NewLine, avisos)}"));
+        }
 
-            var ruta = Path.Combine(CacheDeVariable.CFG_Ruta_Fichero_De_Sii_Blockchains, Sociedad.NIFSinIsoEs, $"_{Sociedad.NIFSinIsoEs}.csv");
-            var lineas = new StringBuilder();
-            var verifactu = ultima.Verifactu(Contexto);
-            lineas.AppendLine($"{indice};{ultima.FacturadaEl.FechaFormatoIso8601()};{verifactu.Huella};{ultima.FacturadaEl.FechaCorta(formato: "dd/MM/yyyy")};{Sociedad.NIFSinIsoEs};{ultima.NumeroDeFactura}");
-            File.WriteAllText(ruta, lineas.ToString());
+        // Registros de la AEAT de los meses del año hasta el indicado, ordenados por fecha y hora de generación
+        private List<RegistroDeLaCadenaVerifactu> RegistrosDeLaCadenaEnLaAeat(int ano, int hastaMes)
+        {
+            var certificado = _certificado;
+            try
+            {
+                var registros = new List<RegistroDeLaCadenaVerifactu>();
+                for (var mes = 1; mes <= hastaMes; mes++)
+                    registros.AddRange(Sociedad.RegistrosDeLaCadena(certificado, _numeroImplantacion, ano, mes));
+
+                return registros
+                    .Where(r => !r.FechaHoraHusoGenRegistro.IsNullOrEmpty())
+                    .GroupBy(r => r.Huella).Select(g => g.First())
+                    .OrderBy(r => r.Generado)
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                TraducirErrorDeLaAeat(e);
+                throw;
+            }
+            finally
+            {
+                certificado.Dispose();
+            }
+        }
+
+        // La cadena es continua entre años: los ids siguen al último de los ficheros de años anteriores
+        private static long UltimoIdDeAnosAnteriores(string rutaCadena, int ano)
+        {
+            long ultimoId = 0;
+            foreach (var fichero in Directory.GetFiles(rutaCadena, "??????.csv"))
+            {
+                var nombre = Path.GetFileNameWithoutExtension(fichero);
+                if (!int.TryParse(nombre.Left(4), out var anoDelFichero) || anoDelFichero >= ano)
+                    continue;
+
+                var ultimaLinea = File.ReadLines(fichero).LastOrDefault(linea => !linea.IsNullOrEmpty());
+                if (ultimaLinea is not null && long.TryParse(ultimaLinea.Split(';')[0], out var idDelFichero))
+                    ultimoId = Math.Max(ultimoId, idDelFichero);
+            }
+            return ultimoId;
+        }
+
+        private static string Encadenamiento(RegistroDeLaCadenaVerifactu registro) =>
+            registro.PrimerRegistro
+            ? "PrimerRegistro=S"
+            : $"NumSerieFactura={registro.NumSerieAnterior}&FechaExpedicionFactura={registro.FechaExpedicionAnterior}&Huella={registro.HuellaAnterior}";
+
+        private static bool EsAnulado(RegistroDeLaCadenaVerifactu registro) => registro.Estado?.StartsWith("Anulad", StringComparison.OrdinalIgnoreCase) == true;
+
+        private static DateTimeOffset UltimaModificacion(RegistroDeLaCadenaVerifactu registro) =>
+            registro.TimestampUltimaModificacion.IsNullOrEmpty()
+            ? DateTimeOffset.MinValue
+            : DateTimeOffset.Parse(registro.TimestampUltimaModificacion, System.Globalization.CultureInfo.InvariantCulture);
+
+        // El registro de Verifactu de la factura queda asociado al archivador de la cadena
+        private void AsociarALaCadena(RegistroDeLaCadenaVerifactu registro, ArchivadorDtm blockChain)
+        {
+            var factura = Sociedad.LeerFacturaEmt(Contexto, registro.NumSerie, errorSiNoHay: false);
+            var verifactu = factura?.Verifactu(Contexto, errorSiNoHay: false);
+            if (verifactu is not null && verifactu.IdBlockChain != blockChain.Id)
+            {
+                verifactu.IdBlockChain = blockChain.Id;
+                verifactu.ModificarComoAdministrador(Contexto);
+            }
         }
 
         public void ReconstruirVerifactu(EntornoDeTrabajo entorno)
@@ -537,53 +625,6 @@ namespace GestoresDeNegocio.Venta.Factura
                 GestorDeErrores.Emitir($"La factura '{Factura.Referencia}' no tiene fecha de emisión");
             var facturas = ConsultaDeFacturasInterna(((DateTime)Factura.FacturadaEl).Year, ((DateTime)Factura.FacturadaEl).Month);
             return facturas.FirstOrDefault(f => f.NumeroFactura == Factura.NumeroDeFactura);
-        }
-
-        private (int indice, FacturaEmtDtm ultimaDelMes) RecomponerBlockChain(int ano, int mes, int indice, ArchivadorDtm blockChain)
-        {
-            var facturasAeat = ConsultaDeFacturasInterna(ano, mes);
-            var rutaMes = Path.Combine(CacheDeVariable.CFG_Ruta_Fichero_De_Sii_Blockchains, Sociedad.NIFSinIsoEs, $"{ano}{mes.ToString().PadLeft(2, '0')}.csv");
-            var lineas = new StringBuilder();
-            var indiceFinal = indice;
-
-            var ultimaDelMes = null as FacturaEmtDtm;
-            foreach (var facturaAeat in facturasAeat)
-            {
-                var factura = Contexto.SeleccionarPorId<FacturaEmtDtm>(facturaAeat.Id);
-
-                var verifactu = factura.Verifactu(Contexto, errorSiNoHay: false);
-                if (verifactu is null)
-                    continue;
-
-                if (verifactu.IdBlockChain != blockChain.Id)
-                {
-                    verifactu.IdBlockChain = blockChain.Id;
-                    verifactu.ModificarComoAdministrador(Contexto);
-                }
-
-                ultimaDelMes = factura;
-                var anterior = factura.Anterior(Contexto);
-                var datosAnteriores = "";
-                if (anterior is not null)
-                {
-                    var verifactuAnt = anterior.Verifactu(Contexto, errorSiNoHay: false);
-                    if (verifactuAnt is not null)
-                    {
-                        var cuota = ExtensorDeNumeros.Formatear(anterior.Ivas(Contexto).Sum(iva => iva.Cuota), alineacion: false, separadorDecimal: ".");
-                        var total = ExtensorDeNumeros.Formatear(anterior.BiConIva(Contexto) - anterior.Irpf(Contexto), alineacion: false, separadorDecimal: ".");
-                        datosAnteriores = $"[IDEmisorFactura={Sociedad.NIFSinIsoEs}&NumSerieFactura={anterior.NumeroDeFactura}&FechaExpedicionFactura={anterior.EmitidaEl.FechaCorta()}&TipoFactura={facturaAeat.TipoAeat}&CuotaTotal={cuota}&ImporteTotal={total}&Huella={verifactuAnt.Huella}&FechaHoraHusoGenRegistro={anterior.EmitidaEl.FechaFormatoIso8601()}]";
-                    }
-                }
-                indiceFinal++;
-                lineas.AppendLine($"{indiceFinal};{factura.FacturadaEl.FechaFormatoIso8601()};{verifactu.Huella};{factura.FacturadaEl.FechaCorta(formato: "dd/MM/yyyy")};{Sociedad.NIFSinIsoEs};{factura.NumeroDeFactura};{datosAnteriores}");
-            }
-
-            if (indice < indiceFinal)
-            {
-                File.WriteAllText(rutaMes, lineas.ToString());
-            }
-
-            return (indice: indiceFinal, ultimaDelMes: ultimaDelMes);
         }
 
         public static bool VerifactuActivo(ContextoSe contexto, FacturaEmtDtm facturaDmt)

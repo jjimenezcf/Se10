@@ -107,22 +107,45 @@ namespace GestorDeElementos.Extensores
         }
 
 
+        // Registro inmediatamente anterior en la cadena de la sociedad (Orden HAC/1177/2024, art. 7): una única cadena por obligado tributario,
+        // por orden de fecha y hora de generación (la de emisión) y sin separar series ni años; null si es el primer registro de la cadena
+        public static FacturaEmtDtm AnteriorEnLaCadena(this FacturaEmtDtm factura, ContextoSe contexto)
+        {
+            var idSociedad = factura.Sociedad(contexto).Id;
+            var emitidaEl = factura.EmitidaEl;
+            return contexto.Set<FacturaEmtDtm>()
+                .Where(anterior => anterior.Id != factura.Id &&
+                                   anterior.EmitidaEl != null &&
+                                   anterior.Huella != null &&
+                                   (anterior.EmitidaEl < emitidaEl || (anterior.EmitidaEl == emitidaEl && anterior.Id < factura.Id)) &&
+                                   contexto.Set<CentroGestorDtm>().Any(cg => cg.Id == anterior.IdCg && cg.IdSociedad == idSociedad))
+                .OrderByDescending(anterior => anterior.EmitidaEl)
+                .ThenByDescending(anterior => anterior.Id)
+                .FirstOrDefault();
+        }
+
+        // Huella del registro de alta según el documento técnico de la AEAT. La fecha y hora de generación es la de emisión, que queda guardada
+        // en la factura y permite recalcular la huella para comprobar la integridad de la cadena; los importes, con el criterio que se envía a
+        // Verifactu: cuota = iva, importe total = base + iva - retenciones, redondeados a dos decimales
         public static string CalcularHuella(this FacturaEmtDtm factura, ContextoSe contexto)
         {
-            var facturaAnterior = factura.Anterior(contexto);
+            var facturaAnterior = factura.AnteriorEnLaCadena(contexto);
 
             var tipoFacturaAeat = !factura.EsRectificativa ? enumTipoFacturaAeat.F1.ToString()
                 : factura.ClaseRectificativa == enumClaseDeRectificativa.OR ? enumTipoFacturaAeat.R1.ToString()
             : enumTipoFacturaAeat.R2.ToString();
 
+            var cuotaTotal = Math.Round(factura.TotalDeIva(contexto), 2, MidpointRounding.AwayFromZero);
+            var importeTotal = Math.Round(factura.BiConIva(contexto) - factura.Irpf(contexto), 2, MidpointRounding.AwayFromZero);
+
             var datosParaHash = $"{ltrSii.IDEmisorFactura}={factura.Sociedad(contexto).NIFSinIsoEs}&" +
                  $"{ltrSii.NumSerieFactura}={factura.NumeroDeFactura}&" +
                  $"{ltrSii.FechaExpedicionFactura}={factura.EmitidaEl.FechaCorta()}&" +
                  $"{ltrSii.TipoFactura}={tipoFacturaAeat}&" +
-                 $"{ltrSii.CuotaTotal}={factura.TotalDeIva(contexto).Formatear(alineacion: false, separadorDecimal: ".")}&" +
-                 $"{ltrSii.ImporteTotal}={factura.Bi(contexto) + factura.TotalDeIva(contexto).Formatear(alineacion: false, separadorDecimal: ".")}&" +
+                 $"{ltrSii.CuotaTotal}={cuotaTotal.Formatear(alineacion: false, separadorDecimal: ".")}&" +
+                 $"{ltrSii.ImporteTotal}={importeTotal.Formatear(alineacion: false, separadorDecimal: ".")}&" +
                  $"{ltrSii.Huella}={facturaAnterior?.Huella ?? ""}&" +
-                 $"{ltrSii.FechaHoraHusoGenRegistro}={((DateTime?)DateTime.Now).FechaFormatoIso8601()}";
+                 $"{ltrSii.FechaHoraHusoGenRegistro}={factura.EmitidaEl.FechaFormatoIso8601()}";
 
             using (SHA256 sha256Hash = SHA256.Create())
             {
@@ -170,7 +193,8 @@ namespace GestorDeElementos.Extensores
 
         private static byte[] FirmarRegistro(FacturaEmtDtm factura, ContextoSe contexto)
         {
-            var facturaAnterior = factura.Anterior(contexto);
+            // la firma encadena con la del registro anterior de la misma cadena que la huella
+            var facturaAnterior = factura.AnteriorEnLaCadena(contexto);
             var datos = PrepararDatosParaFirma(factura.Huella, facturaAnterior?.Firma ?? null, (DateTime)factura.FacturadaEl, fechaDeFirma: (DateTime)factura.FirmadaEl);
             var certificado = factura.Sociedad(contexto).ObtenerCertificado(contexto);
             var firma = new Firmante(contexto, certificado).FirmarRegistro(datos);
