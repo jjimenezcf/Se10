@@ -216,10 +216,7 @@ namespace GestorDeElementos.Extensores
         {
             if (filtro.Clausula.Equals(ltrDeSociedad.FiltroPorIdSociedad, StringComparison.InvariantCultureIgnoreCase) ||
                 filtro.Clausula.Equals(nameof(IElementoDeUnProcesoDto.IdSociedadDelCg), StringComparison.InvariantCultureIgnoreCase))
-            {
-                consulta = consulta.AplicarFiltroPorEntero(filtro, $"{nameof(IUsaCg.Cg)}.{nameof(CentroGestorDtm.Sociedad)}.{nameof(SociedadDtm.Id)}");
-                filtro.Aplicado = true;
-            }
+                consulta = consulta.AplicarFiltroPorSociedadDelCg(filtro);
 
             return consulta;
         }

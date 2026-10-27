@@ -1600,6 +1600,14 @@ namespace GestorDeElementos
 
     public static class FiltrosPorPropiedadesComunes
     {
+        public static IQueryable<T> AplicarFiltroPorSociedadDelCg<T>(this IQueryable<T> consulta, ClausulaDeFiltrado filtro)
+        where T : RegistroDtm
+        {
+            consulta = consulta.AplicarFiltroPorEntero(filtro, $"{nameof(IUsaCg.Cg)}.{nameof(CentroGestorDtm.Sociedad)}.{nameof(SociedadDtm.Id)}");
+            filtro.Aplicado = true;
+            return consulta;
+        }
+
         public static IQueryable<T> FiltrarPorExpresion<T>(this IQueryable<T> consulta, List<ClausulaDeFiltrado> filtros)
         where T : RegistroDtm
         {

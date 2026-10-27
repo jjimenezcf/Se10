@@ -84,39 +84,16 @@ namespace GestoresDeNegocio.Presupuesto
                 ))
                 parametros.AplicarFiltroQueMostrar = false;
 
+            filtros.AnadirFiltroPorClaseDeVenta();
+
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
             consulta = consulta.FiltroPorFactura(Contexto, filtros);
             consulta = consulta.FiltroPorPartes(Contexto, filtros);
             consulta = consulta.FiltroPorPartesPrefacturados(Contexto, filtros);
             consulta = consulta.FiltroParaImputarFactura(Contexto, filtros);
-
-            var filtroMismaSociedad = filtros.FirstOrDefault(f => f.Clausula.ToLower() == ltrFiltros.VincularCon);
-            if (filtroMismaSociedad is not null)
-            {
-                var vincularCon = NegociosDeSe.ToEnumerado(filtroMismaSociedad.IdNegocio);
-                if (vincularCon.UsaCg())
-                {
-                    var elemento = (IElementoDeProcesoDtm)vincularCon.LeerRegistro(Contexto, filtroMismaSociedad.IdElemento);
-                    var idsoci = elemento.Cg(Contexto).IdSociedad;
-                    consulta = consulta.Where(ppt => ppt.Cg.IdSociedad == idsoci);
-                }
-            }
-
-            foreach (var filtro in filtros)
-            {
-                if (filtro.Aplicado) continue;
-                consulta = consulta.FiltroSiHayDependenciaDe(ltrDeUnPresupuesto.DependeDeExpediente, filtro, nameof(PresupuestoDtm.IdExpediente));
-
-                if (filtro.Clausula.Equals(ltrDeUnPresupuesto.PptDeUnExpediente, StringComparison.CurrentCultureIgnoreCase) ||
-                    filtro.Clausula.Equals(ltrDeUnPresupuesto.PptDeUnaFactura, StringComparison.CurrentCultureIgnoreCase) ||
-                    filtro.Clausula.Equals(ltrDeUnPresupuesto.PptDeUnPartTr, StringComparison.CurrentCultureIgnoreCase) ||
-                    filtro.Clausula.Equals(ltrDeUnPresupuesto.PptDeUnaAsignacionPtr, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    filtro.Criterio = enumCriteriosDeFiltrado.porReferencia;
-                    consulta = consulta.AplicarFiltroDeCadena(filtro);
-                }
-
-            }
+            consulta = consulta.FiltroPorSociedadDelVinculado(Contexto, filtros);
+            consulta = consulta.FiltroPorDependeDeExpediente(filtros);
+            consulta = consulta.FiltroPorReferenciaCuandoDependeDe(filtros);
             return consulta;
         }
 

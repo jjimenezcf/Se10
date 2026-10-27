@@ -16,6 +16,7 @@ namespace ServicioDeDatos.Presupuesto
         public static string PptDeUnPartTr = nameof(PptDeUnPartTr);
         public static string PptsConTareas = nameof(PptsConTareas);        
         public static string PptDeUnaAsignacionPtr = nameof(PptDeUnaAsignacionPtr);
+        public const string ClaseDePpt = nameof(PresupuestoDtm.ClaseDePresupuesto);
 
         public static string IdFacturaEmt = nameof(IdFacturaEmt);
         public static string IdParteTr = nameof(IdParteTr);
