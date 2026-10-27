@@ -454,6 +454,62 @@ namespace MVCSistemaDeElementos.Descriptores
         }
 
 
+        // cabecera común de todas las modales (contenedor-modal): icono del tipo de modal y título a la izquierda, la × de cerrar a la derecha
+        // no se usan clases con la palabra 'titulo' porque algunas modales sustituyen ese literal en su plantilla
+        internal static string RenderCabeceraDeModal(string idHtml, enumTipoDeModal tipoModal, string titulo, string accionCerrar)
+        {
+            return $@"<div id=¨{idHtml}_cabecera¨ class=¨{enumCssModal.ContenidoCabecera.Render()} {enumCssModal.CabeceraDeModal.Render()}¨>
+                         <span class=¨{enumCssModal.RotuloDeModal.Render()}¨>
+                            <svg class=¨{enumCssModal.IconoDeModal.Render()}¨ viewBox=¨0 0 24 24¨ aria-hidden=¨true¨><path d=¨{IconoDeModal(tipoModal)}¨/></svg>
+                            <h2>{titulo}</h2>
+                         </span>
+                         <span class=¨{enumCssModal.CerrarDeModal.Render()}¨ title=¨Cerrar¨ onclick=¨{accionCerrar}¨>&times;</span>
+                      </div>";
+        }
+
+        private static string IconoDeModal(enumTipoDeModal tipoModal)
+        {
+            switch (tipoModal)
+            {
+                case enumTipoDeModal.ModalDeFiltrado: return "M3 4h18l-7 8.5V19l-4 2v-8.5z";
+                case enumTipoDeModal.ModalDeSeleccion:
+                case enumTipoDeModal.ModalParaSeleccionar:
+                case enumTipoDeModal.ModalDeSeleccionarDestino: return "M4 4h16v16H4z M8 12l3 3 5-6";
+                case enumTipoDeModal.ModalDeRelacion:
+                case enumTipoDeModal.ModalDeCrearRelacion:
+                case enumTipoDeModal.ModalDeEditarRelacion:
+                case enumTipoDeModal.ModalDeCrearVinculo:
+                case enumTipoDeModal.ModalParaVincular: return "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1 M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1";
+                case enumTipoDeModal.ModalParaImputar: return "M4 12h11 M11 7l5 5-5 5 M20 4v16";
+                case enumTipoDeModal.ModalDeConsulta: return "M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13z M15.5 15.5L20 20";
+                case enumTipoDeModal.ModalDeCreacion:
+                case enumTipoDeModal.ModalDeCrearDetalle: return "M4 4h16v16H4z M12 8v8 M8 12h8";
+                case enumTipoDeModal.ModalDeEdicion: return "M4 20h4L19 9l-4-4L4 16z M13 7l4 4";
+                case enumTipoDeModal.ModalDeBorrado: return "M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6";
+                case enumTipoDeModal.ModalDeCorreo: return "M3 5h18v14H3z M3 6l9 7 9-7";
+                case enumTipoDeModal.ModalDeExportacion: return "M12 15V3 M7 8l5-5 5 5 M4 15v5h16v-5";
+                case enumTipoDeModal.ModalDeVisorDeArchivos: return "M6 3h9l4 4v14H6z M14 3v5h5";
+                case enumTipoDeModal.ModalDeFirmaDeArchivos:
+                case enumTipoDeModal.ModalDeDatosDeFirma: return "M3 21h18 M7 17l10-10 3 3-10 10H7z";
+                case enumTipoDeModal.ModalDeDatosDeBloqueo:
+                case enumTipoDeModal.ModalDeBloqueoMultiple: return "M6 11h12v10H6z M8 11V7a4 4 0 0 1 8 0v4";
+                case enumTipoDeModal.ModalDeDatosDeDesBloqueo:
+                case enumTipoDeModal.ModalDeDesbloqueoMultiple: return "M6 11h12v10H6z M8 11V7a4 4 0 0 1 7.5-2";
+                case enumTipoDeModal.ModalDeGenerarZip: return "M3 4h18v4H3z M5 8v12h14V8 M10 12h4";
+                case enumTipoDeModal.ModalParaPedirDatos: return "M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5";
+                case enumTipoDeModal.ModalParaOcultarColumnas: return "M4 4h16v16H4z M10 4v16 M15 4v16";
+                case enumTipoDeModal.ModalDeTotales: return "M18 5H6l6 7-6 7h12";
+                case enumTipoDeModal.ModalMiCertificado: return "M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z M9 12l2 2 4-4";
+                case enumTipoDeModal.ModalCambiarPassword: return "M11 12l9-9 M17 6l3 3 M14 9l2 2 M8 11a4 4 0 1 0 0 8a4 4 0 1 0 0-8z";
+                case enumTipoDeModal.ModalMiUsuario: return "M12 12a4 4 0 1 0 0-8a4 4 0 1 0 0 8z M4 21a8 8 0 0 1 16 0";
+                case enumTipoDeModal.ModalDeTransitar: return "M4 12h16 M14 6l6 6-6 6";
+                case enumTipoDeModal.ModalDeImprimir: return "M7 9V3h10v6 M5 9h14v8H5z M7 14h10v7H7z";
+                case enumTipoDeModal.ModalDeMensaje: return "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 11v5 M12 7.5v.5";
+                case enumTipoDeModal.ModalDeMapa: return "M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z M12 7a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z";
+            }
+            return "M3 5h18v14H3z M3 9h18";
+        }
+
         internal static string RenderizarModal(enumTipoDeModal tipoModal
             , string idHtml
             , string controlador
@@ -494,14 +550,17 @@ namespace MVCSistemaDeElementos.Descriptores
                                        onclick=¨{accion}¨ />";
             }
 
-            var htmlCerrar = $@"<input id='{idHtml}-cerrar' 
-                                       type='button' 
+            // se cierra con la × de la cabecera; si la opción de cerrar tiene otro título (p.e. Resetear) es otra acción y se mantiene en el pie,
+            // y la × sólo oculta la modal
+            var htmlCerrar = tituloOpcionCerrar.IsNullOrEmpty() ? "" : $@"<input id='{idHtml}-cerrar'
+                                       type='button'
                                        tipo='{enumTipoControl.Opcion.Render()}'
-                                       clase='{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}' 
-                                       class='{(hayBotonPrimario ? enumCssModal.BotonSecundario.Render() : enumCssModal.BotonPrincipal.Render())} btn' 
-                                       permisos-necesarios='{enumModoDeAccesoDeDatos.SinPermiso.Render()}' 
-                                       value='{(tituloOpcionCerrar.IsNullOrEmpty() ? "Cerrar" : tituloOpcionCerrar)}'
+                                       clase='{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}'
+                                       class='{(hayBotonPrimario ? enumCssModal.BotonSecundario.Render() : enumCssModal.BotonPrincipal.Render())} btn'
+                                       permisos-necesarios='{enumModoDeAccesoDeDatos.SinPermiso.Render()}'
+                                       value='{tituloOpcionCerrar}'
                                        onclick=¨{cerrar}¨/>";
+            var accionCerrarCabecera = tituloOpcionCerrar.IsNullOrEmpty() ? cerrar : $"ApiPanel.OcultarModalPorId('{idHtml}')";
 
             var htmlLadoIzquierdoMenuPie = enumTipoDeModal.ModalDeTotales == tipoModal
             ? $"<div><input id='{idHtml}_{nameof(ITotalesDto.Procesados)}' class='{enumCssControles.Editor.Render()} {enumCssControles.InfoDeTotales.Render()}' propiedad='{nameof(ITotalesDto.Procesados)}' tipo='editor' readonly disabled></input></div>"
@@ -510,23 +569,24 @@ namespace MVCSistemaDeElementos.Descriptores
             var clasePie = htmlLadoIzquierdoMenuPie.IsNullOrEmpty() ? enumCssModal.ContenidoPieSoloBotones.Render() : enumCssModal.ContenidoPie.Render();
             clasePie = $"{clasePie}{(enumTipoDeModal.ModalDeTotales == tipoModal ? " " + enumCssModal.PieDeTotales.Render() : "")}";
 
+            var htmlPie = htmlLadoIzquierdoMenuPie.IsNullOrEmpty() && htmlCerrar.IsNullOrEmpty() && htmlOpcion.IsNullOrEmpty()
+            ? ""
+            : $@"<div id=¨{idHtml}_pie¨ class=¨{clasePie}¨>
+                    {htmlLadoIzquierdoMenuPie}
+                    <div id=¨{idHtml}_menu¨ class=¨{enumCssModal.DivDeBotonesPie.Render()}¨>
+                       {htmlCerrar}
+                       {htmlOpcion}
+                    </div>
+                 </div>";
 
             var htmlModal = $@" <!--  *******************  modal de {idHtml} ******************* -->
                                 <div id=¨{idHtml}¨ class=¨contenedor-modal¨ controlador=¨{controlador}¨ tipoModal = ¨{tipoModal.Render()}¨ {AtributosHtml}>
                               		<div id=¨{idHtml}_contenido¨ class=¨{enumCssModal.ContenidoModal.Render()}¨>
-                              		    <div id=¨{idHtml}_cabecera¨ class=¨{enumCssModal.ContenidoCabecera.Render()}¨>
-                              		    	<h2></h2>
-                                        </div>
+                                        {RenderCabeceraDeModal(idHtml, tipoModal, tituloH2, accionCerrarCabecera)}
                               		    <div id=¨{idHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpo.Render()}¨>
                                         {cuerpo}
                                         </div>
-                                        <div id=¨{idHtml}_pie¨ class=¨{clasePie}¨>
-                                           {htmlLadoIzquierdoMenuPie}                                          
-                                          <div id=¨{idHtml}_menu¨ class=¨{enumCssModal.DivDeBotonesPie.Render()}¨>
-                                           {htmlCerrar}
-                                           {htmlOpcion}
-                                          </div>
-                                        </div>
+                                        {htmlPie}
                                    </div>
                               </div>
                               <!--  *******************  fin de la modal ******************* -->

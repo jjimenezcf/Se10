@@ -70,13 +70,7 @@ namespace MVCSistemaDeElementos.Descriptores
                  <!--  ******************  Filtro de {Etiqueta}  ********************************* -->
                  <div id=¨{IdHtml}¨ class=¨contenedor-modal¨ tipo=¨{Tipo.Render()}¨ tipomodal = ¨{enumTipoDeModal.ModalDeFiltrado.Render()}¨ zona-filtrado=¨{ZonaDeFiltrado.IdHtml}¨ referencia-de-filtrado=¨{IdHtml}-ref.ref¨ {onkeydown}>
                     <div id=¨{IdHtml}_contenido¨ class=¨{enumCssModal.ContenidoModal.Render()}¨ >
-                 	   <div id=¨{IdHtml}_cabecera¨ class=¨{enumCssModal.ContenidoCabecera.Render()}¨>
-                          <span class=¨titulo-modal-de-filtrado¨>
-                             <svg class=¨icono-modal-de-filtrado¨ viewBox=¨0 0 24 24¨ aria-hidden=¨true¨><path d=¨M3 4h18l-7 8.5V19l-4 2v-8.5z¨/></svg>
-                             {Etiqueta}
-                          </span>
-                          <span class=¨cerrar-modal-de-filtrado¨ title=¨Cerrar¨ onclick=¨{enumAccionesModalDeFiltrado.CerrarFiltro.Render(IdHtml)}¨>&times;</span>
-                       </div>
+                       {RenderCabeceraDeModal(IdHtml, enumTipoDeModal.ModalDeFiltrado, Etiqueta, enumAccionesModalDeFiltrado.CerrarFiltro.Render(IdHtml))}
                  	   <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpo.Render()}¨>
                  	      {RenderControlesDeFiltrado()}
                        </div>

@@ -32,21 +32,17 @@ namespace MVCSistemaDeElementos.Descriptores
             //{enumCssModal.EstiloContenidoCuerpo.Render()
             string _htmlMiModal = $@"<div id=¨{IdHtml}¨ class=¨contenedor-modal¨ crud-modal=¨{CrudModal.Mnt.IdHtml}¨ propiedad-restrictora=¨{PropiedadRestrictora}¨ filtrar-por=¨{FiltrarPor}¨>
                               		    <div id=¨{IdHtml}_contenido¨ class=¨{enumCssModal.ContenidoModalConCabecera.Render()}¨>
-                              		       <div id=¨{IdHtml}_cabecera¨ class=¨{enumCssModal.ContenidoCabecera.Render()} {enumCssModal.CabeceraRelacionarElementos.Render()}¨>
-                              		       	titulo
-                                           </div>
+                                           {RenderCabeceraDeModal(IdHtml, enumTipoDeModal.ModalDeRelacion, Etiqueta, $"Crud.{enumGestorDeEventos.EventosModalDeCrearRelaciones}('{eventosDeRelacionar.Cerrar}','{IdHtml}')")}
                               		       <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               		 	       crudDeRelacion
                                            </div>
                                            <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
-                                              <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨{enumCssModal.BotonSecundario.Render()}¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalDeCrearRelaciones}('{eventosDeRelacionar.Cerrar}','{IdHtml}')¨ />
                                               <input type=¨text¨ id=¨{IdHtml}-relacionar¨ class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Relacionar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalDeCrearRelaciones}('{eventosDeRelacionar.Relacionar}','{IdHtml}')¨/>
                                            </div>
                                         </div>
                                      </div>";
 
             return _htmlMiModal
-                .Replace("titulo", Etiqueta)
                 .Replace("crudDeRelacion", CrudModal.RenderCrudModal(idModal: this.IdHtml, enumTipoDeModal.ModalDeRelacion));
         }
 

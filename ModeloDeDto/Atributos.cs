@@ -354,6 +354,16 @@ namespace ModeloDeDto
         public string ParametrosParaNavegar { get; set; } = "";
 
         /// <summary>
+        /// En una lista dinámica con navegador, muestra a su lado un botón que abre en una pestaña nueva la vista del navegador para crear un elemento
+        /// </summary>
+        public bool PermiteCrearEnPestana { get; set; } = false;
+
+        /// <summary>
+        /// En una lista dinámica de calles, muestra un botón (visible cuando hay una calle seleccionada) que abre la modal con la calle situada en el mapa
+        /// </summary>
+        public bool PermiteVerEnMapa { get; set; } = false;
+
+        /// <summary>
         /// propiedad que permite restringir en una lista dinámica si son válidos los elementos de baja
         /// </summary>
         public bool SoloEnAlta { get; set; } = true;

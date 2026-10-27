@@ -41,6 +41,7 @@ namespace Utilidades
             , ModalDeTransitar
             , ModalDeImprimir
             , ModalDeMensaje
+            , ModalDeMapa
     }
 
 
@@ -248,6 +249,7 @@ namespace Utilidades
         Direccion_Tras_Seleccionar_Municipio,
         Direccion_Tras_Seleccionar_Calle,
         Direccion_Tras_Blanquear_Calle,
+        Direccion_Mostrar_Calle_En_Mapa,
 
         SisDoc_BloquearArchivo,
         SisDoc_AplicarOperacion,
@@ -1126,6 +1128,10 @@ namespace Utilidades
         ContenidoModalConCabecera,
         EstiloModalConCabecera,
         ContenidoCabecera,
+        CabeceraDeModal,
+        RotuloDeModal,
+        IconoDeModal,
+        CerrarDeModal,
         CabeceraRelacionarElementos,
         CabeceraParaImputar,
         ContenidoCuerpo,

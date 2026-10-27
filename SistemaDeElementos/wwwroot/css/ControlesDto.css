@@ -239,6 +239,34 @@ a {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
     }
 
+    /* abre otra pestaña para crear el elemento (IUPropiedad.PermiteCrearEnPestana): signo más */
+    .boton-de-navegacion.crear-en-pestana {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
+    }
+
+    /* abre la modal con la calle en el mapa (IUPropiedad.PermiteVerEnMapa): chincheta */
+    .boton-de-navegacion.ver-en-mapa {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z'/%3E%3Ccircle cx='12' cy='9.5' r='2.5'/%3E%3C/svg%3E");
+    }
+
+    /* el del mapa sólo se ve cuando hay un elemento seleccionado en la lista */
+    input.lista-dinamica:is(:not([idseleccionado]), [idseleccionado='0'], [idseleccionado='']) ~ .boton-de-navegacion.ver-en-mapa {
+        display: none;
+    }
+
+/* En el móvil CrudBase.css estira los inputs de las propiedades al 100%: con botones al lado de la lista, la lista ocupa lo que dejan */
+@media (max-width: 47.94em) {
+    .div-td.dto-td.td-propiedad .contenedor-listas:has(> .boton-de-navegacion) > input.lista-dinamica {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    .contenedor-listas > .boton-de-navegacion {
+        flex: 0 0 auto;
+    }
+}
+
 .boton-de-compartir {
     background-image: url(../images/compartir.png) !important;
     background-repeat: no-repeat;

@@ -36,21 +36,17 @@ namespace MVCSistemaDeElementos.Descriptores
                                     <!--  ******************  Modal de selección de filtro para {CrudModal.RenderNegocio} ********************************* -->
                                     <div id=¨{IdHtml}¨ class=¨contenedor-modal¨ selector=¨idSelector¨ crud-modal=¨{CrudModal.Mnt.IdHtml}¨>
                               		<div id=¨{IdHtml}_contenido¨ class=¨{enumCssModal.ContenidoModalConCabecera.Render()}¨>
-                              		    <div id=¨{IdHtml}_cabecera¨ class=¨contenido-cabecera¨>
-                              		    	titulo
-                                        </div>
+                                        {RenderCabeceraDeModal(IdHtml, enumTipoDeModal.ModalDeSeleccion, Titulo, $"Crud.EventosModalDeSeleccion('cerrar-modal-seleccion','{IdHtml}')")}
                               		    <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               			    crudDeSeleccion
                                         </div>
                                         <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
-                                           <input type=¨text¨ id=¨{IdHtml}_Cerrar¨  class=¨{enumCssModal.BotonSecundario.Render()}¨ value=¨Cerrar¨ clase=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ readonly onclick=¨Crud.EventosModalDeSeleccion('cerrar-modal-seleccion','{IdHtml}')¨ />
                                            <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Seleccionar¨ clase=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ readonly onclick=¨Crud.EventosModalDeSeleccion('seleccionar-elementos','{IdHtml}')¨ />
                                         </div>
                                       </div>
                               </div>";
 
             return _htmlMiModal
-                .Replace("titulo", Titulo)
                 .Replace("crudDeSeleccion", CrudModal.RenderCrudModal(idModal: this.IdHtml, enumTipoDeModal.ModalDeSeleccion))
                 .Replace("idSelector", Selector.IdHtml);
 

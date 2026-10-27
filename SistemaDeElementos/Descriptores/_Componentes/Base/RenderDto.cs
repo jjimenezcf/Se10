@@ -480,7 +480,9 @@ namespace MVCSistemaDeElementos.Descriptores
                     $"{Environment.NewLine}maxlength=¨{atributos.LongitudMaxima}¨"
                     : "";
             valores["ConNavegador"] = !atributos.VistaDondeNavegar.IsNullOrEmpty() ? "S" : "N";
-            valores["Navegador"] = DefinirNavegador(descriptorControl.IdHtml, atributos.Controlador, atributos.VistaDondeNavegar, atributos.Negocio, atributos.OnClick);
+            valores["Navegador"] = DefinirNavegador(descriptorControl.IdHtml, atributos.Controlador, atributos.VistaDondeNavegar, atributos.Negocio, atributos.OnClick)
+                                 + DefinirBotonDeCrearEnPestana(descriptorControl.IdHtml, atributos)
+                                 + DefinirBotonDeVerEnMapa(descriptorControl.IdHtml, atributos);
             valores[nameof(ltrParametrosEp.negocio)] = atributos.Negocio.ToNombre();
 
             valores["ordenarPor"] = atributos.OrdenarListaDinamicaPor;
@@ -585,6 +587,36 @@ namespace MVCSistemaDeElementos.Descriptores
                           negocio = '{negocio.ToNombre()}'
                           {onClick}
                           href=¨{(!enPestanaNueva ? "#" : "")}¨></a>";
+        }
+
+        // abre en una pestaña nueva la vista del navegador en modo creación, para dar de alta el elemento que no se encuentra en la lista
+        private static string DefinirBotonDeCrearEnPestana(string idHtml, IUPropiedadAttribute atributos)
+        {
+            if (!atributos.PermiteCrearEnPestana || atributos.VistaDondeNavegar.IsNullOrEmpty())
+                return "";
+
+            var controlador = atributos.Controlador.Replace(ltrEndPoint.Controller, "");
+            var parametros = atributos.ParametrosParaNavegar.IsNullOrEmpty() ? "" : $"&{atributos.ParametrosParaNavegar}";
+            return $@"<a id=¨{idHtml}-crear¨
+                          class=¨boton-de-navegacion crear-en-pestana¨
+                          title=¨Crear en una pestaña nueva¨
+                          aria-label=¨Crear en una pestaña nueva¨
+                          target=¨_blank¨
+                          href=¨/{controlador}/{atributos.VistaDondeNavegar}?{enumParaQueNavegar.ParametroDeUrl}={enumParaQueNavegar.crear}{parametros}¨></a>";
+        }
+
+        // sólo se ve cuando hay un elemento seleccionado en la lista (ver CSS de .ver-en-mapa)
+        private static string DefinirBotonDeVerEnMapa(string idHtml, IUPropiedadAttribute atributos)
+        {
+            if (!atributos.PermiteVerEnMapa)
+                return "";
+
+            return $@"<a id=¨{idHtml}-mapa¨
+                          class=¨boton-de-navegacion ver-en-mapa¨
+                          title=¨Ver la calle en el mapa¨
+                          aria-label=¨Ver la calle en el mapa¨
+                          href=¨#¨
+                          onclick=¨{enumNameSpaceTs.ApiDeDireccion}.{enumFunctionTs.Direccion_Mostrar_Calle_En_Mapa}('{idHtml}'); return false;¨></a>";
         }
 
         internal static string DefinirBotonNavegador(string idHtml, bool urlExterna)

@@ -43,19 +43,11 @@ namespace MVCSistemaDeElementos.Descriptores
                  <!--  ******************  Filtro del formulario {Formulario.IdHtml} ********************************* -->
                  <div id=¨{IdHtml}¨ class=¨contenedor-modal¨ formulario=¨{Formulario.IdHtml}¨>
                     <div id=¨{IdHtml}_contenido¨ class=¨{enumCssModal.ContenidoModal.Render()}¨ >
-                 	   <div id=¨{IdHtml}_cabecera¨ class=¨{enumCssModal.ContenidoCabecera.Render()}¨>
-                 		    	{Etiqueta}
-                       </div>
+                       {RenderCabeceraDeModal(IdHtml, enumTipoDeModal.ModalDeFiltrado, Etiqueta, enumAccionDeFormulario.CerrarFiltro.Render())}
                  	   <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpo.Render()} {enumCssFormulario.ModalDeFiltroDeFormulario.Render()}¨ {onkeypress}>
                  	      {RenderControlesDeFiltrado()}
                        </div>
                        <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
-                          <input type=¨text¨ id=¨{IdHtml}_Cerrar¨  
-                              class=¨{enumCssModal.BotonSecundario.Render()}¨ 
-                              value=¨Cerrar¨ 
-                              clase=¨{ExtensorDeCss.Render(enumCssOpcionMenu.Basico)}¨ 
-                              readonly 
-                              onclick=¨{enumAccionDeFormulario.CerrarFiltro.Render()}¨ />
                           <input type=¨text¨ id=¨{IdHtml}_Aceptar¨ 
                               class=¨{enumCssModal.BotonPrincipal.Render()}¨ 
                               value=¨Filtrar¨ 

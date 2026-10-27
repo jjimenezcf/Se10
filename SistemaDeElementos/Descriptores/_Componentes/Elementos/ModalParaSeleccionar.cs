@@ -34,20 +34,14 @@ namespace MVCSistemaDeElementos.Descriptores
             //{enumCssModal.EstiloContenidoCuerpo.Render()
             string _htmlMiModal = $@"<div id=¨{IdHtml}¨ class=¨contenedor-modal¨ crud-modal=¨{CrudModal.Mnt.IdHtml}¨ propiedad-restrictora=¨{PropiedadRestrictora}¨>
                               		<div id=¨{IdHtml}_contenido¨ class=¨{enumCssModal.ContenidoModalConCabecera.Render()}¨>
-                              		    <div id=¨{IdHtml}_cabecera¨ class=¨contenido-cabecera¨>
-                              		    	titulo
-                                        </div>
+                                        {RenderCabeceraDeModal(IdHtml, enumTipoDeModal.ModalParaSeleccionar, Etiqueta, $"Crud.{enumGestorDeEventos.EventosModalParaSeleccionar}('{eventosParaSeleccionar.Cerrar}','{IdHtml}')")}
                               		    <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               			    crudParaSeleccionar
-                                        </div>
-                                        <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
-                                           <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaSeleccionar}('{eventosParaSeleccionar.Cerrar}','{IdHtml}')¨ />
                                         </div>
                                       </div>
                               </div>";
 
             return _htmlMiModal
-                .Replace("titulo", Etiqueta)
                 .Replace("crudParaSeleccionar", CrudModal.RenderCrudModal(idModal: this.IdHtml, enumTipoDeModal.ModalParaSeleccionar));
         }
 

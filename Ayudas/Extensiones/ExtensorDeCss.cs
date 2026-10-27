@@ -106,6 +106,7 @@ namespace Utilidades
                 case enumTipoDeModal.ModalDeTransitar: return "modal-de-transitar";
                 case enumTipoDeModal.ModalDeImprimir: return "modal-de-imprimir";
                 case enumTipoDeModal.ModalDeMensaje: return "modal-de-mensaje";
+                case enumTipoDeModal.ModalDeMapa: return "modal-de-mapa";
 
             }
             throw new Exception($"No se ha definido como renderizar la modal {tipoModal}");
@@ -541,6 +542,10 @@ namespace Utilidades
                 case enumCssModal.ContenidoModalConCabecera: return "contenido-modal-cabecera modal-con-grid";
                 case enumCssModal.EstiloModalConCabecera: return "style= ¨grid-template-rows: 2.5em auto 2.5em; max-height: fit-content;¨";
                 case enumCssModal.ContenidoCabecera: return "contenido-cabecera";
+                case enumCssModal.CabeceraDeModal: return "cabecera-de-modal";
+                case enumCssModal.RotuloDeModal: return "rotulo-de-modal";
+                case enumCssModal.IconoDeModal: return "icono-de-modal";
+                case enumCssModal.CerrarDeModal: return "cerrar-de-modal";
                 case enumCssModal.CabeceraRelacionarElementos: return "cabecera-relacionar-elementos";
                 case enumCssModal.CabeceraParaImputar: return "cabecera-para-imputar";
                 case enumCssModal.ContenidoCuerpo: return "contenido-cuerpo";

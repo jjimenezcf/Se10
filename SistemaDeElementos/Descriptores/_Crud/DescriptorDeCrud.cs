@@ -726,6 +726,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 if (Negocio.UsaDirecciones())
                 {
                     renderCrud = $@"<script src=¨../../js/{enumNameSpaceTs.Callejero}/GestorDeMapas.js?v={System.DateTime.Now.Ticks}¨></script>{Environment.NewLine}{renderCrud}";
+                    renderCrud = $@"{renderCrud}{Environment.NewLine}{RenderModalDeMapaDeCalle()}";
                 }
 
                 return PanelDeControl.RenderPagina(Contexto, renderCrud, claseAdicional: SinEdicion && SinCreacion ? enumCssCuerpo.CuerpoSoloConGrid.Render(): null );
@@ -734,6 +735,26 @@ namespace MVCSistemaDeElementos.Descriptores
             {
                 BlanquearListaDeIds();
             }
+        }
+
+        // id de la modal con la calle de una dirección situada en el mapa (ApiDeDireccion.ts la abre desde el botón de la lista de calles)
+        public const string IdModalDeMapaDeCalle = "modal-mapa-de-calle";
+
+        private string RenderModalDeMapaDeCalle()
+        {
+            return RenderizarModal(enumTipoDeModal.ModalDeMapa
+                , idHtml: IdModalDeMapaDeCalle
+                , controlador: Controlador
+                , tituloH2: "Situación de la calle"
+                , cuerpo: $"<div id=¨{IdModalDeMapaDeCalle}-mapa¨ class=¨mapa-de-calle¨></div>"
+                , idOpcion: null
+                , opcion: null
+                , accion: null
+                , cerrar: $"ApiPanel.OcultarModalPorId('{IdModalDeMapaDeCalle}')"
+                , navegador: ""
+                , claseBoton: enumCssOpcionMenu.DeVista
+                , permisosNecesarios: enumModoDeAccesoDeDatos.Consultor
+                , otrosAtributos: new Dictionary<string, object>());
         }
 
         // No se captura el error aquí: se deja subir para que ViewCrud lo atrape en la misma petición, limpie la caché y lo muestre con RenderMensaje.

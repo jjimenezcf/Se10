@@ -43,21 +43,17 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             string _htmlMiModal = $@"<div id=¨{IdHtml}¨ class=¨contenedor-modal¨ crud-modal=¨{CrudModal.Mnt.IdHtml}¨ id-negocio=¨{CrudModal.RenderIdDeNegocio}¨ propiedad-restrictora=¨{PropiedadRestrictora}¨ filtrar-por=¨{FiltrarPor}¨ criterio-por=¨{Criterio}¨ falta-restrictor=¨{FaltaRestrictor}¨>
                               		    <div id=¨{IdHtml}_contenido¨ class=¨{enumCssModal.ContenidoModalConCabecera.Render()}¨>
-                              		       <div id=¨{IdHtml}_cabecera¨ class=¨{enumCssModal.ContenidoCabecera.Render()} {enumCssModal.CabeceraParaImputar.Render()}¨>
-                              		       	titulo
-                                           </div>
+                                           {RenderCabeceraDeModal(IdHtml, enumTipoDeModal.ModalParaImputar, Etiqueta, $"Crud.{enumGestorDeEventos.EventosModalParaImputar}('{eventosDeImputar.Cerrar}','{IdHtml}')")}
                               		       <div id=¨{IdHtml}_cuerpo¨ class=¨{enumCssModal.ContenidoCuerpoConGrid.Render()}¨>
                               		 	       crudDeImputacion
                                            </div>
                                            <div id=¨{IdHtml}_pie¨ class=¨{enumCssModal.ContenidoPieSoloBotones.Render()}¨>
-                                              <input type=¨text¨ id=¨{IdHtml}-cerrar¨  class=¨{enumCssModal.BotonSecundario.Render()}¨ value=¨Cerrar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaImputar}('{eventosDeImputar.Cerrar}','{IdHtml}')¨ />
                                               <input type=¨text¨ id=¨{IdHtml}-imputar¨ class=¨{enumCssModal.BotonPrincipal.Render()}¨ value=¨Imputar¨ readonly onclick=¨Crud.{enumGestorDeEventos.EventosModalParaImputar}('{eventosDeImputar.Imputar}','{IdHtml}')¨/>
                                            </div>
                                         </div>
                                      </div>";
 
             return _htmlMiModal
-                .Replace("titulo", Etiqueta)
                 .Replace("crudDeImputacion", CrudModal.RenderCrudModal(idModal: this.IdHtml, enumTipoDeModal.ModalParaImputar));
         }
 

@@ -45,6 +45,43 @@ namespace ApiDeDireccion {
         puerta.value = '';
     }
 
+    // id de la modal que renderiza el DescriptorDeCrud de los negocios que usan direcciones (DescriptorDeCrud.IdModalDeMapaDeCalle)
+    const idModalDeMapaDeCalle: string = 'modal-mapa-de-calle';
+
+    // abre la modal del mapa con la calle seleccionada en la lista: se lee la calle para tener tipo de vía, municipio, provincia, país, zona y cp,
+    // y se sitúa con el mismo visor que la edición de calles
+    export function Direccion_Mostrar_Calle_En_Mapa(idLista: string): void {
+        let lista: HTMLInputElement = document.getElementById(idLista) as HTMLInputElement;
+        let idCalle: number = Numero(lista.getAttribute(atListasDinamicas.idSeleccionado));
+        if (idCalle <= 0) {
+            MensajesSe.Info('Seleccione una calle para verla en el mapa');
+            return;
+        }
+
+        if (NoDefinido(document.getElementById(idModalDeMapaDeCalle))) {
+            MensajesSe.Error('Direccion_Mostrar_Calle_En_Mapa', `La modal '${idModalDeMapaDeCalle}' no está renderizada en esta página`);
+            return;
+        }
+
+        ApiDePeticiones.LeerElementoPorId(Crud.crudMnt, lista.getAttribute(atControl.controlador), idCalle, new Array<Parametro>(), idCalle)
+            .then((peticion: ApiDeAjax.DescriptorAjax) => {
+                let calle = peticion.resultado.datos;
+                let pais: string = ObtenerPropiedad(calle, ltrPropiedades.Callejero.Calle.Pais).substring(6);
+                let provincia: string = ObtenerPropiedad(calle, ltrPropiedades.Callejero.Calle.Provincia);
+                let municipio: string = ObtenerPropiedad(calle, ltrPropiedades.Callejero.Calle.Municipio);
+                let tipoDeVia: string = ObtenerPropiedad(calle, ltrPropiedades.Callejero.Calle.TipoDeVia);
+                let nombre: string = ObtenerPropiedad(calle, ltrPropiedades.Callejero.Calle.Nombre);
+                let zona: string = ObtenerPropiedad(calle, ltrPropiedades.Callejero.Calle.Zona, '');
+                let cp: string = ObtenerPropiedad(calle, ltrPropiedades.Callejero.Calle.Cp, '');
+
+                // se muestra antes de pintar el mapa para que el div tenga dimensiones reales
+                ApiPanel.AbrirModalPorId(idModalDeMapaDeCalle);
+                let divMapa: HTMLDivElement = document.getElementById(`${idModalDeMapaDeCalle}-mapa`) as HTMLDivElement;
+                GestorDeMapas.MostrarVisorDeOpenStreetView(divMapa, pais, provincia, municipio, zona, tipoDeVia, nombre, cp);
+            })
+            .catch((peticion: ApiDeAjax.DescriptorAjax) => ApiDePeticiones.EmitirError(peticion));
+    }
+
     export function Direccion_Tras_Seleccionar_Municipio(idLista: string): void {
         let lista: HTMLInputElement = document.getElementById(idLista) as HTMLInputElement;
         let objeto = OpcionesDeLasListas.ObtenerObjeto(lista);

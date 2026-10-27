@@ -159,7 +159,9 @@ namespace ModeloDeDto.Negocio
             SeleccionarDe = typeof(CalleDto),
             GuardarEn = nameof(IdCalle),
             Controlador = nameof(enumControladoresCallejero.Calles),
-            VistaDondeNavegar = enumVistasCallejero.CrudCalles,            
+            VistaDondeNavegar = enumVistasCallejero.CrudCalles,
+            PermiteCrearEnPestana = true,
+            PermiteVerEnMapa = true,
             RestringidoPorControl = nameof(Municipio),
             PropiedadRestrictora = nameof(IdMunicipio),
             BuscarPor = ltrCalles.SeleccionarParaDireccion,
@@ -321,6 +323,7 @@ namespace ModeloDeDto.Negocio
            PermisosNecesarios = nameof(enumModoDeAccesoDeDatos.Administrador) + "|" + ServicioDeDatos.Seguridad.ModoDeAcceso.Creador,
            Obligatorio = false,
            TipoDeControl = enumTipoControl.AreaDeTexto,
+           NumeroDeFilas = 2,
            Fila = 6,
            Columna = 0,
            AutoSpan = true)

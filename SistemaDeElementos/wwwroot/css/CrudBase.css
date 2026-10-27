@@ -598,11 +598,37 @@ body.resizing-en-progreso * {
     }
 }
 
+/* En el móvil todos los campos van en una sola columna, como en la edición: las filas de las tablas de filtro y de las ampliaciones
+   fijan sus columnas en el style (TablaFiltro, TablaEdicion), por eso el !important; dentro de cada columna la etiqueta queda encima del control */
 @media (max-width: 47.94em) {
+    .fila-filtro,
     .fila-filtro-sin-span {
-        display: flex;
+        display: flex !important;
         flex-direction: column;
+        align-items: stretch;
     }
+
+        .fila-filtro > div,
+        .fila-filtro-sin-span > div {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .fila-filtro > div[style*="grid-template-columns"],
+        .columna-filtro {
+            grid-template-columns: 1fr !important;
+        }
+
+        .fila-filtro > .columna-filtro:empty,
+        .fila-filtro-sin-span > .columna-filtro:empty {
+            display: none;
+        }
+
+        .fila-filtro .etiqueta-derecha-dto,
+        .fila-filtro-sin-span .etiqueta-derecha-dto {
+            text-align: left !important;
+            padding-right: 0 !important;
+        }
 }
 
 .fila-filtro {
