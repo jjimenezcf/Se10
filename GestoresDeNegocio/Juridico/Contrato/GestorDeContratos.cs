@@ -315,10 +315,11 @@ namespace GestoresDeNegocio.Juridico
                 : enumClaseDeContrato.Venta;
 
                 // Todos los selectores por preajuste llevan, además del filtro de negocio, las etapas admitidas separadas por '|' (Simbolos.separadorDeEtapas).
-                if (flt.Clausula.Equals(ltrDeUnContrato.SelectorParaUnaFacturaRec, StringComparison.CurrentCultureIgnoreCase) ||
-                    flt.Clausula.Equals(ltrDeUnContrato.SelectorParaFiltratFacturasEmt, StringComparison.CurrentCultureIgnoreCase) ||
+                // SelectorParaFiltratFacturasEmt no: es el buscarPor de la lista del filtro de facturas y su valor es lo tecleado.
+                if (!flt.Valor.IsNullOrEmpty() &&
+                   (flt.Clausula.Equals(ltrDeUnContrato.SelectorParaUnaFacturaRec, StringComparison.CurrentCultureIgnoreCase) ||
                     flt.Clausula.Equals(ltrDeUnContrato.SelectorParaUnaFacturaEmt, StringComparison.CurrentCultureIgnoreCase) ||
-                    flt.Clausula.Equals(ltrDeUnContrato.SelectorParaUnPedido, StringComparison.CurrentCultureIgnoreCase))
+                    flt.Clausula.Equals(ltrDeUnContrato.SelectorParaUnPedido, StringComparison.CurrentCultureIgnoreCase)))
                     filtros.Add(new ClausulaDeFiltrado(clausula: ltrDeUnContrato.FiltroPorEtapas, criterio: enumCriteriosDeFiltrado.esAlgunoDe, valor: flt.Valor));
             }
         }

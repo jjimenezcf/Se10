@@ -489,6 +489,10 @@
             let mostrarExpresion = listaHtml.getAttribute(atListasDinamicas.mostrarExpresion);
             let expresion: string = "";
 
+            // el servidor devuelve datos a null cuando no se pueden leer (p.e. falta definir un detalle), ya se ha informado del motivo
+            if (NoDefinido(peticion.resultado.datos))
+                return;
+
             listaDinamica.AnadirOpcionesLeidas(peticion.resultado.datos);
             listaDinamica.AnadirOpcionLeerMas(peticion.resultado.datos.length);
 

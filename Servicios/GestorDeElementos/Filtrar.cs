@@ -1184,15 +1184,17 @@ namespace GestorDeElementos
             else
                 etapas = new string[] { filtro.Valor };
 
-            // 2. Obtener los IDs de estado para cada etapa
-            foreach (var etapaStr in etapas)
+            // 2. Obtener los IDs de estado para cada etapa (sin etapas indicadas no se filtra)
+            foreach (var etapaStr in etapas.Where(x => !x.IsNullOrEmpty()))
             {
-                var etapaEnum = ApiDeEnsamblados.ToEnumerado(tipoDeEtapas, etapaStr);
+                var etapaEnum = ApiDeEnsamblados.ToEnumerado(tipoDeEtapas, etapaStr, errorSiNoHay: false);
+                if (etapaEnum == null)
+                    GestorDeErrores.Emitir($"La etapa '{etapaStr}' no es una etapa definida para el negocio '{metadatos.TipoDto.NegocioDeUnDtm()}'");
 
                 if (metadatos.EstadosDeLaEtapa == null)
                     GestorDeErrores.Emitir($"El negocio '{metadatos.TipoDto.NegocioDeUnDtm()}' no tiene definido, en los metadatos, no tiene definida la función para obtener los estados de una etapa");
 
-                var estadosDeEtapa = (List<int>)metadatos.EstadosDeLaEtapa(ApiDeEnsamblados.ToEnumerado(tipoDeEtapas, etapaStr));
+                var estadosDeEtapa = (List<int>)metadatos.EstadosDeLaEtapa(etapaEnum);
 
                 if (estadosDeEtapa != null && estadosDeEtapa.Count > 0)
                 {
