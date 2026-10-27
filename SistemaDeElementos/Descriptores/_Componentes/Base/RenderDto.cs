@@ -597,11 +597,13 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var controlador = atributos.Controlador.Replace(ltrEndPoint.Controller, "");
             var parametros = atributos.ParametrosParaNavegar.IsNullOrEmpty() ? "" : $"&{atributos.ParametrosParaNavegar}";
+            var alCrear = atributos.AlCrearEnPestana.IsNullOrEmpty() ? "" : $"onclick=¨{atributos.AlCrearEnPestana}('{idHtml}', this.href); return false;¨";
             return $@"<a id=¨{idHtml}-crear¨
                           class=¨boton-de-navegacion crear-en-pestana¨
                           title=¨Crear en una pestaña nueva¨
                           aria-label=¨Crear en una pestaña nueva¨
                           target=¨_blank¨
+                          {alCrear}
                           href=¨/{controlador}/{atributos.VistaDondeNavegar}?{enumParaQueNavegar.ParametroDeUrl}={enumParaQueNavegar.crear}{parametros}¨></a>";
         }
 

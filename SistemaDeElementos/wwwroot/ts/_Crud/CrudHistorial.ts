@@ -117,6 +117,8 @@
             this.ContenedorDeControlesDeFiltro.style.gridTemplateColumns = '1fr 1fr 1fr 1fr'
             const referencia = ApiControl.BuscarEditorDeFiltrado(this.PanelDeFiltro, ltrPropiedades.Elemento.Referencia);
             referencia.textContent = '';
+            // igual que el mantenimiento al inicializarse, el historial se abre con el filtro plegado
+            this.OcultarFiltro();
             this.CargarHistorial();
         }
 
@@ -248,6 +250,8 @@
             ApiPanel.OcultarPanel(this.PanelFiltro);
             this.ExpandirFiltro.value = "0";
             this.EtiquetaMostrarOcultarFiltro.innerText = "Mostrar filtro";
+            this.EtiquetaMostrarOcultarFiltro.title = "Mostrar filtro";
+            ApiControl.IncluirCss(this.EtiquetaMostrarOcultarFiltro, ltrCss.crud.filtro.oculto);
         }
 
 
@@ -255,6 +259,8 @@
             this.ExpandirFiltro.value = "1";
             ApiPanel.MostrarPanel(this.PanelFiltro);
             this.EtiquetaMostrarOcultarFiltro.innerText = "Ocultar filtro";
+            this.EtiquetaMostrarOcultarFiltro.title = "Ocultar filtro";
+            ApiControl.ExcluirCss(this.EtiquetaMostrarOcultarFiltro, ltrCss.crud.filtro.oculto);
         }
 
         public filtroParaCargarHistorial(): string {

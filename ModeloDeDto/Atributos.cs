@@ -359,6 +359,11 @@ namespace ModeloDeDto
         public bool PermiteCrearEnPestana { get; set; } = false;
 
         /// <summary>
+        /// Función js a la que llama el botón de crear en pestaña con el id de la lista y la url de creación, para completarla con datos del formulario antes de abrir la pestaña
+        /// </summary>
+        public string AlCrearEnPestana { get; set; }
+
+        /// <summary>
         /// En una lista dinámica de calles, muestra un botón (visible cuando hay una calle seleccionada) que abre la modal con la calle situada en el mapa
         /// </summary>
         public bool PermiteVerEnMapa { get; set; } = false;

@@ -250,6 +250,7 @@ namespace Utilidades
         Direccion_Tras_Seleccionar_Calle,
         Direccion_Tras_Blanquear_Calle,
         Direccion_Mostrar_Calle_En_Mapa,
+        Direccion_Crear_Calle_En_Pestana,
 
         SisDoc_BloquearArchivo,
         SisDoc_AplicarOperacion,

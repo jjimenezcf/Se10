@@ -45,6 +45,24 @@ namespace ApiDeDireccion {
         puerta.value = '';
     }
 
+    // abre en una pestaña nueva la creación de calles pasándole en la url el país, la provincia y el municipio indicados en la dirección,
+    // para que el crud de calles los mapee al inicializar la creación (ver Callejero.CrudCreacionCalle)
+    export function Direccion_Crear_Calle_En_Pestana(idLista: string, url: string): void {
+        let tabla: HTMLDivElement = document.getElementById(idLista.replace('-calle', '')).parentElement as HTMLDivElement;
+        let listas: Array<[string, string, string]> = [
+            [ltrPropiedades.Callejero.Direccion.Pais, ltrPropiedades.Callejero.Calle.IdPais, ltrPropiedades.Callejero.Calle.Pais],
+            [ltrPropiedades.Callejero.Direccion.Provincia, ltrPropiedades.Callejero.Calle.IdProvincia, ltrPropiedades.Callejero.Calle.Provincia],
+            [ltrPropiedades.Callejero.Direccion.Municipio, ltrPropiedades.Callejero.Calle.IdMunicipio, ltrPropiedades.Callejero.Calle.Municipio]
+        ];
+        for (let [propiedad, parametroId, parametroTexto] of listas) {
+            let lista: HTMLInputElement = ApiControl.BuscarListaDinamicaPorPropiedad(tabla, propiedad);
+            let id: number = Definido(lista) ? Numero(lista.getAttribute(atListasDinamicas.idSeleccionado)) : 0;
+            if (id > 0)
+                url = `${url}&${parametroId}=${id}&${parametroTexto}=${encodeURIComponent(lista.value)}`;
+        }
+        EntornoSe.AbrirPestana(url);
+    }
+
     // id de la modal que renderiza el DescriptorDeCrud de los negocios que usan direcciones (DescriptorDeCrud.IdModalDeMapaDeCalle)
     const idModalDeMapaDeCalle: string = 'modal-mapa-de-calle';
 

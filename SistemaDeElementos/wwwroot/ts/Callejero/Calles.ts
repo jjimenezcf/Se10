@@ -150,7 +150,24 @@ namespace Callejero {
 
         public override InicializarControlesDeCreacion(peticion: ApiDeAjax.DescriptorAjax): void {
             super.InicializarControlesDeCreacion(peticion);
+            this.MapearUbicacionDeLaUrl();
             ApiCallejero.InicializarAsistenteDeMapas(Crud.crudMnt);
+        }
+
+        // si se navega a crear desde una dirección (ApiDeDireccion.Direccion_Crear_Calle_En_Pestana), en la url vienen el país, la provincia y el municipio
+        private MapearUbicacionDeLaUrl(): void {
+            const listas: Array<[string, string]> = [
+                [ltrPropiedades.Callejero.Calle.IdPais, ltrPropiedades.Callejero.Calle.Pais],
+                [ltrPropiedades.Callejero.Calle.IdProvincia, ltrPropiedades.Callejero.Calle.Provincia],
+                [ltrPropiedades.Callejero.Calle.IdMunicipio, ltrPropiedades.Callejero.Calle.Municipio]
+            ];
+            for (const [parametroId, propiedad] of listas) {
+                const id: number = Numero(ObtenerParametroUrl(parametroId, 0, false));
+                if (id <= 0) continue;
+                const lista: HTMLInputElement = ApiControl.BuscarListaDinamicaPorPropiedad(this.PanelDeCrear, propiedad);
+                if (Definido(lista))
+                    MapearAlControl.ListaDinamicaSinAcciones(lista, id, ObtenerParametroUrl(propiedad, '', false));
+            }
         }
     }
 

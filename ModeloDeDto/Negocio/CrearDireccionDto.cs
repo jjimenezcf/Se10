@@ -118,6 +118,7 @@ namespace ModeloDeDto.Negocio
             Controlador = nameof(enumControladoresCallejero.Calles),
             VistaDondeNavegar = enumVistasCallejero.CrudCalles,
             PermiteCrearEnPestana = true,
+            AlCrearEnPestana = nameof(enumNameSpaceTs.ApiDeDireccion) + "." + nameof(enumFunctionTs.Direccion_Crear_Calle_En_Pestana),
             PermiteVerEnMapa = true,
             RestringidoPorControl = nameof(Municipio),
             PropiedadRestrictora = nameof(IdMunicipio),

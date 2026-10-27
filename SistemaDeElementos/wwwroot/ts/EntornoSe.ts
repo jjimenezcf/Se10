@@ -406,6 +406,17 @@ namespace EntornoSe {
             window.history.back();
     }
 
+    // una pestaña abierta para ir directamente a una acción (p.e. crear una calle desde una dirección) no tiene a dónde volver:
+    // se cierra y el usuario queda en la pestaña desde la que se abrió (con su modal o panel tal como estaba)
+    export function CerrarPestanaONavegarAtras(): void {
+        if (window.history.length <= 1) {
+            window.close();
+            if (!window.closed) NavegarAtras();
+        }
+        else
+            NavegarAtras();
+    }
+
     export function MiCorreoApiKey(): void {
         let urlBase: string = window.location.origin;
         let url: string = `${urlBase}/${Ajax.Entorno.MiCorreo.controlador}/${Ajax.Entorno.MiCorreo.crudApiKey}`;

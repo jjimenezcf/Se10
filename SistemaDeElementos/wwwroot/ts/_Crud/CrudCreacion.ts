@@ -545,7 +545,7 @@
                 if (irAEdicion)
                     this.CrudDeMnt.IraEditar();
                 else
-                    EntornoSe.NavegarAtras();
+                    EntornoSe.CerrarPestanaONavegarAtras();
             }
             else {
                 this.CrudDeMnt.ModoTrabajo = enumModoTrabajo.mantenimiento;
