@@ -657,6 +657,7 @@
 
     export function OcultarModal(modal: HTMLDivElement) {
         modal.style.display = ltrStyle.display.none;
+        RecentrarModal(modal);
         let accion = modal.getAttribute(atModal.trasCerrar);
 
         let boton = ApiControl.BuscarBotonPorClase(modal, ltrCss.Modal.BotonPorDefecto) as HTMLInputElement;
@@ -739,6 +740,7 @@
             }
         };
 
+        RecentrarModal(modal);
         modal.style.display = ltrStyle.display.block;
 
         // si la modal se cerró sin pulsar intro su listener sigue enganchado: quitarlo para no pulsar el botón varias veces
@@ -1317,5 +1319,59 @@
 
         MapearAlControl.ListaDinamica(lista, id, texto, bloquear);
     }
+
+    // ===================== arrastre de las modales por su cabecera =====================
+    // un único escuchador en el documento sirve para todas las modales con la cabecera común (.cabecera-de-modal);
+    // se desplaza la caja de la modal con transform, sin tocar su centrado, y sin dejar que salga del viewport.
+    // En el móvil no se arrastra: las modales ocupan casi toda la pantalla y estorbaría al scroll.
+    const cssCabeceraDeModal: string = 'cabecera-de-modal';
+    const cssCerrarDeModal: string = 'cerrar-de-modal';
+    const selectorCajaDeModal: string = '.contenido-modal, .contenido-modal-cabecera';
+
+    export function RecentrarModal(modal: HTMLDivElement): void {
+        modal.querySelectorAll<HTMLElement>(selectorCajaDeModal).forEach(caja => {
+            caja.style.transform = '';
+            caja.removeAttribute('desplazamiento-x');
+            caja.removeAttribute('desplazamiento-y');
+        });
+    }
+
+    function IniciarArrastreDeModal(event: PointerEvent): void {
+        if (event.button !== 0 || EsDispositvoMovil()) return;
+        const destino = event.target as HTMLElement;
+        if (destino.closest(`.${cssCerrarDeModal}`)) return;
+        const cabecera = destino.closest(`.${cssCabeceraDeModal}`) as HTMLElement;
+        if (!cabecera) return;
+        const caja = cabecera.closest(selectorCajaDeModal) as HTMLElement;
+        if (!caja) return;
+
+        event.preventDefault();
+        const rect = caja.getBoundingClientRect();
+        const inicioX = event.clientX, inicioY = event.clientY;
+        const baseX = Numero(caja.getAttribute('desplazamiento-x')), baseY = Numero(caja.getAttribute('desplazamiento-y'));
+
+        const mover = (e: PointerEvent) => {
+            let dx = Math.min(Math.max(e.clientX - inicioX, -rect.left), window.innerWidth - rect.right);
+            let dy = Math.min(Math.max(e.clientY - inicioY, -rect.top), window.innerHeight - rect.bottom);
+            // si la modal ya es más grande que el viewport en un eje, no se mueve en ese eje
+            if (rect.width > window.innerWidth) dx = 0;
+            if (rect.height > window.innerHeight) dy = 0;
+            caja.setAttribute('desplazamiento-x', (baseX + dx).toString());
+            caja.setAttribute('desplazamiento-y', (baseY + dy).toString());
+            caja.style.transform = `translate(${baseX + dx}px, ${baseY + dy}px)`;
+        };
+        const soltar = () => {
+            cabecera.removeEventListener('pointermove', mover);
+            cabecera.removeEventListener('pointerup', soltar);
+            cabecera.removeEventListener('pointercancel', soltar);
+        };
+
+        cabecera.setPointerCapture(event.pointerId);
+        cabecera.addEventListener('pointermove', mover);
+        cabecera.addEventListener('pointerup', soltar);
+        cabecera.addEventListener('pointercancel', soltar);
+    }
+
+    document.addEventListener('pointerdown', IniciarArrastreDeModal);
 
 }

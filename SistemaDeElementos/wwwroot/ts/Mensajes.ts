@@ -209,6 +209,7 @@
         let contenedor: HTMLDivElement = document.getElementById("id-contenedor-historial") as HTMLDivElement;
         let tabla: HTMLDivElement = document.getElementById('id-historial-cuerpo.tabla') as HTMLDivElement;
         tabla.style.height = `${contenedor.getBoundingClientRect().height - 130}px`;
+        ApiPanel.RecentrarModal(modal);
         modal.style.display = ltrStyle.display.block;
         EntornoSe.AjustarModalesAbiertas();
     }
