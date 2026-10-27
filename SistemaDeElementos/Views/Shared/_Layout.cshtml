@@ -139,8 +139,12 @@
 
         <div id="id-modal-historial" class="contenedor-modal-de-mensajes">
             <div id="id-contenedor-historial" class="contenido-modal">
-                <div id="id-historial-cabecera" class="contenido-cabecera">
-                    Historial de mensajes
+                <div id="id-historial-cabecera" class="contenido-cabecera cabecera-de-modal">
+                    <span class="rotulo-de-modal">
+                        <svg class="icono-de-modal" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z M8 9h8 M8 12h5" /></svg>
+                        <h2>Historial de mensajes</h2>
+                    </span>
+                    <span class="cerrar-de-modal" title="Cerrar" onclick="MensajesSe.CerrarHistorial()">&times;</span>
                 </div>
                 <div id="id-historial-cuerpo" class="contenido-cuerpo" style="max-height: 30em;">
                     <div id="id-historial-cuerpo.tabla" class="div-tabla cuerpo-datos-tabla table table-striped" style="margin-bottom: 0px;">
@@ -166,9 +170,7 @@
                     </div>
                 </div>
                 <div id="{IdHtml}_pie" class="contenido-modal-pie-menu contenido-modal-pie-derecho">
-                    <input type="text" id="id-historial-cuerpo-borrar" class="boton-modal btn btn-secondary" value="Borrar" onclick="MensajesSe.BorrarHistorial()" readonly />
-                    <input type="text" id="id-historial-cuerpo-cerrar" class="boton-modal btn btn-primary boton-por-defecto" value="Cerrar" onclick="MensajesSe.CerrarHistorial()" readonly />
-                </div>
+                    <input type="text" id="id-historial-cuerpo-borrar" class="boton-modal btn btn-secondary" value="Borrar" onclick="MensajesSe.BorrarHistorial()" readonly />                </div>
             </div>
         </div>
 
