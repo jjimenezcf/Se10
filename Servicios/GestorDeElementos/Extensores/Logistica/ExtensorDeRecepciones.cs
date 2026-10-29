@@ -379,13 +379,31 @@ namespace GestorDeElementos.Extensores
             if (!almacen.EstaActivo())
                 Emitir($"No se puede cancelar la entrega de la línea {linea.Orden}: el almacén '{almacen.Expresion}' no está activo y no se puede borrar su entrada de compra");
 
-            var idTipoMovimiento = enumTiposDeMovimiento.Compra.LeerTipoDeMovimiento(contexto).Id;
-            var movimiento = contexto.Set<MovimientoDeAlmacenDtm>().FirstOrDefault(x => x.IdLineaDeRecepcion == recepcion.Id && x.IdTipoMovimiento == idTipoMovimiento);
+            var movimiento = recepcion.MovimientoDeCompra(contexto);
             if (movimiento is null)
                 return;
 
+            var contabilizado = movimiento.PreasientoContabilizado(contexto);
+            if (contabilizado is not null)
+                Emitir($"No se puede cancelar la entrega de la línea {linea.Orden}: el preasiento '{contabilizado.Referencia}' de su entrada de compra está {enumEtapasDePreasiento.SPR_Etapa_Contabilizado.Nombre()} (está en un lote contable)");
+
             movimiento.EliminarComoAdministrador(contexto, accionEjecutada: ltrDeUnMovimientoDeAlmacen.Accion_AnularEntradaDeCompra);
         }
+
+        // Movimiento de compra que generó la entrega en un almacén, null si la entrega va a la obra de un expediente
+        private static MovimientoDeAlmacenDtm MovimientoDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
+        {
+            if (!recepcion.VaAlAlmacen)
+                return null;
+
+            var idTipoMovimiento = enumTiposDeMovimiento.Compra.LeerTipoDeMovimiento(contexto).Id;
+            return contexto.Set<MovimientoDeAlmacenDtm>().FirstOrDefault(x => x.IdLineaDeRecepcion == recepcion.Id && x.IdTipoMovimiento == idTipoMovimiento);
+        }
+
+        // Una entrega cuyo preasiento está contabilizado (al generar el lote contable se transita a esa etapa) no se puede cancelar,
+        // ya que para el sistema el asiento está contabilizado (ver GestorDeLineasDeUnPedido.DespuesDeMapearElElemento)
+        public static bool EntregaContabilizada(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
+            => recepcion.MovimientoDeCompra(contexto)?.PreasientoContabilizado(contexto) is not null;
 
         // Se borra la entrega leída de la base de datos, no la cacheada, para que su RowVersion sea el actual.
         // Queda una traza en el pedido con quién la ha cancelado y los datos que tenía la entrega

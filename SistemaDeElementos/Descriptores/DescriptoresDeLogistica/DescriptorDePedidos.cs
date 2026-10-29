@@ -77,6 +77,8 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo: "AlmacenDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.AlmacenDeRecepcion), mostrar: false);
             columnas.Add(titulo: "IdExpedienteDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.IdExpedienteDeRecepcion), mostrar: false);
             columnas.Add(titulo: "ExpedienteDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.ExpedienteDeRecepcion), mostrar: false);
+            // con el preasiento de la entrega contabilizado no se puede cancelar (ver CrudEdicionPedido.AplicarEtapaAlGridDeLineas)
+            columnas.Add(titulo: "EntregaContabilizada", propiedad: nameof(LineaDeUnPedidoDto.EntregaContabilizada), mostrar: false);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnPedidoDto.IdElemento), mostrar: false);
             columnas.Add(titulo: "Id", propiedad: nameof(LineaDeUnPedidoDto.Id), mostrar: false);
             // versión de la línea leída, para validarla en el servidor al recepcionarla (ver LineasDeUnPedidoController.epRecibirLinea)

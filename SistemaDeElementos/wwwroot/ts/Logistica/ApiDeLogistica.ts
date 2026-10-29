@@ -268,6 +268,7 @@ namespace Logistica {
         idExpedienteDeRecepcion: number;
         expedienteDeRecepcion: string;
         recepcionadaEl: string;
+        contabilizada: boolean;
     }
 
     function ped_LeerLineaDelGrid_interno(parametros: string): LineaDelGridDePedido {
@@ -294,7 +295,8 @@ namespace Logistica {
             idExpedienteDeRecepcion: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.IdExpedienteDeRecepcion)),
             expedienteDeRecepcion: leer(ltrPropiedades.Logistica.Pedido.linea.ExpedienteDeRecepcion),
             // en el grid con formato dd/MM/yyyy
-            recepcionadaEl: leer(ltrPropiedades.Logistica.Pedido.linea.RecepcionadaEl)
+            recepcionadaEl: leer(ltrPropiedades.Logistica.Pedido.linea.RecepcionadaEl),
+            contabilizada: (leer(ltrPropiedades.Logistica.Pedido.linea.EntregaContabilizada) ?? '').toLowerCase() === 'true'
         };
     }
 
@@ -308,11 +310,13 @@ namespace Logistica {
     }
 
     function ped_SePuedeCancelarLaEntrega_interno(linea: LineaDelGridDePedido): boolean {
-        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeCancelarLaEntrega(linea.entregada))
+        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeCancelarLaEntrega(linea.entregada, linea.contabilizada))
             return true;
         const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
         MensajesSe.Error('Recepción', !editor.EsGestorDelPedido
             ? 'Ha de ser gestor del pedido para cancelar sus entregas'
+            : linea.contabilizada
+            ? 'La entrega de la línea está contabilizada (su preasiento está en un lote contable), no se puede cancelar'
             : 'Solo se puede cancelar la entrega de una línea con el pedido en recepción');
         return false;
     }

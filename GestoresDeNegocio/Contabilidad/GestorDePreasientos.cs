@@ -149,7 +149,10 @@ namespace GestoresDeNegocio.Contabilidad
             spr = base.AntesDeTransitar(spr, transicion, parametros);
 
             if (enumEtapasDePreasiento.SPR_Etapa_Cancelado.Lista().Contains(transicion.IdDestino))
+            {
                 GestorDeCierresContables.ValidarQueNoHayCierreEnCurso(Contexto, spr, "cancelar");
+                GestorDeCierresContables.ValidarQueNoEstaCerrado(Contexto, spr, "cancelar");
+            }
 
             //if (transicion.EntreEtapas(enumEtapasDePreasiento.SPR_Etapa_Contabilizado.Estados(), enumEtapasDePreasiento.SPR_Etapa_Pendiente.Estados()))
             //    spr.AntesDeDevolverAPendiente(Contexto);

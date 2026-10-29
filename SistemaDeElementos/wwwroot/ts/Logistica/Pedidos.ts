@@ -623,10 +623,11 @@
             return this.SePuedeRecepcionar && !entregada;
         }
 
-        // Aspa: sólo con el pedido en recepción, solicitado no puede haber nada entregado; con entrega la cancela, sin ella marca
-        // la línea como no entregada. Las entregas (parcial, de la línea y "Dar por entregado") sí se permiten solicitado: lo pasan a recepción
-        public SePuedeCancelarLaEntrega(entregada: boolean): boolean {
-            return this.EsGestorDelPedido && this.EstaEnRecepcion;
+        // Aspa: cancela la entrega de la línea, sólo con el pedido en recepción (solicitado no puede haber nada entregado) y si la línea
+        // tiene entrega. Las entregas (parcial, de la línea y "Dar por entregado") sí se permiten solicitado: lo pasan a recepción.
+        // Si el preasiento de la entrega está contabilizado (en un lote contable) no se puede cancelar
+        public SePuedeCancelarLaEntrega(entregada: boolean, contabilizada: boolean): boolean {
+            return this.EsGestorDelPedido && this.EstaEnRecepcion && entregada && !contabilizada;
         }
 
         // Recepcionar con entrega la muestra en consulta, sin ella abre la modal para entregarla
@@ -688,8 +689,14 @@
                 const entregada = CrudEdicionPedido.LaLineaEstaEntregada(fila);
                 CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeRecepcionar, this.SePuedeAbrirLaRecepcion(entregada));
                 CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeEntregaCompleta, this.SePuedeEntregarLaLineaCompleta(entregada));
-                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeCancelarLaEntrega, this.SePuedeCancelarLaEntrega(entregada));
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeCancelarLaEntrega, this.SePuedeCancelarLaEntrega(entregada, CrudEdicionPedido.LaEntregaEstaContabilizada(fila)));
             });
+        }
+
+        private static LaEntregaEstaContabilizada(fila: HTMLDivElement): boolean {
+            const propiedad = ltrPropiedades.Logistica.Pedido.linea.EntregaContabilizada.toLowerCase();
+            let contabilizada = fila.querySelector<HTMLInputElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${propiedad}'] input`);
+            return Definido(contabilizada) && contabilizada.value.toLowerCase() === 'true';
         }
 
         private static LaLineaEstaEntregada(fila: HTMLDivElement): boolean {

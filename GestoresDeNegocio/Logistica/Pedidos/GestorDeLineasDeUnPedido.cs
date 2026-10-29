@@ -39,7 +39,8 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.IdAlmacenDeRecepcion, x => x.Ignore())
                 .ForMember(dto => dto.AlmacenDeRecepcion, x => x.Ignore())
                 .ForMember(dto => dto.IdExpedienteDeRecepcion, x => x.Ignore())
-                .ForMember(dto => dto.ExpedienteDeRecepcion, x => x.Ignore());
+                .ForMember(dto => dto.ExpedienteDeRecepcion, x => x.Ignore())
+                .ForMember(dto => dto.EntregaContabilizada, x => x.Ignore());
                 CreateMap<LineaDeUnPedidoDto, LineaDeUnPedidoDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Naturaleza, dto => dto.Ignore())
@@ -164,6 +165,7 @@ namespace GestoresDeNegocio.Logistica
             elemento.AlmacenDeRecepcion = recepcion?.IdAlmacen is null ? null : Contexto.SeleccionarPorId<AlmacenDtm>((int)recepcion.IdAlmacen).Expresion;
             elemento.IdExpedienteDeRecepcion = recepcion?.IdExpediente;
             elemento.ExpedienteDeRecepcion = recepcion?.IdExpediente is null ? null : Contexto.SeleccionarPorId<ExpedienteDtm>((int)recepcion.IdExpediente).Expresion;
+            elemento.EntregaContabilizada = recepcion is not null && recepcion.EntregaContabilizada(Contexto);
 
             // Las líneas sólo se modifican mientras el pedido se cumplimenta (ver AntesDePersistir), en el resto de etapas se consultan
             if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)

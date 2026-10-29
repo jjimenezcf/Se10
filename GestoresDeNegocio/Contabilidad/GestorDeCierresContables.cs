@@ -214,6 +214,16 @@ namespace GestoresDeNegocio.Contabilidad
                                        $"porque se está ejecutando el cierre contable de su sociedad hasta el '{cerrandoHasta:dd/MM/yyyy}', inténtelo cuando termine");
         }
 
+        // Un preasiento con fecha contable anterior al último cierre de su sociedad está en un lote contable, para el sistema está contabilizado
+        public static void ValidarQueNoEstaCerrado(ContextoSe contexto, PreasientoDtm preasiento, string accion)
+        {
+            var idSociedad = contexto.Set<CentroGestorDtm>().Where(cg => cg.Id == preasiento.IdCg).Select(cg => cg.IdSociedad).FirstOrDefault();
+            var ultimoCierre = UltimoCierre(contexto, idSociedad);
+            if (ultimoCierre is not null && ultimoCierre.CerradaEl.Date > preasiento.FechaContable.Date)
+                GestorDeErrores.Emitir($"No se puede {accion} el preasiento '{preasiento.Referencia ?? preasiento.Nombre}' con fecha contable '{preasiento.FechaContable:dd/MM/yyyy}' " +
+                                       $"porque es anterior al último cierre contable de su sociedad '{ultimoCierre.CerradaEl:dd/MM/yyyy}'");
+        }
+
         // Solo se puede anular el último cierre realizado de una sociedad; devuelve el motivo si no se puede, o null si el lote no tiene cierre o es el último
         public static string MotivoParaNoAnularElCierre(ContextoSe contexto, int idLote)
         {

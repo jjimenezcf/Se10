@@ -3470,7 +3470,8 @@ const ltrPropiedades = {
                 AlmacenDeRecepcion: 'AlmacenDeRecepcion',
                 IdExpedienteDeRecepcion: 'IdExpedienteDeRecepcion',
                 ExpedienteDeRecepcion: 'ExpedienteDeRecepcion',
-                RecepcionadaEl: 'RecepcionadaEl'
+                RecepcionadaEl: 'RecepcionadaEl',
+                EntregaContabilizada: 'EntregaContabilizada'
             },
             RecepcionarLinea: {
                 IdLineaPedido: 'IdLineaPedido',

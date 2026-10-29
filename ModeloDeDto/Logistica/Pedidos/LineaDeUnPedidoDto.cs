@@ -295,6 +295,10 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Expediente de la entrega", Visible = false)]
         public string ExpedienteDeRecepcion { get; set; }
 
+        // El preasiento de la entrada de compra está contabilizado (en un lote contable): la entrega no se puede cancelar
+        [IUPropiedad(Etiqueta = "Entrega contabilizada", Visible = false)]
+        public bool EntregaContabilizada { get; set; }
+
 
         //--------------------------------------------
         [IUPropiedad(
