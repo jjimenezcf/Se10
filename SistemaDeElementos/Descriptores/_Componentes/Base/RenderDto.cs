@@ -33,14 +33,17 @@ namespace MVCSistemaDeElementos.Descriptores
 
             double anchoColumna = tabla.NumeroDeColumnas == 0 ? 0 : (double)(100 / tabla.NumeroDeColumnas);
             var filaVisible = false;
+            var columnas = new List<(string renderTd, bool visible)>();
+            for (short j = 0; j < tabla.NumeroDeColumnas; j++)
+                columnas.Add(RenderColumnaParaElDto(tabla, i, j, anchoColumna));
+
             for (short j = 0; j < tabla.NumeroDeColumnas; j++)
             {
-                var info = RenderColumnaParaElDto(tabla, i, j, anchoColumna);
-                var htmlColumna = info.renderTd;
+                var info = columnas[j];
                 if (!usarCssDeLaFila)
-                    estilo = estilo + " " + (info.visible ? "1fr" : "0px");
+                    estilo = estilo + " " + (info.visible ? $"{AnchoEnFr(tabla, i, j, columnas)}fr" : "0px");
                 if (info.visible) filaVisible = true;
-                htmlColumnas = htmlColumnas + htmlColumna;
+                htmlColumnas = htmlColumnas + info.renderTd;
             }
             if (!filaVisible)
                 estilo = estilo + "; " + "grid-template-rows=0px";
@@ -100,6 +103,21 @@ namespace MVCSistemaDeElementos.Descriptores
             renderTd = renderTd.Replace("[renderControles]", rendercontroles);
 
             return (renderTd, visible);
+        }
+
+        // Una columna con ColSpan o AutoSpan ocupa también el ancho de las columnas vacías siguientes que cubre (que quedan a 0px):
+        // con ColSpan = 3 y las dos siguientes vacías vale 3fr; se para en la primera columna cubierta que tenga controles visibles
+        private static int AnchoEnFr(DescriptorDeTabla tabla, short i, short j, List<(string renderTd, bool visible)> columnas)
+        {
+            var colspan = tabla.ObtenerFila(i).ObtenerColumna(j).ColSpan;
+            var ancho = 1;
+            for (var k = j + 1; k < j + colspan && k < columnas.Count; k++)
+            {
+                if (columnas[k].visible)
+                    break;
+                ancho++;
+            }
+            return ancho;
         }
 
         private static (int pos, int colspan) UltimoColSpanIndicado(DescriptorDeTabla tabla, short i, short j)

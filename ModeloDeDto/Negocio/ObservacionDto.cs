@@ -126,6 +126,8 @@ namespace ModeloDeDto.Negocio
          VisibleAlCrear = false,
          VisibleAlEditar = true,
          TipoDeControl = enumTipoControl.Referencia,
+         // quien consulta la observación (no es su creador ni gestor del elemento) también ha de poder descargar el archivo
+         EnConsultaOcultar = false,
          AccionRef = "/" + nameof(enumControladoresSistemaDocumental.Archivos) + "/" + ltrEndPoint.epDescargaConGuid + "?guid=[" + nameof(GuidDeDescarga) + "]&id=[" + nameof(IdArchivo) + "]",
          Alineada = enumAliniacion.derecha,
          css = enumCssControles.RefApilado,
@@ -136,6 +138,9 @@ namespace ModeloDeDto.Negocio
         //------------------------------------------------------------------------
         [IUPropiedad(
             VisibleEnGrid = false,
+            // el archivo sólo se asocia al crear la observación; al editarla se descarga con el enlace de Accion
+            VisibleAlEditar = false,
+            VisibleAlConsultar = false,
             Etiqueta = "Archivo",
             Ayuda = "Seleccione asociado a la observación",
             Tipo = typeof(int),
