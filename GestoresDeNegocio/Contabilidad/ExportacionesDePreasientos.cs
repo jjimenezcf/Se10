@@ -61,6 +61,7 @@ namespace GestoresDeNegocio.Contabilidad
                 ExportarTercerosNcs(generadorNcs, circuito, terceros);
 
                 EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudLotesContables);
+                AnotarElTrabajoEnElCircuito(entornoTrabajo, contextoDeLaAccion, circuito);
                 entorno.Salida[nameof(CierreContableDtm.IdLote)] = circuito.Id;
             }
             finally
@@ -99,6 +100,7 @@ namespace GestoresDeNegocio.Contabilidad
                 AnexarLoteContasol(contextoDeLaAccion, circuito, generador, terceros);
 
                 EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudLotesContables);
+                AnotarElTrabajoEnElCircuito(entornoTrabajo, contextoDeLaAccion, circuito);
                 entorno.Salida[nameof(CierreContableDtm.IdLote)] = circuito.Id;
             }
             finally
@@ -466,6 +468,28 @@ namespace GestoresDeNegocio.Contabilidad
                 );
         }
 
+        // Al final del proceso: observación de administrador en el lote (o estimación) con la url del trabajo sometido que lo generó.
+        // Es informativa: si falla no afecta al lote generado
+        private static void AnotarElTrabajoEnElCircuito(EntornoDeTrabajo entornoTrabajo, ContextoSe contexto, CircuitoDocDtm circuito)
+        {
+            if (entornoTrabajo?.TrabajoDeUsuario is null) return;
+
+            try
+            {
+                var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+                {
+                    Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
+                    Query = $"id={entornoTrabajo.TrabajoDeUsuario.Id}"
+                }.Uri.ToString();
+                circuito.CrearObservacion(contexto, ltrDeUnPreasiento.ObservacionTrabajoQueGeneroElLote, urlDelTrabajo,
+                    new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+            }
+            catch (Exception e)
+            {
+                entornoTrabajo.CrearTraza($"No se ha podido crear la observación '{ltrDeUnPreasiento.ObservacionTrabajoQueGeneroElLote}' en '{circuito.Referencia}': {e.Message}");
+            }
+        }
+
         private static void ExportarTercerosNcs(LoteContableConNcs generadorDeLote, CircuitoDocDtm circuito, (List<ProveedorDtm> proveedores, List<ClienteDtm> clientes) terceros)
         {
             ContextoSe contextoDeLaAccion = generadorDeLote.Contexto;
@@ -529,6 +553,7 @@ namespace GestoresDeNegocio.Contabilidad
                 foreach (var recibida in recibidas) GestorDeVinculos.Vincular(contexto, recibida, circuito);
                 foreach (var pago in pagos) GestorDeVinculos.Vincular(contexto, pago, circuito);
                 EnviarCircuito(entornoTrabajo, circuito, enumVistasSistemaDocumental.CrudEstimacionesDirectas);
+                AnotarElTrabajoEnElCircuito(entornoTrabajo, contexto, circuito);
             }
             finally
             {

@@ -14,7 +14,7 @@ namespace ModeloDeDto.Contabilidad
 
         [IUPropiedad(
             Etiqueta = "Sociedad",
-            Ayuda = "Sociedad a contabilizar",
+            Ayuda = "Sociedad de autónomo a contabilizar por estimación directa",
             TipoDeControl = enumTipoControl.ListaDinamica,
             GuardarEn = nameof(IdSociedad),
             Controlador = nameof(enumControladoresTerceros.Sociedades),
@@ -24,7 +24,7 @@ namespace ModeloDeDto.Contabilidad
             Negocio = enumNegocio.Sociedad,
             LongitudMinimaParaBuscar = 1,
             MostrarExpresion = nameof(SociedadDto.Expresion),
-            BuscarPor = ltrDeSociedad.FiltroParaSociedadesGestionadas,
+            BuscarPor = ltrDeSociedad.FiltroParaSociedadesGestionadasAutonomas,
             Tipo = typeof(string),
             Fila = 0,
             Columna = 0,

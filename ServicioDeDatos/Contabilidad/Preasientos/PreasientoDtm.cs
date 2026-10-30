@@ -23,6 +23,8 @@ namespace ServicioDeDatos.Contabilidad
         public const string ActivacionConErrores = "ejecución con errores";
         // observación de administrador en la sociedad con la url del trabajo, numerada por las veces que se ha lanzado: "... (n)"
         public const string ObservacionTrabajoDeActivacion = "Trabajo de generación de preasientos";
+        // observación de administrador en el lote contable o la estimación directa con la url del trabajo que lo generó
+        public const string ObservacionTrabajoQueGeneroElLote = "Trabajo que lo generó";
 
         public const string IdFacturaRecibida = nameof(IdFacturaRecibida);
         public const string IdFacturaEmitida = nameof(IdFacturaEmitida);

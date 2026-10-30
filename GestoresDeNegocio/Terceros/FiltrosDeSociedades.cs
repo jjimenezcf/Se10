@@ -117,6 +117,27 @@ namespace GestoresDeNegocio.Terceros
             return consulta;
         }
 
+        // Sociedades gestionadas (con centros gestores) de autónomos, las que se contabilizan por estimación directa. Equivale a
+        // SociedadDtm.Autonomo pero traducible a SQL (ver GestionadasNoAutonomas)
+        public static IQueryable<SociedadDtm> FiltrarPorSociedadesGestionadasAutonomas(this IQueryable<SociedadDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(ltrDeSociedad.FiltroParaSociedadesGestionadasAutonomas).ToLower());
+            if (filtro != null)
+            {
+                consulta = consulta.Where(soc => contexto.Set<CentroGestorDtm>().Any(cg => cg.IdSociedad == soc.Id) &&
+                                                 (EF.Functions.Like(soc.NIF.Trim(), "[0-9]________") ||
+                                                  EF.Functions.Like(soc.NIF.Trim(), "ES[0-9]________")));
+                if (!filtro.Valor.EsTrue())
+                {
+                    consulta = filtroInternoPorExpresion(consulta, filtro);
+                }
+
+                filtro.Aplicado = true;
+            }
+
+            return consulta;
+        }
+
         // Sociedades que se pueden cerrar contablemente: gestionadas, no de autónomos y de las que el usuario conectado es interventor.
         // Ser interventor no es traducible a SQL, así que se resuelve en memoria sobre las candidatas y se filtra por sus ids
         public static IQueryable<SociedadDtm> FiltrarPorSociedadesACerrar(this IQueryable<SociedadDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)

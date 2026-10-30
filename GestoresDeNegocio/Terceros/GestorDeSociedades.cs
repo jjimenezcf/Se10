@@ -123,6 +123,7 @@ namespace GestoresDeNegocio.Terceros
             consulta = consulta.FiltrarPorSerInterlocutor(Contexto, filtros);
             consulta = consulta.FiltrarPorSociedadesGestionadas(Contexto, filtros);
             consulta = consulta.FiltrarPorSociedadesGestionadasNoAutonomas(Contexto, filtros);
+            consulta = consulta.FiltrarPorSociedadesGestionadasAutonomas(Contexto, filtros);
             consulta = consulta.FiltrarPorSociedadesACerrar(Contexto, filtros);
 
             // se anota que la lectura es para un cierre contable para devolver al mapear su sistema contable y dígitos
