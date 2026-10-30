@@ -117,14 +117,15 @@
             var esAdministrador = Registro.UsuarioConectado().administrador;
 
             ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Contabilidad.Preasientos.ContabilizarPreasiento, ltrMenus.enumOrigen.edicion, !esAdministrador || this.EstaCancelada);
-            ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Contabilidad.Preasientos.RegenerarPreasiento, ltrMenus.enumOrigen.edicion, !esAdministrador || this.EstaCancelada);
+            // ya no se regeneran los preasientos desde su negocio (ver DescriptorDePreasientos)
+            //ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Contabilidad.Preasientos.RegenerarPreasiento, ltrMenus.enumOrigen.edicion, !esAdministrador || this.EstaCancelada);
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
             if (super.DespuesDeProcesarOpcionMf(peticion)) return true;
             let opcion: string = ObtenerPropiedad(peticion.DatosDeEntrada, ltrMenus.opcion);
             if (opcion === ltrMenus.eventosDeMf.Contabilidad.Preasientos.ContabilizarPreasiento
-                || opcion === ltrMenus.eventosDeMf.Contabilidad.Preasientos.RegenerarPreasiento
+                //|| opcion === ltrMenus.eventosDeMf.Contabilidad.Preasientos.RegenerarPreasiento
             ) {
                 this.RecargarValoresDeCabecera(this.ElementoEditado.Id);
                 this.RecargarGridDeHitos();

@@ -129,7 +129,7 @@ namespace ServicioDeDatos
             ModeloDePedido.Archivadores(modelBuilder);
 
             ModeloDePedido.DatosDeLineaDeUnaPedido(modelBuilder);
-            ModeloDePedido.RecepcionesDeLineaDeUnPedido(modelBuilder);
+            ModeloDePedido.RecepcionDeLinea(modelBuilder);
         }
 
 

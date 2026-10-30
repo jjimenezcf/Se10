@@ -342,62 +342,62 @@ namespace GestoresDeNegocio.Contabilidad
             return contabilizar;
         }
 
-        public void RegenerarPreasientos(List<int> ids)
-        {
-            var trans = Contexto.IniciarTransaccion();
-            try
-            {
-                foreach (int id in ids)
-                {
-                    var preasiento = Contexto.SeleccionarPorId<PreasientoDtm>(id);
+        // Ya no se regeneran los preasientos desde su negocio: se regeneran por el camino normal del negocio que los generó (ver DescriptorDePreasientos)
+        //public void RegenerarPreasientos(List<int> ids)
+        //{
+            //var trans = Contexto.IniciarTransaccion();
+            //try
+            //{
+                //foreach (int id in ids)
+                //{
+                    //var preasiento = Contexto.SeleccionarPorId<PreasientoDtm>(id);
 
-                    if (!preasiento.EsAdministrador(Contexto))
-                        GestorDeErrores.Emitir($"Ha de ser administrador del preasiento '{preasiento.Referencia}' para poder cancelarlo");
+                    //if (!preasiento.EsAdministrador(Contexto))
+                        //GestorDeErrores.Emitir($"Ha de ser administrador del preasiento '{preasiento.Referencia}' para poder cancelarlo");
 
-                    if (!preasiento.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePreasiento> { enumEtapasDePreasiento.SPR_Etapa_Pendiente }))
-                        GestorDeErrores.Emitir($"No se puede regenerar el  preasiento '{preasiento.Referencia}' por no estar en la etapa correcta");
+                    //preasiento.ValidarQueEstaPendiente(Contexto, "regenerar");
 
-                    var referenciado = preasiento.Referenciado(Contexto);
-                    if (referenciado.IdPreasiento is not null)
-                    {
-                        if (referenciado.IdPreasiento == preasiento.Id)
-                        {
-                            IGeneradorDePreasiento gestor = null;
-                            switch (preasiento.NegocioReferenciado)
-                            {
-                                case enumNegocio.FacturaEmitida:
-                                    gestor = GestorDeFacturasEmt.Gestor(Contexto, Mapeador);
-                                    break;
-                                case enumNegocio.FacturaRecibida:
-                                    gestor = GestorDeFacturasRec.Gestor(Contexto, Mapeador);
-                                    break;
-                                case enumNegocio.Pago:
-                                    gestor = GestorDePagos.Gestor(Contexto, Mapeador);
-                                    break;
-                                case enumNegocio.Cobro:
-                                    gestor = GestorDeCobrosDeFae.Gestor(Contexto, Mapeador);
-                                    break;
-                                case enumNegocio.Almacen:
-                                    gestor = GestorDeMovimientosDeAlmacen.Gestor(Contexto, Mapeador);
-                                    break;
-                                default:
-                                    GestorDeErrores.Emitir($"No se puede cancelar el preasiento por estar referenciado por '{preasiento.NegocioReferenciado}: {preasiento.Referenciado(Contexto).Referencia}', regenérelo");
-                                    break;
-                            }
-                            gestor.GenerarPreasiento(new List<int> { preasiento.Referenciado(Contexto).Id });
-                        }
-                        else
-                            preasiento.CancelarPreasiento(Contexto, permitirCancelarUnContabilizado: true);
-                    }
-                }
-                Contexto.Commit(trans);
-            }
-            catch
-            {
-                Contexto.Rollback(trans);
-                throw;
-            }
-        }
+                    //var referenciado = preasiento.Referenciado(Contexto);
+                    //if (referenciado.IdPreasiento is not null)
+                    //{
+                        //if (referenciado.IdPreasiento == preasiento.Id)
+                        //{
+                            //IGeneradorDePreasiento gestor = null;
+                            //switch (preasiento.NegocioReferenciado)
+                            //{
+                                //case enumNegocio.FacturaEmitida:
+                                    //gestor = GestorDeFacturasEmt.Gestor(Contexto, Mapeador);
+                                    //break;
+                                //case enumNegocio.FacturaRecibida:
+                                    //gestor = GestorDeFacturasRec.Gestor(Contexto, Mapeador);
+                                    //break;
+                                //case enumNegocio.Pago:
+                                    //gestor = GestorDePagos.Gestor(Contexto, Mapeador);
+                                    //break;
+                                //case enumNegocio.Cobro:
+                                    //gestor = GestorDeCobrosDeFae.Gestor(Contexto, Mapeador);
+                                    //break;
+                                //case enumNegocio.Almacen:
+                                    //gestor = GestorDeMovimientosDeAlmacen.Gestor(Contexto, Mapeador);
+                                    //break;
+                                //default:
+                                    //GestorDeErrores.Emitir($"No se puede cancelar el preasiento por estar referenciado por '{preasiento.NegocioReferenciado}: {preasiento.Referenciado(Contexto).Referencia}', regenérelo");
+                                    //break;
+                            //}
+                            //gestor.GenerarPreasiento(new List<int> { preasiento.Referenciado(Contexto).Id });
+                        //}
+                        //else
+                            //preasiento.CancelarPreasiento(Contexto);
+                    //}
+                //}
+                //Contexto.Commit(trans);
+            //}
+            //catch
+            //{
+                //Contexto.Rollback(trans);
+                //throw;
+            //}
+        //}
 
         public async Task<TotalesPorCuenta> ObtenerTotalesAsync(List<ClausulaDeFiltrado> filtros, int posicion, int cantidad)
         {

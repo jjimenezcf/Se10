@@ -218,18 +218,19 @@ namespace MVCSistemaDeElementos.Controllers
                     return null;
                 case eventosDeMf.Totalizador_Mostrar:
                     return null;
-                case eventosDeMf.Fae_GenerarPreasiento:
-                    try
-                    {
-                        ((GestorDeFacturasEmt)_GestorDeElementos).GenerarPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
-                    }
-                    catch (Exception exc)
-                    {
-                        if (exc.Data != null && exc.Data.Contains(Datos.CodigoError) && (enumCodigoDeError)exc.Data[Datos.CodigoError] == enumCodigoDeError.MensajeInformativo)
-                            return new Resultado { Estado = enumEstadoPeticion.Ok, Mensaje = exc.Message };
-                        throw;
-                    }
-                    return null;
+                // ya no se generan los preasientos a mano (ver DescriptorDeFacturasEmt)
+                //case eventosDeMf.Fae_GenerarPreasiento:
+                //    try
+                //    {
+                //        ((GestorDeFacturasEmt)_GestorDeElementos).GenerarPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
+                //    }
+                //    catch (Exception exc)
+                //    {
+                //        if (exc.Data != null && exc.Data.Contains(Datos.CodigoError) && (enumCodigoDeError)exc.Data[Datos.CodigoError] == enumCodigoDeError.MensajeInformativo)
+                //            return new Resultado { Estado = enumEstadoPeticion.Ok, Mensaje = exc.Message };
+                //        throw;
+                //    }
+                //    return null;
                 case eventosDeMf.Fae_GenerarUbl:
                     Resultado resultado = GenerarUbl(parametros);
                     return resultado;

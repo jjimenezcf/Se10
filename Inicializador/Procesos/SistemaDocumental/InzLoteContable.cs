@@ -77,13 +77,13 @@ namespace Inicializador.SistemaDocumental
             contexto.IniciarTraza("Transiciones de circuitos documentales");
             try
             {
-                //Abierto --> cerrado, cancelado
+                // Abierto --> cerrado: el usuario indica que ha traspasado los ficheros generados a la contabilidad
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.CircuitoDoc, n_tran_lpr_contabilizar, n_estado_lpr_pendiente, n_estado_lpr_contabilizado);
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.CircuitoDoc, n_tran_lpr_no_contabilizar, n_estado_lpr_pendiente, n_estado_lpr_no_contabilizado, asunto: "Motivo de no contabilización");
 
-
-                //Cerrado --> abiero
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.CircuitoDoc, n_tran_lpr_descontabilizar, n_estado_lpr_contabilizado, n_estado_lpr_no_contabilizado, asunto: "Motivo de descontabilización");
+                // Abierto o cerrado --> cancelado: sólo el sistema, al anular el lote o eliminar su cierre (trabajos AnularLoteContable y
+                // EliminarCierreContable), que devuelve sus preasientos a pendiente (ver ExtensoresDeCircuitosDoc.TrasCancelarCad)
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.CircuitoDoc, n_tran_lpr_no_contabilizar, n_estado_lpr_pendiente, n_estado_lpr_no_contabilizado, delSistema: true);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.CircuitoDoc, n_tran_lpr_descontabilizar, n_estado_lpr_contabilizado, n_estado_lpr_no_contabilizado, delSistema: true);
             }
             finally
 

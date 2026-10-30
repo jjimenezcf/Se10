@@ -101,12 +101,15 @@ namespace MVCSistemaDeElementos.Controllers
                     return null;
                 case eventosDeMf.Totalizador_Mostrar:
                     return null;
-                case eventosDeMf.Spr_CrearLoteConUnPreasiento:
-                    ((GestorDePreasientos)_GestorDeElementos).CrearLoteConUnPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
-                    return null;
-                case eventosDeMf.Spr_RegenerarPreasiento:
-                    ((GestorDePreasientos)_GestorDeElementos).RegenerarPreasientos((List<int>)parametros[ltrParametrosEp.ids]);
-                    return null;
+                // ya no es necesario por haber activado el sistema de cierres contables: los lotes sólo se crean al crear un cierre y
+                // los preasientos sólo se descontabilizan al eliminarlo
+                //case eventosDeMf.Spr_CrearLoteConUnPreasiento:
+                //    ((GestorDePreasientos)_GestorDeElementos).CrearLoteConUnPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
+                //    return null;
+                // ya no se regeneran los preasientos desde su negocio (ver DescriptorDePreasientos)
+                //case eventosDeMf.Spr_RegenerarPreasiento:
+                //    ((GestorDePreasientos)_GestorDeElementos).RegenerarPreasientos((List<int>)parametros[ltrParametrosEp.ids]);
+                //    return null;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -184,34 +187,36 @@ namespace MVCSistemaDeElementos.Controllers
             }
             return new JsonResult(r);
         }
-        public JsonResult epCrearLoteContable(string parametrosJson)
-        {
-            var r = new Resultado();
-
-            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
-            try
-            {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-
-                var idSociedad = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.IdSociedad));
-                var ejercicio = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.Ejercicio));
-                var fechaContable = parametros.LeerValor<DateTime?>(nameof(CrearLoteContableDto.FechaContable), null);
-                var descontabilizar = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.Descontabilizar), false);
-                var respetarFechaContable = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.RespetarFechaContable), true);
-                var filtros = parametros.LeerValor<string>(ltrFiltros.filtro);
-
-                TrabajosContables.SometerCrearLoteContable(Contexto, idSociedad, ejercicio, descontabilizar, respetarFechaContable, fechaContable, filtros);
-
-                r.Mensaje = $"Trabajo de creación de lote contable sometido correctamente";
-                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
-                r.Estado = enumEstadoPeticion.Ok;
-            }
-            catch (Exception e)
-            {
-                ApiController.PrepararError(e, r, "No ha podido someter la creación del lote contable.");
-            }
-            return new JsonResult(r);
-        }
+        // ya no es necesario por haber activado el sistema de cierres contables: el lote contable se crea al crear el cierre
+        // (ver CierresContablesController.epCrearCierre)
+        //public JsonResult epCrearLoteContable(string parametrosJson)
+        //{
+        //    var r = new Resultado();
+        //
+        //    Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+        //    try
+        //    {
+        //        ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+        //
+        //        var idSociedad = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.IdSociedad));
+        //        var ejercicio = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.Ejercicio));
+        //        var fechaContable = parametros.LeerValor<DateTime?>(nameof(CrearLoteContableDto.FechaContable), null);
+        //        var descontabilizar = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.Descontabilizar), false);
+        //        var respetarFechaContable = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.RespetarFechaContable), true);
+        //        var filtros = parametros.LeerValor<string>(ltrFiltros.filtro);
+        //
+        //        TrabajosContables.SometerCrearLoteContable(Contexto, idSociedad, ejercicio, descontabilizar, respetarFechaContable, fechaContable, filtros);
+        //
+        //        r.Mensaje = $"Trabajo de creación de lote contable sometido correctamente";
+        //        r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+        //        r.Estado = enumEstadoPeticion.Ok;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ApiController.PrepararError(e, r, "No ha podido someter la creación del lote contable.");
+        //    }
+        //    return new JsonResult(r);
+        //}
 
 
         [HttpPost]

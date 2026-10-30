@@ -1427,7 +1427,7 @@ namespace GestoresDeNegocio.Ventas
                             //cobro.ModificarComoAdministrador(Contexto, accionQueSeEjecuta: nameof(GenerarPreasiento));
                         }
                         if (preasientoAnterior is not null)
-                            factura.CrearTraza(Contexto, "Preasiento regenerado", $"El preasiento '{preasientoAnterior.Referencia}' se ha desasociado de la factura{(preasientoAnterior.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado) ? ", recuerde anular el asiento contable asociado" : "")}");
+                            factura.CrearTraza(Contexto, "Preasiento regenerado", $"El preasiento '{preasientoAnterior.Referencia}' se ha desasociado de la factura");
                     }
                 }
                 Contexto.Commit(trans);

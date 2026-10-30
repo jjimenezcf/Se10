@@ -119,8 +119,9 @@
 
         public IncluirParametrosParaProcesarOpcionMf(opcion, esContextual: boolean, parametros: Parametro[], datosDeEntrada: Array<Parametro>): void {
             super.IncluirParametrosParaProcesarOpcionMf(opcion, esContextual, parametros, datosDeEntrada);
-            if (opcion === ltrMenus.eventosDeMf.Gasto.FacturasRec.CancelarPreasientos)
-                parametros.push(new Parametro(Ajax.Param.ids, this.InfoSelector.IdsSeleccionados));
+            // ya no se cancelan los preasientos a mano (ver DescriptorDeFacturasRec)
+            //if (opcion === ltrMenus.eventosDeMf.Gasto.FacturasRec.CancelarPreasientos)
+            //    parametros.push(new Parametro(Ajax.Param.ids, this.InfoSelector.IdsSeleccionados));
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
@@ -148,10 +149,10 @@
                 return true;
             }
 
-            if (opcion === ltrMenus.eventosDeMf.Gasto.FacturasRec.CancelarPreasientos) {
-                MensajesSe.Info(peticion.resultado.consola);
-                return true;
-            }
+            //if (opcion === ltrMenus.eventosDeMf.Gasto.FacturasRec.CancelarPreasientos) {
+            //    MensajesSe.Info(peticion.resultado.consola);
+            //    return true;
+            //}
 
 
             return Gasto.NavegarARelacionesDeFar(opcion, datosDeEntrada, ltrParametrosUrl.Gasto.IdFactura);

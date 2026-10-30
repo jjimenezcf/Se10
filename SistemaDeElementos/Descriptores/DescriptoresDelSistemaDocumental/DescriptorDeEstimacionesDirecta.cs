@@ -36,7 +36,7 @@ namespace MVCSistemaDeElementos.Descriptores
             Editor.Etiqueta = "Consultar estimación";
 
 
-            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CrearLoteContableDto), eventosDeMf.Spr_CrearLote, "Crear estimación directa"));
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(EstimacionDirectaDto), eventosDeMf.Spr_CrearLote, "Crear estimación directa"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Spr_CrearLote}' accion-menu='{eventosDeMf.Spr_CrearLote}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>Generar estimación directa</li>");
             Editor.IncluirMfIndividual("Anular estimación.", eventosDeMf.Spr_AnularEstimacionDirecta, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
            

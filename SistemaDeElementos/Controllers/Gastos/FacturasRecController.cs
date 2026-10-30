@@ -114,15 +114,16 @@ namespace MVCSistemaDeElementos.Controllers
                 case eventosDeMf.Far_QuitarExpediente:
                     ((GestorDeFacturasRec)_GestorDeElementos).QuitarExpediente((List<int>)parametros[ltrParametrosEp.ids]);
                     return null;
-                case eventosDeMf.Far_GenerarPreasiento:
-                    ((GestorDeFacturasRec)_GestorDeElementos).GenerarPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
-                    return null;
-                case eventosDeMf.Far_CancelarPreasientos:
-                    var ids = parametros.LeerValor<List<int>>(ltrParametrosEp.ids);
-                    var cancelados = ((GestorDeFacturasRec)_GestorDeElementos).CancelarPreasientos(ids);
-                    var r = new Resultado();
-                    r.Mensaje = $"Se han cancelado '{cancelados}' preasientos";
-                    return r;
+                // ya no se generan ni cancelan los preasientos a mano (ver DescriptorDeFacturasRec)
+                //case eventosDeMf.Far_GenerarPreasiento:
+                //    ((GestorDeFacturasRec)_GestorDeElementos).GenerarPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
+                //    return null;
+                //case eventosDeMf.Far_CancelarPreasientos:
+                //    var ids = parametros.LeerValor<List<int>>(ltrParametrosEp.ids);
+                //    var cancelados = ((GestorDeFacturasRec)_GestorDeElementos).CancelarPreasientos(ids);
+                //    var r = new Resultado();
+                //    r.Mensaje = $"Se han cancelado '{cancelados}' preasientos";
+                //    return r;
                 case eventosDeMf.Far_ModalDeImprimir:
                     ImprimirFactura((List<int>)parametros[ltrParametrosEp.ids]);
                     return new ServicioDePlantillas(Contexto, enumNegocio.FacturaRecibida).Plantillas();

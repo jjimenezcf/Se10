@@ -43,13 +43,14 @@ namespace MVCSistemaDeElementos.Descriptores
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Totalizador_Mostrar}' accion-menu='{eventosDeMf.Totalizador_Mostrar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Mostrar totales</li>");
 
 
-            var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
-
-            if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
-            {
-                Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Pag_CancelarPreasientos}' accion-menu='{eventosDeMf.Far_CancelarPreasientos}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Administrador, false)}>Cancelar preasientos</li>");
-                Editor.IncluirMfIndividual("Generar preasiento", eventosDeMf.Pag_GenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
-            }
+            // ya no se generan ni cancelan los preasientos a mano: se hace por el camino normal del pago (retrocederlo y volverlo a crear)
+            //var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
+            //
+            //if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
+            //{
+            //    Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Pag_CancelarPreasientos}' accion-menu='{eventosDeMf.Far_CancelarPreasientos}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Administrador, false)}>Cancelar preasientos</li>");
+            //    Editor.IncluirMfIndividual("Generar preasiento", eventosDeMf.Pag_GenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+            //}
 
             Mnt.OrdenacionInicial = $"{nameof(PagoDto.Referencia)}:{nameof(PagoDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
         }

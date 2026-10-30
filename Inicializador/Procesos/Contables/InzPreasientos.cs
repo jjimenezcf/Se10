@@ -86,11 +86,17 @@ namespace Inicializador.Contabilidad
             contexto.IniciarTraza("Transiciones de preasientos");
             try
             {
+                // Todas son del sistema: el preasiento lo genera, cancela o contabiliza el negocio que lo origina o el lote contable
+                // pendiente --> contabilizado: al generar el lote contable
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Preasiento, n_tran_spr_contabilizar, n_estado_spr_pendiente, n_estado_spr_contabilizado, delSistema: true);
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Preasiento, n_tran_spr_no_contabilizar, n_estado_spr_pendiente, n_estado_spr_cancelado, asunto: "Motivo de no contabilización",  delSistema: false);
+                // contabilizado --> pendiente: al anular el lote contable (o eliminar su cierre)
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Preasiento, n_tran_spr_descontabilizar, n_estado_spr_contabilizado, n_estado_spr_pendiente, delSistema: true);
+                // pendiente --> cancelado: al retroceder el negocio que lo generó, sólo si su fecha no es anterior al último cierre
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Preasiento, n_tran_spr_cancelar, n_estado_spr_pendiente, n_estado_spr_cancelado, delSistema: true);
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Preasiento, n_tran_spr_anular, n_estado_spr_contabilizado, n_estado_spr_anulado, delSistema: true);
+
+                // En desuso, se desactivan en las BD que ya las tienen: el usuario no cancela un preasiento a mano y uno contabilizado ya no se anula
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Preasiento, n_tran_spr_no_contabilizar, n_estado_spr_pendiente, n_estado_spr_cancelado, asunto: "Motivo de no contabilización", delSistema: false, activo: false);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Preasiento, n_tran_spr_anular, n_estado_spr_contabilizado, n_estado_spr_anulado, delSistema: true, activo: false);
             }
             finally
             {

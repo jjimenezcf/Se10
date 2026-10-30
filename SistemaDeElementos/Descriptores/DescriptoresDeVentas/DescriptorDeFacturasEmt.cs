@@ -78,9 +78,10 @@ namespace MVCSistemaDeElementos.Descriptores
             modalesParaPedirDatos.Add(new ModalDeTotales(this, typeof(TotalesDeFacturasEmt), eventosDeMf.Totalizador_Mostrar, $"Mostrar los totales de la selección"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Totalizador_Mostrar}' accion-menu='{eventosDeMf.Totalizador_Mostrar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Mostrar totales</li>");
 
-            var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
-            if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
-                Editor.IncluirMfIndividual("Generar preasiento", eventosDeMf.Fae_GenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+            // ya no se generan los preasientos a mano: se hace por el camino normal de la factura (la estimación directa la genera su circuito documental)
+            //var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
+            //if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
+            //    Editor.IncluirMfIndividual("Generar preasiento", eventosDeMf.Fae_GenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
 
             Editor.IncluirMfIndividual("Generar Ubl", eventosDeMf.Fae_GenerarUbl, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
 

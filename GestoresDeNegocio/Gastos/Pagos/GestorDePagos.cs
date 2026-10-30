@@ -797,7 +797,7 @@ namespace GestoresDeNegocio.Gastos
                     pago.ModificarComoAdministrador(Contexto, accionQueSeEjecuta: ltrDeUnPago.Accion_GenerarPreasiento);
 
                     if (preasientoAnterior is not null && !cancelado)
-                        pago.CrearTraza(Contexto, "Preasiento regenerado", $"El preasiento '{preasientoAnterior.Referencia}' se ha desasociado {preasientoAnterior.NegocioReferenciado.ConArticulo()}{(preasientoAnterior.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado) ? ", recuerde anular el asiento contable asociado" : "")}");
+                        pago.CrearTraza(Contexto, "Preasiento regenerado", $"El preasiento '{preasientoAnterior.Referencia}' se ha desasociado {preasientoAnterior.NegocioReferenciado.ConArticulo()}");
 
                 }
                 Contexto.Commit(trans);

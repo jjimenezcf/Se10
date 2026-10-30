@@ -34,12 +34,14 @@ namespace MVCSistemaDeElementos.Descriptores
             //modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CrearLoteContableDto), eventosDeMf.Spr_CrearLote, ltrDeUnPreasiento.Menu_CrearLoteContable));
             //Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Spr_CrearLote}' accion-menu='{eventosDeMf.Spr_CrearLote}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Gestor, false)}>{ltrDeUnPreasiento.Menu_CrearLoteContable}</li>");
 
-            var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
-            if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
-            {
-                Editor.IncluirMfIndividual(ltrDeUnPreasiento.Menu_RegenerarPreasiento, eventosDeMf.Spr_RegenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
-                //Editor.IncluirMfIndividual(ltrDeUnPreasiento.Menu_CrearLoteContable, eventosDeMf.Spr_CrearLoteConUnPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
-            }
+            // Un preasiento no se regenera: se regenera por el camino normal del negocio que lo generó (p.e. retrocediendo el pago o el cobro
+            // y volviéndolo a realizar), y sólo si está pendiente (ver ExtensorDePreasientos.CancelarPreasiento)
+            //var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
+            //if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
+            //{
+            //    Editor.IncluirMfIndividual(ltrDeUnPreasiento.Menu_RegenerarPreasiento, eventosDeMf.Spr_RegenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+            //    //Editor.IncluirMfIndividual(ltrDeUnPreasiento.Menu_CrearLoteContable, eventosDeMf.Spr_CrearLoteConUnPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+            //}
             var modal = new ModalDeFiltrado<PreasientoDto>(Mnt.Filtro, "filtrosDelSpr", "Datos de preasientos");
             Mnt.Filtro.Modales.Add(modal);
             modal.ControlesDeFiltrado.Add(new DescriptorFltDePreasientos(modal));

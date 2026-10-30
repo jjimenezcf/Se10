@@ -52,10 +52,11 @@
                 return true;
             }
 
-            if (opcion === ltrMenus.eventosDeMf.Gasto.Pagos.CancelarPreasientos) {
-                MensajesSe.Info(peticion.resultado.consola);
-                return true;
-            }
+            // ya no se cancelan los preasientos a mano (ver DescriptorDePagos)
+            //if (opcion === ltrMenus.eventosDeMf.Gasto.Pagos.CancelarPreasientos) {
+            //    MensajesSe.Info(peticion.resultado.consola);
+            //    return true;
+            //}
         }
 
     }

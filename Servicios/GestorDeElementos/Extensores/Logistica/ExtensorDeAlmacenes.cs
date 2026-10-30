@@ -71,7 +71,7 @@ namespace GestorDeElementos.Extensores
             if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado))
                 Emitir($"No se puede modificar el movimiento de almacén Nº '{movimiento.Id}' ya que el preasiento '{preasiento.Referencia}' asociado está contabilizado");
 
-            preasiento.CancelarPreasiento(contexto, permitirCancelarUnContabilizado: false);
+            preasiento.CancelarPreasiento(contexto);
             movimiento.IdPreasiento = null;
             movimiento.Preasiento = null;
         }
@@ -84,7 +84,7 @@ namespace GestorDeElementos.Extensores
         }
 
         // Antes de borrar la entrada de compra de una recepción cancelada: su preasiento, si lo tiene, ha de estar pendiente y se cancela;
-        // si está contabilizado está en un lote contable y no se puede cancelar
+        // si está contabilizado está en un lote contable y no se puede cancelar (ver ExtensorDePreasientos.CancelarPreasiento)
         public static void CancelarPreasientoDeRecepcion(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             if (movimiento.IdLineaDeRecepcion is null)
@@ -93,11 +93,7 @@ namespace GestorDeElementos.Extensores
             if (movimiento.IdPreasiento is null)
                 return;
 
-            var contabilizado = movimiento.PreasientoContabilizado(contexto);
-            if (contabilizado is not null)
-                Emitir($"No se puede anular la entrada de compra '{movimiento.Referencia(contexto)}' ya que su preasiento '{contabilizado.Referencia}' está contabilizado");
-
-            movimiento.CancelarPreasiento(contexto, permitirCancelarUnContabilizado: false);
+            movimiento.CancelarPreasiento(contexto);
         }
 
         // La referencia no se guarda (se ignora en el modelo), se calcula como la de los cobros (ver ExtensorDeCobrosDeFae.CalcularReferencia):

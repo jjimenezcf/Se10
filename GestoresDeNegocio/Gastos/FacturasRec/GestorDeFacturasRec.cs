@@ -979,7 +979,7 @@ namespace GestoresDeNegocio.Gastos
                         factura.ModificarComoAdministrador(Contexto, accionQueSeEjecuta: ltrDeUnaFacturaRec.Accion_GenerarPreasiento);
 
                         if (preasientoAnterior is not null && !cancelado)
-                            factura.CrearTraza(Contexto, "Preasiento regenerado", $"El preasiento '{preasientoAnterior.Referencia}' se ha desasociado de la factura{(preasientoAnterior.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado) ? ", recuerde anular el asiento contable asociado" : "")}");
+                            factura.CrearTraza(Contexto, "Preasiento regenerado", $"El preasiento '{preasientoAnterior.Referencia}' se ha desasociado de la factura");
 
                     }
                 }

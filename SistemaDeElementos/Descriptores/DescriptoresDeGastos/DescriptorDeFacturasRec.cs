@@ -71,12 +71,13 @@ namespace MVCSistemaDeElementos.Descriptores
             Editor.IncluirMfIndividual("Quitar expediente", eventosDeMf.Far_QuitarExpediente, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Quitar contrato", eventosDeMf.Far_QuitarContrato, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
 
-            var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
-            if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
-            {
-                Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Far_CancelarPreasientos}' accion-menu='{eventosDeMf.Far_CancelarPreasientos}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Administrador, false)}>Cancelar preasientos</li>");
-                Editor.IncluirMfIndividual("Generar preasiento", eventosDeMf.Far_GenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
-            }
+            // ya no se generan ni cancelan los preasientos a mano: se hace por el camino normal de la factura (retrocederla y volverla a tramitar)
+            //var idsDeUsuarios = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Usuarios_Con_Permiso_Para_Generar, valorPorDefecto: Literal.Cero).Valor.ToLista<int>();
+            //if (idsDeUsuarios.Contains(contexto.DatosDeConexion.IdUsuario))
+            //{
+            //    Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Far_CancelarPreasientos}' accion-menu='{eventosDeMf.Far_CancelarPreasientos}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Administrador, false)}>Cancelar preasientos</li>");
+            //    Editor.IncluirMfIndividual("Generar preasiento", eventosDeMf.Far_GenerarPreasiento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Administrador);
+            //}
 
             foreach (enumEtapasDeFacturasRec etapa in Enum.GetValues(typeof(enumEtapasDeFacturasRec)))
             {

@@ -258,7 +258,48 @@ namespace MVCSistemaDeElementos.Controllers
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
 
-        public JsonResult epCrearLoteContable(string parametrosJson)
+        // ya no es necesario por haber activado el sistema de cierres contables: el lote contable se crea al crear el cierre
+        // (ver CierresContablesController.epCrearCierre); la estimación directa tiene su propio endpoint (epCrearEstimacionDirecta)
+        //public JsonResult epCrearLoteContable(string parametrosJson)
+        //{
+            //var r = new Resultado();
+        //
+            //Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+            //try
+            //{
+                //ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+        //
+                //var idSociedad = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.IdSociedad));
+                //var ejercicio = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.Ejercicio));
+                //var fechaContable = parametros.LeerValor<DateTime?>(nameof(CrearLoteContableDto.FechaContable), null);
+                //var filtros = parametros.LeerValor<string>(ltrFiltros.filtro);
+                //var clausulas = JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtros);
+                //var clausula = clausulas.FirstOrDefault(c => c.Clausula.ToLower() == ltrParametrosEp.idTipo.ToLower());
+                //if (clausula is null)
+                //{
+                    //GestorDeErrores.Emitir("No se ha indicado el tipo de circuito a crear");
+                //}
+                //if (ExtensoresDeCircuitosDoc.EsEstimacionDirecta(clausula.Valor.Entero()))
+                    //GestorDeErrores.Emitir("Para crear una estimación directa use la opción 'Generar estimación directa'");
+        //
+                //var descontabilizar = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.Descontabilizar));
+                //var respetarFechaContable = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.RespetarFechaContable));
+        //
+                //filtros = filtros.Replace(ltrParametrosEp.idTipo.ToLower(), ltrDeUnCircuito.IdTipoCircuito.ToLower());
+                //TrabajosContables.SometerCrearLoteContable(Contexto, idSociedad, ejercicio, descontabilizar, respetarFechaContable, fechaContable, filtros);
+        //
+                //r.Mensaje = $"Trabajo de creación de lote contable sometido correctamente";
+                //r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                //r.Estado = enumEstadoPeticion.Ok;
+            //}
+            //catch (Exception e)
+            //{
+                //ApiController.PrepararError(e, r, "No ha podido someter la creación del lote contable.");
+            //}
+            //return new JsonResult(r);
+        //}
+
+        public JsonResult epCrearEstimacionDirecta(string parametrosJson)
         {
             var r = new Resultado();
 
@@ -267,40 +308,25 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
 
-                var idSociedad = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.IdSociedad));
-                var ejercicio = (int)parametros.LeerValor<long>(nameof(CrearLoteContableDto.Ejercicio));
-                var fechaContable = parametros.LeerValor<DateTime?>(nameof(CrearLoteContableDto.FechaContable), null);
+                var idSociedad = (int)parametros.LeerValor<long>(nameof(EstimacionDirectaDto.IdSociedad));
+                var ejercicio = (int)parametros.LeerValor<long>(nameof(EstimacionDirectaDto.Ejercicio));
                 var filtros = parametros.LeerValor<string>(ltrFiltros.filtro);
                 var clausulas = JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtros);
                 var clausula = clausulas.FirstOrDefault(c => c.Clausula.ToLower() == ltrParametrosEp.idTipo.ToLower());
-                if (clausula is null)
-                {
-                    GestorDeErrores.Emitir("No se ha indicado el tipo de circuito a crear");
-                }
-                var descontabilizar = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.Descontabilizar));
-                var respetarFechaContable = parametros.LeerValor<bool>(nameof(CrearLoteContableDto.RespetarFechaContable)); 
-                if (ExtensoresDeCircuitosDoc.EsEstimacionDirecta(clausula.Valor.Entero()))
-                {
-                    if (descontabilizar)
-                        GestorDeErrores.Emitir("Ha solicitado crear una estimación directa y ha añadido información sobre descontabilizar, en una estimación esto no se puede indicar");
-                    if (respetarFechaContable)
-                        GestorDeErrores.Emitir("Ha solicitado crear una estimación directa y ha añadido información sobre respetar fecha contable, en una estimación esto no se puede indicar");
-                    if (fechaContable.HasValue)
-                        GestorDeErrores.Emitir("Ha solicitado crear una estimación directa y ha añadido información sobre la fecha contable, en una estimación esto no se puede indicar");
-                    respetarFechaContable = true;
-                    fechaContable = null;
-                }
+                if (clausula is null || !ExtensoresDeCircuitosDoc.EsEstimacionDirecta(clausula.Valor.Entero()))
+                    GestorDeErrores.Emitir("El tipo de circuito indicado no es el de estimación directa");
 
+                // la estimación incluye las facturas y pagos del ejercicio no estimados, con su fecha y sin descontabilizar
                 filtros = filtros.Replace(ltrParametrosEp.idTipo.ToLower(), ltrDeUnCircuito.IdTipoCircuito.ToLower());
-                TrabajosContables.SometerCrearLoteContable(Contexto, idSociedad, ejercicio, descontabilizar, respetarFechaContable, fechaContable, filtros);
+                TrabajosContables.SometerCrearLoteContable(Contexto, idSociedad, ejercicio, descontabilizar: false, respetarFechaContable: true, fechaContable: null, filtros);
 
-                r.Mensaje = $"Trabajo de creación de lote contable sometido correctamente";
+                r.Mensaje = $"Trabajo de creación de la estimación directa sometido correctamente";
                 r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
                 r.Estado = enumEstadoPeticion.Ok;
             }
             catch (Exception e)
             {
-                ApiController.PrepararError(e, r, "No ha podido someter la creación del lote contable.");
+                ApiController.PrepararError(e, r, "No ha podido someter la creación de la estimación directa.");
             }
             return new JsonResult(r);
         }

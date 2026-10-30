@@ -1725,6 +1725,9 @@ const Ajax = {
             },
         },
         SisDoc: {
+            EstimacionesDirectas: {
+                CrearEstimacionDirecta: 'epCrearEstimacionDirecta'
+            },
             Archivadores: {
                 ImportarZip: 'epImportarZip',
                 ProcesarFarConIa: 'epProcesarFarConIa',

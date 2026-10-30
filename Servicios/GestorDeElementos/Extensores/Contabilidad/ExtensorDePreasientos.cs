@@ -50,57 +50,73 @@ namespace GestorDeElementos.Extensores
             return elemento.Preasiento;
         }
 
-        public static void CancelarPreasiento(this IUsaPreasiento elemento, ContextoSe contexto, bool permitirCancelarUnContabilizado = true)
+        public static void CancelarPreasiento(this IUsaPreasiento elemento, ContextoSe contexto)
         {
             var preasiento = elemento.Preasiento(contexto, errorSiNoHay: false);
             if (preasiento == null)
                 return;
 
-            preasiento.CancelarPreasiento(contexto, permitirCancelarUnContabilizado);
+            preasiento.CancelarPreasiento(contexto);
             elemento.IdPreasiento = null;
             elemento.Preasiento = null;
 
         }
 
-        public static void CancelarPreasiento(this PreasientoDtm preasiento, ContextoSe contexto, bool permitirCancelarUnContabilizado)
+        // Sólo se cancela (de pendiente a cancelado) un preasiento pendiente, y si su fecha contable no es anterior al último cierre de su sociedad
+        // (ver GestorDePreasientos.AntesDeTransitar). Uno contabilizado está en un lote contable: para cancelarlo se ha de anular antes ese lote
+        // o eliminar su cierre, lo que lo devuelve a pendiente. Los ya cancelados o anulados (etapa en desuso) se dejan como están
+        public static void CancelarPreasiento(this PreasientoDtm preasiento, ContextoSe contexto)
         {
-            if (preasiento.Estado(contexto).Cancelado)
+            if (preasiento.Estado(contexto).Cancelado || preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Anulado))
                 return;
+
+            preasiento.ValidarQueEstaPendiente(contexto, "cancelar");
 
             // el referenciado de un almacén es un movimiento de almacén, que se borra al cancelar la entrega que lo originó
             var esDeUnAlmacen = preasiento.NegocioReferenciado == enumNegocio.Almacen;
 
+            var asunto = preasiento.NegocioReferenciado == enumNegocio.Cobro ? "Cancelado al eliminar el cobro"
+                       : esDeUnAlmacen ? "Cancelado al eliminar el movimiento de almacén"
+                       : "Cancelado al regenerar el preasiento";
+
+            var detalle = preasiento.NegocioReferenciado == enumNegocio.Cobro
+                ? $"Se ha eliminado el cobro asociado a la factura {((CobroDeFaeDtm)preasiento.Referenciado(contexto)).Factura(contexto).Referencia}"
+                : esDeUnAlmacen
+                ? $"Se ha cancelado la entrega que originó el movimiento de almacén Nº {preasiento.IdReferenciado} y éste se ha eliminado"
+                : "Se ha regenerado el preasiento desde la interface";
+
+            preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Cancelado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
+                        {
+                            {ltrParametrosEp.asunto, asunto },
+                            {ltrParametrosEp.detalleAsunto, detalle }
+                        });
+        }
+
+        // Un preasiento que no está pendiente no se puede cancelar ni regenerar; si está contabilizado se indica qué hacer para devolverlo a pendiente
+        public static void ValidarQueEstaPendiente(this PreasientoDtm preasiento, ContextoSe contexto, string accion)
+        {
             if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Pendiente))
-            {
-                var asunto = preasiento.NegocioReferenciado == enumNegocio.Cobro ? "Cancelado al eliminar el cobro"
-                           : esDeUnAlmacen ? "Cancelado al eliminar el movimiento de almacén"
-                           : "Cancelado al regenerar el preasiento";
+                return;
 
-                var detalle = preasiento.NegocioReferenciado == enumNegocio.Cobro
-                    ? $"Se ha eliminado el cobro asociado a la factura {((CobroDeFaeDtm)preasiento.Referenciado(contexto)).Factura(contexto).Referencia}"
-                    : esDeUnAlmacen
-                    ? $"Se ha cancelado la entrega que originó el movimiento de almacén Nº {preasiento.IdReferenciado} y éste se ha eliminado"
-                    : "Se ha regenerado el preasiento desde la interface";
+            if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado))
+                GestorDeErrores.Emitir($"No se puede {accion} el preasiento '{preasiento.Referencia}' de {preasiento.NegocioReferenciado.ConArticulo()} por estar " +
+                                       $"{enumEtapasDePreasiento.SPR_Etapa_Contabilizado.Nombre()}, {preasiento.ComoDevolverloAPendiente(contexto)}");
 
-                preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Cancelado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
-                            {
-                                {ltrParametrosEp.asunto, asunto },
-                                {ltrParametrosEp.detalleAsunto, detalle }
-                            });
-            }
-            else
-            {
-                if (!permitirCancelarUnContabilizado)
-                    GestorDeErrores.Emitir($"No se puede cancelar el preasiento '{preasiento.Referencia}' ya que está contabilizado");
+            GestorDeErrores.Emitir($"No se puede {accion} el preasiento '{preasiento.Referencia}' por no estar {enumEtapasDePreasiento.SPR_Etapa_Pendiente.Nombre()}");
+        }
 
-                preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Anulado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
-                   {
-                       {ltrParametrosEp.asunto, esDeUnAlmacen ? "Anulado al eliminar el movimiento de almacén" : "Anulado al regenerar el preasiento" },
-                       {ltrParametrosEp.detalleAsunto, esDeUnAlmacen
-                            ? $"Se ha cancelado la entrega que originó el movimiento de almacén Nº {preasiento.IdReferenciado} y éste se ha eliminado, recuerde cancelar su contabilización"
-                            : "Se ha anulado el preasiento desde la interface, recuerde cancelar su contabilización" }
-                   });
-            }
+        // Un preasiento contabilizado vuelve a pendiente al anular el lote contable en el que está; si el lote es el de un cierre, eliminando
+        // ese cierre (sólo se puede eliminar el último de la sociedad, así que antes se han de eliminar los posteriores)
+        private static string ComoDevolverloAPendiente(this PreasientoDtm preasiento, ContextoSe contexto)
+        {
+            var lote = GestorDeVinculos.RegistrosVinculados<CircuitoDocDtm>(contexto, enumNegocio.Preasiento, preasiento.Id).FirstOrDefault();
+            if (lote is null)
+                return "no está en ningún lote contable";
+
+            var cierre = contexto.Set<CierreContableDtm>().FirstOrDefault(c => c.IdLote == lote.Id);
+            return cierre is null
+                ? $"anule antes el lote contable '{lote.Referencia}'"
+                : $"elimine antes el cierre contable del '{cierre.CerradaEl:dd/MM/yyyy}' (lote '{lote.Referencia}') y, si los hay, los posteriores de su sociedad";
         }
 
 
@@ -134,15 +150,15 @@ namespace GestorDeElementos.Extensores
         {
             if (elemento.Preasiento(contexto, errorSiNoHay: false) is not null)
             {
-                var estado = elemento.Preasiento(contexto).Estado(contexto);
-                if (estado.Terminado)
+                var preasiento = elemento.Preasiento(contexto);
+                if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado))
                 {
-                    GestorDeErrores.Emitir($"No se puede devolver {elemento.Preasiento(contexto).NegocioReferenciado.ConArticulo()} ya que el preasiento '{elemento.Preasiento(contexto).Referencia}' asociado está en un lote contable");
+                    GestorDeErrores.Emitir($"No se puede devolver {preasiento.NegocioReferenciado.ConArticulo()} '{elemento.Referencia}' ya que el preasiento '{preasiento.Referencia}' asociado está " +
+                                           $"{enumEtapasDePreasiento.SPR_Etapa_Contabilizado.Nombre()}, {preasiento.ComoDevolverloAPendiente(contexto)}");
                 }
                 else
                 {
-                    var preasiento = elemento.Preasiento(contexto);
-                    if (!preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Cancelado))
+                    if (!preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Cancelado) && !preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Anulado))
                     {
                         preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Cancelado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
                            {

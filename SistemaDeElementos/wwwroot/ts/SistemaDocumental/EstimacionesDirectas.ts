@@ -81,10 +81,6 @@
             if (modal.id === this.ModalContabilizar.id) {
                 var ejercicioCrtl = ApiControl.BuscarEditor(this.ModalContabilizar, ltrPropiedades.Contabilidad.CrearLote.Ejercicio);
                 ejercicioCrtl.value = new Date().getFullYear().toString();
-                ApiControl.IncluirCss(ApiControl.BuscarCelda(ApiControl.BuscarCheck(this.ModalContabilizar, ltrPropiedades.Contabilidad.CrearLote.RespetarFechaContable)), ltrCss.celdaNoVisible);
-                ApiControl.IncluirCss(ApiControl.BuscarCelda(ApiControl.BuscarCheck(this.ModalContabilizar, ltrPropiedades.Contabilidad.CrearLote.Descontabilizar)), ltrCss.celdaNoVisible);
-                const contenedor = ApiPanel.OcultarContenedorDto(this.ModalContabilizar, ltrPropiedades.Contabilidad.CrearLote.FechaContable, true);
-                contenedor.parentElement.style.gridTemplateColumns = "auto";
             }
         }
 
@@ -96,7 +92,7 @@
 
             if (modal.id === (Crud.crudMnt as CrudDeEstimacionesDirectas).ModalContabilizar.id) {
                 parametros.push(new Parametro(Ajax.Param.filtro, Crud.crudMnt.ObtenerFiltros(ltrOperacion.CargarDatos)));
-                ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Contabilidad.Preasientos.CrearLoteContable, parametros, datosDeEntrada)
+                ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.SisDoc.EstimacionesDirectas.CrearEstimacionDirecta, parametros, datosDeEntrada)
                     .then((peticion) => {
                         super.ModalDePedirDatos_Cerrar(modal);
                         MensajesSe.Info(peticion.resultado.mensaje);

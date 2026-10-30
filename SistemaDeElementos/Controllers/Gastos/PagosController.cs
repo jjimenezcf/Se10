@@ -120,15 +120,16 @@ namespace MVCSistemaDeElementos.Controllers
                 case eventosDeMf.Pag_ModalDeImprimir:
                     ImprimirPagos((List<int>)parametros[ltrParametrosEp.ids]);
                     return new ServicioDePlantillas(Contexto, enumNegocio.Pago).Plantillas();
-                case eventosDeMf.Pag_GenerarPreasiento:
-                    ((GestorDePagos)_GestorDeElementos).GenerarPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
-                    return null;
-                case eventosDeMf.Pag_CancelarPreasientos:
-                    var ids = parametros.LeerValor<List<int>>(ltrParametrosEp.ids);
-                    var cancelados = ((GestorDePagos)_GestorDeElementos).CancelarPreasientos(ids);
-                    var r = new Resultado();
-                    r.Mensaje = $"Se han cancelado '{cancelados}' preasientos";
-                    return r;
+                // ya no se generan ni cancelan los preasientos a mano (ver DescriptorDePagos)
+                //case eventosDeMf.Pag_GenerarPreasiento:
+                //    ((GestorDePagos)_GestorDeElementos).GenerarPreasiento((List<int>)parametros[ltrParametrosEp.ids]);
+                //    return null;
+                //case eventosDeMf.Pag_CancelarPreasientos:
+                //    var ids = parametros.LeerValor<List<int>>(ltrParametrosEp.ids);
+                //    var cancelados = ((GestorDePagos)_GestorDeElementos).CancelarPreasientos(ids);
+                //    var r = new Resultado();
+                //    r.Mensaje = $"Se han cancelado '{cancelados}' preasientos";
+                //    return r;
                 case eventosDeMf.Totalizador_Mostrar:
                     return null;
             }
