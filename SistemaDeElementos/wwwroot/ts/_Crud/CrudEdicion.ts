@@ -1221,6 +1221,13 @@
 
             this.PanelDeEditar.setAttribute(ltrEdicion.Editando, literal.menos1);
 
+            // pestaña abierta para editar un registro (?id= en la url, p.e. desde el navegador de una lista dinámica) y sin página a la que volver:
+            // en vez de ir al mantenimiento con sólo ese registro, se cierra la pestaña y el usuario vuelve a la que la abrió
+            if (Numero(ObtenerParametroUrl(ltrParametrosUrl.id, 0, false)) > 0 && window.history.length <= 1) {
+                window.close();
+                if (window.closed) return;
+            }
+
             if (this.CrudDeMnt.ParaqueNavegar === enumParaQueNavegar.crear || this.CrudDeMnt.ParaqueNavegar === enumParaQueNavegar.editar) {
 
                 var origen = this.CrudDeMnt.Estado.Obtener(ltrClaveDeEstado.paginaOrigen);
@@ -1234,7 +1241,7 @@
                     }
                 }
 
-                EntornoSe.NavegarAtras();
+                EntornoSe.CerrarPestanaONavegarAtras();
             }
             else {
                 this.CrudDeMnt.ModoTrabajo = enumModoTrabajo.mantenimiento;
