@@ -24,14 +24,9 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Valor", Ayuda = "valor del movimiento", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Moneda)]
         public decimal Valor { get; set; }
 
-        // Origen y destino navegan al documento (pedido, regularización...) que generó el movimiento; si es el almacén, el destino queda
-        // en blanco (ver GestorDeMovimientosDeAlmacen.DespuesDeMapearElElemento)
-        [IUPropiedad(Etiqueta = "Destino", Ayuda = "destino del movimiento", VisibleEnGrid = true, Obligatorio = false
-            , TipoDeControl = enumTipoControl.Referencia
-            , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlDocumento) + "(numeroDeFila)")]
-        public string Destino { get; set; }
-
-        [IUPropiedad(Etiqueta = "Origen", Ayuda = "origen del movimiento", VisibleEnGrid = true, Obligatorio = false
+        // Documento (pedido, regularización...) que generó el movimiento, entrada o salida; al pulsarlo se navega a su edición
+        // (ver GestorDeMovimientosDeAlmacen.DespuesDeMapearElElemento)
+        [IUPropiedad(Etiqueta = "Origen", Ayuda = "operación que generó el movimiento", VisibleEnGrid = true, Obligatorio = false
             , TipoDeControl = enumTipoControl.Referencia
             , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlDocumento) + "(numeroDeFila)")]
         public string Origen { get; set; }

@@ -64,6 +64,7 @@ namespace ServicioDeDatos.Logistica
         public static string EstoyBarriendo => nameof(EstoyBarriendo);
 
         public static string Accion_AnularEntradaDeCompra => nameof(Accion_AnularEntradaDeCompra);
+        public static string Accion_AnularDevolucionDeCompra => nameof(Accion_AnularDevolucionDeCompra);
 
     }
 
@@ -98,7 +99,9 @@ namespace ServicioDeDatos.Logistica
 
         public RecepcionDeLineaDtm LineaDeRecepcion { get; set; }
 
+        // devolución de compra: la salida de lo devuelto de una entrega (también lleva IdLineaDeRecepcion, la de la entrega devuelta)
         public int? IdLineaDevolucion { get; set; }
+        public DevolucionDeEntregaDtm LineaDeDevolucion { get; set; }
         public int? IdLineaInventario { get; set; }
 
         public int? IdPreasiento { get; set; }
@@ -145,7 +148,7 @@ namespace ServicioDeDatos.Logistica
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdMovimiento).HasColumnName(ICampos.ID_MOVIMIENTO).HasColumnType(IDominio.INT).IsRequired(false);
             // la entrada de compra apunta a la entrega de la línea del pedido que la origina (RecepcionDeLineaDtm)
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeRecepcion), nameof(MovimientoDeAlmacenDtm.IdLineaDeRecepcion), ICampos.ID_LINEA_RECEPCION, requerida: false, unico: false);
-            modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaDevolucion).HasColumnName(ICampos.ID_LINEA_DEVOLUCION).HasColumnType(IDominio.INT).IsRequired(false);
+            ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeDevolucion), nameof(MovimientoDeAlmacenDtm.IdLineaDevolucion), ICampos.ID_LINEA_DEVOLUCION, requerida: false, unico: false);
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaInventario).HasColumnName(ICampos.ID_LINEA_INVENTARIO).HasColumnType(IDominio.INT).IsRequired(false);
 
             ApiDeElementoDtm.DefinirCamposDeAuditoria<MovimientoDeAlmacenDtm>(modelBuilder);

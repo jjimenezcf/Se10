@@ -56,7 +56,7 @@ namespace MVCSistemaDeElementos.Controllers
             return gestor.LeerElementoPorId(id, parametros);
         }
 
-        // Entrega parcial de una línea (ver ExtensorDeRecepciones.RecepcionarLinea): aquí sólo se leen y validan los datos de la modal
+        // Entrega parcial de una línea (ver GestorDeEntregasDeUnPedido.RecepcionarLinea): aquí sólo se leen y validan los datos de la modal
         public JsonResult epRecibirLinea(string parametrosJson)
         {
             var r = new Resultado();
@@ -85,7 +85,7 @@ namespace MVCSistemaDeElementos.Controllers
                 if (recepcionadaEl == null)
                     GestorDeErrores.Emitir("Ha de indicar la fecha de recepción");
 
-                r.Consola = ExtensorDeRecepciones.RecepcionarLinea(Contexto, idLinea, rowVersion, recepcionadaEl.Value, cantidad.Value, precio.Value,
+                r.Consola = GestorDeEntregasDeUnPedido.RecepcionarLinea(Contexto, idLinea, rowVersion, recepcionadaEl.Value, cantidad.Value, precio.Value,
                     descuento == 0 ? null : descuento, idAlmacen == 0 ? null : idAlmacen, idExpediente == 0 ? null : idExpediente);
                 r.Estado = enumEstadoPeticion.Ok;
                 Contexto.Commit(tran);
@@ -94,36 +94,6 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 Contexto.Rollback(tran);
                 ApiController.PrepararError(e, r, "Error al recibir la línea del pedido.");
-            }
-            finally
-            {
-                Contexto.CerrarTraza();
-            }
-            return new JsonResult(r);
-        }
-
-        // Aspa: cancela la entrega de la línea o la marca como no entregada (ver ExtensorDeRecepciones.LineaNoEntregada)
-        public JsonResult epLineaNoEntregada(string parametrosJson)
-        {
-            var r = new Resultado();
-            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLineaNoEntregada));
-            var tran = Contexto.IniciarTransaccion();
-            try
-            {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
-                var parametros = parametrosJson.ToDiccionarioDeParametros();
-
-                var idLinea = LeerIdDeLaLinea(parametros);
-                var rowVersion = parametros.LeerValor<string>(nameof(LineaDeUnPedidoDtm.RowVersion), null);
-
-                r.Consola = ExtensorDeRecepciones.LineaNoEntregada(Contexto, idLinea, rowVersion);
-                r.Estado = enumEstadoPeticion.Ok;
-                Contexto.Commit(tran);
-            }
-            catch (Exception e)
-            {
-                Contexto.Rollback(tran);
-                ApiController.PrepararError(e, r, "Error al marcar la línea del pedido como no entregada.");
             }
             finally
             {

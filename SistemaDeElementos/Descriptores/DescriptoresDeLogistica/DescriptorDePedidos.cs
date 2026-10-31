@@ -44,17 +44,22 @@ namespace MVCSistemaDeElementos.Descriptores
             // "Dar por entregado": recepciona todas las líneas del pedido (ver CrudEdicionPedido.DespuesDeProcesarOpcionMf)
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(RecepcionarPedidoDto), eventosDeMf.Ped_RecepcionarPedido, "Dar por entregado"));
             Editor.IncluirMfIndividual("Dar por entregado", eventosDeMf.Ped_RecepcionarPedido, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
+            // se abre desde la acción Devolver de las líneas del pedido (ver Logistica.Pedido_DevolverEntrega)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(DevolucionDeEntregaDto), eventosDeMf.Ped_DevolverEntrega, "Devolver entrega"));
+            Editor.IncluirMfIndividual("Copiar pedido", eventosDeMf.Ped_CopiarPedido, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
             Editor.IncluirMfIndividual("Quitar expediente", eventosDeMf.Ped_QuitarExpediente, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
             Editor.IncluirMfIndividual("Quitar contrato", eventosDeMf.Ped_QuitarContrato, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Interventor);
 
             var ampliacion = DescriptorDeDireccion(Ampliaciones.Pedidos.DireccionAlCrear, "Dirección de entrega", typeof(CrearDireccionDeEntregaDto));
             ampliacion.Plegado = false;
             DescriptorDeLineasDeUnPedido();
+            DescriptorDeEntregasDeUnPedido();
+            DescriptorDeDevolucionesDeUnPedido();
         }
 
         private void DescriptorDeLineasDeUnPedido()
         {
-            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-lineasDeUnPedido", "Detalle", mostrarPlegado: true, "Líneas del pedido");
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-lineasDeUnPedido", "Líneas del pedido", mostrarPlegado: true, "Líneas del pedido");
             expansor.EsDetalle = true;
             Editor.Expanes.Insert(0, expansor);
 
@@ -67,18 +72,8 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo:"Tarifa", propiedad: nameof(LineaDeUnPedidoDto.Precio), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Descuento), formato: enumFormato.Porcentaje, tamano: 150);
             columnas.Add(titulo: "Importe", propiedad: nameof(LineaDeUnPedidoDto.ImporteDeLinea), formato: enumFormato.Moneda, tamano: 150);
-            // entrega de la línea: si tiene cantidad recibida está entregada (ver CrudEdicionPedido.AplicarEtapaAlGridDeLineas)
-            columnas.Add(titulo: "Recibido", propiedad: nameof(LineaDeUnPedidoDto.CantidadRecibida), formato: enumFormato.Numero_6, tamano: 150);
-            columnas.Add(titulo: "Precio rec.", propiedad: nameof(LineaDeUnPedidoDto.PrecioDeRecepcion), formato: enumFormato.Moneda, tamano: 150);
-            columnas.Add(titulo: "Dto. aplicado", propiedad: nameof(LineaDeUnPedidoDto.DescuentoAplicado), formato: enumFormato.Porcentaje, tamano: 150);
-            // fecha y destino de la entrega, para mostrarla en la modal de recepción
-            columnas.Add(titulo: "RecepcionadaEl", propiedad: nameof(LineaDeUnPedidoDto.RecepcionadaEl), formato: enumFormato.Fecha, mostrar: false);
-            columnas.Add(titulo: "IdAlmacenDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.IdAlmacenDeRecepcion), mostrar: false);
-            columnas.Add(titulo: "AlmacenDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.AlmacenDeRecepcion), mostrar: false);
-            columnas.Add(titulo: "IdExpedienteDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.IdExpedienteDeRecepcion), mostrar: false);
-            columnas.Add(titulo: "ExpedienteDeRecepcion", propiedad: nameof(LineaDeUnPedidoDto.ExpedienteDeRecepcion), mostrar: false);
-            // con el preasiento de la entrega contabilizado no se puede cancelar (ver CrudEdicionPedido.AplicarEtapaAlGridDeLineas)
-            columnas.Add(titulo: "EntregaContabilizada", propiedad: nameof(LineaDeUnPedidoDto.EntregaContabilizada), mostrar: false);
+            // lo que queda por entregar de la línea (ver CrudEdicionPedido.AplicarEtapaAlGridDeLineas); lo entregado y devuelto está en sus grids
+            columnas.Add(titulo: "CantidadPendiente", propiedad: nameof(LineaDeUnPedidoDto.CantidadPendiente), mostrar: false);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnPedidoDto.IdElemento), mostrar: false);
             columnas.Add(titulo: "Id", propiedad: nameof(LineaDeUnPedidoDto.Id), mostrar: false);
             // versión de la línea leída, para validarla en el servidor al recepcionarla (ver LineasDeUnPedidoController.epRecibirLinea)
@@ -100,13 +95,6 @@ namespace MVCSistemaDeElementos.Descriptores
             {
                 accion = Referencia.Pedido_Recepcionar(expansor),
                 titulo = "Recepcionar",
-                tamano = 100,
-                visible = true
-            });
-            gridDeRelacion.acciones.Add(new ColumnaAccion
-            {
-                accion = Referencia.Pedido_LineaNoEntregada(expansor),
-                titulo = "NoEntregada",
                 tamano = 100,
                 visible = true
             });
@@ -139,6 +127,91 @@ namespace MVCSistemaDeElementos.Descriptores
             FiltroPorExpediente(modalDeRelacion);
             FiltroPorContrato(modalDeRelacion);
             FiltroPorAlmacen(modalDeRelacion);
+        }
+
+        // Entregas de las líneas: se consultan (con la modal de recepción), se cancelan o se devuelven (ver CrudEdicionPedido.AplicarEtapaAlGridDeEntregas)
+        private void DescriptorDeEntregasDeUnPedido()
+        {
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-entregasDeUnPedido", "Entregas", mostrarPlegado: true, "Entregas del pedido");
+            expansor.EsDetalle = true;
+            Editor.Expanes.Insert(1, expansor);
+
+            var columnas = new DescriptorDeColumnas("entregasDeUnPedido");
+            columnas.Add(titulo: "Recibido el", propiedad: nameof(EntregaDeUnPedidoDto.RecepcionadaEl), formato: enumFormato.Fecha, tamano: 120);
+            columnas.Add(titulo: nameof(EntregaDeUnPedidoDto.Concepto));
+            columnas.Add(titulo: "Cantidad recibida", propiedad: nameof(EntregaDeUnPedidoDto.Cantidad), formato: enumFormato.Numero_6, tamano: 150);
+            columnas.Add(titulo: "Precio de recepción", propiedad: nameof(EntregaDeUnPedidoDto.Precio), formato: enumFormato.Moneda, tamano: 150);
+            columnas.Add(titulo: "Descuento aplicado", propiedad: nameof(EntregaDeUnPedidoDto.Descuento), formato: enumFormato.Porcentaje, tamano: 150);
+            columnas.Add(titulo: "Importe de recepción", propiedad: nameof(EntregaDeUnPedidoDto.Importe), formato: enumFormato.Moneda, tamano: 150);
+            // para consultar, cancelar o devolver la entrega
+            columnas.Add(titulo: "IdLinea", propiedad: nameof(EntregaDeUnPedidoDto.IdLinea), mostrar: false);
+            columnas.Add(titulo: "IdAlmacen", propiedad: nameof(EntregaDeUnPedidoDto.IdAlmacen), mostrar: false);
+            columnas.Add(titulo: "Almacen", propiedad: nameof(EntregaDeUnPedidoDto.Almacen), mostrar: false);
+            columnas.Add(titulo: "IdExpediente", propiedad: nameof(EntregaDeUnPedidoDto.IdExpediente), mostrar: false);
+            columnas.Add(titulo: "Expediente", propiedad: nameof(EntregaDeUnPedidoDto.Expediente), mostrar: false);
+            columnas.Add(titulo: "CantidadDevuelta", propiedad: nameof(EntregaDeUnPedidoDto.CantidadDevuelta), mostrar: false);
+            columnas.Add(titulo: "Contabilizada", propiedad: nameof(EntregaDeUnPedidoDto.Contabilizada), mostrar: false);
+            columnas.Add(titulo: "IdElemento", propiedad: nameof(EntregaDeUnPedidoDto.IdElemento), mostrar: false);
+            columnas.Add(titulo: "Id", propiedad: nameof(EntregaDeUnPedidoDto.Id), mostrar: false);
+            // versión de la entrega leída, para validarla en el servidor al cancelarla o devolverla
+            columnas.Add(titulo: "RowVersion", propiedad: nameof(EntregaDeUnPedidoDto.RowVersion), mostrar: false);
+
+            var parametros = new Dictionary<string, object> {
+                   { nameof(GridDeRelacion.Controlador), typeof(EntregasDeUnPedidoController) }
+                 , { nameof(GridDeRelacion.AccionDeConsulta), nameof(EntregasDeUnPedidoController.epLeerElementos)}
+                 , { nameof(GridDeRelacion.PropiedadRestrictora), nameof(EntregaDeUnPedidoDto.IdElemento) }
+                 , { nameof(GridDeRelacion.OrdenarPor), $"{nameof(EntregaDeUnPedidoDto.RecepcionadaEl)}:{enumModoOrdenacion.ascendente.Render()}" }
+                 , { nameof(GridDeRelacion.OcultarSiVacio), false}
+                };
+            var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
+            gridDeRelacion.PermitirBorrar = false;
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Pedido_ConsultarEntrega(expansor), titulo = "Consultar", tamano = 100, visible = true });
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Pedido_CancelarEntrega(expansor), titulo = "Cancelar", tamano = 100, visible = true });
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Pedido_DevolverEntrega(expansor), titulo = "Devolver", tamano = 100, visible = true });
+        }
+
+        // Devoluciones de las entregas: se consultan (con la modal de devolución) o se cancelan (ver CrudEdicionPedido.AplicarEtapaAlGridDeDevoluciones)
+        private void DescriptorDeDevolucionesDeUnPedido()
+        {
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-devolucionesDeUnPedido", "Devoluciones", mostrarPlegado: true, "Devoluciones del pedido");
+            expansor.EsDetalle = true;
+            Editor.Expanes.Insert(2, expansor);
+
+            var columnas = new DescriptorDeColumnas("devolucionesDeUnPedido");
+            columnas.Add(titulo: "Devuelto el", propiedad: nameof(DevolucionDeUnPedidoDto.DevueltaEl), formato: enumFormato.Fecha, tamano: 120);
+            columnas.Add(titulo: nameof(DevolucionDeUnPedidoDto.Concepto));
+            columnas.Add(titulo: "Cantidad devuelta", propiedad: nameof(DevolucionDeUnPedidoDto.Cantidad), formato: enumFormato.Numero_6, tamano: 150);
+            columnas.Add(titulo: "Precio de devolución", propiedad: nameof(DevolucionDeUnPedidoDto.Precio), formato: enumFormato.Moneda, tamano: 150);
+            columnas.Add(titulo: "Descuento aplicado", propiedad: nameof(DevolucionDeUnPedidoDto.Descuento), formato: enumFormato.Porcentaje, tamano: 150);
+            columnas.Add(titulo: "Importe de devolución", propiedad: nameof(DevolucionDeUnPedidoDto.Importe), formato: enumFormato.Moneda, tamano: 150);
+            // para consultar o cancelar la devolución
+            columnas.Add(titulo: "IdLineaDeRecepcion", propiedad: nameof(DevolucionDeUnPedidoDto.IdLineaDeRecepcion), mostrar: false);
+            columnas.Add(titulo: "Motivo", propiedad: nameof(DevolucionDeUnPedidoDto.Motivo), mostrar: false);
+            columnas.Add(titulo: "IdAlmacen", propiedad: nameof(DevolucionDeUnPedidoDto.IdAlmacen), mostrar: false);
+            columnas.Add(titulo: "Almacen", propiedad: nameof(DevolucionDeUnPedidoDto.Almacen), mostrar: false);
+            columnas.Add(titulo: "IdExpediente", propiedad: nameof(DevolucionDeUnPedidoDto.IdExpediente), mostrar: false);
+            columnas.Add(titulo: "Expediente", propiedad: nameof(DevolucionDeUnPedidoDto.Expediente), mostrar: false);
+            columnas.Add(titulo: "Contabilizada", propiedad: nameof(DevolucionDeUnPedidoDto.Contabilizada), mostrar: false);
+            columnas.Add(titulo: "IdElemento", propiedad: nameof(DevolucionDeUnPedidoDto.IdElemento), mostrar: false);
+            columnas.Add(titulo: "Id", propiedad: nameof(DevolucionDeUnPedidoDto.Id), mostrar: false);
+            // versión de la devolución leída, para validarla en el servidor al cancelarla
+            columnas.Add(titulo: "RowVersion", propiedad: nameof(DevolucionDeUnPedidoDto.RowVersion), mostrar: false);
+
+            var parametros = new Dictionary<string, object> {
+                   { nameof(GridDeRelacion.Controlador), typeof(DevolucionesDeUnPedidoController) }
+                 , { nameof(GridDeRelacion.AccionDeConsulta), nameof(DevolucionesDeUnPedidoController.epLeerElementos)}
+                 , { nameof(GridDeRelacion.PropiedadRestrictora), nameof(DevolucionDeUnPedidoDto.IdElemento) }
+                 , { nameof(GridDeRelacion.OrdenarPor), $"{nameof(DevolucionDeUnPedidoDto.DevueltaEl)}:{enumModoOrdenacion.ascendente.Render()}" }
+                 , { nameof(GridDeRelacion.OcultarSiVacio), false}
+                };
+            var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
+            gridDeRelacion.PermitirBorrar = false;
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Pedido_ConsultarDevolucion(expansor), titulo = "Consultar", tamano = 100, visible = true });
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Pedido_CancelarDevolucion(expansor), titulo = "Cancelar", tamano = 100, visible = true });
+
+            // imprime todas las devoluciones y anexa el pdf a los archivos del pedido, también con el pedido en consulta
+            expansor.ControlesDelPie.Add(new Referencia(expansor, $"{expansor.Id}-imprimir", "Imprimir", Referencia.Pedido_ImprimirDevoluciones(),
+                "Imprime las devoluciones del pedido y anexa el pdf a sus archivos", enConsultaOcultar: false));
         }
 
         private void FiltroPorProveedor(ModalDeFiltrado<PedidoDto> modal)

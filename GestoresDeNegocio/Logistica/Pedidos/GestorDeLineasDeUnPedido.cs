@@ -33,14 +33,7 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.Unidad, x => x.MapFrom(dtm => dtm.Unidad.Expresion))
                 .ForMember(dto => dto.Clase, x => x.Ignore())
                 .ForMember(dto => dto.CantidadRecibida, x => x.Ignore())
-                .ForMember(dto => dto.PrecioDeRecepcion, x => x.Ignore())
-                .ForMember(dto => dto.DescuentoAplicado, x => x.Ignore())
-                .ForMember(dto => dto.RecepcionadaEl, x => x.Ignore())
-                .ForMember(dto => dto.IdAlmacenDeRecepcion, x => x.Ignore())
-                .ForMember(dto => dto.AlmacenDeRecepcion, x => x.Ignore())
-                .ForMember(dto => dto.IdExpedienteDeRecepcion, x => x.Ignore())
-                .ForMember(dto => dto.ExpedienteDeRecepcion, x => x.Ignore())
-                .ForMember(dto => dto.EntregaContabilizada, x => x.Ignore());
+                .ForMember(dto => dto.CantidadPendiente, x => x.Ignore());
                 CreateMap<LineaDeUnPedidoDto, LineaDeUnPedidoDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Naturaleza, dto => dto.Ignore())
@@ -144,11 +137,8 @@ namespace GestoresDeNegocio.Logistica
             ExtensorDeRecepciones.OlvidarRecepcion(linea);
             ExtensorDeRecepciones.OlvidarRecepciones(linea.IdElemento);
 
-            var recepcion = linea.LeerRecepcion(Contexto, erroSiNoHay: false);
-            if (recepcion != null)
-            {
+            foreach (var recepcion in linea.Recepciones(Contexto))
                 ServicioDeCaches.EliminarElemento(CacheDe.Pedido_LineaPedidoPorRecepcion, recepcion.Id.ToString());
-            }   
         }
 
         protected override void DespuesDeMapearElElemento(LineaDeUnPedidoDtm linea, LineaDeUnPedidoDto elemento, ParametrosDeNegocio parametros)
@@ -156,16 +146,9 @@ namespace GestoresDeNegocio.Logistica
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.Clase = linea.Clase(Contexto)?.ToString();
 
-            var recepcion = linea.LeerRecepcion(Contexto, erroSiNoHay: false);
-            elemento.CantidadRecibida = recepcion?.Cantidad;
-            elemento.PrecioDeRecepcion = recepcion?.Precio;
-            elemento.DescuentoAplicado = recepcion?.Descuento;
-            elemento.RecepcionadaEl = recepcion?.RecepcionadaEl;
-            elemento.IdAlmacenDeRecepcion = recepcion?.IdAlmacen;
-            elemento.AlmacenDeRecepcion = recepcion?.IdAlmacen is null ? null : Contexto.SeleccionarPorId<AlmacenDtm>((int)recepcion.IdAlmacen).Expresion;
-            elemento.IdExpedienteDeRecepcion = recepcion?.IdExpediente;
-            elemento.ExpedienteDeRecepcion = recepcion?.IdExpediente is null ? null : Contexto.SeleccionarPorId<ExpedienteDtm>((int)recepcion.IdExpediente).Expresion;
-            elemento.EntregaContabilizada = recepcion is not null && recepcion.EntregaContabilizada(Contexto);
+            // lo recibido (neto de devoluciones) y lo que queda por entregar; las entregas se ven en su grid
+            elemento.CantidadRecibida = linea.CantidadRecibida(Contexto) - linea.CantidadDevuelta(Contexto);
+            elemento.CantidadPendiente = linea.TipoDeLinea == enumTipoDeLinea.Comentario ? 0 : linea.CantidadPendienteDeEntregar(Contexto);
 
             // Las líneas sólo se modifican mientras el pedido se cumplimenta (ver AntesDePersistir), en el resto de etapas se consultan
             if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)

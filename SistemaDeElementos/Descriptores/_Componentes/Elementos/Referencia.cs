@@ -171,9 +171,29 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_RecibirLinea}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
         }
-        internal static string Pedido_LineaNoEntregada(DescriptorDeExpansor expansor)
+        internal static string Pedido_DevolverEntrega(DescriptorDeExpansor expansor)
         {
-            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_LineaNoEntregada}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_DevolverEntrega}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Pedido_ConsultarEntrega(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_ConsultarEntrega}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Pedido_CancelarEntrega(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_CancelarEntrega}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Pedido_ConsultarDevolucion(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_ConsultarDevolucion}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Pedido_CancelarDevolucion(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_CancelarDevolucion}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Pedido_ImprimirDevoluciones()
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_ImprimirDevoluciones}()";
         }
         internal static string SisDoc_CarpetasDeUnArchivador(DescriptorDeExpansor expansor)
         {

@@ -113,7 +113,8 @@ namespace ServicioDeReportes.Logistica
             });
         }
 
-        private void Cuerpo(IContainer container)
+        // el impreso de las devoluciones del pedido cambia el cuerpo (ver ReporteDeDevolucionDePedido)
+        protected virtual void Cuerpo(IContainer container)
         {
             container.PaddingVertical(30).Column(column =>
             {
@@ -221,7 +222,7 @@ namespace ServicioDeReportes.Logistica
         }
 
         // Tarifas y cantidades se editan con hasta 6 decimales: se muestran todos los significativos para que cuadren con el importe
-        private static int Decimales(decimal? valor)
+        protected static int Decimales(decimal? valor)
         {
             if (valor is null) return 2;
             var texto = ((decimal)valor).ToString("0.######", System.Globalization.CultureInfo.InvariantCulture);

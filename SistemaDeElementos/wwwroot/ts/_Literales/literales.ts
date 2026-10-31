@@ -390,7 +390,9 @@ const ltrEspanes = {
     },
     Logistica: {
         Pedidos: {
-            Lineas: 'lineasdeunpedido'
+            Lineas: 'lineasdeunpedido',
+            Entregas: 'entregasdeunpedido',
+            Devoluciones: 'devolucionesdeunpedido'
         },
         Regularizaciones: {
             Lineas: 'lineasdeunaregularizacion'
@@ -578,7 +580,9 @@ const ltrControladores = {
     },
     Logistica: {
         Pedidos: 'Pedidos',
-        LineasDeUnPedido: 'LineasDeUnPedido'
+        LineasDeUnPedido: 'LineasDeUnPedido',
+        EntregasDeUnPedido: 'EntregasDeUnPedido',
+        DevolucionesDeUnPedido: 'DevolucionesDeUnPedido'
     },
     Guarderias: {
         Cursos: 'CursosDeGuarderia',
@@ -1696,8 +1700,15 @@ const Ajax = {
         },
         Logistica: {
             LineasDeUnPedido: {
-                RecibirLinea: 'epRecibirLinea',
-                LineaNoEntregada: 'epLineaNoEntregada'
+                RecibirLinea: 'epRecibirLinea'
+            },
+            EntregasDeUnPedido: {
+                CancelarEntrega: 'epCancelarEntrega'
+            },
+            DevolucionesDeUnPedido: {
+                DevolverEntrega: 'epDevolverEntrega',
+                CancelarDevolucion: 'epCancelarDevolucion',
+                ImprimirDevoluciones: 'epImprimirDevoluciones'
             },
             Pedidos: {
                 RecepcionarPedido: 'epRecepcionarPedido'
@@ -2045,6 +2056,9 @@ const ltrUrls = {
     Gastos: {
         FacturasRec: 'FacturasRec/CrudFacturasRec',
         Pagos: 'Pagos/CrudPagos'
+    },
+    Logistica: {
+        Pedidos: 'Pedidos/CrudPedidos'
     }
 };
 
@@ -3467,6 +3481,7 @@ const ltrPropiedades = {
                 naturaleza: 'Naturaleza',
                 unidad: 'Unidad',
                 CantidadRecibida: 'CantidadRecibida',
+                CantidadPendiente: 'CantidadPendiente',
                 PrecioDeRecepcion: 'PrecioDeRecepcion',
                 DescuentoAplicado: 'DescuentoAplicado',
                 IdAlmacenDeRecepcion: 'IdAlmacenDeRecepcion',
@@ -3491,6 +3506,44 @@ const ltrPropiedades = {
             RecepcionarPedido: {
                 IdPedido: 'IdPedido',
                 RecepcionadoEl: 'RecepcionadoEl'
+            },
+            DevolverEntrega: {
+                IdLineaPedido: 'IdLineaPedido',
+                Cantidad: 'Cantidad',
+                Precio: 'Precio',
+                Descuento: 'Descuento',
+                Importe: 'Importe',
+                DevueltaEl: 'DevueltaEl',
+                IdAlmacen: 'IdAlmacen',
+                IdExpediente: 'IdExpediente',
+                Motivo: 'Motivo'
+            },
+            // filas del grid de entregas (EntregaDeUnPedidoDto)
+            Entrega: {
+                IdLinea: 'IdLinea',
+                RecepcionadaEl: 'RecepcionadaEl',
+                Cantidad: 'Cantidad',
+                Precio: 'Precio',
+                Descuento: 'Descuento',
+                IdAlmacen: 'IdAlmacen',
+                Almacen: 'Almacen',
+                IdExpediente: 'IdExpediente',
+                Expediente: 'Expediente',
+                CantidadDevuelta: 'CantidadDevuelta',
+                Contabilizada: 'Contabilizada'
+            },
+            // filas del grid de devoluciones (DevolucionDeUnPedidoDto)
+            Devolucion: {
+                DevueltaEl: 'DevueltaEl',
+                Cantidad: 'Cantidad',
+                Precio: 'Precio',
+                Descuento: 'Descuento',
+                IdAlmacen: 'IdAlmacen',
+                Almacen: 'Almacen',
+                IdExpediente: 'IdExpediente',
+                Expediente: 'Expediente',
+                Motivo: 'Motivo',
+                Contabilizada: 'Contabilizada'
             }
         },
         RenombraPedido: {
@@ -4343,7 +4396,9 @@ const ltrMenus = {
                 ModificarCabecera: 'modificar-cabecera-pedido',
                 GuardarCabecera: 'guardar-cabecera-pedido',
                 RecepcionarLinea: 'recepcionar-linea-pedido',
-                RecepcionarPedido: 'recepcionar-pedido'
+                RecepcionarPedido: 'recepcionar-pedido',
+                DevolverEntrega: 'devolver-entrega-pedido',
+                CopiarPedido: 'copiar-pedido'
             }
         },
         MaestrosTecnico: {

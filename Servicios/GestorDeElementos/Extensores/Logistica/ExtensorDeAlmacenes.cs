@@ -159,7 +159,10 @@ namespace GestorDeElementos.Extensores
             switch (clase)
             {
                 case enumClaseDeMovimiento.Entrada: movimiento.CalcularInventarioEntrada(contexto); break;
-                case enumClaseDeMovimiento.Salida: movimiento.CalcularInventarioSalida(contexto); break;
+                case enumClaseDeMovimiento.Salida:
+                    if (movimiento.IdLineaDevolucion is not null) movimiento.CalcularInventarioDevolucionDeCompra(contexto);
+                    else movimiento.CalcularInventarioSalida(contexto);
+                    break;
                 case enumClaseDeMovimiento.Inicial: movimiento.CalcularInventarioInicial(contexto); break;
                 case enumClaseDeMovimiento.Ajuste: movimiento.CalcularInventarioAjuste(contexto); break;
                 case enumClaseDeMovimiento.Regularizacion: movimiento.CalcularInventarioRegularizacion(contexto); break;
@@ -336,6 +339,22 @@ namespace GestorDeElementos.Extensores
             // la salida se valora al precio medio vigente, que no cambia por salir
             movimiento.Precio = anterior.Valor;
             movimiento.Valor = anterior.Valor;
+        }
+
+        // La devolución de compra saca lo devuelto a su precio de compra (el neto de la entrega, no el precio medio), deshaciendo lo que
+        // la entrada aportó al valor: el precio medio de lo que queda es el que había sin lo devuelto
+        private static void CalcularInventarioDevolucionDeCompra(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
+            if (anterior is null)
+                Emitir($"No se puede devolver en el movimiento de almacén '{movimiento.Referencia(contexto)}' ya que no hay stock anterior para el almacén y el material");
+
+            movimiento.Stock = anterior.Stock - movimiento.Cantidad;
+            if (movimiento.Stock < 0)
+                Emitir($"No hay stock suficiente para la devolución del movimiento de almacén '{movimiento.Referencia(contexto)}': quedan {anterior.Stock} y se devuelven {movimiento.Cantidad}");
+
+            var valorQueQueda = anterior.Stock * anterior.Valor - movimiento.Cantidad * movimiento.Precio;
+            movimiento.Valor = movimiento.Stock == 0 || valorQueQueda < 0 ? anterior.Valor : valorQueQueda / movimiento.Stock;
         }
 
         private static void CalcularInventarioInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)

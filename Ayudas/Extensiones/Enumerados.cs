@@ -472,10 +472,16 @@ namespace Utilidades
         Ped_FiltrosPorClaseDeUnitario,
         Pedido_Recepcionar,
         Pedido_RecibirLinea,
-        Pedido_LineaNoEntregada,
+        Pedido_ConsultarEntrega,
+        Pedido_CancelarEntrega,
+        Pedido_ConsultarDevolucion,
+        Pedido_CancelarDevolucion,
+        Pedido_ImprimirDevoluciones,
         Pedido_CalcularImporteEntregado,
         Pedido_Recepcion_TrasCambiarAlmacen,
         Pedido_Recepcion_TrasSeleccionarExpediente,
+        Pedido_DevolverEntrega,
+        Pedido_CalcularImporteDevuelto,
 
         Ral_Tras_Seleccionar_Almacen,
         Ral_Tras_Blanquear_Almacen,
@@ -978,6 +984,8 @@ namespace Utilidades
         public const string Ped_GuardarCabecera = "guardar-cabecera-pedido";
         public const string Ped_RecepcionarLinea = "recepcionar-linea-pedido";
         public const string Ped_RecepcionarPedido = "recepcionar-pedido";
+        public const string Ped_DevolverEntrega = "devolver-entrega-pedido";
+        public const string Ped_CopiarPedido = "copiar-pedido";
 
         public const string Infantes_AsociarCurso = "asociar-curso";
 

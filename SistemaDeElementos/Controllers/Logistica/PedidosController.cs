@@ -114,6 +114,11 @@ namespace MVCSistemaDeElementos.Controllers
                 case eventosDeMf.Ped_ModificarCabecera:
                     // la modal se propone con los datos de la edición
                     return null;
+                case eventosDeMf.Ped_CopiarPedido:
+                    var ids = (List<int>)parametros[ltrParametrosEp.ids];
+                    if (ids.Count != 1)
+                        GestorDeErrores.Emitir("Debe indicar el pedido a copiar");
+                    return GestorDePedidos.CopiarElPedido(Contexto, ids[0]);
                 case eventosDeMf.Ped_RecepcionarPedido:
                     // "Dar por entregado": la modal se propone con los datos de la edición y al aceptar se llama a epRecepcionarPedido
                     return null;
@@ -190,7 +195,7 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
-        // Entrega completa del pedido (ver ExtensorDeRecepciones.RecepcionarPedido): aquí sólo se leen y validan los datos de la modal
+        // Entrega completa del pedido (ver GestorDeEntregasDeUnPedido.RecepcionarPedido): aquí sólo se leen y validan los datos de la modal
         public JsonResult epRecepcionarPedido(string parametrosJson)
         {
             var r = new Resultado();
@@ -211,7 +216,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var idAlmacen = (int)parametros.LeerValor<long>(nameof(RecepcionarPedidoDto.IdAlmacen), 0);
                 var idExpediente = (int)parametros.LeerValor<long>(nameof(RecepcionarPedidoDto.IdExpediente), 0);
 
-                r.Consola = ExtensorDeRecepciones.RecepcionarPedido(Contexto, idPedido, rowVersion, recepcionadoEl.Value,
+                r.Consola = GestorDeEntregasDeUnPedido.RecepcionarPedido(Contexto, idPedido, rowVersion, recepcionadoEl.Value,
                     idAlmacen == 0 ? null : idAlmacen, idExpediente == 0 ? null : idExpediente);
                 r.Estado = enumEstadoPeticion.Ok;
                 Contexto.Commit(tran);

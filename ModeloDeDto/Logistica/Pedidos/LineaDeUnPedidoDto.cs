@@ -233,11 +233,12 @@ namespace ModeloDeDto.Logistica
         public decimal? ImporteDeLinea => ImporteSinDto - ImporteDeDto;
 
         //--------------------------------------------
-        // Datos de la entrega de la línea (RecepcionDeLineaDtm), vacíos si aún no se ha entregado (ver GestorDeLineasDeUnPedido.DespuesDeMapearElElemento)
+        // Lo entregado de la línea, en una o varias entregas (ver ExtensorDeRecepciones.Recepciones): lo recibido sin lo devuelto y lo
+        // que queda por entregar, que nunca supera lo pedido (ver GestorDeLineasDeUnPedido.DespuesDeMapearElElemento)
         [IUPropiedad(
            Etiqueta = "Cantidad recibida",
            Tipo = typeof(decimal),
-           Ayuda = "cantidad entregada",
+           Ayuda = "cantidad entregada, sin lo devuelto",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
            VisibleAlCrear = false,
@@ -250,9 +251,9 @@ namespace ModeloDeDto.Logistica
         public decimal? CantidadRecibida { get; set; }
 
         [IUPropiedad(
-           Etiqueta = "Precio de recepción",
+           Etiqueta = "Pendiente de entregar",
            Tipo = typeof(decimal),
-           Ayuda = "precio de compra unitario sin iva de lo entregado",
+           Ayuda = "cantidad que queda por entregar de lo pedido",
            TipoDeControl = enumTipoControl.Editor,
            Alineada = enumAliniacion.derecha,
            VisibleAlCrear = false,
@@ -262,42 +263,7 @@ namespace ModeloDeDto.Logistica
            Fila = 5,
            Columna = 1)
         ]
-        public decimal? PrecioDeRecepcion { get; set; }
-
-        [IUPropiedad(
-           Etiqueta = "Descuento aplicado(%)",
-           Tipo = typeof(decimal),
-           Ayuda = "porcentaje de descuento aplicado en la entrega",
-           TipoDeControl = enumTipoControl.Editor,
-           Alineada = enumAliniacion.derecha,
-           VisibleAlCrear = false,
-           EditableAlEditar = false,
-           Obligatorio = false,
-           Formato = enumFormato.Porcentaje,
-           Fila = 5,
-           Columna = 2)
-        ]
-        public decimal? DescuentoAplicado { get; set; }
-
-        // Fecha y destino de la entrega, para mostrarla en la modal de recepción
-        [IUPropiedad(Etiqueta = "Recepcionada el", Visible = false)]
-        public System.DateTime? RecepcionadaEl { get; set; }
-
-        [IUPropiedad(Etiqueta = "Id del almacén de la entrega", Visible = false)]
-        public int? IdAlmacenDeRecepcion { get; set; }
-
-        [IUPropiedad(Etiqueta = "Almacén de la entrega", Visible = false)]
-        public string AlmacenDeRecepcion { get; set; }
-
-        [IUPropiedad(Etiqueta = "Id del expediente de la entrega", Visible = false)]
-        public int? IdExpedienteDeRecepcion { get; set; }
-
-        [IUPropiedad(Etiqueta = "Expediente de la entrega", Visible = false)]
-        public string ExpedienteDeRecepcion { get; set; }
-
-        // El preasiento de la entrada de compra está contabilizado (en un lote contable): la entrega no se puede cancelar
-        [IUPropiedad(Etiqueta = "Entrega contabilizada", Visible = false)]
-        public bool EntregaContabilizada { get; set; }
+        public decimal? CantidadPendiente { get; set; }
 
 
         //--------------------------------------------

@@ -374,7 +374,7 @@ namespace GestorDeElementos.Extensores
                     Clase = enumClaseDeApunte.Far_Gasto,
                     Tipo = ltrTipoDeApunte.Gasto,
                     Orden = orden,
-                    Cuenta = naturaleza.CuentaDeGasto.Codigo,
+                    Cuenta = naturaleza.CuentaDeGasto(contexto).Codigo,
                     Importe = item.Bi,
                     IvaDelImporte = item.ImporteDeIva,
                     IdIva = item.idIva,
@@ -535,7 +535,7 @@ namespace GestorDeElementos.Extensores
                     Clase = enumClaseDeApunte.Fae_Ingreso,
                     Tipo = ltrTipoDeApunte.Ingreso,
                     Orden = orden,
-                    Cuenta = naturaleza.CuentaDeIngreso.Codigo,
+                    Cuenta = naturaleza.CuentaDeIngreso(contexto).Codigo,
                     Importe = item.Bi,
                     IvaDelImporte = item.ImporteDeIva,
                     IdIva = item.idIva,
@@ -836,7 +836,7 @@ namespace GestorDeElementos.Extensores
             switch (clase)
             {
                 case enumClaseDeMovimiento.Entrada: movimiento.PreasentarEntradaDeAlmacen(contexto, generandoPreasientosAntiguos); break;
-                case enumClaseDeMovimiento.Salida: movimiento.PreasentarSalidaDelmacen(contexto); break;
+                case enumClaseDeMovimiento.Salida: movimiento.PreasentarSalidaDelmacen(contexto, generandoPreasientosAntiguos); break;
                 case enumClaseDeMovimiento.Inicial: movimiento.PreasentarStockInicial(contexto); break;
                 case enumClaseDeMovimiento.Ajuste: movimiento.PreasentarNuevoPrecioDeUnitario(contexto); break;
                 case enumClaseDeMovimiento.Regularizacion: movimiento.PreasentarRegularizacion(contexto); break;
@@ -868,18 +868,48 @@ namespace GestorDeElementos.Extensores
             if (movimiento.IdLineaDeRecepcion is null)
                 GestorDeErrores.Emitir($"No se puede preasentar la entrada de compra del movimiento de almacén '{movimiento.Referencia(contexto)}' porque no tiene línea de recepción asociada");
 
-            var almacen = movimiento.Almacen(contexto);
             var recepcion = contexto.SeleccionarPorId<RecepcionDeLineaDtm>((int)movimiento.IdLineaDeRecepcion);
+            var linea = recepcion.LineaDePedido(contexto);
+            var pedido = linea.DetalleDe<PedidoDtm>(contexto);
+            movimiento.PreasentarCompraDeAlmacen(contexto, recepcion, Math.Round(recepcion.Importe, 2),
+                $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'", esUnaDevolucion: false, generandoPreasientosAntiguos);
+        }
+
+        // Devolución de compra (salida de lo devuelto de una entrega en un almacén): el preasiento de la entrada al revés, por el importe devuelto
+        // (cantidad devuelta * precio - % de descuento de la entrega). El resto de salidas aún no se preasientan
+        public static void PreasentarSalidaDelmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
+        {
+            if (movimiento.IdLineaDevolucion is null)
+                return;
+
+            var devolucion = contexto.SeleccionarPorId<DevolucionDeEntregaDtm>((int)movimiento.IdLineaDevolucion);
+            var recepcion = devolucion.Recepcion(contexto);
+            var linea = recepcion.LineaDePedido(contexto);
+            var pedido = linea.DetalleDe<PedidoDtm>(contexto);
+            movimiento.PreasentarCompraDeAlmacen(contexto, recepcion, Math.Round(devolucion.Importe(recepcion), 2),
+                $"Devolución de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'", esUnaDevolucion: true, generandoPreasientosAntiguos);
+        }
+
+        // Asiento de una compra de almacén, como al registrar una factura recibida pero sin impuestos: en la entrada va al debe la cuenta de
+        // gasto de la naturaleza del material y al haber la de albaranes pendientes de recibir factura (VariablesDeCuentas.Albaranes) con la
+        // extensión del proveedor; en la devolución, al revés. El tipo de preasiento es el que tiene como origen el negocio de almacén
+        // (parámetro SPR_Negocio_Origen); el referenciado es el movimiento, que al insertarlo aún no tiene Id (lo engancha
+        // GestorDeMovimientosDeAlmacen.DespuesDePersistir)
+        private static void PreasentarCompraDeAlmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, RecepcionDeLineaDtm recepcion, decimal importe, string concepto, bool esUnaDevolucion, bool generandoPreasientosAntiguos)
+        {
+            var almacen = movimiento.Almacen(contexto);
             var linea = recepcion.LineaDePedido(contexto);
             var pedido = linea.DetalleDe<PedidoDtm>(contexto);
             var proveedor = pedido.Proveedor(contexto, aplicarJoin: true);
             if (proveedor.CodigoContable is null)
-                GestorDeErrores.Emitir($"Para preasentar la entrada de compra del pedido '{pedido.Referencia}' el proveedor '{proveedor.Expresion}' ha de tener código contable");
+                GestorDeErrores.Emitir($"Para preasentar la {(esUnaDevolucion ? "devolución" : "entrada")} de compra del pedido '{pedido.Referencia}' el proveedor '{proveedor.Expresion}' ha de tener código contable");
 
             var unitario = movimiento.Unitario(contexto, aplicarJoin: true);
             var naturaleza = unitario.Naturaleza(contexto, aplicarJoin:true);
             if (naturaleza.IdCuentaDeGasto == null)
                 GestorDeErrores.Emitir($"Ha de indicar la cuenta del gasto para la naturaleza '{naturaleza.Expresion}'");
+            // la naturaleza puede venir de la caché del unitario sin su cuenta de gasto cargada (p.e. al barrer): se lee aparte
+            var cuentaDeGasto = naturaleza.CuentaDeGasto(contexto);
 
             var idTipoPreasiento = VariablesDePreasiento.IdTipoPreasientoDelNegocio(enumNegocio.Almacen.IdNegocio(), enumNegocio.Almacen.Singular());
             var tipoDePreasiento = enumNegocio.Preasiento.Tipos(contexto).FirstOrDefault(x => x.Id == idTipoPreasiento);
@@ -888,9 +918,6 @@ namespace GestorDeElementos.Extensores
 
             VariablesDePreasiento.CodigoDeDiario(tipoDePreasiento, contexto);
             VariablesDePreasiento.ValidarNaturalezasContables();
-
-            var concepto = $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'";
-            var importe = Math.Round(recepcion.Importe, 2);
 
             movimiento.Preasiento = new PreasientoDtm
             {
@@ -907,33 +934,34 @@ namespace GestorDeElementos.Extensores
 
             movimiento.IdPreasiento = movimiento.Preasiento.Id;
 
-            new ApunteDeUnPreasientoDtm
+            var gasto = new ApunteDeUnPreasientoDtm
             {
                 IdElemento = movimiento.Preasiento.Id,
-                Posicion = enumPosicionContable.Debe,
+                Posicion = esUnaDevolucion ? enumPosicionContable.Haber : enumPosicionContable.Debe,
                 Clase = enumClaseDeApunte.Alm_Gasto,
                 Tipo = ltrTipoDeApunte.Gasto,
-                Orden = 10,
-                Cuenta = naturaleza.CuentaDeGasto.Codigo,
+                Cuenta = cuentaDeGasto.Codigo,
                 Importe = importe,
                 Concepto = (linea.Concepto.IsNullOrEmpty() ? unitario.Expresion : linea.Concepto).Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
-            }.InsertarComoAdministrador(contexto);
+            };
 
-            new ApunteDeUnPreasientoDtm
+            var albaran = new ApunteDeUnPreasientoDtm
             {
                 IdElemento = movimiento.Preasiento.Id,
-                Posicion = enumPosicionContable.Haber,
+                Posicion = esUnaDevolucion ? enumPosicionContable.Debe : enumPosicionContable.Haber,
                 Clase = enumClaseDeApunte.Alm_Albaran,
                 Tipo = "",
-                Orden = 20,
                 Cuenta = VariablesDeCuentas.Albaranes + proveedor.CodigoContable.ToString().PadLeft(4, '0'),
                 Importe = importe,
                 Concepto = $"{proveedor.NIF(contexto)} - {pedido.Referencia}: {linea.Orden}".Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
-            }.InsertarComoAdministrador(contexto);
-        }
+            };
 
-        public static void PreasentarSalidaDelmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
-        {
+            // primero el apunte del debe
+            var (primero, segundo) = esUnaDevolucion ? (albaran, gasto) : (gasto, albaran);
+            primero.Orden = 10;
+            segundo.Orden = 20;
+            primero.InsertarComoAdministrador(contexto);
+            segundo.InsertarComoAdministrador(contexto);
         }
 
         public static void PreasentarStockInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)

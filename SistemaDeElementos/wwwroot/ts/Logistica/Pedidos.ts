@@ -108,13 +108,22 @@
 
         public get ModalRecepcionarPedido(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Logistica.Pedidos.RecepcionarPedido) as HTMLDivElement; }
 
+        public get ModalDevolverEntrega(): HTMLDivElement { return document.getElementById(this.IdCrud + '-' + ltrMenus.eventosDeMf.Logistica.Pedidos.DevolverEntrega) as HTMLDivElement; }
+
+        // Entrega que se está devolviendo, con la versión que se leyó en el grid de entregas para validarla en el servidor;
+        // si se está consultando una devolución, la modal sólo la muestra
+        private _entregaADevolver: EntregaDelGridDePedido = undefined;
+        private _consultandoUnaDevolucion: boolean = false;
+
         // Las dos modales de recepción (línea y pedido completo) tienen el mismo destino, se trabaja con la que esté abierta
         private get ModalDeRecepcionAbierta(): HTMLDivElement {
             return ApiPanel.ModalAbierta(this.ModalRecepcionarPedido) ? this.ModalRecepcionarPedido : this.ModalRecepcionarLinea;
         }
 
-        // Línea que se está recepcionando, con la versión que se leyó en el grid para validarla en el servidor
+        // Línea que se está recepcionando, con la versión que se leyó en el grid para validarla en el servidor; si se está
+        // consultando una entrega (desde el grid de entregas), la modal sólo la muestra
         private _lineaARecepcionar: LineaDelGridDePedido = undefined;
+        private _consultandoUnaEntrega: boolean = false;
 
         private ListaDeAlmacenes(modal: HTMLDivElement): HTMLSelectElement {
             return ApiControl.BuscarListaDeElementos(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Almacen);
@@ -170,27 +179,204 @@
             MapearAlControl.FechaDate(ApiControl.BuscarControl(modal, propiedad, true) as HTMLInputElement, fecha);
         }
 
-        // Sin entrega se propone lo pedido en la línea, el destino de la cabecera y la fecha de recepción; el usuario indica lo que
-        // realmente se ha entregado. Con entrega se muestra lo entregado en consulta, sin poder aceptar
+        // Se propone lo pedido en la línea, el destino de la cabecera y la fecha de recepción; el usuario indica lo que realmente se ha entregado
         public AbrirModalDeRecepcionarLinea(linea: LineaDelGridDePedido) {
             const modal = this.ModalRecepcionarLinea;
             this._lineaARecepcionar = linea;
+            this._consultandoUnaEntrega = false;
 
             this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(modal.id, this.crudDeEdicion.ElementoEditado.Id, undefined, new Array<string>(), false);
+            this.MapearDatosDeLaRecepcion(linea.pendiente, linea.precio, linea.descuento);
+            this.MapearDestinoDeLaCabecera(modal);
+            this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, this.FechaDeRecepcionDeLineaPropuesta());
+            this.BloquearRecepcion(false);
+            ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad).focus();
+        }
 
-            if (linea.entregada) {
-                this.MapearDatosDeLaRecepcion(linea.cantidadRecibida, linea.precioDeRecepcion, linea.descuentoAplicado);
-                this.MapearDestino(modal, linea.idAlmacenDeRecepcion, linea.idExpedienteDeRecepcion, linea.expedienteDeRecepcion);
-                this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, IsNullOrEmpty(linea.recepcionadaEl) ? null : CrearFecha(linea.recepcionadaEl));
+        // Una entrega registrada sólo se consulta: para cambiarla hay que cancelarla y volver a entregar la línea
+        public ConsultarEntrega(entrega: EntregaDelGridDePedido) {
+            const modal = this.ModalRecepcionarLinea;
+            this._lineaARecepcionar = undefined;
+            this._consultandoUnaEntrega = true;
+
+            this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(modal.id, this.crudDeEdicion.ElementoEditado.Id, undefined, new Array<string>(), false);
+            this.MapearDatosDeLaRecepcion(entrega.cantidad, entrega.precio, entrega.descuento);
+            this.MapearDestino(modal, entrega.idAlmacen, entrega.idExpediente, entrega.expediente);
+            this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, IsNullOrEmpty(entrega.recepcionadaEl) ? null : CrearFecha(entrega.recepcionadaEl));
+            this.BloquearRecepcion(true);
+        }
+
+        // Cancela la entrega: el servidor valida su versión, que no tenga devoluciones y que el pedido esté en recepción
+        public CancelarEntrega(entrega: EntregaDelGridDePedido) {
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(literal.id, entrega.id));
+            // con el RowVersion de la entrega, IncluirRowId no añade el del pedido
+            parametros.push(new Parametro(Ajax.Param.RowVersion, entrega.rowVersion));
+            ApiDePeticiones.EjecutarPeticion(this.crudDeEdicion, ltrControladores.Logistica.EntregasDeUnPedido, Ajax.EndPoint.Logistica.EntregasDeUnPedido.CancelarEntrega, parametros, new Array<Parametro>())
+                .then((peticion) => this.RecargarTrasEntregarODevolver(undefined, peticion))
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+        }
+
+        // Se propone lo que queda por devolver (lo entregado menos lo ya devuelto) valorado al precio y descuento de la entrega, la fecha de hoy
+        // y el destino de la entrega; se editan la cantidad, la fecha y el motivo
+        public AbrirModalDeDevolverEntrega(entrega: EntregaDelGridDePedido) {
+            const modal = this.ModalDevolverEntrega;
+            this._entregaADevolver = entrega;
+            this._consultandoUnaDevolucion = false;
+
+            this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(modal.id, this.crudDeEdicion.ElementoEditado.Id, undefined, new Array<string>(), false);
+            this.MapearDevolucion(this.CantidadPendienteDeDevolver, entrega.precio, entrega.descuento, CrudDePedidos.Hoy(),
+                entrega.idAlmacen, entrega.almacen, entrega.idExpediente, entrega.expediente, '');
+            this.BloquearDevolucion(false);
+            ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.DevolverEntrega.Cantidad).focus();
+        }
+
+        // Una devolución registrada sólo se consulta: para cambiarla hay que cancelarla y volver a devolver la entrega
+        public ConsultarDevolucion(devolucion: DevolucionDelGridDePedido) {
+            const modal = this.ModalDevolverEntrega;
+            this._entregaADevolver = undefined;
+            this._consultandoUnaDevolucion = true;
+
+            this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(modal.id, this.crudDeEdicion.ElementoEditado.Id, undefined, new Array<string>(), false);
+            this.MapearDevolucion(devolucion.cantidad, devolucion.precio, devolucion.descuento, IsNullOrEmpty(devolucion.devueltaEl) ? null : CrearFecha(devolucion.devueltaEl),
+                devolucion.idAlmacen, devolucion.almacen, devolucion.idExpediente, devolucion.expediente, devolucion.motivo);
+            this.BloquearDevolucion(true);
+        }
+
+        // Cancela la devolución: el servidor valida su versión y, si lo devuelto salió del almacén, borra su salida
+        public CancelarDevolucion(devolucion: DevolucionDelGridDePedido) {
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(literal.id, devolucion.id));
+            // con el RowVersion de la devolución, IncluirRowId no añade el del pedido
+            parametros.push(new Parametro(Ajax.Param.RowVersion, devolucion.rowVersion));
+            ApiDePeticiones.EjecutarPeticion(this.crudDeEdicion, ltrControladores.Logistica.DevolucionesDeUnPedido, Ajax.EndPoint.Logistica.DevolucionesDeUnPedido.CancelarDevolucion, parametros, new Array<Parametro>())
+                .then((peticion) => this.RecargarTrasEntregarODevolver(undefined, peticion))
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+        }
+
+        // Imprime todas las devoluciones del pedido; el servidor anexa el pdf a los archivos del pedido, que se recargan
+        public ImprimirDevoluciones() {
+            const editor = this.crudDeEdicion as CrudEdicionPedido;
+            if (!editor.HayDevoluciones) {
+                MensajesSe.Error('Devoluciones', 'El pedido no tiene devoluciones que imprimir');
+                return;
             }
-            else {
-                this.MapearDatosDeLaRecepcion(linea.cantidad, linea.precio, linea.descuento);
-                this.MapearDestinoDeLaCabecera(modal);
-                this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, this.FechaDeRecepcionDeLineaPropuesta());
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            parametros.push(new Parametro(literal.id, editor.ElementoEditado.Id));
+            ApiDePeticiones.EjecutarPeticion(editor, ltrControladores.Logistica.DevolucionesDeUnPedido, Ajax.EndPoint.Logistica.DevolucionesDeUnPedido.ImprimirDevoluciones, parametros, new Array<Parametro>())
+                .then((peticion) => {
+                    MensajesSe.Info(peticion.resultado.consola);
+                    editor.RecargarArchivos();
+                })
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+        }
+
+        private MapearDevolucion(cantidad: number, precio: number, descuento: number, devueltaEl: Date, idAlmacen: number, almacen: string, idExpediente: number, expediente: string, motivo: string) {
+            const modal = this.ModalDevolverEntrega;
+            const propiedades = ltrPropiedades.Logistica.Pedido.DevolverEntrega;
+            AsignarValor(ApiControl.BuscarEditor(modal, propiedades.Cantidad), cantidad);
+            AsignarValor(ApiControl.BuscarEditor(modal, propiedades.Precio), precio);
+            let editorDeDescuento = ApiControl.BuscarEditor(modal, propiedades.Descuento);
+            if (descuento > 0) AsignarValor(editorDeDescuento, descuento);
+            else editorDeDescuento.value = "";
+            this.CalcularImporteDevuelto();
+
+            this.MapearFecha(modal, propiedades.DevueltaEl, devueltaEl);
+            MapearAlControl.Restrictor(ApiControl.BuscarRestrictor(modal, propiedades.IdAlmacen, ltrTipoControl.restrictorDeEdicion), idAlmacen, almacen ?? '', true);
+            MapearAlControl.Restrictor(ApiControl.BuscarRestrictor(modal, propiedades.IdExpediente, ltrTipoControl.restrictorDeEdicion), idExpediente, expediente ?? '', true);
+
+            let editorDelMotivo = ApiControl.BuscarControl(modal, propiedades.Motivo, true) as HTMLTextAreaElement;
+            if (Definido(editorDelMotivo)) editorDelMotivo.value = motivo ?? '';
+        }
+
+        // Al consultar una devolución no se edita nada ni se puede aceptar
+        private BloquearDevolucion(bloquear: boolean) {
+            const modal = this.ModalDevolverEntrega;
+            const propiedades = ltrPropiedades.Logistica.Pedido.DevolverEntrega;
+            if (bloquear) ApiControl.BloquearEditorPorPropiedad(modal, propiedades.Cantidad);
+            else ApiControl.DesbloquearEditorPorPropiedad(modal, propiedades.Cantidad);
+            let editorDelMotivo = ApiControl.BuscarControl(modal, propiedades.Motivo, true) as HTMLTextAreaElement;
+            if (Definido(editorDelMotivo)) editorDelMotivo.readOnly = bloquear;
+            let fecha = ApiControl.BuscarControl(modal, propiedades.DevueltaEl, true) as HTMLInputElement;
+            if (Definido(fecha)) fecha.readOnly = bloquear;
+            let aceptar = this.BotonAceptar(modal);
+            if (Definido(aceptar)) aceptar.disabled = bloquear;
+        }
+
+        private get CantidadPendienteDeDevolver(): number {
+            const entrega = this._entregaADevolver;
+            return Definido(entrega) ? entrega.cantidad - entrega.cantidadDevuelta : 0;
+        }
+
+        public CalcularImporteDevuelto() {
+            const modal = this.ModalDevolverEntrega;
+            const propiedades = ltrPropiedades.Logistica.Pedido.DevolverEntrega;
+            let cantidad = Numero(ApiControl.BuscarEditor(modal, propiedades.Cantidad).value);
+            let precio = Numero(ApiControl.BuscarEditor(modal, propiedades.Precio).value);
+            let descuento = Numero(ApiControl.BuscarEditor(modal, propiedades.Descuento).value);
+            let importe = ApiControl.BuscarEditor(modal, propiedades.Importe);
+            let importeDevuelto = cantidad * precio * (1 - descuento / 100);
+            if (importeDevuelto > 0) AsignarValor(importe, importeDevuelto);
+            else importe.value = "";
+        }
+
+        // Nunca se devuelve más de lo que queda por devolver, el servidor lo vuelve a validar (ver ExtensorDeDevolucionesDePedido.ValidarDevolucion)
+        private DevolverEntrega(modal: HTMLDivElement) {
+            const editor = this.crudDeEdicion as CrudEdicionPedido;
+            const entrega = this._entregaADevolver;
+            const propiedades = ltrPropiedades.Logistica.Pedido.DevolverEntrega;
+            if (this._consultandoUnaDevolucion || !Definido(entrega))
+                return;
+
+            let cantidad = Numero(ApiControl.BuscarEditor(modal, propiedades.Cantidad).value);
+            const pendiente = this.CantidadPendienteDeDevolver;
+            if (!(cantidad > 0)) {
+                MensajesSe.Error('Devolución', 'Indique la cantidad a devolver');
+                return;
             }
-            this.BloquearRecepcion(linea.entregada);
-            if (!linea.entregada)
-                ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad).focus();
+            if (cantidad > pendiente) {
+                MensajesSe.Error('Devolución', `Como mucho se pueden devolver ${pendiente}: se entregaron ${entrega.cantidad} y ya se han devuelto ${entrega.cantidadDevuelta}`);
+                return;
+            }
+            let motivo = ApiControl.BuscarControl(modal, propiedades.Motivo, true) as HTMLTextAreaElement;
+            if (!Definido(motivo) || IsNullOrEmpty(motivo.value.trim())) {
+                MensajesSe.Error('Devolución', 'Indique el motivo de la devolución');
+                return;
+            }
+            // entre la entrega y hoy; el servidor además no la deja anterior al último cierre contable (ver ExtensorDeDevolucionesDePedido.ValidarFechaDeDevolucion)
+            let fecha = ApiControl.BuscarControl(modal, propiedades.DevueltaEl, true) as HTMLInputElement;
+            if (!Definido(fecha) || IsNullOrEmpty(fecha.value)) {
+                MensajesSe.Error('Devolución', 'Indique la fecha de la devolución');
+                return;
+            }
+            const [ano, mes, dia] = fecha.value.split("-").map(Number);
+            const devueltaEl = new Date(ano, mes - 1, dia);
+            devueltaEl.setHours(0, 0, 0, 0);
+            if (devueltaEl > CrudDePedidos.Hoy()) {
+                MensajesSe.Error('Devolución', 'La fecha de la devolución no puede ser posterior a hoy');
+                return;
+            }
+            if (!IsNullOrEmpty(entrega.recepcionadaEl)) {
+                const entregadaEl = CrearFecha(entrega.recepcionadaEl);
+                entregadaEl.setHours(0, 0, 0, 0);
+                if (devueltaEl < entregadaEl) {
+                    MensajesSe.Error('Devolución', `La fecha de la devolución no puede ser anterior a la de la entrega (${entregadaEl.toLocaleDateString()})`);
+                    return;
+                }
+            }
+
+            let parametros: Array<Parametro> = new Array<Parametro>();
+            // la fecha se envía como la de los selectores de fecha: el día local en UTC (ver ApiDeMapeos.ObtenerFecha)
+            MapearALaListaDeParametros.Fechas(modal, parametros);
+            parametros.push(new Parametro(literal.id, entrega.id));
+            // con el RowVersion de la entrega, IncluirRowId no añade el del pedido
+            parametros.push(new Parametro(Ajax.Param.RowVersion, entrega.rowVersion));
+            parametros.push(new Parametro(propiedades.Cantidad, cantidad));
+            parametros.push(new Parametro(propiedades.Motivo, motivo.value.trim()));
+
+            ApiDePeticiones.EjecutarPeticion(editor, ltrControladores.Logistica.DevolucionesDeUnPedido, Ajax.EndPoint.Logistica.DevolucionesDeUnPedido.DevolverEntrega, parametros, new Array<Parametro>())
+                .then((peticion) => this.RecargarTrasEntregarODevolver(modal, peticion))
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
         // Entrega completa: se propone el destino de la cabecera y la fecha de entrega o la de hoy
@@ -279,7 +465,7 @@
         }
 
         private ConsultandoUnaEntrega(modal: HTMLDivElement): boolean {
-            return modal.id === this.ModalRecepcionarLinea.id && Definido(this._lineaARecepcionar) && this._lineaARecepcionar.entregada;
+            return modal.id === this.ModalRecepcionarLinea.id && this._consultandoUnaEntrega;
         }
 
         public CalcularImporteEntregado() {
@@ -312,11 +498,12 @@
             return true;
         }
 
-        // Tras recepcionar se recarga el pedido completo: si estaba solicitado ha pasado a recepción
-        private RecargarTrasRecepcionar(modal: HTMLDivElement, peticion: ApiDeAjax.DescriptorAjax) {
+        // Tras una entrega, una devolución o su cancelación se recargan las líneas (con ellas la cabecera, que puede haber pasado a
+        // recepción), las entregas, las devoluciones y las trazas
+        private RecargarTrasEntregarODevolver(modal: HTMLDivElement, peticion: ApiDeAjax.DescriptorAjax) {
             MensajesSe.Info(peticion.resultado.consola);
             if (Definido(modal)) super.ModalDePedirDatos_Cerrar(modal);
-            this.crudDeEdicion.Recargar();
+            (this.crudDeEdicion as CrudEdicionPedido).RecargarDetallesDelPedido();
         }
 
         // Entrega completa de la línea (visto verde): sin modal, con lo pedido en la línea, el destino de la cabecera y la fecha de
@@ -334,7 +521,7 @@
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, linea.id));
             // con el RowVersion de la línea, IncluirRowId no añade el del pedido
             parametros.push(new Parametro(Ajax.Param.RowVersion, linea.rowVersion));
-            parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad, linea.cantidad));
+            parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad, linea.pendiente));
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Precio, linea.precio));
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento, linea.descuento));
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdAlmacen, idAlmacen));
@@ -342,15 +529,22 @@
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, recepcionadaEl));
 
             ApiDePeticiones.EjecutarPeticion(editor, ltrControladores.Logistica.LineasDeUnPedido, Ajax.EndPoint.Logistica.LineasDeUnPedido.RecibirLinea, parametros, new Array<Parametro>())
-                .then((peticion) => this.RecargarTrasRecepcionar(undefined, peticion))
+                .then((peticion) => this.RecargarTrasEntregarODevolver(undefined, peticion))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
         private RecepcionarLinea(modal: HTMLDivElement) {
             const editor = this.crudDeEdicion as CrudEdicionPedido;
             const linea = this._lineaARecepcionar;
-            if (!Definido(linea) || linea.entregada)
+            if (this._consultandoUnaEntrega || !Definido(linea))
                 return;
+
+            // nunca se entrega más de lo pedido, el servidor lo vuelve a validar (ver ExtensorDeRecepciones.RegistrarRecepcion)
+            const cantidad = Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad).value);
+            if (cantidad > linea.pendiente) {
+                MensajesSe.Error('Recepción', `Como mucho se pueden entregar ${linea.pendiente}, lo que queda pendiente de lo pedido`);
+                return;
+            }
 
             let parametros: Array<Parametro> = new Array<Parametro>();
             if (!this.AnadirDestinoYFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, parametros))
@@ -363,7 +557,7 @@
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento, Numero(ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Descuento).value)));
 
             ApiDePeticiones.EjecutarPeticion(editor, ltrControladores.Logistica.LineasDeUnPedido, Ajax.EndPoint.Logistica.LineasDeUnPedido.RecibirLinea, parametros, new Array<Parametro>())
-                .then((peticion) => this.RecargarTrasRecepcionar(modal, peticion))
+                .then((peticion) => this.RecargarTrasEntregarODevolver(modal, peticion))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
@@ -376,7 +570,7 @@
             parametros.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarPedido.IdPedido, editor.ElementoEditado.Id));
 
             ApiDePeticiones.EjecutarPeticion(editor, ltrControladores.Logistica.Pedidos, Ajax.EndPoint.Logistica.Pedidos.RecepcionarPedido, parametros, new Array<Parametro>())
-                .then((peticion) => this.RecargarTrasRecepcionar(modal, peticion))
+                .then((peticion) => this.RecargarTrasEntregarODevolver(modal, peticion))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
@@ -387,6 +581,10 @@
             }
             if (modal.id === this.ModalRecepcionarPedido.id) {
                 this.RecepcionarPedido(modal);
+                return;
+            }
+            if (modal.id === this.ModalDevolverEntrega.id) {
+                this.DevolverEntrega(modal);
                 return;
             }
             if (modal.id === this.ModalModificarCabecera.id) {
@@ -532,8 +730,21 @@
         }
 
         public RecargarGridDeLineas() {
-            let grid = document.getElementById(this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Lineas)) as HTMLDivElement;
-            this.RecargarGridDeRelacion(grid, this.CrudDeMnt.IdNegocio, this.ElementoEditado.Id);
+            this.RecargarGridDelPedido(ltrEspanes.Logistica.Pedidos.Lineas);
+        }
+
+        // Tras una entrega o una devolución: las líneas (al recargarlas se recarga la cabecera), las entregas, las devoluciones y las trazas
+        public RecargarDetallesDelPedido() {
+            this.RecargarGridDelPedido(ltrEspanes.Logistica.Pedidos.Lineas);
+            this.RecargarGridDelPedido(ltrEspanes.Logistica.Pedidos.Entregas);
+            this.RecargarGridDelPedido(ltrEspanes.Logistica.Pedidos.Devoluciones);
+            this.RecargarGridDeTrazas();
+        }
+
+        private RecargarGridDelPedido(nombre: string) {
+            let grid = document.getElementById(this.IdGridDelExpansor(nombre)) as HTMLDivElement;
+            if (Definido(grid))
+                this.RecargarGridDeRelacion(grid, this.CrudDeMnt.IdNegocio, this.ElementoEditado.Id);
         }
 
         public RecargarGridDeRelacion(grid: HTMLDivElement, idnegocio: number, id: number) {
@@ -572,6 +783,8 @@
                 ApiPanel.PonerEnModoConsulta(this.PanelDelDto);
 
             this.AplicarEtapaAlGridDeLineas();
+            this.AplicarEtapaAlGridDeEntregas();
+            this.AplicarEtapaAlGridDeDevoluciones();
         }
         // En cumplimentación la cabecera se puede cambiar: se leen los almacenes de la sociedad del CG del pedido y se fija el de la cabecera.
         // En el resto de etapas la cabecera es de consulta y basta con el almacén mapeado, salvo que la lista se cargara antes con los
@@ -611,6 +824,25 @@
             super.Expansor_TrasCargarDetalle(idGrid);
             if (this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Lineas) === idGrid)
                 this.AplicarEtapaAlGridDeLineas();
+            if (this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Entregas) === idGrid)
+                this.AplicarEtapaAlGridDeEntregas();
+            if (this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Devoluciones) === idGrid)
+                this.AplicarEtapaAlGridDeDevoluciones();
+        }
+
+        public get EstaCerrado(): boolean {
+            let etapas: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Logistica.Pedido.Etapas);
+            return EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_Cerrado);
+        }
+
+        // Devolver una entrega: quien gestiona el pedido, en recepción o cerrado, si queda algo por devolver
+        public SePuedeDevolverLaEntrega(pendienteDeDevolver: number): boolean {
+            return this.EsGestorDelPedido && pendienteDeDevolver > 0 && (this.EstaEnRecepcion || this.EstaCerrado);
+        }
+
+        // Cancelar una devolución: quien gestiona el pedido, en recepción o cerrado, si su preasiento no está contabilizado
+        public SePuedeCancelarLaDevolucion(contabilizada: boolean): boolean {
+            return this.EsGestorDelPedido && !contabilizada && (this.EstaEnRecepcion || this.EstaCerrado);
         }
 
         public get EstaEnRecepcion(): boolean {
@@ -619,20 +851,14 @@
         }
 
         // Entrega parcial (Recepcionar) y total (Recibida): con el pedido solicitado o en recepción y si la línea aún no se ha entregado
-        public SePuedeEntregarLaLinea(entregada: boolean): boolean {
-            return this.SePuedeRecepcionar && !entregada;
+        public SePuedeEntregarLaLinea(pendiente: number): boolean {
+            return this.SePuedeRecepcionar && pendiente > 0;
         }
 
-        // Aspa: cancela la entrega de la línea, sólo con el pedido en recepción (solicitado no puede haber nada entregado) y si la línea
-        // tiene entrega. Las entregas (parcial, de la línea y "Dar por entregado") sí se permiten solicitado: lo pasan a recepción.
-        // Si el preasiento de la entrega está contabilizado (en un lote contable) no se puede cancelar
-        public SePuedeCancelarLaEntrega(entregada: boolean, contabilizada: boolean): boolean {
-            return this.EsGestorDelPedido && this.EstaEnRecepcion && entregada && !contabilizada;
-        }
-
-        // Recepcionar con entrega la muestra en consulta, sin ella abre la modal para entregarla
-        public SePuedeAbrirLaRecepcion(entregada: boolean): boolean {
-            return entregada || this.SePuedeEntregarLaLinea(entregada);
+        // Cancelar una entrega (grid de entregas): sólo con el pedido en recepción (solicitado no puede haber nada entregado), si no
+        // tiene devoluciones y si su preasiento no está contabilizado (en un lote contable)
+        public SePuedeCancelarLaEntrega(contabilizada: boolean, cantidadDevuelta: number): boolean {
+            return this.EsGestorDelPedido && this.EstaEnRecepcion && !contabilizada && !(cantidadDevuelta > 0);
         }
 
         // Las entregas van al almacén si los datos principales lo tienen indicado (ver ExtensorDeRecepciones.DestinoDeLasEntregas):
@@ -648,25 +874,25 @@
 
         // Entrega completa de la línea (visto verde): la entrega con lo pedido sin pedir datos; quien gestiona el pedido,
         // con el pedido solicitado o en recepción y si la línea aún no se ha entregado
-        public SePuedeEntregarLaLineaCompleta(entregada: boolean): boolean {
-            return this.EsGestorDelPedido && this.SePuedeEntregarLaLinea(entregada);
+        public SePuedeEntregarLaLineaCompleta(pendiente: number): boolean {
+            return this.EsGestorDelPedido && this.SePuedeEntregarLaLinea(pendiente);
         }
 
-        // "Dar por entregado" (menú de edición): recepciona todo el pedido; quien lo gestiona, solicitado o en recepción y sin ninguna línea entregada
+        // "Dar por entregado" (menú de edición): entrega lo pendiente de todas las líneas; quien lo gestiona, solicitado o en recepción y si
+        // a alguna línea le queda algo por entregar
         public get SePuedeRecepcionarElPedido(): boolean {
-            return this.EsGestorDelPedido && this.SePuedeRecepcionar && !this.HayLineasEntregadas;
+            return this.EsGestorDelPedido && this.SePuedeRecepcionar && this.HayLineasPendientes;
         }
 
-        public get HayLineasEntregadas(): boolean {
-            let grid = document.getElementById(this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Lineas));
-            let tbody = Definido(grid) ? grid.querySelector('.' + ltrCss.crud.tbody) : null;
-            if (!Definido(tbody)) return false;
-            return Array.from(tbody.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila)).some(fila => CrudEdicionPedido.LaLineaEstaEntregada(fila));
+        public get HayLineasPendientes(): boolean {
+            return this.FilasDelGrid(ltrEspanes.Logistica.Pedidos.Lineas).some(fila => CrudEdicionPedido.PendienteDeLaLinea(fila) > 0);
         }
 
         private static readonly AccionDeRecepcionar = 'Recepcionar';
         private static readonly AccionDeEntregaCompleta = 'Recibida';
-        private static readonly AccionDeCancelarLaEntrega = 'NoEntregada';
+        private static readonly AccionDeConsultar = 'Consultar';
+        private static readonly AccionDeCancelar = 'Cancelar';
+        private static readonly AccionDeDevolver = 'Devolver';
 
         private AplicarEtapaAlGridDeLineas() {
             const idGrid = this.IdGridDelExpansor(ltrEspanes.Logistica.Pedidos.Lineas);
@@ -680,29 +906,62 @@
                 ApiDeGrid.Expansor_PonerEnConsulta(idGrid);
             ModoAcceso.HabilitarRefSi(this.PanelDeEditar, this.IdReferenciaCrearLinea, sePuedenModificarLasLineas);
 
-            // "Dar por entregado" depende de que no haya líneas entregadas, se ajusta cada vez que se carga el grid
+            // "Dar por entregado" depende de que quede algo pendiente, se ajusta cada vez que se carga el grid
             ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Pedidos.RecepcionarPedido, ltrMenus.enumOrigen.edicion, this.SePuedeRecepcionarElPedido);
 
             let tbody = grid.querySelector('.' + ltrCss.crud.tbody);
             if (!Definido(tbody)) return;
             tbody.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila).forEach(fila => {
-                const entregada = CrudEdicionPedido.LaLineaEstaEntregada(fila);
-                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeRecepcionar, this.SePuedeAbrirLaRecepcion(entregada));
-                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeEntregaCompleta, this.SePuedeEntregarLaLineaCompleta(entregada));
-                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeCancelarLaEntrega, this.SePuedeCancelarLaEntrega(entregada, CrudEdicionPedido.LaEntregaEstaContabilizada(fila)));
+                const pendiente = CrudEdicionPedido.PendienteDeLaLinea(fila);
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeRecepcionar, this.SePuedeEntregarLaLinea(pendiente));
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeEntregaCompleta, this.SePuedeEntregarLaLineaCompleta(pendiente));
             });
         }
 
-        private static LaEntregaEstaContabilizada(fila: HTMLDivElement): boolean {
-            const propiedad = ltrPropiedades.Logistica.Pedido.linea.EntregaContabilizada.toLowerCase();
-            let contabilizada = fila.querySelector<HTMLInputElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${propiedad}'] input`);
-            return Definido(contabilizada) && contabilizada.value.toLowerCase() === 'true';
+        // Cada entrega se consulta siempre; se cancela o se devuelve según la etapa, lo devuelto y si está contabilizada
+        private AplicarEtapaAlGridDeEntregas() {
+            const propiedades = ltrPropiedades.Logistica.Pedido.Entrega;
+            this.FilasDelGrid(ltrEspanes.Logistica.Pedidos.Entregas).forEach(fila => {
+                const devuelto = CrudEdicionPedido.NumeroDeLaFila(fila, propiedades.CantidadDevuelta);
+                const pendienteDeDevolver = CrudEdicionPedido.NumeroDeLaFila(fila, propiedades.Cantidad) - devuelto;
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeConsultar, true);
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeCancelar, this.SePuedeCancelarLaEntrega(CrudEdicionPedido.EsTrueEnLaFila(fila, propiedades.Contabilizada), devuelto));
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeDevolver, this.SePuedeDevolverLaEntrega(pendienteDeDevolver));
+            });
         }
 
-        private static LaLineaEstaEntregada(fila: HTMLDivElement): boolean {
-            const propiedad = ltrPropiedades.Logistica.Pedido.linea.CantidadRecibida.toLowerCase();
-            let cantidadRecibida = fila.querySelector<HTMLInputElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${propiedad}'] input`);
-            return Definido(cantidadRecibida) && !IsNullOrEmpty(cantidadRecibida.value);
+        // Cada devolución se consulta siempre; se cancela según la etapa y si está contabilizada
+        private AplicarEtapaAlGridDeDevoluciones() {
+            const propiedades = ltrPropiedades.Logistica.Pedido.Devolucion;
+            this.FilasDelGrid(ltrEspanes.Logistica.Pedidos.Devoluciones).forEach(fila => {
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeConsultar, true);
+                CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeCancelar, this.SePuedeCancelarLaDevolucion(CrudEdicionPedido.EsTrueEnLaFila(fila, propiedades.Contabilizada)));
+            });
+        }
+
+        // para imprimirlas (ver CrudDePedidos.ImprimirDevoluciones)
+        public get HayDevoluciones(): boolean {
+            return this.FilasDelGrid(ltrEspanes.Logistica.Pedidos.Devoluciones).length > 0;
+        }
+
+        private FilasDelGrid(nombre: string): Array<HTMLDivElement> {
+            let grid = document.getElementById(this.IdGridDelExpansor(nombre));
+            let tbody = Definido(grid) ? grid.querySelector('.' + ltrCss.crud.tbody) : null;
+            return Definido(tbody) ? Array.from(tbody.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila)) : new Array<HTMLDivElement>();
+        }
+
+        private static EsTrueEnLaFila(fila: HTMLDivElement, propiedad: string): boolean {
+            let celda = fila.querySelector<HTMLInputElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${propiedad.toLowerCase()}'] input`);
+            return Definido(celda) && celda.value.toLowerCase() === 'true';
+        }
+
+        private static NumeroDeLaFila(fila: HTMLDivElement, propiedad: string): number {
+            let celda = fila.querySelector<HTMLInputElement>(`.${ltrCss.crud.celda}[${atControl.propiedad}='${propiedad.toLowerCase()}'] input`);
+            return Definido(celda) && !IsNullOrEmpty(celda.value) ? Numero(celda.value) : 0;
+        }
+
+        private static PendienteDeLaLinea(fila: HTMLDivElement): number {
+            return CrudEdicionPedido.NumeroDeLaFila(fila, ltrPropiedades.Logistica.Pedido.linea.CantidadPendiente);
         }
 
         private static HabilitarAccionDeLaFila(fila: HTMLDivElement, accion: string, habilitar: boolean) {
@@ -737,11 +996,17 @@
                 this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDePedidos).ModalModificarCabecera.id, this.ElementoEditado.Id);
                 return true;
             }
+            if (opcion === ltrMenus.eventosDeMf.Logistica.Pedidos.CopiarPedido) {
+                // el servidor devuelve el pedido creado, en el estado inicial, y se abre su edición en otra pestaña (como al copiar una factura emitida)
+                const idPedido = ObtenerPropiedad(peticion.resultado.datos, literal.id);
+                EntornoSe.AbrirPestana(`${window.location.origin}/${ltrUrls.Logistica.Pedidos}?${literal.id}=${idPedido}`);
+                return true;
+            }
             if (opcion === ltrMenus.eventosDeMf.Logistica.Pedidos.RecepcionarPedido) {
                 // "Dar por entregado": al aceptar la modal se llama a epRecepcionarPedido (ver CrudDePedidos.ModalDePedirDatos_Aceptar)
                 if (!this.SePuedeRecepcionarElPedido)
-                    MensajesSe.Error('Dar por entregado', this.HayLineasEntregadas
-                        ? 'El pedido tiene líneas entregadas, recepcione las que falten con recepciones parciales'
+                    MensajesSe.Error('Dar por entregado', !this.HayLineasPendientes
+                        ? 'El pedido no tiene nada pendiente de entregar'
                         : 'Solo se pueden dar por entregados pedidos solicitados o en recepción');
                 else
                     (this.CrudDeMnt as CrudDePedidos).AbrirModalDeRecepcionarPedido();

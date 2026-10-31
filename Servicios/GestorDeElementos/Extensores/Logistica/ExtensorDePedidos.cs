@@ -29,6 +29,64 @@ namespace GestorDeElementos.Extensores
 
         public static bool EstaEnLaEtapa(this PedidoDtm pedido, string etapa) => etapa.ToLista<int>(Simbolos.Coma).Contains(pedido.IdEstado);
 
+        // Copia la cabecera y las líneas del pedido en un pedido nuevo, que queda en el estado inicial (cumplimentación): no se copian las
+        // fechas, el archivo del pedido, las entregas ni las devoluciones
+        public static PedidoDtm Copiar(this PedidoDtm pedidoOrigen, ContextoSe contexto)
+        {
+            var transaccion = contexto.IniciarTransaccion();
+            try
+            {
+                var pedidoNuevo = new PedidoDtm
+                {
+                    IdCg = pedidoOrigen.IdCg,
+                    IdTipo = pedidoOrigen.IdTipo,
+                    IdEstado = 0,
+                    Nombre = pedidoOrigen.Nombre,
+                    Descripcion = pedidoOrigen.Descripcion,
+                    IdProveedor = pedidoOrigen.IdProveedor,
+                    Contacto = pedidoOrigen.Contacto,
+                    Telefono = pedidoOrigen.Telefono,
+                    eMail = pedidoOrigen.eMail,
+                    IdContrato = pedidoOrigen.IdContrato,
+                    IdExpediente = pedidoOrigen.IdExpediente,
+                    IdAlmacen = pedidoOrigen.IdAlmacen,
+                    PedidoEl = null,
+                    EntregarEl = null,
+                    RecibidoEl = null,
+                    CerradoEl = null,
+                    IdArchivo = null
+                }.Insertar(contexto, new Dictionary<string, object> { { ltrParametrosNeg.Copiando, true } });
+
+                var lineas = contexto.SeleccionarTodos<LineaDeUnPedidoDtm>(nameof(LineaDeUnPedidoDtm.IdElemento), pedidoOrigen.Id);
+                foreach (var linea in lineas.OrderBy(l => l.Orden))
+                {
+                    new LineaDeUnPedidoDtm
+                    {
+                        IdElemento = pedidoNuevo.Id,
+                        Orden = linea.Orden,
+                        TipoDeLinea = linea.TipoDeLinea,
+                        IdUnitario = linea.IdUnitario,
+                        Concepto = linea.Concepto,
+                        IdNaturaleza = linea.IdNaturaleza,
+                        Precio = linea.Precio,
+                        Cantidad = linea.Cantidad,
+                        Descuento = linea.Descuento,
+                        IdUnidad = linea.IdUnidad,
+                        Anotacion = linea.Anotacion
+                    }.Insertar(contexto);
+                }
+
+                pedidoNuevo.CrearTraza(contexto, "Pedido copiado", $"Copia del pedido '{pedidoOrigen.Referencia}' con {lineas.Count} líneas, realizada por {contexto.Usuario.Expresion}");
+                contexto.Commit(transaccion);
+                return pedidoNuevo;
+            }
+            catch
+            {
+                contexto.Rollback(transaccion);
+                throw;
+            }
+        }
+
         public static int IncrementarOrdenEn(ContextoSe contexto)
         {
             var incremento = enumNegocio.Pedido.LeerCrearParametro(contexto, enumParametrosDePedidos.PED_IncrementarOrdenEn, "10");
@@ -112,11 +170,18 @@ namespace GestorDeElementos.Extensores
 
         // Importe de lo recibido del pedido, sumado en la BD: RecepcionDeLineaDtm.Importe es calculado (no está en la tabla) y EF no
         // lo puede traducir, se repite aquí su fórmula; si cambia una ha de cambiar la otra
+        // Lo entregado menos lo devuelto; las fórmulas repiten RecepcionDeLineaDtm.Importe y ExtensorDeDevolucionesDePedido.Importe para
+        // sumarlas en la BD, si cambian éstas han de cambiar aquí
         public static decimal Recibido(this PedidoDtm pedido, ContextoSe contexto)
-            =>
-            contexto.Set<RecepcionDeLineaDtm>()
+        {
+            var entregado = contexto.Set<RecepcionDeLineaDtm>()
                 .Where(r => contexto.Set<LineaDeUnPedidoDtm>().Any(l => l.Id == r.IdLinea && l.IdElemento == pedido.Id))
                 .Sum(r => r.Cantidad * r.Precio * (1 - (r.Descuento ?? 0) / 100));
+            var devuelto = contexto.Set<DevolucionDeEntregaDtm>()
+                .Where(d => d.LineaDeRecepcion.Linea.IdElemento == pedido.Id)
+                .Sum(d => (decimal?)(d.Cantidad * d.LineaDeRecepcion.Precio * (1 - (d.LineaDeRecepcion.Descuento ?? 0) / 100))) ?? 0m;
+            return entregado - devuelto;
+        }
 
         public static void Validar(this PedidoDtm pedido, ContextoSe contexto, ParametrosDeNegocio parametros)
         {
@@ -248,7 +313,7 @@ namespace GestorDeElementos.Extensores
         }
 
         // Al devolver el pedido de la etapa de entrega a solicitado deja de estar recibido; solicitado no puede haber nada entregado,
-        // así que antes se han de cancelar todas las entregas de sus líneas (ver ExtensorDeRecepciones.LineaNoEntregada)
+        // así que antes se han de cancelar todas las entregas de sus líneas (ver GestorDeEntregasDeUnPedido.CancelarEntrega)
         public static void AntesDeAnularRecepcion(this PedidoDtm pedido, ContextoSe contexto, Dictionary<string, object> parametros)
         {
             if (pedido.TieneLineasRecepcionadas(contexto))

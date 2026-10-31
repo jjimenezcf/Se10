@@ -130,6 +130,7 @@ namespace ServicioDeDatos
 
             ModeloDePedido.DatosDeLineaDeUnaPedido(modelBuilder);
             ModeloDePedido.RecepcionDeLinea(modelBuilder);
+            ModeloDePedido.DevolucionDeEntrega(modelBuilder);
         }
 
 

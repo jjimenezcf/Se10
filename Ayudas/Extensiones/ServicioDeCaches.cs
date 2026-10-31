@@ -205,6 +205,7 @@ namespace Utilidades
         public static readonly string Pedido_Recepcion = nameof(Pedido_Recepcion);
         public static readonly string Pedido_HayRecepciones = nameof(Pedido_HayRecepciones);
         public static readonly string Pedido_LineaPedidoPorRecepcion = nameof(Pedido_LineaPedidoPorRecepcion);
+        public static readonly string Pedido_Devuelto = nameof(Pedido_Devuelto);
 
         public static readonly string Alm_TiposDeMovimiento = nameof(Alm_TiposDeMovimiento);
         public static readonly string Alm_Movimiento_Recepcion = nameof(Alm_Movimiento_Recepcion);

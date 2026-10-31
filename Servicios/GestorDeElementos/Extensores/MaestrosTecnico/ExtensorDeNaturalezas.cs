@@ -10,13 +10,24 @@ namespace GestorDeElementos.Extensores
     {
         public static CuentaDtm CuentaDeGasto(this NaturalezaDtm naturaleza, ContextoSe contexto, bool errorSiNoHay = true)
         {
-            if (naturaleza.CuentaDeGasto != null) return naturaleza.CuentaDeGasto;
+            if (naturaleza.CuentaDeGasto != null && naturaleza.IdCuentaDeGasto is not null && naturaleza.CuentaDeGasto.Id == naturaleza.IdCuentaDeGasto) return naturaleza.CuentaDeGasto;
             if (naturaleza.IdCuentaDeGasto is null && errorSiNoHay) GestorDeErrores.Emitir($"la naturaleza '{naturaleza.Nombre}' no tiene indicado la cuenta de gasto");
             if (naturaleza.IdCuentaDeGasto is null && !errorSiNoHay) return null;
 
             naturaleza.CuentaDeGasto = contexto.SeleccionarPorId<CuentaDtm>((int)naturaleza.IdCuentaDeGasto);
 
             return naturaleza.CuentaDeGasto;
+        }
+
+        public static CuentaDtm CuentaDeIngreso(this NaturalezaDtm naturaleza, ContextoSe contexto, bool errorSiNoHay = true)
+        {
+            if (naturaleza.CuentaDeIngreso != null && naturaleza.IdCuentaDeIngreso is not null && naturaleza.CuentaDeIngreso.Id == naturaleza.IdCuentaDeIngreso) return naturaleza.CuentaDeIngreso;
+            if (naturaleza.IdCuentaDeIngreso is null && errorSiNoHay) GestorDeErrores.Emitir($"la naturaleza '{naturaleza.Nombre}' no tiene indicado la cuenta de ingreso");
+            if (naturaleza.IdCuentaDeIngreso is null && !errorSiNoHay) return null;
+
+            naturaleza.CuentaDeIngreso = contexto.SeleccionarPorId<CuentaDtm>((int)naturaleza.IdCuentaDeIngreso);
+
+            return naturaleza.CuentaDeIngreso;
         }
 
         public static NaturalezaDtm Naturaleza(this IPuedeUsarNaturaleza linea, ContextoSe contexto, bool aplicarJoin = false)

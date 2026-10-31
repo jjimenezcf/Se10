@@ -315,6 +315,13 @@ namespace GestoresDeNegocio.Logistica
         // (y guardarlo como correo del proveedor), la fecha de entrega y, una vez recibido o cerrado, la de recepción (no posterior a hoy ni anterior
         // a la fecha en la que se creó el pedido) y la de cierre (no posterior a hoy). Los datos se toman de la edición, si desde que se leyó otro
         // usuario ha modificado el pedido no se guardan
+        public static PedidoDto CopiarElPedido(ContextoSe contexto, int idPedidoOriginal)
+        {
+            var pedido = contexto.SeleccionarPorId<PedidoDtm>(idPedidoOriginal);
+            var copia = pedido.Copiar(contexto);
+            return contexto.SeleccionarDto<PedidoDto, PedidoDtm>(copia.Id);
+        }
+
         public static void ModificarCabecera(ContextoSe contexto, ModificarCabeceraDePedidoDto datos)
         {
             var tran = contexto.IniciarTransaccion();
@@ -424,7 +431,7 @@ namespace GestoresDeNegocio.Logistica
 
             // Se recepciona una vez cerrado: Recibir guarda las entregas y no ha de hacerlo en mitad de la transición
             if (SeDaPorRecibido(transicion))
-                pedido.RecepcionarAlDarPorRecibido(Contexto);
+                GestorDeEntregasDeUnPedido.RecepcionarAlDarPorRecibido(Contexto, pedido);
 
             return pedido;
         }

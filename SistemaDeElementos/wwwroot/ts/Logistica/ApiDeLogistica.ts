@@ -202,10 +202,15 @@ namespace Logistica {
         return parametros;
     }
 
-    // Sin entrega abre la modal para entregar la línea; con entrega la muestra en consulta
+    //---------------------------------------------------------------------------------------------------------------------------
+    // Grid de líneas: recepcionar (modal) y entrega completa (visto verde). Lo entregado se consulta, cancela y devuelve desde el
+    // grid de entregas, y lo devuelto se consulta y cancela desde el de devoluciones
+    //---------------------------------------------------------------------------------------------------------------------------
+
+    // Abre la modal para entregar parte o todo lo que queda pendiente de la línea; sus entregas se consultan desde el grid de entregas
     export function Pedido_Recepcionar(parametros: string): void {
         let linea = ped_LeerLineaDelGrid_interno(parametros);
-        if (!linea.entregada && !ped_SePuedeEntregar_interno(linea)) return;
+        if (!ped_SePuedeEntregar_interno(linea)) return;
         // modal para pedir datos de RecepcionarLineaDto (ver DescriptorDePedidos), su Aceptar está en CrudDePedidos.ModalDePedirDatos_Aceptar
         (Crud.crudMnt as CrudDePedidos).AbrirModalDeRecepcionarLinea(linea);
     }
@@ -222,14 +227,14 @@ namespace Logistica {
         (Crud.crudMnt as CrudDePedidos).Recepcion_TrasSeleccionarExpediente();
     }
 
-    // Entrega completa de la línea (visto verde): sin modal, entrega lo pedido en la línea al destino de la cabecera
+    // Entrega completa de la línea (visto verde): sin modal, entrega lo que queda pendiente de la línea al destino de la cabecera
     // (ver CrudDePedidos.EntregarLineaCompleta). El pedido completo se da por entregado desde el menú de edición
     export function Pedido_RecibirLinea(parametros: string): void {
         const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
         let linea = ped_LeerLineaDelGrid_interno(parametros);
-        if (!editor.SePuedeEntregarLaLineaCompleta(linea.entregada)) {
-            MensajesSe.Error('Recepción', linea.entregada
-                ? 'La línea ya se ha entregado, para volver a entregarla cancele antes la entrega'
+        if (!editor.SePuedeEntregarLaLineaCompleta(linea.pendiente)) {
+            MensajesSe.Error('Recepción', linea.pendiente <= 0
+                ? 'La línea ya se ha entregado por completo'
                 : !editor.EsGestorDelPedido
                     ? 'Ha de ser gestor del pedido para entregar sus líneas'
                     : 'Solo se pueden recepcionar líneas de pedidos solicitados o en recepción');
@@ -238,107 +243,199 @@ namespace Logistica {
         (Crud.crudMnt as CrudDePedidos).EntregarLineaCompleta(linea);
     }
 
-    // Aspa: anula la entrega de la línea; si no la tiene no hay nada que anular y no se llama al servidor
-    export function Pedido_LineaNoEntregada(parametros: string): void {
-        let linea = ped_LeerLineaDelGrid_interno(parametros);
-        if (!linea.entregada) {
-            MensajesSe.Error('Recepción', 'La línea no tiene entrega asociada');
-            return;
-        }
-        if (!ped_SePuedeCancelarLaEntrega_interno(linea)) return;
-        let datos: Array<Parametro> = new Array<Parametro>();
-        datos.push(new Parametro(ltrPropiedades.Logistica.Pedido.RecepcionarLinea.IdLineaPedido, linea.id));
-        datos.push(new Parametro(Ajax.Param.RowVersion, linea.rowVersion));
-        ped_EjecutarPeticionDeLinea_interno(Ajax.EndPoint.Logistica.LineasDeUnPedido.LineaNoEntregada, datos);
+    //---------------------------------------------------------------------------------------------------------------------------
+    // Grid de entregas: consultar (modal de recepción en consulta), cancelar y devolver
+    //---------------------------------------------------------------------------------------------------------------------------
+
+    export function Pedido_ConsultarEntrega(parametros: string): void {
+        (Crud.crudMnt as CrudDePedidos).ConsultarEntrega(ped_LeerEntregaDelGrid_interno(parametros));
     }
 
-    // Lo pedido en la línea y, si se ha entregado, los datos de su entrega
+    // Cancela la entrega; con devoluciones, contabilizada o con el pedido fuera de recepción no se llama al servidor
+    export function Pedido_CancelarEntrega(parametros: string): void {
+        const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
+        let entrega = ped_LeerEntregaDelGrid_interno(parametros);
+        if (!editor.SePuedeCancelarLaEntrega(entrega.contabilizada, entrega.cantidadDevuelta)) {
+            MensajesSe.Error('Recepción', !editor.EsGestorDelPedido
+                ? 'Ha de ser gestor del pedido para cancelar sus entregas'
+                : entrega.cantidadDevuelta > 0
+                    ? 'La entrega tiene devoluciones, cancélelas antes de cancelar la entrega'
+                    : entrega.contabilizada
+                        ? 'La entrega está contabilizada (su preasiento está en un lote contable), no se puede cancelar'
+                        : 'Solo se puede cancelar una entrega con el pedido en recepción');
+            return;
+        }
+        (Crud.crudMnt as CrudDePedidos).CancelarEntrega(entrega);
+    }
+
+    // Abre la modal para devolver parte o todo lo que queda por devolver de la entrega (ver CrudDePedidos.AbrirModalDeDevolverEntrega);
+    // el servidor vuelve a validar que no se devuelva más de lo entregado
+    export function Pedido_DevolverEntrega(parametros: string): void {
+        const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
+        let entrega = ped_LeerEntregaDelGrid_interno(parametros);
+        const pendiente = entrega.cantidad - entrega.cantidadDevuelta;
+        if (!editor.SePuedeDevolverLaEntrega(pendiente)) {
+            MensajesSe.Error('Devolución', !editor.EsGestorDelPedido
+                ? 'Ha de ser gestor del pedido para devolver sus entregas'
+                : pendiente <= 0
+                    ? 'La entrega ya se ha devuelto por completo'
+                    : 'Solo se pueden devolver entregas de pedidos en recepción o cerrados');
+            return;
+        }
+        (Crud.crudMnt as CrudDePedidos).AbrirModalDeDevolverEntrega(entrega);
+    }
+
+    export function Pedido_CalcularImporteDevuelto() {
+        (Crud.crudMnt as CrudDePedidos).CalcularImporteDevuelto();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------
+    // Grid de devoluciones: consultar (modal de devolución en consulta) y cancelar
+    //---------------------------------------------------------------------------------------------------------------------------
+
+    export function Pedido_ConsultarDevolucion(parametros: string): void {
+        (Crud.crudMnt as CrudDePedidos).ConsultarDevolucion(ped_LeerDevolucionDelGrid_interno(parametros));
+    }
+
+    export function Pedido_CancelarDevolucion(parametros: string): void {
+        const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
+        let devolucion = ped_LeerDevolucionDelGrid_interno(parametros);
+        if (!editor.SePuedeCancelarLaDevolucion(devolucion.contabilizada)) {
+            MensajesSe.Error('Devolución', !editor.EsGestorDelPedido
+                ? 'Ha de ser gestor del pedido para cancelar sus devoluciones'
+                : devolucion.contabilizada
+                    ? 'La devolución está contabilizada (su preasiento está en un lote contable), no se puede cancelar'
+                    : 'Solo se pueden cancelar devoluciones de pedidos en recepción o cerrados');
+            return;
+        }
+        (Crud.crudMnt as CrudDePedidos).CancelarDevolucion(devolucion);
+    }
+
+    // Opción "Imprimir" del pie del grid de devoluciones (ver CrudDePedidos.ImprimirDevoluciones)
+    export function Pedido_ImprimirDevoluciones(): void {
+        (Crud.crudMnt as CrudDePedidos).ImprimirDevoluciones();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------
+    // Lectura de las filas de los grids de líneas, entregas y devoluciones
+    //---------------------------------------------------------------------------------------------------------------------------
+
+    // Lo pedido en la línea y lo que queda por entregar
     export interface LineaDelGridDePedido {
         id: number;
         rowVersion: string;
         cantidad: number;
         precio: number;
         descuento: number;
-        entregada: boolean;
-        cantidadRecibida: number;
-        precioDeRecepcion: number;
-        descuentoAplicado: number;
-        idAlmacenDeRecepcion: number;
-        almacenDeRecepcion: string;
-        idExpedienteDeRecepcion: number;
-        expedienteDeRecepcion: string;
+        pendiente: number;
+    }
+
+    // Una entrega (recepción) de una línea, con lo ya devuelto
+    export interface EntregaDelGridDePedido {
+        id: number;
+        rowVersion: string;
+        idLinea: number;
         recepcionadaEl: string;
+        cantidad: number;
+        precio: number;
+        descuento: number;
+        idAlmacen: number;
+        almacen: string;
+        idExpediente: number;
+        expediente: string;
+        cantidadDevuelta: number;
         contabilizada: boolean;
     }
 
-    function ped_LeerLineaDelGrid_interno(parametros: string): LineaDelGridDePedido {
+    // Una devolución de una entrega
+    export interface DevolucionDelGridDePedido {
+        id: number;
+        rowVersion: string;
+        devueltaEl: string;
+        cantidad: number;
+        precio: number;
+        descuento: number;
+        idAlmacen: number;
+        almacen: string;
+        idExpediente: number;
+        expediente: string;
+        motivo: string;
+        contabilizada: boolean;
+    }
+
+    // No se usa ApiDeGrid.Expansor_ObtenerPropiedadDeLaFila porque da error si la celda está vacía (p.e. una línea sin descuento)
+    function ped_LectorDeLaFila_interno(parametros: string): (propiedad: string) => string {
         let partes = parametros.split(';');
         let idGrid: string = partes[0];
         let fila: number = Numero(partes[1]);
-        // No se usa ApiDeGrid.Expansor_ObtenerPropiedadDeLaFila porque da error si la celda está vacía (p.e. una línea sin descuento)
         let idDeLaFila = `${idGrid.replace('-contenedor', '-tabla_d_tr')}_${fila}`;
-        let leer = (propiedad: string) => ApiDeExpansor.ObtenerElValorDeLaPropiedadDeLaFila(idDeLaFila, propiedad);
-        let aNumero = (texto: string) => IsNullOrEmpty(texto) ? 0 : Numero(texto);
+        return (propiedad: string) => ApiDeExpansor.ObtenerElValorDeLaPropiedadDeLaFila(idDeLaFila, propiedad);
+    }
 
+    function ped_ANumero_interno(texto: string): number {
+        return IsNullOrEmpty(texto) ? 0 : Numero(texto);
+    }
+
+    function ped_LeerLineaDelGrid_interno(parametros: string): LineaDelGridDePedido {
+        const leer = ped_LectorDeLaFila_interno(parametros);
         return {
             id: Numero(leer(literal.id)),
             rowVersion: leer(ltrPropiedades.Elemento.RowVersion),
-            cantidad: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.cantidad)),
-            precio: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.precio)),
-            descuento: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.descuentoPorLinea)),
-            entregada: !IsNullOrEmpty(leer(ltrPropiedades.Logistica.Pedido.linea.CantidadRecibida)),
-            cantidadRecibida: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.CantidadRecibida)),
-            precioDeRecepcion: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.PrecioDeRecepcion)),
-            descuentoAplicado: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.DescuentoAplicado)),
-            idAlmacenDeRecepcion: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.IdAlmacenDeRecepcion)),
-            almacenDeRecepcion: leer(ltrPropiedades.Logistica.Pedido.linea.AlmacenDeRecepcion),
-            idExpedienteDeRecepcion: aNumero(leer(ltrPropiedades.Logistica.Pedido.linea.IdExpedienteDeRecepcion)),
-            expedienteDeRecepcion: leer(ltrPropiedades.Logistica.Pedido.linea.ExpedienteDeRecepcion),
+            cantidad: ped_ANumero_interno(leer(ltrPropiedades.Logistica.Pedido.linea.cantidad)),
+            precio: ped_ANumero_interno(leer(ltrPropiedades.Logistica.Pedido.linea.precio)),
+            descuento: ped_ANumero_interno(leer(ltrPropiedades.Logistica.Pedido.linea.descuentoPorLinea)),
+            pendiente: ped_ANumero_interno(leer(ltrPropiedades.Logistica.Pedido.linea.CantidadPendiente))
+        };
+    }
+
+    function ped_LeerEntregaDelGrid_interno(parametros: string): EntregaDelGridDePedido {
+        const leer = ped_LectorDeLaFila_interno(parametros);
+        const propiedades = ltrPropiedades.Logistica.Pedido.Entrega;
+        return {
+            id: Numero(leer(literal.id)),
+            rowVersion: leer(ltrPropiedades.Elemento.RowVersion),
+            idLinea: ped_ANumero_interno(leer(propiedades.IdLinea)),
             // en el grid con formato dd/MM/yyyy
-            recepcionadaEl: leer(ltrPropiedades.Logistica.Pedido.linea.RecepcionadaEl),
-            contabilizada: (leer(ltrPropiedades.Logistica.Pedido.linea.EntregaContabilizada) ?? '').toLowerCase() === 'true'
+            recepcionadaEl: leer(propiedades.RecepcionadaEl),
+            cantidad: ped_ANumero_interno(leer(propiedades.Cantidad)),
+            precio: ped_ANumero_interno(leer(propiedades.Precio)),
+            descuento: ped_ANumero_interno(leer(propiedades.Descuento)),
+            idAlmacen: ped_ANumero_interno(leer(propiedades.IdAlmacen)),
+            almacen: leer(propiedades.Almacen),
+            idExpediente: ped_ANumero_interno(leer(propiedades.IdExpediente)),
+            expediente: leer(propiedades.Expediente),
+            cantidadDevuelta: ped_ANumero_interno(leer(propiedades.CantidadDevuelta)),
+            contabilizada: (leer(propiedades.Contabilizada) ?? '').toLowerCase() === 'true'
+        };
+    }
+
+    function ped_LeerDevolucionDelGrid_interno(parametros: string): DevolucionDelGridDePedido {
+        const leer = ped_LectorDeLaFila_interno(parametros);
+        const propiedades = ltrPropiedades.Logistica.Pedido.Devolucion;
+        return {
+            id: Numero(leer(literal.id)),
+            rowVersion: leer(ltrPropiedades.Elemento.RowVersion),
+            // en el grid con formato dd/MM/yyyy
+            devueltaEl: leer(propiedades.DevueltaEl),
+            cantidad: ped_ANumero_interno(leer(propiedades.Cantidad)),
+            precio: ped_ANumero_interno(leer(propiedades.Precio)),
+            descuento: ped_ANumero_interno(leer(propiedades.Descuento)),
+            idAlmacen: ped_ANumero_interno(leer(propiedades.IdAlmacen)),
+            almacen: leer(propiedades.Almacen),
+            idExpediente: ped_ANumero_interno(leer(propiedades.IdExpediente)),
+            expediente: leer(propiedades.Expediente),
+            motivo: leer(propiedades.Motivo),
+            contabilizada: (leer(propiedades.Contabilizada) ?? '').toLowerCase() === 'true'
         };
     }
 
     function ped_SePuedeEntregar_interno(linea: LineaDelGridDePedido): boolean {
-        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeEntregarLaLinea(linea.entregada))
+        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeEntregarLaLinea(linea.pendiente))
             return true;
-        MensajesSe.Error('Recepción', linea.entregada
-            ? 'La línea ya se ha entregado, para volver a entregarla cancele antes la entrega'
+        MensajesSe.Error('Recepción', linea.pendiente <= 0
+            ? 'La línea ya se ha entregado por completo: sus entregas se consultan en el grid de entregas'
             : 'Solo se pueden recepcionar líneas de pedidos solicitados o en recepción');
         return false;
-    }
-
-    function ped_SePuedeCancelarLaEntrega_interno(linea: LineaDelGridDePedido): boolean {
-        if ((Crud.crudMnt.crudDeEdicion as CrudEdicionPedido).SePuedeCancelarLaEntrega(linea.entregada, linea.contabilizada))
-            return true;
-        const editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
-        MensajesSe.Error('Recepción', !editor.EsGestorDelPedido
-            ? 'Ha de ser gestor del pedido para cancelar sus entregas'
-            : linea.contabilizada
-            ? 'La entrega de la línea está contabilizada (su preasiento está en un lote contable), no se puede cancelar'
-            : 'Solo se puede cancelar la entrega de una línea con el pedido en recepción');
-        return false;
-    }
-
-    // Los parámetros llevan el RowVersion de la línea, así IncluirRowId no añade el del pedido.
-    // Tras cada operación se recarga el grid para que las filas tengan la versión actual de sus líneas
-    function ped_EjecutarPeticionDeLinea_interno(accion: string, parametros: Array<Parametro>): void {
-        let editor = Crud.crudMnt.crudDeEdicion as CrudEdicionPedido;
-        ApiDePeticiones.EjecutarPeticion(
-            editor,
-            ltrControladores.Logistica.LineasDeUnPedido,
-            accion,
-            parametros,
-            new Array<Parametro>()
-        )
-        .then((peticion) => {
-            MensajesSe.Info(peticion.resultado.consola);
-            editor.RecargarGridDeLineas();
-            // al cancelar una entrega queda una traza en el pedido
-            editor.RecargarGridDeTrazas();
-        })
-        .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
     }
 
     function ped_mapearUnitarioSeleccionado_interno(unitario: any) {

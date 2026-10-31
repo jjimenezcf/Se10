@@ -26,6 +26,8 @@ namespace MVCSistemaDeElementos.Descriptores
               rutaBase: enumNameSpaceTs.Logistica,
               tituloPlural: ltrVistasTitulos.CrudDeMovimientosDeAlmacen)
         {
+            // por la fecha en la que se realizó cada movimiento, como se va calculando el stock
+            Mnt.OrdenacionInicial = $"{nameof(MovimientoDeAlmacenDto.RealizadoEl)}:{nameof(MovimientoDeAlmacenDtm.RealizadoEl)}:{enumModoOrdenacion.ascendente.Render()}";
 
            Mnt.BloqueGeneral.QuitarControl(nameof(INombre.Nombre));
 

@@ -8,6 +8,17 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ServicioDeDatos.Logistica
 {
+    // Parámetros con los que se entrega una línea o se cancela una entrega (ver GestorDeEntregasDeUnPedido)
+    public class ltrEntregasDeUnPedido
+    {
+        // La línea y el pedido ya leídos y validados, y si el pedido ha de estar en recepción (al darlo por recibido se entrega con el
+        // pedido ya cerrado)
+        public const string Linea = nameof(Linea);
+        public const string Pedido = nameof(Pedido);
+        public const string ExigirRecepcion = nameof(ExigirRecepcion);
+        // Descripción de la entrega cancelada, se toma antes de borrarla para la traza del pedido
+        public const string Descripcion = nameof(Descripcion);
+    }
 
     // Entregas de una línea de un pedido: cada entrega va a un movimiento del almacén (IdAlmacen) o a un movimiento
     // de la obra asociada al expediente (IdExpediente), nunca a ambos (ver CK_PEDIDO_LINEA_RECEPCION_DESTINO)

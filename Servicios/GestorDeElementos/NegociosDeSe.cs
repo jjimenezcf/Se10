@@ -971,8 +971,18 @@ public static class NegociosDeSe
         return new GestorDeElementos<ContextoSe, T, ElementoDto>(contexto);
     }
 
+    // Dtm cuyo Dto no se llama como el Dtm (el nombre deducido corresponde a otro Dto, p.e. el de una modal), para crear su gestor
+    private static readonly Dictionary<Type, Type> DtoDeNombreDistinto = new Dictionary<Type, Type>
+    {
+        { typeof(ServicioDeDatos.Logistica.RecepcionDeLineaDtm), typeof(ModeloDeDto.Logistica.EntregaDeUnPedidoDto) },
+        { typeof(ServicioDeDatos.Logistica.DevolucionDeEntregaDtm), typeof(ModeloDeDto.Logistica.DevolucionDeUnPedidoDto) }
+    };
+
     public static Type ToDto(this Type tipoDtm)
     {
+        if (DtoDeNombreDistinto.TryGetValue(tipoDtm, out var dto))
+            return dto;
+
         var espacioDeNombreDeDtm = ApiDeEnsamblados.DllDelServicioDeDatos.Replace(".dll", "");
         var espacioDeNombreDeDto = ApiDeEnsamblados.DllDelModeloDeDto.Replace(".dll", "");
         var nombreDelTipoDto = tipoDtm.FullName.Replace("Dtm", "Dto").Replace(espacioDeNombreDeDtm, espacioDeNombreDeDto);

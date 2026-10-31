@@ -604,8 +604,12 @@ div[propiedad="Editar"] a[href^="javascript:Formulario.EventosDeExpansores('abri
 }
 
 div[propiedad="Recepcionar"] a[href^="javascript:Logistica.Pedido_Recepcionar"],
-div[propiedad="NoEntregada"] a[href^="javascript:Logistica.Pedido_LineaNoEntregada"],
-div[propiedad="Recibida"] a[href^="javascript:Logistica.Pedido_RecibirLinea"] {
+div[propiedad="Consultar"] a[href^="javascript:Logistica.Pedido_ConsultarEntrega"],
+div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarEntrega"],
+div[propiedad="Consultar"] a[href^="javascript:Logistica.Pedido_ConsultarDevolucion"],
+div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarDevolucion"],
+div[propiedad="Recibida"] a[href^="javascript:Logistica.Pedido_RecibirLinea"],
+div[propiedad="Devolver"] a[href^="javascript:Logistica.Pedido_DevolverEntrega"] {
     font-size: 0;
     display: inline-block;
     width: 16px;
@@ -621,12 +625,27 @@ div[propiedad="Recepcionar"] a[href^="javascript:Logistica.Pedido_Recepcionar"] 
     background-image: url('/images/menu/RecepcionarLinea.svg');
 }
 
-div[propiedad="NoEntregada"] a[href^="javascript:Logistica.Pedido_LineaNoEntregada"] {
+/* la i de información, como la de la columna Detalle */
+div[propiedad="Consultar"] a[href^="javascript:Logistica.Pedido_ConsultarEntrega"] {
+    background-image: url('/images/menu/informacion.png');
+}
+
+div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarEntrega"],
+div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarDevolucion"] {
     background-image: url('/images/menu/LineaNoEntregada.svg');
+}
+
+/* la i de información, como la de la columna Detalle */
+div[propiedad="Consultar"] a[href^="javascript:Logistica.Pedido_ConsultarDevolucion"] {
+    background-image: url('/images/menu/informacion.png');
 }
 
 div[propiedad="Recibida"] a[href^="javascript:Logistica.Pedido_RecibirLinea"] {
     background-image: url('/images/menu/LineaRecibida.svg');
+}
+
+div[propiedad="Devolver"] a[href^="javascript:Logistica.Pedido_DevolverEntrega"] {
+    background-image: url('/images/menu/DevolverEntrega.svg');
 }
 
 a.accion-deshabilitada {

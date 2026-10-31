@@ -12110,6 +12110,74 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.DevolucionDeEntregaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Cantidad")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("CANTIDAD");
+
+                    b.Property<DateTime>("DevueltaEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("DEVUELTA_EL");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECCRE");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECMOD");
+
+                    b.Property<int>("IdLineaDeRecepcion")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LINEA_RECEPCION");
+
+                    b.Property<int>("IdUsuaCrea")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CREADOR");
+
+                    b.Property<int?>("IdUsuaModi")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_MODIFICADOR");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(2000)")
+                        .HasColumnName("MOTIVO");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdLineaDeRecepcion")
+                        .HasDatabaseName("I_PEDIDO_LINEA_DEVOLUCION_ID_LINEA_RECEPCION");
+
+                    b.HasIndex("IdUsuaCrea")
+                        .HasDatabaseName("I_PEDIDO_LINEA_DEVOLUCION_ID_CREADOR");
+
+                    b.HasIndex("IdUsuaModi")
+                        .HasDatabaseName("I_PEDIDO_LINEA_DEVOLUCION_ID_MODIFICADOR");
+
+                    b.ToTable("PEDIDO_LINEA_DEVOLUCION", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("PEDIDO_LINEA_DEVOLUCION_Trigger");
+
+                            t.HasCheckConstraint("CK_PEDIDO_LINEA_DEVOLUCION_CANTIDAD", "[CANTIDAD] > 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.DireccionDeUnAlmacenDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -12981,6 +13049,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdLineaDeRecepcion")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_RECEPCION");
+
+                    b.HasIndex("IdLineaDevolucion")
+                        .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_DEVOLUCION");
 
                     b.HasIndex("IdPreasiento")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_PREASIENTO");
@@ -36177,6 +36248,35 @@ namespace Migraciones.Migrations
                     b.Navigation("Regularizacion");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.DevolucionDeEntregaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.RecepcionDeLineaDtm", "LineaDeRecepcion")
+                        .WithMany()
+                        .HasForeignKey("IdLineaDeRecepcion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_PEDIDO_LINEA_DEVOLUCION_ID_LINEA_RECEPCION");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaCrea")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_PEDIDO_LINEA_DEVOLUCION_ID_CREADOR");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioModificador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaModi")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PEDIDO_LINEA_DEVOLUCION_ID_MODIFICADOR");
+
+                    b.Navigation("LineaDeRecepcion");
+
+                    b.Navigation("UsuarioCreador");
+
+                    b.Navigation("UsuarioModificador");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.DireccionDeUnAlmacenDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Callejero.BarrioDtm", null)
@@ -36547,6 +36647,12 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_LINEA_RECEPCION");
 
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeEntregaDtm", "LineaDeDevolucion")
+                        .WithMany()
+                        .HasForeignKey("IdLineaDevolucion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_LINEA_DEVOLUCION");
+
                     b.HasOne("ServicioDeDatos.Contabilidad.PreasientoDtm", "Preasiento")
                         .WithMany()
                         .HasForeignKey("IdPreasiento")
@@ -36581,6 +36687,8 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_MODIFICADOR");
 
                     b.Navigation("Almacen");
+
+                    b.Navigation("LineaDeDevolucion");
 
                     b.Navigation("LineaDeRecepcion");
 

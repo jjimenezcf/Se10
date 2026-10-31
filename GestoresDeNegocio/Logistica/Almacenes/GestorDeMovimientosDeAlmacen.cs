@@ -151,7 +151,8 @@ namespace GestoresDeNegocio.Logistica
             // sólo se borran al cancelar la entrega de una recepción en un almacén; los posteriores se barren en DespuesDePersistir
             if (parametros.Eliminando)
             {
-                if (parametros.AccionQueSeEjecuta != ltrDeUnMovimientoDeAlmacen.Accion_AnularEntradaDeCompra)
+                if (parametros.AccionQueSeEjecuta != ltrDeUnMovimientoDeAlmacen.Accion_AnularEntradaDeCompra
+                    && parametros.AccionQueSeEjecuta != ltrDeUnMovimientoDeAlmacen.Accion_AnularDevolucionDeCompra)
                     GestorDeErrores.Emitir("No se pueden eliminar movimientos de almacén");
                 movimiento.CancelarPreasientoDeRecepcion(Contexto);
                 return;
@@ -190,35 +191,26 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(movimiento, elemento, parametros);
 
-            var almacen = movimiento.Almacen(Contexto).Expresion;
             var claseDeMovimiento = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento;
-            var documento = ObtenerDocumentoDeOrigenODestino(movimiento, claseDeMovimiento);
             elemento.Proveedor = movimiento.Proveedor(Contexto, emitirErrorSiNoEsRecepcion: false)?.Referencia(Contexto) ?? string.Empty;
             elemento.Preasiento = movimiento.Preasiento(Contexto)?.Referencia ?? string.Empty;
 
-            // el almacén no se muestra como destino: en las entradas el destino queda en blanco y en las salidas es el documento.
-            // Al pulsar el documento se navega a su edición (ver ExtensorDeAlmacenes.UrlDelDocumento)
-            switch (claseDeMovimiento)
-            {
-                case enumClaseDeMovimiento.Salida:
-                    elemento.Origen = string.Empty;
-                    elemento.Destino = documento;
-                    break;
-                default:
-                    elemento.Origen = documento;
-                    elemento.Destino = string.Empty;
-                    break;
-            }
+            // el origen es la operación que generó el movimiento, sea entrada o salida; al pulsarlo se navega a su edición
+            // (ver ExtensorDeAlmacenes.UrlDelDocumento)
+            elemento.Origen = ObtenerDocumentoDeOrigenODestino(movimiento, claseDeMovimiento);
         }
 
         private string ObtenerDocumentoDeOrigenODestino(MovimientoDeAlmacenDtm movimiento, enumClaseDeMovimiento claseDeMovimiento)
         {
             if (movimiento.IdMovimiento != null) return $"Movimiento de obra Nº {movimiento.IdMovimiento}";
+            // la devolución de compra también lleva la entrega devuelta (IdLineaDeRecepcion), por eso se mira antes
             if (movimiento.IdLineaDeRecepcion != null)
             {
                 var linea = ExtensorDeRecepciones.LineaDePedido(Contexto, (int)movimiento.IdLineaDeRecepcion);
                 var pedido = linea.DetalleDe<PedidoDtm>(Contexto);
-                return $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'";
+                return movimiento.IdLineaDevolucion != null
+                    ? $"Devolución de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'"
+                    : $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'";
             }
             if (movimiento.IdLineaDevolucion != null) return $"Devolución Nº {movimiento.IdLineaDevolucion}";
             if (movimiento.IdLineaInventario != null)
