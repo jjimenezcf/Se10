@@ -26,6 +26,12 @@ namespace ServicioDeDatos.Logistica
 
 
         public const string FiltroPorImporte = nameof(FiltroPorImporte);
+        public const string FiltroPorImporteEntregado = nameof(FiltroPorImporteEntregado);
+        public const string FiltroPorImporteDevuelto = nameof(FiltroPorImporteDevuelto);
+        public const string FiltroPorUnitario = nameof(FiltroPorUnitario);
+        public const string FiltroPorNaturaleza = nameof(FiltroPorNaturaleza);
+        public const string FiltroPorPreasiento = nameof(FiltroPorPreasiento);
+        public const string FiltroPorLoteContable = nameof(FiltroPorLoteContable);
 
 
         public const string PedidosImputablesAlContrato = nameof(PedidosImputablesAlContrato);

@@ -43,7 +43,8 @@ namespace ModeloDeDto.Logistica
             , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Mal_IrAlPreasiento) + "(numeroDeFila)")]
         public string Preasiento { get; set; }
 
-        [IUPropiedad(Etiqueta = "Realizado el", Ayuda = "fecha en la que se realizó el movimiento", TipoDeControl = enumTipoControl.SelectorDeFechaHora, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false)]
+        // el grid se ordena por esta fecha (ver DescriptorDeMovimientosDeAlmacen)
+        [IUPropiedad(Etiqueta = "Realizado el", Ayuda = "fecha en la que se realizó el movimiento", TipoDeControl = enumTipoControl.SelectorDeFechaHora, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Ordenar = true)]
         public DateTime RealizadoEl { get; set; }
     }
 }

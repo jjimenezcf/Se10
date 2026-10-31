@@ -11,6 +11,7 @@ using ModeloDeDto;
 using ServicioDeDatos.Elemento;
 using System;
 using ServicioDeDatos.Expediente;
+using ServicioDeDatos.Contabilidad;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -23,6 +24,118 @@ namespace GestoresDeNegocio.Logistica
             if (filtro != null)
             {
                 consulta = consulta.Where(x => x.IdProveedor == filtro.Valor.Entero());
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // pedidos con alguna línea del unitario
+        public static IQueryable<PedidoDtm> FiltroPorUnitario(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorUnitario.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var idUnitario = filtro.Valor.Entero();
+                consulta = consulta.Where(p => contexto.Set<LineaDeUnPedidoDtm>().Any(l => l.IdElemento == p.Id && l.IdUnitario == idUnitario));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // pedidos con alguna línea de la naturaleza; las líneas de un unitario llevan la naturaleza del unitario (ver GestorDeLineasDeUnPedido)
+        public static IQueryable<PedidoDtm> FiltroPorNaturaleza(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorNaturaleza.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var idNaturaleza = filtro.Valor.Entero();
+                consulta = consulta.Where(p => contexto.Set<LineaDeUnPedidoDtm>().Any(l => l.IdElemento == p.Id && l.IdNaturaleza == idNaturaleza));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Importe del pedido (sin iva): lo pedido en sus líneas con su descuento, como LineaDeUnPedidoDtm.ImporteDeLinea; un pedido sin líneas suma 0
+        public static IQueryable<PedidoDtm> FiltroPorImporte(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorImporte.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var (desde, hasta) = filtro.ParsearRango();
+                consulta = consulta.Where(p => (desde == null || desde <=
+                                                    (contexto.Set<LineaDeUnPedidoDtm>().Where(l => l.IdElemento == p.Id && l.Precio != null && l.Cantidad != null)
+                                                        .Sum(l => (decimal?)((decimal)l.Precio * (decimal)l.Cantidad * (1 - (l.Descuento ?? 0) / 100))) ?? 0))
+                                            && (hasta == null || hasta >=
+                                                    (contexto.Set<LineaDeUnPedidoDtm>().Where(l => l.IdElemento == p.Id && l.Precio != null && l.Cantidad != null)
+                                                        .Sum(l => (decimal?)((decimal)l.Precio * (decimal)l.Cantidad * (1 - (l.Descuento ?? 0) / 100))) ?? 0)));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Importe entregado (sin iva): todas las entregas de sus líneas a su precio y descuento, como RecepcionDeLineaDtm.Importe, sin restar
+        // lo devuelto; un pedido sin entregas suma 0
+        public static IQueryable<PedidoDtm> FiltroPorImporteEntregado(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorImporteEntregado.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var (desde, hasta) = filtro.ParsearRango();
+                consulta = consulta.Where(p => (desde == null || desde <=
+                                                    (contexto.Set<RecepcionDeLineaDtm>().Where(r => r.Linea.IdElemento == p.Id)
+                                                        .Sum(r => (decimal?)(r.Cantidad * r.Precio * (1 - (r.Descuento ?? 0) / 100))) ?? 0))
+                                            && (hasta == null || hasta >=
+                                                    (contexto.Set<RecepcionDeLineaDtm>().Where(r => r.Linea.IdElemento == p.Id)
+                                                        .Sum(r => (decimal?)(r.Cantidad * r.Precio * (1 - (r.Descuento ?? 0) / 100))) ?? 0)));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Importe devuelto (sin iva): todas las devoluciones de sus entregas al precio y descuento de la entrega, como
+        // ExtensorDeDevolucionesDePedido.Importe; un pedido sin devoluciones suma 0
+        public static IQueryable<PedidoDtm> FiltroPorImporteDevuelto(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorImporteDevuelto.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var (desde, hasta) = filtro.ParsearRango();
+                consulta = consulta.Where(p => (desde == null || desde <=
+                                                    (contexto.Set<DevolucionDeEntregaDtm>().Where(d => d.LineaDeRecepcion.Linea.IdElemento == p.Id)
+                                                        .Sum(d => (decimal?)(d.Cantidad * d.LineaDeRecepcion.Precio * (1 - (d.LineaDeRecepcion.Descuento ?? 0) / 100))) ?? 0))
+                                            && (hasta == null || hasta >=
+                                                    (contexto.Set<DevolucionDeEntregaDtm>().Where(d => d.LineaDeRecepcion.Linea.IdElemento == p.Id)
+                                                        .Sum(d => (decimal?)(d.Cantidad * d.LineaDeRecepcion.Precio * (1 - (d.LineaDeRecepcion.Descuento ?? 0) / 100))) ?? 0)));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Pedidos con algún movimiento de almacén preasentado en el preasiento: la entrada de compra de una entrega o la salida de una
+        // devolución, que también lleva la entrega (ver ExtensorDeDevolucionesDePedido.SalidaPorDevolucion)
+        public static IQueryable<PedidoDtm> FiltroPorPreasiento(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorPreasiento.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var idPreasiento = filtro.Valor.Entero();
+                consulta = consulta.Where(p => contexto.Set<MovimientoDeAlmacenDtm>()
+                    .Any(m => m.IdPreasiento == idPreasiento && m.LineaDeRecepcion.Linea.IdElemento == p.Id));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Pedidos con algún movimiento de almacén cuyo preasiento está en el lote contable
+        public static IQueryable<PedidoDtm> FiltroPorLoteContable(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorLoteContable.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var idLote = filtro.Valor.Entero();
+                consulta = consulta.Where(p => contexto.Set<MovimientoDeAlmacenDtm>()
+                    .Any(m => m.IdPreasiento != null && m.LineaDeRecepcion.Linea.IdElemento == p.Id
+                           && contexto.Set<CircuitoDocDeUnPreasientoDtm>().Any(cp => cp.idElemento2 == idLote && cp.idElemento1 == m.IdPreasiento)));
                 filtro.Aplicado = true;
             }
             return consulta;

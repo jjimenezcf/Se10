@@ -109,10 +109,18 @@ namespace GestoresDeNegocio.Logistica
 
         protected override IQueryable<PedidoDtm> AplicarFiltros(IQueryable<PedidoDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
-            parametros.AplicarFiltroQueMostrar = !filtros.OmitirFiltrosPorEstado(new List<string> { ltrDeUnPedido.IdContrato, ltrDeUnPedido.PedidosImputablesAlContrato, ltrDeUnPedido.IdExpediente, ltrDeUnPedido.PedidosImputablesAlExpediente, ltrDeUnPedido.IdAlmacen });
+            // un pedido preasentado suele estar cerrado: al filtrar por preasiento o lote contable se muestran en cualquier estado
+            parametros.AplicarFiltroQueMostrar = !filtros.OmitirFiltrosPorEstado(new List<string> { ltrDeUnPedido.IdContrato, ltrDeUnPedido.PedidosImputablesAlContrato, ltrDeUnPedido.IdExpediente, ltrDeUnPedido.PedidosImputablesAlExpediente, ltrDeUnPedido.IdAlmacen, ltrDeUnPedido.FiltroPorPreasiento, ltrDeUnPedido.FiltroPorLoteContable });
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
             consulta = consulta.FiltroPorEjercicio(filtros);
             consulta = consulta.FiltroPorProveedor(filtros);
+            consulta = consulta.FiltroPorUnitario(Contexto, filtros);
+            consulta = consulta.FiltroPorNaturaleza(Contexto, filtros);
+            consulta = consulta.FiltroPorImporte(Contexto, filtros);
+            consulta = consulta.FiltroPorImporteEntregado(Contexto, filtros);
+            consulta = consulta.FiltroPorImporteDevuelto(Contexto, filtros);
+            consulta = consulta.FiltroPorPreasiento(Contexto, filtros);
+            consulta = consulta.FiltroPorLoteContable(Contexto, filtros);
             consulta = consulta.FiltroPorAsuntoReferenciaPedido(Contexto, filtros);
             consulta = consulta.FiltroPorFechaPedido(filtros);
             consulta = consulta.FiltroPorFechaDeEntrega(filtros);

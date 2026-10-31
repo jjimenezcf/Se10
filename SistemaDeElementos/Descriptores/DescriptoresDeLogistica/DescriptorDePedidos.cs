@@ -13,6 +13,12 @@ using ServicioDeDatos.Expediente;
 using ModeloDeDto.Terceros;
 using GestorDeElementos.Extensores;
 using ModeloDeDto;
+using ModeloDeDto.MaestrosTecnico;
+using ServicioDeDatos.MaestrosTecnico;
+using ModeloDeDto.Contabilidad;
+using ModeloDeDto.SistemaDocumental;
+using ServicioDeDatos.SistemaDocumental;
+using System.Linq;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -120,13 +126,57 @@ namespace MVCSistemaDeElementos.Descriptores
             var modalDeDatos = new ModalDeFiltrado<PedidoDto>(Mnt.Filtro, "filtrosDelPedido", "Datos del pedido");
             Mnt.Filtro.Modales.Add(modalDeDatos);
             FiltroPorProveedor(modalDeDatos);
+            FiltroPorUnitario(modalDeDatos);
             FiltrosPorImporte(modalDeDatos);
+            FiltroPorNaturaleza(modalDeDatos);
 
             var modalDeRelacion = new ModalDeFiltrado<PedidoDto>(Mnt.Filtro, "filtrosDeRelacionesConPedido", "Relaciones con el pedido");
             Mnt.Filtro.Modales.Add(modalDeRelacion);
             FiltroPorExpediente(modalDeRelacion);
             FiltroPorContrato(modalDeRelacion);
             FiltroPorAlmacen(modalDeRelacion);
+            FiltroPorPreasiento(modalDeRelacion);
+            FiltroPorLoteContable(modalDeRelacion);
+        }
+
+        // pedidos con algún movimiento de almacén (entrada de una entrega o salida de una devolución) preasentado en el preasiento
+        private static void FiltroPorPreasiento(ModalDeFiltrado<PedidoDto> modal)
+        {
+            var ld = new ListasDinamicas<PedidoDto>(modal,
+                 etiqueta: enumNegocio.Preasiento.Singular(),
+                 filtrarPor: ltrDeUnPedido.FiltroPorPreasiento,
+                 ayuda: "pedidos con un movimiento de almacén en el preasiento",
+                 seleccionarDe: nameof(PreasientoDto),
+                 buscarPor: nameof(PreasientoDto.Referencia),
+                 mostrarExpresion: nameof(PreasientoDto.Expresion),
+                 criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                 posicion: new Posicion(1, 0),
+                 controlador: nameof(PreasientosController),
+                 navegarA: nameof(PreasientosController.CrudPreasientos),
+                 restringirPor: "",
+                 alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+            modal.ControlesDeFiltrado.Add(ld);
+        }
+
+        // pedidos con algún movimiento de almacén cuyo preasiento está en el lote contable
+        private static void FiltroPorLoteContable(ModalDeFiltrado<PedidoDto> modal)
+        {
+            var ld = new ListasDinamicas<PedidoDto>(modal,
+                 etiqueta: ltrDeUnLoteContable.EtiquetaLoteContable,
+                 filtrarPor: ltrDeUnPedido.FiltroPorLoteContable,
+                 ayuda: "pedidos con un movimiento de almacén preasentado en el lote",
+                 seleccionarDe: nameof(CircuitoDocDtm),
+                 buscarPor: nameof(ltrDeUnCircuito.SeleccionarParaFiltrarPorLoteContable),
+                 mostrarExpresion: nameof(CircuitoDocDto.Expresion),
+                 criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                 posicion: new Posicion(1, 0),
+                 controlador: nameof(CircuitosDocController),
+                 navegarA: nameof(CircuitosDocController.CrudLotesContables),
+                 restringirPor: "",
+                 alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+            modal.ControlesDeFiltrado.Add(ld);
         }
 
         // Entregas de las líneas: se consultan (con la modal de recepción), se cancelan o se devuelven (ver CrudEdicionPedido.AplicarEtapaAlGridDeEntregas)
@@ -234,6 +284,27 @@ namespace MVCSistemaDeElementos.Descriptores
         }
 
 
+        // pedidos con alguna línea del unitario, sea un material o un servicio
+        private void FiltroPorUnitario(ModalDeFiltrado<PedidoDto> modal)
+        {
+            var ld = new ListasDinamicas<PedidoDto>(modal,
+                 etiqueta: "Unitario",
+                 filtrarPor: ltrDeUnPedido.FiltroPorUnitario,
+                 ayuda: "pedidos con alguna línea del unitario (material o servicio)",
+                 seleccionarDe: nameof(UnitarioDto),
+                 buscarPor: nameof(UnitarioDto.Expresion),
+                 mostrarExpresion: nameof(UnitarioDto.Expresion),
+                 criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                 posicion: new Posicion(1, 0),
+                 controlador: nameof(UnitariosController),
+                 navegarA: nameof(UnitariosController.CrudUnitarios),
+                 restringirPor: "",
+                 alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+            modal.ControlesDeFiltrado.Add(ld);
+        }
+
+        // lo pedido, lo entregado y lo devuelto, sin iva (ver FiltrosDePedido)
         private void FiltrosPorImporte(ModalDeFiltrado<PedidoDto> modal)
         {
             var importes = new FiltroEntreImportes<PedidoDto>(modal,
@@ -241,6 +312,33 @@ namespace MVCSistemaDeElementos.Descriptores
                     propiedad: ltrDeUnPedido.FiltroPorImporte,
                     ayuda: "filtrar por rango de importes");
             modal.ControlesDeFiltrado.Add(importes);
+
+            var entregado = new FiltroEntreImportes<PedidoDto>(modal,
+                    etiqueta: "Entregado",
+                    propiedad: ltrDeUnPedido.FiltroPorImporteEntregado,
+                    ayuda: "filtrar por rango del importe entregado");
+            modal.ControlesDeFiltrado.Add(entregado);
+
+            var devuelto = new FiltroEntreImportes<PedidoDto>(modal,
+                    etiqueta: "Devuelto",
+                    propiedad: ltrDeUnPedido.FiltroPorImporteDevuelto,
+                    ayuda: "filtrar por rango del importe devuelto");
+            modal.ControlesDeFiltrado.Add(devuelto);
+        }
+
+        // pedidos con alguna línea de la naturaleza
+        private void FiltroPorNaturaleza(ModalDeFiltrado<PedidoDto> modal)
+        {
+            var opciones = new Dictionary<string, string>();
+            foreach (var naturaleza in Contexto.Set<NaturalezaDtm>().ToList().OrderBy(naturaleza => naturaleza.Expresion))
+                opciones.Add(naturaleza.Id.ToString(), naturaleza.Expresion);
+
+            modal.ControlesDeFiltrado.Add(new ListaDeValores<PedidoDto>(modal
+                , "Naturaleza"
+                , "pedidos con alguna línea de la naturaleza"
+                , opciones
+                , ltrDeUnPedido.FiltroPorNaturaleza
+                , new Posicion(1, 0)));
         }
 
         private void FiltrosPorFechaDePedido(ModalDeFiltrado<PedidoDto> modal)
