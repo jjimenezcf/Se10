@@ -506,15 +506,16 @@
             (this.crudDeEdicion as CrudEdicionPedido).RecargarDetallesDelPedido();
         }
 
-        // Entrega completa de la línea (visto verde): sin modal, con lo pedido en la línea, el destino de la cabecera y la fecha de
-        // recepción que se propondría en la modal; el servidor valida la etapa y si está solicitado pasa el pedido a recepción
+        // Entrega completa de la línea (visto verde): sin modal, una nueva entrega con lo que queda pendiente de la línea, al destino de
+        // la cabecera y con fecha de hoy (una fecha anterior movería los movimientos de almacén posteriores, que pueden estar ya
+        // contabilizados); el servidor valida la etapa y si está solicitado pasa el pedido a recepción
         public EntregarLineaCompleta(linea: LineaDelGridDePedido) {
             const editor = this.crudDeEdicion as CrudEdicionPedido;
             const cabecera = editor.Registro;
             let idAlmacen = Numero(ObtenerPropiedad(cabecera, ltrPropiedades.Logistica.Pedido.IdAlmacen, 0, false));
             let idExpediente = idAlmacen > 0 ? 0 : Numero(ObtenerPropiedad(cabecera, ltrPropiedades.Logistica.Pedido.idExpediente, 0, false));
             // la fecha se envía como la de los selectores de fecha: el día local en UTC (ver ApiDeMapeos.ObtenerFecha)
-            const fecha = this.FechaDeRecepcionDeLineaPropuesta();
+            const fecha = CrudDePedidos.Hoy();
             const recepcionadaEl = new Date(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()));
 
             let parametros: Array<Parametro> = new Array<Parametro>();

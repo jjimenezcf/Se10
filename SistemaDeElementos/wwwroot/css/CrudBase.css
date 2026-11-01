@@ -192,6 +192,27 @@ body.resizing-en-progreso * {
             margin-left: auto;
         }
 
+/* En la web la barra de consulta se reparte en tres columnas iguales a los lados: la zona de menú (vacía), el título centrado en la
+   página y la etiqueta de mostrar u ocultar el filtro pegada a la derecha, entera. En el móvil sigue con el flex de arriba */
+@media (min-width: 47.95em) {
+    .div-mnt-menu-contenedor.menu-de-consulta {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+    }
+
+        .div-mnt-menu-contenedor.menu-de-consulta > .contenedor-titulo {
+            width: auto;
+            grid-column: 2;
+        }
+
+        .div-mnt-menu-contenedor.menu-de-consulta > .div-mnt-filtro-expansor {
+            grid-column: 3;
+            margin-left: 0;
+            overflow: visible;
+            text-overflow: clip;
+        }
+}
+
 /* Botón con la lista de opciones de creación que sustituye al select en el móvil (ZonaDeMenu) */
 .opciones-menu-creacion-movil {
     display: none;

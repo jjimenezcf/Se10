@@ -79,7 +79,7 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo: nameof(LineaDeUnPedidoDto.Descuento), formato: enumFormato.Porcentaje, tamano: 150);
             columnas.Add(titulo: "Importe", propiedad: nameof(LineaDeUnPedidoDto.ImporteDeLinea), formato: enumFormato.Moneda, tamano: 150);
             // lo que queda por entregar de la línea (ver CrudEdicionPedido.AplicarEtapaAlGridDeLineas); lo entregado y devuelto está en sus grids
-            columnas.Add(titulo: "CantidadPendiente", propiedad: nameof(LineaDeUnPedidoDto.CantidadPendiente), mostrar: false);
+            columnas.Add(titulo: "Pendiente", propiedad: nameof(LineaDeUnPedidoDto.CantidadPendiente), formato: enumFormato.Numero_6, tamano: 150);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnPedidoDto.IdElemento), mostrar: false);
             columnas.Add(titulo: "Id", propiedad: nameof(LineaDeUnPedidoDto.Id), mostrar: false);
             // versión de la línea leída, para validarla en el servidor al recepcionarla (ver LineasDeUnPedidoController.epRecibirLinea)
