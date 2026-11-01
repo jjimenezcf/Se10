@@ -34,7 +34,8 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.Elemento, x => x.Ignore())
                 .ForMember(dto => dto.Titulo, x => x.Ignore())
                 .ForMember(dto => dto.CantidadDevuelta, x => x.Ignore())
-                .ForMember(dto => dto.Contabilizada, x => x.Ignore());
+                .ForMember(dto => dto.Contabilizada, x => x.Ignore())
+                .ForMember(dto => dto.Pedido, x => x.Ignore());
 
                 CreateMap<EntregaDeUnPedidoDto, RecepcionDeLineaDtm>()
                 .ForMember(dtm => dtm.Linea, dto => dto.Ignore())
@@ -241,6 +242,9 @@ namespace GestoresDeNegocio.Logistica
             ExtensorDeRecepciones.OlvidarRecepcion(recepcion.IdLinea, Leido<LineaDeUnPedidoDtm>(parametros, ltrEntregasDeUnPedido.Linea)?.IdElemento ?? 0);
             if (recepcion.Id > 0)
                 ServicioDeCaches.EliminarElemento(CacheDe.Pedido_LineaPedidoPorRecepcion, recepcion.Id.ToString());
+            // lo entregado en la obra de un expediente cuenta en sus gastos (ver ExtensorDeExpedientes.Gastos)
+            if (recepcion.IdExpediente is not null)
+                ServicioDeCaches.EliminarElemento(CacheDe.Exp_Gastos, recepcion.IdExpediente.ToString());
         }
 
         protected override IQueryable<RecepcionDeLineaDtm> AplicarJoins(IQueryable<RecepcionDeLineaDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
@@ -263,6 +267,15 @@ namespace GestoresDeNegocio.Logistica
                 consulta = consulta.Where(x => x.Linea.IdElemento == idPedido);
                 filtro.Aplicado = true;
             }
+
+            // en la edición del expediente el restrictor es el expediente a cuya obra fueron las entregas
+            filtro = filtros.FirstOrDefault(x => !x.Aplicado && x.Clausula.Equals(nameof(EntregaDeUnPedidoDto.IdExpediente), StringComparison.CurrentCultureIgnoreCase));
+            if (filtro != null)
+            {
+                var idExpediente = filtro.Valor.Entero();
+                consulta = consulta.Where(x => x.IdExpediente == idExpediente);
+                filtro.Aplicado = true;
+            }
             return consulta;
         }
 
@@ -271,6 +284,7 @@ namespace GestoresDeNegocio.Logistica
             base.DespuesDeMapearElElemento(recepcion, elemento, parametros);
             elemento.CantidadDevuelta = recepcion.CantidadDevuelta(Contexto);
             elemento.Contabilizada = recepcion.EntregaContabilizada(Contexto);
+            elemento.Pedido = ((PedidoDtm)recepcion.LineaDePedido(Contexto).Elemento(Contexto)).Referencia;
         }
     }
 }

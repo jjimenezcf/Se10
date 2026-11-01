@@ -9,6 +9,7 @@ using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Seguridad;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Utilidades;
 
 namespace MVCSistemaDeElementos.Controllers
@@ -26,12 +27,17 @@ namespace MVCSistemaDeElementos.Controllers
         {
         }
 
+        // Las entregas se leen desde la edición del pedido (restringidas por el pedido) o desde la del expediente (por el expediente a
+        // cuya obra fueron, ver DescriptorDeExpedientes): se exige acceso al elemento que restringe
         protected override IEnumerable<EntregaDeUnPedidoDto> LeerElementos(int posicion, int cantidad, List<ClausulaDeFiltrado> filtros, List<ClausulaDeOrdenacion> orden, Dictionary<string, object> opcionesDeMapeo)
         {
-            var restrictor = ApiController.ObtenerNegocioYelemento(filtros);
-            var modoAcceso = ApiDePermisos.LeerModoDeAcceso(Contexto, enumNegocio.Pedido, restrictor.idElemento);
+            var porExpediente = filtros.FirstOrDefault(x => x.Clausula.Equals(nameof(EntregaDeUnPedidoDto.IdExpediente), StringComparison.CurrentCultureIgnoreCase));
+            var (negocio, idElemento) = porExpediente is not null
+                ? (enumNegocio.Expediente, porExpediente.Valor.Entero())
+                : (enumNegocio.Pedido, ApiController.ObtenerNegocioYelemento(filtros).idElemento);
+            var modoAcceso = ApiDePermisos.LeerModoDeAcceso(Contexto, negocio, idElemento);
             if (modoAcceso == enumModoDeAccesoDeDatos.SinPermiso)
-                GestorDeErrores.Emitir($"El usuario {Contexto.DatosDeConexion.Login} no tiene acceso al elemento del negocio: {enumNegocio.Pedido.Singular()}");
+                GestorDeErrores.Emitir($"El usuario {Contexto.DatosDeConexion.Login} no tiene acceso al elemento del negocio: {negocio.Singular()}");
 
             return GestorDeEntregasDeUnPedido.Gestor(Contexto, Contexto.Mapeador).LeerElementos(posicion, cantidad, filtros, orden, opcionesDeMapeo);
         }

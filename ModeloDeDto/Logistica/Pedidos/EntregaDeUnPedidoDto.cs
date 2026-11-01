@@ -11,6 +11,10 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Id de la línea del pedido", Visible = false)]
         public int IdLinea { get; set; }
 
+        // referencia del pedido, para el grid de recepciones de pedido de la edición del expediente (ver DescriptorDeExpedientes)
+        [IUPropiedad(Etiqueta = "Pedido", VisibleEnGrid = true, Obligatorio = false)]
+        public string Pedido { get; set; }
+
         [IUPropiedad(Etiqueta = "Recibido el", Formato = enumFormato.Fecha, VisibleEnGrid = true, Obligatorio = false)]
         public DateTime RecepcionadaEl { get; set; }
 

@@ -95,6 +95,11 @@
             this.crudDeEdicion = new CrudEdicionPedido(this, idPanelEdicion);
         }
 
+        protected DespuesDeInicializarCrud(modoAccesoAlNegocio: ModoAcceso.enumModoDeAccesoDeDatos) {
+            super.DespuesDeInicializarCrud(modoAccesoAlNegocio);
+            this.Expansor_InyectarAccesoIA();
+        }
+
         protected AplicarIndicadores(mapIndicadores: Map<string, any>): void {
             super.AplicarIndicadores(mapIndicadores);
             this._IdDeUnidadDeMedida = mapIndicadores.get(ltrPropiedades.Logistica.Pedido.Indicadores.UnidadDeMedida);
@@ -143,43 +148,13 @@
             return hoy;
         }
 
-        private FechaDeLaCabecera(propiedad: string): Date {
-            let valor = ObtenerPropiedad(this.crudDeEdicion.Registro, propiedad, null, false);
-            if (IsNullOrEmpty(valor)) return null;
-            let fecha = new Date(valor);
-            return EsFechaValida(fecha) ? fecha : null;
-        }
-
-        // Si ya pasó la fecha de entrega del pedido se propone ésta, si no (o no la tiene) la de hoy
-        private FechaDeEntregaPropuesta(): Date {
-            const hoy = CrudDePedidos.Hoy();
-            const entregarEl = this.FechaDeLaCabecera(ltrPropiedades.Logistica.Pedido.EntregarEl);
-            return this.NoAnteriorAlPedido(Definido(entregarEl) && entregarEl < hoy ? entregarEl : hoy);
-        }
-
-        // En recepción se propone la fecha de recepción de la cabecera; solicitado, la de entrega o la de hoy
-        private FechaDeRecepcionDeLineaPropuesta(): Date {
-            if ((this.crudDeEdicion as CrudEdicionPedido).EstaEnRecepcion) {
-                const recibidoEl = this.FechaDeLaCabecera(ltrPropiedades.Logistica.Pedido.RecibidoEl);
-                if (Definido(recibidoEl)) return this.NoAnteriorAlPedido(recibidoEl);
-            }
-            return this.FechaDeEntregaPropuesta();
-        }
-
-        // Una recepción no puede ser anterior a la fecha en la que se pidió (ver ExtensorDeRecepciones.RegistrarRecepcion):
-        // si la fecha propuesta lo es, se propone la del pedido
-        private NoAnteriorAlPedido(fecha: Date): Date {
-            const pedidoEl = this.FechaDeLaCabecera(ltrPropiedades.Logistica.Pedido.PedidoEl);
-            if (!Definido(pedidoEl)) return fecha;
-            pedidoEl.setHours(0, 0, 0, 0);
-            return fecha < pedidoEl ? pedidoEl : fecha;
-        }
-
+        // Las entregas se proponen con fecha de hoy: una fecha anterior movería los movimientos de almacén posteriores, que pueden estar
+        // ya contabilizados (el usuario puede cambiarla en la modal)
         private MapearFecha(modal: HTMLDivElement, propiedad: string, fecha: Date) {
             MapearAlControl.FechaDate(ApiControl.BuscarControl(modal, propiedad, true) as HTMLInputElement, fecha);
         }
 
-        // Se propone lo pedido en la línea, el destino de la cabecera y la fecha de recepción; el usuario indica lo que realmente se ha entregado
+        // Se propone lo pendiente de la línea, el destino de la cabecera y la fecha de hoy; el usuario indica lo que realmente se ha entregado
         public AbrirModalDeRecepcionarLinea(linea: LineaDelGridDePedido) {
             const modal = this.ModalRecepcionarLinea;
             this._lineaARecepcionar = linea;
@@ -188,7 +163,7 @@
             this.crudDeEdicion.Expansor_AbrirModalParaPedirDatos(modal.id, this.crudDeEdicion.ElementoEditado.Id, undefined, new Array<string>(), false);
             this.MapearDatosDeLaRecepcion(linea.pendiente, linea.precio, linea.descuento);
             this.MapearDestinoDeLaCabecera(modal);
-            this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, this.FechaDeRecepcionDeLineaPropuesta());
+            this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.RecepcionadaEl, CrudDePedidos.Hoy());
             this.BloquearRecepcion(false);
             ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarLinea.Cantidad).focus();
         }
@@ -379,7 +354,7 @@
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
-        // Entrega completa: se propone el destino de la cabecera y la fecha de entrega o la de hoy
+        // Entrega completa: se propone el destino de la cabecera y la fecha de hoy
         public AbrirModalDeRecepcionarPedido() {
             const modal = this.ModalRecepcionarPedido;
             const editor = this.crudDeEdicion;
@@ -388,7 +363,7 @@
             let pedido = ApiControl.BuscarRestrictor(modal, ltrPropiedades.Logistica.Pedido.RecepcionarPedido.IdPedido, ltrTipoControl.restrictorDeEdicion);
             MapearAlControl.Restrictor(pedido, editor.ElementoEditado.Id, ObtenerPropiedad(editor.Registro, literal.nombre, '', false), true);
             this.MapearDestinoDeLaCabecera(modal);
-            this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarPedido.RecepcionadoEl, this.FechaDeEntregaPropuesta());
+            this.MapearFecha(modal, ltrPropiedades.Logistica.Pedido.RecepcionarPedido.RecepcionadoEl, CrudDePedidos.Hoy());
         }
 
         private MapearDatosDeLaRecepcion(cantidad: number, precio: number, descuento: number) {

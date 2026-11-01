@@ -554,7 +554,7 @@ namespace GestorDeElementos.Extensores
 
         public static ElementoDtm Elemento(this IDetalle detalle, ContextoSe contexto)
         {
-            return detalle.Elemento == null
+            return detalle.Elemento == null || ( detalle.Elemento is not null && detalle.Elemento.Id != detalle.IdElemento)
                 ? detalle.Negocio.SeleccionarPorId(contexto, detalle.IdElemento, aplicarJoin: true, usarLaCache: false)
                 : detalle.Elemento;
         }

@@ -42,7 +42,7 @@ namespace ServicioDeDatos.Logistica
         public AlmacenDtm Almacen { get; set; }
 
         public bool VaAlAlmacen => IdAlmacen != null;
-        public bool VaALaObra => IdExpediente != null;
+        public bool VaAlExpediente => IdExpediente != null;
 
         public int IdUsuaCrea { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -62,7 +62,7 @@ namespace ServicioDeDatos.Logistica
         public static void RecepcionDeLinea(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.VaAlAlmacen);
-            modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.VaALaObra);
+            modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.VaAlExpediente);
             modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.Importe);
 
             ApiDeRegistroDtm.DefinirCampoFk<RecepcionDeLineaDtm>(modelBuilder, nameof(RecepcionDeLineaDtm.Linea), nameof(RecepcionDeLineaDtm.IdLinea), ICampos.ID_LINEA, requerida: true, unico: false);

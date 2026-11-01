@@ -184,6 +184,10 @@ namespace GestoresDeNegocio.Logistica
         {
             base.EliminarCaches(devolucion, parametros);
             ServicioDeCaches.EliminarElemento(CacheDe.Pedido_Devuelto, devolucion.IdLineaDeRecepcion.ToString());
+            // lo devuelto de una entrega a la obra de un expediente se descuenta de sus gastos (ver ExtensorDeExpedientes.Gastos)
+            var idExpediente = devolucion.Recepcion(Contexto).IdExpediente;
+            if (idExpediente is not null)
+                ServicioDeCaches.EliminarElemento(CacheDe.Exp_Gastos, idExpediente.ToString());
         }
 
         protected override void DespuesDeMapearElElemento(DevolucionDeEntregaDtm devolucion, DevolucionDeUnPedidoDto elemento, ParametrosDeNegocio parametros)

@@ -5,6 +5,7 @@ using ModeloDeDto.Entorno;
 using ModeloDeDto.Expediente;
 using ModeloDeDto.Gastos;
 using ModeloDeDto.Juridico;
+using ModeloDeDto.Logistica;
 using ModeloDeDto.Presupuesto;
 using ModeloDeDto.RegistroEs;
 using ModeloDeDto.Tarea;
@@ -88,6 +89,7 @@ namespace MVCSistemaDeElementos.Descriptores
             DescriptorDeSpanDeFacturasRec();
             DescriptorDeSpanDeFacturasEmt();
             DescriptorDeApuntes();
+            DescriptorDeSpanDeRecepcionesDePedido();
 
             DefinirMf(menuEdicion, Editor.OpcionesMf);
 
@@ -462,6 +464,40 @@ namespace MVCSistemaDeElementos.Descriptores
             gridDeRelacion.PermitirBorrar = false;
             gridDeRelacion.PermitirEditar = false;
 
+        }
+
+        // Entregas de las líneas de los pedidos recepcionadas en la obra del expediente; lo no devuelto suma en sus gastos
+        // (ver ExtensorDeExpedientes.Recepcionado). Se consultan: desde cada una se navega a la edición de su pedido
+        private void DescriptorDeSpanDeRecepcionesDePedido()
+        {
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-recepcionesdepedido", "Recepciones de pedido", true, "Líneas de pedido recepcionadas en la obra del expediente");
+            Editor.Expanes.Insert(5, expansor);
+
+            var columnas = new DescriptorDeColumnas("recepcionesDePedido");
+            columnas.Add(titulo: "Pedido", propiedad: nameof(EntregaDeUnPedidoDto.Pedido), alineacion: enumAliniacion.izquierda, mostrar: true);
+            columnas.Add(titulo: "Recibido el", propiedad: nameof(EntregaDeUnPedidoDto.RecepcionadaEl), formato: enumFormato.Fecha, tamano: 120);
+            columnas.Add(titulo: nameof(EntregaDeUnPedidoDto.Concepto));
+            columnas.Add(titulo: "Cantidad", propiedad: nameof(EntregaDeUnPedidoDto.Cantidad), formato: enumFormato.Numero_6, tamano: 120);
+            columnas.Add(titulo: "Devuelto", propiedad: nameof(EntregaDeUnPedidoDto.CantidadDevuelta), formato: enumFormato.Numero_6, tamano: 120);
+            columnas.Add(titulo: "Precio", propiedad: nameof(EntregaDeUnPedidoDto.Precio), formato: enumFormato.Moneda, tamano: 120);
+            columnas.Add(titulo: "Dto.", propiedad: nameof(EntregaDeUnPedidoDto.Descuento), formato: enumFormato.Porcentaje, tamano: 100);
+            columnas.Add(titulo: "Importe", propiedad: nameof(EntregaDeUnPedidoDto.Importe), formato: enumFormato.Moneda, tamano: 150);
+            columnas.Add(titulo: "IdExpediente", propiedad: nameof(EntregaDeUnPedidoDto.IdExpediente), mostrar: false);
+            columnas.Add(titulo: "IdElemento", propiedad: nameof(EntregaDeUnPedidoDto.IdElemento), mostrar: false);
+            columnas.Add(titulo: nameof(EntregaDeUnPedidoDto.Id), propiedad: nameof(EntregaDeUnPedidoDto.Id), mostrar: false);
+
+            var parametros = new Dictionary<string, object> {
+               { nameof(GridDeRelacion.Controlador), typeof(EntregasDeUnPedidoController) },
+               { nameof(GridDeRelacion.AccionDeConsulta), nameof(EntregasDeUnPedidoController.epLeerElementos)},
+               { nameof(GridDeRelacion.PropiedadRestrictora), nameof(EntregaDeUnPedidoDto.IdExpediente) },
+               { nameof(GridDeRelacion.OrdenarPor), $"{nameof(EntregaDeUnPedidoDto.RecepcionadaEl)}:{enumModoOrdenacion.descendente.Render()}" },
+               // la entrega es de una línea del pedido (IdElemento): se edita el pedido
+               { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(PedidosController)}/{nameof(PedidosController.CrudPedidos)}?id={nameof(EntregaDeUnPedidoDto.IdElemento)}"},
+               { nameof(GridDeRelacion.OcultarSiVacio), false}
+            };
+
+            var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
+            gridDeRelacion.PermitirBorrar = false;
         }
 
         private DescriptorDeExpansor DescriptorDeApuntes()

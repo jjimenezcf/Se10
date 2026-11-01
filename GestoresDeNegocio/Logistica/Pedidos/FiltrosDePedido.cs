@@ -12,6 +12,7 @@ using ServicioDeDatos.Elemento;
 using System;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.MaestrosTecnico;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -106,6 +107,82 @@ namespace GestoresDeNegocio.Logistica
                                             && (hasta == null || hasta >=
                                                     (contexto.Set<DevolucionDeEntregaDtm>().Where(d => d.LineaDeRecepcion.Linea.IdElemento == p.Id)
                                                         .Sum(d => (decimal?)(d.Cantidad * d.LineaDeRecepcion.Precio * (1 - (d.LineaDeRecepcion.Descuento ?? 0) / 100))) ?? 0)));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Porcentaje (0-100) del importe del pedido que ya se ha entregado: importe entregado (como FiltroPorImporteEntregado, sin restar lo
+        // devuelto) entre importe pedido (como FiltroPorImporte); un pedido sin importe no tiene porcentaje y no se incluye. Si en la entrega se
+        // cambió el precio, el 100% puede no coincidir exactamente con un pedido entregado por completo
+        public static IQueryable<PedidoDtm> FiltroPorPorcentajeEntregado(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorPorcentajeEntregado.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var (desde, hasta) = filtro.ParsearRango();
+                consulta = consulta.Where(p => (contexto.Set<LineaDeUnPedidoDtm>().Where(l => l.IdElemento == p.Id && l.Precio != null && l.Cantidad != null)
+                                                    .Sum(l => (decimal?)((decimal)l.Precio * (decimal)l.Cantidad * (1 - (l.Descuento ?? 0) / 100))) ?? 0) > 0);
+                if (desde != null)
+                {
+                    var minimo = desde.Value;
+                    consulta = consulta.Where(p => (contexto.Set<RecepcionDeLineaDtm>().Where(r => r.Linea.IdElemento == p.Id)
+                                                        .Sum(r => (decimal?)(r.Cantidad * r.Precio * (1 - (r.Descuento ?? 0) / 100))) ?? 0) * 100
+                                                >= minimo * (contexto.Set<LineaDeUnPedidoDtm>().Where(l => l.IdElemento == p.Id && l.Precio != null && l.Cantidad != null)
+                                                        .Sum(l => (decimal?)((decimal)l.Precio * (decimal)l.Cantidad * (1 - (l.Descuento ?? 0) / 100))) ?? 0));
+                }
+                if (hasta != null)
+                {
+                    var maximo = hasta.Value;
+                    consulta = consulta.Where(p => (contexto.Set<RecepcionDeLineaDtm>().Where(r => r.Linea.IdElemento == p.Id)
+                                                        .Sum(r => (decimal?)(r.Cantidad * r.Precio * (1 - (r.Descuento ?? 0) / 100))) ?? 0) * 100
+                                                <= maximo * (contexto.Set<LineaDeUnPedidoDtm>().Where(l => l.IdElemento == p.Id && l.Precio != null && l.Cantidad != null)
+                                                        .Sum(l => (decimal?)((decimal)l.Precio * (decimal)l.Cantidad * (1 - (l.Descuento ?? 0) / 100))) ?? 0));
+                }
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Pedidos con alguna línea de un unitario (material) cuyo nombre o referencia contiene alguno de los textos; es la versión por texto de
+        // FiltroPorUnitario, que necesita el id
+        public static IQueryable<PedidoDtm> FiltroPorUnitariosDePedidos(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.UnitariosDePedidos.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var valores = filtro.Valor.Split(Simbolos.separadorDeCadenasDeFiltrado, StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim().ToLower()).ToList();
+                consulta = consulta.Where(p => contexto.Set<LineaDeUnPedidoDtm>().Any(l => l.IdElemento == p.Id && l.IdUnitario != null
+                    && contexto.Set<UnitarioDtm>().Any(u => u.Id == l.IdUnitario
+                        && valores.Any(v => u.Nombre.ToLower().Contains(v) || u.Referencia.ToLower().Contains(v)))));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Pedidos imputados a un expediente cuyo nombre o referencia contiene alguno de los textos
+        public static IQueryable<PedidoDtm> FiltroPorExpedientesDePedidos(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.ExpedientesDePedidos.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var valores = filtro.Valor.Split(Simbolos.separadorDeCadenasDeFiltrado, StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim().ToLower()).ToList();
+                consulta = consulta.Where(p => p.IdExpediente != null && contexto.Set<ExpedienteDtm>().Any(e => e.Id == p.IdExpediente
+                    && valores.Any(v => e.Nombre.ToLower().Contains(v) || e.Referencia.ToLower().Contains(v))));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Pedidos con destino a un almacén cuyo nombre o referencia contiene alguno de los textos
+        public static IQueryable<PedidoDtm> FiltroPorAlmacenesDePedidos(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.AlmacenesDePedidos.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                var valores = filtro.Valor.Split(Simbolos.separadorDeCadenasDeFiltrado, StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim().ToLower()).ToList();
+                consulta = consulta.Where(p => p.IdAlmacen != null && contexto.Set<AlmacenDtm>().Any(a => a.Id == p.IdAlmacen
+                    && valores.Any(v => a.Nombre.ToLower().Contains(v) || a.Referencia.ToLower().Contains(v))));
                 filtro.Aplicado = true;
             }
             return consulta;

@@ -240,6 +240,12 @@ namespace GestorDeElementos.Extensores
         }
 
 
+        // Lo recepcionado de los pedidos en la obra del expediente (sin iva): cada entrega por lo que no se ha devuelto, a su precio y
+        // descuento. Se olvida con los gastos al entregar, devolver o cancelar (ver GestorDeEntregasDeUnPedido y GestorDeDevolucionesDeUnPedido)
+        public static decimal Recepcionado(this ExpedienteDtm expediente, ContextoSe contexto)
+            => contexto.Set<RecepcionDeLineaDtm>().Where(recepcion => recepcion.IdExpediente == expediente.Id).ToList()
+                .Sum(recepcion => (recepcion.Cantidad - recepcion.CantidadDevuelta(contexto)) * recepcion.Precio * (1 - (recepcion.Descuento ?? 0) / 100));
+
         public static decimal Gastos(this ExpedienteDtm expediente, ContextoSe contexto)
         {
             var cache = ServicioDeCaches.Obtener(CacheDe.Exp_Gastos);
@@ -250,7 +256,7 @@ namespace GestorDeElementos.Extensores
                     var fars = expediente.FacturasRec(contexto);
                     var apuntes = expediente.Detalles<ApunteDeExpedienteDtm>(contexto).Where(a => a.Clase == enumApunteDeExpediente.Gasto);
 
-                    cache[expediente.Id.ToString()] = fars.Sum(f => f.BaseImponible) + apuntes.Sum(a => a.Valor);
+                    cache[expediente.Id.ToString()] = fars.Sum(f => f.BaseImponible) + apuntes.Sum(a => a.Valor) + expediente.Recepcionado(contexto);
                 }
                 else
                     cache[expediente.Id.ToString()] = (decimal)0;

@@ -1,5 +1,6 @@
 ﻿using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Gastos;
+using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Tarea;
 using ServicioDeDatos.Ventas;
 using System.ComponentModel;
@@ -29,6 +30,7 @@ namespace ServicioDeDatos.Negocio
                 case enumNegocio.Tarea: return VariablesDeTareas.IA_Reglas_de_filtrado;
                 case enumNegocio.FacturaEmitida: return VariableDeFacturasEmt.IA_Reglas_de_filtrado;
                 case enumNegocio.FacturaRecibida: return VariableDeFacturasRec.IA_Reglas_de_filtrado;
+                case enumNegocio.Pedido: return VariableDePedidos.IA_Reglas_de_filtrado;
             }
             return IIaPromptFiltrar.SinReglas;
         }
