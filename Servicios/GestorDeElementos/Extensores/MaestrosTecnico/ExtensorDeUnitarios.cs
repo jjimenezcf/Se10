@@ -14,6 +14,14 @@ namespace GestorDeElementos.Extensores
             return unitario.Naturaleza = contexto.SeleccionarPorId<NaturalezaDtm>(unitario.IdNaturaleza, aplicarJoin: aplicarJoin);
         }
 
+        public static UnidadDtm Unidad(this UnitarioDtm unitario, ContextoSe contexto)
+        {
+            if (unitario.Unidad != null && unitario.Unidad.Id == unitario.IdUnidad)
+                return unitario.Unidad;
+
+            return unitario.Unidad = contexto.SeleccionarPorId<UnidadDtm>(unitario.IdUnidad);
+        }
+
         public static UnitarioDtm Unitario(this IPuedeUsarUnitario linea, ContextoSe contexto, bool aplicarJoin = false)
         {
             if (linea.IdUnitario is null)

@@ -502,6 +502,8 @@ namespace Utilidades
         Mal_IrAlProveedor,
         Mal_IrAlPreasiento,
 
+        Inv_IrAlUnitario,
+
         Neg_ProcesarOpcionDeMenuLista,
 
         Expotacion_AlCambiar_Plantilla,

@@ -461,6 +461,7 @@ namespace Utilidades
         Albaranes,
         Almacenes,
         MovimientosDeAlmacen,
+        Inventario,
         Regularizaciones,
         Ventas
     }
@@ -469,6 +470,7 @@ namespace Utilidades
     {
         public const string CrudDeFacturasAeat = "Consultar en AEAT";
         public const string CrudDeMovimientosDeAlmacen = "Consultar movimientos";
+        public const string CrudDeInventario = "Consultar inventario";
         public const string CrudProcedimientosJudiciales = "Procedimientos judiciales";
     }
 
@@ -505,6 +507,7 @@ namespace Utilidades
         public const string CrudAlmacenes = nameof(CrudAlmacenes);
         public const string MaestrosDeAlmacenes = nameof(MaestrosDeAlmacenes);
         public const string CrudMovimientosDeAlmacen = nameof(CrudMovimientosDeAlmacen);
+        public const string CrudInventario = nameof(CrudInventario);
         public const string TiposDeRegularizacion = nameof(TiposDeRegularizacion);
         public const string CrudRegularizaciones = nameof(CrudRegularizaciones);
         public const string MaestrosDeRegularizaciones = nameof(MaestrosDeRegularizaciones);

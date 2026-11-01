@@ -35,6 +35,7 @@ namespace GestorDeElementos.Extensores
             if (typeof(HitosDeUnPedidoDtm) == tipo) return enumNegocio.Pedido;
             if (typeof(HitosDeUnAlmacenDtm) == tipo) return enumNegocio.Almacen;
             if (typeof(HitosDeUnaRegularizacionDtm) == tipo) return enumNegocio.Regularizacion;
+            if (typeof(HitosDeUnaVentaDtm) == tipo) return enumNegocio.Venta;
             if (typeof(HitosDeUnPreasientoDtm) == tipo) return enumNegocio.Preasiento;
             if (typeof(HitosDeUnPleitoDtm) == tipo) return enumNegocio.Pleito;
             if (typeof(HitosDeUnPresupuestoDtm) == tipo) return enumNegocio.Presupuesto;
@@ -68,6 +69,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<HitosDeUnAlmacenDtm>().Cast<HitoDtm>();
                 case enumNegocio.Regularizacion:
                     return contexto.Set<HitosDeUnaRegularizacionDtm>().Cast<HitoDtm>();
+                case enumNegocio.Venta:
+                    return contexto.Set<HitosDeUnaVentaDtm>().Cast<HitoDtm>();
                 case enumNegocio.Preasiento:
                     return contexto.Set<HitosDeUnPreasientoDtm>().Cast<HitoDtm>();
                 case enumNegocio.Pleito:

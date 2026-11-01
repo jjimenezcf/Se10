@@ -130,6 +130,11 @@ namespace GestorDeElementos.Extensores
             return $"{enumNegocio.Proveedor.Controlador()}/{enumNegocio.Proveedor.VistaMvc(contexto).Accion}?Id={proveedor.Id}";
         }
 
+        // Url de la edición del unitario del movimiento, para navegar desde la consulta de inventario. El unitario no tiene controlador
+        // en enumNegocio.Controlador(), por eso se compone con su controlador y su vista de mantenimiento
+        public static string UrlDelUnitario(this MovimientoDeAlmacenDtm movimiento)
+            => $"{enumControladoresMt.Unitarios}/{enumVistasMts.CrudUnitarios}?Id={movimiento.IdUnitario}";
+
         public static string Referencia(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             if (movimiento.Referencia.IsNullOrEmpty() || movimiento.Referencia.EndsWith("(0)"))
