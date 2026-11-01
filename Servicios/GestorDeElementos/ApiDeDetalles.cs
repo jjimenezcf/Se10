@@ -191,6 +191,7 @@ namespace GestorDeElementos
                 case enumNegocio.Sociedad: return tipoDetalle == typeof(CuentaDeMiSociedadDtm) || tipoDetalle == typeof(TarjetaDeMiSociedadDtm) || tipoDetalle == typeof(FacturadorDeSociedadDtm);
                 case enumNegocio.CursoDeGuarderia: return tipoDetalle == typeof(ProfeDeCursoDeGuarderiaDtm) || tipoDetalle == typeof(InfanteDeUnCursoDtm);
                 case enumNegocio.Regularizacion: return tipoDetalle == typeof(LineasDeUnaRegularizacionDtm);
+                case enumNegocio.Venta: return tipoDetalle == typeof(LineaDeUnaVentaDtm);
             }
             return false;
         }

@@ -282,8 +282,11 @@ public static class ServiceExtensions
         services.AddScoped<GestorDeDevolucionesDeUnPedido>();
         services.AddScoped<GestorDeAlmacenes>();
         services.AddScoped<GestorDeMovimientosDeAlmacen>();
+        services.AddScoped<GestorDeInventario>();
         services.AddScoped<GestorDeRegularizaciones>();
         services.AddScoped<GestorDeLineasDeUnaRegularizacion>();
+        services.AddScoped<GestorDeVentas>();
+        services.AddScoped<GestorDeLineasDeUnaVenta>();
     }
 
     public static void ConfigureGuarderias(this IServiceCollection services)

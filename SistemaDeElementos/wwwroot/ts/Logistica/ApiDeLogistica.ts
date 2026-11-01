@@ -88,6 +88,80 @@ namespace Logistica {
         return clausulas;
     }
 
+    export function Dsa_Tras_Seleccionar_Almacen(): void {
+        if (Crud.ModoTrabajo() !== enumModoTrabajo.creando) return;
+
+        const panel = Crud.crudMnt.crudDeCreacion.PanelDeCrear;
+        const almacenLista = ApiControl.BuscarListaDinamicaPorPropiedad(panel, ltrPropiedades.Logistica.Venta.Almacen) as HTMLInputElement;
+        const almacen = OpcionesDeLasListas.ObtenerObjeto(almacenLista);
+        if (Definido(almacen)) {
+            ApiDelCrud.MapearDatosSocietariosYDepartamentales(panel, almacen);
+        }
+    }
+
+    export function Dsa_Tras_Blanquear_Almacen(): void {
+        if (Crud.ModoTrabajo() !== enumModoTrabajo.creando)
+            return;
+        ApiDelCrud.BlanquearCgOculto(Crud.crudMnt.crudDeCreacion.PanelDeCrear);
+    }
+
+    export function Dsa_InicializarModalParaCrearLineas(incremento: number) {
+        var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionVenta);
+        let modal: HTMLDivElement = editor.ModalDeCreacionDeLineas;
+        let tabla: HTMLDivElement = editor.GridDeLineas;
+        let valor: number = 0;
+        if (Definido(tabla)) {
+            let tablarows = tabla.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila);
+            if (tablarows.length > 1) {
+                let ultimoOrden = tablarows[tablarows.length - 1].querySelector(`input[propiedad=${ltrPropiedades.Logistica.Venta.linea.orden}]`) as HTMLInputElement;
+                valor = Numero(ultimoOrden.value);
+            }
+        }
+        // El grid puede no reflejar todavía la última línea creada (ver CrudEdicionVenta.UltimoOrdenPropuesto)
+        valor = Math.max(valor, editor.UltimoOrdenPropuesto);
+
+        let orden = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Venta.linea.orden, true) as HTMLInputElement;
+        orden.value = (valor + incremento).toString();
+        editor.UltimoOrdenPropuesto = valor + incremento;
+
+        let unitario = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Venta.linea.unitario, true) as HTMLInputElement;
+        unitario.focus();
+    }
+
+    export function Dsa_CalcularImportesDeLinea() {
+        var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionVenta);
+        let modal: HTMLDivElement = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
+        let cantidad = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Venta.linea.cantidad);
+        let precio = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Venta.linea.precio);
+        let descuento = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Venta.linea.descuento);
+        let importe = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Venta.linea.importe);
+        const sinDto = Numero(cantidad.value) * Numero(precio.value);
+        AsignarValor(importe, sinDto - sinDto * Numero(descuento.value) / 100);
+    }
+
+    export function Dsa_Tras_Seleccionar_Unitario(idLista: string) {
+        let lista: HTMLInputElement = document.getElementById(idLista) as HTMLInputElement;
+        var objeto = OpcionesDeLasListas.ObtenerObjeto(lista);
+        dsa_mapearUnitarioSeleccionado_interno(objeto);
+    }
+
+    export function Dsa_Tras_Blanquear_Unitario() {
+        dsa_mapearUnitarioSeleccionado_interno(undefined);
+    }
+
+    function dsa_mapearUnitarioSeleccionado_interno(unitario: any) {
+        var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionVenta);
+        let modal: HTMLDivElement = editor.EstaCreandoUnaLinea ? editor.ModalDeCreacionDeLineas : editor.ModalDeEdicionDeLineas;
+        let precio = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Venta.linea.precio);
+        if (NoDefinido(unitario)) {
+            precio.value = "";
+        }
+        else {
+            AsignarValor(precio, ObtenerPropiedad(unitario, ltrPropiedades.Maestros.unitario.venta, 0));
+        }
+        Dsa_CalcularImportesDeLinea();
+    }
+
     export function Ped_InicializarModalParaCrearLineas(incremento: number) {
         var editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionPedido);
         let modal: HTMLDivElement = editor.ModalDeCreacionDeLineas;

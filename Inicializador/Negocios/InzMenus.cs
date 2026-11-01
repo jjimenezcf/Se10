@@ -368,6 +368,7 @@ namespace SistemaDeElementos.Inicializador
             // Almacenes va por delante de Pedidos: detrás de Pedidos se añadirá más adelante Albaranes.
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Almacen, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeAlmacen, enumVistas.Logistica.MaestrosDeAlmacenes, orden: 5);
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Pedido, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDePedido, enumVistas.Logistica.MaestrosDePedidos, orden: 10);
+            MenusDeConfiguracionDeProceso(gestor, enumNegocio.Venta, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeVenta, enumVistas.Logistica.MaestrosDeVentas, orden: 12);
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Regularizacion, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeRegularizacion, enumVistas.Logistica.MaestrosDeRegularizaciones, orden: 15);
 
             GestorDeMenus.CrearMenuSiNoExiste(gestor
@@ -380,7 +381,13 @@ namespace SistemaDeElementos.Inicializador
                 , descripcion: $"Gestión de {enumNegocio.Pedido.Plural()}"
                 , icono: enumNegocio.Pedido.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Pedidos, orden: 45);
 
-            // Regularizaciones va detrás de Pedidos y por delante de los movimientos de almacén.
+            // Los documentos de venta van detrás de Pedidos y por delante de Regularizaciones.
+            GestorDeMenus.CrearMenuSiNoExiste(gestor
+                , nombre: enumVistas.Logistica.Ventas
+                , descripcion: $"Gestión de {enumNegocio.Venta.Plural().ToLower()}"
+                , icono: enumNegocio.Venta.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Ventas, orden: 46);
+
+            // Regularizaciones va detrás de los documentos de venta y por delante de los movimientos de almacén.
             GestorDeMenus.CrearMenuSiNoExiste(gestor
                 , nombre: enumVistas.Logistica.Regularizaciones
                 , descripcion: $"Gestión de {enumNegocio.Regularizacion.Plural()}"
@@ -390,6 +397,11 @@ namespace SistemaDeElementos.Inicializador
                 , nombre: enumVistas.Logistica.MovimientosDeAlmacen
                 , descripcion: "Consulta de movimientos de almacén"
                 , icono: "MovimientosDeAlmacen.svg", padre: ModuloDeLogistica, vista: enumVistas.Logistica.MovimientosDeAlmacen, orden: 90);
+
+            GestorDeMenus.CrearMenuSiNoExiste(gestor
+                , nombre: enumVistas.Logistica.Inventario
+                , descripcion: "Consulta del inventario de un almacén a una fecha"
+                , icono: "Inventario.svg", padre: ModuloDeLogistica, vista: enumVistas.Logistica.Inventario, orden: 91);
         }
 
         private static void MenusDeGuarderias(GestorDeMenus gestor)

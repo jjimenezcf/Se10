@@ -41,6 +41,7 @@ namespace Utilidades
                 case enumNegocio.Pedido: return enMinusculas ? "pedidos" : "Pedidos";
                 case enumNegocio.Almacen: return enMinusculas ? "almacenes" : "Almacenes";
                 case enumNegocio.Regularizacion: return enMinusculas ? "regularizaciones" : "Regularizaciones";
+                case enumNegocio.Venta: return enMinusculas ? "documentos de venta" : "Documentos de venta";
                 case enumNegocio.Preasiento: return enMinusculas ? "preasientos" : "Preasientos";
                 case enumNegocio.CierreContable: return enMinusculas ? "cierres contables" : "Cierres contables";
                 case enumNegocio.RemesaPag: return enMinusculas ? "remesas de pagos" : "Remesas de pagos";
@@ -93,6 +94,7 @@ namespace Utilidades
                 case enumNegocio.Pedido: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.Almacen: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.Regularizacion: return $"de la {negocio.Singular(enMinusculas)}";
+                case enumNegocio.Venta: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.Preasiento: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.CierreContable: return $"del {negocio.Singular(enMinusculas)}";
                 case enumNegocio.RemesaPag: return $"de la {negocio.Singular(enMinusculas)}";
@@ -148,6 +150,7 @@ namespace Utilidades
                 case enumNegocio.Pedido: return enumControladoresLogistica.Pedidos.ToString();
                 case enumNegocio.Almacen: return enumControladoresLogistica.Almacenes.ToString();
                 case enumNegocio.Regularizacion: return enumControladoresLogistica.Regularizaciones.ToString();
+                case enumNegocio.Venta: return enumControladoresLogistica.Ventas.ToString();
                 case enumNegocio.Preasiento: return enumControladoresContables.Preasientos.ToString();
                 case enumNegocio.CierreContable: return enumControladoresContables.CierresContables.ToString();
                 case enumNegocio.Infante: return enumControladoresGuarderias.Infantes.ToString();
@@ -319,7 +322,9 @@ namespace Utilidades
         [Description("Regularización")]
         Regularizacion,
         [Description("Cierre contable")]
-        CierreContable
+        CierreContable,
+        [Description("Documento de venta")]
+        Venta
     }
 
     public enum enumMenuDeConfiguaracion

@@ -250,6 +250,7 @@ namespace ServicioDeDatos.Elemento
         internal const string ALMACEN_TIPO_MOVIMIENTO = nameof(ALMACEN_TIPO_MOVIMIENTO);
         internal const string ALMACEN_MOVIMIENTO = nameof(ALMACEN_MOVIMIENTO);
         internal const string REGULARIZACION = nameof(REGULARIZACION);
+        internal const string VENTA = nameof(VENTA);
 
 
         internal const string AULA = nameof(AULA);
@@ -392,6 +393,7 @@ namespace ServicioDeDatos.Elemento
         internal const string PROPIETARIO = nameof(PROPIETARIO);
         internal const string CREADO_EL = nameof(CREADO_EL);
         internal const string SOLICITADO_EL = nameof(SOLICITADO_EL);
+        internal const string SERVIDO_EL = nameof(SERVIDO_EL);
         internal const string BLOQUEADO_EL = nameof(BLOQUEADO_EL);
         internal const string DESCARGADO_EL = nameof(DESCARGADO_EL);
         internal const string CADUCA_EL = nameof(CADUCA_EL);

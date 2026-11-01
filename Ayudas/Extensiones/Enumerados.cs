@@ -491,6 +491,13 @@ namespace Utilidades
         Ral_CalcularImportesDeLinea,
         Ral_FiltrosPorClaseDeUnitario,
 
+        Dsa_Tras_Seleccionar_Almacen,
+        Dsa_Tras_Blanquear_Almacen,
+        Dsa_Tras_Seleccionar_Unitario,
+        Dsa_Tras_Blanquear_Unitario,
+        Dsa_CalcularImportesDeLinea,
+        Dsa_InicializarModalParaCrearLineas,
+
         Mal_IrAlDocumento,
         Mal_IrAlProveedor,
         Mal_IrAlPreasiento,

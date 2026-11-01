@@ -39,6 +39,7 @@ namespace GestorDeElementos.Extensores
             if (typeof(TransicionesDeUnPreasientoDtm) == tipo) return enumNegocio.Preasiento;
             if (typeof(TransicionesDeUnAlmacenDtm) == tipo) return enumNegocio.Almacen;
             if (typeof(TransicionesDeUnaRegularizacionDtm) == tipo) return enumNegocio.Regularizacion;
+            if (typeof(TransicionesDeUnaVentaDtm) == tipo) return enumNegocio.Venta;
             if (typeof(TransicionesDeUnCircuitoDocDtm) == tipo) return enumNegocio.CircuitoDoc;
             if (typeof(TransicionesDeUnPagoDtm) == tipo) return enumNegocio.Pago;
             if (typeof(TransicionesDeUnaRemesaPagDtm) == tipo) return enumNegocio.RemesaPag;
@@ -260,6 +261,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<TransicionesDeUnAlmacenDtm>().Cast<TransicionDtm>();
                 case enumNegocio.Regularizacion:
                     return contexto.Set<TransicionesDeUnaRegularizacionDtm>().Cast<TransicionDtm>();
+                case enumNegocio.Venta:
+                    return contexto.Set<TransicionesDeUnaVentaDtm>().Cast<TransicionDtm>();
             }
             throw new Exception($"Se debe indicar como obtener el dbSet de los Transicions del negocio: {negocio}");
         }

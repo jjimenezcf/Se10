@@ -88,19 +88,35 @@
     "colspan": 3
   },
   {
+    "propiedad": "NombreModificable",
+    "posicion": {
+      "fila": 12,
+      "columna": 0
+    },
+    "css": "CheckApilado"
+  },
+  {
     "propiedad": "PermiteCrear",
     "posicion": {
       "fila": 13,
       "columna": 0
     },
-    "css": "CheckEnLinea"
+    "css": "CheckApilado"
   },
   {
-    "propiedad": "Activo",
+    "propiedad": "EditarTrasCrear",
     "posicion": {
       "fila": 14,
       "columna": 0
     },
-    "css": "CheckEnLinea"
+    "css": "CheckApilado"
+  },
+  {
+    "propiedad": "Activo",
+    "posicion": {
+      "fila": 15,
+      "columna": 0
+    },
+    "css": "CheckApilado"
   }
 ]

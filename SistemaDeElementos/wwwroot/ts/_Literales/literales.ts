@@ -92,7 +92,8 @@ enum enumNegocio {
     Preasiento = 'Preasiento',
     Almacen = 'Almacen',
     Regularizacion = 'Regularizacion',
-    CierreContable = 'CierreContable'
+    CierreContable = 'CierreContable',
+    Venta = 'Venta'
 }
 
 const literal = {
@@ -396,6 +397,9 @@ const ltrEspanes = {
         },
         Regularizaciones: {
             Lineas: 'lineasdeunaregularizacion'
+        },
+        Ventas: {
+            Lineas: 'lineasdeunaventa'
         }
     },
     Venta: {
@@ -489,6 +493,9 @@ const ltrModalDeCrearRelacion = {
         },
         Regularizaciones: {
             Lineas: ltrEspanes.Logistica.Regularizaciones.Lineas
+        },
+        Ventas: {
+            Lineas: ltrEspanes.Logistica.Ventas.Lineas
         }
     }
 };
@@ -1720,6 +1727,9 @@ const Ajax = {
                 ObtenerUrlAlDocumento: 'epObtenerUrlAlDocumento',
                 ObtenerUrlAlProveedor: 'epObtenerUrlAlProveedorDelMovimiento',
                 ObtenerUrlAlPreasiento: 'epObtenerUrlAlPreasiento'
+            },
+            Inventario: {
+                ObtenerUrlAlUnitario: 'epObtenerUrlAlUnitario'
             }
         },
         Contabilidad: {
@@ -3565,6 +3575,18 @@ const ltrPropiedades = {
                 cantidad: 'cantidad',
                 precio: 'precio',
                 total: 'total'
+            }
+        },
+        Venta: {
+            IdAlmacen: 'idalmacen',
+            Almacen: 'almacen',
+            linea: {
+                orden: 'orden',
+                unitario: 'unitario',
+                cantidad: 'cantidad',
+                precio: 'precio',
+                descuento: 'descuento',
+                importe: 'importe'
             }
         },
     },

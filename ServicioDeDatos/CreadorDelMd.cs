@@ -82,6 +82,8 @@ namespace ServicioDeDatos
 
             DefinirTablasDeRegularizaciones(modelBuilder);
 
+            DefinirTablasDeVentas(modelBuilder);
+
             DefinirTablasDeGuarderias(modelBuilder);
 
         }
@@ -171,6 +173,25 @@ namespace ServicioDeDatos
             ModeloDeRegularizacion.Archivadores(modelBuilder);
 
             ModeloDeRegularizacion.DatosDeLineaDeUnaRegularizacion(modelBuilder);
+        }
+
+        private static void DefinirTablasDeVentas(ModelBuilder modelBuilder)
+        {
+            ModeloDeVenta.EstadosDeUnaVenta(modelBuilder);
+            ModeloDeVenta.TransicionesDeUnaVenta(modelBuilder);
+            ModeloDeVenta.AccionesDeUnaVenta(modelBuilder);
+            ModeloDeVenta.TipoDeVenta(modelBuilder);
+
+            ModeloDeVenta.Venta(modelBuilder);
+            ModeloDeVenta.Trazas(modelBuilder);
+            ModeloDeVenta.Auditoria(modelBuilder);
+            ModeloDeVenta.Archivos(modelBuilder);
+            ModeloDeVenta.Observaciones(modelBuilder);
+            ModeloDeVenta.Permisos(modelBuilder);
+            ModeloDeVenta.Historia(modelBuilder);
+            ModeloDeVenta.Archivadores(modelBuilder);
+
+            ModeloDeVenta.DatosDeLineaDeUnaVenta(modelBuilder);
         }
 
         private static void DefinirEsquemaDeSeguridad(ModelBuilder modelBuilder)

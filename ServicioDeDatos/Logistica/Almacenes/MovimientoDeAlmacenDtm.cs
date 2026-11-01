@@ -61,6 +61,9 @@ namespace ServicioDeDatos.Logistica
         public static string FiltroPorTipoMovimiento => nameof(FiltroPorTipoMovimiento);
         public static string FiltroPorUnitario => nameof(FiltroPorUnitario);
 
+        // fecha a la que se consulta el inventario (ver GestorDeInventario): se toma el último movimiento de cada unitario hasta el fin de ese día
+        public static string FiltroPorFechaDeInventario => nameof(FiltroPorFechaDeInventario);
+
         public static string EstoyBarriendo => nameof(EstoyBarriendo);
 
         public static string Accion_AnularEntradaDeCompra => nameof(Accion_AnularEntradaDeCompra);

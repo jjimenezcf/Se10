@@ -291,6 +291,8 @@ namespace Utilidades
                     return enumVistasLogisticas.TiposDeAlmacen;
                 case enumNegocio.Regularizacion:
                     return enumVistasLogisticas.TiposDeRegularizacion;
+                case enumNegocio.Venta:
+                    return enumVistasLogisticas.TiposDeVenta;
                 case enumNegocio.Preasiento:
                     return enumVistasContables.TiposDePreasiento;
             }
@@ -459,7 +461,8 @@ namespace Utilidades
         Albaranes,
         Almacenes,
         MovimientosDeAlmacen,
-        Regularizaciones
+        Regularizaciones,
+        Ventas
     }
 
     public static class ltrVistasTitulos
@@ -505,6 +508,9 @@ namespace Utilidades
         public const string TiposDeRegularizacion = nameof(TiposDeRegularizacion);
         public const string CrudRegularizaciones = nameof(CrudRegularizaciones);
         public const string MaestrosDeRegularizaciones = nameof(MaestrosDeRegularizaciones);
+        public const string TiposDeVenta = nameof(TiposDeVenta);
+        public const string CrudVentas = nameof(CrudVentas);
+        public const string MaestrosDeVentas = nameof(MaestrosDeVentas);
     }
 
     public static class enumVistasGastos

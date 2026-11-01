@@ -1,0 +1,50 @@
+[
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Logistica.TipoDeVentaDto",
+    "VistaDondeNavegar": "TiposDeVenta",
+    "RestrictorFijo": "Negocio;Venta;Gestor",
+    "Negocio": "Venta",
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "TamanoFijo": "10em",
+    "colspan": 2
+  },
+  {
+    "propiedad": "Almacen",
+    "ordenarGridPor": "Almacen.Nombre",
+    "PosicionEnGrid": 5,
+    "PorAnchoMnt": 20
+  },
+  {
+    "propiedad": "Cliente",
+    "ordenarGridPor": "Cliente.Nombre",
+    "PosicionEnGrid": 6,
+    "PorAnchoMnt": 25
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 7,
+    "PorAnchoMnt": 25
+  },
+  {
+    "propiedad": "SolicitadoEl",
+    "PosicionEnGrid": 8
+  },
+  {
+    "propiedad": "ServidoEl",
+    "PosicionEnGrid": 9
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 20
+  }
+]
