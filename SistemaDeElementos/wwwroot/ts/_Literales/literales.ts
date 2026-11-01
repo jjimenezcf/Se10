@@ -1253,7 +1253,8 @@ const ltrCss = {
             pie: 'grafica-conteo-botones',
             cuerpo: 'modal-body',
             ContenedorDeHistorialIa: 'contenedor-historial-ia',
-            LineaDelhistorialIa: 'item-historial-ia'
+            LineaDelhistorialIa: 'item-historial-ia',
+            conversandoIa: 'modal-ia-conversando'
         }
     },
     formulario: {
@@ -4584,7 +4585,10 @@ const ltrHtml = {
                  <div id="modal-ia-container">
                      <div class="grafica-conteo-cabecera">
                          <h2>Asistente de Filtrado</h2>
-                         <a id="link-ver-respuesta-ia" class="grafica-conteo-consultar" href="javascript:void(0);" style="display:none">Respuesta</a>
+                         <span style="display:inline-flex; align-items:center; gap:12px;">
+                             <a id="link-ver-respuesta-ia" class="grafica-conteo-consultar" href="javascript:void(0);" style="display:none">Respuesta</a>
+                             <span id="btn-cerrar-x-ia" class="cerrar-de-modal" title="Cerrar">&times;</span>
+                         </span>
                      </div>
 
                      <div id="vista-pregunta-ia">
@@ -4598,7 +4602,7 @@ const ltrHtml = {
                                  <input type="checkbox" id="chk-nueva-pregunta" [nuevaconservacion] />
                                  Misma conversación
                              </label>
-                             <button id="btn-cerrar-dinamico">Cerrar</button>
+                             <button id="btn-cerrar-dinamico" title="Quita los filtros de la IA y empieza una nueva conversación">Resetear</button>
                              <button id="btn-ejecutar-pregunta">Preguntar</button>
                          </div>
                      </div>

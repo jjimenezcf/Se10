@@ -120,6 +120,7 @@ namespace GestoresDeNegocio.Logistica
             consulta = consulta.FiltroPorImporteEntregado(Contexto, filtros);
             consulta = consulta.FiltroPorImporteDevuelto(Contexto, filtros);
             consulta = consulta.FiltroPorPorcentajeEntregado(Contexto, filtros);
+            consulta = consulta.FiltroPorPendienteDeRecibir(Contexto, filtros);
             consulta = consulta.FiltroPorUnitariosDePedidos(Contexto, filtros);
             consulta = consulta.FiltroPorExpedientesDePedidos(Contexto, filtros);
             consulta = consulta.FiltroPorAlmacenesDePedidos(Contexto, filtros);

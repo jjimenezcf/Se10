@@ -43,10 +43,12 @@ namespace ServicioDeDatos.Logistica
     public static class VariableDePedidos
     {
         internal static readonly string IA_Reglas_de_filtrado = @"
-### R.Pedidos.1 · Pendientes de recepcionar (`FiltroPorEtapa`)
+### R.Pedidos.1 · Pendientes de recepcionar (`FiltroPorEtapa` + `FiltroPorPendienteDeRecibir`)
 - **Disparador:** Pedidos ""pendientes de recepcionar"", ""pendientes de recibir"", ""sin recibir"", ""que faltan por recibir"", ""pendientes de entrega"".
-- **Acción:** `{""Clausula"": ""FiltroPorEtapa"", ""Criterio"": ""igual"", ""Valor"": ""PED_Etapa_De_Solicitud|PED_Etapa_De_Recepcion""}`
-- **Nota técnica:** Un pedido pendiente de recepcionar es el que ya se ha solicitado al proveedor y aún no está cerrado: `PED_Etapa_De_Solicitud` (todavía no se ha entregado nada) o `PED_Etapa_De_Recepcion` (entregado parcialmente). Ambas etapas van en un único objeto separadas por `|` (unión). No generes `quemostrar`: son pedidos en curso.
+- **Acción:** Genera siempre estos dos objetos:
+  1. `{""Clausula"": ""FiltroPorEtapa"", ""Criterio"": ""igual"", ""Valor"": ""PED_Etapa_De_Solicitud|PED_Etapa_De_Recepcion""}`
+  2. `{""Clausula"": ""FiltroPorPendienteDeRecibir"", ""Criterio"": ""igual"", ""Valor"": ""5""}`
+- **Nota técnica:** Un pedido pendiente de recepcionar es el que ya se ha solicitado al proveedor y aún no está cerrado: `PED_Etapa_De_Solicitud` (todavía no se ha entregado nada) o `PED_Etapa_De_Recepcion` (entregado parcialmente). Ambas etapas van en un único objeto separadas por `|` (unión). Además se exige que alguna de sus líneas tenga cantidad pendiente de recibir (`FiltroPorPendienteDeRecibir` = `5`), porque un pedido en recepción puede tener ya todas sus líneas recibidas. Con `6` se obtienen los que no tienen nada pendiente de recibir. No generes `quemostrar`: son pedidos en curso.
 
 ### R.Pedidos.2 · Importe del pedido (`FiltroPorImporte`)
 - **Disparador:** Pedidos ""cuyo importe sea más de [X]"", ""por más de [X]€"", ""de entre [X] y [Y] euros"", ""de menos de [X]"", ""con un total de [X]"".
@@ -113,6 +115,14 @@ namespace ServicioDeDatos.Logistica
   2. `{""Clausula"": ""quemostrar"", ""Criterio"": ""igual"", ""Valor"": ""9""}`
 
 **Jerarquía:** Si se indica un nombre o referencia de almacén (R.Pedidos.8.1), no generes R.Pedidos.8.2.
+
+### R.Pedidos.9 · Entregados (`FiltroPorEtapa` + `FiltroPorPendienteDeRecibir`)
+- **Disparador:** Pedidos ""entregados"", ""que se han entregado"", ""recibidos"", ""recepcionados"", ""ya recibidos"", ""con todo entregado"", ""sin nada pendiente de recibir"".
+- **Acción:** Genera siempre estos tres objetos:
+  1. `{""Clausula"": ""FiltroPorEtapa"", ""Criterio"": ""igual"", ""Valor"": ""PED_Etapa_De_Recepcion|PED_Etapa_Cerrado""}`
+  2. `{""Clausula"": ""FiltroPorPendienteDeRecibir"", ""Criterio"": ""igual"", ""Valor"": ""6""}`
+  3. `{""Clausula"": ""quemostrar"", ""Criterio"": ""igual"", ""Valor"": ""9""}` (Para incluir los cerrados).
+- **Nota técnica:** Un pedido entregado es el que está en recepción o cerrado y no tiene ninguna línea con cantidad pendiente de recibir. No uses sólo `PED_Etapa_Cerrado`: un pedido en recepción puede tener ya todo recibido, y uno cerrado puede haberse cerrado sin recibirlo todo. No lo confundas con R.Pedidos.1 (""pendientes de entrega"", Valor `5`).
 ";
 
         private static string etapaDeCumplimentacion => enumNegocio.Pedido.Parametro(enumEtapasDePedido.PED_Etapa_De_Cumplimentacion)?.Valor ?? null;

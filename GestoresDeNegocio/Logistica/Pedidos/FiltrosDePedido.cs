@@ -13,6 +13,7 @@ using System;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.MaestrosTecnico;
+using static ServicioDeDatos.Elemento.Enumerados;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -139,6 +140,28 @@ namespace GestoresDeNegocio.Logistica
                                                 <= maximo * (contexto.Set<LineaDeUnPedidoDtm>().Where(l => l.IdElemento == p.Id && l.Precio != null && l.Cantidad != null)
                                                         .Sum(l => (decimal?)((decimal)l.Precio * (decimal)l.Cantidad * (1 - (l.Descuento ?? 0) / 100))) ?? 0));
                 }
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Pedidos con (5) o sin (6) alguna línea con cantidad pendiente de recibir: lo pedido menos lo recibido que no se ha devuelto, como
+        // ExtensorDeRecepciones.CantidadPendienteDeEntregar; los comentarios no se entregan
+        public static IQueryable<PedidoDtm> FiltroPorPendienteDeRecibir(this IQueryable<PedidoDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorPendienteDeRecibir.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                if (filtro.Valor.Entero() != 6)
+                    consulta = consulta.Where(p => contexto.Set<LineaDeUnPedidoDtm>().Any(l => l.IdElemento == p.Id
+                            && l.TipoDeLinea != enumTipoDeLinea.Comentario
+                            && (l.Cantidad ?? 0) > (contexto.Set<RecepcionDeLineaDtm>().Where(r => r.IdLinea == l.Id).Sum(r => (decimal?)r.Cantidad) ?? 0)
+                                                 - (contexto.Set<DevolucionDeEntregaDtm>().Where(d => d.LineaDeRecepcion.IdLinea == l.Id).Sum(d => (decimal?)d.Cantidad) ?? 0)));
+                else
+                    consulta = consulta.Where(p => !contexto.Set<LineaDeUnPedidoDtm>().Any(l => l.IdElemento == p.Id
+                            && l.TipoDeLinea != enumTipoDeLinea.Comentario
+                            && (l.Cantidad ?? 0) > (contexto.Set<RecepcionDeLineaDtm>().Where(r => r.IdLinea == l.Id).Sum(r => (decimal?)r.Cantidad) ?? 0)
+                                                 - (contexto.Set<DevolucionDeEntregaDtm>().Where(d => d.LineaDeRecepcion.IdLinea == l.Id).Sum(d => (decimal?)d.Cantidad) ?? 0)));
                 filtro.Aplicado = true;
             }
             return consulta;

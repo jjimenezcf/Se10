@@ -20,17 +20,9 @@ namespace ApiPreguntasIa {
         const modalOverlay = document.createElement('div') as HTMLDivElement;
         ApiControl.IncluirCss(modalOverlay, ltrCss.crud.modal.dinamica);
 
-        const historial = crud.Preguntas;
-
-        let htmlHistorial = '';
-        if (historial.length > 0) {
-            const recientes = historial.slice(-5).reverse();
-            htmlHistorial = ltrHtml.Divs.PreguntasIa.replace('[PreguntasIa]', recientes.map(q => `<div class='${ltrCss.crud.modal.LineaDelhistorialIa}' title='${q.pregunta.replace(/"/g, '&quot;')}'>${q.pregunta}</div>`).join(''));
-        }
-
-        const hayHistorial = historial.length > 0;
+        const hayHistorial = crud.Preguntas.length > 0;
         modalOverlay.innerHTML = ltrHtml.Modales.PreguntasIa
-            .replace('[htmlHistorial]', htmlHistorial)
+            .replace('[htmlHistorial]', HtmlDelHistorial(crud))
             .replace('[pregunta]', '')
             .replace('[nuevaconservacion]', hayHistorial ? 'checked' : '');
         crud.NuevaConversacion = !hayHistorial;
@@ -58,7 +50,7 @@ namespace ApiPreguntasIa {
             ApiPanel.OcultarPanel(vistaPregunta);
             ApiPanel.MostrarPanel(vistaJson);
             linkRespuesta.style.display = 'none';
-            const respuestaOriginal = crud.Preguntas.find(p => p.pregunta === txtInput.value)?.respuesta;
+            const respuestaOriginal = (crud.Preguntas.find(p => p.pregunta === txtInput.value.trim()) ?? crud.UltimaPregunta)?.respuesta;
             ApiControl.MapearEnElAreaDeTextoUnJoson(txtJson, respuestaOriginal);
         });
 
@@ -72,13 +64,24 @@ namespace ApiPreguntasIa {
             // pendiente: guardar filtro IA en servidor
         });
 
-        const itemsHistorial = modalOverlay.querySelectorAll('.' + ltrCss.crud.modal.LineaDelhistorialIa);
-        itemsHistorial.forEach(item => {
-            item.addEventListener('click', (e) => {
-                txtInput.value = (e.currentTarget as HTMLElement).innerText;
-                txtInput.focus();
+        const enlazarHistorial = () => {
+            const itemsHistorial = modalOverlay.querySelectorAll('.' + ltrCss.crud.modal.LineaDelhistorialIa);
+            itemsHistorial.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    txtInput.value = (e.currentTarget as HTMLElement).innerText;
+                    txtInput.focus();
+                });
             });
-        });
+        };
+        enlazarHistorial();
+
+        // Repinta las consultas recientes tras cada pregunta, sin cerrar el modal
+        const repintarHistorial = () => {
+            modalOverlay.querySelector('#seccion-historial-ia')?.remove();
+            const html = HtmlDelHistorial(crud);
+            if (html) vistaPregunta.querySelector('.' + ltrCss.crud.modal.cuerpo).insertAdjacentHTML('afterbegin', html);
+            enlazarHistorial();
+        };
 
         setTimeout(() => ApiControl.IncluirCss(modalOverlay, 'fade-in'), 10);
         const cerrar = () => {
@@ -86,34 +89,72 @@ namespace ApiPreguntasIa {
             setTimeout(() => modalOverlay.remove(), 300);
         };
 
+        // El modal permanece abierto mientras dure la conversación: se aparta a una esquina
+        // y deja ver (y usar) el grid con el resultado de cada pregunta
+        let hayPreguntasEnLaConversacion = false;
         btnPreguntar?.addEventListener('click', () => {
             const pregunta = txtInput.value.trim();
-            if (pregunta) {
-                LanzarPregunta(crud, pregunta);
-                cerrar();
-            } else {
+            if (!pregunta) {
                 txtInput.focus();
                 txtInput.style.borderColor = 'red';
+                return;
             }
+            txtInput.style.borderColor = '';
+            btnPreguntar.disabled = true;
+            txtInput.disabled = true;
+            btnPreguntar.innerText = 'Pensando...';
+            ApiControl.IncluirCss(modalOverlay, ltrCss.crud.modal.conversandoIa);
+            LanzarPregunta(crud, pregunta)
+                .then(() => {
+                    hayPreguntasEnLaConversacion = true;
+                    txtInput.value = '';
+                    (modalOverlay.querySelector('#chk-nueva-pregunta') as HTMLInputElement).checked = true;
+                    repintarHistorial();
+                })
+                .catch(() => { /* el error ya lo muestra el grid */ })
+                .finally(() => {
+                    btnPreguntar.disabled = false;
+                    txtInput.disabled = false;
+                    btnPreguntar.innerText = 'Preguntar';
+                    txtInput.focus();
+                });
         });
 
+        // Resetear: quita los filtros de la IA, recarga el grid con los filtros de pantalla
+        // y la siguiente pregunta empieza una conversación nueva; el modal sigue abierto
         btnCerrar?.addEventListener('click', () => {
             crud.Pregunta = null;
-            crud.CargarGrid();
+            crud.NuevaConversacion = true;
+            (modalOverlay.querySelector('#chk-nueva-pregunta') as HTMLInputElement).checked = false;
+            hayPreguntasEnLaConversacion = false;
+            txtInput.value = '';
+            txtInput.style.borderColor = '';
+            crud.CargarGrid().catch(() => { /* el error ya lo muestra el grid */ });
             const linkIA = document.getElementById('acceso-ia-preguntame');
             if (linkIA) ApiControl.ExcluirCss(linkIA, ltrCss.modalesDeFiltro.conFiltro);
-            cerrar();
+            txtInput.focus();
         });
-        modalOverlay.onclick = (e) => { if (e.target === modalOverlay) cerrar(); };
+
+        // La × sólo cierra: se mantiene el filtro de la última respuesta
+        (modalOverlay.querySelector('#btn-cerrar-x-ia') as HTMLElement)?.addEventListener('click', () => cerrar());
+        modalOverlay.onclick = (e) => { if (e.target === modalOverlay && !hayPreguntasEnLaConversacion) cerrar(); };
         setTimeout(() => txtInput.focus(), 100);
     }
 
-    export function LanzarPregunta(crud: Crud.CrudMnt, texto: string): void {
+    function HtmlDelHistorial(crud: Crud.CrudMnt): string {
+        const historial = crud.Preguntas;
+        if (historial.length === 0) return '';
+        const recientes = historial.slice(-5).reverse();
+        return ltrHtml.Divs.PreguntasIa.replace('[PreguntasIa]', recientes.map(q => `<div class='${ltrCss.crud.modal.LineaDelhistorialIa}' title='${q.pregunta.replace(/"/g, '&quot;')}'>${q.pregunta}</div>`).join(''));
+    }
+
+    export function LanzarPregunta(crud: Crud.CrudMnt, texto: string): Promise<boolean> {
         crud.Pregunta = texto;
         crud.NuevaConversacion = !(document.getElementById('chk-nueva-pregunta') as HTMLInputElement).checked;
-        crud.CargarGrid().then(() => {
+        return crud.CargarGrid().then((resultado) => {
             const linkIA = document.getElementById('acceso-ia-preguntame');
             if (linkIA) ApiControl.IncluirCss(linkIA, ltrCss.modalesDeFiltro.conFiltro);
+            return resultado;
         });
     }
 

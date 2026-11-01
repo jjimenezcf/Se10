@@ -993,6 +993,21 @@ div[propiedad="Dar de alta"] a[href^="javascript:Crud.EventosDeExpansores('dar-d
         transform: translateY(0); /* Sube a su posición */
     }
 
+    /* Asistente IA en conversación: sin velo, anclado abajo a la derecha y dejando usar el grid */
+    .modal-mostrar-propiedad.modal-ia-conversando {
+        background-color: transparent;
+        pointer-events: none;
+        justify-content: flex-end;
+        align-items: flex-end;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+
+        .modal-mostrar-propiedad.modal-ia-conversando > div {
+            pointer-events: auto;
+            width: 480px;
+        }
+
     /* Título */
     .modal-mostrar-propiedad h2 {
         margin-top: 0;
