@@ -273,6 +273,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 columna.Titulo = ApiDeAtributos.Titulo(propiedad, atributos);
                 columna.Ayuda = atributos.Ayuda;
                 columna.Visible = atributos.EsVisible(enumModoDeTrabajo.Mantenimiento) && !atributos.Oculto;
+                columna.MostrarEnMovil = atributos.MostrarEnGridMovilIndicado;
                 columna.ConOrdenacion = !atributos.OrdenarGridPor.IsNullOrEmpty() ? true : atributos.Ordenar;
                 if (columna.ConOrdenacion && columna.Propiedad == nameof(IPrioridad.Prioridad) && !zonaDeDatos.EsHistorial
                     && zonaDeDatos.Mnt.Crud.Negocio.ObtenerMetadatos()?.CalcularPrioridad != null)
@@ -327,7 +328,9 @@ namespace MVCSistemaDeElementos.Descriptores
                     if (visibilidadGuardada is not null)
                     {
                         columna.Visible = columna.Titulo.IsNullOrEmpty() ? false : visibilidadGuardada.Visible;
-                        if (columna.PorAnchoMnt == 0 && columna.TamanoFijo.IsNullOrEmpty())
+                        // MostrarEnGridMovil = true no prevalece sobre lo que oculte el usuario: la ficha sigue la visibilidad de la columna
+                        if (!columna.Visible && columna.MostrarEnMovil == true)
+                            columna.MostrarEnMovil = null;                        if (columna.PorAnchoMnt == 0 && columna.TamanoFijo.IsNullOrEmpty())
                             columna.TamanoFijo = "10em";
                         if (columna.CssDeLaColumna == enumCssGrid.ColumnaOculta)
                             columna.CssDeLaColumna = enumCssGrid.Nulo;

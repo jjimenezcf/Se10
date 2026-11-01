@@ -198,12 +198,20 @@ namespace GestorDeElementos.Extensores
 
             foreach (var iva in ivas)
             {
-                impuestos.Add($"Iva: {contexto.SeleccionarPorId<IvaSoportadoDtm>(iva.IdIva).Expresion}", iva.Importe);
+                var indice = $"Iva: {contexto.SeleccionarPorId<IvaSoportadoDtm>(iva.IdIva).Expresion}";
+                if (impuestos.ContainsKey(indice))
+                    impuestos[indice] = impuestos[indice] + iva.Importe;
+                else
+                    impuestos.Add(indice, iva.Importe);
             }
 
             foreach (var irpf in irpfs)
             {
-                impuestos.Add($"Irpf: {contexto.SeleccionarPorId<IrpfDtm>(irpf.IdIrpf).Expresion}", irpf.Importe);
+                var indice = $"Irpf: {contexto.SeleccionarPorId<IrpfDtm>(irpf.IdIrpf).Expresion}";
+                if (impuestos.ContainsKey(indice))
+                    impuestos[indice] = impuestos[indice] + irpf.Importe;
+                else
+                    impuestos.Add(indice, irpf.Importe);
             }
 
             return impuestos;

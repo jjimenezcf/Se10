@@ -131,6 +131,7 @@ namespace UtilidadesParaIu
                               es-fecha = {columna.EsFecha}
                               columna-accion = {columna.EsAccion}
                               {(columna.EsAccion ? $"accion = ¨{columna.Accion}¨" : "")}
+                              mostrar-en-movil = ¨{(columna.MostrarEnMovil is null ? "" : (bool)columna.MostrarEnMovil ? "S" : "N")}¨
                               formato = '{columna.Formato.Descripcion()}'
                               modo-ordenacion=¨{(columna.cssOrdenacion == enumCssOrdenacion.SinOrden ? $"{enumModoOrdenacion.sinOrden.Render()}" : $"{enumModoOrdenacion.ascendente.Render()}")}¨ 
                               {atributoTamano}

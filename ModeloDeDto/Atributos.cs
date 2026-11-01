@@ -105,6 +105,17 @@ namespace ModeloDeDto
             }
             set { _visibleEnGrid = value; }
         }
+        /// <summary>
+        /// Si la columna se muestra en las fichas en las que se convierte el grid del mantenimiento en el móvil; si no se indica, lo que diga
+        /// la visibilidad de la columna en el grid (la que el usuario haya guardado en USU_Colunas_Del_Grid y si no VisibleEnGrid)
+        /// </summary>
+        public bool MostrarEnGridMovil { get { return _mostrarEnGridMovil ?? VisibleEnGrid; } set { _mostrarEnGridMovil = value; } }
+        private bool? _mostrarEnGridMovil = null;
+        /// <summary>
+        /// Valor indicado para MostrarEnGridMovil, null si no se ha indicado
+        /// </summary>
+        public bool? MostrarEnGridMovilIndicado => Oculto ? false : _mostrarEnGridMovil;
+
         public bool VisibleEnEdicion { get { return VisibleAlCrear && VisibleAlEditar && VisibleAlConsultar; } set { VisibleAlCrear = VisibleAlEditar = VisibleAlConsultar = value; } }
 
         private bool _visibleAlCrear = true;

@@ -180,11 +180,89 @@ body.resizing-en-progreso * {
     column-gap: 0.5em;
 }
 
+    /* la barra de una página de consulta (ver DescriptorDeMantenimiento.RenderMenuDeConsulta) sólo tiene el título y la etiqueta de
+       mostrar u ocultar el filtro: sin las columnas de los iconos del mantenimiento, la etiqueta (o el embudo en el móvil) va a la derecha */
+    .div-mnt-menu-contenedor.menu-de-consulta {
+        display: flex !important;
+        align-items: center;
+    }
+
+        .div-mnt-menu-contenedor.menu-de-consulta > .div-mnt-filtro-expansor {
+            width: auto;
+            margin-left: auto;
+        }
+
 /* Botón con la lista de opciones de creación que sustituye al select en el móvil (ZonaDeMenu) */
 .opciones-menu-creacion-movil {
     display: none;
     position: relative;
 }
+
+/* Grid en vertical en el móvil (ver ApiDeGrid.MostrarFilasEnVertical): cada fila es una ficha y cada celda una línea con el título de
+   su columna (data-etiqueta) y, a su lado, el valor entero aunque no quepa: la lista se desplaza en horizontal para leerlo. Salen las
+   columnas marcadas para el móvil (IUPropiedadAttribute.MostrarEnGridMovil), en el orden del grid */
+@media (max-width: 47.94em) {
+    .tabla-en-vertical {
+        display: block;
+    }
+
+        .tabla-en-vertical .div-tbody {
+            display: block;
+            overflow-x: auto;
+        }
+
+        .tabla-en-vertical .div-thead {
+            display: none;
+        }
+
+        .tabla-en-vertical .div-tbody .div-tr {
+            display: flex;
+            flex-direction: column;
+            width: max-content;
+            min-width: 100%;
+            padding: 6px 0;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .tabla-en-vertical .div-tbody .div-td {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            width: auto !important;
+            padding: 3px 10px !important;
+            border-bottom: none;
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+            /* los títulos con el mismo ancho, para que los valores empiecen todos a la misma altura */
+            .tabla-en-vertical .div-tbody .div-td::before {
+                content: attr(data-etiqueta);
+                flex: 0 0 9em;
+                font-weight: bold;
+                text-align: left;
+                white-space: normal;
+            }
+
+            .tabla-en-vertical .div-tbody .div-td.columna-oculta,
+            .tabla-en-vertical .div-tbody .div-td[data-etiqueta=""] {
+                display: none;
+            }
+
+            /* el valor junto al título y con el ancho de su texto (el input lleva size, ver MostrarFilasEnVertical), sin el ancho que el
+               grid da a la columna, que lo recortaba */
+            .tabla-en-vertical .div-tbody .div-td > input,
+            .tabla-en-vertical .div-tbody .div-td > a {
+                flex: 0 0 auto;
+                width: auto !important;
+                max-width: none !important;
+                field-sizing: content;
+                text-align: left !important;
+                overflow: visible;
+            }
+}
+
 
 @media (max-width: 47.94em) {
     .div-mnt-menu-contenedor {

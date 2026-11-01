@@ -31,8 +31,8 @@ namespace GestoresDeNegocio.Ventas
             public MapearAsignacionesDePtrDeUnitarios()
             {
                 CreateMap<AsignacionDePtrDtm, AsignacionDePtrDto>()
-                .ForMember(dto => dto.Trabajador, dtm => dtm.MapFrom(dtm => dtm.Trabajador.Expresion))
-                .ForMember(dto => dto.Elemento, dtm => dtm.MapFrom(dtm => dtm.Elemento.Expresion))
+                .ForMember(dto => dto.Trabajador, dtm => dtm.MapFrom(dtm => dtm.Trabajador != null ? dtm.Trabajador.Expresion : null))
+                .ForMember(dto => dto.Elemento, dtm => dtm.MapFrom(dtm => dtm.Elemento != null ? dtm.Elemento.Expresion : null))
                 .ForMember(dto => dto.LtrMedidoEn, dtm => dtm.MapFrom(dtm => dtm.MedidoEn.ToString()));
                 CreateMap<AsignacionDePtrDto, AsignacionDePtrDtm>()
                 .ForMember(dtm => dtm.Trabajador, dto => dto.Ignore())
@@ -196,7 +196,7 @@ namespace GestoresDeNegocio.Ventas
             base.DespuesDeMapearElElemento(asignacion, elemento, parametros);
             var parte = asignacion.DetalleDe<ParteTrDtm>(Contexto, aplicarJoin: true);
             elemento.IdCg = parte.IdCg;
-            elemento.Cg = parte.Cg.Expresion;
+            elemento.Cg = parte.Cg(Contexto).Expresion;
         }
 
         protected override void ObtenerModoDeAccesoAlElementoQueSeDevuelve(AsignacionDePtrDtm asignacion, AsignacionDePtrDto elemento, ParametrosDeNegocio parametros)

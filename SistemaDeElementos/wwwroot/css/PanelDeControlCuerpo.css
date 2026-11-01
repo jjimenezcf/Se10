@@ -18,6 +18,16 @@
     display: none;
 }
 
+/* una página de consulta sí muestra su cabecera, con el título y la etiqueta para mostrar u ocultar el filtro
+   (ver DescriptorDeMantenimiento.RenderMenuDeConsulta) */
+.cuerpo.cuerpo-solo-con-grid:has(.menu-de-consulta) {
+    grid-template-rows: auto minmax(0, 1fr) 3em !important;
+}
+
+    .cuerpo.cuerpo-solo-con-grid .cuerpo-cabecera:has(.menu-de-consulta) {
+        display: block;
+    }
+
 
 .cuerpo-datos {
     display: grid;

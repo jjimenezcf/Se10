@@ -252,6 +252,7 @@ namespace ModeloDeDto.Ventas
         [IUPropiedad(
            TamanoFijo = "10em"
          , EtiquetaGrid = "Rectificada Por"
+         , MostrarEnGridMovil = false
          , VisibleEnEdicion = false
          , TipoDeControl = enumTipoControl.Referencia
          , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Fae_IrARectificadaPor) + "(numeroDeFila)"
@@ -263,6 +264,7 @@ namespace ModeloDeDto.Ventas
         [IUPropiedad(
            TamanoFijo = "10em"
          , EtiquetaGrid = "Rectifico A"
+         , MostrarEnGridMovil = false
          , VisibleEnEdicion = false
          , TipoDeControl = enumTipoControl.Referencia
          , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Fae_IrARectificoA) + "(numeroDeFila)"
@@ -505,6 +507,7 @@ namespace ModeloDeDto.Ventas
            TamanoFijo = "10em"
          , Etiqueta = "Expediente"
          , EtiquetaGrid = "Expediente"
+         , MostrarEnGridMovil = false
          , VisibleEnEdicion = false
          , TipoDeControl = enumTipoControl.Referencia
          , AccionRef = "javascript: " + nameof(enumNameSpaceTs.ApiDelCrud) + "." + nameof(enumFunctionTs.Negocio_IrAlExpediente) + "(numeroDeFila)"

@@ -225,25 +225,32 @@
         }
     }
 
-    export function ObtenerDescriptorDeLaCabeceraMovil(tabla: HTMLDivElement): Array<PropiedadesDeLaFila> {
-        const propiedadesVisibles = ['chksel', 'nombre'];
-
+    // Columnas del grid en el móvil. En el grid del mantenimiento cada fila es una ficha (ver MostrarFilasEnVertical) con las columnas
+    // marcadas para el móvil (ver IUPropiedadAttribute.MostrarEnGridMovil): 'S' se muestra salvo que el usuario la oculte, 'N' no, y sin valor
+    // según la visibilidad de la columna en el grid (la guardada por el usuario o VisibleEnGrid, y lo que oculte o muestre después); en el resto de grids (modales)
+    // sólo el nombre. Si el grid no tiene esas columnas se usan sus columnas visibles
+    export function ObtenerDescriptorDeLaCabeceraMovil(tabla: HTMLDivElement, esElGridDelMantenimiento: boolean): Array<PropiedadesDeLaFila> {
         var cabecera = tabla.querySelectorAll('.' + ltrCss.crud.fila)[0] as HTMLDivElement;
-        var ths = cabecera.querySelectorAll('.' + ltrCss.crud.columna) as NodeListOf<HTMLDivElement>;
+        var ths = Array.from(cabecera.querySelectorAll('.' + ltrCss.crud.columna) as NodeListOf<HTMLDivElement>);
 
-        // Convertimos el NodeList a Array para usar 'some' y verificar si existe la propiedad 'nombre'
-        const existeColumnaNombre = Array.from(ths).some(th =>
-            th.getAttribute(atControl.propiedad)?.toLowerCase() === 'nombre'
-        );
+        const mostrarEnMovil = (th: HTMLDivElement): boolean => {
+            const indicado = th.getAttribute(atControl.MostraEnMovil);
+            return indicado === 'S' || (indicado !== 'N' && !estaOculta(th));
+        };
+        const seMuestra = (propiedad: string, th: HTMLDivElement): boolean =>
+            propiedad === ltrMantenimiento.CheckDeSeleccion ||
+            (esElGridDelMantenimiento ? mostrarEnMovil(th) : propiedad === 'nombre');
 
-        if (!existeColumnaNombre) {
-            // Si no existe la columna 'nombre', abortamos este método y devolvemos el descriptor estándar
+        const hayColumnasParaElMovil = ths.some(th => {
+            const propiedad = th.getAttribute(atControl.propiedad)?.toLowerCase();
+            return propiedad !== ltrMantenimiento.CheckDeSeleccion && seMuestra(propiedad, th);
+        });
+        if (!hayColumnasParaElMovil)
             return ObtenerDescriptorDeLaCabecera(tabla);
-        }
 
         ths.forEach((th) => {
             const propiedad = th.getAttribute(atControl.propiedad)?.toLowerCase();
-            if (propiedadesVisibles.includes(propiedad)) {
+            if (seMuestra(propiedad, th)) {
                 th.classList.remove(ltrCss.columnaOculta);
             } else {
                 th.classList.add(ltrCss.columnaOculta);
@@ -253,8 +260,9 @@
         var columnas = ObtenerDescriptorDeLaCabecera(tabla);
 
         columnas.forEach((col) => {
+            const th = ths.find(th => th.id === col.id);
             const propiedad = col.propiedad?.toLowerCase();
-            if (!propiedadesVisibles.includes(propiedad)) {
+            if (!Definido(th) || !seMuestra(propiedad, th)) {
                 col.visible = false;
                 if (!col.Clases.includes(ltrCss.columnaOculta)) {
                     col.claseCss = (col.claseCss + ' ' + ltrCss.columnaOculta).trim();
@@ -263,6 +271,22 @@
         });
 
         return columnas;
+    }
+
+    // Grid en vertical en el móvil: cada fila es una ficha y cada celda una línea con el título de su columna delante (ver CrudBase.css,
+    // .tabla-en-vertical). La cabecera queda oculta, por eso el título se toma de su texto y no de lo que se ve
+    export function MostrarFilasEnVertical(tabla: HTMLDivElement): void {
+        if (!Definido(tabla))
+            return;
+        tabla.classList.add(ltrCss.tablaEnVertical);
+        tabla.querySelectorAll<HTMLDivElement>(`.${ltrCss.crud.tbody} .${ltrCss.crud.celda}`).forEach(celda => {
+            const cabecera = document.getElementById(celda.getAttribute('headers'));
+            celda.setAttribute('data-etiqueta', Definido(cabecera) ? cabecera.textContent.trim() : '');
+            // el valor ocupa lo que mide su texto, aunque no quepa en la pantalla: la ficha se desplaza en horizontal para leerlo
+            const input = celda.querySelector('input');
+            if (Definido(input) && input.type !== 'checkbox')
+                input.size = Math.max(input.value.length, 1);
+        });
     }
 
     export function ObtenerDescriptorDeLaCabecera(tabla: HTMLDivElement): Array<PropiedadesDeLaFila> {
@@ -497,6 +521,9 @@
     }
 
     function hacerInvisible(tabla: HTMLDivElement, columna: HTMLDivElement) {
+        // si el usuario la oculta, aunque se haya marcado para el móvil, la ficha pasa a seguir su visibilidad (ver ObtenerDescriptorDeLaCabeceraMovil)
+        if (columna.getAttribute(atControl.MostraEnMovil) === 'S')
+            columna.setAttribute(atControl.MostraEnMovil, '');
         columna.classList.add(ltrCss.columnaOculta);
         columna.classList.remove(ltrCss.columnaCabecera);
         let cuerpoDeLaTabla: HTMLDivElement = tabla.querySelectorAll('.' + ltrCss.crud.tbody)[0] as HTMLDivElement;

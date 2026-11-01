@@ -1495,7 +1495,12 @@
                         tarjeta.append(prioridad);
                     }
 
-                    tarjeta.addEventListener('click', (event: MouseEvent) => this.AlternarSeleccionDeFicha(tarjeta, t, event.ctrlKey));
+                    // el segundo click de un doble click no alterna la selección (la quitaría): lo resuelve el doble click
+                    tarjeta.addEventListener('click', (event: MouseEvent) => {
+                        if (event.detail > 1) return;
+                        this.AlternarSeleccionDeFicha(tarjeta, t, event.ctrlKey);
+                    });
+                    tarjeta.addEventListener('dblclick', (event: MouseEvent) => this.EditarFicha(tarjeta, t, event));
                     columna.append(tarjeta);
                 });
 
@@ -1531,6 +1536,17 @@
             // las tarjetas se han reconstruido de cero: si había fichas seleccionadas hay que
             // volver a insertarles los botones de transitar
             this.ActualizarControlesDeTransicionDeFichas();
+        }
+
+        // Doble click en una ficha: como en el grid (ver ManejadorDelClickEnElGrid), queda seleccionada sólo ella y se va a su edición.
+        // Los enlaces de transitar y de observaciones de la ficha seleccionada tienen su propio click
+        private EditarFicha(tarjeta: HTMLDivElement, registro: any, event: MouseEvent): void {
+            if ((event.target as HTMLElement).closest('.' + ltrCss.crud.grid.AccionesFicha))
+                return;
+            this.DeseleccionarTodasLasFichas();
+            ApiControl.IncluirCss(tarjeta, ltrCss.crud.grid.TarjetaFichaSeleccionada);
+            this.AnadirAlInfoSelector(this, new Elemento(registro, 'nombre'));
+            this.IraEditar();
         }
 
         private AlternarSeleccionDeFicha(tarjeta: HTMLDivElement, registro: any, ctrlKey: boolean): void {

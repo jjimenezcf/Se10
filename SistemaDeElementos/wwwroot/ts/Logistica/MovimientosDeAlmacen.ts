@@ -44,5 +44,12 @@ namespace Logistica {
             this.crudDeCreacion = undefined;
             this.crudDeEdicion = undefined;
         }
+
+        // El filtro empieza plegado; se despliega con la etiqueta "Mostrar filtro" en la web o con el embudo de la barra en el móvil.
+        // Se pliega al acabar de inicializar el crud, que es cuando el mantenimiento fija si el filtro se ve (ver OcultarMostrarFiltro)
+        protected DespuesDeInicializarCrud(modoAccesoAlNegocio: ModoAcceso.enumModoDeAccesoDeDatos) {
+            super.DespuesDeInicializarCrud(modoAccesoAlNegocio);
+            this.OcultarFiltro();
+        }
     }
 }

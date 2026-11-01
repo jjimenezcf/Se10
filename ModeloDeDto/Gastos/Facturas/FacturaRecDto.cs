@@ -627,6 +627,7 @@ namespace ModeloDeDto.Gastos
         [IUPropiedad(
             Etiqueta = "Impuestos",
             CssDeLaColumna = enumCssGrid.ColumnaOculta,
+            MostrarEnGridMovil = false,
             VisibleEnGrid = true,
             VisibleAlEditar = false,
             VisibleAlCrear = false)]
@@ -636,6 +637,7 @@ namespace ModeloDeDto.Gastos
         [IUPropiedad(
             Etiqueta = "Naturalezas",
             CssDeLaColumna = enumCssGrid.ColumnaOculta,
+            MostrarEnGridMovil = false,
             VisibleEnGrid = true,
             VisibleAlEditar = false,
             VisibleAlCrear = false)]
@@ -645,6 +647,7 @@ namespace ModeloDeDto.Gastos
         [IUPropiedad(
             Etiqueta = "Formas de pago",
             CssDeLaColumna = enumCssGrid.ColumnaOculta,
+            MostrarEnGridMovil = false,
             VisibleEnGrid = true,
             VisibleAlEditar = false,
             VisibleAlCrear = false)]

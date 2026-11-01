@@ -1798,6 +1798,9 @@
             try {
                 grid.AnadirCuerpoALaTabla(grid, cuerpo);
                 grid.ActualizarInformacionDelGrid(grid);
+                // en el móvil el grid del mantenimiento se ve como fichas (ver ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil)
+                if (grid.EsCrud && EsDispositvoMovil())
+                    ApiDeGrid.MostrarFilasEnVertical(grid.Tabla);
             }
             finally {
                 if (grid.EsHistorial)
@@ -1809,8 +1812,8 @@
 
         private CrearCuerpoDeLaTabla(grid: GridDeDatos, registros: any): HTMLDivElement {
 
-            if (EsDispositvoMovil() && this.IdNegocio > 0)
-                grid.FilaCabecara = ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil(grid.Tabla)
+            if (EsDispositvoMovil() && (grid.EsCrud || this.IdNegocio > 0))
+                grid.FilaCabecara = ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil(grid.Tabla, grid.EsCrud)
             else if (!Definido(grid.FilaCabecara))
                 grid.FilaCabecara = ApiDeGrid.ObtenerDescriptorDeLaCabecera(grid.Tabla);
 
