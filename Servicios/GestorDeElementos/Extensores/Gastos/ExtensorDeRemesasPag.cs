@@ -1,13 +1,14 @@
-﻿using System;
-using Utilidades;
-using ServicioDeDatos.Gastos;
+﻿using Gestor.Errores;
 using ServicioDeDatos;
-using static Gestor.Errores.GestorDeErrores;
+using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Gastos;
+using ServicioDeDatos.Terceros;
+using ServicioDeDatos.Ventas;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using ServicioDeDatos.Terceros;
-using ServicioDeDatos.Entorno;
-using ServicioDeDatos.Ventas;
+using Utilidades;
+using static Gestor.Errores.GestorDeErrores;
 
 namespace GestorDeElementos.Extensores
 {
@@ -147,6 +148,17 @@ namespace GestorDeElementos.Extensores
             var p = new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } };
             foreach (var e in eventos.Where(e => e.EsDelSistema)) remesa.Desvincular(contexto, e, p);
         }
+        
+        public static RemesaPagDtm DarPorPagada(this RemesaPagDtm remesa, ContextoSe contexto, DateTime pagadaEl)
+        {
+            if (remesa.PagadaEl.HasValue)
+                Emitir($"La remesa '{remesa.Referencia}' se pagó el día '{remesa.PagadaEl.Fecha().ToShortDateString()}'");
+
+            remesa.PagadaEl = pagadaEl;
+            remesa.Modificar(contexto, accionEjecutada: ltrDeUnaRemesaPag.Accion_PagoDeRemesa);
+            remesa.EliminarEventoDePago(contexto);
+            return remesa;
+        }
 
         public static CuentaDeMiSociedadDtm CuentaDePago(this RemesaPagDtm remesa, ContextoSe contexto)
         {
@@ -199,6 +211,7 @@ namespace GestorDeElementos.Extensores
             return (decimal)cache[$"{remesa.Id}"];
         }
 
+        // Paga los pagos de la remesa; se llama al persistir la fecha de pago de la remesa, ver DarPorPagada
         public static void Pagar(this RemesaPagDtm remesa, ContextoSe contexto, DateTime pagadaEl, VariableDePagos.enumMotivoTransicion motivo)
         {
             if (!remesa.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeRemesasPag> { enumEtapasDeRemesasPag.REM_Etapa_De_Presentacion, enumEtapasDeRemesasPag.REM_Etapa_De_Cierre }))
@@ -208,7 +221,7 @@ namespace GestorDeElementos.Extensores
             var contador = 0;
             foreach (var pr in pagosDeLaRemesa)
             {
-                if (pr.PagadoEl.HasValue) return;
+                if (pr.PagadoEl.HasValue) continue;
                 if (pr.AnuladoEl.HasValue) continue;
                 pr.PagadoEl = pagadaEl;
                 pr.Modificar(contexto, parametros: new Dictionary<string, object> {
@@ -217,12 +230,9 @@ namespace GestorDeElementos.Extensores
                 });
                 contador++;
             }
-            if (remesa.PagadaEl is null)
-            {
-                remesa.PagadaEl = pagadaEl;
-                remesa.Modificar(contexto, ltrDeUnaRemesaPag.Accion_PagoDeRemesa);
-            }
-            remesa.CrearTraza(contexto, "Pago realizado", $"El usuario '{contexto.DatosDeConexion.Login}' ha realizado el pago de ${contador} pagos de la remesa '{remesa.Referencia}' con fecha '{pagadaEl.ToShortDateString()}'");
+            if (contador == 0)
+                return;
+            remesa.CrearTraza(contexto, "Pago realizado", $"El usuario '{contexto.DatosDeConexion.Login}' ha realizado el pago de {contador} pagos de la remesa '{remesa.Referencia}' con fecha '{pagadaEl.ToShortDateString()}'");
         }
 
         public static void AnularAnulacionDePago(this RemesaPagDtm remesa, ContextoSe contexto, PagoDtm pago, string motivo)
@@ -261,7 +271,7 @@ namespace GestorDeElementos.Extensores
                     { nameof(VariableDePagos.TransicionesPorMotivo),VariableDePagos.enumMotivoTransicion.RetrocederRemesa}});
                 contador++;
             }
-            remesa.CrearTraza(contexto, "Pago anulado", $"El usuario '{contexto.DatosDeConexion.Login}' ha anulado el pago de ${contador} pagos de la remesa con fecha '{pagadaEl.ToShortDateString()}'");
+            remesa.CrearTraza(contexto, "Pago anulado", $"El usuario '{contexto.DatosDeConexion.Login}' ha anulado el pago de {contador} pagos de la remesa con fecha '{pagadaEl.ToShortDateString()}'");
         }
 
 

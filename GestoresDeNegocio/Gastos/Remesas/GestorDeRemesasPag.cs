@@ -293,17 +293,11 @@ namespace GestoresDeNegocio.Gastos
 
         public static void AdelantarPago(ContextoSe contexto, int idRemesa, DateTime pagadaEl)
         {
-            var remesa = contexto.SeleccionarPorId<RemesaPagDtm>(idRemesa);
-            if (remesa.PagadaEl.HasValue)
-                GestorDeErrores.Emitir($"La remesa '{remesa.Referencia}' se pagó el día '{remesa.PagadaEl.Fecha().ToShortDateString()}'");
-
-
             var tran = contexto.IniciarTransaccion();
             try
             {
-                remesa.PagadaEl = pagadaEl;
-                remesa.Modificar(contexto, accionEjecutada: ltrDeUnaRemesaPag.Accion_PagoDeRemesa);
-                remesa.EliminarEventoDePago(contexto);
+                var remesa = contexto.SeleccionarPorId<RemesaPagDtm>(idRemesa);
+                remesa = remesa.DarPorPagada(contexto, pagadaEl);
                 remesa.CrearTraza(contexto, "Pago adelantado", $"El usuario '{contexto.DatosDeConexion.Login}' ha adelantado el pago fijado el día '{remesa.PagarEl.Fecha().ToShortDateString()}' al día '{remesa.PagadaEl.Fecha().ToShortDateString()}'");
                 contexto.Commit(tran);
             }

@@ -24,6 +24,8 @@
 
         public const string IdArchivoSepa = nameof(IdArchivoSepa);
 
+        public const string ObservacionTrabajoDePago = "Trabajo que la pagó";
+
         public const string Accion_PagoDeRemesa = nameof(Accion_PagoDeRemesa);
         public const string Accion_AnularPagoDeRemesa = nameof(Accion_AnularPagoDeRemesa);
         public const string Accion_AnularPago = nameof(Accion_AnularPago);

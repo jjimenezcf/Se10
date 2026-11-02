@@ -7,6 +7,7 @@ using GestorDeElementos.Extensores;
 using GestoresDeNegocio.TrabajosSometidos;
 using iText.Commons.Actions.Contexts;
 using ServicioDeDatos;
+using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.TrabajosSometidos;
 using Utilidades;
@@ -59,13 +60,17 @@ namespace GestoresDeNegocio.Gastos
                     try
                     {
                         entorno.ActualizarTraza(trazaInfDtm, $"procesando la {rem.Referencia}");
-                        if (rem.PagarEl.Fecha() <= DateTime.Now && rem.PagadaEl is null)
-                            GestorDeRemesasPag.AdelantarPago(contexto, rem.Id, rem.PagarEl.Fecha());
 
-                        if (rem.PagadaEl is null) continue;
-
+                        if (rem.PagadaEl is null)
+                        {
+                            if (rem.PagarEl.HasValue && rem.PagarEl.Fecha() <= DateTime.Now)
+                            {
+                                var pagada = rem.DarPorPagada(contexto, rem.PagarEl.Fecha());
+                                AnotarTrabajoQueLaPago(entorno, pagada);
+                            }
+                        }
                         //a los tres días de estar pagada la transito a cerrada si no lo está
-                        if (rem.PagadaEl.Fecha().AddDays(3) < DateTime.Now)
+                        else if (rem.PagadaEl.Fecha().AddDays(3) < DateTime.Now)
                             rem.TransitarALaEtapa(contexto, enumEtapasDeRemesasPag.REM_Etapa_De_Cierre.EstadosDeLaEtapa(), new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } }, delSistema: false);
 
                         entorno.CrearTraza($"remesa {rem.Referencia} procesada");
@@ -82,6 +87,24 @@ namespace GestoresDeNegocio.Gastos
             {
                 entorno.CrearTraza($"Fin del proceso realizado");
                 contexto.CerrarTraza();
+            }
+        }
+
+        // Informativa: si falla no debe deshacer el pago
+        private static void AnotarTrabajoQueLaPago(EntornoDeTrabajo entorno, RemesaPagDtm remesa)
+        {
+            try
+            {
+                var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+                {
+                    Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
+                    Query = $"id={entorno.TrabajoDeUsuario.Id}"
+                }.Uri.ToString();
+                remesa.CrearObservacion(entorno.contextoDelProceso, ltrDeUnaRemesaPag.ObservacionTrabajoDePago, urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+            }
+            catch (Exception e)
+            {
+                entorno.CrearTraza($"No se ha podido crear la observación '{ltrDeUnaRemesaPag.ObservacionTrabajoDePago}' en '{remesa.Referencia}': {e.Message}");
             }
         }
 

@@ -146,24 +146,29 @@ namespace GestorDeElementos.Extensores
             }
         }
 
-        public static void AnularPreasiento(this IUsaPreasiento elemento, ContextoSe contexto, Dictionary<string, object> parametros)
+        // complemento: lo que se quiera añadir tras la referencia del elemento en el error, como la remesa en la que está un pago
+        public static void AnularPreasiento(this IUsaPreasiento elemento, ContextoSe contexto, Dictionary<string, object> parametros, string complemento = "")
         {
             if (elemento.Preasiento(contexto, errorSiNoHay: false) is not null)
             {
                 var preasiento = elemento.Preasiento(contexto);
                 if (preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado))
                 {
-                    GestorDeErrores.Emitir($"No se puede devolver {preasiento.NegocioReferenciado.ConArticulo()} '{elemento.Referencia}' ya que el preasiento '{preasiento.Referencia}' asociado está " +
+                    GestorDeErrores.Emitir($"No se puede devolver {preasiento.NegocioReferenciado.ConArticulo()} '{elemento.Referencia}'{complemento} ya que el preasiento '{preasiento.Referencia}' asociado está " +
                                            $"{enumEtapasDePreasiento.SPR_Etapa_Contabilizado.Nombre()}, {preasiento.ComoDevolverloAPendiente(contexto)}");
                 }
                 else
                 {
                     if (!preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Cancelado) && !preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Anulado))
                     {
+                        var mensaje = parametros.ContainsKey(ltrParametrosEp.detalleAsunto)
+                        ? parametros[ltrParametrosEp.detalleAsunto].ToString()
+                        : $"El preasiento ha sido anulado al transitar {elemento.Preasiento(contexto).NegocioReferenciado.ConArticulo()} '{elemento.Referencia}'";
+
                         preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Cancelado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
                            {
                                {ltrParametrosEp.asunto, "Anulado el asiento por el sistema" },
-                               {ltrParametrosEp.detalleAsunto, $"El asiento ha sido cancelado al transitar {elemento.Preasiento(contexto).NegocioReferenciado.ConArticulo()} '{elemento.Referencia}'" }
+                               {ltrParametrosEp.detalleAsunto, mensaje }
                            });
                         elemento.IdPreasiento = null;
                         elemento.Preasiento = null;

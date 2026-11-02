@@ -451,12 +451,31 @@ namespace GestoresDeNegocio.Gastos
             if (transicion.EntreEtapas(enumEtapasDePagos.PAG_Etapa_Pendiente.Estados(), enumEtapasDePagos.PAG_Etapa_Remesado.Estados()))
                 return pago.AntesDeRemesar(Contexto, parametros);
 
+            if (transicion.EntreEtapas(enumEtapasDePagos.PAG_Etapa_Pagado.Estados(), enumEtapasDePagos.PAG_Etapa_Remesado.Estados()))
+                pago.AnularPreasientoDeUnPagoRemesado(Contexto, parametros, "retrocedido");
+
             return pago;
+        }
+
+        // Un pago remesado no pasa por AntesDePagar: se preasienta al darse por pagado en la remesa (o al anular su anulación),
+        // igual que con la acción de generar preasiento, ya que AntesDePersistir de una transición conserva el preasiento que había
+        private void PreasentarPagoRemesado(PagoDtm pago)
+        {
+            if (pago.PagadoEl is null)
+                GestorDeErrores.Emitir($"No se puede preasentar el pago '{pago.Referencia}' de la remesa por no tener fecha de pago");
+
+            pago = pago.Preasentar(Contexto);
+            if (pago.IdPreasiento is not null)
+                pago.ModificarComoAdministrador(Contexto, accionQueSeEjecuta: ltrDeUnPago.Accion_GenerarPreasiento);
         }
 
         protected override PagoDtm DespuesDeTransitar(PagoDtm pago, TransicionDtm transicion, Dictionary<string, object> parametros)
         {
             pago = base.DespuesDeTransitar(pago, transicion, parametros);
+
+            if (transicion.EntreEtapas(enumEtapasDePagos.PAG_Etapa_Remesado.Estados(), enumEtapasDePagos.PAG_Etapa_Pagado.Estados()) ||
+                transicion.EntreEtapas(enumEtapasDePagos.PAG_Etapa_Anulacion.Estados(), enumEtapasDePagos.PAG_Etapa_Pagado.Estados()))
+                PreasentarPagoRemesado(pago);
 
             if (transicion.DestinoEstaEnLaEtapa(enumEtapasDePagos.PAG_Etapa_Pagado.Estados()))
             {

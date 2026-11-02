@@ -130,8 +130,20 @@ namespace GestorDeElementos.Extensores
             if (pago.Clase != enumClaseDePago.Remesa)
                 Emitir($"No se puede anular el pago '{pago.Referencia}'. Sólo se pueden anular los pagos remesados");
 
+            pago.AnularPreasientoDeUnPagoRemesado(contexto, parametros, "anulado");
             pago.PagadoEl = null;
             return pago;
+        }
+
+        // Si la transición ya trae un detalle, como el motivo que indica el usuario, se conserva
+        public static void AnularPreasientoDeUnPagoRemesado(this PagoDtm pago, ContextoSe contexto, Dictionary<string, object> parametros, string accion)
+        {
+            var remesa = pago.Remesa(contexto, errorSiNoHay: false, incluirTerminadas: true);
+            var deLaRemesa = remesa is null ? "" : $" de la remesa '{remesa.Referencia}'";
+            if (parametros.LeerValor(ltrParametrosEp.detalleAsunto, "").IsNullOrEmpty())
+                parametros[ltrParametrosEp.detalleAsunto] = $"Se ha {accion} el pago '{pago.Referencia}'{deLaRemesa}";
+
+            pago.AnularPreasiento(contexto, parametros, complemento: deLaRemesa);
         }
 
         public static PagoDtm AntesDePagar(this PagoDtm pago, ContextoSe contexto, Dictionary<string, object> parametros)
