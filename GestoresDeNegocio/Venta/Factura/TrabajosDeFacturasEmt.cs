@@ -330,11 +330,11 @@ namespace GestoresDeNegocio.Ventas
                         Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
                         Query = $"id={entorno.TrabajoDeUsuario.Id}"
                     }.Uri.ToString();
-                    factura.CrearObservacion(contexto, ltrSii.ObservacionTrabajoDeEnvio, urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                    factura.CrearObservacion(contexto, enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion(), urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
                 }
                 catch (Exception e)
                 {
-                    entorno.CrearTraza($"No se ha podido crear la observación '{ltrSii.ObservacionTrabajoDeEnvio}' en '{factura.Referencia}': {e.Message}");
+                    entorno.CrearTraza($"No se ha podido crear la observación '{enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion()}' en '{factura.Referencia}': {e.Message}");
                 }
 
                 var log = contexto.SeleccionarPorPropiedad<LogDeEnvioDeFacturaDtm>(nameof(LogDeEnvioDeFacturaDtm.IdFactura), factura.Id);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
@@ -65,12 +66,15 @@ namespace GestoresDeNegocio.Ventas
                         try
                         {
                             entorno.ActualizarTraza(trazaInfDtm, $"procesando la {rem.Referencia}");
-                            if (rem.CargarEl.Fecha() <= DateTime.Now && rem.CargarEl is null)
-                                rem.Cargar(contexto, DateTime.Now.Date);
+                            //se cargan en la fecha planificada las facturas pendientes de cargo, si la remesa no se ha cargado manualmente
+                            if (rem.CargadaEl is null && rem.CargarEl.HasValue && rem.CargarEl.Fecha().Date <= DateTime.Today &&
+                                rem.Detalles<FacturaEmtDeUnaRemesaDtm>(contexto).Any(fr => fr.CargadaEl is null && fr.DevueltoEl is null))
+                                rem.Cargar(contexto, rem.CargarEl.Fecha().Date);
 
                             if (rem.FechaMaximaDeDevolucion(contexto) < DateTime.Now)
                                 rem.TransitarALaEtapa(contexto, enumEtapasDeRemesasFae.REM_Etapa_De_Cierre.EstadosDeLaEtapa(), new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } });
 
+                            AnotarTrabajoQueLaProceso(entorno, rem);
                             entorno.CrearTraza($"remesa {rem.Referencia} procesada");
                             contexto.Commit(tran);
                         }
@@ -86,6 +90,24 @@ namespace GestoresDeNegocio.Ventas
             {
                 entorno.CrearTraza($"Fin del proceso realizado");
                 contexto.CerrarTraza();
+            }
+        }
+
+        // Informativa: si falla no debe deshacer lo procesado en la remesa
+        private static void AnotarTrabajoQueLaProceso(EntornoDeTrabajo entorno, RemesaFaeDtm remesa)
+        {
+            try
+            {
+                var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+                {
+                    Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
+                    Query = $"id={entorno.TrabajoDeUsuario.Id}"
+                }.Uri.ToString();
+                remesa.CrearObservacion(entorno.contextoDelProceso, enumTrabajosDeRemesasFae.ProcesosDeRemesasFae.Descripcion(), urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+            }
+            catch (Exception e)
+            {
+                entorno.CrearTraza($"No se ha podido crear la observación '{enumTrabajosDeRemesasFae.ProcesosDeRemesasFae.Descripcion()}' en '{remesa.Referencia}': {e.Message}");
             }
         }
 

@@ -5,7 +5,6 @@ using System.Reflection;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.TrabajosSometidos;
-using iText.Commons.Actions.Contexts;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Gastos;
@@ -100,11 +99,11 @@ namespace GestoresDeNegocio.Gastos
                     Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
                     Query = $"id={entorno.TrabajoDeUsuario.Id}"
                 }.Uri.ToString();
-                remesa.CrearObservacion(entorno.contextoDelProceso, ltrDeUnaRemesaPag.ObservacionTrabajoDePago, urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+                remesa.CrearObservacion(entorno.contextoDelProceso, enumTrabajosDeRemesasPag.ProcesosDeRemesasPag.Descripcion(), urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
             }
             catch (Exception e)
             {
-                entorno.CrearTraza($"No se ha podido crear la observación '{ltrDeUnaRemesaPag.ObservacionTrabajoDePago}' en '{remesa.Referencia}': {e.Message}");
+                entorno.CrearTraza($"No se ha podido crear la observación '{enumTrabajosDeRemesasPag.ProcesosDeRemesasPag.Descripcion()}' en '{remesa.Referencia}': {e.Message}");
             }
         }
 

@@ -88,7 +88,6 @@ namespace ServicioDeDatos.Ventas
         public static readonly string FacturaEnVerifactu = $"La factura '{nameof(FacturaEmtDtm.Referencia)}' ya se ha enviado al SII, {NoSePuedeReenviar}, se ha localizado en el registro Verifactu'";
         public static readonly string VerifactuNoActivo = "Error al acceder a los servidores de la AEAT";
         public const string TrazaRegistroEnLaAeat = "Registro en la AEAT";
-        public const string ObservacionTrabajoDeEnvio = "Trabajo de envío a la AEAT";
 
         public static class Respuesta
         {

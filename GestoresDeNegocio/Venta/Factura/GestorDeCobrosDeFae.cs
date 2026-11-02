@@ -172,7 +172,8 @@ namespace GestoresDeNegocio.Ventas
 
                 }
 
-                if (cobro.Clase == enumClaseDeCobro.Transferencia || cobro.Clase == enumClaseDeCobro.Contado)
+                //los cobros de remesa se preasientan al cargar la remesa, que es cuando se crean
+                if (cobro.Clase == enumClaseDeCobro.Transferencia || cobro.Clase == enumClaseDeCobro.Contado || cobro.Clase == enumClaseDeCobro.Remesa)
                     cobro.Preasentar(Contexto);
             }
 
@@ -198,7 +199,7 @@ namespace GestoresDeNegocio.Ventas
 
                 var usaPreasientos = cobro.Sociedad(Contexto).UsaPreasientos(Contexto, enumNegocio.FacturaEmitida);
 
-                if (usaPreasientos && (cobro.Clase == enumClaseDeCobro.Transferencia || cobro.Clase == enumClaseDeCobro.Contado))
+                if (usaPreasientos && cobro.IdPreasiento is not null && (cobro.Clase == enumClaseDeCobro.Transferencia || cobro.Clase == enumClaseDeCobro.Contado || cobro.Clase == enumClaseDeCobro.Remesa))
                 {
                     cobro.Preasiento(Contexto).IdReferenciado = cobro.Id;
                     cobro.Preasiento.ModificarComoAdministrador(Contexto);

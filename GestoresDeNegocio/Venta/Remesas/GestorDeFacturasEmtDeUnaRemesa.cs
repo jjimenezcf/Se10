@@ -256,7 +256,8 @@ namespace GestoresDeNegocio.Callejero
 
             if (fr.PropiedadCambiada<DateTime?>(nameof(FacturaEmtDeUnaRemesaDtm.CargadaEl), parametros))
             {
-                if (fr.CargadaEl.HasValue) factura.Cobrar(Contexto, idFacturaRemesada: fr.Id);
+                //el cobro, y su preasiento, con la fecha del cargo
+                if (fr.CargadaEl.HasValue) factura.Cobrar(Contexto, fecha: fr.CargadaEl, idFacturaRemesada: fr.Id);
                 if (!fr.CargadaEl.HasValue)
                 {
                     var cobros = factura.Detalles<CobroDeFaeDtm>(Contexto);

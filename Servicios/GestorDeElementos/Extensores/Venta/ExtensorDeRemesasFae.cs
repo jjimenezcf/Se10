@@ -175,14 +175,16 @@ namespace GestorDeElementos.Extensores
             var contador = 0;
             foreach (var fr in facturasDeLaRemesa)
             {
-                if (fr.DevueltoEl.HasValue) return;
-                if (fr.CargadaEl.HasValue) return;
+                if (fr.DevueltoEl.HasValue) continue;
+                if (fr.CargadaEl.HasValue) continue;
                 fr.CargadaEl = cargadaEl;
                 fr.FechaMaximaDeDevolucion = remesa.FechaMaximaDeDevolucion(contexto);
                 fr.Modificar(contexto, parametros: new Dictionary<string, object> { { ltrParametrosNeg.AccionQueSeEjecuta, ltrDeUnaRemesaFae.Accion_CargoDeRemesa } });
                 contador++;
             }
-            remesa.CrearTraza(contexto, "Cargo realizado", $"El usuario '{contexto.DatosDeConexion.Login}' ha realizado el cargo de ${contador} facturas de la remesa con fecha '{cargadaEl.ToShortDateString()}'");
+
+            if (contador > 0)
+                remesa.CrearTraza(contexto, "Cargo realizado", $"El usuario '{contexto.DatosDeConexion.Login}' ha realizado el cargo de {contador} facturas de la remesa con fecha '{cargadaEl.ToShortDateString()}'");
         }
 
         public static void AnularDevolucionDeFactura(this RemesaFaeDtm remesa, ContextoSe contexto, FacturaEmtDtm factura, string motivo)
@@ -221,7 +223,7 @@ namespace GestorDeElementos.Extensores
                 fr.Modificar(contexto, parametros: new Dictionary<string, object> { { ltrParametrosNeg.AccionQueSeEjecuta, ltrDeUnaRemesaFae.Accion_AnularCargoDeRemesa } });
                 contador++;
             }
-            remesa.CrearTraza(contexto, "Cargo anulado", $"El usuario '{contexto.DatosDeConexion.Login}' ha anulado el cargo de ${contador} facturas de la remesa con fecha '{cargadaEl.ToShortDateString()}'");
+            remesa.CrearTraza(contexto, "Cargo anulado", $"El usuario '{contexto.DatosDeConexion.Login}' ha anulado el cargo de {contador} facturas de la remesa con fecha '{cargadaEl.ToShortDateString()}'");
         }
 
         public static void DevolverFactura(this RemesaFaeDtm remesa, ContextoSe contexto, FacturaEmtDtm factura, DateTime devueltoEl, string motivo)

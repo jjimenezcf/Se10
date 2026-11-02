@@ -852,10 +852,11 @@ namespace ServicioDeDatos.Contabilidad
                 return enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_Cuenta_De_Caja, crearParametro: true, valorPorDefecto: ltrCuenta.Caja).Valor;
             }
 
-            if (cobro.Clase == enumClaseDeCobro.Transferencia)
+            //en los cobros de remesa la cuenta de ingreso es la cuenta de abono de la remesa
+            if (cobro.Clase == enumClaseDeCobro.Transferencia || cobro.Clase == enumClaseDeCobro.Remesa)
             {
                 if (cobro.IdCuentaDeIngreso is null)
-                    GestorDeErrores.Emitir($"El cobro '{cobro.Referencia}' es por transferencia, y necesita tener informado la cuenta de ingreso");
+                    GestorDeErrores.Emitir($"El cobro '{cobro.Referencia}' es por {cobro.Clase.Descripcion().ToLower()}, y necesita tener informado la cuenta de ingreso");
 
                 var json = enumNegocio.Preasiento.Parametro(enumParametrosDePreasiento.SPR_CtaBancaria_CtaContable, crearParametro: true, valorPorDefecto: _jsonDeSPR_CtaBancaria_CtaContable).Valor;
                 var relaciones = ParsearCtaBancariaParaCtaContable(json);
