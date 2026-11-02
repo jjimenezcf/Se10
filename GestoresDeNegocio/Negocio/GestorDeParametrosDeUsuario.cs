@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
-using AutoMapper;
-using ServicioDeDatos;
+﻿using AutoMapper;
+using Gestor.Errores;
 using GestorDeElementos;
-using Utilidades;
-using ServicioDeDatos.Negocio;
-using System.Linq;
+using GestorDeElementos.Extensores;
 using Microsoft.EntityFrameworkCore;
 using ModeloDeDto.Negocio;
-using GestorDeElementos.Extensores;
-using Gestor.Errores;
+using ServicioDeDatos;
+using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Negocio;
+using System.Collections.Generic;
+using System.Linq;
+using Utilidades;
 
 namespace GestoresDeNegocio.Negocio
 {
@@ -48,7 +49,12 @@ namespace GestoresDeNegocio.Negocio
         protected override void DespuesDePersistir(ParametroDeUsuarioDtm parametro, ParametrosDeNegocio parametros)
         {
             base.DespuesDePersistir(parametro, parametros);
-            ServicioDeCaches.EliminarElemento(CacheDe.Negocio_ParametrosDeUsuario, $"{NegociosDeSe.ToEnumerado(parametro.IdNegocio)}-{Contexto.DatosDeConexion.IdUsuario}-{parametro.Nombre}");
+        }
+
+        protected override void EliminarCaches(ParametroDeUsuarioDtm parametro, ParametrosDeNegocio parametros)
+        {
+            base.EliminarCaches(parametro, parametros);
+            ServicioDeCaches.EliminarElemento(CacheDe.Negocio_ParametrosDeUsuario, $"{NegociosDeSe.ToEnumerado(parametro.IdNegocio)}-{parametro.IdUsuario}-{parametro.Nombre}");
         }
 
         protected override IQueryable<ParametroDeUsuarioDtm> AplicarJoins(IQueryable<ParametroDeUsuarioDtm> registros, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)

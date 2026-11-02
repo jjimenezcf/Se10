@@ -5,76 +5,41 @@
    aplican/quitan mediante ApiControl.IncluirCss / ApiControl.ExcluirCss.
    ───────────────────────────────────────────────────────────────────────── */
 
-.flujo-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, .45);
+/* La modal reutiliza las clases comunes de las modales (CrudModal.css): contenedor-modal, contenido-modal,
+   cabecera-de-modal (barra azul con el rótulo y la × de cerrar), contenido-cuerpo y contenido-pie.
+   Aquí sólo se ajusta lo propio del flujo. */
+
+/* por encima del resto de modales: se abre desde la edición de un elemento */
+.contenedor-modal:has(> .flujo-modal) {
     z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.flujo-modal-caja {
-    background: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    max-width: 90vw;
-    max-height: 90vh;
+/* altura definida: el cuerpo ocupa el alto visible de la modal y no depende del tamaño del svg
+   (.contenedor-modal deja 100px arriba; se deja un margen abajo) */
+.flujo-modal {
+    max-width: min(90vw, 60em);
+    height: calc(100vh - 140px);
+    max-height: calc(100vh - 140px);
+}
+
+/* el cuerpo muestra las barras de scroll cuando el svg es mayor que él (ver ApiFlujo.ts: el lienzo
+   se amplía 200px cuando un nodo llega a su borde derecho/inferior); se reserva el hueco de la barra
+   vertical para que su aparición no cambie el ancho visible */
+.flujo-cuerpo {
     overflow: auto;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, .3);
+    min-height: 0;
+    padding-bottom: 0;
+    scrollbar-gutter: stable;
 }
 
-.flujo-cabecera {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+/* div que contiene el gráfico */
+.flujo-grafico {
+    display: block;
 }
 
-.flujo-titulo {
-    margin: 0;
-    font-family: sans-serif;
-}
-
-.flujo-botones {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* Botón guardar (disquete) */
-.flujo-btn-guardar {
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: 2px 4px;
-    color: #555;
-    display: flex;
-    align-items: center;
-    border-radius: 4px;
-    transition: color .15s, background .15s;
-}
-
-.flujo-btn-guardar-hover {
-    color: #1a6fb0;
-    background: #e8f0fe;
-}
-
-/* Botón cerrar (aspa) */
-.flujo-btn-cerrar {
-    border: none;
-    background: none;
-    font-size: 1.4rem;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0 2px;
-}
-
+/* el tamaño (width/height) lo fija ApiFlujo.ts en px */
 .flujo-svg {
+    display: block;
     user-select: none;
 }
 

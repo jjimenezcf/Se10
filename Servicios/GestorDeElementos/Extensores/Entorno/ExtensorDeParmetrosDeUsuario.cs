@@ -101,6 +101,23 @@ namespace GestorDeElementos.Extensores
             parametroDtm.Eliminar(contexto);
         }
 
+        /// <summary>
+        /// Elimina el parámetro indicado del negocio para TODOS los usuarios que lo tengan grabado
+        /// (p.e. la disposición del flujo de estados, que queda obsoleta al cambiar un estado o una transición).
+        /// </summary>
+        public static void EliminarParametroDeTodosLosUsuarios(this enumNegocio negocio, ContextoSe contexto, enumParametrosDeUsuario parametro)
+        {
+            var parametrosDeUsuarios = contexto.SeleccionarTodos<ParametroDeUsuarioDtm>(new Dictionary<string, object>
+            {
+                { nameof(ParametroDeUsuarioDtm.IdNegocio), negocio.IdNegocio() },
+                { nameof(ParametroDeUsuarioDtm.Nombre), parametro }
+            });
+
+            // la caché de cada parámetro la limpia GestorDeParametrosDeUsuario.EliminarCaches
+            foreach (var parametroDtm in parametrosDeUsuarios)
+                parametroDtm.Eliminar(contexto);
+        }
+
         public static ParametroDeUsuarioDtm ResetearParametroDeUsuario(this enumNegocio negocio, ContextoSe contexto, enumParametrosDeUsuario parametro, string valor)
         {
             var parametroDtm = negocio.ParametroDeUsuario(contexto, parametro, errorSiNoHay: false, errorSinValor: false, errorSinMasDeUno: true);

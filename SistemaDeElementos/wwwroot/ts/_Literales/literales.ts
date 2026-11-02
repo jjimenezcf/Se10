@@ -1481,14 +1481,19 @@ const ltrCss = {
         Violeta: 'resalto-violeta'
     },
     flujo: {
-        modalOverlay: 'flujo-modal-overlay',
-        modalCaja: 'flujo-modal-caja',
-        cabecera: 'flujo-cabecera',
-        titulo: 'flujo-titulo',
-        botones: 'flujo-botones',
-        btnGuardar: 'flujo-btn-guardar',
-        btnGuardarHover: 'flujo-btn-guardar-hover',
-        btnCerrar: 'flujo-btn-cerrar',
+        // clases comunes de las modales (CrudModal.css)
+        contenedorModal: 'contenedor-modal',
+        contenidoModal: 'contenido-modal flujo-modal',
+        cabeceraDeModal: 'contenido-cabecera cabecera-de-modal',
+        rotuloDeModal: 'rotulo-de-modal',
+        iconoDeModal: 'icono-de-modal',
+        cerrarDeModal: 'cerrar-de-modal',
+        cuerpo: 'contenido-cuerpo flujo-cuerpo',
+        pie: 'contenido-pie pie-solo-botones',
+        botonGrabar: 'boton-modal btn btn-primary',
+        botonRecargar: 'boton-modal btn btn-secondary',
+        // clases propias del gráfico (Flujo.css)
+        grafico: 'flujo-grafico',
         svg: 'flujo-svg',
         nodoCirculo: 'flujo-nodo-circulo',
         nodoCirculoArrastrando: 'flujo-nodo-circulo-arrastrando',
@@ -2027,6 +2032,7 @@ const Ajax = {
 const ltrUrls = {
     Entorno: {
         Trasiciones: 'Transiciones/CrudDeTransiciones',
+        Estados: 'Estados/CrudDeEstados',
         VisorDeAgenda: 'VisorDeAgenda/VisorDeAgenda',
     },
     Terceros: {

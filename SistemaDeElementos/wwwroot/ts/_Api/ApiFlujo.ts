@@ -17,14 +17,8 @@
 
 namespace Flujo {
 
-    // ── Icono disquete (Bootstrap Icons) ─────────────────────────────────────
-    const _iconoDisquete =
-        `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5V3.914
-                     a1.5 1.5 0 0 0-.44-1.06L13.146.439A1.5 1.5 0 0 0 12.086 0H1.5zm1.5 5V1h8v4
-                     a.5.5 0 0 1-.5.5h-7A.5.5 0 0 1 3 5z"/>
-            <path d="M3 13h10v-4H3v4z"/>
-        </svg>`;
+    // Icono del rótulo de la modal (mismo formato que el resto de modales: svg 24x24 con un path)
+    const _iconoDeLaModal = 'M6 4a2 2 0 1 0 0 4a2 2 0 1 0 0-4z M18 10a2 2 0 1 0 0 4a2 2 0 1 0 0-4z M6 16a2 2 0 1 0 0 4a2 2 0 1 0 0-4z M8 7l8 4 M8 17l8-4';
 
     // Tipo que devuelve epLeerPosicionesDeEstados
     type TPosicionGuardada = { idEstado: number, posX: number, posY: number };
@@ -47,7 +41,8 @@ namespace Flujo {
         // El cuerpo sigue el mismo patrón que EjecutarPeticionPost:
         // encodeURIComponent(JSON.stringify([{parametro, valor}]))
         const body = encodeURIComponent(JSON.stringify([
-            { parametro: 'datospeticion', valor: JSON.stringify(posiciones) }
+            // el array va tal cual (no como cadena): el servidor lo recibe como JArray y LeerValor<List<PosicionDeEstado>> lo convierte
+            { parametro: 'datospeticion', valor: posiciones }
         ]));
         return fetch(url, { method: 'POST', credentials: 'same-origin', body })
             .then(r => r.json())
@@ -80,27 +75,41 @@ namespace Flujo {
         const nombreEstado = input?.value || '';
         const negocio      = a.getAttribute('negocio') || '';
 
-        // 1. Obtener el flujo
+        CargarYMostrarFlujo(navegador, nombreEstado, negocio, idEstado);
+        return false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  CargarYMostrarFlujo
+    //  Obtiene el flujo desde `idEstado` (epObtenerFlujo) y abre la modal.
+    //  · Sin `posiciones`: usa las que el usuario tenga grabadas (epLeerPosicionesDeEstados).
+    //  · Con `posiciones` (botón Recargar): conserva la disposición que se está viendo.
+    // ─────────────────────────────────────────────────────────────────────────
+    export function CargarYMostrarFlujo(
+        llamador:     any,
+        nombreEstado: string,
+        negocio:      string,
+        idEstado:     number,
+        posiciones?:  Array<TPosicionGuardada>
+    ): void {
         const parFlujo: Array<Parametro> = [
             new Parametro(Ajax.Param.enumNegocio, negocio),
             new Parametro(Ajax.Param.idEstado,    idEstado)
         ];
 
         ApiDePeticiones.EjecutarPeticion(
-            navegador,
+            llamador,
             ltrControladores.Negocio.Estados,
             Ajax.EndPoint.Negocio.Estados.ObtenerFlujo,
             parFlujo,
             new Array<Parametro>()
         ).then((pFlujo: ApiDeAjax.DescriptorAjax) => {
             const datosFlujo = pFlujo.resultado.datos;
-            // 2. Cargar posiciones guardadas (fetch directo, negocio en query-string)
-            _leerPosicionesGuardadas(negocio).then(posGuardadas =>
+            const posiciones$ = posiciones ? Promise.resolve(posiciones) : _leerPosicionesGuardadas(negocio);
+            posiciones$.then(posGuardadas =>
                 MostrarModalDeFlujo(nombreEstado, datosFlujo, negocio, idEstado, posGuardadas)
             );
         }).catch((p: ApiDeAjax.DescriptorAjax) => ApiDePeticiones.EmitirError(p));
-
-        return false;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -117,6 +126,71 @@ namespace Flujo {
         const estados:     Array<{ id: number, nombre: string }> = datos.estados     || [];
         const transiciones: Array<{ id: number, nombre: string, idOrigen: number, idDestino: number }> = datos.transiciones || [];
         const idNegocio: number = Numero(datos.idNegocio) || 0;
+
+        // ── 0. Estructura de la modal (misma que el resto de modales) ─────────
+        //  contenedor-modal
+        //   └ contenido-modal
+        //      ├ cabecera-de-modal : barra azul con el rótulo y la × de cerrar
+        //      ├ contenido-cuerpo  : div con el gráfico (hace scroll si el svg es mayor que él)
+        //      └ contenido-pie     : botones Recargar y Grabar, abajo a la derecha
+        // Se monta y se muestra ANTES de calcular la disposición para conocer el tamaño visible del cuerpo.
+        const ns = 'http://www.w3.org/2000/svg';
+        const idModal = 'modal-flujo-estados';
+        let modal = document.getElementById(idModal) as HTMLDivElement;
+        if (modal) modal.remove();
+
+        modal = document.createElement('div');
+        modal.id = idModal;
+        ApiControl.IncluirCss(modal, ltrCss.flujo.contenedorModal);
+
+        const contenido = document.createElement('div');
+        ApiControl.IncluirCss(contenido, ltrCss.flujo.contenidoModal);
+
+        // Cabecera: rótulo (icono + título) a la izquierda y × de cerrar a la derecha
+        const cabecera = document.createElement('div');
+        ApiControl.IncluirCss(cabecera, ltrCss.flujo.cabeceraDeModal);
+
+        const rotulo = document.createElement('span');
+        ApiControl.IncluirCss(rotulo, ltrCss.flujo.rotuloDeModal);
+        const icono = document.createElementNS(ns, 'svg') as unknown as HTMLElement;
+        icono.setAttribute('viewBox', '0 0 24 24');
+        icono.setAttribute('aria-hidden', 'true');
+        ApiControl.IncluirCss(icono, ltrCss.flujo.iconoDeModal);
+        const trazo = document.createElementNS(ns, 'path');
+        trazo.setAttribute('d', _iconoDeLaModal);
+        icono.appendChild(trazo);
+        const titulo = document.createElement('h2');
+        titulo.textContent = `Flujo desde: ${nombreEstado}`;
+        rotulo.appendChild(icono as unknown as Node);
+        rotulo.appendChild(titulo);
+
+        const btnX = document.createElement('span');
+        ApiControl.IncluirCss(btnX, ltrCss.flujo.cerrarDeModal);
+        btnX.title = 'Cerrar';
+        btnX.innerHTML = '&times;';
+        btnX.addEventListener('click', () => modal.remove());
+
+        cabecera.appendChild(rotulo);
+        cabecera.appendChild(btnX);
+
+        // Cuerpo: div con el gráfico
+        const cuerpo = document.createElement('div');
+        ApiControl.IncluirCss(cuerpo, ltrCss.flujo.cuerpo);
+        const grafico = document.createElement('div');
+        ApiControl.IncluirCss(grafico, ltrCss.flujo.grafico);
+        cuerpo.appendChild(grafico);
+
+        contenido.appendChild(cabecera);
+        contenido.appendChild(cuerpo);
+        modal.appendChild(contenido);
+        document.body.appendChild(modal);
+        // .contenedor-modal está oculta por defecto en CrudModal.css
+        modal.style.display = ltrStyle.display.block;
+
+        // tamaño visible del cuerpo (la altura la fija Flujo.css, no depende del svg)
+        const anchoVisible = cuerpo.clientWidth;
+        const altoVisible  = cuerpo.clientHeight;
+
 
         // ── 1. BFS → niveles ──────────────────────────────────────────────────
         const nivelPorId: Map<number, number> = new Map();
@@ -144,10 +218,17 @@ namespace Flujo {
         });
         const niveles  = Array.from(porNivel.keys()).sort((a, b) => a - b);
         const radio    = 38, padH = 90, padV = 110, margen = 30;
+        const CRECIMIENTO = 200;   // px que se amplía el lienzo cuando un nodo llega a su borde derecho/inferior
+        const MARGEN_BORDE = 4;    // separación mínima entre un nodo y el borde del lienzo
+        const HOLGURA_BARRA = 20;  // alto que se deja libre por si aparece la barra de scroll horizontal
         const posicionPorId: Map<number, { x: number, y: number }> = new Map();
         const anchoMax = Math.max(...niveles.map(n => (porNivel.get(n) || []).length));
-        const svgAncho = Math.max(420, anchoMax * (radio * 2 + padH) + margen * 2);
-        const svgAlto  = niveles.length * (radio * 2 + padV) + margen * 2;
+        const anchoCalculado = anchoMax * (radio * 2 + padH) + margen * 2;
+        const altoCalculado  = niveles.length * (radio * 2 + padV) + margen * 2;
+        // El lienzo ocupa como mínimo el área visible del cuerpo de la modal (así la disposición automática
+        // queda centrada); si el dibujo es mayor, el cuerpo muestra las barras de scroll.
+        let svgAncho = Math.max(anchoVisible, anchoCalculado);
+        let svgAlto  = Math.max(altoVisible - HOLGURA_BARRA, altoCalculado);
 
         niveles.forEach(n => {
             const grupo    = porNivel.get(n) || [];
@@ -167,12 +248,37 @@ namespace Flujo {
             if (posicionPorId.has(saved.idEstado))
                 posicionPorId.set(saved.idEstado, { x: saved.posX, y: saved.posY });
         }
+        // Ningún nodo queda cortado: por arriba/izquierda se acerca al borde (no se puede hacer scroll
+        // hacia coordenadas negativas) y por abajo/derecha se amplía el lienzo.
+        const minimo = radio + MARGEN_BORDE;
+        posicionPorId.forEach(p => {
+            p.x = Math.max(p.x, minimo);
+            p.y = Math.max(p.y, minimo);
+            svgAncho = Math.max(svgAncho, p.x + minimo);
+            svgAlto  = Math.max(svgAlto,  p.y + minimo);
+        });
 
         // ── 4. SVG base ───────────────────────────────────────────────────────
-        const ns  = 'http://www.w3.org/2000/svg';
+        // El tamaño del svg se fija en px (no por CSS) para poder ampliarlo al arrastrar un nodo hasta el borde;
+        // el cuerpo de la modal (overflow:auto) muestra las barras de scroll cuando el svg es mayor que él.
         const svg = document.createElementNS(ns, 'svg') as unknown as SVGSVGElement;
-        svg.setAttribute('width',  String(svgAncho));
-        svg.setAttribute('height', String(svgAlto));
+        const _aplicarTamano = () => {
+            svg.setAttribute('width',  String(svgAncho));
+            svg.setAttribute('height', String(svgAlto));
+        };
+        _aplicarTamano();
+
+        // Convierte la posición del ratón a coordenadas del svg (tiene en cuenta el scroll del cuerpo)
+        // para el arrastre de nodos y el tooltip.
+        const _puntoEnSvg = (ev: MouseEvent): { x: number, y: number } => {
+            const s = svg as unknown as SVGSVGElement;
+            const ctm = s.getScreenCTM();
+            if (!ctm) return { x: ev.clientX, y: ev.clientY };
+            const pt = s.createSVGPoint();
+            pt.x = ev.clientX; pt.y = ev.clientY;
+            const p = pt.matrixTransform(ctm.inverse());
+            return { x: p.x, y: p.y };
+        };
         ApiControl.IncluirCss(svg as unknown as HTMLElement, ltrCss.flujo.svg);
 
         const defs = document.createElementNS(ns, 'defs');
@@ -211,7 +317,7 @@ namespace Flujo {
         // Pinta el tooltip con una línea por cada elemento de `lineas` (usando <tspan>)
         // y lo posiciona/redimensiona junto al punto donde se hizo click.
         const _mostrarTooltip = (lineas: string[], ev: MouseEvent) => {
-            const rect = (svg as unknown as SVGSVGElement).getBoundingClientRect();
+            const punto = _puntoEnSvg(ev);
             while (ttText.firstChild) ttText.removeChild(ttText.firstChild);
             lineas.forEach((linea, i) => {
                 const tspan = document.createElementNS(ns, 'tspan') as unknown as HTMLElement;
@@ -222,7 +328,7 @@ namespace Flujo {
             });
             ApiControl.IncluirCss(tooltip, ltrCss.flujo.tooltipVisible);
             tooltip.setAttribute('transform',
-                `translate(${(ev.clientX - rect.left + 10).toFixed(0)},${(ev.clientY - rect.top - 20).toFixed(0)})`);
+                `translate(${(punto.x + 10).toFixed(0)},${(punto.y - 20).toFixed(0)})`);
             const bb = (ttText as unknown as SVGTextElement).getBBox();
             ttRect.setAttribute('x',      (bb.x - 6).toFixed(1));
             ttRect.setAttribute('y',      (bb.y - 4).toFixed(1));
@@ -407,17 +513,33 @@ namespace Flujo {
                     id: e.id,
                     startX: posicionPorId.get(e.id)!.x,
                     startY: posicionPorId.get(e.id)!.y,
-                    startMX: ev.clientX, startMY: ev.clientY,
+                    startMX: _puntoEnSvg(ev).x, startMY: _puntoEnSvg(ev).y,
                     circ, textos
                 };
                 ApiControl.IncluirCss(circ, ltrCss.flujo.nodoCirculoArrastrando);
+            });
+
+            // Doble click: abre el estado en una pestaña (en edición) para modificarlo o añadirle transiciones
+            circ.addEventListener('dblclick', (ev: MouseEvent) => {
+                ev.preventDefault(); ev.stopPropagation();
+                arrastrando = null;
+                const url = `${window.location.origin}/${ltrUrls.Entorno.Estados}`
+                          + `?${literal.negocio}=${encodeURIComponent(negocio)}&id=${e.id}`;
+                EntornoSe.AbrirPestana(url);
             });
         }
 
         svg.addEventListener('mousemove', (ev: MouseEvent) => {
             if (!arrastrando) return;
-            const newX = arrastrando.startX + (ev.clientX - arrastrando.startMX);
-            const newY = arrastrando.startY + (ev.clientY - arrastrando.startMY);
+            const punto = _puntoEnSvg(ev);
+            const minimoNodo = radio + MARGEN_BORDE;
+            const newX = Math.max(minimoNodo, arrastrando.startX + (punto.x - arrastrando.startMX));
+            const newY = Math.max(minimoNodo, arrastrando.startY + (punto.y - arrastrando.startMY));
+            // si el nodo llega al borde derecho/inferior se amplía el lienzo y el cuerpo muestra el scroll
+            let ampliado = false;
+            while (newX + minimoNodo > svgAncho) { svgAncho += CRECIMIENTO; ampliado = true; }
+            while (newY + minimoNodo > svgAlto)  { svgAlto  += CRECIMIENTO; ampliado = true; }
+            if (ampliado) _aplicarTamano();
             posicionPorId.set(arrastrando.id, { x: newX, y: newY });
             arrastrando.circ.setAttribute('cx', String(newX));
             arrastrando.circ.setAttribute('cy', String(newY));
@@ -441,67 +563,42 @@ namespace Flujo {
         svg.appendChild(tooltip as unknown as Node);
         svg.addEventListener('click', () => { ApiControl.ExcluirCss(tooltip, ltrCss.flujo.tooltipVisible); tokenTooltipActivo++; });
 
-        // ── 7. Montar la modal ────────────────────────────────────────────────
-        const idModal = 'modal-flujo-estados';
-        let modal = document.getElementById(idModal) as HTMLDivElement;
-        if (modal) modal.remove();
+        // ── 7. Gráfico en el cuerpo y pie de la modal ─────────────────────────
+        grafico.appendChild(svg as unknown as Node);
 
-        modal = document.createElement('div');
-        modal.id = idModal;
-        ApiControl.IncluirCss(modal, ltrCss.flujo.modalOverlay);
-
-        const caja = document.createElement('div');
-        ApiControl.IncluirCss(caja, ltrCss.flujo.modalCaja);
-
-        // Cabecera: título + botón guardar + botón cerrar
-        const cabecera = document.createElement('div');
-        ApiControl.IncluirCss(cabecera, ltrCss.flujo.cabecera);
-
-        const titulo = document.createElement('h5');
-        ApiControl.IncluirCss(titulo, ltrCss.flujo.titulo);
-        titulo.textContent = `Flujo desde: ${nombreEstado}`;
-
-        // Botones a la derecha (guardar + cerrar)
-        const botones = document.createElement('div');
-        ApiControl.IncluirCss(botones, ltrCss.flujo.botones);
-
-        // Botón guardar (sólo visible si se conoce negocio e idEstadoInicial)
+        // Pie: botones Recargar y Grabar (sólo si se conoce el negocio y el estado inicial)
         if (negocio && idEstadoInicial > 0) {
-            const btnGuardar = document.createElement('button');
-            btnGuardar.title = 'Grabar disposición de estados';
-            ApiControl.IncluirCss(btnGuardar, ltrCss.flujo.btnGuardar);
-            btnGuardar.innerHTML = _iconoDisquete;
-            btnGuardar.addEventListener('mouseenter', () => ApiControl.IncluirCss(btnGuardar, ltrCss.flujo.btnGuardarHover));
-            btnGuardar.addEventListener('mouseleave', () => ApiControl.ExcluirCss(btnGuardar, ltrCss.flujo.btnGuardarHover));
-            btnGuardar.addEventListener('click', (ev) => {
-                ev.stopPropagation();
-                // Convertir posicionPorId al formato que espera el servidor: {idEstado, posX, posY}
-                const posiciones = Array.from(posicionPorId.entries())
-                    .map(([id, p]) => ({
-                        idEstado: id,
-                        posX:     Math.round(p.x),
-                        posY:     Math.round(p.y)
-                    }));
-                _grabarPosiciones(negocio, posiciones);
-            });
-            botones.appendChild(btnGuardar);
+            // posiciones que se están viendo, en el formato del servidor: {idEstado, posX, posY}
+            const posicionesActuales = (): Array<TPosicionGuardada> =>
+                Array.from(posicionPorId.entries())
+                    .map(([id, p]) => ({ idEstado: id, posX: Math.round(p.x), posY: Math.round(p.y) }));
+
+            const pie = document.createElement('div');
+            ApiControl.IncluirCss(pie, ltrCss.flujo.pie);
+
+            // Recargar: vuelve a leer el flujo (p.e. tras editar un estado o una transición en otra pestaña)
+            // conservando la disposición actual; los estados nuevos se colocan donde les corresponda.
+            const btnRecargar = document.createElement('input');
+            btnRecargar.type = 'text';
+            btnRecargar.readOnly = true;
+            btnRecargar.value = 'Recargar';
+            btnRecargar.title = 'Volver a leer el flujo, conservando la disposición actual';
+            ApiControl.IncluirCss(btnRecargar, ltrCss.flujo.botonRecargar);
+            btnRecargar.addEventListener('click', () =>
+                CargarYMostrarFlujo(btnRecargar, nombreEstado, negocio, idEstadoInicial, posicionesActuales()));
+
+            const btnGrabar = document.createElement('input');
+            btnGrabar.type = 'text';
+            btnGrabar.readOnly = true;
+            btnGrabar.value = 'Grabar';
+            btnGrabar.title = 'Grabar disposición de estados';
+            ApiControl.IncluirCss(btnGrabar, ltrCss.flujo.botonGrabar);
+            btnGrabar.addEventListener('click', () => _grabarPosiciones(negocio, posicionesActuales()));
+
+            pie.appendChild(btnRecargar);
+            pie.appendChild(btnGrabar);
+            contenido.appendChild(pie);
         }
-
-        // Botón cerrar
-        const btnX = document.createElement('button');
-        ApiControl.IncluirCss(btnX, ltrCss.flujo.btnCerrar);
-        btnX.innerHTML = '&times;';
-        botones.appendChild(btnX);
-
-        cabecera.appendChild(titulo);
-        cabecera.appendChild(botones);
-        caja.appendChild(cabecera);
-        caja.appendChild(svg as unknown as Node);
-        modal.appendChild(caja);
-        document.body.appendChild(modal);
-
-        btnX.addEventListener('click', () => modal.remove());
-        modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.remove(); });
     }
 
 }

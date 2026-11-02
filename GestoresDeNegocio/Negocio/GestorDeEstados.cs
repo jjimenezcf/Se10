@@ -10,6 +10,7 @@ using GestoresDeNegocio.Seguridad;
 using ModeloDeDto.Negocio;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
 using Utilidades;
 
@@ -172,6 +173,9 @@ namespace GestoresDeNegocio.Negocio
 
             if (parametros.Operacion == enumTipoOperacion.Eliminar)
                 GestorDePermisos.Eliminar(Contexto, Mapeador, GestorDePermisos.LeerRegistroPorId(Contexto, registro.IdPermiso));
+
+            // la disposición del flujo que haya grabado cada usuario queda obsoleta
+            Negocio.EliminarParametroDeTodosLosUsuarios(Contexto, enumParametrosDeUsuario.USU_Disposicion_Estados);
         }
 
         protected override void EliminarCaches(EstadoDtm registro, ParametrosDeNegocio parametros)

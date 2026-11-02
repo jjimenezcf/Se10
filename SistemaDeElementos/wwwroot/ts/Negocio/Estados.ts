@@ -29,24 +29,7 @@ namespace Negocio {
                     EntornoSe.AbrirPestana(url);
                     return true;
                 case ltrMenus.eventosDeMf.Parametrizacion.Estados.Flujo:
-                    let parametros: Array<Parametro> = new Array<Parametro>();
-                    parametros.push(new Parametro(Ajax.Param.enumNegocio, this.NombreDeNegocio));
-                    parametros.push(new Parametro(Ajax.Param.idEstado, idEstado));
-                    ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.Negocio.Estados.ObtenerFlujo, parametros, new Array<Parametro>())
-                        .then((pFlujo: ApiDeAjax.DescriptorAjax) => {
-                            // Cargar posiciones guardadas antes de pintar
-                            const parPos: Array<Parametro> = [
-                                new Parametro(Ajax.Param.enumNegocio, this.NombreDeNegocio),
-                                new Parametro(Ajax.Param.idEstado, idEstado)
-                            ];
-                            // Cargar posiciones guardadas con fetch directo (negocio en query-string)
-                            const urlPos = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.LeerPosiciones}?negocio=${encodeURIComponent(this.NombreDeNegocio)}`;
-                            fetch(urlPos, { credentials: 'same-origin' })
-                                .then(r => r.json())
-                                .then(d => Flujo.MostrarModalDeFlujo(estado, pFlujo.resultado.datos, this.NombreDeNegocio, Numero(idEstado), d.datos || []))
-                                .catch(() => Flujo.MostrarModalDeFlujo(estado, pFlujo.resultado.datos, this.NombreDeNegocio, Numero(idEstado), []));
-                        })
-                        .catch((p: ApiDeAjax.DescriptorAjax) => ApiDePeticiones.EmitirError(p));
+                    Flujo.CargarYMostrarFlujo(this, estado, this.NombreDeNegocio, Numero(idEstado));
                     return true;
             }
             return false;

@@ -7,6 +7,7 @@ using GestoresDeNegocio.Seguridad;
 using ModeloDeDto.Negocio;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Seguridad;
 using System;
@@ -263,6 +264,9 @@ namespace GestoresDeNegocio.Negocio
             {
                 TransicionSql.FijarPorDefecto(Contexto, _tabla, registro);
             }
+
+            // la disposición del flujo que haya grabado cada usuario queda obsoleta
+            Negocio.EliminarParametroDeTodosLosUsuarios(Contexto, enumParametrosDeUsuario.USU_Disposicion_Estados);
         }
 
         protected override void EliminarCaches(TransicionDtm registro, ParametrosDeNegocio parametros)
