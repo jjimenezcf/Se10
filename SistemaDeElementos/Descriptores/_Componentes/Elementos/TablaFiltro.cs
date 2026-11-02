@@ -108,7 +108,10 @@ namespace MVCSistemaDeElementos.Descriptores
             var columnas = Dimension.Columnas; // ColumnasPorFila(i);
             //var porcentaje = 100 / ColumnasTotales();
             for (int ii = 0; ii < columnas; ii++) //-1
-                templateColumn = $"{templateColumn} 1fr"; //{porcentaje}% 
+            {
+                var ancho = Controles.FirstOrDefault(x => x.Posicion != null && x.Posicion.fila == i && x.Posicion.columna == ii && !x.AnchoDeColumna.IsNullOrEmpty())?.AnchoDeColumna;
+                templateColumn = $"{templateColumn} {ancho ?? "1fr"}"; //{porcentaje}%
+            }
 
             var idFila = $"{IdHtml}_{i}";
             var htmlFila = $@"<div id=¨{idFila}¨ class='{cssDeLaFila.Render()}' style = 'grid-template-columns: {templateColumn};'>

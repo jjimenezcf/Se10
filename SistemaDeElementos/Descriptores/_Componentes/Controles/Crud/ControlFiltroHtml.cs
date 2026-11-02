@@ -10,6 +10,10 @@ namespace MVCSistemaDeElementos.Descriptores
     {
         public enumCriteriosDeFiltrado Criterio { get; set; }
         public string BuscarPor { get; set; }
+
+        // ancho css de la columna del bloque de filtro que ocupa el control (p.e. "250px"); sin indicar, la columna se reparte (1fr) con las demás
+        public string AnchoDeColumna { get; set; }
+
         public ControlFiltroHtml(IControlHtml padre, string id, string etiqueta, string propiedad, string ayuda, Posicion posicion)
         : base(padre, id, etiqueta, propiedad, ayuda, posicion)
         {

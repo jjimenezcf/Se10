@@ -58,6 +58,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
             consulta = consulta.FiltrarPorLote(Contexto, filtros, parametros);
             consulta = consulta.FiltrarPorClaseDeUnitario(filtros);
             consulta = consulta.FiltrarPorProveedor(Contexto, filtros);
+            consulta = consulta.FiltrarPorExpresion(filtros);
             return consulta;
         }
 

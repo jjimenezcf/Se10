@@ -86,5 +86,21 @@ namespace GestoresDeNegocio.MaestrosTecnico
             }
             return consulta;
         }
+
+        // Las listas dinámicas buscan por la expresión: en un unitario se busca lo escrito en su nombre o en su referencia. Se aplica aquí
+        // porque el gestor base cambia la cláusula Expresion por Nombre (FiltrarPorExpresion) antes de llegar al filtro genérico por referencia
+        public static IQueryable<UnitarioDtm> FiltrarPorExpresion(this IQueryable<UnitarioDtm> consulta, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => !x.Aplicado
+                && x.Criterio == enumCriteriosDeFiltrado.contiene
+                && x.Clausula.Equals(nameof(UnitarioDtm.Expresion), StringComparison.CurrentCultureIgnoreCase));
+            if (filtro != null)
+            {
+                filtro.Clausula = nameof(UnitarioDtm.Nombre);
+                filtro.Criterio = enumCriteriosDeFiltrado.porReferencia;
+                consulta = consulta.AplicarFiltroDeCadena(filtro, nameof(UnitarioDtm.Nombre));
+            }
+            return consulta;
+        }
     }
 }

@@ -23,6 +23,10 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Unidad", Ayuda = "unidad de medida del material", VisibleEnGrid = true, Obligatorio = false)]
         public string Unidad { get; set; }
 
+        // fecha del movimiento del que salen el stock y el precio medio, no la fecha consultada
+        [IUPropiedad(Etiqueta = "Realizado el", Ayuda = "fecha del movimiento del que se toman el stock y el precio medio", TipoDeControl = enumTipoControl.SelectorDeFechaHora, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false)]
+        public DateTime RealizadoEl { get; set; }
+
         [IUPropiedad(Etiqueta = "Stock", Ayuda = "stock del material a la fecha", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Numero_6)]
         public decimal Stock { get; set; }
 
@@ -32,17 +36,23 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(Etiqueta = "Valor", Ayuda = "valor del stock en el almacén (stock por precio medio)", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Moneda)]
         public decimal Valor { get; set; }
 
-        [IUPropiedad(Etiqueta = "Coste", Ayuda = "coste definido en el material", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Moneda)]
+        // precio de entrada de la última compra del material en el almacén hasta la fecha consultada: lo que cuesta comprarlo ahora
+        [IUPropiedad(Etiqueta = "Última compra", Ayuda = "precio de la última entrada de compra en el almacén hasta la fecha", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Moneda)]
+        public decimal UltimaCompra { get; set; }
+
+        // coste estimado definido en el maestro del material, no el real
+        [IUPropiedad(Etiqueta = "Coste previsto", Ayuda = "coste estimado definido en el material", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Moneda)]
         public decimal Coste { get; set; }
 
         [IUPropiedad(Etiqueta = "Precio de venta", Ayuda = "precio de venta definido en el material", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Moneda)]
         public decimal Venta { get; set; }
 
         // (venta - precio medio) / venta, en porcentaje; 0 si el material no tiene precio de venta
-        [IUPropiedad(Etiqueta = "Margen %", Ayuda = "margen del precio medio sobre el precio de venta", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Numero_2)]
-        public decimal Margen { get; set; }
+        [IUPropiedad(Etiqueta = "%V", Ayuda = "(venta − valor de inventario) / venta", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Numero_2)]
+        public decimal MargenSobreValor { get; set; }
 
-        [IUPropiedad(Etiqueta = "Último movimiento", Ayuda = "fecha del último movimiento del material hasta la fecha consultada", TipoDeControl = enumTipoControl.SelectorDeFechaHora, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false)]
-        public DateTime RealizadoEl { get; set; }
+        // (venta - última compra) / venta, en porcentaje; 0 si no tiene precio de venta o no hay compras
+        [IUPropiedad(Etiqueta = "%C", Ayuda = "(venta − última compra) / venta", TipoDeControl = enumTipoControl.Editor, Alineada = enumAliniacion.derecha, VisibleEnGrid = true, Obligatorio = false, Formato = enumFormato.Numero_2)]
+        public decimal MargenSobreCompra { get; set; }
     }
 }

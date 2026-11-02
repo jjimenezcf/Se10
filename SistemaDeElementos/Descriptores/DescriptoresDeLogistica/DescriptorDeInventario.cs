@@ -46,7 +46,8 @@ namespace MVCSistemaDeElementos.Descriptores
                 etiqueta: "Fecha",
                 propiedad: ltrDeUnMovimientoDeAlmacen.FiltroPorFechaDeInventario,
                 ayuda: "Fecha del inventario",
-                posicion: new Posicion() { fila = 0, columna = 1 });
+                posicion: new Posicion() { fila = 0, columna = 1 })
+            { AnchoDeColumna = "250px" };
 
             new ListasDinamicas<InventarioDto>(Mnt.BloqueGeneral,
                  etiqueta: "Material",
@@ -56,7 +57,7 @@ namespace MVCSistemaDeElementos.Descriptores
                  buscarPor: nameof(UnitarioDto.Expresion),
                  mostrarExpresion: nameof(UnitarioDto.Expresion),
                  criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
-                 posicion: new Posicion(1, 0),
+                 posicion: new Posicion(0, 2),
                  controlador: nameof(UnitariosController),
                  navegarA: nameof(UnitariosController.CrudUnitarios),
                  restringirPor: "",

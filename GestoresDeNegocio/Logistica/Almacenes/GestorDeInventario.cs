@@ -37,6 +37,9 @@ namespace GestoresDeNegocio.Logistica
 
         public override enumNegocio Negocio => enumNegocio.No_Definido;
 
+        // fin del día consultado, fijado al filtrar; con él se busca la última compra de cada fila
+        private DateTime _hasta = DateTime.Today.AddDays(1);
+
         public GestorDeInventario(ContextoSe contexto, IMapper mapeador) : base(contexto, mapeador)
         {
         }
@@ -67,6 +70,7 @@ namespace GestoresDeNegocio.Logistica
             var fecha = filtroFecha?.Valor.ParsearFecha() ?? DateTime.Today;
             if (filtroFecha is not null) filtroFecha.Aplicado = true;
             var hasta = fecha.Date.AddDays(1);
+            _hasta = hasta;
 
             // el último movimiento de cada unitario, con el mismo orden que el cálculo del inventario (ver ExtensorDeAlmacenes.ObtenerMovimientoAnterior)
             var movimientos = Contexto.Set<MovimientoDeAlmacenDtm>();
@@ -100,7 +104,24 @@ namespace GestoresDeNegocio.Logistica
             elemento.Unidad = unitario.Unidad(Contexto).Expresion;
             elemento.Coste = unitario.Coste;
             elemento.Venta = unitario.Venta;
-            elemento.Margen = unitario.Venta == 0 ? 0 : Math.Round((unitario.Venta - movimiento.Valor) / unitario.Venta * 100, 2);
+            elemento.UltimaCompra = UltimaCompra(movimiento);
+            elemento.MargenSobreValor = Margen(unitario.Venta, movimiento.Valor);
+            elemento.MargenSobreCompra = elemento.UltimaCompra == 0 ? 0 : Margen(unitario.Venta, elemento.UltimaCompra);
         }
+
+        // precio de entrada de la última compra del material en el almacén hasta la fecha consultada; 0 si no se ha comprado
+        private decimal UltimaCompra(MovimientoDeAlmacenDtm movimiento)
+        {
+            var idCompra = enumTiposDeMovimiento.Compra.LeerTipoDeMovimiento(Contexto).Id;
+            return Contexto.Set<MovimientoDeAlmacenDtm>()
+                .Where(p => p.IdAlmacen == movimiento.IdAlmacen && p.IdUnitario == movimiento.IdUnitario && p.IdTipoMovimiento == idCompra && p.RealizadoEl < _hasta)
+                .OrderByDescending(p => p.RealizadoEl).ThenByDescending(p => p.Id)
+                .Select(p => (decimal?)p.Precio)
+                .FirstOrDefault() ?? 0;
+        }
+
+        // (venta - precio) / venta, en porcentaje; 0 si no hay precio de venta
+        private static decimal Margen(decimal venta, decimal precio)
+            => venta == 0 ? 0 : Math.Round((venta - precio) / venta * 100, 2);
     }
 }

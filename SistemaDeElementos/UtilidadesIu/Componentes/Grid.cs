@@ -109,8 +109,9 @@ namespace UtilidadesParaIu
                 : $"class=¨{enumCssGrid.ColumnaDiv.Render()}¨";
 
             var renderizarIconos = columna.ZonaDeDatos.EsHistorial ? false : !columna.ZonaDeDatos.Mnt.Crud.EsModal;
-            var ayuda = renderizarIconos && !columna.Ayuda.IsNullOrEmpty() && columna.Titulo != columna.Ayuda
-                ? $" title='{columna.Ayuda.Replace("[Negocio]", ((enumNegocio)padre.Negocio).ConArticulo())}'"
+            // la ayuda de la columna se muestra al pasar por la cabecera también en los cruds de consulta y en las modales, que no llevan iconos
+            var ayuda = !columna.ZonaDeDatos.EsHistorial && !columna.Ayuda.IsNullOrEmpty() && columna.Titulo != columna.Ayuda
+                ? $" title='{(columna.Ayuda.Contains("[Negocio]") ? columna.Ayuda.Replace("[Negocio]", ((enumNegocio)padre.Negocio).ConArticulo()) : columna.Ayuda)}'"
                 : null;
 
             var renderizarTransicion = false;
