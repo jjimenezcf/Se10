@@ -47,6 +47,7 @@ namespace UtilidadesParaIu
         public bool Visible { get; set; } = true;
         // si sale en las fichas del grid del mantenimiento en el móvil (ver IUPropiedadAttribute.MostrarEnGridMovil); null: según su visibilidad en el grid
         public bool? MostrarEnMovil { get; set; } = null;
+        public string EtiquetaEnMovil { get; set; } = "";
         public bool Editable { get; set; } = false;
         public enumAliniacion Alineada
         {

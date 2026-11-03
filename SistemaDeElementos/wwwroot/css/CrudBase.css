@@ -282,6 +282,96 @@ body.resizing-en-progreso * {
                 text-align: left !important;
                 overflow: visible;
             }
+
+            /* el icono del tipo de suceso del historial, delante de su nombre, sin encoger y con el tamaño de su imagen */
+            .tabla-en-vertical .div-tbody .div-td > .suceso {
+                flex: 0 0 1em;
+            }
+}
+
+/* En el móvil los botones de los paneles de edición, creación e historial se ven como iconos, igual que los del mantenimiento: el botón
+   es el mismo, su texto no se ve. La cabecera de creación usa la misma clase que la de edición */
+@media (max-width: 47.94em) {
+    .contenedor-edicion-cabecera .botones-de-menu,
+    .contenedor-historial-menu .botones-de-menu {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Modificar"],
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Historial"],
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Crear"],
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Cerrar"],
+    .contenedor-historial-menu .botones-de-menu input[type="button"][value="Cerrar"] {
+        width: 34px !important;
+        min-width: 34px !important;
+        max-width: 34px !important;
+        height: 30px !important;
+        padding: 0 !important;
+        font-size: 0 !important;
+        color: transparent !important;
+        background-color: #fff !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: 22px 22px !important;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Modificar"] {
+        background-image: url('/images/menu/Aceptar.svg') !important;
+    }
+
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Historial"] {
+        background-image: url('/images/menu/Historial.svg') !important;
+    }
+
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Crear"] {
+        background-image: url('/images/menu/Nuevo.svg') !important;
+    }
+
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"][value="Cerrar"],
+    .contenedor-historial-menu .botones-de-menu input[type="button"][value="Cerrar"] {
+        background-image: url('/images/menu/Salir.svg') !important;
+    }
+
+    .contenedor-edicion-cabecera .botones-de-menu input[type="button"]:disabled,
+    .contenedor-historial-menu .botones-de-menu input[type="button"]:disabled {
+        opacity: 0.4;
+    }
+
+    /* la barra del historial: el icono de cerrar, el título en lo que quede y el embudo de mostrar u ocultar el filtro (atenuado si está oculto) */
+    .contenedor-historial-menu {
+        grid-template-columns: auto minmax(0, 1fr) auto 1.5em 0em;
+    }
+
+    .contenedor-historial-menu .zona-historial-menu {
+        width: auto;
+    }
+
+    .contenedor-historial-menu .div-historial-filtro-expansor {
+        width: auto;
+        padding-right: 0.3em;
+        overflow: visible;
+        /* centrado en la barra, a la altura del menú flotante que tiene a su lado */
+        display: flex;
+        align-items: center;
+        align-content: center;
+        line-height: 0;
+    }
+
+        .contenedor-historial-menu .div-historial-filtro-expansor > a[id^="mostrar."] {
+            display: block;
+            width: 22px;
+            height: 22px;
+            font-size: 0;
+            background: url('/images/menu/MenuDeFiltro.png') center / 20px 20px no-repeat;
+        }
+
+            .contenedor-historial-menu .div-historial-filtro-expansor > a[id^="mostrar."].filtro-oculto {
+                opacity: 0.4;
+            }
 }
 
 
@@ -291,14 +381,15 @@ body.resizing-en-progreso * {
         column-gap: 0em;
     }
 
-        /* en el móvil solo quedan Nuevo y Editar (o Consultar si no es editable), como iconos */
-        .div-mnt-menu-contenedor .botones-de-menu > *:not([value="Nuevo"]):not([value="Editar"]):not([value="Consultar"]) {
+        /* en el móvil solo quedan Nuevo, Editar (o Consultar si no es editable) e Historial, como iconos */
+        .div-mnt-menu-contenedor .botones-de-menu > *:not([value="Nuevo"]):not([value="Editar"]):not([value="Consultar"]):not([value="Historial"]) {
             display: none !important;
         }
 
         .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Nuevo"],
         .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Editar"],
         .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Consultar"],
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Historial"],
         .div-mnt-menu-contenedor .opciones-menu-creacion-movil > button {
             width: 34px !important;
             min-width: 34px !important;
@@ -325,6 +416,10 @@ body.resizing-en-progreso * {
 
         .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Consultar"] {
             background-image: url('/images/consultarConGuid_lupa.svg') !important;
+        }
+
+        .div-mnt-menu-contenedor .botones-de-menu input[type="button"][value="Historial"] {
+            background-image: url('/images/menu/Historial.svg') !important;
         }
 
         .div-mnt-menu-contenedor .botones-de-menu input[type="button"]:disabled {

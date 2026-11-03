@@ -616,6 +616,7 @@ const atControl = {
     placeholder: 'placeholder',
     EsFecha: 'es-fecha',
     MostraEnMovil: 'mostrar-en-movil',
+    EtiquetaEnMovil: 'etiqueta-en-movil',
     formato: 'formato',
     estilo: 'style',
     anteriorDisplay: 'anterior-display',

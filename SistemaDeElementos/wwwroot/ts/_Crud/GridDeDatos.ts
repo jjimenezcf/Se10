@@ -621,13 +621,7 @@
             return this._filaCabecara;
         }
         public set FilaCabecara(filaCabecera: Array<ApiDeGrid.PropiedadesDeLaFila>) {
-            if (EsDispositvoMovil && !crudMnt.EsHistorial) {
-                this._filaCabecara = filaCabecera;
-                return;
-            }
-
-            if (!Definido(filaCabecera) && Definido(this._filaCabecara))
-                this._filaCabecara = filaCabecera;
+            this._filaCabecara = filaCabecera;
         }
 
 
@@ -1798,9 +1792,12 @@
             try {
                 grid.AnadirCuerpoALaTabla(grid, cuerpo);
                 grid.ActualizarInformacionDelGrid(grid);
-                // en el móvil el grid del mantenimiento se ve como fichas (ver ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil)
-                if (grid.EsCrud && EsDispositvoMovil())
+                // en el móvil el grid del mantenimiento y el del historial se ven como fichas (ver ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil)
+                if ((grid.EsCrud || grid.EsHistorial) && EsDispositvoMovil()) {
                     ApiDeGrid.MostrarFilasEnVertical(grid.Tabla);
+                    if (grid.EsHistorial)
+                        ApiDeGrid.JuntarIconoConElSuceso(grid.Tabla);
+                }
             }
             finally {
                 if (grid.EsHistorial)
@@ -1812,8 +1809,8 @@
 
         private CrearCuerpoDeLaTabla(grid: GridDeDatos, registros: any): HTMLDivElement {
 
-            if (EsDispositvoMovil() && (grid.EsCrud || this.IdNegocio > 0))
-                grid.FilaCabecara = ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil(grid.Tabla, grid.EsCrud)
+            if (EsDispositvoMovil() && (grid.EsCrud || grid.EsHistorial || this.IdNegocio > 0))
+                grid.FilaCabecara = ApiDeGrid.ObtenerDescriptorDeLaCabeceraMovil(grid.Tabla, grid.EsCrud || grid.EsHistorial)
             else if (!Definido(grid.FilaCabecara))
                 grid.FilaCabecara = ApiDeGrid.ObtenerDescriptorDeLaCabecera(grid.Tabla);
 

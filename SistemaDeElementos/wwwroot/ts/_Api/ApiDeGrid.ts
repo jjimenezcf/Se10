@@ -225,11 +225,11 @@
         }
     }
 
-    // Columnas del grid en el móvil. En el grid del mantenimiento cada fila es una ficha (ver MostrarFilasEnVertical) con las columnas
+    // Columnas del grid en el móvil. En el grid del mantenimiento y en el del historial cada fila es una ficha (ver MostrarFilasEnVertical) con las columnas
     // marcadas para el móvil (ver IUPropiedadAttribute.MostrarEnGridMovil): 'S' se muestra salvo que el usuario la oculte, 'N' no, y sin valor
     // según la visibilidad de la columna en el grid (la guardada por el usuario o VisibleEnGrid, y lo que oculte o muestre después); en el resto de grids (modales)
     // sólo el nombre. Si el grid no tiene esas columnas se usan sus columnas visibles
-    export function ObtenerDescriptorDeLaCabeceraMovil(tabla: HTMLDivElement, esElGridDelMantenimiento: boolean): Array<PropiedadesDeLaFila> {
+    export function ObtenerDescriptorDeLaCabeceraMovil(tabla: HTMLDivElement, esGridConFichas: boolean): Array<PropiedadesDeLaFila> {
         var cabecera = tabla.querySelectorAll('.' + ltrCss.crud.fila)[0] as HTMLDivElement;
         var ths = Array.from(cabecera.querySelectorAll('.' + ltrCss.crud.columna) as NodeListOf<HTMLDivElement>);
 
@@ -239,7 +239,7 @@
         };
         const seMuestra = (propiedad: string, th: HTMLDivElement): boolean =>
             propiedad === ltrMantenimiento.CheckDeSeleccion ||
-            (esElGridDelMantenimiento ? mostrarEnMovil(th) : propiedad === 'nombre');
+            (esGridConFichas ? mostrarEnMovil(th) : propiedad === 'nombre');
 
         const hayColumnasParaElMovil = ths.some(th => {
             const propiedad = th.getAttribute(atControl.propiedad)?.toLowerCase();
@@ -281,11 +281,20 @@
         tabla.classList.add(ltrCss.tablaEnVertical);
         tabla.querySelectorAll<HTMLDivElement>(`.${ltrCss.crud.tbody} .${ltrCss.crud.celda}`).forEach(celda => {
             const cabecera = document.getElementById(celda.getAttribute('headers'));
-            celda.setAttribute('data-etiqueta', Definido(cabecera) ? cabecera.textContent.trim() : '');
+            celda.setAttribute('data-etiqueta', Definido(cabecera) ? cabecera.getAttribute(atControl.EtiquetaEnMovil) || cabecera.textContent.trim() : '');
             // el valor ocupa lo que mide su texto, aunque no quepa en la pantalla: la ficha se desplaza en horizontal para leerlo
             const input = celda.querySelector('input');
             if (Definido(input) && input.type !== 'checkbox')
                 input.size = Math.max(input.value.length, 1);
+        });
+    }
+
+    // En la ficha del historial el icono del tipo de suceso va delante de su nombre, en la misma línea; su columna no tiene título, así que su celda no sale
+    export function JuntarIconoConElSuceso(tabla: HTMLDivElement): void {
+        tabla.querySelectorAll<HTMLDivElement>(`.${ltrCss.crud.tbody} .${ltrCss.crud.fila}`).forEach(fila => {
+            const icono = ObtenerCelda(fila, ltrPropiedades.Elemento.Historial.Clase.toLowerCase()).firstElementChild;
+            if (Definido(icono))
+                ObtenerCelda(fila, ltrPropiedades.Elemento.Historial.Suceso.toLowerCase()).prepend(icono);
         });
     }
 

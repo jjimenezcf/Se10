@@ -127,6 +127,7 @@ namespace ModeloDeDto
            TamanoFijo = "10em"
          , Etiqueta = "Acción"
          , EtiquetaGrid = ""
+         , EtiquetaGridMovil = "Acción"
          , TipoDeControl = enumTipoControl.Referencia
          , AccionRef = "javascript: " + nameof(enumNameSpaceTs.Crud) + "." + nameof(enumFunctionTs.Historial_EjecutarAccionAsociada) + "(numeroDeFila)"
          , Alineada = enumAliniacion.derecha)]

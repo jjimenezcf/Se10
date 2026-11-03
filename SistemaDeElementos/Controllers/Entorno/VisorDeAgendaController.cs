@@ -265,7 +265,10 @@ namespace MVCSistemaDeElementos.Controllers
                 {
                     var infante = Contexto.SeleccionarPorId<InfanteDtm>(idElemento);
                     agendas.Add(infante.IdAgenda);
-                    agendas.Add(infante.CursoEnElQueEsta(Contexto).IdAgenda);
+                    // puede no estar asignado a ningún curso, entonces sólo se muestran los eventos de su agenda
+                    var curso = infante.CursoEnElQueEsta(Contexto);
+                    if (curso is not null)
+                        agendas.Add(curso.IdAgenda);
                 }
 
                 var eventos = negocio != enumNegocio.Infante

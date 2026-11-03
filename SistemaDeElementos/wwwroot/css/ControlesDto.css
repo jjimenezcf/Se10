@@ -1273,6 +1273,18 @@ select.form-control:focus::-ms-value {
             max-width: 100%;
         }
 
+/* En el móvil los archivos siempre en una columna, con el nombre a lo ancho, y sin la opción de cambiar el nº de columnas. Va por css
+   porque no depende de la petición que lee la disposición guardada, que no se hace en todos los accesos (consulta con guid) */
+@media (max-width: 47.94em) {
+    .contenedor-de-archivos {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #ref-cambiar-encolumnado {
+        display: none;
+    }
+}
+
 .contenedor-de-archivos-old {
     display: grid;
     grid-template-columns: repeat(8, minmax(100px, 1fr));

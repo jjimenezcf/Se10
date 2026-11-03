@@ -75,6 +75,19 @@ namespace Negocio {
             return p;
         }
 
+        // El ? de la cabecera: un estado no es un elemento de proceso (no tiene transiciones que aplicar), así que en vez de
+        // explicar las de las flechas se abre la ayuda del flujo al que pertenece el estado que se está editando
+        public AyudaDeTransiciones(): void {
+            const estado = ObtenerPropiedad(this.Registro, 'nombre', '');
+            if (IsNullOrEmpty(estado)) {
+                MensajesSe.Info('Seleccione un estado para ver la ayuda de su flujo');
+                return;
+            }
+            const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujo}`
+                + `?negocio=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&estado=${encodeURIComponent(estado)}`;
+            window.open(url, '_blank');
+        }
+
         // ── Etapas del estado ────────────────────────────────────────────────────────────────────
         private get ContenedorDeEtapas(): HTMLDivElement {
             return this.PanelDeEditar.querySelector(`.${ltrCss.etapas.contenedor}`) as HTMLDivElement;

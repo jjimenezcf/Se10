@@ -274,6 +274,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 columna.Ayuda = atributos.Ayuda;
                 columna.Visible = atributos.EsVisible(enumModoDeTrabajo.Mantenimiento) && !atributos.Oculto;
                 columna.MostrarEnMovil = atributos.MostrarEnGridMovilIndicado;
+                columna.EtiquetaEnMovil = atributos.EtiquetaGridMovil;
                 columna.ConOrdenacion = !atributos.OrdenarGridPor.IsNullOrEmpty() ? true : atributos.Ordenar;
                 if (columna.ConOrdenacion && columna.Propiedad == nameof(IPrioridad.Prioridad) && !zonaDeDatos.EsHistorial
                     && zonaDeDatos.Mnt.Crud.Negocio.ObtenerMetadatos()?.CalcularPrioridad != null)

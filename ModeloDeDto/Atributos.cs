@@ -115,6 +115,10 @@ namespace ModeloDeDto
         /// Valor indicado para MostrarEnGridMovil, null si no se ha indicado
         /// </summary>
         public bool? MostrarEnGridMovilIndicado => Oculto ? false : _mostrarEnGridMovil;
+        /// <summary>
+        /// Título de la columna en las fichas del móvil, para las columnas que en el grid no tienen título y sin él no saldrían en la ficha
+        /// </summary>
+        public string EtiquetaGridMovil { get; set; } = "";
 
         public bool VisibleEnEdicion { get { return VisibleAlCrear && VisibleAlEditar && VisibleAlConsultar; } set { VisibleAlCrear = VisibleAlEditar = VisibleAlConsultar = value; } }
 

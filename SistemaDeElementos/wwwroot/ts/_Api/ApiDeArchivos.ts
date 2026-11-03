@@ -1761,7 +1761,7 @@
 
     function AplicarEncolumnado(columnas: number, contenedorDeArchivos: HTMLDivElement) {
 
-        if (EsDispositvoMovil)
+        if (EsDispositvoMovil())
             columnas = 1;
 
         contenedorDeArchivos.classList.value = ltrCss.Archivos.ContenedorDeArchivo;
