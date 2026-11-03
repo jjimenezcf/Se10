@@ -2,8 +2,9 @@
 
 class Program
 {
-    static void Main()
+    static int Main()
     {
+        int codigoDeSalida = 0;
         string directorioOrigen = @"C:\prepublicacion";
         string directorioDestino = $@"{directorioOrigen}\prepublicando";
         string archivoZip = $@"{directorioOrigen}\publicacion.zip";
@@ -229,12 +230,19 @@ class Program
         {
             Console.WriteLine($"ERROR GENERAL: {e.Message}");
             Console.WriteLine(e.StackTrace);
+            codigoDeSalida = 1;
         }
         finally
         {
-            Console.WriteLine("Presiona una tecla para salir...");
-            Console.ReadKey();
+            // Lanzado desde Z_Publicar no hay consola en la que esperar una tecla
+            if (!Console.IsInputRedirected)
+            {
+                Console.WriteLine("Presiona una tecla para salir...");
+                Console.ReadKey();
+            }
         }
+
+        return codigoDeSalida;
     }
 
     static void LimpiarDirectorio(string directorioOrigen, string nombre, bool esSubdirectorioDeWwwroot = true)
