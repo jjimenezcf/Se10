@@ -138,10 +138,16 @@
             if (estaPagado) {
                 etiqueta.innerText = ltrEtiquetas.Gasto.Remesas.PagadoEl;
             }
+            else if (estaAnulado) {
+                etiqueta.innerText = ltrEtiquetas.Gasto.Remesas.AnuladoSeIbaAPagarEl;
+            }
             else {
                 const hoy = new Date();
-                const pagarEl = CrearFecha(ObtenerPropiedad(elemento, ltrPropiedades.Gasto.PagosDeUnaRemesa.PagarEl));
-                if (hoy >= pagarEl)
+                //el pago no tiene fecha si la remesa no la tiene: se calcula al generarla
+                const pagarEl = ObtenerPropiedad(elemento, ltrPropiedades.Gasto.PagosDeUnaRemesa.PagarEl);
+                if (!Definido(pagarEl))
+                    etiqueta.innerText = ltrEtiquetas.Gasto.Remesas.SeFijaraAlGenerar;
+                else if (hoy >= CrearFecha(pagarEl))
                     etiqueta.innerText = ltrEtiquetas.Gasto.Remesas.SeDeberiaHaberPagadoEl;
                 else
                     etiqueta.innerText = ltrEtiquetas.Gasto.Remesas.SePagaraEl;

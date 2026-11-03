@@ -304,6 +304,8 @@ Los pagos de clase **Remesa** se agrupan en una remesa, que genera el fichero SE
 
 - El fichero se sube al banco (fuera de Se10) y se aplica **REM: Presentar**.
 - *Pagar el* ha de ser al menos `REM_DiasDeTransferencia` días posterior a la presentación.
+  Para presentar y pagar el mismo día, hay que poner ese parámetro a 0; el mensaje de error
+  lo indica.
 - **REM: Anular presentación** (con motivo) solo se permite si aún no hay pagos hechos ni
   anulados.
 
@@ -321,9 +323,11 @@ Los pagos de clase **Remesa** se agrupan en una remesa, que genera el fichero SE
   transferencia.
 - **Anular la anulación** (con un motivo distinto del anterior) lo vuelve a pagado y lo preasienta
   de nuevo.
-- **Retroceder el pago** de la remesa devuelve todos sus pagos a remesado y anula sus preasientos.
+- **Retroceder el pago** de la remesa devuelve todos sus pagos a remesado, anula sus preasientos y
+  blanquea *pagada el* y *pagar el*. Sin *pagar el*, el trabajo diario no la vuelve a pagar: se paga
+  con **Dar por pagado** o al cerrarla con **REM: Cerrar**.
 - Si un preasiento ya está contabilizado, no se puede anular ni retroceder el pago: antes hay que
-  anular el lote contable.
+  anular el lote contable. Lo que falta para estos casos está en la sección 9.1.
 
 **7e. Cerrar (REM: Cerrada)**
 
@@ -440,3 +444,35 @@ Los abonos (pagos negativos) tienen su propio circuito: *ABO: Pendiente*, *ABO: 
 | Trabajo diario de remesas de pago | Hecho: ya no deja la transacción abierta. Una remesa que se paga en una ejecución se cierra en una ejecución posterior |
 | Días de transferencia del pago directo | **Revisar.** `AntesDePagar` toma los días con `enumParametrosDeRemesasFae.REM_DiasDeEsperaDeCargo` sobre el negocio de pagos (2 por defecto). Parece un parámetro prestado de las remesas de cobro |
 | Lectura de devoluciones del banco | Manual: no se leen ficheros de rechazo de transferencias |
+| **Anulación de un pago ya contabilizado** | **Por hacer, ver 9.1.** Hoy da error si su preasiento está contabilizado, y solo se puede seguir anulando el lote contable o eliminando su cierre |
+
+### 9.1. Por hacer: anulación de pagos ya contabilizados
+
+**Objetivo.** Poder dar marcha atrás a un pago cuyo preasiento ya está contabilizado, de forma que la
+factura vuelva a estar pendiente de pago y la cuenta del banco cuadre con el banco.
+
+**Situación actual.** Si el preasiento del pago está contabilizado, no se puede anular ni retroceder
+el pago: da error. El preasiento contabilizado no se puede cancelar.
+
+**Qué se hará.** En ese caso, se creará un **registro de pago anulado** asociado a la factura.
+
+| Momento | Qué pasa |
+|---|---|
+| Al crear el registro | Se genera en ese momento su preasiento, un **contraasiento** del pago (*Debe banco / Haber proveedor*). La factura vuelve a tener ese importe pendiente y pasa a **FAR: Pdt. de pago** |
+| Con su preasiento sin contabilizar | Se puede eliminar el registro. Su preasiento se cancela y la factura vuelve a darse por **pagada** |
+| Con su preasiento contabilizado | El registro ya no se puede eliminar |
+
+El pago original no cambia: sigue pagado y con su preasiento contabilizado.
+
+Si el pago no está contabilizado, nada cambia: se anula o retrocede y se cancela su preasiento.
+
+**Por confirmar antes de empezar**
+
+- **Cómo se crea el registro:** automáticamente al anular el pago, o con una opción propia.
+- **Qué pagos cubre:** los de remesa y también los directos, que al reabrirse dan el mismo error.
+- **Retroceder el pago de una remesa:** hoy, si un solo preasiento está contabilizado, no se retrocede
+  ninguno. Hay que decidir si se crea un registro por cada pago contabilizado o si se siguen anulando
+  uno a uno.
+- **Cómo se vuelve a pagar la factura:** con un pago nuevo, o de otra forma.
+- **Fecha del contraasiento:** se propone la de la anulación. Si es anterior al último cierre, tomaría
+  la fecha de ese cierre, como los demás preasientos nuevos.

@@ -419,7 +419,6 @@ namespace Utilidades
         Rem_Tras_Seleccionar_Cuenta_Abono,
         Rem_Tras_Blanquear_Cuenta_Abono,
         Rem_Ir_A_Facturas_Remesa,
-        Rem_MapearFechaDeCargo,
 
         Pag_Tras_Cambiar_Clase_De_Pago,
         Pag_Tras_Cambiar_Modo_De_Pago,
@@ -430,7 +429,6 @@ namespace Utilidades
         Pag_AlPegar_Iban,
 
         Rem_Tras_Seleccionar_Cuenta_Pago,
-        Rem_MapearFechaDePago,
 
         Far_Tras_Cambiar_ClaseDeLinea,
         Far_Tras_Indicar_Fecha_De_Emision,

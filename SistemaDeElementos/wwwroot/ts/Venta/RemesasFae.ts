@@ -167,8 +167,9 @@
             }
             else {
                 const hoy = new Date();
-                const cargadael = CrearFecha(ObtenerPropiedad(elemento, ltrPropiedades.Venta.FacturasEmtDeUnaRemesa.CargadaEl));
-                if (hoy >= cargadael)
+                //no hay fecha de cargo si la remesa aún no se ha generado
+                const cargadael = ObtenerPropiedad(elemento, ltrPropiedades.Venta.FacturasEmtDeUnaRemesa.CargadaEl);
+                if (Definido(cargadael) && hoy >= CrearFecha(cargadael))
                     etiqueta.innerText = ltrEtiquetas.Venta.Remesas.SeDeberiaHaberCargadoEl;
                 else
                     etiqueta.innerText = ltrEtiquetas.Venta.Remesas.SeCargaraEl;

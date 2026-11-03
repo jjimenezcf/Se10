@@ -124,3 +124,36 @@
     font-family: sans-serif;
     dominant-baseline: middle;
 }
+
+/* ───────── Etapas en las que está un estado (expansor del editor de estados, Estados.ts) ─────────
+   lista de casillas parecida al selector de calificadores de la modal de direcciones */
+.etapas-contenedor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    padding: 8px 4px;
+}
+
+.etapas-opcion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+    .etapas-opcion input[type='checkbox'] {
+        cursor: pointer;
+    }
+
+.etapas-opcion-deshabilitada,
+.etapas-opcion-deshabilitada input[type='checkbox'] {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.etapas-vacio {
+    color: #6c757d;
+    font-style: italic;
+}

@@ -1480,6 +1480,13 @@ const ltrCss = {
         Verde: 'resalto-verde',
         Violeta: 'resalto-violeta'
     },
+    // etapas en las que está un estado (expansor del editor de estados, ver Estados.ts y Flujo.css)
+    etapas: {
+        contenedor: 'etapas-contenedor',
+        opcion: 'etapas-opcion',
+        opcionDeshabilitada: 'etapas-opcion-deshabilitada',
+        vacio: 'etapas-vacio'
+    },
     flujo: {
         // clases comunes de las modales (CrudModal.css)
         contenedorModal: 'contenedor-modal',
@@ -1866,7 +1873,9 @@ const Ajax = {
             Estados: {
                 ObtenerFlujo: 'epObtenerFlujo',
                 LeerPosiciones: 'epLeerPosicionesDeEstados',
-                GrabarDisposicion: 'epGrabarDisposicionDeEstados'
+                GrabarDisposicion: 'epGrabarDisposicionDeEstados',
+                LeerEtapas: 'epLeerEtapasDeUnEstado',
+                GrabarEtapas: 'epGrabarEtapasDeUnEstado'
             }
         },
     },
@@ -2498,7 +2507,9 @@ const ltrEtiquetas = {
         Remesas: {
             PagadoEl: 'Pagado el',
             SeDeberiaHaberPagadoEl: 'Se debería haber pagado el',
-            SePagaraEl: '(Pdte.) Se pagará el'
+            SePagaraEl: '(Pdte.) Se pagará el',
+            SeFijaraAlGenerar: '(Pdte.) Se fijará al generar',
+            AnuladoSeIbaAPagarEl: 'Anulado, se iba a pagar el'
         }
     },
     Venta: {

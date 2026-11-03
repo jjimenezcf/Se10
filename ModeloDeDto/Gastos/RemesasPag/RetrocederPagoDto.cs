@@ -31,7 +31,6 @@ namespace ModeloDeDto.Gastos
             Columna = 0,
             EditableAlCrear = false,
             EditableAlEditar = false,
-            trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Gasto) + "." + nameof(enumFunctionTs.Rem_MapearFechaDePago) + "()",
             AutoSpan = true)]
         public string Elemento { get; set; }
 

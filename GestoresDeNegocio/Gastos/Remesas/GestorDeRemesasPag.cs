@@ -169,7 +169,7 @@ namespace GestoresDeNegocio.Gastos
             }
 
 
-            if (remesa.PropiedadCambiada<DateTime?>(nameof(RemesaPagDtm.PagarEl), parametros) && remesa.GeneradaEl.HasValue && !parametros.Transitando)
+            if (remesa.PropiedadCambiada<DateTime?>(nameof(RemesaPagDtm.PagarEl), parametros) && remesa.GeneradaEl.HasValue && !parametros.Transitando && parametros.AccionQueSeEjecuta != ltrDeUnaRemesaPag.Accion_AnularPagoDeRemesa)
                 GestorDeErrores.Emitir($"La remesa '{remesa.Referencia}' ya ha sido generada, no se le puede cambiar la fecha de pago, devuélvala a pendiente, corrija la fecha de pago y vuelva a generarla");
         }
 
@@ -298,7 +298,8 @@ namespace GestoresDeNegocio.Gastos
             {
                 var remesa = contexto.SeleccionarPorId<RemesaPagDtm>(idRemesa);
                 remesa = remesa.DarPorPagada(contexto, pagadaEl);
-                remesa.CrearTraza(contexto, "Pago adelantado", $"El usuario '{contexto.DatosDeConexion.Login}' ha adelantado el pago fijado el día '{remesa.PagarEl.Fecha().ToShortDateString()}' al día '{remesa.PagadaEl.Fecha().ToShortDateString()}'");
+                var pagoFijado = remesa.PagarEl is null ? "sin fecha fijada" : $"fijado el día '{remesa.PagarEl.Fecha().ToShortDateString()}'";
+                remesa.CrearTraza(contexto, "Pago adelantado", $"El usuario '{contexto.DatosDeConexion.Login}' ha adelantado el pago {pagoFijado} al día '{remesa.PagadaEl.Fecha().ToShortDateString()}'");
                 contexto.Commit(tran);
             }
             catch (Exception e)
@@ -347,10 +348,12 @@ namespace GestoresDeNegocio.Gastos
             try
             {
                 var remesa = contexto.SeleccionarPorId<RemesaPagDtm>(idRemesa);
+                var pagadaEl = remesa.PagadaEl;
                 remesa.PagadaEl = null;
+                //Se blanquea la fecha de cuándo pagar para que el trabajo diario no la vuelva a pagar
+                remesa.PagarEl = null;
                 remesa.Modificar(contexto, accionEjecutada: ltrDeUnaRemesaPag.Accion_AnularPagoDeRemesa);
-                remesa.PersistirEventoDePago(contexto);
-                remesa.CrearTraza(contexto, "Pago retrocedido", $"El usuario '{contexto.DatosDeConexion.Login}' ha retrocedido el pago de la remesa realizada el '{remesa.PagarEl.Fecha().ToShortDateString()}'");
+                remesa.CrearTraza(contexto, "Pago retrocedido", $"El usuario '{contexto.DatosDeConexion.Login}' ha retrocedido el pago de la remesa realizado el '{pagadaEl.Fecha().ToShortDateString()}'");
                 contexto.Commit(tran);
             }
             catch (Exception e)

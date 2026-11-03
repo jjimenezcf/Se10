@@ -62,7 +62,7 @@ namespace GestorDeElementos.Extensores
         {
             var parametro = enumNegocio.RemesaPag.LeerParametro(contexto, VariableDeRemesasPag.Parametro.REM_DiasDeTransferencia);
             if (remesa.PagarEl.Fecha().Date < remesa.PresentadaEl.Fecha().AddDays(parametro.Valor.Entero()).Date)
-                Emitir($"La fecha de pago '{remesa.PagarEl.Fecha().ToShortDateString()}' de la remesa '{remesa.Referencia}' ha de ser al menos '{parametro.Valor}' día/s mayor a su presentación");
+                Emitir($"La fecha de pago '{remesa.PagarEl.Fecha().ToShortDateString()}' de la remesa '{remesa.Referencia}' ha de ser al menos '{parametro.Valor}' día/s mayor a su presentación. Si quiere presentarla con esta fecha, modifique el parámetro '{VariableDeRemesasPag.Parametro.REM_DiasDeTransferencia}'");
         }
 
         public static RemesaPagDtm AntesDeAnularGeneracion(this RemesaPagDtm remesa, ContextoSe contexto, Dictionary<string, object> parametros)
@@ -305,7 +305,6 @@ namespace GestorDeElementos.Extensores
             {
                 var pago = pr.Pago(contexto);
                 pago.PagarEl = remesa.PagarEl;
-                pr.PagadoEl = null;
                 pago.Modificar(contexto, parametros: new Dictionary<string, object> { { ltrParametrosNeg.AccionQueSeEjecuta, ltrDeUnaRemesaPag.Accion_CambiarFechaDePago } });
             }
 

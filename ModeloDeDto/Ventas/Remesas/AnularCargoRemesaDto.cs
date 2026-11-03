@@ -31,7 +31,6 @@ namespace ModeloDeDto.Ventas
             Columna = 0,
             EditableAlCrear = false,
             EditableAlEditar = false,
-            trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Venta) + "." + nameof(enumFunctionTs.Rem_MapearFechaDeCargo) + "()",
             AutoSpan = true)]
         public string Elemento { get; set; }
 
