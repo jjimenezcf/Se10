@@ -69,6 +69,9 @@ namespace GestorDeElementos.Extensores
 
         public static RemesaFaeDtm AntesDeAnularPresentacion(this RemesaFaeDtm remesa, ContextoSe contexto, Dictionary<string, object> parametros)
         {
+            if (remesa.Detalles<FacturaEmtDeUnaRemesaDtm>(contexto, usarLaCache: false).Any(fr => fr.CargadaEl is not null || fr.DevueltoEl is not null))
+                Emitir($"La remesa '{remesa.Referencia}' no puede ser devuelta, por tener cargos o devoluciones.");
+
             remesa.PresentadaEl = null;
             return remesa;
         }
@@ -116,6 +119,16 @@ namespace GestorDeElementos.Extensores
             var eventos = contexto.SeleccionarEventos(remesa.Id, nombreEvento);
             var p = new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } };
             foreach (var e in eventos.Where(e => e.EsDelSistema)) remesa.Desvincular(contexto, e, p);
+        }
+
+        public static RemesaFaeDtm DarPorCargada(this RemesaFaeDtm remesa, ContextoSe contexto, DateTime cargadaEl)
+        {
+            if (remesa.CargadaEl.HasValue)
+                Emitir($"La remesa '{remesa.Referencia}' se cargó el día '{remesa.CargadaEl.Fecha().ToShortDateString()}'");
+
+            remesa.CargadaEl = cargadaEl;
+            remesa.Modificar(contexto, accionEjecutada: ltrDeUnaRemesaFae.Accion_CargoDeRemesa);
+            return remesa;
         }
 
         public static CuentaDeMiSociedadDtm CuentaDeAbono(this RemesaFaeDtm remesa, ContextoSe contexto)

@@ -307,33 +307,52 @@ Los pagos de clase **Remesa** se agrupan en una remesa, que genera el fichero SE
   Para presentar y pagar el mismo día, hay que poner ese parámetro a 0; el mensaje de error
   lo indica.
 - **REM: Anular presentación** (con motivo) solo se permite si aún no hay pagos hechos ni
-  anulados.
+  anulados. Si hay pagos pagados, antes hay que usar **Retroceder pago**. Solo borra *presentada el*
+  y *pagada el*, y deja una traza.
+- Una remesa sin *pagar el*, como la que viene de **Retroceder pago**, no se puede presentar, ni se
+  puede indicar la fecha en *Generada*. Hay que volver a *Inicial* con **REM: Corregir** y generarla
+  de nuevo, lo que crea un fichero SEPA nuevo.
 
 **7d. Pago: las facturas quedan pagadas**
 
 - El trabajo diario **Procesos de remesas de pago** paga, el día *pagar el*, las remesas
   presentadas (`DarPorPagada`) y deja en la remesa la observación *Trabajo que la pagó*, con el
   enlace al trabajo.
-- Pagarla en otra fecha (adelantar o pagar a mano) exige **perfil de interventor**.
+- **Adelantar pago** paga a mano la remesa presentada, en una fecha que no sea futura. Cualquier
+  cambio manual de *pagada el*, también **Retroceder pago** o cerrar una remesa sin pagar, exige
+  **perfil de interventor**.
 - Cada pago de la remesa recibe su *pagado el* y pasa de remesado a **PAG: Pagado** (*PAG: Pagar
-  remesa*). Se genera su **preasiento de pago**, igual que en un pago directo. Al quedar saldada,
-  su factura pasa a **FAR: Pagada**.
-- **Anular un pago** de la remesa ya pagada (con fecha y motivo) lo pasa a **PAG: Anulado**, anula
-  su preasiento, y su factura vuelve a **Pdt. de pago**. Se usa cuando el banco rechaza una
-  transferencia.
-- **Anular la anulación** (con un motivo distinto del anterior) lo vuelve a pagado y lo preasienta
-  de nuevo.
-- **Retroceder el pago** de la remesa devuelve todos sus pagos a remesado, anula sus preasientos y
-  blanquea *pagada el* y *pagar el*. Sin *pagar el*, el trabajo diario no la vuelve a pagar: se paga
-  con **Dar por pagado** o al cerrarla con **REM: Cerrar**.
+  remesa*). Se saltan los anulados y los ya pagados. Se genera su **preasiento de pago**, con
+  *pagado el* como fecha contable. Al quedar saldada, su factura pasa a **FAR: Pagada**.
+- Con la remesa en *Presentada*, el interventor puede hacer estas correcciones. Si está cerrada,
+  antes hay que reabrirla:
+  - **Anular un pago** de la remesa ya pagada (con fecha y motivo) lo pasa a **PAG: Anulado**, anula
+    su preasiento, y su factura vuelve a **Pdt. de pago**. Se usa cuando el banco rechaza una
+    transferencia.
+  - **Anular la anulación** (con un motivo distinto del anterior) lo vuelve a pagado y lo preasienta
+    de nuevo.
+  - **Retroceder pago** blanquea *pagada el* y *pagar el* de la remesa. Sus pagos no anulados
+    vuelven a remesado sin *pagado el* ni *pagar el*, se anulan sus preasientos y sus facturas
+    vuelven a **Pdt. de pago**. Sin *pagar el*, el trabajo diario no la vuelve a pagar: se paga con
+    **Adelantar pago** o al cerrarla con **REM: Cerrar**.
 - Si un preasiento ya está contabilizado, no se puede anular ni retroceder el pago: antes hay que
   anular el lote contable. Lo que falta para estos casos está en la sección 9.1.
 
 **7e. Cerrar (REM: Cerrada)**
 
-- **REM: Cerrar** exige que haya llegado *pagar el*. Si no hay *pagada el*, se pone la de hoy.
-- El mismo trabajo diario cierra las remesas **tres días después** de pagadas.
-- **REM: Reabrir** (con motivo) la devuelve a *Presentada*.
+- **REM: Cerrar** da error si *pagar el* es futuro. Sin *pagar el*, se puede cerrar.
+- Si la remesa está sin pagar, al cerrarla se da por pagada: *pagada el* es hoy, también cuando
+  *pagar el* era anterior. Los pagos que no estén anulados ni pagados se pagan con esa fecha y se
+  genera su preasiento.
+- Al cerrar se elimina de la agenda el evento de pago.
+- El mismo trabajo diario cierra las remesas cuando han pasado **más de tres días** desde *pagada
+  el*.
+- **REM: Reabrir** (con motivo) la devuelve a *Presentada*. Solo cambia el estado: se conservan
+  *pagada el*, los pagos y sus preasientos, y no se vuelve a crear el evento de pago.
+  - Desde ahí se puede anular un pago o retroceder el pago de la remesa.
+  - Si no se hace nada, el trabajo diario la vuelve a cerrar. El plazo se cuenta desde *pagada el*,
+    no desde la reapertura: si se pagó hace tiempo, la cierra en su siguiente ejecución.
+  - Volver a cerrarla a mano solo cambia el estado.
 - **REM: Anular** cancela una remesa inicial sin pagos.
 
 Desde las remesas se puede **exportar** un conjunto de remesas con sus pagos.
@@ -350,7 +369,10 @@ Desde las remesas se puede **exportar** un conjunto de remesas con sus pagos.
 | IVA o naturaleza equivocados fuera de cumplimentación | *Modificar IVA* / *Modificar naturaleza* | Regenera el preasiento si hace falta |
 | Pago equivocado | *PAG: Reabrir* o *PAG: Cancelar* | Reabrir anula su preasiento. Cancelar solo si no está pagado ni remesado |
 | Pago incluido por error en una remesa | Excluirlo | Remesa en *Inicial* |
-| Transferencia rechazada por el banco | Anular el pago en la remesa | Remesa presentada y pagada |
+| Transferencia rechazada por el banco | Anular el pago en la remesa | Remesa presentada y pagada, perfil de interventor, preasiento sin contabilizar |
+| Remesa pagada por error | *Retroceder pago* | Remesa presentada y pagada, perfil de interventor, preasientos sin contabilizar. Después se paga con *Adelantar pago* o *REM: Cerrar*, o se corrige y se genera de nuevo |
+| Remesa cerrada por error | *REM: Reabrir* | Solo cambia el estado. Si no se hace nada, el trabajo diario la vuelve a cerrar |
+| Remesa presentada por error | *REM: Anular presentación* | Sin pagos pagados ni anulados: si los hay pagados, antes *Retroceder pago* |
 | Factura pagada que hay que reabrir | *FAR: Modificar pagos* (con motivo) | Vuelve a pdt. de pago |
 
 ## 5. Estados de la factura recibida
@@ -428,7 +450,7 @@ Los abonos (pagos negativos) tienen su propio circuito: *ABO: Pendiente*, *ABO: 
 | Crear facturas con Ia | A petición, con un zip | Importa el zip en un archivador y crea una factura por archivo leído con OCR e IA |
 | Procesar facturas con IA | A petición, sobre un archivador | Igual, sobre los archivos de un archivador o carpeta existente |
 | Actualización de facturas recibidas | Diario | Pasa a pagadas las facturas en pago ya saldadas |
-| Procesos de remesas de pago | Diario | Paga las remesas presentadas el día *pagar el* y, en ejecuciones posteriores, las cierra tres días después de pagadas |
+| Procesos de remesas de pago | Diario | Paga las remesas presentadas sin pagar cuyo *pagar el* ha llegado, con esa fecha. Las que no tienen *pagar el* no las toca. En ejecuciones posteriores, cierra las que llevan más de tres días pagadas |
 
 ## 9. Lo que falta o conviene revisar
 

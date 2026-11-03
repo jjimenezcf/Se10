@@ -66,15 +66,20 @@ namespace GestoresDeNegocio.Ventas
                         try
                         {
                             entorno.ActualizarTraza(trazaInfDtm, $"procesando la {rem.Referencia}");
-                            //se cargan en la fecha planificada las facturas pendientes de cargo, si la remesa no se ha cargado manualmente
-                            if (rem.CargadaEl is null && rem.CargarEl.HasValue && rem.CargarEl.Fecha().Date <= DateTime.Today &&
-                                rem.Detalles<FacturaEmtDeUnaRemesaDtm>(contexto).Any(fr => fr.CargadaEl is null && fr.DevueltoEl is null))
-                                rem.Cargar(contexto, rem.CargarEl.Fecha().Date);
-
-                            if (rem.FechaMaximaDeDevolucion(contexto) < DateTime.Now)
+                            var ejecutado = false;
+                            //se da por cargada en la fecha planificada si no se ha cargado manualmente, lo que carga las facturas pendientes de cargo
+                            if (rem.CargadaEl is null && rem.CargarEl.HasValue && rem.CargarEl.Fecha().Date <= DateTime.Today)
+                            {
+                                rem.DarPorCargada(contexto, rem.CargarEl.Fecha().Date);
+                                ejecutado = true;
+                            }
+                            else if (rem.FechaMaximaDeDevolucion(contexto) < DateTime.Now)
+                            {
                                 rem.TransitarALaEtapa(contexto, enumEtapasDeRemesasFae.REM_Etapa_De_Cierre.EstadosDeLaEtapa(), new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } });
+                                ejecutado = true;
+                            }
 
-                            AnotarTrabajoQueLaProceso(entorno, rem);
+                            if (ejecutado) AnotarTrabajoQueLaProceso(entorno, rem);
                             entorno.CrearTraza($"remesa {rem.Referencia} procesada");
                             contexto.Commit(tran);
                         }

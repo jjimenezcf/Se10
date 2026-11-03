@@ -300,15 +300,19 @@ Las facturas emitidas de clientes con cuenta de pago domiciliada se cobran agrup
 
 - El fichero se envía al banco (fuera de Se10) y se aplica **REM: Presentar**. Esto anota
   *Presentada el* y valida que *Cargar el* sea al menos `REM_DiasDeEsperaDeCargo` días posterior.
-- **REM: Anular presentación** (con motivo) vuelve a *Generada*.
+- Como *Cargar el* se calcula al generar con esos mismos días y no se puede cambiar, hay que
+  presentarla el mismo día que se genera. Otro día da error: hay que volver a *Inicial* con
+  **REM: Corregir** y generarla de nuevo.
+- **REM: Anular presentación** (con motivo) vuelve a *Generada* y borra *Presentada el*. Solo se
+  permite si no hay cargos ni devoluciones: antes hay que anular el cargo o las devoluciones.
 
 **8d. Cargo: las facturas quedan cobradas**
 
-- Si nadie la carga a mano, el trabajo diario **Procesos de remesas de cobro** carga la remesa en
-  su fecha *Cargar el*.
-- Para cargarla a mano, cuando el banco carga los recibos, se usa **Cargar remesa**
-  (`epCargarRemesa`), con la fecha del cargo. Una fecha distinta de la planificada exige **perfil de interventor**, y nunca puede ser
-  futura ni anterior a la generación.
+- Si nadie la carga a mano, el trabajo diario **Procesos de remesas de cobro** la da por cargada en
+  la fecha *Cargar el*: anota *Cargada el* y carga sus facturas.
+- Para cargarla a mano, cuando el banco carga los recibos, se usa **Cargar la remesa**
+  (`epCargarRemesa`), con la fecha del cargo. Exige **perfil de interventor**, y la fecha nunca puede
+  ser futura ni anterior a la generación.
 - A cada factura no devuelta se le anota la *fecha de cargo* y la **fecha máxima de devolución**:
   el cargo más `REM_MesesDeEsperaDeDevolucionDeCargos` meses (4 por defecto).
 - Por cada factura se crea un **cobro de clase Remesa** contra la cuenta de abono de la remesa y
@@ -317,7 +321,9 @@ Las facturas emitidas de clientes con cuenta de pago domiciliada se cobran agrup
   (*FAE: Remesa abonada*).
 - **Anular cargo** (`epAnularCargoRemesa`) quita esos cobros, cancelando sus preasientos, y las
   facturas vuelven a **FAE: Remesada** (*FAE: Anular presentación de remesa*). No se puede si
-  alguno de esos preasientos ya está contabilizado.
+  alguno de esos preasientos ya está contabilizado. Exige **perfil de interventor** y que la remesa
+  tenga *Cargada el*. *Cargar el* se conserva, así que el trabajo diario vuelve a cargar la remesa en
+  su siguiente ejecución (ver 9).
 
 **8e. Devoluciones de recibos**
 
@@ -329,8 +335,9 @@ Mientras la remesa está presentada, en su detalle de facturas se puede indicar 
 - Si aún no estaba cargada, hace falta perfil de interventor, y pasa de remesada a devuelta.
 - La fecha no puede ser anterior a la presentación. Pasada la fecha máxima de devolución, hace
   falta perfil de interventor.
-- **Anular la devolución** (con un motivo distinto del anterior) la vuelve a cobrada, recreando
-  el cobro, o a remesada si no hubo cargo.
+- **Anular la devolución** (con un motivo distinto del anterior) la vuelve a cobrada, creando un
+  cobro nuevo con la fecha de hoy. Si la remesa no tiene *Cargada el*, hace falta perfil de
+  interventor y la factura vuelve a remesada.
 
 Una factura **devuelta** puede seguir tres caminos:
 
@@ -341,10 +348,13 @@ Una factura **devuelta** puede seguir tres caminos:
 **8f. Cerrar (REM: Cerrada)**
 
 - **REM: Cerrar** solo se permite cuando ha pasado la fecha máxima de devolución: hasta entonces
-  el cliente puede devolver cargos.
+  el cliente puede devolver cargos. Cerrar no carga las facturas pendientes, a diferencia de las
+  remesas de pago.
 - El trabajo diario **Procesos de remesas de cobro** cierra solo las remesas presentadas cuya
   fecha máxima de devolución ha pasado.
-- **REM: Reabrir** (con motivo) la devuelve a *Presentada*.
+- **REM: Reabrir** (con motivo) la devuelve a *Presentada*. Solo cambia el estado. Como la fecha
+  máxima de devolución ya ha pasado, el trabajo diario la vuelve a cerrar en su siguiente ejecución.
+  Volver a cerrarla a mano tampoco cambia nada más.
 - **REM: Anular** (con motivo) cancela una remesa inicial. Antes hay que quitarle las facturas.
 
 ## 4. Marcha atrás
@@ -358,10 +368,10 @@ Una factura **devuelta** puede seguir tres caminos:
 | Cobro equivocado | Eliminar el cobro | No si es de remesa. Se cancela su preasiento, que no puede estar contabilizado |
 | Factura incluida por error en una remesa | Excluirla | Remesa en *Inicial* |
 | Remesa generada con errores | *REM: Corregir* | Vuelve a *Inicial* y se borra el fichero SEPA |
-| Presentación equivocada | *REM: Anular presentación* | — |
-| Cargo equivocado | *Anular cargo* | Remesa presentada y preasientos de sus cobros sin contabilizar |
-| Devolución equivocada | Anular la devolución | Remesa presentada, motivo nuevo. Se recrea el cobro con su preasiento |
-| Remesa cerrada por error | *REM: Reabrir* | — |
+| Presentación equivocada | *REM: Anular presentación* | Sin cargos ni devoluciones |
+| Cargo equivocado | *Anular cargo* | Remesa presentada con *Cargada el*, perfil de interventor y preasientos de sus cobros sin contabilizar. El trabajo diario vuelve a cargarla en su siguiente ejecución (ver 9) |
+| Devolución equivocada | Anular la devolución | Remesa presentada, motivo nuevo. Se crea un cobro nuevo con su preasiento, con la fecha de hoy |
+| Remesa cerrada por error | *REM: Reabrir* | Solo cambia el estado. Si no se hace nada, el trabajo diario la vuelve a cerrar |
 
 ## 5. Estados de la factura emitida
 
@@ -452,7 +462,7 @@ stateDiagram-v2
 | Reconstrucción del registro Verifactu | A petición | Rehace el registro Verifactu de una factura comunicada que no lo tiene |
 | Pasar a vencidas las facturas impagadas | Diario | Emitidas o parcialmente cobradas con vencimiento pasado → vencidas |
 | Actualización de facturas emitidas | Diario | Reclamadas cobradas → cobradas o rectificadas; rectificativas abonadas → abonadas |
-| Procesos de remesas de cobro | Diario | En las remesas presentadas, carga en la fecha *Cargar el* las facturas pendientes de cargo (si la remesa no se cargó a mano) y cierra las que han pasado la fecha máxima de devolución |
+| Procesos de remesas de cobro | Diario | En las remesas presentadas sin *Cargada el*, la anota en la fecha *Cargar el* y carga las facturas pendientes de cargo. En ejecuciones posteriores, cierra las que han pasado la fecha máxima de devolución. Deja una observación en las remesas que carga o cierra |
 
 ## 9. Lo que falta o conviene revisar
 
@@ -466,7 +476,9 @@ stateDiagram-v2
 | Preasiento de los cobros por remesa | Hecho: cada cobro se preasienta al cargar la remesa (*Debe banco / Haber cliente*). Los cobros de remesas cargadas antes de este cambio no tienen preasiento: se genera con la acción *Generar preasiento* del cobro |
 | **Devolución con el cobro ya contabilizado** | **Por hacer, ver 9.1.** Hoy la devolución elimina el cobro y cancela su preasiento; si ya está contabilizado (cierre contable posterior al cargo) no se puede devolver |
 | **Gastos de devolución** | **Por decidir.** No se registran ni lo que cobra el banco ni su repercusión al cliente. No forman parte de 9.1 |
-| Cargo automático de la remesa | Hecho: el trabajo diario carga, en la fecha *Cargar el*, las facturas pendientes de cargo de las remesas presentadas que no se han cargado a mano |
+| Cargo automático de la remesa | Hecho: el trabajo diario da por cargadas, en la fecha *Cargar el*, las remesas presentadas que no se han cargado a mano. Las que ya tenían las facturas cargadas por el trabajo y no tenían *Cargada el* la reciben en su siguiente ejecución |
+| **Cargo anulado y trabajo diario** | **Por decidir.** Tras anular un cargo, el trabajo lo repite en su siguiente ejecución. En las remesas de pago se evita blanqueando la fecha, pero aquí *Cargar el* hace falta para calcular la fecha máxima de devolución |
+| Evento de cargo en la agenda | **Revisar.** No se elimina al cargar ni al cerrar, a diferencia del evento de pago de las remesas de pago |
 | Cargo con facturas devueltas o ya cargadas | Hecho: se saltan esas facturas y se cargan las demás |
 | Secuencia SEPA | Todos los adeudos van como recurrentes (`RCUR`). No se distingue el primer adeudo (`FRST`) de un mandato |
 | Envío del fichero al banco y lectura de devoluciones | Manual. No se leen los ficheros de devoluciones del banco (pain.002 / camt) |

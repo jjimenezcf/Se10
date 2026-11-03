@@ -129,7 +129,8 @@ namespace GestoresDeNegocio.Ventas
                 GestorDeErrores.Emitir($"No puede indicar hora en la fecha de cargo de la remesa '{rem.Referencia}'");
 
             if (parametros.Operacion == enumTipoOperacion.Modificar && !parametros.ProcesandoTransicion(rem) && !rem.EstaEnLaEtapa(enumEtapasDeRemesasFae.REM_Etapa_De_Cumplimentacion))
-                GestorDeErrores.Emitir($"La remesa '{rem.Referencia}' no está en la etapa de {enumEtapasDeRemesasFae.REM_Etapa_De_Cumplimentacion.Nombre(true)} y por tanto no es modificable");
+                if (!parametros.EstaEjecutandoUnaAccion)
+                    GestorDeErrores.Emitir($"La remesa '{rem.Referencia}' no está en la etapa de {enumEtapasDeRemesasFae.REM_Etapa_De_Cumplimentacion.Nombre(true)} y por tanto no es modificable");
 
             if (rem.PropiedadCambiada<enumClaseDeRemesaFae>(nameof(RemesaFaeDtm.Clase), parametros) && rem.Detalles<FacturaEmtDeUnaRemesaDtm>(Contexto).Count() > 0)
                 GestorDeErrores.Emitir($"No se puede modificar la clase de la remesa '{rem.Referencia}' por tener ya facturas seleccionadas");

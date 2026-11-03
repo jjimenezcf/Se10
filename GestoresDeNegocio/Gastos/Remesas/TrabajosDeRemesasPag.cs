@@ -65,12 +65,15 @@ namespace GestoresDeNegocio.Gastos
                             if (rem.PagarEl.HasValue && rem.PagarEl.Fecha() <= DateTime.Now)
                             {
                                 var pagada = rem.DarPorPagada(contexto, rem.PagarEl.Fecha());
-                                AnotarTrabajoQueLaPago(entorno, pagada);
+                                AnotarTrabajoQueLaProceso(entorno, pagada);
                             }
                         }
                         //a los tres días de estar pagada la transito a cerrada si no lo está
                         else if (rem.PagadaEl.Fecha().AddDays(3) < DateTime.Now)
+                        {
                             rem.TransitarALaEtapa(contexto, enumEtapasDeRemesasPag.REM_Etapa_De_Cierre.EstadosDeLaEtapa(), new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } }, delSistema: false);
+                            AnotarTrabajoQueLaProceso(entorno, rem);
+                        }
 
                         entorno.CrearTraza($"remesa {rem.Referencia} procesada");
                         contexto.Commit(tran);
@@ -89,8 +92,8 @@ namespace GestoresDeNegocio.Gastos
             }
         }
 
-        // Informativa: si falla no debe deshacer el pago
-        private static void AnotarTrabajoQueLaPago(EntornoDeTrabajo entorno, RemesaPagDtm remesa)
+        // Informativa: si falla no debe deshacer lo procesado en la remesa
+        private static void AnotarTrabajoQueLaProceso(EntornoDeTrabajo entorno, RemesaPagDtm remesa)
         {
             try
             {
