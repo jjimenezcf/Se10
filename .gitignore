@@ -276,6 +276,8 @@ ModelManifest.xml
 /SistemaDeElementos/wwwroot/token.json
 /SistemaDeElementos/Publicacion/Z_EmpaquetarSitioWeb.old.dll
 /SistemaDeElementos/Publicacion/Z_EmpaquetarSitioWeb.old.exe
+/SistemaDeElementos/Publicacion/DespliegueTotal.exe
+/SistemaDeElementos/Publicacion/desplieguePreProductivo.exe
 
 # Refuerzo para .NET 10
 .vs/
