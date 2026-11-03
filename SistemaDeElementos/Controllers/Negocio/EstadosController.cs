@@ -136,7 +136,63 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        /// <summary>Etapas del negocio indicando cuáles incluyen al estado, y si el usuario puede modificarlas</summary>
+        [HttpGet]
+        public JsonResult epLeerEtapasDeUnEstado(string negocio, int idEstado)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epLeerEtapasDeUnEstado));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                r.Datos = new
+                {
+                    puedeModificar = Contexto.SePuedeParametrizar(),
+                    etapas = NegociosDeSe.ToEnumerado(negocio).EtapasDeUnEstado(idEstado)
+                };
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al leer las etapas del estado {idEstado} del negocio {negocio}.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
 
+        /// <summary>
+        /// Deja al estado sólo en las etapas indicadas en el parámetro 'etapas' del cuerpo.
+        /// Si queda en más de una etapa no es un error: se devuelve un aviso en el mensaje del resultado.
+        /// </summary>
+        [HttpPost]
+        public JsonResult epGrabarEtapasDeUnEstado(string negocio, int idEstado)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epGrabarEtapasDeUnEstado));
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                if (!Contexto.SePuedeParametrizar())
+                    GestorDeErrores.Emitir("Sólo un parametrizador puede modificar las etapas de un estado");
+
+                var body = ApiController.LeerBody(HttpContext);
+                var etapas = body.parametros.LeerValor("etapas", new List<string>());
+                r.Mensaje = NegociosDeSe.ToEnumerado(negocio).ActualizarEtapasDeUnEstado(Contexto, idEstado, etapas);
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al grabar las etapas del estado {idEstado} del negocio {negocio}.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
 
     }
 

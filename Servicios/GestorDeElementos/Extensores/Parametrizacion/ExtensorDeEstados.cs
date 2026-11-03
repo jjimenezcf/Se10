@@ -261,6 +261,78 @@ namespace GestorDeElementos.Extensores
 
         public static bool EstaEnLaEtapa(int idEstado, string estadosDeUnaEtapa) => estadosDeUnaEtapa.ToLista<int>(Simbolos.Coma).Contains(idEstado);
 
+        // ───────────── Etapas en las que está un estado ─────────────
+        // Cada etapa del negocio (enumerado indicado en MetadatosDelNegocio.TipoEtapas) es un parámetro de negocio con el mismo nombre
+        // cuyo valor son los ids de los estados que la componen separados por comas ('0' si no tiene ninguno).
+
+        private static Type TipoDeEtapas(this enumNegocio negocio) => negocio.ObtenerMetadatos(emitirError: false)?.TipoEtapas;
+
+        private static List<int> EstadosDeLaEtapa(this enumNegocio negocio, Type tipoDeEtapas, string etapa)
+        {
+            var valor = negocio.Parametro((Enum)Enum.Parse(tipoDeEtapas, etapa), emitirError: false)?.Valor;
+            if (valor.IsNullOrEmpty())
+                return new List<int>();
+
+            return valor.Split(',')
+                        .Select(x => x.Trim())
+                        .Where(x => int.TryParse(x, out var id) && id > 0)
+                        .Select(int.Parse)
+                        .Distinct()
+                        .ToList();
+        }
+
+        /// <summary>Etapas del negocio indicando cuáles incluyen al estado. Vacía si el negocio no define etapas.</summary>
+        public static List<EtapaDeUnEstado> EtapasDeUnEstado(this enumNegocio negocio, int idEstado)
+        {
+            var tipo = negocio.TipoDeEtapas();
+            if (tipo is null)
+                return new List<EtapaDeUnEstado>();
+
+            return Enum.GetValues(tipo).Cast<Enum>()
+                       .Select(etapa => new EtapaDeUnEstado
+                       {
+                           Nombre = etapa.ToString(),
+                           Descripcion = etapa.Descripcion(),
+                           Incluida = negocio.EstadosDeLaEtapa(tipo, etapa.ToString()).Contains(idEstado)
+                       })
+                       .ToList();
+        }
+
+        /// <summary>
+        /// Deja al estado únicamente en las etapas indicadas, añadiendo o quitando su id en el parámetro de cada etapa que cambie.
+        /// Devuelve un aviso (no un error) si el estado queda en más de una etapa, porque hay negocios en los que sólo puede estar en una.
+        /// </summary>
+        public static string ActualizarEtapasDeUnEstado(this enumNegocio negocio, ContextoSe contexto, int idEstado, List<string> etapasMarcadas)
+        {
+            var tipo = negocio.TipoDeEtapas();
+            if (tipo is null)
+                return string.Empty;
+
+            var marcadas = new HashSet<string>(etapasMarcadas ?? new List<string>());
+            var etapasDelEstado = new List<string>();
+            foreach (var nombre in Enum.GetNames(tipo))
+            {
+                var estados = negocio.EstadosDeLaEtapa(tipo, nombre);
+                var estaba = estados.Contains(idEstado);
+                var debeEstar = marcadas.Contains(nombre);
+
+                if (estaba != debeEstar)
+                {
+                    if (debeEstar) estados.Add(idEstado); else estados.Remove(idEstado);
+                    var valor = estados.Count == 0 ? ltrEstados.EstadoNulo : string.Join(", ", estados.OrderBy(x => x));
+                    negocio.Resetear((Enum)Enum.Parse(tipo, nombre), valor);
+                }
+
+                if (debeEstar) etapasDelEstado.Add(nombre);
+            }
+
+            if (etapasDelEstado.Count <= 1)
+                return string.Empty;
+
+            return $"El estado '{negocio.Estado(contexto, idEstado).Nombre}' ha quedado en las etapas {string.Join(", ", etapasDelEstado)}. " +
+                   $"Hay negocios en los que un estado sólo puede estar en una etapa; si es el caso, las operaciones que consultan la etapa del elemento darán error.";
+        }
+
         public static List<PosicionDeEstado> PosicionesDeEstados(this enumNegocio negocio,  ContextoSe contexto)
         {
             var jDatos = (JObject)ExtensorDeParmetrosDeUsuario.LeerParametroDeUsuario<JObject>(negocio, contexto, enumParametrosDeUsuario.USU_Disposicion_Estados);
@@ -270,5 +342,13 @@ namespace GestorDeElementos.Extensores
 
             return jDatos["estados"]?.ToObject<List<PosicionDeEstado>>() ?? new List<PosicionDeEstado>();
         }
+    }
+
+    /// <summary>Una etapa del negocio y si incluye o no al estado que se está editando</summary>
+    public class EtapaDeUnEstado
+    {
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+        public bool Incluida { get; set; }
     }
 }

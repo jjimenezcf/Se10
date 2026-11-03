@@ -43,6 +43,16 @@ namespace MVCSistemaDeElementos.Descriptores
             var expAcciones = DescriptorDeExpansorDeAcciones(Editor);
             Editor.Expanes.Insert(0, DescriptorDeExpansorTransiciones(Editor, expAcciones.IdHtmlGridDeRelacion));
             Editor.Expanes.Insert(1, expAcciones);
+            Editor.Expanes.Insert(2, DescriptorDeExpansorDeEtapas(Editor));
+        }
+
+        // Etapas del negocio en las que está el estado. No es una propiedad del dto ni un grid: el cuerpo es un contenedor vacío que rellena
+        // Estados.ts (CrudEdicionEstado) al editar un estado, y que se graba tras guardar el estado (epLeerEtapasDeUnEstado / epGrabarEtapasDeUnEstado)
+        private DescriptorDeExpansor DescriptorDeExpansorDeEtapas(DescriptorDeEdicion<EstadoDto> editor)
+        {
+            var expansor = new DescriptorDeExpansor(editor, $"{editor.Id}-etapas", "Etapas", mostrarPlegado: true, "Etapas del negocio en las que está el estado");
+            expansor.CuerpoDelExpansor = new ContenedorDeEtapas(expansor);
+            return expansor;
         }
         private void DefinirMf(string idMenu, List<string> opciones)
         {
@@ -163,5 +173,17 @@ namespace MVCSistemaDeElementos.Descriptores
 			return (string)ServicioDeCaches.Obtener(CacheDe.RenderCrud)[indice];
         }
 
+    }
+
+    /// <summary>Cuerpo del expansor de etapas: un div vacío donde Estados.ts pinta una casilla por cada etapa del negocio</summary>
+    public class ContenedorDeEtapas : ControlHtml
+    {
+        public ContenedorDeEtapas(IControlHtml padre)
+        : base(padre: padre, $"contenedor-{padre.Id}", "Etapas", "", "", null)
+        {
+            Tipo = enumTipoControl.Bloque;
+        }
+
+        public override string RenderControl() => $"<div id=¨{IdHtml}¨ class=¨etapas-contenedor¨></div>";
     }
 }

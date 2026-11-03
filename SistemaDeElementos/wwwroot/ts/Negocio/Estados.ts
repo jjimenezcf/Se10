@@ -60,6 +60,10 @@ namespace Negocio {
 
     }
     export class CrudEdicionEstado extends Crud.CrudEdicion {
+        // etapas marcadas al cargar el estado, y si el usuario puede cambiarlas (sólo un parametrizador)
+        private _etapasAlCargar: Array<string> = [];
+        private _puedeModificarEtapas: boolean = false;
+
         constructor(crud: Crud.CrudMnt, idPanelEdicion: string) {
             super(crud, idPanelEdicion);
         }
@@ -69,6 +73,120 @@ namespace Negocio {
             let control = ApiControl.BuscarRestrictor(this.CrudDeMnt.PanelFiltro, ltrPropiedades.Negocio.idNegocio, ltrTipoControl.restrictorDeFiltro);
             p.push(new Parametro(ltrPropiedades.Negocio.idNegocio, Numero(control.getAttribute(atControl.restrictor))));
             return p;
+        }
+
+        // ── Etapas del estado ────────────────────────────────────────────────────────────────────
+        private get ContenedorDeEtapas(): HTMLDivElement {
+            return this.PanelDeEditar.querySelector(`.${ltrCss.etapas.contenedor}`) as HTMLDivElement;
+        }
+
+        // Al mostrar un estado se leen las etapas del negocio y se marcan las que lo incluyen
+        protected DespuesDeMapearElementoDevuelto(panel: HTMLDivElement, peticion: ApiDeAjax.DescriptorAjax): void {
+            super.DespuesDeMapearElementoDevuelto(panel, peticion);
+            this.CargarEtapasDelEstado(Numero(ObtenerPropiedad(peticion.resultado.datos, ltrPropiedades.Elemento.Id, 0)));
+        }
+
+        private CargarEtapasDelEstado(idEstado: number): void {
+            const contenedor = this.ContenedorDeEtapas;
+            if (!Definido(contenedor)) return;
+
+            contenedor.innerHTML = '';
+            this._etapasAlCargar = [];
+            this._puedeModificarEtapas = false;
+            if (idEstado <= 0) return;
+
+            const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.LeerEtapas}`
+                      + `?negocio=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&idEstado=${idEstado}`;
+            fetch(url, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.estado !== 'Ok') {
+                        MensajesSe.Error('Etapas del estado', d.mensaje || 'No se han podido leer las etapas del estado');
+                        return;
+                    }
+                    this.PintarEtapas(contenedor, d.datos.etapas || [], d.datos.puedeModificar === true);
+                })
+                .catch(() => MensajesSe.Error('Etapas del estado', 'No se han podido leer las etapas del estado'));
+        }
+
+        // Una casilla por etapa, igual que el selector de calificadores de la modal de direcciones
+        private PintarEtapas(contenedor: HTMLDivElement, etapas: Array<{ nombre: string, descripcion: string, incluida: boolean }>, puedeModificar: boolean): void {
+            contenedor.innerHTML = '';
+            this._puedeModificarEtapas = puedeModificar;
+            this._etapasAlCargar = etapas.filter(e => e.incluida).map(e => e.nombre);
+
+            if (etapas.length === 0) {
+                const vacio = document.createElement('span');
+                ApiControl.IncluirCss(vacio, ltrCss.etapas.vacio);
+                vacio.innerText = 'El negocio no define etapas';
+                contenedor.appendChild(vacio);
+                return;
+            }
+
+            etapas.forEach(etapa => {
+                const label = document.createElement('label');
+                ApiControl.IncluirCss(label, ltrCss.etapas.opcion);
+                label.title = etapa.descripcion;
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.value = etapa.nombre;
+                chk.checked = etapa.incluida;
+                if (!puedeModificar) {
+                    chk.disabled = true;
+                    ApiControl.IncluirCss(label, ltrCss.etapas.opcionDeshabilitada);
+                }
+                label.appendChild(chk);
+                label.appendChild(document.createTextNode(etapa.nombre));
+                contenedor.appendChild(label);
+            });
+        }
+
+        // Etapas marcadas ahora, o undefined si no se han tocado (o no se pueden modificar)
+        private EtapasMarcadasSiHanCambiado(): Array<string> {
+            const contenedor = this.ContenedorDeEtapas;
+            if (!Definido(contenedor) || !this._puedeModificarEtapas) return undefined;
+
+            const marcadas = Array.from(contenedor.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>)
+                .filter(c => c.checked).map(c => c.value);
+            const iguales = marcadas.length === this._etapasAlCargar.length
+                && marcadas.every(m => this._etapasAlCargar.includes(m));
+            return iguales ? undefined : marcadas;
+        }
+
+        // Marcar o desmarcar una etapa cuenta como cambio pendiente (el editor avisa al cerrar o cambiar de estado)
+        public get HayCambiosPendientes(): boolean {
+            if (super.HayCambiosPendientes) return true;
+            return this.EstoyEditando && this.CargaRealizada && Definido(this.EtapasMarcadasSiHanCambiado());
+        }
+
+        // Tras guardar el estado se graban las etapas si han cambiado; si el estado queda en más de una se avisa, no es un error
+        protected DespuesDeModificar(peticion: ApiDeAjax.DescriptorAjax, modal: HTMLDivElement): void {
+            const marcadas = this.EtapasMarcadasSiHanCambiado();
+            const idEstado = Numero(this.ElementoEditado.Id);
+            const terminar = () => super.DespuesDeModificar(peticion, modal);
+            if (!Definido(marcadas)) {
+                terminar();
+                return;
+            }
+
+            const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.GrabarEtapas}`
+                      + `?negocio=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&idEstado=${idEstado}`;
+            // mismo formato que EjecutarPeticionPost: encodeURIComponent(JSON.stringify([{parametro, valor}]))
+            const body = encodeURIComponent(JSON.stringify([{ parametro: 'etapas', valor: marcadas }]));
+            let aviso: string = '';
+            let error: string = '';
+            fetch(url, { method: 'POST', credentials: 'same-origin', body })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.estado === 'Ok') aviso = d.mensaje || '';
+                    else error = d.mensaje || 'No se han podido grabar las etapas del estado';
+                })
+                .catch(() => { error = 'No se han podido grabar las etapas del estado'; })
+                .finally(() => {
+                    terminar();
+                    if (!IsNullOrEmpty(error)) MensajesSe.Error('Etapas del estado', error);
+                    else if (!IsNullOrEmpty(aviso)) MensajesSe.Advertencia(aviso);
+                });
         }
     }
 
