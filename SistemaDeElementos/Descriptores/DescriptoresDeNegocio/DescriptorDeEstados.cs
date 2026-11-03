@@ -102,6 +102,18 @@ namespace MVCSistemaDeElementos.Descriptores
                 visible = true
             });
 
+            // (i) azul: explica qué hace la transición, según el documento de ayuda del flujo
+            grid.acciones.Add(new ColumnaAccion
+            {
+                accion = $"javascript:{enumNameSpaceTs.Negocio}.AyudaDeUnaTransicion('{grid.IdHtmlContenedor}', numeroDeFila)"
+             ,
+                titulo = "Ayuda"
+             ,
+                tamano = 60
+             ,
+                visible = true
+            });
+
             grid.acciones.Add(new ColumnaAccion
             {
                 accion = Acciones(grid.IdHtmlContenedor, idGridDeAcciones, Negocio.IdNegocio())

@@ -694,7 +694,8 @@
     export function DefinirNavegador(input: HTMLInputElement, id: number) {
         let contenedor = input.parentNode;
         if (contenedor instanceof HTMLDivElement) {
-            let a: HTMLAnchorElement = contenedor.querySelector("a") as HTMLAnchorElement;
+            // en el control de estados hay más de un enlace (abrir en pestaña, flujo, ayuda): el que se define es el del flujo
+            let a: HTMLAnchorElement = (contenedor.querySelector("a.navegar-al-flujo") ?? contenedor.querySelector("a")) as HTMLAnchorElement;
             if (Definido(a)) {
                 let accion = a.getAttribute(atRef.onclick);
                 if (Definido(accion)) {

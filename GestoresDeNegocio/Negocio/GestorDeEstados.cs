@@ -172,7 +172,11 @@ namespace GestoresDeNegocio.Negocio
             }
 
             if (parametros.Operacion == enumTipoOperacion.Eliminar)
+            {
                 GestorDePermisos.Eliminar(Contexto, Mapeador, GestorDePermisos.LeerRegistroPorId(Contexto, registro.IdPermiso));
+                // el estado borrado deja de formar parte de las etapas del negocio
+                Negocio.ActualizarEtapasDeUnEstado(Contexto, registro.Id, new List<string>());
+            }
 
             // la disposición del flujo que haya grabado cada usuario queda obsoleta
             Negocio.EliminarParametroDeTodosLosUsuarios(Contexto, enumParametrosDeUsuario.USU_Disposicion_Estados);

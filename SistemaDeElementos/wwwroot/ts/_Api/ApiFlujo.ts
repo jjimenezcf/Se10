@@ -80,6 +80,164 @@ namespace Flujo {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    //  AbrirEstadoEnPestana
+    //  Botón "abrir en una pestaña nueva" junto al del flujo: abre el estado (mismo destino que el botón del flujo,
+    //  cuyo href ya trae el ?id= del estado seleccionado) en el crud de estados.
+    // ─────────────────────────────────────────────────────────────────────────
+    export function AbrirEstadoEnPestana(boton: HTMLElement): boolean {
+        const flujo = boton.parentElement?.querySelector('a.navegar-al-flujo') as HTMLAnchorElement | null;
+        const href = flujo?.getAttribute('href') || '';
+        if (IsNullOrEmpty(href) || href === '#') {
+            MensajesSe.Info('Seleccione un estado para abrirlo');
+            return false;
+        }
+        window.open(href, '_blank');
+        return false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  DescargarAyudaDelFlujo
+    //  Icono de ayuda junto al control del estado: abre en otra pestaña la ayuda del flujo del estado que muestra el control.
+    // ─────────────────────────────────────────────────────────────────────────
+    export function DescargarAyudaDelFlujo(boton: HTMLElement): boolean {
+        const input  = boton.parentElement?.querySelector('input') as HTMLInputElement | null;
+        const estado = input?.value || '';
+        if (!estado) {
+            MensajesSe.Info('Seleccione un estado para ver la ayuda de su flujo');
+            return false;
+        }
+        const negocio = boton.getAttribute('negocio') || '';
+        window.open(`/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujo}`
+            + `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`, '_blank');
+        return false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  MostrarAyudaDeTransiciones
+    //  El ? entre las flechas del panel de edición: explica qué hace la transición de devolver (flecha verde)
+    //  y la de transitar (flecha azul) desde el estado actual. Sin transiciones, o sin explicación en el
+    //  documento de ayuda, descarga el documento del flujo.
+    // ─────────────────────────────────────────────────────────────────────────
+    export function MostrarAyudaDeTransiciones(
+        negocio:    string,
+        estado:     string,
+        avanzar:    string,
+        retroceder: string
+    ): void {
+        const base = `/${ltrControladores.Negocio.Estados}`;
+        const parametros = `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
+        const descargar = () => { window.location.href = `${base}/${Ajax.EndPoint.Negocio.Estados.DescargarAyudaDelFlujo}${parametros}`; };
+
+        if (IsNullOrEmpty(avanzar) && IsNullOrEmpty(retroceder)) {
+            descargar();
+            return;
+        }
+
+        fetch(`${base}/${Ajax.EndPoint.Negocio.Estados.ExplicarTransiciones}${parametros}`
+            + `&avanzar=${encodeURIComponent(avanzar || '')}&retroceder=${encodeURIComponent(retroceder || '')}`,
+            { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(d => {
+                const datos = d.datos || {};
+                if (d.estado !== 'Ok' || (IsNullOrEmpty(datos.avanzar) && IsNullOrEmpty(datos.retroceder))) {
+                    descargar();
+                    return;
+                }
+                _mostrarDialogoDeTransiciones(estado, [
+                    { clase: ltrCss.flujo.ayudaRetroceder, rotulo: 'Flecha verde (devolver)', transicion: retroceder, texto: datos.retroceder },
+                    { clase: ltrCss.flujo.ayudaAvanzar, rotulo: 'Flecha azul (transitar)', transicion: avanzar, texto: datos.avanzar }
+                ]);
+            })
+            .catch(() => descargar());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  MostrarAyudaDeUnaTransicion
+    //  El ? de cada transición del editor de estados: explica qué hace esa transición desde el estado, en el
+    //  mismo diálogo que el ? de las flechas. Si el documento no la explica, el diálogo lo indica.
+    // ─────────────────────────────────────────────────────────────────────────
+    export function MostrarAyudaDeUnaTransicion(negocio: string, estado: string, transicion: string): void {
+        const base = `/${ltrControladores.Negocio.Estados}`;
+        const parametros = `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
+
+        fetch(`${base}/${Ajax.EndPoint.Negocio.Estados.ExplicarTransiciones}${parametros}&avanzar=${encodeURIComponent(transicion)}&retroceder=`,
+            { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(d => {
+                const datos = d.datos || {};
+                // siempre se muestra el diálogo; si no hay explicación lo dice, indicando qué se ha buscado
+                const texto = d.estado === 'Ok' && !IsNullOrEmpty(datos.avanzar)
+                    ? datos.avanzar
+                    : `El documento de ayuda no explica esta transición (estado '${estado}', negocio '${negocio}').`;
+                _mostrarDialogoDeTransiciones(estado, [
+                    { clase: ltrCss.flujo.ayudaAvanzar, rotulo: 'Transición', transicion: transicion, texto: texto }
+                ]);
+            })
+            .catch(() => MensajesSe.Error('Ayuda de la transición', 'No se ha podido leer la explicación de la transición'));
+    }
+
+    // quita las marcas de Markdown del texto del documento (negritas, cursivas, código) para mostrarlo como texto plano
+    function _textoPlano(md: string): string {
+        return (md || '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
+    }
+
+    function _mostrarDialogoDeTransiciones(
+        estado: string, apartados: Array<{ clase: string, rotulo: string, transicion: string, texto: string }>
+    ): void {
+        const idModal = 'modal-flujo-ayuda-transiciones';
+        document.getElementById(idModal)?.remove();
+
+        const modal = document.createElement('div');
+        modal.id = idModal;
+        ApiControl.IncluirCss(modal, ltrCss.flujo.contenedorModal);
+        const contenido = document.createElement('div');
+        ApiControl.IncluirCss(contenido, ltrCss.flujo.contenidoAyuda);
+
+        const cabecera = document.createElement('div');
+        ApiControl.IncluirCss(cabecera, ltrCss.flujo.cabeceraDeModal);
+        const rotulo = document.createElement('span');
+        ApiControl.IncluirCss(rotulo, ltrCss.flujo.rotuloDeModal);
+        const titulo = document.createElement('h2');
+        titulo.textContent = `Transiciones desde: ${estado}`;
+        rotulo.appendChild(titulo);
+        const btnX = document.createElement('span');
+        ApiControl.IncluirCss(btnX, ltrCss.flujo.cerrarDeModal);
+        btnX.title = 'Cerrar';
+        btnX.innerHTML = '&times;';
+        btnX.addEventListener('click', () => modal.remove());
+        const acciones = document.createElement('div');
+        ApiControl.IncluirCss(acciones, ltrCss.flujo.accionesDeCabecera);
+        acciones.appendChild(btnX);
+        cabecera.appendChild(rotulo);
+        cabecera.appendChild(acciones);
+
+        const cuerpo = document.createElement('div');
+        ApiControl.IncluirCss(cuerpo, ltrCss.flujo.cuerpoAyuda);
+
+        const apartado = (clase: string, rotuloDelApartado: string, transicion: string, texto: string) => {
+            if (IsNullOrEmpty(transicion)) return;
+            const div = document.createElement('div');
+            ApiControl.IncluirCss(div, ltrCss.flujo.ayudaApartado);
+            ApiControl.IncluirCss(div, clase);
+            const h = document.createElement('h3');
+            h.textContent = `${rotuloDelApartado}: ${transicion}`;
+            const p = document.createElement('div');
+            ApiControl.IncluirCss(p, ltrCss.flujo.ayudaTexto);
+            p.textContent = IsNullOrEmpty(texto) ? 'El documento de ayuda no explica esta transición.' : _textoPlano(texto);
+            div.appendChild(h);
+            div.appendChild(p);
+            cuerpo.appendChild(div);
+        };
+        apartados.forEach(a => apartado(a.clase, a.rotulo, a.transicion, a.texto));
+
+        contenido.appendChild(cabecera);
+        contenido.appendChild(cuerpo);
+        modal.appendChild(contenido);
+        document.body.appendChild(modal);
+        modal.style.display = ltrStyle.display.block;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     //  CargarYMostrarFlujo
     //  Obtiene el flujo desde `idEstado` (epObtenerFlujo) y abre la modal.
     //  · Sin `posiciones`: usa las que el usuario tenga grabadas (epLeerPosicionesDeEstados).
@@ -170,8 +328,24 @@ namespace Flujo {
         btnX.innerHTML = '&times;';
         btnX.addEventListener('click', () => modal.remove());
 
+        // "?" a la izquierda de la ×: abre el documento de ayuda del flujo en otra pestaña
+        const btnAyuda = document.createElement('span');
+        ApiControl.IncluirCss(btnAyuda, ltrCss.flujo.cerrarDeModal);
+        btnAyuda.title = 'Ayuda sobre este flujo';
+        btnAyuda.textContent = '?';
+        btnAyuda.addEventListener('click', () => {
+            const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujo}`
+                + `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(nombreEstado)}`;
+            window.open(url, '_blank');
+        });
+
+        const acciones = document.createElement('div');
+        ApiControl.IncluirCss(acciones, ltrCss.flujo.accionesDeCabecera);
+        acciones.appendChild(btnAyuda);
+        acciones.appendChild(btnX);
+
         cabecera.appendChild(rotulo);
-        cabecera.appendChild(btnX);
+        cabecera.appendChild(acciones);
 
         // Cuerpo: div con el gráfico
         const cuerpo = document.createElement('div');

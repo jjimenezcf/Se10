@@ -9,6 +9,90 @@
    cabecera-de-modal (barra azul con el rótulo y la × de cerrar), contenido-cuerpo y contenido-pie.
    Aquí sólo se ajusta lo propio del flujo. */
 
+/* "?" entre las flechas de devolver y transitar del panel de edición */
+.flujo-ayuda-transiciones {
+    display: inline-block;
+    min-width: 1em;
+    margin-left: -6px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+/* ? en cada fila de las transiciones del estado (mismo icono que en el resto de ayudas): el texto del enlace se sustituye por el signo */
+a[href*="AyudaDeUnaTransicion"] {
+    font-size: 0;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a[href*="AyudaDeUnaTransicion"]::before {
+    content: '?';
+    font-size: 1rem;
+    font-weight: bold;
+    color: #000;
+}
+
+/* diálogo con la explicación de las transiciones */
+.contenedor-modal:has(> .flujo-ayuda-modal) {
+    z-index: 9999;
+}
+
+.flujo-ayuda-modal {
+    max-width: min(90vw, 40em);
+}
+
+.flujo-ayuda-cuerpo {
+    max-height: calc(100vh - 220px);
+    overflow: auto;
+}
+
+.flujo-ayuda-apartado {
+    margin-bottom: 1em;
+    padding-left: 0.75em;
+    border-left: 4px solid;
+}
+
+.flujo-ayuda-apartado h3 {
+    font-size: 1.05em;
+    margin: 0 0 0.4em 0;
+}
+
+.flujo-ayuda-retroceder { border-color: #2e8b57; }
+.flujo-ayuda-avanzar { border-color: #1e6fd9; }
+
+.flujo-ayuda-texto {
+    white-space: pre-wrap;
+}
+
+/* icono de ayuda junto al control del estado: una "?" en lugar del icono de navegación */
+.boton-de-navegacion.ayuda-del-flujo {
+    background-image: none;
+}
+
+/* se desplaza sólo el signo, no el botón, para no alterar la fila de botones */
+.boton-de-navegacion.ayuda-del-flujo::before {
+    content: '?';
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    top: 3px;
+}
+
+/* "?" (ayuda) y × (cerrar) juntos a la derecha de la cabecera, la ayuda a la izquierda de la × */
+.flujo-acciones-cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    margin-left: auto;
+}
+
+.flujo-acciones-cabecera > span {
+    cursor: pointer;
+    float: none;
+}
+
 /* por encima del resto de modales: se abre desde la edición de un elemento */
 .contenedor-modal:has(> .flujo-modal) {
     z-index: 9999;

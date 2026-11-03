@@ -190,6 +190,14 @@ namespace Negocio {
         }
     }
 
+    // El icono (i) de una fila de las transiciones del estado: explica qué hace esa transición desde el estado que se edita
+    export function AyudaDeUnaTransicion(idGridDeDetalle: string, numeroFila: number): void {
+        const edicion = Crud.crudMnt.crudDeEdicion;
+        const transicion = edicion.Expansor_ObtenerPropiedad(idGridDeDetalle, numeroFila, 'nombre');
+        const estado = ObtenerPropiedad(edicion.Registro, 'nombre', '');
+        Flujo.MostrarAyudaDeUnaTransicion(Crud.crudMnt.NombreDeNegocio, estado, transicion);
+    }
+
     export function EventosDeExpansores(accion: string, parametros: string): void {
 
         let partes: string[] = parametros.split(';');

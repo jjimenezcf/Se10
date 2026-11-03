@@ -11,7 +11,11 @@ using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Negocio;
 using System;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Utilidades;
 
 namespace MVCSistemaDeElementos.Controllers
@@ -134,6 +138,103 @@ namespace MVCSistemaDeElementos.Controllers
                 Contexto.CerrarTraza();
             }
             return new JsonResult(r);
+        }
+
+        /// <summary>
+        /// Explicación (del documento de ayuda del flujo) de las transiciones que se pueden aplicar desde un estado: la de avanzar y la de retroceder.
+        /// Se busca el apartado '### {estado} ---> {transición} --> ...' del documento. Si no hay documento o apartado, el texto va vacío.
+        /// </summary>
+        [HttpGet]
+        public JsonResult epExplicarTransiciones(string negocio, string estado, string avanzar, string retroceder)
+        {
+            var r = new Resultado();
+            try
+            {
+                var carpeta = Path.Combine(HttpContext.RequestServices.GetService<IWebHostEnvironment>().WebRootPath, "ayuda", "procesos", NegociosDeSe.ToEnumerado(negocio).ToString());
+                var documentos = new List<string>();
+                if (Directory.Exists(carpeta) && !string.IsNullOrWhiteSpace(estado))
+                    documentos = Directory.GetFiles(carpeta, "*.md").OrderBy(f => f).Select(f => System.IO.File.ReadAllText(f)).Where(t => t.Contains(estado)).ToList();
+
+                string Explicacion(string transicion)
+                {
+                    if (string.IsNullOrWhiteSpace(transicion)) return "";
+                    var cabecera = $"### {estado} ---> {transicion} --> ";
+                    foreach (var texto in documentos)
+                    {
+                        var lineas = texto.Replace("\r", "").Split('\n').ToList();
+                        var inicio = lineas.FindIndex(l => l.StartsWith(cabecera));
+                        if (inicio < 0) continue;
+                        var cuerpo = lineas.Skip(inicio + 1).TakeWhile(l => !l.StartsWith("#")).ToList();
+                        return string.Join("\n", cuerpo).Trim();
+                    }
+                    return "";
+                }
+
+                r.Datos = new { hayDocumento = documentos.Count > 0, avanzar = Explicacion(avanzar), retroceder = Explicacion(retroceder) };
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, $"Error al leer la explicación de las transiciones del estado {estado}.");
+            }
+            return new JsonResult(r);
+        }
+
+        /// <summary>Descarga el documento .md de ayuda del flujo al que pertenece el estado</summary>
+        [HttpGet]
+        public IActionResult epDescargarAyudaDelFlujo(string negocio, string estado)
+        {
+            try
+            {
+                var carpeta = Path.Combine(HttpContext.RequestServices.GetService<IWebHostEnvironment>().WebRootPath, "ayuda", "procesos", NegociosDeSe.ToEnumerado(negocio).ToString());
+                if (!Directory.Exists(carpeta) || string.IsNullOrWhiteSpace(estado))
+                    return Content("No hay documento de ayuda para este flujo.", "text/plain; charset=utf-8");
+
+                var ficheros = Directory.GetFiles(carpeta, "*.md").OrderBy(f => f).Where(f => System.IO.File.ReadAllText(f).Contains(estado)).ToList();
+                var fichero = ficheros.FirstOrDefault(f => System.IO.File.ReadAllText(f).Contains($"### {estado} ---> ")) ?? ficheros.FirstOrDefault();
+                if (fichero == null)
+                    return Content("No hay documento de ayuda para este flujo.", "text/plain; charset=utf-8");
+
+                return File(System.IO.File.ReadAllBytes(fichero), "text/markdown; charset=utf-8", Path.GetFileName(fichero));
+            }
+            catch (Exception e)
+            {
+                return Content($"No se ha podido leer la ayuda: {e.Message}", "text/plain; charset=utf-8");
+            }
+        }
+
+        /// <summary>
+        /// Página con el documento de ayuda (wwwroot/ayuda/procesos/{negocio}/*.md) del flujo al que pertenece el estado.
+        /// Se elige el documento que contiene al estado, mejor si lo tiene como origen de alguna transición.
+        /// </summary>
+        [HttpGet]
+        public ContentResult epAyudaDelFlujo(string negocio, string estado)
+        {
+            string Pagina(string cuerpo) => $"<!doctype html><html><head><meta charset=\"utf-8\"><title>Ayuda del flujo</title></head><body style=\"font-family:sans-serif;max-width:60rem;margin:2rem auto;padding:0 1rem\">{cuerpo}</body></html>";
+            try
+            {
+                var carpeta = Path.Combine(HttpContext.RequestServices.GetService<IWebHostEnvironment>().WebRootPath, "ayuda", "procesos", NegociosDeSe.ToEnumerado(negocio).ToString());
+                if (!Directory.Exists(carpeta) || string.IsNullOrWhiteSpace(estado))
+                    return Content(Pagina("<p>No hay documento de ayuda para este flujo.</p>"), "text/html; charset=utf-8");
+
+                var documentos = Directory.GetFiles(carpeta, "*.md").OrderBy(f => f).Select(f => System.IO.File.ReadAllText(f)).Where(t => t.Contains(estado)).ToList();
+                var texto = documentos.FirstOrDefault(t => t.Contains($"### {estado} ---> ")) ?? documentos.FirstOrDefault();
+                if (texto == null)
+                    return Content(Pagina("<p>No hay documento de ayuda para este flujo.</p>"), "text/html; charset=utf-8");
+
+                var html = Pagina("<div id=\"doc\"></div>" +
+                    "<script src=\"https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js\"></script>" +
+                    "<script src=\"https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js\"></script>" +
+                    "<script>const md = " + Newtonsoft.Json.JsonConvert.SerializeObject(texto).Replace("</", "<\\/") + ";" +
+                    "const d = document.getElementById('doc'); d.innerHTML = marked.parse(md);" +
+                    "d.querySelectorAll('pre > code.language-mermaid').forEach(c => { const m = document.createElement('div'); m.className = 'mermaid'; m.textContent = c.textContent; c.parentElement.replaceWith(m); });" +
+                    "mermaid.initialize({ startOnLoad: false }); mermaid.run();</script>");
+                return Content(html, "text/html; charset=utf-8");
+            }
+            catch (Exception e)
+            {
+                return Content(Pagina($"<p>No se ha podido leer la ayuda: {System.Net.WebUtility.HtmlEncode(e.Message)}</p>"), "text/html; charset=utf-8");
+            }
         }
 
         /// <summary>Etapas del negocio indicando cuáles incluyen al estado, y si el usuario puede modificarlas</summary>

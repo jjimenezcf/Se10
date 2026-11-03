@@ -1495,6 +1495,15 @@ const ltrCss = {
         rotuloDeModal: 'rotulo-de-modal',
         iconoDeModal: 'icono-de-modal',
         cerrarDeModal: 'cerrar-de-modal',
+        accionesDeCabecera: 'flujo-acciones-cabecera',
+        // ayuda de las transiciones (el ? entre las flechas del panel de edición)
+        ayudaDeTransiciones: 'flujo-ayuda-transiciones',
+        contenidoAyuda: 'contenido-modal flujo-ayuda-modal',
+        cuerpoAyuda: 'contenido-cuerpo flujo-ayuda-cuerpo',
+        ayudaApartado: 'flujo-ayuda-apartado',
+        ayudaAvanzar: 'flujo-ayuda-avanzar',
+        ayudaRetroceder: 'flujo-ayuda-retroceder',
+        ayudaTexto: 'flujo-ayuda-texto',
         cuerpo: 'contenido-cuerpo flujo-cuerpo',
         pie: 'contenido-pie pie-solo-botones',
         botonGrabar: 'boton-modal btn btn-primary',
@@ -1875,6 +1884,9 @@ const Ajax = {
                 LeerPosiciones: 'epLeerPosicionesDeEstados',
                 GrabarDisposicion: 'epGrabarDisposicionDeEstados',
                 LeerEtapas: 'epLeerEtapasDeUnEstado',
+                AyudaDelFlujo: 'epAyudaDelFlujo',
+                DescargarAyudaDelFlujo: 'epDescargarAyudaDelFlujo',
+                ExplicarTransiciones: 'epExplicarTransiciones',
                 GrabarEtapas: 'epGrabarEtapasDeUnEstado'
             }
         },

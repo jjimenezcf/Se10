@@ -579,7 +579,14 @@ namespace MVCSistemaDeElementos.Descriptores
 
             // Si apunta al CRUD de Estados, abrir la modal del flujo en lugar de navegar
             if (vistaDondeNavegar == enumVistasNegocio.CrudDeEstados)
-                return $@"<a id=¨{idHtml}-navegador¨
+                return $@"<a id=¨{idHtml}-navegador-pestana¨
+                              class=¨boton-de-navegacion navegar-a-pestana¨
+                              title=¨Abrir el estado en una pestaña nueva¨
+                              aria-label=¨Abrir el estado en una pestaña nueva¨
+                              negocio='{negocio.ToNombre()}'
+                              href=¨#¨
+                              onclick='return Flujo.AbrirEstadoEnPestana(this);'></a>
+                          <a id=¨{idHtml}-navegador¨
                               tipo=¨{enumTipoControl.Referencia}¨
                               class=¨boton-de-navegacion navegar-al-flujo¨
                               title=¨Ver el flujo de estados¨
@@ -588,7 +595,14 @@ namespace MVCSistemaDeElementos.Descriptores
                               vista='{vistaDondeNavegar}'
                               negocio='{negocio.ToNombre()}'
                               href=¨#¨
-                              onclick='return Flujo.MostrarFlujoDeEstado(this);'></a>";
+                              onclick='return Flujo.MostrarFlujoDeEstado(this);'></a>
+                          <a id=¨{idHtml}-ayuda-flujo¨
+                              class=¨boton-de-navegacion ayuda-del-flujo¨
+                              title=¨Ver la ayuda de este flujo¨
+                              aria-label=¨Ver la ayuda de este flujo¨
+                              negocio='{negocio.ToNombre()}'
+                              href=¨#¨
+                              onclick='return Flujo.DescargarAyudaDelFlujo(this);'></a>";
 
             // con al-pulsar se ejecuta una acción en la misma página, sin él se navega a una pestaña nueva
             var enPestanaNueva = onClick.IsNullOrEmpty();

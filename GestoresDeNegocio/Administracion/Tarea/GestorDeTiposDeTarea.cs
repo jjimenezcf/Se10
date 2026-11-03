@@ -61,7 +61,8 @@ namespace GestoresDeNegocio.Tarea
             TipoDeArchivadorDtm tipoAri,
             bool usaPlanificacion,
             TipoDeTareaDtm padre = null,
-            bool copiarDireccion = false)
+            bool copiarDireccion = false,
+            bool esFacturable = false)
         {
             var gestor = Gestor(contexto, contexto.Mapeador);
             var leido = gestor.LeerRegistroCacheado(nameof(TipoDeElementoDtm.Nombre), nombre, false, false, false);
@@ -77,7 +78,7 @@ namespace GestoresDeNegocio.Tarea
                 tipo.CopiarDireccionDelSolicitante = copiarDireccion;
                 tipo.IdTipoArchivador = tipoAri != null ? tipoAri.Id : null;
                 tipo.IdPadre = padre is null ? null : padre.Id;
-                tipo.EsFacturable = false;
+                tipo.EsFacturable = esFacturable;
                 tipo = gestor.PersistirRegistro(tipo, new ParametrosDeNegocio(enumTipoOperacion.Insertar));
                 return gestor.LeerRegistroPorId(tipo.Id, false, false, false, true);
             }

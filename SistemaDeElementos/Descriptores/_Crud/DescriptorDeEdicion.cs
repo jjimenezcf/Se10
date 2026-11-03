@@ -290,6 +290,9 @@ namespace MVCSistemaDeElementos.Descriptores
                         <a id=¨mostrar.{IdHtml}.flujo.retroceder.ref¨ style=¨margin-left: 2px;¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDeEdicion}('{eventosDeEdicion.Retroceder}');¨> 
                           <img id=¨imagen.{IdHtml}.flujo.retroceder¨ title='devolver' class='{enumCssAccionesPanelEdicion.Retroceder.Descripcion()}'> 
                         </a>
+                        <a id=¨mostrar.{IdHtml}.flujo.ayuda.ref¨ style=¨margin-left: 2px;¨ href=¨javascript:Crud.crudMnt.crudDeEdicion.AyudaDeTransiciones();¨>
+                          <span id=¨imagen.{IdHtml}.flujo.ayuda¨ title='Qué hacen las transiciones de las flechas' class='flujo-ayuda-transiciones'>?</span>
+                        </a>
                         <a id=¨mostrar.{IdHtml}.flujo.avanzar.ref¨ style=¨margin-left: 2px;¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDeEdicion}('{eventosDeEdicion.Avanzar}');¨> 
                           <img id=¨imagen.{IdHtml}.flujo.avanzar¨ title='transitar' class='{enumCssAccionesPanelEdicion.Avanzar.Descripcion()}'> 
                         </a> 

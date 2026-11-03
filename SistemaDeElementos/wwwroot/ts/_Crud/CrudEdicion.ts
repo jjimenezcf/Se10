@@ -1188,6 +1188,14 @@
             crudMnt.ModalTransitar_Abrir(this.Id, this.IdTransicionAplicable);
         }
 
+        // El ? entre las flechas: explica la transición de devolver (verde) y la de transitar (azul) desde el estado actual
+        public AyudaDeTransiciones(): void {
+            const estado = ObtenerPropiedad(this.Registro, ltrPropiedades.Elemento.DeProceso.Estado, '');
+            const avanzar = this.TransicionesDisponibles > 0 ? this.TransicionAplicable : '';
+            const retroceder = Definido(this.IdTransicionParaDevolver) ? this.TransicionParaDevolver : '';
+            Flujo.MostrarAyudaDeTransiciones(this.NombreDeNegocio, estado, avanzar, retroceder);
+        }
+
         protected TransitarDirecto(idTransicion: number): void {
             let parametros: Array<Parametro> = new Array<Parametro>();
             parametros.push(new Parametro(ltrPropiedades.Negocio.idNegocio, this.CrudDeMnt.IdNegocio));
@@ -1534,6 +1542,8 @@
             if (!this.EsDeProceso || Registro.EsClienteWeb()) {
                 ApiControl.IncluirCss(this.BotonAvanzar, ltrCss.crud.panelDeEdicion.OcultarBoton);
                 ApiControl.IncluirCss(this.BotonDevolver, ltrCss.crud.panelDeEdicion.OcultarBoton);
+                const ayuda = document.querySelector('.' + ltrCss.flujo.ayudaDeTransiciones) as HTMLElement;
+                if (Definido(ayuda)) ApiControl.IncluirCss(ayuda.parentElement, ltrCss.crud.panelDeEdicion.OcultarBoton);
                 return
             }
 
