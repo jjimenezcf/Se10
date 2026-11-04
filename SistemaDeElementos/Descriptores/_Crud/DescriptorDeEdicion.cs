@@ -543,7 +543,7 @@ namespace MVCSistemaDeElementos.Descriptores
                 if (permiteConsultar)
                 {
                     var htmlConsultar = $@"
-                                   <input type=¨text¨ id=¨dias-para-consultar-por-gid¨ value=¨30¨ title=¨Indique el número de días a compartir el elemento indicado, 0 para anular las comparticiones¨/>
+                                   <input type=¨text¨ id=¨dias-para-consultar-por-gid¨ value=¨90¨ title=¨Indique el número de días a compartir el elemento indicado, 0 para anular las comparticiones¨/>
                                    <button class='{enumCssControles.ConsultarConGuid.Render()}' title='crear o anular enlace de consulta y asignar al portapapeles' onclick=¨Crud.EventosDeEdicion('consultar-con-guid')¨> 
                                      <img class='icono-consultar-con-guid' style='margin-top: -3px;'>
                                    </button> ";

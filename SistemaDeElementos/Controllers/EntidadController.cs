@@ -997,7 +997,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
 
             var negocio = NegociosDeSe.NegocioDeUnDtm(typeof(TRegistro));
             if (caducaEl == null)
-                caducaEl = DateTime.Now.AddDays(30);
+                caducaEl = DateTime.Now.AddDays(90);
 
             resultado.Datos = GestorDeConsultasConGuid.RegistrarConsultaConGuid((IElementoDtm)registro, Contexto, caducaEl, maximoDeDescargas: null);
             resultado.Mensaje = resultado.Datos == null
