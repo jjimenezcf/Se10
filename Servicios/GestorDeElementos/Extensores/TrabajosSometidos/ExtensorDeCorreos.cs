@@ -102,7 +102,7 @@ namespace GestorDeElementos.Extensores
                 if (conConsulta)
                 {
                     var registro = elemento.Negocio().LeerRegistro(contexto, elemento.IdElemento);
-                    var guid =((IElementoDtm) registro).RegistrarConsultaConGuid(contexto, caducaEl: DateTime.Now.AddMonths(1), maximoDeDescargas: null);
+                    var guid =((IElementoDtm) registro).RegistrarConsultaConGuid(contexto, caducaEl: DateTime.Now.AddMonths(3), maximoDeDescargas: null);
                     cuerpo = $"{cuerpo}{Environment.NewLine}Pulse para consultar: {elemento.ConsultaUrl(guid)}";
                 }
             }

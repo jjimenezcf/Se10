@@ -179,7 +179,7 @@ namespace GestorDeElementos
                 return string.Empty;
 
             var elemento = contexto.SeleccionarElementoPorId(negocio.TipoDtm(), tipoDtoElemento.IdElemento);
-            var guid = elemento.RegistrarConsultaConGuid(contexto, caducaEl: DateTime.Now.AddMonths(1), maximoDeDescargas: null);
+            var guid = elemento.RegistrarConsultaConGuid(contexto, caducaEl: DateTime.Now.AddMonths(3), maximoDeDescargas: null);
 
             return ConsultaUrlPlana(tipoDtoElemento,guid, errorSiNoConsulta: true);
         }
