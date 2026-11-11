@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Z_DespliegueTotal", "..\Z_D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Z_DesplieguePreproductivo", "..\Z_DesplieguePreproductivo\Z_DesplieguePreproductivo.csproj", "{198F389E-9577-4DCD-94B6-9F256A9F81A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Z_DespliegueTrasProbar", "..\Z_DespliegueTrasProbar\Z_DespliegueTrasProbar.csproj", "{D70BE444-2C52-466E-B68D-866A63932DCB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -479,6 +481,26 @@ Global
 		{198F389E-9577-4DCD-94B6-9F256A9F81A2}.Release|x64.Build.0 = Release|Any CPU
 		{198F389E-9577-4DCD-94B6-9F256A9F81A2}.Release|x86.ActiveCfg = Release|Any CPU
 		{198F389E-9577-4DCD-94B6-9F256A9F81A2}.Release|x86.Build.0 = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|ARM.Build.0 = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|x64.Build.0 = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Debug|x86.Build.0 = Debug|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|ARM.ActiveCfg = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|ARM.Build.0 = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|ARM64.Build.0 = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|x64.ActiveCfg = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|x64.Build.0 = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|x86.ActiveCfg = Release|Any CPU
+		{D70BE444-2C52-466E-B68D-866A63932DCB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

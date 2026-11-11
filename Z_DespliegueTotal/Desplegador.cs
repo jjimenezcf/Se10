@@ -7,14 +7,17 @@ using System.Text;
 enum Paso { Publicar, Empaquetar, Copiar, Descomprimir, Desplegar }
 
 // Lo único que distingue a un despliegue de otro: los scripts del servidor que ejecuta
-record Destino(string Nombre, string Alcance, string ScriptDescomprimir, string ScriptDesplegar);
+// ZipYaDescomprimido: el zip ya está descomprimido en Se (lo dejó un despliegue anterior, p. ej. el de test) y solo se
+// ejecutan los dos últimos pasos; SitioProbado es el sitio cuyo SistemaDeElementos.dll debe ser idéntico al de Se
+record Destino(string Nombre, string Alcance, string ScriptDescomprimir, string ScriptDesplegar,
+    bool ZipYaDescomprimido = false, string SitioProbado = null);
 
 class FalloDeDespliegue : Exception
 {
     public FalloDeDespliegue(string mensaje) : base(mensaje) { }
 }
 
-// Compartido por Z_DespliegueTotal y Z_DesplieguePreproductivo
+// Compartido por Z_DespliegueTotal, Z_DesplieguePreproductivo y Z_DespliegueTrasProbar
 static class Desplegador
 {
     const string Servidor = "flow0.secify.support";
@@ -57,7 +60,7 @@ static class Desplegador
     static int Desplegar(string[] args)
     {
         bool soloComprobar = false, soloVerificar = false, sinConfirmar = false;
-        Paso desde = Paso.Publicar, hasta = Paso.Desplegar;
+        Paso desde = _destino.ZipYaDescomprimido ? Paso.Descomprimir : Paso.Publicar, hasta = Paso.Desplegar;
 
         try
         {
@@ -75,6 +78,8 @@ static class Desplegador
             }
             if (desde > hasta)
                 throw new ArgumentException($"--desde {desde} es posterior a --hasta {hasta}");
+            if (_destino.ZipYaDescomprimido && desde < Paso.Descomprimir)
+                throw new ArgumentException($"{_destino.Nombre} parte de un zip ya descomprimido: --desde no puede ser anterior a {Paso.Descomprimir}");
         }
         catch (ArgumentException e)
         {
@@ -212,8 +217,12 @@ static class Desplegador
     {
         Titulo($"Comprobaciones de {_destino.Nombre}");
 
-        var (rama, cambios) = EstadoDelRepositorio();
-        Escribir($"Repositorio: {rama}, {cambios} fichero(s) sin confirmar{(cambios > 0 ? " (SE PUBLICAN TAL COMO ESTÁN)" : "")}");
+        // Con el zip ya descomprimido no se publica nada, así que el estado del repositorio no importa
+        if (!_destino.ZipYaDescomprimido)
+        {
+            var (rama, cambios) = EstadoDelRepositorio();
+            Escribir($"Repositorio: {rama}, {cambios} fichero(s) sin confirmar{(cambios > 0 ? " (SE PUBLICAN TAL COMO ESTÁN)" : "")}");
+        }
 
         if (desde <= Paso.Publicar && hasta >= Paso.Publicar)
             Escribir($"MSBuild: {BuscarMsBuild()}");
@@ -226,6 +235,21 @@ static class Desplegador
                 throw new FalloDeDespliegue($"No se puede acceder a {DirectorioCompartido}");
             Escribir($"Acceso a {DirectorioCompartido}: correcto");
 
+            // Lo descomprimido en Se tiene que ser lo que se ha probado: mismo SistemaDeElementos.dll que el del sitio de pruebas
+            string comprobacionDeSe = !_destino.ZipYaDescomprimido ? "" : $$"""
+                $dll = '{{DirectorioRemoto}}\Se\SistemaDeElementos.dll'
+                if (-not (Test-Path -LiteralPath $dll)) { "FALLO: no existe $dll (el zip no está descomprimido)"; $fallos++ }
+                else {
+                    Import-Module WebAdministration
+                    $ruta = [Environment]::ExpandEnvironmentVariables((Get-Website -Name '{{_destino.SitioProbado}}').PhysicalPath)
+                    $probada = Join-Path $ruta 'SistemaDeElementos.dll'
+                    if (-not (Test-Path -LiteralPath $probada)) { "FALLO: no existe $probada"; $fallos++ }
+                    elseif ((Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $probada -Algorithm SHA256).Hash) {
+                        "FALLO: el SistemaDeElementos.dll de Se no es el desplegado en {{_destino.SitioProbado}}: no es lo que has probado"; $fallos++ }
+                    else { "OK: Se\SistemaDeElementos.dll es idéntico al de {{_destino.SitioProbado}}" }
+                }
+                """;
+
             // Todos los despliegues comparten el zip y la carpeta Se, así que cualquiera en curso impide lanzar otro
             int fallos = EjecutarRemoto($$"""
                 $fallos = 0
@@ -234,8 +258,9 @@ static class Desplegador
                 foreach ($script in '{{_destino.ScriptDescomprimir}}', '{{_destino.ScriptDesplegar}}') {
                     if (-not (Test-Path -LiteralPath "{{DirectorioRemoto}}\$script")) { "FALLO: no existe $script"; $fallos++ }
                 }
-                $enCurso = Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" | Where-Object { $_.CommandLine -match '0[12]-(Descomprimir|Desplegar)|20 - Preproductivo' }
+                $enCurso = Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" | Where-Object { $_.CommandLine -match '0[123]-(Descomprimir|Parar|Desplegar)|20 - Preproductivo' }
                 if ($enCurso) { 'FALLO: hay un despliegue en curso o una ventana de sus scripts abierta en el servidor'; $fallos++ }
+                {{comprobacionDeSe}}
                 $libres = (Get-PSDrive C).Free / 1GB
                 'Disco libre en el servidor: {0:N1} GB' -f $libres
                 if ($libres -lt {{GigasLibresMinimos}}) { 'FALLO: poco espacio en disco'; $fallos++ }
@@ -332,7 +357,7 @@ static class Desplegador
     {
         EjecutarScriptRemoto(_destino.ScriptDescomprimir);
         if (!File.Exists($@"{DirectorioCompartido}\Se\SistemaDeElementos.dll"))
-            throw new FalloDeDespliegue(@"Tras descomprimir no existe Se\SistemaDeElementos.dll en el servidor.");
+            throw new FalloDeDespliegue(@"Tras ejecutar el script no existe Se\SistemaDeElementos.dll en el servidor.");
     }
 
     static void EjecutarScriptRemoto(string script)

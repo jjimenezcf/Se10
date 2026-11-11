@@ -17,6 +17,10 @@ set "SQLCMD=sqlcmd -S .\SQLEXPRESS -E"
 :: Ejecución de procedimientos en bases de datos 
 for %%D in (SE_ACROMUR SE_TEST SE_ARKENOS SE_CAIFANTASIA SE_FEMDEK SE_SECIFY SE_FUTURINES AB_ALBERTO_MARTINEZ SE_CEOM SE_INTERIORISMO SE_JHM) do (
     echo Procesando base de datos: %%D
+    rem Si un despliegue anterior fallo y dejo la cola bloqueada, se libera antes de volver a bloquearla
+    %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Desbloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
+    type output_%%D.txt
+    findstr /i "ERROR" output_%%D.txt > nul && goto :error
     %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Bloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
     type output_%%D.txt
     findstr /i "ERROR" output_%%D.txt > nul && goto :error
@@ -89,4 +93,4 @@ exit /b 0
 echo Se produjo un error al ejecutar el procedimiento almacenado. 
 echo Abortando el despliegue. 
 pause
-exit /b 1
+exit /b 1

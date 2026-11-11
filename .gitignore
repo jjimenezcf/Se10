@@ -278,6 +278,7 @@ ModelManifest.xml
 /SistemaDeElementos/Publicacion/Z_EmpaquetarSitioWeb.old.exe
 /SistemaDeElementos/Publicacion/DespliegueTotal.exe
 /SistemaDeElementos/Publicacion/desplieguePreProductivo.exe
+/SistemaDeElementos/Publicacion/despliegueTrasProbar.exe
 
 # Refuerzo para .NET 10
 .vs/

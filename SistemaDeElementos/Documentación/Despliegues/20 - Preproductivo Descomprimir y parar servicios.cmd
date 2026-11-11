@@ -13,6 +13,10 @@ echo Ejecutando procedimientos almacenados...
 set "SQLCMD=sqlcmd -S .\SQLEXPRESS -E -h -1 -W"
 
 for %%D in (SE_TEST) do (
+    rem Si un despliegue anterior fallo y dejo la cola bloqueada, se libera antes de volver a bloquearla
+    %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Desbloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
+    type output_%%D.txt
+    findstr /i "ERROR" output_%%D.txt > nul && goto :error
     %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Bloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
     type output_%%D.txt
     findstr /i "ERROR" output_%%D.txt > nul && goto :error
