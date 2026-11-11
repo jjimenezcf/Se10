@@ -2458,6 +2458,9 @@ const ttrModoPresentacion = {
     cliente: 'cliente',
 };
 
+// valores de enumPrioridad, de más a menos prioritario, tal como llegan en el json
+const ltrOrdenDePrioridades = ['Urgente', 'Alta', 'Media', 'Baja', 'NoDefinida'];
+
 const ltrAccionesModal = {
     BloquearCg: 'bloquear-cg',
     ProponerCg: 'proponer-cg',

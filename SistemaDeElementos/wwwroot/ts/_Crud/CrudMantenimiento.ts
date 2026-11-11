@@ -1405,8 +1405,10 @@
             const idsSeleccionados = this.InfoSelector.IdsSeleccionados;
 
             // por Estado las columnas se ordenan por DeProceso.OrdenEstado (orden del flujo:
-            // las de orden menor quedan más a la izquierda); en el resto de agrupaciones, alfabéticamente.
+            // las de orden menor quedan más a la izquierda); por Prioridad, de más a menos prioritaria;
+            // en el resto de agrupaciones, alfabéticamente.
             const gruposOrdenados = [...grupos.entries()].sort((a, b) => {
+                if (propiedadDeAgrupacion === ttrModoPresentacion.prioridad) return ltrOrdenDePrioridades.indexOf(a[0]) - ltrOrdenDePrioridades.indexOf(b[0]);
                 if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) return a[0].localeCompare(b[0]);
                 const ordenA = Numero(ObtenerPropiedad(a[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
                 const ordenB = Numero(ObtenerPropiedad(b[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
