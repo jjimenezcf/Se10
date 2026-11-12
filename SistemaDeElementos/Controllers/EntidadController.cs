@@ -650,6 +650,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
         var posicion = !parametros.ContainsKey(ltrFiltros.posicion) ? 0 : parametros[ltrFiltros.posicion].ToString().Entero();
         List<ClausulaDeFiltrado> filtros = !parametros.ContainsKey(ltrFiltros.filtro) || parametros[ltrFiltros.filtro].ToString().IsNullOrEmpty() ? new List<ClausulaDeFiltrado>() : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(parametros.LeerValor<string>(ltrParametrosEp.Filtro));
         List<ClausulaDeOrdenacion> orden = !parametros.ContainsKey(ltrFiltros.orden) || parametros[ltrFiltros.orden].ToString().IsNullOrEmpty() ? new List<ClausulaDeOrdenacion>() : JsonConvert.DeserializeObject<List<ClausulaDeOrdenacion>>(parametros.LeerValor<string>(ltrParametrosEp.Orden));
+        ServidorDocumental.AplicarSeleccionadosEnExportacion(parametros, ref filtros, ref posicion, ref cantidad);
         AntesDeEjecutar_Leer(posicion, cantidad, filtros, orden, parametros);
         var elementos = _GestorDeElementos.LeerElementos(posicion, cantidad, filtros, orden, parametros);
         return ServidorDocumental.DescargarExcel(Contexto, elementos.ToList());

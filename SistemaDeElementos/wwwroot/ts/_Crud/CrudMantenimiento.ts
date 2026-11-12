@@ -3486,6 +3486,7 @@
             parametros.push(new Parametro(Ajax.Param.filtro, this.ObtenerFiltros(ltrOperacion.Exportar)));
             parametros.push(new Parametro(Ajax.Param.orden, this.ObtenerOrdenacion()));
             parametros.push(new Parametro(Ajax.Param.ColumnasOpcionales, JSON.stringify(this.ObtenerColumnasOpcionales())));
+            parametros.push(new Parametro(Ajax.Param.seleccionados, JSON.stringify(this.InfoSelector.IdsSeleccionados ?? [])));
 
             //Datos para el archivador a crear
             let idArchivador: string = this.ModalDeExportacion.id + '_' + ltrPropiedades.Negocio.PlantillaDeExportacion.NombreArchivador;

@@ -3,6 +3,7 @@ using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using GestoresDeNegocio.Entorno;
+using GestoresDeNegocio.SistemaDocumental;
 using Microsoft.CodeAnalysis;
 using ModeloDeDto;
 using ModeloDeDto.Tarea;
@@ -39,15 +40,32 @@ namespace GestoresDeNegocio.Administracion
 
         internal static readonly string ltrExpedientesConSusTareas = nameof(ltrExpedientesConSusTareas);
 
+        private static List<ExpedienteDtm> LeerExpedientesAExportar(EntornoDeUnaAccion entorno)
+        {
+            var parametros = new Dictionary<string, object> { { ltrParametrosNeg.Peticion, enumPeticion.epExportar } };
+
+            // Prioridad: si se han seleccionado expedientes en el grid, se exportan sólo esos
+            var seleccionados = ServidorDocumental.LeerSeleccionadosParaExportar(entorno.Entrada);
+            if (seleccionados.Count > 0)
+            {
+                var filtroPorIds = new List<ClausulaDeFiltrado>
+                {
+                    new ClausulaDeFiltrado(nameof(ExpedienteDtm.Id), enumCriteriosDeFiltrado.esAlgunoDe, string.Join(",", seleccionados))
+                };
+                return entorno.Contexto.SeleccionarTodos<ExpedienteDtm>(clausulas: filtroPorIds, aplicarJoin: true, parametros: parametros).OrderBy(x => x.IdTipo).ToList();
+            }
+
+            var filtrosJson = entorno.Entrada.LeerValor(ltrFiltros.filtro, "");
+            var filtros = filtrosJson.IsNullOrEmpty() ? new List<ClausulaDeFiltrado>() : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtrosJson);
+            return entorno.Contexto.SeleccionarTodos<ExpedienteDtm>(clausulas: filtros, aplicarJoin: true, parametros: parametros).OrderBy(x => x.IdTipo).ToList();
+        }
+
         public static void ExpedientesConSusTareas(EntornoDeUnaAccion entorno)
         {
             var datos = new List<TareasRealizadas>();
 
 
-            var filtrosJson = entorno.Entrada.LeerValor(ltrFiltros.filtro, "");
-            var filtros = filtrosJson.IsNullOrEmpty() ? new List<ClausulaDeFiltrado>() : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(filtrosJson);
-
-            var expedientes = entorno.Contexto.SeleccionarTodos<ExpedienteDtm>(clausulas: filtros, aplicarJoin: true, parametros: new Dictionary<string, object> { { ltrParametrosNeg.Peticion, enumPeticion.epExportar } }).OrderBy(x => x.IdTipo).ToList();
+            var expedientes = LeerExpedientesAExportar(entorno);
 
             foreach (var expediente in expedientes)
             {

@@ -1208,8 +1208,8 @@ namespace GestorDeElementos.Extensores
                 {
                     GestorDeErrores.Emitir($"Hay más de una vista para mostrar un elemento del negocio '{negocioDtm.Enumerado}', defina una sóla");
                 }
-                var vistasPorTipo = negocioDtm.VistasPorTipoDeNegocio(((IElementoConTipo)elemento).IdTipo);
-                vista = contexto.SeleccionarPorId<VistaMvcDtm>(vistasPorTipo.IdVista);
+                var vistasPorTipo = negocioDtm.VistasPorTipoDeNegocio(((IElementoConTipo)elemento).IdTipo, vistas);
+                vista = vistas.FirstOrDefault(v => v.Id == vistasPorTipo.IdVista) ?? contexto.SeleccionarPorId<VistaMvcDtm>(vistasPorTipo.IdVista);
             }
             var parametros = OtrosParametros(contexto, NegociosDeSe.ToEnumerado(negocioDtm.Id), elemento);
             var uri = new UriBuilder(CacheDeVariable.Cfg_UrlBase)

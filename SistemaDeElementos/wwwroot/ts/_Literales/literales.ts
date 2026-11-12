@@ -1942,6 +1942,7 @@ const Ajax = {
         AmpliacionesSolicitadas: 'AmpliacionesSolicitadas',
         DatosPrincipales: 'DatosPrincipales',
         seleccionadas: 'seleccionadas',
+        seleccionados: 'seleccionados',
         usuario: 'usuario',
         id: literal.id,
         parametros: 'parametrosJson',

@@ -714,9 +714,11 @@ namespace GestoresDeNegocio.SistemaDocumental
                         Calculado = false
                     }.Insertar(entorno.contextoDelProceso, new Dictionary<string, object> { { ltrParametrosNeg.ValidarPermisosDePersistencia, false } });
                 }
+
+                AnotarElTrabajoEnElArchivador(entorno, archivador);
             }
 
-            var correo = entorno.contextoDelProceso.SeleccionarPorId<UsuarioDtm>(entorno.TrabajoDeUsuario.IdEjecutor).eMail;
+            var correo =entorno.contextoDelProceso.SeleccionarPorId<UsuarioDtm>(entorno.TrabajoDeUsuario.IdEjecutor).eMail;
             GestorDeCorreos.CrearCorreoPara(entorno.contextoDelProceso
                 , new List<string> { correo }
                 , "Exportación solicitada"
@@ -724,6 +726,30 @@ namespace GestoresDeNegocio.SistemaDocumental
                 , elementoAdjunto == null ? new List<TipoDtoElmento>() : new List<TipoDtoElmento> { elementoAdjunto }
                 , elementoAdjunto == null ? new List<string> { ficheroConRuta } : new List<string>()
                 );
+        }
+
+        public static readonly string ObservacionTrabajoDeExportacion = "Trabajo de exportación";
+
+        // Observación de administrador en el archivador con la url del trabajo sometido que hizo la exportación.
+        // Es informativa: si falla no afecta a la exportación
+        private static void AnotarElTrabajoEnElArchivador(EntornoDeTrabajo entorno, ArchivadorDtm archivador)
+        {
+            if (entorno?.TrabajoDeUsuario is null) return;
+
+            try
+            {
+                var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
+                {
+                    Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
+                    Query = $"id={entorno.TrabajoDeUsuario.Id}"
+                }.Uri.ToString();
+                archivador.CrearObservacion(entorno.contextoDelProceso, ObservacionTrabajoDeExportacion, urlDelTrabajo,
+                    new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
+            }
+            catch (Exception e)
+            {
+                entorno.CrearTraza($"No se ha podido crear la observación '{ObservacionTrabajoDeExportacion}' en el archivador '{archivador.Expresion}': {e.Message}");
+            }
         }
 
         private static string ExportacionConPlantilla(EntornoDeTrabajo entorno, Dictionary<string, object> parametros, int idPlantilla)
@@ -738,6 +764,34 @@ namespace GestoresDeNegocio.SistemaDocumental
             var accion = new AccionDtm { Nombre = plantilla.Nombre, Metodo = plantilla.Metodo, Dll = plantilla.Dll, Clase = plantilla.Clase, ClaseDeAccion = enumClaseDeAccion.DLL.ToString() };
             var salida = accion.Ejecutar(contexto, plantilla, NegociosDeSe.ToEnumerado(idNegocio), entrada: parametros, parametros: null);
             return salida[nameof(ObjetoParaExportar.FicheroConRuta)].ToString();
+        }
+
+        /// <summary>
+        /// Ids de los registros marcados en el grid al solicitar la exportación (parámetro 'seleccionados', JSON con una lista de enteros).
+        /// Si no hay ninguno devuelve una lista vacía.
+        /// </summary>
+        public static List<int> LeerSeleccionadosParaExportar(Dictionary<string, object> parametros)
+        {
+            var json = parametros.LeerValor(ltrParametrosEp.Seleccionados, "");
+            if (json.IsNullOrEmpty())
+                return new List<int>();
+            return (JsonConvert.DeserializeObject<List<int>>(json) ?? new List<int>()).Distinct().ToList();
+        }
+
+        /// <summary>
+        /// Si se han marcado registros, sustituye los filtros por un filtro por sus ids y anula la paginación (se exportan todos los marcados).
+        /// Devuelve true si se ha exportado por selección.
+        /// </summary>
+        public static bool AplicarSeleccionadosEnExportacion(Dictionary<string, object> parametros, ref List<ClausulaDeFiltrado> filtros, ref int posicion, ref int cantidad)
+        {
+            var seleccionados = LeerSeleccionadosParaExportar(parametros);
+            if (seleccionados.Count == 0)
+                return false;
+
+            filtros = new List<ClausulaDeFiltrado> { new ClausulaDeFiltrado(nameof(RegistroDtm.Id), enumCriteriosDeFiltrado.esAlgunoDe, string.Join(",", seleccionados)) };
+            posicion = 0;
+            cantidad = -1;
+            return true;
         }
 
         public static string ExportacionEstandard(EntornoDeTrabajo entorno, Dictionary<string, object> parametros)
@@ -757,6 +811,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             var posicion = !parametros.ContainsKey(ltrFiltros.posicion) ? 0 : parametros[ltrFiltros.posicion].ToString().Entero();
             List<ClausulaDeFiltrado> filtros = !parametros.ContainsKey(ltrFiltros.filtro) || parametros[ltrFiltros.filtro].ToString().IsNullOrEmpty() ? new List<ClausulaDeFiltrado>() : JsonConvert.DeserializeObject<List<ClausulaDeFiltrado>>(parametros.LeerValor<string>(ltrParametrosEp.Filtro));
             List<ClausulaDeOrdenacion> orden = !parametros.ContainsKey(ltrFiltros.orden) || parametros[ltrFiltros.orden].ToString().IsNullOrEmpty() ? new List<ClausulaDeOrdenacion>() : JsonConvert.DeserializeObject<List<ClausulaDeOrdenacion>>(parametros.LeerValor<string>(ltrParametrosEp.Orden));
+            AplicarSeleccionadosEnExportacion(parametros, ref filtros, ref posicion, ref cantidad);
 
             var opcionesDeMapeo = new Dictionary<string, object>
             {

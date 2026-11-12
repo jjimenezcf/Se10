@@ -47,7 +47,7 @@ namespace GestoresDeNegocio.Juridico
         {
             consulta = base.AplicarJoins(consulta, filtros, parametros);
 
-            if ((parametros.Peticion == enumPeticion.epLeerDatosParaElGrid || parametros.Peticion == enumPeticion.epExportar) && !parametros.FiltroPorId && filtros.Where(x => x.Clausula.Contains(nameof(LoteDeUnContratoDtm.IdContrato))).Count() == 0)
+            if ((parametros.Peticion == enumPeticion.epLeerDatosParaElGrid || parametros.Peticion == enumPeticion.epExportar) && !parametros.FiltroPorId && !filtros.Any(x => x.Clausula.Equals(nameof(LoteDeUnContratoDtm.Id), StringComparison.OrdinalIgnoreCase)) && filtros.Where(x => x.Clausula.Contains(nameof(LoteDeUnContratoDtm.IdContrato))).Count() == 0)
                 GestorDeErrores.Emitir($"Se han solicitado obtener los lotes de un contrato y no se indica el contrato");
 
             if (parametros.HacerJoinCon(ltrLotesDeUnContrato.JoinConContratos))

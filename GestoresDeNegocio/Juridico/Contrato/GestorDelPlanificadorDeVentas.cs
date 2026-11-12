@@ -66,7 +66,7 @@ namespace GestoresDeNegocio.Juridico
         {
             registros = base.AplicarJoins(registros, filtros, parametros);
 
-            if ((parametros.Peticion == enumPeticion.epLeerDatosParaElGrid || parametros.Peticion == enumPeticion.epExportar) && !parametros.FiltroPorId && filtros.Where(x => x.Clausula.Contains(nameof(PlanificadorDeVentaDtm.IdContrato))).Count() == 0)
+            if ((parametros.Peticion == enumPeticion.epLeerDatosParaElGrid || parametros.Peticion == enumPeticion.epExportar) && !parametros.FiltroPorId && !filtros.Any(x => x.Clausula.Equals(nameof(PlanificadorDeVentaDtm.Id), StringComparison.OrdinalIgnoreCase)) && filtros.Where(x => x.Clausula.Contains(nameof(PlanificadorDeVentaDtm.IdContrato))).Count() == 0)
                 GestorDeErrores.Emitir($"Se han solicitado ver los planificadores de ventas y no se indica el contrato");
 
             if (parametros.EsUnaPeticion)
