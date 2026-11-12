@@ -533,9 +533,47 @@
             }
 
             this._estoyMostrandoHistorial = valor
+            this.MarcarBotonesDelHistorial(valor);
             if (!valor && Definido(this.BotonVisor) && !ApiControl.EsVisible(this.BotonVisor))
                 this.OcultameElVisor();
         }
+
+        private _botonHistorial: HTMLInputElement = undefined;
+        private get BotonHistorial(): HTMLInputElement {
+            if (!Definido(this._botonHistorial))
+                this._botonHistorial = (this.PanelDeEditar?.querySelector(ltrCss.crud.panelDeEdicion.Acciones.SelectorBotonHistorial) as HTMLInputElement) ?? undefined;
+            return this._botonHistorial;
+        }
+
+        // con el historial abierto el botón Historial se ve pulsado y el icono del visor pasa a ser el del historial (sólo informativo);
+        // las clases mostrar-visor/ocultar-visor no se tocan, así al cerrarlo vuelve a verse el icono que hubiera (y si no hay archivos, sigue oculto)
+        private MarcarBotonesDelHistorial(mostrando: boolean): void {
+            const acciones = ltrCss.crud.panelDeEdicion.Acciones;
+            if (Definido(this.BotonHistorial)) {
+                if (mostrando) ApiControl.IncluirCss(this.BotonHistorial, acciones.HistorialPulsado);
+                else ApiControl.ExcluirCss(this.BotonHistorial, acciones.HistorialPulsado);
+            }
+            if (Definido(this.BotonVisor)) {
+                if (mostrando) {
+                    // se guarda el title sólo la primera vez, para no quedarse con el del historial si se marca dos veces seguidas
+                    if (!this.BotonVisor.classList.contains(acciones.HistorialMostrado))
+                        this._tituloDelBotonVisor = this.BotonVisor.getAttribute(atControl.title);
+                    ApiControl.IncluirCss(this.BotonVisor, acciones.HistorialMostrado);
+                    this.BotonVisor.setAttribute(atControl.title, ltrEdicion.TituloVisorConHistorial);
+                }
+                else {
+                    if (this.BotonVisor.classList.contains(acciones.HistorialMostrado) && Definido(this._tituloDelBotonVisor))
+                        this.BotonVisor.setAttribute(atControl.title, this._tituloDelBotonVisor);
+                    ApiControl.ExcluirCss(this.BotonVisor, acciones.HistorialMostrado);
+                }
+            }
+        }
+
+        private _tituloDelBotonVisor: string = undefined;
+
+        // al abrir el historial se muestra el panel derecho aunque el visor de archivos estuviese cerrado; se recuerda cómo
+        // estaba para dejarlo igual al cerrar el historial con su botón
+        private _visorVisibleAntesDelHistorial: boolean = true;
 
         public get PanelDeEditar(): HTMLDivElement {
             return document.getElementById(this._idPanelEdicion) as HTMLDivElement;
@@ -996,11 +1034,16 @@
             }
             else {
                 this.OcultarHistorial();
+                // si al abrir el historial el visor de archivos estaba cerrado, se vuelve a cerrar
+                if (!this._visorVisibleAntesDelHistorial)
+                    ApiControl.IncluirCss(this.ContenedorDeDatosMasVisor, ltrCss.crud.panelDeEdicion.VisorOculto);
                 this.EstoyMostrandoHistorial = false;
             }
         }
 
         public MostrarHistorial() {
+            if (!this.EstoyMostrandoHistorial)
+                this._visorVisibleAntesDelHistorial = !this.ContenedorDeDatosMasVisor.classList.contains(ltrCss.crud.panelDeEdicion.VisorOculto);
             ApiControl.ExcluirCss(this.ContenedorDeDatosMasVisor, ltrCss.crud.panelDeEdicion.VisorOculto);
             ApiControl.IncluirCss(this.ContenedorDelVisor, ltrCss.divNoVisible);
             ApiControl.ExcluirCss(this.ContenedorDelHistorial, ltrCss.divNoVisible);
@@ -1017,6 +1060,9 @@
             if (!ApiControl.EsVisible(this.BotonVisor)) {
                 return;
             }
+            // con el historial abierto el icono es informativo: para volver a los documentos se cierra el historial con su botón
+            if (this.EstoyMostrandoHistorial)
+                return;
             if (this.BotonVisor.classList.contains(ltrCss.crud.panelDeEdicion.Acciones.MostrarVisor)) {
                 this.MuestrameElVisor();
 

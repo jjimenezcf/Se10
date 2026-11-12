@@ -1234,7 +1234,12 @@ const ltrCss = {
                 Observacion: 'img-detalle-dto-observacion',
                 MostrarVisor: 'mostrar-visor',
                 OcultarVisor: 'ocultar-visor',
-                SinVisor: 'sin-visor'
+                SinVisor: 'sin-visor',
+                // con el historial abierto el icono del visor muestra el del historial y no responde
+                HistorialMostrado: 'historial-mostrado',
+                // el botón Historial del menú de edición se ve hundido mientras el historial está abierto
+                HistorialPulsado: 'historial-pulsado',
+                SelectorBotonHistorial: '.botones-de-menu input[type="button"][value="Historial"]'
             },
             OcultarBoton: 'ocultar-boton',
             DeshabilitarBoton: 'deshabilitar-boton',
@@ -2107,7 +2112,8 @@ const ltrUrls = {
 
 const ltrEdicion = {
     Editando: 'editando',
-    IdDelEspan: 'IdDelEspan'
+    IdDelEspan: 'IdDelEspan',
+    TituloVisorConHistorial: 'Mostrando el historial'
 };
 
 const ltrMantenimiento = {

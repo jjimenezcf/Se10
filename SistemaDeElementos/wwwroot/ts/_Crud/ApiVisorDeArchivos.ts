@@ -58,7 +58,11 @@ namespace ApiVisorDeArchivos {
             CalcularTamanoDelVisor();
         }
         else {
-            if (crud.crudDeEdicion.IdArchivoMostrado > 0) {
+            // el panel de la derecha puede estar visible sin archivo mostrado (p.e. con el historial abierto):
+            // lo que cuenta es que no esté oculto, si no al soltar el splitter se perdería el ancho elegido
+            const panelVisible = crud.crudDeEdicion.IdArchivoMostrado > 0
+                || (Definido(crud.crudDeEdicion.ContenedorDeDatosMasVisor) && !crud.crudDeEdicion.ContenedorDeDatosMasVisor.classList.contains(ltrCss.crud.panelDeEdicion.VisorOculto));
+            if (panelVisible) {
                 CalcularTamanoDelVisor();
             }
             else {

@@ -3389,6 +3389,7 @@
         public ModalExportacion_Abrir() {
             this.ModoTrabajo = enumModoTrabajo.exportando;
             ApiPanel.AbrirModal(this.ModalDeExportacion);
+            this.ModalExportacion_AjustarCheckDeMostradas();
             if (this.IdNegocio > 0) {
                 ApiDePeticiones.ProcesarPeticion(this, ltrControladores.Negocio.PlantillasDeExportacion, this.IdNegocio, ltrMenus.eventosDeMf.Parametrizacion.Negocio.Comun_LeerDatosParaExportacion, new Array<Parametro>(), new Array<Parametro>())
                     .then((peticion) => {
@@ -3401,6 +3402,42 @@
                 var div = document.getElementById(id) as HTMLDivElement;
                 ApiPanel.OcultarPanel(div)
             }
+        }
+
+        // Si hay filas marcadas se exportan sólo esas (el servidor ignora filtro y paginación), así que el check
+        // 'Las mostradas' no tiene efecto: se rotula 'Las seleccionadas', se marca, se deshabilita y se resalta.
+        // Sin filas marcadas se restaura su estado original.
+        private ModalExportacion_AjustarCheckDeMostradas(): void {
+            const check = document.getElementById(this.ModalDeExportacion.id + '_mostradas') as HTMLInputElement;
+            if (!Definido(check)) return;
+
+            const etiqueta = this.ModalDeExportacion.querySelector<HTMLLabelElement>(`label[for="${check.id}"]`);
+            const contenedor = check.parentElement;
+            const claseResaltado = 'exportacion-seleccionadas';
+            const haySeleccion = this.InfoSelector.Cantidad > 0;
+            const yaAjustado = check.dataset.etiquetaOriginal !== undefined;
+
+            if (haySeleccion) {
+                if (!yaAjustado) {
+                    check.dataset.etiquetaOriginal = Definido(etiqueta) ? etiqueta.textContent : '';
+                    check.dataset.marcadoOriginal = check.checked ? 'true' : 'false';
+                }
+                if (Definido(etiqueta)) etiqueta.textContent = `Las seleccionadas (${this.InfoSelector.Cantidad})`;
+                check.checked = true;
+                check.disabled = true;
+                check.title = 'Se exportarán sólo las filas seleccionadas';
+                if (Definido(contenedor)) contenedor.classList.add(claseResaltado);
+                return;
+            }
+
+            if (!yaAjustado) return;
+            if (Definido(etiqueta)) etiqueta.textContent = check.dataset.etiquetaOriginal;
+            check.checked = check.dataset.marcadoOriginal === 'true';
+            check.disabled = false;
+            check.removeAttribute('title');
+            if (Definido(contenedor)) contenedor.classList.remove(claseResaltado);
+            delete check.dataset.etiquetaOriginal;
+            delete check.dataset.marcadoOriginal;
         }
 
         protected DespuesDeLeerDatosParaExportacion(peticion: ApiDeAjax.DescriptorAjax) {
