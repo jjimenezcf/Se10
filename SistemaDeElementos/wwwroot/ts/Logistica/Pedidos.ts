@@ -913,7 +913,14 @@
                 CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeConsultar, true);
                 CrudEdicionPedido.HabilitarAccionDeLaFila(fila, CrudEdicionPedido.AccionDeCancelar, this.SePuedeCancelarLaDevolucion(CrudEdicionPedido.EsTrueEnLaFila(fila, propiedades.Contabilizada)));
             });
+
+            // "Imprimir" del pie sólo se muestra si hay devoluciones; se ajusta cada vez que se carga el grid (ver DescriptorDePedidos)
+            const imprimir = document.getElementById(this.OpcionDeExpansor(ltrEspanes.Logistica.Pedidos.Devoluciones, CrudEdicionPedido.OpcionDeImprimirDevoluciones)) as HTMLDivElement;
+            if (Definido(imprimir))
+                ApiPanel.OcultarMostrarPanel(imprimir, !this.HayDevoluciones);
         }
+
+        private static readonly OpcionDeImprimirDevoluciones = 'imprimir-ref';
 
         // para imprimirlas (ver CrudDePedidos.ImprimirDevoluciones)
         public get HayDevoluciones(): boolean {

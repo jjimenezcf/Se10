@@ -324,10 +324,7 @@ namespace GestoresDeNegocio.Logistica
         transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion.Estados()) &&
         transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Solicitud.Estados());
 
-        // Permite al interventor corregir la cabecera fuera de la etapa de cumplimentación, en la que es de sólo consulta: el nombre, el correo
-        // (y guardarlo como correo del proveedor), la fecha de entrega y, una vez recibido o cerrado, la de recepción (no posterior a hoy ni anterior
-        // a la fecha en la que se creó el pedido) y la de cierre (no posterior a hoy). Los datos se toman de la edición, si desde que se leyó otro
-        // usuario ha modificado el pedido no se guardan
+        // Crea un pedido nuevo con la cabecera, la dirección de entrega y las líneas del original (ver ExtensorDePedidos.Copiar)
         public static PedidoDto CopiarElPedido(ContextoSe contexto, int idPedidoOriginal)
         {
             var pedido = contexto.SeleccionarPorId<PedidoDtm>(idPedidoOriginal);
@@ -335,6 +332,10 @@ namespace GestoresDeNegocio.Logistica
             return contexto.SeleccionarDto<PedidoDto, PedidoDtm>(copia.Id);
         }
 
+        // Permite al interventor corregir la cabecera fuera de la etapa de cumplimentación, en la que es de sólo consulta: el nombre, el correo
+        // (y guardarlo como correo del proveedor), la fecha de entrega y, una vez recibido o cerrado, la de recepción (no posterior a hoy ni anterior
+        // a la fecha en la que se creó el pedido) y la de cierre (no posterior a hoy). Los datos se toman de la edición, si desde que se leyó otro
+        // usuario ha modificado el pedido no se guardan
         public static void ModificarCabecera(ContextoSe contexto, ModificarCabeceraDePedidoDto datos)
         {
             var tran = contexto.IniciarTransaccion();

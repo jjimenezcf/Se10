@@ -1,4 +1,5 @@
 ﻿using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Elemento;
 using ServicioDeDatos;
 using ServicioDeDatos.Logistica;
 using System;
@@ -29,8 +30,9 @@ namespace GestorDeElementos.Extensores
 
         public static bool EstaEnLaEtapa(this PedidoDtm pedido, string etapa) => etapa.ToLista<int>(Simbolos.Coma).Contains(pedido.IdEstado);
 
-        // Copia la cabecera y las líneas del pedido en un pedido nuevo, que queda en el estado inicial (cumplimentación): no se copian las
-        // fechas, el archivo del pedido, las entregas ni las devoluciones
+        // Copia la cabecera, la dirección de entrega (si la tiene) y las líneas del pedido en un pedido nuevo, que queda en el estado inicial
+        // (cumplimentación). Las fechas de pedir el y entregar el solo se copian si son posteriores a hoy; no se copian las de recepción
+        // y cierre, el archivo del pedido, las entregas ni las devoluciones
         public static PedidoDtm Copiar(this PedidoDtm pedidoOrigen, ContextoSe contexto)
         {
             var transaccion = contexto.IniciarTransaccion();
@@ -50,12 +52,16 @@ namespace GestorDeElementos.Extensores
                     IdContrato = pedidoOrigen.IdContrato,
                     IdExpediente = pedidoOrigen.IdExpediente,
                     IdAlmacen = pedidoOrigen.IdAlmacen,
-                    PedidoEl = null,
-                    EntregarEl = null,
+                    PedidoEl = FechaPosteriorAHoy(pedidoOrigen.PedidoEl),
+                    EntregarEl = FechaPosteriorAHoy(pedidoOrigen.EntregarEl),
                     RecibidoEl = null,
                     CerradoEl = null,
                     IdArchivo = null
                 }.Insertar(contexto, new Dictionary<string, object> { { ltrParametrosNeg.Copiando, true } });
+
+                var direccionDeEntrega = pedidoOrigen.Direccion(contexto, enumCalificadorDireccion.entrega);
+                if (direccionDeEntrega is not null)
+                    GestorDeDirecciones.AsociarDireccion(contexto, enumNegocio.Pedido, pedidoNuevo.Id, direccionDeEntrega.Copiar());
 
                 var lineas = contexto.SeleccionarTodos<LineaDeUnPedidoDtm>(nameof(LineaDeUnPedidoDtm.IdElemento), pedidoOrigen.Id);
                 foreach (var linea in lineas.OrderBy(l => l.Orden))
@@ -86,6 +92,8 @@ namespace GestorDeElementos.Extensores
                 throw;
             }
         }
+
+        private static DateTime? FechaPosteriorAHoy(DateTime? fecha) => fecha is not null && fecha.Value.Date > DateTime.Today ? fecha : null;
 
         public static int IncrementarOrdenEn(ContextoSe contexto)
         {
