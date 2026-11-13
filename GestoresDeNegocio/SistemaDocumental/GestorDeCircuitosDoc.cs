@@ -186,6 +186,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             {
                 regenerar.Contexto.Accion = null;
                 VaciarCacheDeRegistro(loteContable, enumTipoOperacion.Modificar, loteContable.Nombre);
+                ExtensorDePreasientos.EliminarCacheDeAsientosPorOrigen(Contexto, loteContable.Id);
             }
 
 

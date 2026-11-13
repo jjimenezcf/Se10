@@ -31,6 +31,7 @@ namespace GestoresDeNegocio.Contabilidad
                 .ForMember(dto => dto.Pagos, x => x.Ignore())
                 .ForMember(dto => dto.Emitidas, x => x.Ignore())
                 .ForMember(dto => dto.Almacen, x => x.Ignore())
+                .ForMember(dto => dto.Pedidos, x => x.Ignore())
                 .ForMember(dto => dto.EsElUltimoCierre, x => x.Ignore())
                 .ForMember(dto => dto.Desde, x => x.Ignore())
                 .ForMember(dto => dto.CerradoEl, x => x.MapFrom(dtm => dtm.FechaCreacion));
@@ -264,27 +265,23 @@ namespace GestoresDeNegocio.Contabilidad
             return consulta;
         }
 
-        protected override void DespuesDeMapearElElemento(CierreContableDtm registro, CierreContableDto elemento, ParametrosDeNegocio parametros)
+        protected override void DespuesDeMapearElElemento(CierreContableDtm cierre, CierreContableDto elemento, ParametrosDeNegocio parametros)
         {
-            base.DespuesDeMapearElElemento(registro, elemento, parametros);
+            base.DespuesDeMapearElElemento(cierre, elemento, parametros);
 
-            elemento.EsElUltimoCierre = !TieneCierresPosteriores(Contexto, registro);
-            elemento.Desde = FechaDesdeDelCierre(Contexto, registro);
+            elemento.EsElUltimoCierre = !TieneCierresPosteriores(Contexto, cierre);
+            elemento.Desde = FechaDesdeDelCierre(Contexto, cierre);
 
-            var asientosPorOrigen = Contexto.Set<CircuitoDocDeUnPreasientoDtm>()
-                .Where(v => v.idElemento2 == registro.IdLote)
-                .Join(Contexto.Set<PreasientoDtm>(), v => v.idElemento1, p => p.Id, (v, p) => p.NegocioReferenciado)
-                .GroupBy(negocio => negocio)
-                .Select(g => new { Negocio = g.Key, Cantidad = g.Count() })
-                .ToList();
+            var asientosPorOrigen = cierre.AsientosPorOrigen(Contexto);
 
-            int Cantidad(enumNegocio negocio) => asientosPorOrigen.FirstOrDefault(a => a.Negocio == negocio)?.Cantidad ?? 0;
+            int Cantidad(enumNegocio negocio) => asientosPorOrigen.TryGetValue(negocio, out var cantidad) ? cantidad : 0;
 
             elemento.Recibidas = Cantidad(enumNegocio.FacturaRecibida);
             elemento.Cobros = Cantidad(enumNegocio.Cobro);
             elemento.Pagos = Cantidad(enumNegocio.Pago);
             elemento.Emitidas = Cantidad(enumNegocio.FacturaEmitida);
             elemento.Almacen = Cantidad(enumNegocio.Almacen);
+            elemento.Pedidos = Cantidad(enumNegocio.Pedido);
         }
     }
 }

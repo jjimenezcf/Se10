@@ -1,6 +1,7 @@
 using Gestor.Errores;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Logistica;
@@ -245,7 +246,8 @@ namespace GestorDeElementos.Extensores
         }
 
         // Al cancelar una entrega en un almacén se borra su movimiento de compra, si lo tiene. Sólo se puede si el almacén está activo
-        // y su preasiento, si lo tiene, está pendiente; el preasiento se anula. Desde el movimiento anterior se barren los posteriores
+        // y su preasiento, si lo tiene, está pendiente; el preasiento se anula. Desde el movimiento anterior se barren los posteriores.
+        // Si la entrega fue a la obra de un expediente se cancela su preasiento, que también ha de estar pendiente
         public static void AnularEntradaDeCompra(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
         {
             var linea = recepcion.LineaDePedido(contexto);
@@ -254,7 +256,10 @@ namespace GestorDeElementos.Extensores
                 Emitir($"No se puede cancelar la entrega de la línea {linea.Orden}: el pedido '{pedido.Referencia}' ha de estar {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
 
             if (!recepcion.VaAlAlmacen)
+            {
+                recepcion.CancelarPreasiento(contexto);
                 return;
+            }
 
             var almacen = recepcion.Almacen(contexto);
             if (!almacen.EstaActivo())
@@ -284,7 +289,22 @@ namespace GestorDeElementos.Extensores
         // Una entrega cuyo preasiento está contabilizado (al generar el lote contable se transita a esa etapa) no se puede cancelar,
         // ya que para el sistema el asiento está contabilizado (ver GestorDeLineasDeUnPedido.DespuesDeMapearElElemento)
         public static bool EntregaContabilizada(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
-            => recepcion.MovimientoDeCompra(contexto)?.PreasientoContabilizado(contexto) is not null;
+            => recepcion.VaAlAlmacen
+            ? recepcion.MovimientoDeCompra(contexto)?.PreasientoContabilizado(contexto) is not null
+            : recepcion.PreasientoEnObraContabilizado(contexto);
+
+        // Una entrega o devolución en la obra de un expediente lleva su preasiento, si su sociedad genera los de pedidos
+        public static bool PreasientoEnObraContabilizado(this IUsaPreasiento compra, ContextoSe contexto)
+            => compra.IdPreasiento is not null && compra.Preasiento(contexto).EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado);
+
+        // La referencia no se guarda (se ignora en el modelo): la usan los mensajes y la cancelación de su preasiento
+        public static RecepcionDeLineaDtm CalcularReferencia(this RecepcionDeLineaDtm recepcion, ContextoSe contexto)
+        {
+            var linea = contexto.SeleccionarPorId<LineaDeUnPedidoDtm>(recepcion.IdLinea);
+            var pedido = contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento);
+            recepcion.Referencia = $"{pedido.Referencia}: línea {linea.Orden}, entrega del {recepcion.RecepcionadaEl:dd/MM/yyyy}";
+            return recepcion;
+        }
 
         // Se anota quién cancela, porque la traza se guarda como administrador (ver ExtensorDeTrazasDtm.CrearTraza)
         public static string DescripcionParaLaTraza(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, LineaDeUnPedidoDtm linea)

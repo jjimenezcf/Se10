@@ -69,10 +69,14 @@ namespace GestorDeElementos.Extensores
 
         // Para cancelar una devolución cuya entrega fue a un almacén hay que borrar su salida (devolución de compra): el almacén ha de
         // estar activo y el preasiento de la salida sin contabilizar. Devuelve la salida a borrar, null si no la tiene
+        // Si la entrega fue a la obra de un expediente se cancela el preasiento de la devolución, que ha de estar pendiente
         public static MovimientoDeAlmacenDtm ValidarCancelacion(this DevolucionDeEntregaDtm devolucion, ContextoSe contexto, RecepcionDeLineaDtm recepcion, LineaDeUnPedidoDtm linea)
         {
             if (!recepcion.VaAlAlmacen)
+            {
+                devolucion.CancelarPreasiento(contexto);
                 return null;
+            }
 
             var almacen = recepcion.Almacen(contexto);
             if (!almacen.EstaActivo())
@@ -110,7 +114,19 @@ namespace GestorDeElementos.Extensores
 
         // Una devolución cuyo preasiento está contabilizado no se puede cancelar (ver GestorDeDevolucionesDeUnPedido.DespuesDeMapearElElemento)
         public static bool DevolucionContabilizada(this DevolucionDeEntregaDtm devolucion, ContextoSe contexto)
-            => devolucion.MovimientoDeDevolucion(contexto)?.PreasientoContabilizado(contexto) is not null;
+            => devolucion.IdPreasiento is not null
+            ? devolucion.PreasientoEnObraContabilizado(contexto)
+            : devolucion.MovimientoDeDevolucion(contexto)?.PreasientoContabilizado(contexto) is not null;
+
+        // La referencia no se guarda (se ignora en el modelo): la usan los mensajes y la cancelación de su preasiento
+        public static DevolucionDeEntregaDtm CalcularReferencia(this DevolucionDeEntregaDtm devolucion, ContextoSe contexto)
+        {
+            var recepcion = contexto.SeleccionarPorId<RecepcionDeLineaDtm>(devolucion.IdLineaDeRecepcion);
+            var linea = contexto.SeleccionarPorId<LineaDeUnPedidoDtm>(recepcion.IdLinea);
+            var pedido = contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento);
+            devolucion.Referencia = $"{pedido.Referencia}: línea {linea.Orden}, devolución del {devolucion.DevueltaEl:dd/MM/yyyy}";
+            return devolucion;
+        }
 
         // Nunca se devuelve más de lo que queda por devolver; la fecha, que la indica el usuario en la modal, ha de estar entre la mayor de
         // la fecha de la entrega y la del último cierre contable de la sociedad del pedido, y hoy; el motivo es obligatorio. Si la entrega

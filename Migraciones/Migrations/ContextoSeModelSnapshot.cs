@@ -12316,6 +12316,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_LINEA_RECEPCION");
 
+                    b.Property<int?>("IdPreasiento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_PREASIENTO");
+
                     b.Property<int>("IdUsuaCrea")
                         .HasColumnType("INT")
                         .HasColumnName("ID_CREADOR");
@@ -12338,6 +12342,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdLineaDeRecepcion")
                         .HasDatabaseName("I_PEDIDO_LINEA_DEVOLUCION_ID_LINEA_RECEPCION");
+
+                    b.HasIndex("IdPreasiento")
+                        .HasDatabaseName("I_PEDIDO_LINEA_DEVOLUCION_ID_PREASIENTO");
 
                     b.HasIndex("IdUsuaCrea")
                         .HasDatabaseName("I_PEDIDO_LINEA_DEVOLUCION_ID_CREADOR");
@@ -14076,6 +14083,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_LINEA");
 
+                    b.Property<int?>("IdPreasiento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_PREASIENTO");
+
                     b.Property<int>("IdUsuaCrea")
                         .HasColumnType("INT")
                         .HasColumnName("ID_CREADOR");
@@ -14107,6 +14118,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdLinea")
                         .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_LINEA");
+
+                    b.HasIndex("IdPreasiento")
+                        .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_PREASIENTO");
 
                     b.HasIndex("IdUsuaCrea")
                         .HasDatabaseName("I_PEDIDO_LINEA_RECEPCION_ID_CREADOR");
@@ -37171,6 +37185,12 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_LINEA_DEVOLUCION_ID_LINEA_RECEPCION");
 
+                    b.HasOne("ServicioDeDatos.Contabilidad.PreasientoDtm", "Preasiento")
+                        .WithMany()
+                        .HasForeignKey("IdPreasiento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PEDIDO_LINEA_DEVOLUCION_ID_PREASIENTO");
+
                     b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
                         .WithMany()
                         .HasForeignKey("IdUsuaCrea")
@@ -37185,6 +37205,8 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_PEDIDO_LINEA_DEVOLUCION_ID_MODIFICADOR");
 
                     b.Navigation("LineaDeRecepcion");
+
+                    b.Navigation("Preasiento");
 
                     b.Navigation("UsuarioCreador");
 
@@ -38002,6 +38024,12 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_LINEA_RECEPCION_ID_LINEA");
 
+                    b.HasOne("ServicioDeDatos.Contabilidad.PreasientoDtm", "Preasiento")
+                        .WithMany()
+                        .HasForeignKey("IdPreasiento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PEDIDO_LINEA_RECEPCION_ID_PREASIENTO");
+
                     b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
                         .WithMany()
                         .HasForeignKey("IdUsuaCrea")
@@ -38020,6 +38048,8 @@ namespace Migraciones.Migrations
                     b.Navigation("Expediente");
 
                     b.Navigation("Linea");
+
+                    b.Navigation("Preasiento");
 
                     b.Navigation("UsuarioCreador");
 

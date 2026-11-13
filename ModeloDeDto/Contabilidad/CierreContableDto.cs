@@ -148,6 +148,17 @@ namespace ModeloDeDto.Contabilidad
             EditableAlEditar = false)]
         public int Almacen { get; set; }
 
+        [IUPropiedad(Etiqueta = "Pedidos",
+            Ayuda = "asientos de entregas y devoluciones de pedidos en obra del lote",
+            Tipo = typeof(int),
+            Alineada = enumAliniacion.derecha,
+            Fila = 1,
+            Columna = 3,
+            Posicion = 5,
+            VisibleEnGrid = true,
+            EditableAlEditar = false)]
+        public int Pedidos { get; set; }
+
         // Calculada: solo se puede eliminar el último cierre realizado de la sociedad
         [IUPropiedad(Etiqueta = "Es el último cierre", Visible = false)]
         public bool EsElUltimoCierre { get; set; }

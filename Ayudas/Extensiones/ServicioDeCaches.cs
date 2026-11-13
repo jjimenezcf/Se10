@@ -198,7 +198,8 @@ namespace Utilidades
         public static readonly string Ptr_TotalSinIva = nameof(Ptr_TotalSinIva);
         public static readonly string Ptr_TotalConIva = nameof(Ptr_TotalConIva);
 
-        public static readonly string Spr_Referenciado = nameof(Spr_Referenciado);       
+        public static readonly string Spr_Referenciado = nameof(Spr_Referenciado);
+        public static readonly string Cierre_AsientosPorOrigen = nameof(Cierre_AsientosPorOrigen);
 
 
         public static readonly string Pedido_Total = nameof(Pedido_Total);

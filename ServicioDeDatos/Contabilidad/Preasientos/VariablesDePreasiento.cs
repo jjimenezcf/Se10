@@ -83,6 +83,8 @@ namespace ServicioDeDatos.Contabilidad
         SPR_Generar_Preasiento_De_Cobro,
         [Description("Indica si ha de generar asientos de movimientos de almacén, por defecto no se generan")]
         SPR_Generar_Preasiento_De_Almacen,
+        [Description("Indica si ha de generar asientos de las entregas y devoluciones de pedidos en la obra de un expediente, por defecto no se generan")]
+        SPR_Generar_Preasiento_De_Pedido,
         [Description("Indica el concepto de gatos en la Estimación Directa de NCS")]
         SPR_NCS_Conceptos_De_Gasto
     }
@@ -695,7 +697,8 @@ namespace ServicioDeDatos.Contabilidad
             var json = enumNegocio.Preasiento.Parametro(parametro, crearParametro: true, valorPorDefecto: _jsonDeSPR_Genera_Preasiento).Valor;
             if (json == _jsonDeSPR_Genera_Preasiento)
             {
-                if (negocio == enumNegocio.Almacen)
+                // los de almacén y pedidos son opcionales: si no se han configurado no se generan
+                if (negocio == enumNegocio.Almacen || negocio == enumNegocio.Pedido)
                     return false;
 
                 GestorDeErrores.Emitir($"Ha de indicar en el parámetro '{parametro}' si se generan preasientos para la sociedad '{sociedad.Id}'");
@@ -706,14 +709,14 @@ namespace ServicioDeDatos.Contabilidad
 
             if (relacion == null)
             {
-                if (negocio == enumNegocio.Almacen)
+                if (negocio == enumNegocio.Almacen || negocio == enumNegocio.Pedido)
                     return false;
 
                 GestorDeErrores.Emitir($"Ha de configurar el parámetro '{parametro}' para el id de sociedad '{sociedad.Id}'");
             }
 
-            if (relacion.Valor != "S" && relacion.Valor != "N")
-                GestorDeErrores.Emitir($"El valor asignado en el parámetro '{parametro}' para el id de sociedad '{sociedad.Id}' no es válido, ha de ser o 'S' o 'N'");
+            if (relacion.Valor != Literal.True && relacion.Valor != Literal.False)
+                GestorDeErrores.Emitir($"El valor asignado en el parámetro '{parametro}' para el id de sociedad '{sociedad.Id}' no es válido, ha de ser o '{Literal.True}' o '{Literal.False}'");
 
             return relacion.Valor.EsTrue();
         }
@@ -743,12 +746,13 @@ namespace ServicioDeDatos.Contabilidad
             : negocio == enumNegocio.FacturaEmitida ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaEmitida
             : negocio == enumNegocio.FacturaRecibida ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaRecibida
             : negocio == enumNegocio.Almacen ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen
+            : negocio == enumNegocio.Pedido ? enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Pedido
             : enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Cobro;
 
         // Negocio cuyo parámetro SPR_Generar_Preasiento_De_xxx tiene el nombre indicado; null si no es uno de ellos
         public static enumNegocio? NegocioDelParametroDeGenerarPreasiento(string nombreDelParametro)
         {
-            foreach (var negocio in new[] { enumNegocio.FacturaEmitida, enumNegocio.FacturaRecibida, enumNegocio.Cobro, enumNegocio.Pago, enumNegocio.Almacen })
+            foreach (var negocio in new[] { enumNegocio.FacturaEmitida, enumNegocio.FacturaRecibida, enumNegocio.Cobro, enumNegocio.Pago, enumNegocio.Almacen, enumNegocio.Pedido })
                 if (ParametroDeGenerarPreasiento(negocio).ToString() == nombreDelParametro)
                     return negocio;
             return null;
@@ -840,6 +844,7 @@ namespace ServicioDeDatos.Contabilidad
                 case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_FacturaRecibida:
                 case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Cobro:
                 case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Almacen:
+                case enumParametrosDePreasiento.SPR_Generar_Preasiento_De_Pedido:
                     return _jsonDeSPR_Genera_Preasiento;
             }
             throw new Exception($"El parámetro '{parametro}' no se define por sociedad");

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Expediente;
@@ -18,12 +19,17 @@ namespace ServicioDeDatos.Logistica
         public const string ExigirRecepcion = nameof(ExigirRecepcion);
         // Descripción de la entrega cancelada, se toma antes de borrarla para la traza del pedido
         public const string Descripcion = nameof(Descripcion);
+        // Acción con la que se graba el preasiento de una entrega en obra ya registrada (al activar los preasientos de pedidos); es la
+        // única modificación que admite una entrega
+        public const string Accion_GenerarPreasiento = nameof(Accion_GenerarPreasiento);
     }
 
     // Entregas de una línea de un pedido: cada entrega va a un movimiento del almacén (IdAlmacen) o a un movimiento
-    // de la obra asociada al expediente (IdExpediente), nunca a ambos (ver CK_PEDIDO_LINEA_RECEPCION_DESTINO)
+    // de la obra asociada al expediente (IdExpediente), nunca a ambos (ver CK_PEDIDO_LINEA_RECEPCION_DESTINO).
+    // La entrega en un almacén se preasienta con su movimiento de compra; la de la obra lleva su propio preasiento (IdPreasiento), del
+    // negocio de pedidos (ver ExtensorDePreasientos.Preasentar de la entrega)
     [Table(Tablas.PEDIDO + "_" + nameof(Sufijo.LINEA) + "_" + nameof(Sufijo.RECEPCION), Schema = Esquemas.LOGISTICA)]
-    public class RecepcionDeLineaDtm : RegistroDtm, IAuditoria
+    public class RecepcionDeLineaDtm : RegistroDtm, IAuditoria, IUsaPreasiento
     {
         public int IdLinea { get; set; }
         public LineaDeUnPedidoDtm Linea { get; set; }
@@ -31,7 +37,7 @@ namespace ServicioDeDatos.Logistica
         public decimal Cantidad { get; set; }
         public decimal Precio { get; set; }
         public decimal? Descuento { get; set; }
-        // calculado, no se guarda; ExtensorDePedidos.Recibido repite la fórmula para sumarlo en la BD, si cambia una ha de cambiar la otra
+
         public decimal Importe => Cantidad * Precio * (1 - (Descuento ?? 0) / 100);
         public DateTime RecepcionadaEl { get; set; }
 
@@ -43,6 +49,11 @@ namespace ServicioDeDatos.Logistica
 
         public bool VaAlAlmacen => IdAlmacen != null;
         public bool VaAlExpediente => IdExpediente != null;
+
+        public int? IdPreasiento { get; set; }
+        public PreasientoDtm Preasiento { get; set; }
+
+        public string Referencia { get; set; }
 
         public int IdUsuaCrea { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -64,6 +75,7 @@ namespace ServicioDeDatos.Logistica
             modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.VaAlAlmacen);
             modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.VaAlExpediente);
             modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.Importe);
+            modelBuilder.Entity<RecepcionDeLineaDtm>().Ignore(x => x.Referencia);
 
             ApiDeRegistroDtm.DefinirCampoFk<RecepcionDeLineaDtm>(modelBuilder, nameof(RecepcionDeLineaDtm.Linea), nameof(RecepcionDeLineaDtm.IdLinea), ICampos.ID_LINEA, requerida: true, unico: false);
 
@@ -75,6 +87,7 @@ namespace ServicioDeDatos.Logistica
 
             ApiDeRegistroDtm.DefinirCampoFk<RecepcionDeLineaDtm>(modelBuilder, nameof(RecepcionDeLineaDtm.Expediente), nameof(RecepcionDeLineaDtm.IdExpediente), ICampos.ID_EXPEDIENTE, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<RecepcionDeLineaDtm>(modelBuilder, nameof(RecepcionDeLineaDtm.Almacen), nameof(RecepcionDeLineaDtm.IdAlmacen), ICampos.ID_ALMACEN, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<RecepcionDeLineaDtm>(modelBuilder, nameof(RecepcionDeLineaDtm.Preasiento), nameof(RecepcionDeLineaDtm.IdPreasiento), ICampos.ID_PREASIENTO, requerida: false, unico: false);
 
             ApiDeElementoDtm.DefinirCamposDeAuditoria<RecepcionDeLineaDtm>(modelBuilder);
 

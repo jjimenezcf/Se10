@@ -45,7 +45,10 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.Contabilizada, x => x.Ignore());
 
                 CreateMap<DevolucionDeUnPedidoDto, DevolucionDeEntregaDtm>()
-                .ForMember(dtm => dtm.LineaDeRecepcion, dto => dto.Ignore());
+                .ForMember(dtm => dtm.LineaDeRecepcion, dto => dto.Ignore())
+                .ForMember(dtm => dtm.IdPreasiento, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Preasiento, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Referencia, dto => dto.Ignore());
             }
         }
 
@@ -133,14 +136,23 @@ namespace GestoresDeNegocio.Logistica
         }
 
         // Al devolver: la entrega es la que vio el usuario, quien devuelve gestiona el pedido (en recepción o cerrado) y la cantidad,
-        // la fecha y el motivo son válidos (ver ExtensorDeDevolucionesDePedido.ValidarDevolucion). Al cancelar: lo mismo del pedido y, si
-        // la entrega fue a un almacén, se borra antes su salida, que referencia a la devolución
+        // la fecha y el motivo son válidos (ver ExtensorDeDevolucionesDePedido.ValidarDevolucion); si la entrega fue a la obra de un expediente
+        // se preasienta antes de insertarla (en un almacén lo hace su salida). Al cancelar: lo mismo del pedido y, si la entrega fue a un
+        // almacén, se borra antes su salida, que referencia a la devolución, y si fue a una obra se cancela su preasiento. La única
+        // modificación es grabar el preasiento al activar los de pedidos
         protected override void AntesDePersistir(DevolucionDeEntregaDtm devolucion, ParametrosDeNegocio parametros)
         {
+            // al usar preasiento la devolución usa referencia, que no se guarda: la base exige que esté calculada
+            if (devolucion.Referencia.IsNullOrEmpty())
+                devolucion.CalcularReferencia(Contexto);
             base.AntesDePersistir(devolucion, parametros);
 
             if (parametros.Modificando)
+            {
+                if (parametros.AccionQueSeEjecuta == ltrDevolucionesDeUnPedido.Accion_GenerarPreasiento)
+                    return;
                 Emitir("Una devolución no se modifica: cancélela y vuelva a devolver la entrega");
+            }
 
             var recepcion = parametros.Insertando
                 ? ExtensorDeDevolucionesDePedido.LeerEntregaParaDevolver(Contexto, devolucion.IdLineaDeRecepcion, parametros.Parametros.LeerValor<string>(ltrDevolucionesDeUnPedido.RowVersionDeLaEntrega, null))
@@ -148,7 +160,10 @@ namespace GestoresDeNegocio.Logistica
             var (linea, pedido) = recepcion.LeerPedidoParaDevolver(Contexto);
 
             if (parametros.Insertando)
+            {
                 recepcion.ValidarDevolucion(Contexto, pedido, linea, devolucion.Cantidad, devolucion.DevueltaEl, devolucion.Motivo);
+                devolucion.Preasentar(Contexto, recepcion, linea, pedido);
+            }
 
             if (parametros.Eliminando)
                 devolucion.ValidarCancelacion(Contexto, recepcion, linea)?.AnularSalidaPorDevolucion(Contexto);

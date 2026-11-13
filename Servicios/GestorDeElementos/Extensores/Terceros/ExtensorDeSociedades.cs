@@ -466,6 +466,7 @@ namespace GestorDeElementos.Extensores
                 GenerarCobros = sociedad.GeneraPreasientos(enumNegocio.Cobro) ?? false,
                 GenerarPagos = sociedad.GeneraPreasientos(enumNegocio.Pago) ?? false,
                 GenerarAlmacen = sociedad.GeneraPreasientos(enumNegocio.Almacen) ?? false,
+                GenerarPedidos = sociedad.GeneraPreasientos(enumNegocio.Pedido) ?? false,
                 PuedeRelanzarActivacionDePreasientos = sociedad.ActivacionDePreasientosConErrores(contexto),
                 ModoDeAcceso = modoDeAcceso
             };
@@ -543,7 +544,8 @@ namespace GestorDeElementos.Extensores
             { enumNegocio.FacturaRecibida, informacion => informacion.GenerarRecibidas },
             { enumNegocio.Cobro, informacion => informacion.GenerarCobros },
             { enumNegocio.Pago, informacion => informacion.GenerarPagos },
-            { enumNegocio.Almacen, informacion => informacion.GenerarAlmacen }
+            { enumNegocio.Almacen, informacion => informacion.GenerarAlmacen },
+            { enumNegocio.Pedido, informacion => informacion.GenerarPedidos }
         };
 
         private static void ResetearParametroDeLaSociedad(this SociedadDtm sociedad, ContextoSe contexto, enumParametrosDePreasiento parametro, Dictionary<string, object> campos)

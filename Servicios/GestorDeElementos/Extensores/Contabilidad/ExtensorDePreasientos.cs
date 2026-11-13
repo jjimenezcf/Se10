@@ -2,6 +2,7 @@
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Logistica;
 using ServicioDeDatos.MaestrosTecnico;
@@ -74,15 +75,20 @@ namespace GestorDeElementos.Extensores
 
             // el referenciado de un almacén es un movimiento de almacén, que se borra al cancelar la entrega que lo originó
             var esDeUnAlmacen = preasiento.NegocioReferenciado == enumNegocio.Almacen;
+            // el de un pedido es de una entrega o devolución en obra, que se borra al cancelarla
+            var esDeUnPedido = preasiento.NegocioReferenciado == enumNegocio.Pedido;
 
             var asunto = preasiento.NegocioReferenciado == enumNegocio.Cobro ? "Cancelado al eliminar el cobro"
                        : esDeUnAlmacen ? "Cancelado al eliminar el movimiento de almacén"
+                       : esDeUnPedido ? "Cancelado al cancelar la entrega o la devolución en obra"
                        : "Cancelado al regenerar el preasiento";
 
             var detalle = preasiento.NegocioReferenciado == enumNegocio.Cobro
                 ? $"Se ha eliminado el cobro asociado a la factura {((CobroDeFaeDtm)preasiento.Referenciado(contexto)).Factura(contexto).Referencia}"
                 : esDeUnAlmacen
                 ? $"Se ha cancelado la entrega que originó el movimiento de almacén Nº {preasiento.IdReferenciado} y éste se ha eliminado"
+                : esDeUnPedido
+                ? $"Se ha cancelado la {preasiento.Nombre.Left(1).ToLower()}{preasiento.Nombre.Substring(1)}"
                 : "Se ha regenerado el preasiento desde la interface";
 
             preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Cancelado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
@@ -905,18 +911,78 @@ namespace GestorDeElementos.Extensores
             var almacen = movimiento.Almacen(contexto);
             var linea = recepcion.LineaDePedido(contexto);
             var pedido = linea.DetalleDe<PedidoDtm>(contexto);
+            var unitario = movimiento.Unitario(contexto, aplicarJoin: true);
+            var naturaleza = unitario.Naturaleza(contexto, aplicarJoin: true);
+
+            movimiento.Preasiento = PreasentarCompra(contexto, enumNegocio.Almacen, movimiento.Id, almacen.IdCg, almacen.Sociedad(contexto), movimiento.RealizadoEl,
+                pedido, linea, naturaleza, linea.Concepto.IsNullOrEmpty() ? unitario.Expresion : linea.Concepto, importe, concepto, esUnaDevolucion, generandoPreasientosAntiguos);
+            movimiento.IdPreasiento = movimiento.Preasiento.Id;
+        }
+
+        // Entrega de una línea de pedido en la obra de un expediente: el mismo asiento que la entrada de compra en un almacén (ver
+        // PreasentarCompraDeAlmacen) con la cuenta de gasto de la naturaleza de la línea, por el importe de la entrega. Sólo si la sociedad
+        // del pedido genera preasientos de pedidos (SPR_Generar_Preasiento_De_Pedido). Se llama antes de insertar la entrega, que aún no
+        // tiene Id, por eso se pasan la línea y el pedido (ver GestorDeEntregasDeUnPedido.AntesDePersistir)
+        public static RecepcionDeLineaDtm Preasentar(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, LineaDeUnPedidoDtm linea, PedidoDtm pedido, bool generandoPreasientosAntiguos = false)
+        {
+            if (!recepcion.VaAlExpediente)
+                return recepcion;
+
+            var expediente = contexto.SeleccionarPorId<ExpedienteDtm>((int)recepcion.IdExpediente);
+            recepcion.Preasiento = pedido.PreasentarCompraEnObra(contexto, linea, recepcion.RecepcionadaEl, Math.Round(recepcion.Importe, 2),
+                $"Entrega de la línea nº {linea.Orden} del pedido '{pedido.Referencia}' en la obra del expediente '{expediente.Referencia}'", esUnaDevolucion: false, generandoPreasientosAntiguos);
+            recepcion.IdPreasiento = recepcion.Preasiento?.Id;
+            return recepcion;
+        }
+
+        // Devolución de una entrega en la obra de un expediente: el preasiento de la entrega al revés, por el importe devuelto (cantidad
+        // devuelta * precio - % de descuento de la entrega)
+        public static DevolucionDeEntregaDtm Preasentar(this DevolucionDeEntregaDtm devolucion, ContextoSe contexto, RecepcionDeLineaDtm recepcion, LineaDeUnPedidoDtm linea, PedidoDtm pedido, bool generandoPreasientosAntiguos = false)
+        {
+            if (!recepcion.VaAlExpediente)
+                return devolucion;
+
+            var expediente = contexto.SeleccionarPorId<ExpedienteDtm>((int)recepcion.IdExpediente);
+            devolucion.Preasiento = pedido.PreasentarCompraEnObra(contexto, linea, devolucion.DevueltaEl, Math.Round(devolucion.Importe(recepcion), 2),
+                $"Devolución de la línea nº {linea.Orden} del pedido '{pedido.Referencia}' entregada en la obra del expediente '{expediente.Referencia}'", esUnaDevolucion: true, generandoPreasientosAntiguos);
+            devolucion.IdPreasiento = devolucion.Preasiento?.Id;
+            return devolucion;
+        }
+
+        // El negocio referenciado es el pedido y el referenciado su Id: un pedido tiene varias entregas y devoluciones en obra, cada una con su
+        // preasiento, y el documento que lo generó se busca por su IdPreasiento (ver Referenciado). Devuelve null si no se preasienta
+        private static PreasientoDtm PreasentarCompraEnObra(this PedidoDtm pedido, ContextoSe contexto, LineaDeUnPedidoDtm linea, DateTime fecha, decimal importe, string concepto, bool esUnaDevolucion, bool generandoPreasientosAntiguos)
+        {
+            var sociedad = pedido.Sociedad(contexto);
+            if (sociedad.Autonomo || !sociedad.UsaPreasientos(contexto, enumNegocio.Pedido))
+                return null;
+
+            var naturaleza = linea.Naturaleza(contexto, aplicarJoin: true);
+            if (naturaleza is null)
+                GestorDeErrores.Emitir($"Para preasentar la {(esUnaDevolucion ? "devolución" : "entrega")} de la línea {linea.Orden} del pedido '{pedido.Referencia}' ésta ha de tener naturaleza");
+
+            return PreasentarCompra(contexto, enumNegocio.Pedido, pedido.Id, pedido.IdCg, sociedad, fecha,
+                pedido, linea, naturaleza, linea.Concepto.IsNullOrEmpty() ? naturaleza.Expresion : linea.Concepto, importe, concepto, esUnaDevolucion, generandoPreasientosAntiguos);
+        }
+
+        // Asiento de una compra (entrega o devolución de una línea de pedido) en un almacén o en la obra de un expediente, como al registrar una
+        // factura recibida pero sin impuestos: en la entrega va al debe la cuenta de gasto de la naturaleza y al haber la de albaranes
+        // pendientes de recibir factura (VariablesDeCuentas.Albaranes) con la extensión del proveedor; en la devolución, al revés. El tipo de
+        // preasiento es el que tiene como origen el negocio indicado (parámetro SPR_Negocio_Origen). Los apuntes son de las clases Alm_Gasto y
+        // Alm_Albaran en ambos casos, así se exportan igual (ver LoteContableConNcs.AsientoDeCompra)
+        private static PreasientoDtm PreasentarCompra(ContextoSe contexto, enumNegocio negocio, int idReferenciado, int idCg, SociedadDtm sociedad, DateTime fecha,
+            PedidoDtm pedido, LineaDeUnPedidoDtm linea, NaturalezaDtm naturaleza, string conceptoDelGasto, decimal importe, string concepto, bool esUnaDevolucion, bool generandoPreasientosAntiguos)
+        {
             var proveedor = pedido.Proveedor(contexto, aplicarJoin: true);
             if (proveedor.CodigoContable is null)
                 GestorDeErrores.Emitir($"Para preasentar la {(esUnaDevolucion ? "devolución" : "entrada")} de compra del pedido '{pedido.Referencia}' el proveedor '{proveedor.Expresion}' ha de tener código contable");
 
-            var unitario = movimiento.Unitario(contexto, aplicarJoin: true);
-            var naturaleza = unitario.Naturaleza(contexto, aplicarJoin:true);
             if (naturaleza.IdCuentaDeGasto == null)
                 GestorDeErrores.Emitir($"Ha de indicar la cuenta del gasto para la naturaleza '{naturaleza.Expresion}'");
             // la naturaleza puede venir de la caché del unitario sin su cuenta de gasto cargada (p.e. al barrer): se lee aparte
             var cuentaDeGasto = naturaleza.CuentaDeGasto(contexto);
 
-            var idTipoPreasiento = VariablesDePreasiento.IdTipoPreasientoDelNegocio(enumNegocio.Almacen.IdNegocio(), enumNegocio.Almacen.Singular());
+            var idTipoPreasiento = VariablesDePreasiento.IdTipoPreasientoDelNegocio(negocio.IdNegocio(), negocio.Singular());
             var tipoDePreasiento = enumNegocio.Preasiento.Tipos(contexto).FirstOrDefault(x => x.Id == idTipoPreasiento);
             if (tipoDePreasiento == null)
                 GestorDeErrores.Emitir($"El id del tipo del preasiento parametrizado en '{idTipoPreasiento}' no existe en la BD");
@@ -924,35 +990,33 @@ namespace GestorDeElementos.Extensores
             VariablesDePreasiento.CodigoDeDiario(tipoDePreasiento, contexto);
             VariablesDePreasiento.ValidarNaturalezasContables();
 
-            movimiento.Preasiento = new PreasientoDtm
+            var preasiento = new PreasientoDtm
             {
-                IdCg = almacen.IdCg,
+                IdCg = idCg,
                 IdTipo = idTipoPreasiento,
                 Nombre = concepto.Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
-                Ejercicio = movimiento.RealizadoEl.Year,
+                Ejercicio = fecha.Year,
                 CodigoDiario = tipoDePreasiento.CodigoDeDiario(contexto),
-                SociedadContable = almacen.Sociedad(contexto).CodigoContable,
-                NegocioReferenciado = enumNegocio.Almacen,
-                IdReferenciado = movimiento.Id,
-                FechaContable = movimiento.RealizadoEl.Date
+                SociedadContable = sociedad.CodigoContable,
+                NegocioReferenciado = negocio,
+                IdReferenciado = idReferenciado,
+                FechaContable = fecha.Date
             }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
-
-            movimiento.IdPreasiento = movimiento.Preasiento.Id;
 
             var gasto = new ApunteDeUnPreasientoDtm
             {
-                IdElemento = movimiento.Preasiento.Id,
+                IdElemento = preasiento.Id,
                 Posicion = esUnaDevolucion ? enumPosicionContable.Haber : enumPosicionContable.Debe,
                 Clase = enumClaseDeApunte.Alm_Gasto,
                 Tipo = ltrTipoDeApunte.Gasto,
                 Cuenta = cuentaDeGasto.Codigo,
                 Importe = importe,
-                Concepto = (linea.Concepto.IsNullOrEmpty() ? unitario.Expresion : linea.Concepto).Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
+                Concepto = conceptoDelGasto.Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
             };
 
             var albaran = new ApunteDeUnPreasientoDtm
             {
-                IdElemento = movimiento.Preasiento.Id,
+                IdElemento = preasiento.Id,
                 Posicion = esUnaDevolucion ? enumPosicionContable.Debe : enumPosicionContable.Haber,
                 Clase = enumClaseDeApunte.Alm_Albaran,
                 Tipo = "",
@@ -967,7 +1031,27 @@ namespace GestorDeElementos.Extensores
             segundo.Orden = 20;
             primero.InsertarComoAdministrador(contexto);
             segundo.InsertarComoAdministrador(contexto);
+            return preasiento;
         }
+
+        // El referenciado de un preasiento de pedidos no es el pedido sino la entrega o la devolución en obra que lo lleva (ver
+        // PreasentarCompraEnObra); null si se ha cancelado (se borra) y no se exige que lo haya
+        private static IUsaPreasiento CompraEnObra(ContextoSe contexto, PreasientoDtm spr, bool errorSiNoHay)
+        {
+            IUsaPreasiento compra = contexto.Set<RecepcionDeLineaDtm>().FirstOrDefault(x => x.IdPreasiento == spr.Id)?.CalcularReferencia(contexto);
+            compra ??= contexto.Set<DevolucionDeEntregaDtm>().FirstOrDefault(x => x.IdPreasiento == spr.Id)?.CalcularReferencia(contexto);
+            if (compra is null && errorSiNoHay)
+                GestorDeErrores.Emitir($"No se encuentra la entrega ni la devolución en obra del preasiento '{spr.Referencia}', se ha cancelado");
+            return compra;
+        }
+
+        // Fecha en la que se entregó o se devolvió en la obra lo preasentado: la del documento de un preasiento de pedidos
+        public static DateTime FechaDeLaCompraEnObra(this PreasientoDtm spr, ContextoSe contexto) => spr.Referenciado(contexto) switch
+        {
+            RecepcionDeLineaDtm recepcion => recepcion.RecepcionadaEl.Date,
+            DevolucionDeEntregaDtm devolucion => devolucion.DevueltaEl.Date,
+            _ => throw new Exception($"El preasiento '{spr.Referencia}' no es de una entrega ni de una devolución en obra")
+        };
 
         public static void PreasentarStockInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
@@ -981,15 +1065,44 @@ namespace GestorDeElementos.Extensores
         {
         }
 
+        // Nº de asientos del lote del cierre por negocio de origen (el referenciado de sus preasientos); se cachea por cierre, ya que su
+        // lote no cambia mientras el cierre existe
+        public static Dictionary<enumNegocio, int> AsientosPorOrigen(this CierreContableDtm cierre, ContextoSe contexto)
+        {
+            var cache = ServicioDeCaches.Obtener(CacheDe.Cierre_AsientosPorOrigen);
+            if (!cache.ContainsKey(cierre.Id.ToString()))
+            {
+                cache[cierre.Id.ToString()] = contexto.Set<CircuitoDocDeUnPreasientoDtm>()
+                    .Where(v => v.idElemento2 == cierre.IdLote)
+                    .Join(contexto.Set<PreasientoDtm>(), v => v.idElemento1, p => p.Id, (v, p) => p.NegocioReferenciado)
+                    .GroupBy(negocio => negocio)
+                    .Select(g => new { Negocio = g.Key, Cantidad = g.Count() })
+                    .ToList()
+                    .ToDictionary(a => a.Negocio, a => a.Cantidad);
+            }
+            return (Dictionary<enumNegocio, int>)cache[cierre.Id.ToString()];
+        }
+
+        // Al regenerar un lote contable, los asientos por origen de su cierre (si lo tiene) se han de volver a calcular
+        public static void EliminarCacheDeAsientosPorOrigen(ContextoSe contexto, int idLote)
+        {
+            var idCierre = contexto.Set<CierreContableDtm>().Where(c => c.IdLote == idLote).Select(c => (int?)c.Id).FirstOrDefault();
+            if (idCierre is not null)
+                ServicioDeCaches.EliminarElemento(CacheDe.Cierre_AsientosPorOrigen, idCierre.ToString());
+        }
+
         public static IUsaPreasiento Referenciado(this PreasientoDtm spr, ContextoSe contexto, bool errorSiNoHay = true)
         {
             if (spr.NegocioReferenciado == enumNegocio.No_Definido) return null;
             var cache = ServicioDeCaches.Obtener(CacheDe.Spr_Referenciado);
             if (!cache.ContainsKey(spr.Id.ToString()))
             {
-                // el referenciado de un almacén no es el almacén sino uno de sus movimientos (ver PreasentarEntradaDeAlmacen)
+                // el referenciado de un almacén no es el almacén sino uno de sus movimientos (ver PreasentarEntradaDeAlmacen), y el de un
+                // pedido una de sus entregas o devoluciones en obra (ver CompraEnObra)
                 cache[spr.Id.ToString()] = spr.NegocioReferenciado == enumNegocio.Almacen
                     ? contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(spr.IdReferenciado.Entero(), errorSiNoHay: errorSiNoHay)
+                    : spr.NegocioReferenciado == enumNegocio.Pedido
+                    ? CompraEnObra(contexto, spr, errorSiNoHay)
                     : (IUsaPreasiento)spr.NegocioReferenciado.SeleccionarPorId(contexto, spr.IdReferenciado.Entero(), parametros: new Dictionary<string, object>
                      {
                          {ltrParametrosNeg.ErrorSiNoLoHay, errorSiNoHay }
@@ -1002,7 +1115,8 @@ namespace GestorDeElementos.Extensores
         {
             // un movimiento de almacén no tiene etapas: mientras existe es contabilizable; si se ha eliminado (al anular la entrada
             // de compra) y su preasiento quedó pendiente, se cancela (ver CancelarPreasientoPorEstarloSuReferenciado)
-            if (spr.NegocioReferenciado == enumNegocio.Almacen)
+            // igual con las entregas y devoluciones en obra de un pedido, que se borran al cancelarlas
+            if (spr.NegocioReferenciado == enumNegocio.Almacen || spr.NegocioReferenciado == enumNegocio.Pedido)
                 return spr.Referenciado(contexto, errorSiNoHay: false) is null;
 
             var referenciado = spr.Referenciado(contexto);
@@ -1055,6 +1169,10 @@ namespace GestorDeElementos.Extensores
                     return pedido.Proveedor(contexto, aplicarJoin: true);
                 }
             }
+
+            // entrega o devolución en obra: el referenciado es el pedido (ver PreasentarCompraEnObra)
+            if (spr.NegocioReferenciado == enumNegocio.Pedido)
+                return contexto.SeleccionarPorId<PedidoDtm>(spr.IdReferenciado.Entero()).Proveedor(contexto, aplicarJoin: true);
 
             if (errorSiNoHay)
                 GestorDeErrores.Emitir($"El Asiento '{spr.Referencia}' no es de proveedores");

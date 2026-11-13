@@ -3192,7 +3192,7 @@ const ltrPropiedades = {
             Agenda: 'agenda',
             EsUnaDeMisSociedades: 'EsUnaDeMisSociedades',
             UsaVerifactu: 'UsaVerifactu',
-            GenerarPreasientos: ['GenerarEmitidas', 'GenerarRecibidas', 'GenerarCobros', 'GenerarPagos', 'GenerarAlmacen'],
+            GenerarPreasientos: ['GenerarEmitidas', 'GenerarRecibidas', 'GenerarCobros', 'GenerarPagos', 'GenerarAlmacen', 'GenerarPedidos'],
             InformacionContable: {
                 Contabilidad: 'Contabilidad',
                 Digitos: 'Digitos',

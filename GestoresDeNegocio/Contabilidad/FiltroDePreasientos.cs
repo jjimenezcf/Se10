@@ -4,6 +4,7 @@ using ModeloDeDto;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Gastos;
+using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Ventas;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,17 @@ namespace GestoresDeNegocio.Contabilidad
                 consulta = consulta.Where(spr =>
                    (spr.NegocioReferenciado == enumNegocio.FacturaEmitida && contexto.Set<FacturaEmtDtm>().Any(emt => emt.Id == spr.IdReferenciado && emt.Referencia.Contains(filtroValor))) ||
                    (spr.NegocioReferenciado == enumNegocio.FacturaRecibida && contexto.Set<FacturaRecDtm>().Any(rec => rec.Id == spr.IdReferenciado && rec.Referencia.Contains(filtroValor))) ||
-                   (spr.NegocioReferenciado == enumNegocio.Pago && contexto.Set<PagoDtm>().Any(pag => pag.Id == spr.IdReferenciado && pag.Referencia.Contains(filtroValor)))
+                   (spr.NegocioReferenciado == enumNegocio.Pago && contexto.Set<PagoDtm>().Any(pag => pag.Id == spr.IdReferenciado && pag.Referencia.Contains(filtroValor))) ||
+                   (spr.NegocioReferenciado == enumNegocio.Pedido && contexto.Set<PedidoDtm>().Any(ped => ped.Id == spr.IdReferenciado && ped.Referencia.Contains(filtroValor))) ||
+                   // la referencia del cobro no está en la tabla, es la de su factura emitida más su Id
+                   (spr.NegocioReferenciado == enumNegocio.Cobro && contexto.Set<CobroDeFaeDtm>().Any(cob => cob.Id == spr.IdReferenciado &&
+                       contexto.Set<FacturaEmtDtm>().Any(emt => emt.Id == cob.IdElemento && emt.Referencia.Contains(filtroValor)))) ||
+                   // la referencia del movimiento tampoco está en la tabla: se busca por la del almacén o por la del pedido de la línea recepcionada
+                   (spr.NegocioReferenciado == enumNegocio.Almacen && contexto.Set<MovimientoDeAlmacenDtm>().Any(mov => mov.Id == spr.IdReferenciado &&
+                       (contexto.Set<AlmacenDtm>().Any(alm => alm.Id == mov.IdAlmacen && alm.Referencia.Contains(filtroValor)) ||
+                        contexto.Set<RecepcionDeLineaDtm>().Any(rcp => rcp.Id == mov.IdLineaDeRecepcion &&
+                            contexto.Set<LineaDeUnPedidoDtm>().Any(lin => lin.Id == rcp.IdLinea &&
+                                contexto.Set<PedidoDtm>().Any(ped => ped.Id == lin.IdElemento && ped.Referencia.Contains(filtroValor)))))))
                    );
 
                 filtro.Aplicado = true;

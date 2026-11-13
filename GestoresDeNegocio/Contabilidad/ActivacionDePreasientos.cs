@@ -23,7 +23,7 @@ namespace GestoresDeNegocio.Contabilidad
     {
         public static readonly List<enumNegocio> NegociosQueGeneranPreasientos = new()
         {
-            enumNegocio.FacturaEmitida, enumNegocio.FacturaRecibida, enumNegocio.Cobro, enumNegocio.Pago, enumNegocio.Almacen
+            enumNegocio.FacturaEmitida, enumNegocio.FacturaRecibida, enumNegocio.Cobro, enumNegocio.Pago, enumNegocio.Almacen, enumNegocio.Pedido
         };
 
         // Documentos de la sociedad sin preasiento que se han de preasentar, por orden de su fecha contable
@@ -42,6 +42,8 @@ namespace GestoresDeNegocio.Contabilidad
                     return PagosSinPreasiento(contexto, cgsDeLaSociedad).OrderBy(p => p.PagadoEl).ThenBy(p => p.Id).ToList<IUsaPreasiento>();
                 case enumNegocio.Almacen:
                     return MovimientosSinPreasiento(contexto, cgsDeLaSociedad).ToList<IUsaPreasiento>();
+                case enumNegocio.Pedido:
+                    return ComprasEnObraSinPreasiento(contexto, cgsDeLaSociedad);
             }
             throw new Exception($"El negocio '{negocio}' no genera preasientos");
         }
@@ -64,6 +66,7 @@ namespace GestoresDeNegocio.Contabilidad
                 case enumNegocio.Cobro: return CobrosSinPreasiento(contexto, cgsDeLaSociedad).Any();
                 case enumNegocio.Pago: return PagosSinPreasiento(contexto, cgsDeLaSociedad).Any();
                 case enumNegocio.Almacen: return MovimientosSinPreasiento(contexto, cgsDeLaSociedad).Count > 0;
+                case enumNegocio.Pedido: return EntregasEnObra(contexto, cgsDeLaSociedad).Any(r => r.IdPreasiento == null) || DevolucionesEnObraSinPreasiento(contexto, cgsDeLaSociedad).Any();
             }
             throw new Exception($"El negocio '{negocio}' no genera preasientos");
         }
@@ -133,6 +136,11 @@ namespace GestoresDeNegocio.Contabilidad
                     Validar(() => ValidarTipoDePreasiento(VariablesDePreasiento.IdTipoPreasientoDelNegocio(enumNegocio.Almacen.IdNegocio(), enumNegocio.Almacen.Singular()), $"para el negocio '{enumNegocio.Almacen.Singular()}'"));
                     Validar(VariablesDePreasiento.ValidarNaturalezasContables);
                     break;
+
+                case enumNegocio.Pedido:
+                    Validar(() => ValidarTipoDePreasiento(VariablesDePreasiento.IdTipoPreasientoDelNegocio(enumNegocio.Pedido.IdNegocio(), enumNegocio.Pedido.Singular()), $"para el negocio '{enumNegocio.Pedido.Singular()}'"));
+                    Validar(VariablesDePreasiento.ValidarNaturalezasContables);
+                    break;
             }
             return faltan;
         }
@@ -168,6 +176,22 @@ namespace GestoresDeNegocio.Contabilidad
                     var movimiento = ((MovimientoDeAlmacenDtm)documento).Preasentar(contexto, generandoPreasientosAntiguos: true);
                     movimiento.ModificarComoAdministrador(contexto, parametros: new Dictionary<string, object> { { ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, true } });
                     return movimiento.Preasiento(contexto);
+
+                case enumNegocio.Pedido:
+                    // la entrega o la devolución en obra se graba con la única modificación que admite su gestor
+                    if (documento is RecepcionDeLineaDtm recepcion)
+                    {
+                        var (linea, pedido) = LineaYPedido(contexto, recepcion);
+                        recepcion.Preasentar(contexto, linea, pedido, generandoPreasientosAntiguos: true);
+                        recepcion.ModificarComoAdministrador(contexto, accionQueSeEjecuta: ltrEntregasDeUnPedido.Accion_GenerarPreasiento);
+                        return recepcion.Preasiento(contexto);
+                    }
+                    var devolucion = (DevolucionDeEntregaDtm)documento;
+                    var entrega = contexto.SeleccionarPorId<RecepcionDeLineaDtm>(devolucion.IdLineaDeRecepcion);
+                    var (lineaDevuelta, pedidoDevuelto) = LineaYPedido(contexto, entrega);
+                    devolucion.Preasentar(contexto, entrega, lineaDevuelta, pedidoDevuelto, generandoPreasientosAntiguos: true);
+                    devolucion.ModificarComoAdministrador(contexto, accionQueSeEjecuta: ltrDevolucionesDeUnPedido.Accion_GenerarPreasiento);
+                    return devolucion.Preasiento(contexto);
             }
             throw new Exception($"El negocio '{negocio}' no genera preasientos");
         }
@@ -178,6 +202,8 @@ namespace GestoresDeNegocio.Contabilidad
             {
                 case CobroDeFaeDtm cobro: return $"cobro {cobro.Referencia(contexto)}";
                 case MovimientoDeAlmacenDtm movimiento: return $"movimiento {movimiento.Referencia(contexto)}";
+                case RecepcionDeLineaDtm recepcion: return $"entrega en obra {recepcion.CalcularReferencia(contexto).Referencia}";
+                case DevolucionDeEntregaDtm devolucion: return $"devolución en obra {devolucion.CalcularReferencia(contexto).Referencia}";
                 case ElementoConCgDtm elemento: return elemento.Referencia;
             }
             return documento.ToString();
@@ -229,6 +255,36 @@ namespace GestoresDeNegocio.Contabilidad
                 .ToList()
                 .Where(m => !m.Almacen(contexto).EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Cancelado) && !m.Almacen(contexto).EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_Cerrado))
                 .ToList();
+        }
+
+        // Entregas de pedidos de la sociedad en la obra de un expediente (las de un almacén se preasientan con su movimiento de compra)
+        private static IQueryable<RecepcionDeLineaDtm> EntregasEnObra(ContextoSe contexto, IQueryable<int> cgsDeLaSociedad)
+        {
+            var pedidos = contexto.Set<PedidoDtm>().Where(p => cgsDeLaSociedad.Contains(p.IdCg)).Select(p => p.Id);
+            var lineas = contexto.Set<LineaDeUnPedidoDtm>().Where(l => pedidos.Contains(l.IdElemento)).Select(l => l.Id);
+            return contexto.Set<RecepcionDeLineaDtm>().Where(r => r.IdExpediente != null && lineas.Contains(r.IdLinea));
+        }
+
+        private static IQueryable<DevolucionDeEntregaDtm> DevolucionesEnObraSinPreasiento(ContextoSe contexto, IQueryable<int> cgsDeLaSociedad)
+        {
+            var entregas = EntregasEnObra(contexto, cgsDeLaSociedad).Select(r => r.Id);
+            return contexto.Set<DevolucionDeEntregaDtm>().Where(d => d.IdPreasiento == null && entregas.Contains(d.IdLineaDeRecepcion));
+        }
+
+        // Entregas y devoluciones en obra sin preasiento, por su fecha; en la misma fecha las entregas antes que las devoluciones
+        private static List<IUsaPreasiento> ComprasEnObraSinPreasiento(ContextoSe contexto, IQueryable<int> cgsDeLaSociedad)
+        {
+            var entregas = EntregasEnObra(contexto, cgsDeLaSociedad).Where(r => r.IdPreasiento == null).ToList()
+                .Select(r => (fecha: r.RecepcionadaEl.Date, orden: 0, id: r.Id, documento: (IUsaPreasiento)r));
+            var devoluciones = DevolucionesEnObraSinPreasiento(contexto, cgsDeLaSociedad).ToList()
+                .Select(d => (fecha: d.DevueltaEl.Date, orden: 1, id: d.Id, documento: (IUsaPreasiento)d));
+            return entregas.Concat(devoluciones).OrderBy(x => x.fecha).ThenBy(x => x.orden).ThenBy(x => x.id).Select(x => x.documento).ToList();
+        }
+
+        private static (LineaDeUnPedidoDtm linea, PedidoDtm pedido) LineaYPedido(ContextoSe contexto, RecepcionDeLineaDtm recepcion)
+        {
+            var linea = contexto.SeleccionarPorId<LineaDeUnPedidoDtm>(recepcion.IdLinea);
+            return (linea, contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento));
         }
     }
 }

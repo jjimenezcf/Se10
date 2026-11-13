@@ -40,7 +40,10 @@ namespace GestoresDeNegocio.Logistica
                 CreateMap<EntregaDeUnPedidoDto, RecepcionDeLineaDtm>()
                 .ForMember(dtm => dtm.Linea, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Almacen, dto => dto.Ignore())
-                .ForMember(dtm => dtm.Expediente, dto => dto.Ignore());
+                .ForMember(dtm => dtm.Expediente, dto => dto.Ignore())
+                .ForMember(dtm => dtm.IdPreasiento, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Preasiento, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Referencia, dto => dto.Ignore());
             }
         }
 
@@ -185,15 +188,24 @@ namespace GestoresDeNegocio.Logistica
         private static T Leido<T>(ParametrosDeNegocio parametros, string clave) where T : class
             => parametros.Parametros.TryGetValue(clave, out var valor) ? valor as T : null;
 
-        // Al entregar: el pedido en recepción (salvo al darlo por recibido) y la entrega válida (ver ExtensorDeRecepciones.ValidarEntrega).
+        // Al entregar: el pedido en recepción (salvo al darlo por recibido) y la entrega válida (ver ExtensorDeRecepciones.ValidarEntrega);
+        // si va a la obra de un expediente se preasienta antes de insertarla (en un almacén lo hace su entrada de compra).
         // Al cancelar: quien cancela gestiona el pedido, que ha de estar en recepción, y la entrega no tiene devoluciones; si fue a un
-        // almacén se borra antes su entrada de compra, que referencia a la entrega (ver ExtensorDeRecepciones.AnularEntradaDeCompra)
+        // almacén se borra antes su entrada de compra, que referencia a la entrega, y si fue a una obra se cancela su preasiento (ver
+        // ExtensorDeRecepciones.AnularEntradaDeCompra). La única modificación es grabar el preasiento al activar los de pedidos
         protected override void AntesDePersistir(RecepcionDeLineaDtm recepcion, ParametrosDeNegocio parametros)
         {
+            // al usar preasiento la entrega usa referencia, que no se guarda: la base exige que esté calculada
+            if (recepcion.Referencia.IsNullOrEmpty())
+                recepcion.CalcularReferencia(Contexto);
             base.AntesDePersistir(recepcion, parametros);
 
             if (parametros.Modificando)
+            {
+                if (parametros.AccionQueSeEjecuta == ltrEntregasDeUnPedido.Accion_GenerarPreasiento)
+                    return;
                 Emitir("Una entrega no se modifica: cancélela y vuelva a entregar la línea");
+            }
 
             var linea = Leido<LineaDeUnPedidoDtm>(parametros, ltrEntregasDeUnPedido.Linea) ?? Contexto.SeleccionarPorId<LineaDeUnPedidoDtm>(recepcion.IdLinea, usarLaCache: false);
             PedidoDtm pedido;
@@ -203,6 +215,7 @@ namespace GestoresDeNegocio.Logistica
                 if (parametros.Parametros.LeerValor(ltrEntregasDeUnPedido.ExigirRecepcion, true) && !pedido.EstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_De_Recepcion))
                     Emitir($"Para recepcionar la línea {linea.Orden} el pedido '{pedido.Referencia}' ha de estar {enumEtapasDePedido.PED_Etapa_De_Recepcion.Nombre()}");
                 recepcion.ValidarEntrega(Contexto, linea, pedido);
+                recepcion.Preasentar(Contexto, linea, pedido);
             }
             else
             {

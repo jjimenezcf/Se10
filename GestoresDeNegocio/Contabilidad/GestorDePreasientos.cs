@@ -106,7 +106,10 @@ namespace GestoresDeNegocio.Contabilidad
             if (parametros.Insertando)
             {
                 var cancelados = Negocio.Estados(Contexto).Where(e => e.Cancelado).Select(e => e.Id).ToList();
-                var preasiento = Contexto.Set<PreasientoDtm>().FirstOrDefault(x => x.NegocioReferenciado == spr.NegocioReferenciado && x.IdReferenciado == spr.IdReferenciado && !cancelados.Contains(x.IdEstado));
+                // un pedido tiene un preasiento por cada entrega o devolución en obra, todos con el pedido como referenciado
+                var preasiento = spr.NegocioReferenciado == enumNegocio.Pedido
+                    ? null
+                    : Contexto.Set<PreasientoDtm>().FirstOrDefault(x => x.NegocioReferenciado == spr.NegocioReferenciado && x.IdReferenciado == spr.IdReferenciado && !cancelados.Contains(x.IdEstado));
                 if (preasiento != null)
                 {
                     GestorDeErrores.Emitir($"Antes de preasentar el '{preasiento.Referenciado(Contexto).Referencia}', del negocio '{spr.NegocioReferenciado}' ha de cancelar el existente, '{preasiento.Referencia}'");
@@ -226,6 +229,16 @@ namespace GestoresDeNegocio.Contabilidad
                 {
                     elemento.Origen = "AL: " + movimiento.Referencia(Contexto);
                     elemento.Importe = Math.Round(movimiento.Cantidad * movimiento.Precio, 2);
+                }
+            }
+            else if (spr.NegocioReferenciado == enumNegocio.Pedido)
+            {
+                // entrega o devolución en obra: el importe es el de su apunte de gasto (ver ExtensorDePreasientos.PreasentarCompraEnObra)
+                var compra = spr.Referenciado(Contexto, errorSiNoHay: false);
+                if (compra != null)
+                {
+                    elemento.Origen = "PE: " + compra.Referencia;
+                    elemento.Importe = spr.Detalles<ApunteDeUnPreasientoDtm>(Contexto).Where(apunte => apunte.Clase == enumClaseDeApunte.Alm_Gasto).Sum(apunte => apunte.Importe);
                 }
             }
         }
