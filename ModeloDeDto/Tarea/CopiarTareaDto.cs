@@ -37,6 +37,22 @@ namespace ModeloDeDto.Tarea
             AutoSpan = true)]
         public string Elemento { get; set; }
 
+
+        //----------------------------------------------------------------
+        [IUPropiedad(
+            Etiqueta = "La tarea original es:",
+            Ayuda = "Indica cómo actua la tarea original seleccionada, como anterior, como siguiente o como copia",
+            TipoDeControl = enumTipoControl.Enumerado,
+            Tipo = typeof(enumTareaReferenciadaComo),
+            GuardarEn = nameof(ReferenciadaComo),
+            EditableAlEditar = false,
+            EditableAlCrear = true,
+            Fila = 0,
+            Columna = 1
+            )
+        ]
+        public string ReferenciadaComo { get; set; }
+
         //--------------------------------------------------------------------------------------------------------
         [IUPropiedad( Oculto = true, Fila = 1,Columna = 0)]
         public int? IdSociedadDelCg { get; set; }
@@ -198,7 +214,7 @@ namespace ModeloDeDto.Tarea
            VisibleEnGrid = false,
            Obligatorio = false,
            Fila = 6,
-           Columna = 1,
+           Columna = 0,
            TipoDeControl = enumTipoControl.Check,
            css = enumCssControles.CheckEnLinea,
            ValorPorDefecto = false,
@@ -209,19 +225,5 @@ namespace ModeloDeDto.Tarea
            )]
         public bool EnlazarArchivos { get; set; }
 
-        //----------------------------------------------------------------
-        [IUPropiedad(
-            Etiqueta = "La tarea original es:",
-            Ayuda = "Indica cómo actua la tarea original seleccionada, como anterior, como siguiente o como copia",
-            TipoDeControl = enumTipoControl.Enumerado,
-            Tipo = typeof(enumTareaReferenciadaComo),
-            GuardarEn = nameof(ReferenciadaComo),
-            EditableAlEditar = false,
-            EditableAlCrear = true,
-            Fila = 6,
-            Columna = 0
-            )
-        ]
-        public string ReferenciadaComo { get; set; }
     }
 }
