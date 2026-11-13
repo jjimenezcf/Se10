@@ -2860,6 +2860,7 @@ const ltrPropiedades = {
     Selector: {
         IdElemento: atControl.idElemento,
         Elemento: 'Elemento',
+        ReferenciadaComo: 'ReferenciadaComo',
     },
     Callejero: {
         Direccion: {

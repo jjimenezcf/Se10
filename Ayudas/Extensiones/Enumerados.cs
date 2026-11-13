@@ -449,6 +449,7 @@ namespace Utilidades
 
         Tar_ProponerDatosDelaTareaSeleccionada,
         Tar_InicializarModalDeCopiado,
+        Tar_AlCambiarReferenciadaComo,
         Tar_AbrirTareaAnterior,
         Tar_AbrirTareaPosterior,
         Tar_IrALaFacturaEmt,

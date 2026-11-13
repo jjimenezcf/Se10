@@ -585,7 +585,17 @@ namespace GestoresDeNegocio.Tarea
             if (parametros.ContieneClave(nameof(CopiarTareaDto.ReferenciadaComo)))
             {
                 var referenciadaComo = parametros.LeerValor(nameof(CopiarTareaDto.ReferenciadaComo), enumTareaReferenciadaComo.Seleccionar);
-                if (referenciadaComo != enumTareaReferenciadaComo.Seleccionar)
+                if (referenciadaComo == enumTareaReferenciadaComo.DespuesDe || referenciadaComo == enumTareaReferenciadaComo.AntesDe)
+                {
+                    var idsDeLaSecuencia = new Dictionary<string, object> { { nameof(CuandoRealizarDto.IdTareaEditada), (long)t2.Id } };
+                    if (referenciadaComo == enumTareaReferenciadaComo.DespuesDe)
+                        idsDeLaSecuencia[nameof(CuandoRealizarDto.IdTareaAnterior)] = (long)t1.Id;
+                    else
+                        idsDeLaSecuencia[nameof(CuandoRealizarDto.IdTareaPosterior)] = (long)t1.Id;
+
+                    CuandoRealizar(contexto, idsDeLaSecuencia);
+                }
+                else if (referenciadaComo != enumTareaReferenciadaComo.Seleccionar)
                 {
                     t2.CrearObservacion(contexto, referenciadaComo.Descripcion(), enumNegocio.Tarea.ComponerUrlPorId(contexto, t1.Id).ToString(), new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
                     if (referenciadaComo == enumTareaReferenciadaComo.Enlazada)

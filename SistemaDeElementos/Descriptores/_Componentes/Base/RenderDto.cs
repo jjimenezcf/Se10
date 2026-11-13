@@ -22,9 +22,11 @@ namespace MVCSistemaDeElementos.Descriptores
             // y no se calcula el grid-template-columns en base a la visibilidad de cada columna.
             var primerControl = fila.ObtenerColumna(0).ObtenerControlEnLaPosicion(0);
             var cssDeLaFila = primerControl != null ? primerControl.Atributos.CssDeLaFila : enumCssGrid.Nulo;
-            var usarCssDeLaFila = cssDeLaFila != enumCssGrid.Nulo;
+            var gridTemplateColumnsDeLaFila = primerControl?.Atributos.GridTemplateColumnsDeLaFila;
+            var usarGridTemplateColumnsDeLaFila = !gridTemplateColumnsDeLaFila.IsNullOrEmpty();
+            var usarCssDeLaFila = cssDeLaFila != enumCssGrid.Nulo || usarGridTemplateColumnsDeLaFila;
 
-            var estilo = usarCssDeLaFila ? "" : "grid-template-columns:";
+            var estilo = usarGridTemplateColumnsDeLaFila ? $"grid-template-columns: {gridTemplateColumnsDeLaFila}" : usarCssDeLaFila ? "" : "grid-template-columns:";
             var htmlFila =
                     $@"<div id='{fila.IdHtml}' name='tr_lbl_propiedad' class='{enumCssDiv.Tr.Render()} {enumCssEdicion.Tr.Render()} tr-propiedad {cssDeLaFila.Render()}' style='[grid-template-columns];'>
                          htmlColumnas

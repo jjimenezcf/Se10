@@ -34,6 +34,7 @@ namespace ModeloDeDto.Tarea
             EditableAlEditar = false,
             trasSeleccionar = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_ProponerDatosDelaTareaSeleccionada) + "()",
             trasBlanquear = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_InicializarModalDeCopiado) + "()",
+            GridTemplateColumnsDeLaFila = "1fr 0.3fr",
             AutoSpan = true)]
         public string Elemento { get; set; }
 
@@ -41,10 +42,11 @@ namespace ModeloDeDto.Tarea
         //----------------------------------------------------------------
         [IUPropiedad(
             Etiqueta = "La tarea original es:",
-            Ayuda = "Indica cómo actua la tarea original seleccionada, como anterior, como siguiente o como copia",
+            Ayuda = "Indica cómo actua la tarea original seleccionada, como ampliación, copia, enlazada, o si la nueva se ha de realizar después o antes que ella",
             TipoDeControl = enumTipoControl.Enumerado,
             Tipo = typeof(enumTareaReferenciadaComo),
             GuardarEn = nameof(ReferenciadaComo),
+            OnChange = "javascript:" + nameof(enumNameSpaceTs.Administracion) + "." + nameof(enumFunctionTs.Tar_AlCambiarReferenciadaComo) + "(this)",
             EditableAlEditar = false,
             EditableAlCrear = true,
             Fila = 0,

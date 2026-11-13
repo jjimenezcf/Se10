@@ -147,6 +147,16 @@
             ApiDelCrud.ProponerEnListaDinamica(modal, registro, ltrPropiedades.Elemento.ConTipo.Tipo, ltrPropiedades.Elemento.ConTipo.IdTipo);
             ApiDelCrud.ProponerEnListaDinamica(modal, registro, ltrPropiedades.Tarea.Solicitante, ltrPropiedades.Tarea.IdSolicitante);
             ApiDelCrud.ProponerEnListaDinamica(modal, registro, ltrPropiedades.Tarea.Expediente, ltrPropiedades.Tarea.IdExpediente, false);
+            if (this.Tar_LaOriginalSeCopia(modal))
+                this.Tar_ProponerNombreYDescripcion(modal, registro);
+        }
+
+        public Tar_LaOriginalSeCopia(modal: HTMLDivElement): boolean {
+            let referenciadaComo = ApiControl.BuscarListaDeValores(modal, ltrPropiedades.Selector.ReferenciadaComo);
+            return Definido(referenciadaComo) && referenciadaComo.value === 'Copia';
+        }
+
+        public Tar_ProponerNombreYDescripcion(modal: HTMLDivElement, registro: any) {
             ApiDelCrud.ProponerEnEditor(modal, registro, ltrPropiedades.Elemento.Nombre);
             ApiDelCrud.ProponerEnAreaDeTexto(modal, registro, ltrPropiedades.Elemento.Descripcion);
         }
@@ -319,6 +329,20 @@
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
 
+    }
+
+    export function Tar_AlCambiarReferenciadaComo(selector: HTMLSelectElement) {
+        let crud = Crud.crudMnt as CrudDeTareas;
+        let modal = crud.ModalCopiarTarea;
+        if (!crud.Tar_LaOriginalSeCopia(modal)) return;
+
+        let tarea: HTMLInputElement = ApiControl.BuscarControl(modal, ltrPropiedades.Selector.Elemento, true) as HTMLInputElement;
+        let idTarea: number = Numero(tarea.getAttribute(atListasDinamicas.idSeleccionado));
+        if (idTarea > 0) {
+            ApiDePeticiones.LeerElementoPorId(this, ltrControladores.Administracion.Tareas, idTarea, new Array<Parametro>(), idTarea)
+                .then((peticion) => crud.Tar_ProponerNombreYDescripcion(modal, peticion.resultado.datos))
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
+        }
     }
 
     export function Tar_InicializarModalDeCopiado() {

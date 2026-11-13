@@ -449,6 +449,12 @@ namespace ModeloDeDto
         public enumCssGrid CssDeLaFila { get; set; } = enumCssGrid.Nulo;
         public enumCssGrid CssDeLaColumna { get; set; } = enumCssGrid.Nulo;
 
+        /// <summary>
+        /// Valor del grid-template-columns (p.ej. "1fr 0.3fr") que se aplica en línea a la fila del DTO;
+        /// se toma del control de la posición 0,0 de la fila y evita calcular el ancho de las columnas
+        /// </summary>
+        public string GridTemplateColumnsDeLaFila { get; set; }
+
         public int LimiteEnByte { get; set; } = 3000000;
         public string ExtensionesValidas { get; set; } = "*.*";
         public object RutaDestino { get; set; }
