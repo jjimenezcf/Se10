@@ -44,7 +44,7 @@ namespace MVCSistemaDeElementos.Descriptores
                  buscarPor: nameof(ProveedorDto.Expresion),
                  mostrarExpresion: nameof(ProveedorDto.Expresion),
                  criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
-                 posicion: new Posicion(1, 2),
+                 posicion: new Posicion(1, 1),
                  controlador: nameof(ProveedoresController),
                  navegarA: nameof(ProveedoresController.CrudProveedores),
                  restringirPor: "",
