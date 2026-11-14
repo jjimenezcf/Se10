@@ -308,6 +308,7 @@ const ltrEspanes = {
         crearRef: 'crear-ref',
         crearDt: 'creardt-ref',
         vincular: 'vincular-ref',
+        crearRelacion: 'mcr-ref',
         Editar: 'editar'
     },
     Atributos: {
@@ -3193,7 +3194,7 @@ const ltrPropiedades = {
             Agenda: 'agenda',
             EsUnaDeMisSociedades: 'EsUnaDeMisSociedades',
             UsaVerifactu: 'UsaVerifactu',
-            GenerarPreasientos: ['GenerarEmitidas', 'GenerarRecibidas', 'GenerarCobros', 'GenerarPagos', 'GenerarAlmacen', 'GenerarPedidos'],
+            GenerarPreasientos: ['GenerarEmitidas', 'GenerarRecibidas', 'GenerarCobros', 'GenerarPagos', 'GenerarAlmacen', 'GenerarPedidos', 'GenerarExpedientes'],
             InformacionContable: {
                 Contabilidad: 'Contabilidad',
                 Digitos: 'Digitos',
@@ -3357,6 +3358,10 @@ const ltrPropiedades = {
     },
     Expediente: {
         usaPpts: 'usappts',
+        Gastos: 'gastos',
+        TieneImputaciones: 'tieneimputaciones',
+        Presupuestado: 'presupuestado',
+        TienePresupuestos: 'tienepresupuestos',
         usaTareas: 'usaTareas',
         scDeCompra: 'ScDeCompra',
         scDeVenta: 'ScDeVenta',
@@ -4385,6 +4390,12 @@ const ltrMenus = {
                 IrATareas: 'ir-a-tareas',
                 ImputarFacturas: 'imputar-facturas',
                 IrAFacturasRec: 'ir-a-facturas-recibidas',
+                VincularFacturaRec: 'vincular-far',
+                CrearFacturaRec: 'crear-far',
+                AnadirApunte: 'anadir-apunte',
+                VincularPresupuesto: 'vincular-ppt',
+                CrearValoracion: 'crear-valoracion',
+                CrearPresupuesto: 'crear-ppt',
             }
         },
         Contabilidad: {

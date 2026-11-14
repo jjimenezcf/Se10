@@ -117,8 +117,16 @@
         public ModalDePedirDatos_TrasAbrir(modal: HTMLDivElement): void {
             super.ModalDePedirDatos_TrasAbrir(modal);
             if (modal.id === this.ModalCopiarTarea.id) {
-                if (this.InfoSelector.Seleccionados.length === 1)
-                    this.Tar_ProponerTareaParaCopiar(modal, this.InfoSelector.Seleccionados[0].Registro);
+                if (this.EstoyEditandoConsultando) {
+                    // se abre desde la edición: la tarea origen es la que se está editando y no se puede cambiar
+                    this.Tar_BloquearOrigenDeLaCopia(modal, true);
+                    this.Tar_ProponerTareaParaCopiar(modal, this.crudDeEdicion.Registro);
+                }
+                else {
+                    this.Tar_BloquearOrigenDeLaCopia(modal, false);
+                    if (this.InfoSelector.Seleccionados.length === 1)
+                        this.Tar_ProponerTareaParaCopiar(modal, this.InfoSelector.Seleccionados[0].Registro);
+                }
             }
             else if (modal.id === this.ModalCuandoRealizar.id) {
                 let idTareaEditada = this.EstoyEditandoConsultando
@@ -149,6 +157,17 @@
             ApiDelCrud.ProponerEnListaDinamica(modal, registro, ltrPropiedades.Tarea.Expediente, ltrPropiedades.Tarea.IdExpediente, false);
             if (this.Tar_LaOriginalSeCopia(modal))
                 this.Tar_ProponerNombreYDescripcion(modal, registro);
+        }
+
+        // Bloquea (o desbloquea) la tarea origen, su centro gestor y su tipo, para cuando la modal se abre desde la edición de la tarea
+        public Tar_BloquearOrigenDeLaCopia(modal: HTMLDivElement, bloquear: boolean) {
+            let propiedades: Array<string> = [ltrPropiedades.Selector.Elemento, ltrPropiedades.Elemento.ConCg.Cg, ltrPropiedades.Elemento.ConTipo.Tipo];
+            for (let propiedad of propiedades) {
+                if (bloquear)
+                    ApiControl.BloquearListaDinamicaPorPropiedad(modal, propiedad);
+                else
+                    ApiControl.DesbloquearListaDinamicaPorPropiedad(modal, propiedad);
+            }
         }
 
         public Tar_LaOriginalSeCopia(modal: HTMLDivElement): boolean {
@@ -250,6 +269,10 @@
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
             let datosDeEntrada: Parametros = new Parametros(peticion.DatosDeEntrada as Parametro[]);
             let opcion = datosDeEntrada.ObtenerValorDeParametro(ltrMenus.opcion);
+            if (opcion === ltrMenus.eventosDeMf.Administracion.Tareas.CopiarTarea) {
+                this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDeTareas).ModalCopiarTarea.id, Numero(ObtenerPropiedad(this.Registro, literal.id)));
+                return true;
+            }
             if (opcion === ltrMenus.eventosDeMf.Administracion.Tareas.CuandoRealizar) {
                 this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDeTareas).ModalCuandoRealizar.id, 0);
                 return true;

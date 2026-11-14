@@ -127,11 +127,10 @@ namespace MVCSistemaDeElementos.Controllers
                 var spr = Contexto.SeleccionarPorId<PreasientoDtm>(idPreasiento);
                 if (spr.NegocioReferenciado == enumNegocio.Cobro)
                 {
-                    var vista = enumNegocio.FacturaEmitida.VistaMvc(Contexto);
                     var cobro = Contexto.SeleccionarPorId<CobroDeFaeDtm>(spr.IdReferenciado.Entero(), errorSiNoHay: false);
                     if (cobro is null)
                         GestorDeErrores.Emitir("El cobro ha sido eliminado de la BD, por tanto no se puede editar");
-                    r.Datos = $"{enumNegocio.FacturaEmitida.Controlador()}/{vista.Accion}?Id={cobro.IdElemento}";
+                    r.Datos = enumNegocio.FacturaEmitida.UrlDeEdicion(Contexto, cobro.IdElemento);
                 }
                 else if (spr.NegocioReferenciado == enumNegocio.Almacen)
                 {
@@ -143,8 +142,8 @@ namespace MVCSistemaDeElementos.Controllers
                 }
                 else
                 {
-                    var vista = spr.NegocioReferenciado.VistaMvc(Contexto);
-                    r.Datos = $"{spr.NegocioReferenciado.Controlador()}/{vista.Accion}?Id={spr.IdReferenciado.Entero()}";
+                    // con la vista que corresponde al tipo del referenciado si su negocio tiene varias (p.e. expedientes y actividades)
+                    r.Datos = spr.NegocioReferenciado.UrlDeEdicion(Contexto, spr.IdReferenciado.Entero());
                 }
                 r.Consola = $"Origen obtenido correctamente";
                 r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();

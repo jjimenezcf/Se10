@@ -11,7 +11,9 @@ public enum enumClaseDeApunte
     Pag_Acreedor, Pag_Pago, Pag_Gasto,
     Fae_Iva, Fae_Cliente, Fae_Ingreso, Fae_Irpf,
     Cob_Deudor, Cob_Cobro,
-    Alm_Gasto, Alm_Albaran
+    Alm_Gasto, Alm_Albaran,
+    // apunte de gasto o ingreso de un expediente: la cuenta de su naturaleza y su contrapartida (partidas pendientes de aplicación)
+    Exp_Naturaleza, Exp_Contrapartida
 }
 public static class ltrTipoDeApunte 
 { 

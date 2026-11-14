@@ -106,8 +106,9 @@ namespace GestoresDeNegocio.Contabilidad
             if (parametros.Insertando)
             {
                 var cancelados = Negocio.Estados(Contexto).Where(e => e.Cancelado).Select(e => e.Id).ToList();
-                // un pedido tiene un preasiento por cada entrega o devolución en obra, todos con el pedido como referenciado
-                var preasiento = spr.NegocioReferenciado == enumNegocio.Pedido
+                // un pedido tiene un preasiento por cada entrega o devolución en obra, todos con el pedido como referenciado; igual un
+                // expediente, uno por cada apunte de gasto o ingreso
+                var preasiento = spr.NegocioReferenciado == enumNegocio.Pedido || spr.NegocioReferenciado == enumNegocio.Expediente
                     ? null
                     : Contexto.Set<PreasientoDtm>().FirstOrDefault(x => x.NegocioReferenciado == spr.NegocioReferenciado && x.IdReferenciado == spr.IdReferenciado && !cancelados.Contains(x.IdEstado));
                 if (preasiento != null)
@@ -239,6 +240,16 @@ namespace GestoresDeNegocio.Contabilidad
                 {
                     elemento.Origen = "PE: " + compra.Referencia;
                     elemento.Importe = spr.Detalles<ApunteDeUnPreasientoDtm>(Contexto).Where(apunte => apunte.Clase == enumClaseDeApunte.Alm_Gasto).Sum(apunte => apunte.Importe);
+                }
+            }
+            else if (spr.NegocioReferenciado == enumNegocio.Expediente)
+            {
+                // apunte de gasto o ingreso: el importe es el del apunte de su naturaleza (ver ExtensorDePreasientos.Preasentar del apunte)
+                var apunte = spr.Referenciado(Contexto, errorSiNoHay: false);
+                if (apunte != null)
+                {
+                    elemento.Origen = "EX: " + apunte.Referencia;
+                    elemento.Importe = spr.Detalles<ApunteDeUnPreasientoDtm>(Contexto).Where(a => a.Clase == enumClaseDeApunte.Exp_Naturaleza).Sum(a => a.Importe);
                 }
             }
         }

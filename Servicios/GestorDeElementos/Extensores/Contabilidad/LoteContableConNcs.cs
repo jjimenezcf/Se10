@@ -297,6 +297,9 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 case enumNegocio.Pedido:
                     AsientoDeCompra(xmlWriter, preasiento);
                     break;
+                case enumNegocio.Expediente:
+                    AsientoDeApunteDeExpediente(xmlWriter, preasiento);
+                    break;
                 default:
                     GestorDeErrores.Emitir($"Falta implementar cómo definir un asiento para el negocio '{preasiento.NegocioReferenciado.Singular()}'");
                     break;
@@ -336,6 +339,21 @@ namespace GestorDeElementos.Extensores.Contabilidad
             foreach (var apunte in apuntes.Where(apunte => apunte.Clase == enumClaseDeApunte.Alm_Albaran))
                 ApunteDeAlmacen(xmlWriter, preasiento, CuentaDelTercero(apunte.Cuenta), ImporteConSigno(apunte), apunte.Concepto);
             foreach (var apunte in apuntes.Where(apunte => apunte.Clase == enumClaseDeApunte.Alm_Gasto))
+                ApunteDeAlmacen(xmlWriter, preasiento, CuentaDeNcs(apunte.Cuenta), ImporteConSigno(apunte), apunte.Concepto);
+            xmlWriter.WriteEndElement(); // LISTAAPUNTES
+        }
+
+        // Apunte de gasto o ingreso de un expediente (ver ExtensorDePreasientos.Preasentar del apunte): asiento libre sin registro de iva
+        // con la cuenta de la naturaleza (Exp_Naturaleza) y su contrapartida, partidas pendientes de aplicación (555), que reclasifica contabilidad
+        // (Exp_Contrapartida); en ncs lo que va al debe en positivo y lo que va al haber en negativo
+        private void AsientoDeApunteDeExpediente(XmlWriter xmlWriter, PreasientoDtm preasiento)
+        {
+            WriteCabecera(xmlWriter, preasiento);
+            xmlWriter.WriteStartElement("LISTAREGIVA");
+            xmlWriter.WriteEndElement();
+
+            xmlWriter.WriteStartElement("LISTAAPUNTES");
+            foreach (var apunte in preasiento.Detalles<ApunteDeUnPreasientoDtm>(Contexto).OrderBy(apunte => apunte.Orden))
                 ApunteDeAlmacen(xmlWriter, preasiento, CuentaDeNcs(apunte.Cuenta), ImporteConSigno(apunte), apunte.Concepto);
             xmlWriter.WriteEndElement(); // LISTAAPUNTES
         }
@@ -517,6 +535,8 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 ? ((MovimientoDeAlmacenDtm)preasiento.Referenciado(Contexto)).RealizadoEl.Date
                 : preasiento.NegocioReferenciado == enumNegocio.Pedido
                 ? preasiento.FechaDeLaCompraEnObra(Contexto)
+                : preasiento.NegocioReferenciado == enumNegocio.Expediente
+                ? preasiento.FechaDelApunteDeExpediente(Contexto)
                 : (DateTime)((FacturaRecDtm)preasiento.Referenciado(Contexto)).FacturadaEl;
             }
             else
@@ -1025,7 +1045,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 return enumNcsCodigoConcepto.CobrosFacturasClientes;
 
             // como el pago de un gasto por naturaleza, es un asiento libre sin iva
-            if (negocio == enumNegocio.Almacen || negocio == enumNegocio.Pedido)
+            if (negocio == enumNegocio.Almacen || negocio == enumNegocio.Pedido || negocio == enumNegocio.Expediente)
                 return enumNcsCodigoConcepto.PlanCuentasMayor;
 
             throw new Exception($"Ha de indicar el código del concepto asentado en la contabilidad de Ncs para el negocio '{negocio.Singular()}'");
@@ -1051,6 +1071,8 @@ namespace GestorDeElementos.Extensores.Contabilidad
                     return ((MovimientoDeAlmacenDtm)preasiento.Referenciado(Contexto)).RealizadoEl.Date;
                 case enumNegocio.Pedido:
                     return preasiento.FechaDeLaCompraEnObra(Contexto);
+                case enumNegocio.Expediente:
+                    return preasiento.FechaDelApunteDeExpediente(Contexto);
             }
             throw new Exception($"Falta implementar cómo obtener la 'Fecha De Emision' para '{preasiento.NegocioReferenciado.Singular()}'");
         }

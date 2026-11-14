@@ -77,10 +77,13 @@ namespace GestorDeElementos.Extensores
             var esDeUnAlmacen = preasiento.NegocioReferenciado == enumNegocio.Almacen;
             // el de un pedido es de una entrega o devolución en obra, que se borra al cancelarla
             var esDeUnPedido = preasiento.NegocioReferenciado == enumNegocio.Pedido;
+            // el de un expediente es de un apunte de gasto o ingreso, que se cancela al modificarlo o eliminarlo
+            var esDeUnExpediente = preasiento.NegocioReferenciado == enumNegocio.Expediente;
 
             var asunto = preasiento.NegocioReferenciado == enumNegocio.Cobro ? "Cancelado al eliminar el cobro"
                        : esDeUnAlmacen ? "Cancelado al eliminar el movimiento de almacén"
                        : esDeUnPedido ? "Cancelado al cancelar la entrega o la devolución en obra"
+                       : esDeUnExpediente ? "Cancelado al modificar o eliminar el apunte del expediente"
                        : "Cancelado al regenerar el preasiento";
 
             var detalle = preasiento.NegocioReferenciado == enumNegocio.Cobro
@@ -89,6 +92,8 @@ namespace GestorDeElementos.Extensores
                 ? $"Se ha cancelado la entrega que originó el movimiento de almacén Nº {preasiento.IdReferenciado} y éste se ha eliminado"
                 : esDeUnPedido
                 ? $"Se ha cancelado la {preasiento.Nombre.Left(1).ToLower()}{preasiento.Nombre.Substring(1)}"
+                : esDeUnExpediente
+                ? $"Se ha modificado o eliminado el {preasiento.Nombre.Left(1).ToLower()}{preasiento.Nombre.Substring(1)}"
                 : "Se ha regenerado el preasiento desde la interface";
 
             preasiento.TransitarALaEtapa(contexto, enumEtapasDePreasiento.SPR_Etapa_Cancelado.EstadosDeLaEtapa(), parametros: new Dictionary<string, object>
@@ -1053,6 +1058,93 @@ namespace GestorDeElementos.Extensores
             _ => throw new Exception($"El preasiento '{spr.Referencia}' no es de una entrega ni de una devolución en obra")
         };
 
+        // Apunte de gasto o de ingreso de un expediente, como un pago o un cobro por naturaleza pero sin tercero: el gasto va al debe en la
+        // cuenta de gasto de su naturaleza y al haber en la de partidas pendientes de aplicación (VariablesDeCuentas.PendientesDeAplicacion); el
+        // ingreso al haber en la cuenta de ingreso de su naturaleza y al debe en la de pendientes de aplicación. Sólo si la sociedad del expediente genera
+        // preasientos de expedientes (SPR_Generar_Preasiento_De_Expediente). Como en las entregas en obra, el negocio referenciado es el
+        // expediente y el documento que lo generó se busca por su IdPreasiento (ver ApunteDeExpedienteDelPreasiento). Se llama antes de
+        // insertar o modificar el apunte (ver GestorDeApuntesDeExpediente.AntesDePersistir)
+        public static ApunteDeExpedienteDtm Preasentar(this ApunteDeExpedienteDtm apunte, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
+        {
+            var expediente = contexto.SeleccionarPorId<ExpedienteDtm>(apunte.IdElemento);
+            var sociedad = expediente.Sociedad(contexto);
+            if (sociedad.Autonomo || !sociedad.UsaPreasientos(contexto, enumNegocio.Expediente))
+                return apunte;
+
+            var esUnGasto = apunte.Clase == enumApunteDeExpediente.Gasto;
+            var naturaleza = contexto.SeleccionarPorId<NaturalezaDtm>(apunte.IdNaturaleza);
+            var cuentaDeLaNaturaleza = esUnGasto ? naturaleza.CuentaDeGasto(contexto) : naturaleza.CuentaDeIngreso(contexto);
+
+            var idTipoPreasiento = VariablesDePreasiento.IdTipoPreasientoDelNegocio(enumNegocio.Expediente.IdNegocio(), enumNegocio.Expediente.Singular());
+            var tipoDePreasiento = enumNegocio.Preasiento.Tipos(contexto).FirstOrDefault(x => x.Id == idTipoPreasiento);
+            if (tipoDePreasiento == null)
+                GestorDeErrores.Emitir($"El id del tipo del preasiento parametrizado en '{idTipoPreasiento}' no existe en la BD");
+
+            VariablesDePreasiento.CodigoDeDiario(tipoDePreasiento, contexto);
+            VariablesDePreasiento.ValidarNaturalezasContables();
+
+            var preasiento = new PreasientoDtm
+            {
+                IdCg = expediente.IdCg,
+                IdTipo = idTipoPreasiento,
+                Nombre = $"{(esUnGasto ? "Gasto" : "Ingreso")} nº {apunte.Orden} del expediente '{expediente.Referencia}': {apunte.Concepto}".Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
+                Ejercicio = apunte.ImputadoEl.Year,
+                CodigoDiario = tipoDePreasiento.CodigoDeDiario(contexto),
+                SociedadContable = sociedad.CodigoContable,
+                NegocioReferenciado = enumNegocio.Expediente,
+                IdReferenciado = expediente.Id,
+                FechaContable = apunte.ImputadoEl.Date
+            }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
+
+            var importe = Math.Round(apunte.Valor, 2);
+            var deLaNaturaleza = new ApunteDeUnPreasientoDtm
+            {
+                IdElemento = preasiento.Id,
+                Posicion = esUnGasto ? enumPosicionContable.Debe : enumPosicionContable.Haber,
+                Clase = enumClaseDeApunte.Exp_Naturaleza,
+                Tipo = esUnGasto ? ltrTipoDeApunte.Gasto : ltrTipoDeApunte.Ingreso,
+                Cuenta = cuentaDeLaNaturaleza.Codigo,
+                Importe = importe,
+                Concepto = apunte.Concepto.Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
+            };
+
+            var contrapartida = new ApunteDeUnPreasientoDtm
+            {
+                IdElemento = preasiento.Id,
+                Posicion = esUnGasto ? enumPosicionContable.Haber : enumPosicionContable.Debe,
+                Clase = enumClaseDeApunte.Exp_Contrapartida,
+                Tipo = "",
+                Cuenta = VariablesDeCuentas.PendientesDeAplicacion,
+                Importe = importe,
+                Concepto = $"{expediente.Referencia}: {apunte.Concepto}".Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
+            };
+
+            // primero el apunte del debe
+            var (primero, segundo) = esUnGasto ? (deLaNaturaleza, contrapartida) : (contrapartida, deLaNaturaleza);
+            primero.Orden = 10;
+            segundo.Orden = 20;
+            primero.InsertarComoAdministrador(contexto);
+            segundo.InsertarComoAdministrador(contexto);
+
+            apunte.Preasiento = preasiento;
+            apunte.IdPreasiento = preasiento.Id;
+            return apunte;
+        }
+
+        // El referenciado de un preasiento de expedientes no es el expediente sino el apunte que lo lleva (ver Preasentar del apunte); null
+        // si el apunte se ha eliminado y no se exige que lo haya
+        private static ApunteDeExpedienteDtm ApunteDeExpedienteDelPreasiento(ContextoSe contexto, PreasientoDtm spr, bool errorSiNoHay)
+        {
+            var apunte = contexto.Set<ApunteDeExpedienteDtm>().FirstOrDefault(x => x.IdPreasiento == spr.Id)?.CalcularReferencia(contexto);
+            if (apunte is null && errorSiNoHay)
+                GestorDeErrores.Emitir($"No se encuentra el apunte de expediente del preasiento '{spr.Referencia}', se ha eliminado");
+            return apunte;
+        }
+
+        // Fecha en la que se imputó el apunte de gasto o ingreso de un preasiento de expedientes
+        public static DateTime FechaDelApunteDeExpediente(this PreasientoDtm spr, ContextoSe contexto) =>
+            ((ApunteDeExpedienteDtm)spr.Referenciado(contexto)).ImputadoEl.Date;
+
         public static void PreasentarStockInicial(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
         }
@@ -1103,6 +1195,8 @@ namespace GestorDeElementos.Extensores
                     ? contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(spr.IdReferenciado.Entero(), errorSiNoHay: errorSiNoHay)
                     : spr.NegocioReferenciado == enumNegocio.Pedido
                     ? CompraEnObra(contexto, spr, errorSiNoHay)
+                    : spr.NegocioReferenciado == enumNegocio.Expediente
+                    ? ApunteDeExpedienteDelPreasiento(contexto, spr, errorSiNoHay)
                     : (IUsaPreasiento)spr.NegocioReferenciado.SeleccionarPorId(contexto, spr.IdReferenciado.Entero(), parametros: new Dictionary<string, object>
                      {
                          {ltrParametrosNeg.ErrorSiNoLoHay, errorSiNoHay }
@@ -1116,7 +1210,8 @@ namespace GestorDeElementos.Extensores
             // un movimiento de almacén no tiene etapas: mientras existe es contabilizable; si se ha eliminado (al anular la entrada
             // de compra) y su preasiento quedó pendiente, se cancela (ver CancelarPreasientoPorEstarloSuReferenciado)
             // igual con las entregas y devoluciones en obra de un pedido, que se borran al cancelarlas
-            if (spr.NegocioReferenciado == enumNegocio.Almacen || spr.NegocioReferenciado == enumNegocio.Pedido)
+            // y con los apuntes de gastos e ingresos de un expediente, que al eliminarlos cancelan su preasiento
+            if (spr.NegocioReferenciado == enumNegocio.Almacen || spr.NegocioReferenciado == enumNegocio.Pedido || spr.NegocioReferenciado == enumNegocio.Expediente)
                 return spr.Referenciado(contexto, errorSiNoHay: false) is null;
 
             var referenciado = spr.Referenciado(contexto);

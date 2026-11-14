@@ -20,9 +20,10 @@ namespace MVCSistemaDeElementos.Descriptores
 
             // Si el primer control de la fila (posición 0,0) define una clase css para la fila, se usa esa clase
             // y no se calcula el grid-template-columns en base a la visibilidad de cada columna.
-            var primerControl = fila.ObtenerColumna(0).ObtenerControlEnLaPosicion(0);
-            var cssDeLaFila = primerControl != null ? primerControl.Atributos.CssDeLaFila : enumCssGrid.Nulo;
-            var gridTemplateColumnsDeLaFila = primerControl?.Atributos.GridTemplateColumnsDeLaFila;
+            // Se buscan entre todos los controles de la columna 0 (el de la posición 0 puede ser un control no visible, p.e. un Id)
+            var controlesDeLaPrimeraColumna = fila.ObtenerColumna(0).ObtenerControles();
+            var cssDeLaFila = controlesDeLaPrimeraColumna.Select(c => c.Atributos.CssDeLaFila).Where(c => c != enumCssGrid.Nulo).DefaultIfEmpty(enumCssGrid.Nulo).First();
+            var gridTemplateColumnsDeLaFila = controlesDeLaPrimeraColumna.Select(c => c.Atributos.GridTemplateColumnsDeLaFila).FirstOrDefault(g => !g.IsNullOrEmpty());
             var usarGridTemplateColumnsDeLaFila = !gridTemplateColumnsDeLaFila.IsNullOrEmpty();
             var usarCssDeLaFila = cssDeLaFila != enumCssGrid.Nulo || usarGridTemplateColumnsDeLaFila;
 

@@ -117,6 +117,8 @@ namespace Inicializador.Contabilidad
                 GestorDeTiposDePreasiento.PersistirTipo(contexto, "ALM: Almacén", estadoInicial.Id, enumClaseDeLibro.POR_CG_TIPO, "ALM", permitirCrear: true);
                 // entregas y devoluciones de pedidos en la obra de un expediente
                 GestorDeTiposDePreasiento.PersistirTipo(contexto, "PED: Pedidos", estadoInicial.Id, enumClaseDeLibro.POR_CG_TIPO, "PED", permitirCrear: true);
+                // apuntes de gastos e ingresos de los expedientes
+                GestorDeTiposDePreasiento.PersistirTipo(contexto, "EXP: Expedientes", estadoInicial.Id, enumClaseDeLibro.POR_CG_TIPO, "EXP", permitirCrear: true);
             }
             finally
             {

@@ -89,7 +89,7 @@ namespace ModeloDeDto.Terceros
         public string PlanContable { get; set; }
 
         //------------------------------------------------------------------------------------------- fila 1: qué genera preasientos
-        // SPR_Generar_Preasiento_De_FacturaEmitida, _FacturaRecibida, _Cobro, _Pago, _Almacen y _Pedido
+        // SPR_Generar_Preasiento_De_FacturaEmitida, _FacturaRecibida, _Cobro, _Pago, _Almacen, _Pedido y _Expediente
         [IUPropiedad(Etiqueta = "Preasientos de emitidas", Ayuda = "Genera preasientos de las facturas emitidas", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 0)]
         public bool GenerarEmitidas { get; set; }
 
@@ -107,6 +107,9 @@ namespace ModeloDeDto.Terceros
 
         [IUPropiedad(Etiqueta = "Preasientos de pedidos", Ayuda = "Genera preasientos de las entregas y devoluciones de pedidos en la obra de un expediente", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 5)]
         public bool GenerarPedidos { get; set; }
+
+        [IUPropiedad(Etiqueta = "Preasientos de expedientes", Ayuda = "Genera preasientos de los apuntes de gastos e ingresos de los expedientes", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 6)]
+        public bool GenerarExpedientes { get; set; }
 
         //------------------------------------------------------------------------------------------- fila 2: relanzar la activación de preasientos
         // la última activación de preasientos terminó con errores (su traza en la sociedad) o hay negocios activados con documentos sin

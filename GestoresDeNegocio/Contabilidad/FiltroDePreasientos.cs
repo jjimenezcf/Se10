@@ -3,6 +3,7 @@ using GestorDeElementos.Extensores;
 using ModeloDeDto;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
+using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Ventas;
@@ -26,6 +27,7 @@ namespace GestoresDeNegocio.Contabilidad
                    (spr.NegocioReferenciado == enumNegocio.FacturaRecibida && contexto.Set<FacturaRecDtm>().Any(rec => rec.Id == spr.IdReferenciado && rec.Referencia.Contains(filtroValor))) ||
                    (spr.NegocioReferenciado == enumNegocio.Pago && contexto.Set<PagoDtm>().Any(pag => pag.Id == spr.IdReferenciado && pag.Referencia.Contains(filtroValor))) ||
                    (spr.NegocioReferenciado == enumNegocio.Pedido && contexto.Set<PedidoDtm>().Any(ped => ped.Id == spr.IdReferenciado && ped.Referencia.Contains(filtroValor))) ||
+                   (spr.NegocioReferenciado == enumNegocio.Expediente && contexto.Set<ExpedienteDtm>().Any(exp => exp.Id == spr.IdReferenciado && exp.Referencia.Contains(filtroValor))) ||
                    // la referencia del cobro no está en la tabla, es la de su factura emitida más su Id
                    (spr.NegocioReferenciado == enumNegocio.Cobro && contexto.Set<CobroDeFaeDtm>().Any(cob => cob.Id == spr.IdReferenciado &&
                        contexto.Set<FacturaEmtDtm>().Any(emt => emt.Id == cob.IdElemento && emt.Referencia.Contains(filtroValor)))) ||

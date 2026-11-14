@@ -25,6 +25,8 @@ static class Desplegador
     const string DirectorioDePublicacion = @"C:\Prepublicacion";
     const string DirectorioRemoto = @"C:\Prepublicacion";
     const string NombreDelZip = "publicacion.zip";
+    // Junto al zip del servidor: de qué código se generó y su SHA256, para no volver a publicarlo si ya está subido
+    const string NombreDeLaHuella = "publicacion.zip.huella";
     const string PerfilDePublicacion = "Secify";
     const string Vswhere = @"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe";
     const string MarcaDeSalida = "##SALIDA##";
@@ -39,6 +41,7 @@ static class Desplegador
     static readonly object Cerrojo = new();
     static StreamWriter _log;
     static Destino _destino;
+    static string _huellaDelCodigo;
 
     public static int Ejecutar(string[] args, Destino destino)
     {
@@ -59,7 +62,7 @@ static class Desplegador
 
     static int Desplegar(string[] args)
     {
-        bool soloComprobar = false, soloVerificar = false, sinConfirmar = false;
+        bool soloComprobar = false, soloVerificar = false, sinConfirmar = false, forzar = false;
         Paso desde = _destino.ZipYaDescomprimido ? Paso.Descomprimir : Paso.Publicar, hasta = Paso.Desplegar;
 
         try
@@ -71,6 +74,7 @@ static class Desplegador
                     case "--comprobar": soloComprobar = true; break;
                     case "--verificar": soloVerificar = true; break;
                     case "--si": sinConfirmar = true; break;
+                    case "--forzar": forzar = true; break;
                     case "--desde": desde = LeerPaso(args, ++i); break;
                     case "--hasta": hasta = LeerPaso(args, ++i); break;
                     default: throw new ArgumentException($"Opción desconocida: {args[i]}");
@@ -103,6 +107,17 @@ static class Desplegador
                 Verificar();
                 Escribir("Verificación correcta.");
                 return 0;
+            }
+
+            // Si el zip del servidor ya es de este mismo código (p. ej. falló al parar la cola), no se publica, empaqueta ni copia otra vez
+            if (desde == Paso.Publicar && !_destino.ZipYaDescomprimido)
+            {
+                _huellaDelCodigo = HuellaDelCodigo();
+                if (!forzar && hasta >= Paso.Descomprimir && ZipSubidoEsDeEsteCodigo())
+                {
+                    Escribir($"El zip del servidor ya es de este código: se empieza en {Paso.Descomprimir} (usa --forzar para publicarlo de nuevo)");
+                    desde = Paso.Descomprimir;
+                }
             }
 
             Comprobar(desde, hasta);
@@ -169,6 +184,7 @@ static class Desplegador
               --desde <paso>    Empieza en ese paso (para reanudar tras un fallo)
               --hasta <paso>    Termina en ese paso
               --si              No pide confirmación
+              --forzar          Publica, empaqueta y copia aunque el zip del servidor ya sea de este código
 
             Pasos: {string.Join(", ", Enum.GetNames<Paso>())}
             """);
@@ -182,7 +198,8 @@ static class Desplegador
         switch (paso)
         {
             case Paso.Descomprimir:
-                return "ATENCIÓN: las colas pueden haber quedado bloqueadas y los sitios parados. Revisa la salida antes de reintentar.";
+                return "ATENCIÓN: las colas pueden haber quedado bloqueadas y los sitios parados. Revisa la salida antes de reintentar. " +
+                       $"El zip ya está subido: al relanzar sin opciones se detecta y se empieza en {Paso.Descomprimir} (o usa --desde {Paso.Descomprimir}).";
             case Paso.Desplegar:
                 return "ATENCIÓN: los sitios pueden seguir parados. Corrige la causa y reanuda con: --desde Desplegar";
             default:
@@ -332,6 +349,10 @@ static class Desplegador
     {
         string destino = $@"{DirectorioCompartido}\{NombreDelZip}";
         string temporal = destino + ".subiendo";
+        string huella = $@"{DirectorioCompartido}\{NombreDeLaHuella}";
+
+        // mientras se sustituye el zip, la huella anterior ya no lo describe
+        File.Delete(huella);
 
         Escribir($"Copiando a {destino}...");
         File.Copy(ZipLocal, temporal, overwrite: true);
@@ -351,6 +372,55 @@ static class Desplegador
 
         File.Move(temporal, destino, overwrite: true);
         Escribir($"Copia verificada, SHA256 {hashLocal}");
+
+        // Solo se sabe de qué código es el zip si en esta ejecución se ha publicado (no al reanudar desde Empaquetar o Copiar)
+        if (_huellaDelCodigo != null)
+            File.WriteAllLines(huella, [$"codigo={_huellaDelCodigo}", $"zip={hashLocal}"]);
+    }
+
+    // Huella del árbol de trabajo tal como se publica: commit, cambios sin confirmar y ficheros nuevos no ignorados
+    static string HuellaDelCodigo()
+    {
+        using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        void Anadir(string texto) => sha.AppendData(Encoding.UTF8.GetBytes(texto + "\n"));
+
+        // los avisos de git (p. ej. de fin de línea) salen por la salida de error y no forman parte de la huella
+        Action<string> ignorar = _ => { };
+        var nuevos = new List<string>();
+        int codigo = Lanzar("git", ["-C", DirectorioDelRepositorio, "rev-parse", "HEAD"], DirectorioDelRepositorio, Anadir, alEscribirErrores: ignorar)
+                   | Lanzar("git", ["-C", DirectorioDelRepositorio, "diff", "HEAD", "--binary"], DirectorioDelRepositorio, Anadir, alEscribirErrores: ignorar)
+                   | Lanzar("git", ["-C", DirectorioDelRepositorio, "ls-files", "--others", "--exclude-standard"], DirectorioDelRepositorio, nuevos.Add, alEscribirErrores: ignorar);
+        if (codigo != 0)
+            throw new FalloDeDespliegue("No se ha podido calcular la huella del código con git.");
+
+        foreach (string nuevo in nuevos.OrderBy(n => n, StringComparer.Ordinal))
+        {
+            Anadir(nuevo);
+            string ruta = Path.Combine(DirectorioDelRepositorio, nuevo);
+            if (File.Exists(ruta))
+                sha.AppendData(File.ReadAllBytes(ruta));
+        }
+        return Convert.ToHexString(sha.GetHashAndReset());
+    }
+
+    static bool ZipSubidoEsDeEsteCodigo()
+    {
+        string huella = $@"{DirectorioCompartido}\{NombreDeLaHuella}";
+        if (!File.Exists(huella))
+            return false;
+
+        var valores = File.ReadAllLines(huella).Select(l => l.Split('=', 2)).Where(p => p.Length == 2).ToDictionary(p => p[0], p => p[1].Trim());
+        if (!valores.TryGetValue("codigo", out string codigo) || codigo != _huellaDelCodigo || !valores.TryGetValue("zip", out string hashDelZip))
+            return false;
+
+        // el zip ha de seguir siendo el que describe la huella
+        var salida = new List<string>();
+        EjecutarRemoto($$"""
+            $zip = '{{DirectorioRemoto}}\{{NombreDelZip}}'
+            if (Test-Path -LiteralPath $zip) { (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash }
+            "{{MarcaDeSalida}}0"
+            """, salida.Add);
+        return string.Equals(salida.FirstOrDefault()?.Trim(), hashDelZip, StringComparison.OrdinalIgnoreCase);
     }
 
     static void Descomprimir()
@@ -445,7 +515,8 @@ static class Desplegador
         return resultado ?? throw new FalloDeDespliegue($"Se ha perdido la ejecución remota en {Servidor} antes de terminar.");
     }
 
-    static int Lanzar(string programa, string[] argumentos, string directorio, Action<string> alEscribir, Encoding codificacion = null)
+    // alEscribirErrores: si se indica, la salida de error va ahí y no se mezcla con la normal
+    static int Lanzar(string programa, string[] argumentos, string directorio, Action<string> alEscribir, Encoding codificacion = null, Action<string> alEscribirErrores = null)
     {
         codificacion ??= Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
         var inicio = new ProcessStartInfo(programa)
@@ -465,15 +536,15 @@ static class Desplegador
         using Process proceso = Process.Start(inicio);
         proceso.StandardInput.Close();
 
-        DataReceivedEventHandler alRecibir = (_, e) =>
+        DataReceivedEventHandler Receptor(Action<string> escribir) => (_, e) =>
         {
             if (e.Data == null)
                 return;
             lock (Cerrojo)
-                alEscribir(e.Data);
+                escribir(e.Data);
         };
-        proceso.OutputDataReceived += alRecibir;
-        proceso.ErrorDataReceived += alRecibir;
+        proceso.OutputDataReceived += Receptor(alEscribir);
+        proceso.ErrorDataReceived += Receptor(alEscribirErrores ?? alEscribir);
         proceso.BeginOutputReadLine();
         proceso.BeginErrorReadLine();
         proceso.WaitForExit();

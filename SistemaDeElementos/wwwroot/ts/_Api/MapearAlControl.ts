@@ -204,7 +204,20 @@
                 MensajesSe.Info(`la referencia ${ref.id} no tiene definido la acción inicial`);
         }
         else {
-            ref.href = SustituirPropiedades(accion, objeto);
+            const url = SustituirPropiedades(accion, objeto);
+            // si alguna propiedad de la url no tiene valor (p.e. el justificante de un apunte que no tiene archivo) queda sin sustituir,
+            // [Propiedad], y la url no es válida: la referencia se deshabilita hasta que se vuelva a mapear con valores
+            const urlIncompleta = /\[[^\]]+\]/.test(url);
+            if (urlIncompleta) {
+                ref.removeAttribute('href');
+                ref.setAttribute('aria-disabled', 'true');
+                ref.style.pointerEvents = 'none';
+            }
+            else {
+                ref.href = url;
+                ref.removeAttribute('aria-disabled');
+                ref.style.pointerEvents = '';
+            }
             if (!ModoAcceso.EsGestor(modoDeAcceso)) {
                 var ocultar = EsTrue(ref.getAttribute(atRef.enConsultaOcultar)) ? true : false;
                 ApiControl.OcultarHtmlAnchor(ref, ocultar);

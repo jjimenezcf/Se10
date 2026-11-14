@@ -24,6 +24,7 @@ namespace ServicioDeDatos.Contabilidad
         public static readonly string ClienteDescripcion = "Cuenta de clientes";
         public static readonly string ProveedorDescripcion = "Cuenta de proveedores";
         public static readonly string AlbaranDescripcion = "Cuenta de albaranes";
+        public static readonly string PendienteDeAplicacionDescripcion = "Cuenta de partidas pendientes de aplicación";
         public static readonly string SueldosDescripcion = "Cuenta de gastos de sueldos y salarios";
         public static readonly string ServiciosProfesionales = "Cuenta de servicios profesionales";
         public static readonly string PrestacionDeServicios = "Cuenta de prestación de servicios";
@@ -38,6 +39,8 @@ namespace ServicioDeDatos.Contabilidad
         public static string Sueldos => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Sueldos, Descripciones.CTA_Cuenta_De_Sueldos, "640000");
         public static string Proveedores => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Proveedor, Descripciones.CTA_Cuenta_De_Proveedor, "400000");
         public static string Albaranes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Albaran, Descripciones.CTA_Cuenta_De_Albaran, "400900");
+        // contrapartida de los apuntes de gasto e ingreso de un expediente: contabilidad la reclasifica cuando llega el documento (factura, pago, cobro)
+        public static string PendientesDeAplicacion => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_Pendiente_De_Aplicacion, Descripciones.CTA_Cuenta_Pendiente_De_Aplicacion, "555000");
         public static string Clientes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Cliente, Descripciones.CTA_Cuenta_De_Cliente, "430000");
     }
 

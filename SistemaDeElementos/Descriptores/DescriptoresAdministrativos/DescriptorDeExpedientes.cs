@@ -287,6 +287,15 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, "<hr>");
             DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.1' accion-menu='{eventosDeMf.Exp_VincularRegistroEntrada}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Asociar registro de E/S</li>");
+            // hacen lo mismo que las referencias de los spans, que no se ven cuando están vacíos; se habilitan según la etapa (ver Expedientes.ts)
+            DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.2' accion-menu='{eventosDeMf.Exp_VincularFacturaRec}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Asociar factura recibida</li>");
+            DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.3' accion-menu='{eventosDeMf.Exp_CrearFacturaRec}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Crear factura recibida</li>");
+            DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.4' accion-menu='{eventosDeMf.Exp_AnadirApunte}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Añadir apunte</li>");
+            // bloque de presupuestos: se oculta (con su raya) si el tipo del expediente no usa presupuestos (ver Expedientes.ts)
+            DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<hr id='{idMenu}.hr-ppts' bloque-mf='presupuestos'>");
+            DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.5' accion-menu='{eventosDeMf.Exp_CrearValoracion}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Crear valoración</li>");
+            DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.6' accion-menu='{eventosDeMf.Exp_CrearPresupuesto}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Crear presupuesto</li>");
+            DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.7' accion-menu='{eventosDeMf.Exp_VincularPresupuesto}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor, false)}>Asociar presupuesto</li>");
             //DescriptorDeEdicion<ExpedienteDto>.IncluirMfIndividual(opciones, $"<li id='{idMenu}.3' accion-menu='{eventosDeMf.Interlocutores}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Gestionar interlocutores</li>");
         }
 
@@ -314,7 +323,7 @@ namespace MVCSistemaDeElementos.Descriptores
                { nameof(GridDeRelacion.AccionDeConsulta), nameof(PresupuestosController.epLeerElementos)},
                { nameof(GridDeRelacion.PropiedadRestrictora), nameof(PresupuestoDto.idExpediente) },
                { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(PresupuestosController)}/{nameof(PresupuestosController.CrudPresupuestos)}?id={nameof(PresupuestoDto.Id)}"},
-               { nameof(GridDeRelacion.OcultarSiVacio), false}
+               { nameof(GridDeRelacion.OcultarSiVacio), true}
             };
 
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
@@ -358,7 +367,7 @@ namespace MVCSistemaDeElementos.Descriptores
                { nameof(GridDeRelacion.PropiedadRestrictora), nameof(ContratoDto.IdExpediente) },
                { nameof(GridDeRelacion.RestrictorFijo), nameof(ContratoDto.ClaseDeContrato) + "=" + claseContrato},
                { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(ContratosController)}/{crud}?id={nameof(ContratoDto.Id)}"},
-               { nameof(GridDeRelacion.OcultarSiVacio), false}
+               { nameof(GridDeRelacion.OcultarSiVacio), true}
             };
 
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
@@ -421,7 +430,7 @@ namespace MVCSistemaDeElementos.Descriptores
                { nameof(GridDeRelacion.AccionDeConsulta), nameof(FacturasRecController.epLeerElementos)},
                { nameof(GridDeRelacion.PropiedadRestrictora), nameof(FacturaRecDto.IdExpediente) },
                { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(FacturasRecController)}/{nameof(FacturasRecController.CrudFacturasRec)}?id={nameof(FacturaRecDto.Id)}"},
-               { nameof(GridDeRelacion.OcultarSiVacio), false}
+               { nameof(GridDeRelacion.OcultarSiVacio), true}
             };
 
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
@@ -457,7 +466,7 @@ namespace MVCSistemaDeElementos.Descriptores
                { nameof(GridDeRelacion.AccionDeConsulta), nameof(FacturasEmtController.epLeerElementos)},
                { nameof(GridDeRelacion.PropiedadRestrictora), nameof(ltrDeUnaFacturaEmt.IdExpediente) },
                { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(FacturasEmtController)}/{nameof(FacturasEmtController.CrudFacturasEmt)}?id={nameof(FacturaEmtDto.Id)}"},
-               { nameof(GridDeRelacion.OcultarSiVacio), false}
+               { nameof(GridDeRelacion.OcultarSiVacio), true}
             };
 
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
@@ -493,7 +502,7 @@ namespace MVCSistemaDeElementos.Descriptores
                { nameof(GridDeRelacion.OrdenarPor), $"{nameof(EntregaDeUnPedidoDto.RecepcionadaEl)}:{enumModoOrdenacion.descendente.Render()}" },
                // la entrega es de una línea del pedido (IdElemento): se edita el pedido
                { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar) , $"{nameof(PedidosController)}/{nameof(PedidosController.CrudPedidos)}?id={nameof(EntregaDeUnPedidoDto.IdElemento)}"},
-               { nameof(GridDeRelacion.OcultarSiVacio), false}
+               { nameof(GridDeRelacion.OcultarSiVacio), true}
             };
 
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
@@ -502,7 +511,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private DescriptorDeExpansor DescriptorDeApuntes()
         {
-            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-apuntes", "Otros apuntes", true, "apuntes económicos");
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-apuntes", "Apuntes de gastos e ingresos", true, "apuntes económicos");
             Editor.Expanes.Insert(4, expansor);
 
             var columnas = new DescriptorDeColumnas("apuntes");
@@ -522,7 +531,7 @@ namespace MVCSistemaDeElementos.Descriptores
                  , { nameof(GridDeRelacion.AccionDeConsulta), nameof(ApuntesDeExpedienteController.epLeerElementos)}
                  , { nameof(GridDeRelacion.PropiedadRestrictora), nameof(ApunteDeExpedienteDto.IdElemento) }
                  , { nameof(GridDeRelacion.OrdenarPor), orden }
-                 , { nameof(GridDeRelacion.OcultarSiVacio), false}
+                 , { nameof(GridDeRelacion.OcultarSiVacio), true}
                 };
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
             gridDeRelacion.PermitirBorrar = true;

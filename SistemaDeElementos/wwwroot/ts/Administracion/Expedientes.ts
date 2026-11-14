@@ -4,7 +4,10 @@
         EXP_Etapa_Asociar_Tareas,
         EXP_Etapa_Asociar_Presupuestos,
         EXP_Etapa_Asociar_SC_Compra,
-        EXP_Etapa_Asociar_SC_Venta
+        EXP_Etapa_Asociar_SC_Venta,
+        EXP_Etapa_Ejecucion,
+        EXP_Etapa_Terminada,
+        EXP_Etapa_Cancelada
     }
 
     enum enumClaseDeExpediente {
@@ -130,25 +133,76 @@
         protected AntesDeMapearElementoDevuelto(peticion: ApiDeAjax.DescriptorAjax) {
             super.AntesDeMapearElementoDevuelto(peticion);
             ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.tareas), peticion.resultado.datos, ltrPropiedades.Expediente.usaTareas);
-            ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.ppts), peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
-            ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.apuntes), peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
-            ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.facturasRec), peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
-            ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.facturasEmt), peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
+            // Los spans de presupuestos, contratos, facturas y apuntes se ocultan si están vacíos (OcultarSiVacio en DescriptorDeExpedientes):
+            // los muestra la lectura de su grid si tiene datos. Aquí sólo se ocultan los que el tipo no usa, nunca se muestran, porque al
+            // recargar sólo la cabecera (RecargarValoresDeCabecera, tras imputar algo) no se vuelven a leer los grids y un span vacío quedaría visible
+            this.OcultarEspanSiNoLoUsa(ltrEspanes.Expedientes.ppts, peticion.resultado.datos, ltrPropiedades.Expediente.usaPpts);
             if ((this.CrudDeMnt as CrudDeExpedientes).ClaseDeExpediente === enumClaseDeExpediente.juridico && !this.EsUnProcedimientoJudicial) {
-                ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsVenta), peticion.resultado.datos, ltrPropiedades.Expediente.scDeVenta);
-                ApiPanel.MostrarEspanSegunPropiedad(this.IdDeExpansor(ltrEspanes.Expedientes.ctrsCompra), peticion.resultado.datos, ltrPropiedades.Expediente.scDeCompra);
+                this.OcultarEspanSiNoLoUsa(ltrEspanes.Expedientes.ctrsVenta, peticion.resultado.datos, ltrPropiedades.Expediente.scDeVenta);
+                this.OcultarEspanSiNoLoUsa(ltrEspanes.Expedientes.ctrsCompra, peticion.resultado.datos, ltrPropiedades.Expediente.scDeCompra);
             }
 
         }
 
 
+        private OcultarEspanSiNoLoUsa(espan: string, datos: any, propiedad: string) {
+            const div = document.getElementById(this.IdDeExpansor(espan)) as HTMLDivElement;
+            if (Definido(div) && !ObtenerPropiedad(datos, propiedad, false))
+                ApiPanel.MostrarDetalleSi(div, datos, false);
+        }
+
         protected DespuesDeMapearElementoDevuelto(panel: HTMLDivElement, peticion: ApiDeAjax.DescriptorAjax): void {
             super.DespuesDeMapearElementoDevuelto(panel, peticion);
+
+            // la fila de importes (presupuestado, gastos, ingresos, pagado y cobrado) sólo se muestra si el expediente tiene presupuestos o algo
+            // imputado; sin presupuestos, "Presupuestado" se oculta manteniendo su hueco para que el resto no se desplace
+            const datos = peticion.resultado.datos;
+            const tienePresupuestos: boolean = ObtenerPropiedad(datos, ltrPropiedades.Expediente.TienePresupuestos, false);
+            if (tienePresupuestos || ObtenerPropiedad(datos, ltrPropiedades.Expediente.TieneImputaciones, false))
+                ApiPanel.MostrarFila(this.PanelDelDto, ltrPropiedades.Expediente.Gastos);
+            else
+                ApiPanel.OcultarFila(this.PanelDelDto, ltrPropiedades.Expediente.Gastos);
+
+            const presupuestado = ApiPanel.BuscarCeldaPorPropiedad(this.PanelDelDto, ltrPropiedades.Expediente.Presupuestado);
+            if (Definido(presupuestado))
+                presupuestado.style.visibility = tienePresupuestos ? '' : 'hidden';
+
             let etapas: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Expediente.Etapas, false);
-            if (!EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_Presupuestos)) {
+            // valoraciones y presupuestos sólo se crean o asocian en la etapa de presupuestación (ver GestorDePresupuestos y
+            // ExtensorDePresupuestos.CrearValoracion); para admitirlos en otro estado, se incluye ese estado en la etapa
+            const admitePpts = EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_Presupuestos);
+            if (admitePpts && this.EsGestor)
+                ApiControl.DesbloquearReferenciaPostDeCreacion(this.IdDeExpansor(ltrEspanes.Expedientes.ppts));
+            else
                 ApiControl.BloquearReferenciaPostDeCreacion(this.IdDeExpansor(ltrEspanes.Expedientes.ppts));
-                ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.ppts, ltrEspanes.Opcion.crearDt), true);
+            // en el span sólo se deja "Crear presupuesto": "Añadir valoración" y "Asociar presupuesto" están en el menú de la edición, que
+            // pulsa estas referencias ocultas (ver PulsarReferenciaDelExpansor)
+            ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.ppts, ltrEspanes.Opcion.crearDt), true);
+            ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.ppts, ltrEspanes.Opcion.vincular), true);
+
+            // un expediente terminado o cancelado no admite nuevas facturas recibidas ni apuntes
+            const cerrado = EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Terminada) ||
+                EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Cancelada);
+            // "Asociar factura" sólo desde el menú de la edición (pulsa esta referencia oculta)
+            ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.facturasRec, ltrEspanes.Opcion.vincular), true);
+            ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.facturasRec, ltrEspanes.Opcion.crearRef), cerrado);
+            ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.apuntes, ltrEspanes.Opcion.crearRelacion), cerrado);
+
+            // las opciones del menú hacen lo mismo que las referencias de los spans (que no se ven si están vacíos) y siguen sus reglas
+            const menuExp = ltrMenus.eventosDeMf.Administracion.Expedientes;
+            // bloque de presupuestos: oculto, con su raya, si el tipo no usa presupuestos
+            const usaPpts: boolean = ObtenerPropiedad(this.Registro, ltrPropiedades.Expediente.usaPpts, false);
+            for (const opcion of [menuExp.CrearValoracion, menuExp.CrearPresupuesto, menuExp.VincularPresupuesto]) {
+                ApiDeMenuFlotante.MostrarOpcionDeMenuSi(this.ContenedorMenu, opcion, usaPpts);
+                ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, opcion, ltrMenus.enumOrigen.edicion, !this.EsGestor || !admitePpts);
             }
+            document.querySelectorAll(`hr[bloque-mf="presupuestos"]`).forEach(hr => {
+                if (usaPpts) ApiControl.ExcluirCss(hr as HTMLElement, enumCssOpcionMenu.OcultarHr);
+                else ApiControl.IncluirCss(hr as HTMLElement, enumCssOpcionMenu.OcultarHr);
+            });
+            ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, menuExp.VincularFacturaRec, ltrMenus.enumOrigen.edicion, !this.EsGestor || cerrado);
+            ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, menuExp.CrearFacturaRec, ltrMenus.enumOrigen.edicion, !this.EsGestor || cerrado);
+            ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, menuExp.AnadirApunte, ltrMenus.enumOrigen.edicion, !this.EsGestor || cerrado);
 
             let ocultar = !EstaElEnumerado(etapas, enumEtapasDeExpedientes, enumEtapasDeExpedientes.EXP_Etapa_Asociar_Tareas);
             ApiPanel.OcultarMostrarPanelPorId(this.OpcionDeExpansor(ltrEspanes.Expedientes.tareas, ltrEspanes.Opcion.crearRef), ocultar);
@@ -173,7 +227,30 @@
                 this.Expansor_AbrirModalDeVincular(ltrModalDeVincular.registrosDeEs);
                 return true;
             }
+
+            const menuExp = ltrMenus.eventosDeMf.Administracion.Expedientes;
+            const referencias = {
+                [menuExp.VincularFacturaRec]: [ltrEspanes.Expedientes.facturasRec, ltrEspanes.Opcion.vincular],
+                [menuExp.CrearFacturaRec]: [ltrEspanes.Expedientes.facturasRec, ltrEspanes.Opcion.crearRef],
+                [menuExp.AnadirApunte]: [ltrEspanes.Expedientes.apuntes, ltrEspanes.Opcion.crearRelacion],
+                [menuExp.VincularPresupuesto]: [ltrEspanes.Expedientes.ppts, ltrEspanes.Opcion.vincular],
+                [menuExp.CrearValoracion]: [ltrEspanes.Expedientes.ppts, ltrEspanes.Opcion.crearDt],
+                [menuExp.CrearPresupuesto]: [ltrEspanes.Expedientes.ppts, ltrEspanes.Opcion.crearRef],
+            };
+            if (Definido(referencias[opcion])) {
+                this.PulsarReferenciaDelExpansor(referencias[opcion][0], referencias[opcion][1]);
+                return true;
+            }
             return false;
+        }
+
+        // Ejecuta la referencia del span (aunque el span esté oculto por no tener datos): vincular, crear o añadir
+        private PulsarReferenciaDelExpansor(espan: string, opcion: string) {
+            const id = `${this.IdDeExpansor(espan)}-${opcion}.ref`.toLowerCase();
+            const referencia = document.getElementById(id) as HTMLElement;
+            if (NoDefinido(referencia))
+                MensajesSe.EmitirExcepcion("PulsarReferenciaDelExpansor", `no se ha localizado la referencia ${id}`);
+            referencia.click();
         }
 
 
@@ -182,6 +259,12 @@
             if (grid.id === this.IdGridDelExpansor(ltrEspanes.Expedientes.apuntes)) {
                 ApiDeArchivos.MostrarArchivosAnexados(this.PanelDeArchivos.id, this.CrudDeMnt.NombreDeNegocio, this.Registro.id);
             }
+
+            // lo que se imputa desde la edición cambia los importes de los datos generales (las entregas y devoluciones se imputan desde el pedido)
+            const imputables = [ltrEspanes.Expedientes.apuntes, ltrEspanes.Expedientes.facturasRec, ltrEspanes.Expedientes.facturasEmt,
+                                ltrEspanes.Expedientes.ppts, ltrEspanes.Expedientes.ctrsVenta, ltrEspanes.Expedientes.ctrsCompra];
+            if (imputables.some(espan => grid.id === this.IdGridDelExpansor(espan)))
+                this.RecargarValoresDeCabecera(this.ElementoEditado.Id);
         }
 
     }

@@ -900,6 +900,13 @@ namespace Utilidades
         public const string Exp_IrATareas = IrATareas;
         public const string Exp_ImputarFacturas = Imputar_FacturasRec;
         public const string Exp_IrAFacturasRec = IrAFacturasRec;
+        // opciones de la edición que hacen lo mismo que las referencias de sus spans (que se ocultan si están vacíos)
+        public const string Exp_VincularFacturaRec = "vincular-far";
+        public const string Exp_CrearFacturaRec = "crear-far";
+        public const string Exp_AnadirApunte = "anadir-apunte";
+        public const string Exp_VincularPresupuesto = "vincular-ppt";
+        public const string Exp_CrearValoracion = "crear-valoracion";
+        public const string Exp_CrearPresupuesto = "crear-ppt";
 
         public const string Ppt_IrAFacturasEmt = IrAFacturasEmt;
         public const string Ppt_IrAPartesTr = IrAPartesTr;

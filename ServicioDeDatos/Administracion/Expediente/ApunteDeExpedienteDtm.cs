@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DocumentFormat.OpenXml;
 using Microsoft.EntityFrameworkCore;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.MaestrosTecnico;
@@ -13,8 +14,17 @@ namespace ServicioDeDatos.Expediente
 {
     public enum enumApunteDeExpediente { Ingreso, Gasto}
 
+    public class ltrApuntesDeExpediente
+    {
+        // Acción con la que se graba el preasiento de un apunte ya registrado (al activar los preasientos de expedientes); con ella el
+        // gestor no vuelve a preasentarlo
+        public const string Accion_GenerarPreasiento = nameof(Accion_GenerarPreasiento);
+    }
+
+    // Apunte de gasto o de ingreso imputado a un expediente. Lleva su propio preasiento (IdPreasiento), del negocio de expedientes, si la
+    // sociedad del expediente genera los de expedientes (ver ExtensorDePreasientos.Preasentar del apunte)
     [Table(Tablas.APUNTE , Schema = Esquemas.EXPEDIENTE)]
-    public class ApunteDeExpedienteDtm : RegistroDtm, IDetalle, IUsaArchivo, IAuditoria
+    public class ApunteDeExpedienteDtm : RegistroDtm, IDetalle, IUsaArchivo, IAuditoria, IUsaPreasiento
     {
         public int IdElemento { get; set; }
         public ExpedienteDtm Elemento { get; set; }
@@ -32,6 +42,12 @@ namespace ServicioDeDatos.Expediente
 
         public int? IdArchivo { get; set ; }
         public ArchivoDtm Archivo { get ; set ; }
+
+        public int? IdPreasiento { get; set; }
+        public PreasientoDtm Preasiento { get; set; }
+
+        // no se guarda, la calcula ExtensorDeExpedientes.CalcularReferencia
+        public string Referencia { get; set; }
 
         public int IdUsuaCrea { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -53,6 +69,8 @@ namespace ServicioDeDatos.Expediente
         {
             modelBuilder.Entity<ApunteDeExpedienteDtm>().Ignore(x => x.Elemento);
             modelBuilder.Entity<ApunteDeExpedienteDtm>().Ignore(x => x.Negocio);
+            modelBuilder.Entity<ApunteDeExpedienteDtm>().Ignore(x => x.Referencia);
+            ApiDeRegistroDtm.DefinirCampoFk<ApunteDeExpedienteDtm>(modelBuilder, nameof(ApunteDeExpedienteDtm.Preasiento), nameof(ApunteDeExpedienteDtm.IdPreasiento), ICampos.ID_PREASIENTO, requerida: false, unico: false);
             modelBuilder.Entity<ApunteDeExpedienteDtm>().Property(nameof(ApunteDeExpedienteDtm.IdElemento)).HasColumnName(ICampos.ID_ELEMENTO).HasColumnType(IDominio.INT).IsRequired();
             ApiDeRegistroDtm.DefinirFk<ApunteDeExpedienteDtm, ExpedienteDtm>(modelBuilder, nameof(ApunteDeExpedienteDtm.IdElemento), ICampos.ID_ELEMENTO, unico: false);
 

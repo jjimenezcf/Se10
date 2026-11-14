@@ -64,12 +64,8 @@ namespace GestorDeElementos.Extensores
 
         public static bool UsaElDetalleDe(ContextoSe contexto, int idTipo, Type tipoDeDetalle)
         {
-            var tipoDtm = (TipoDeExpedienteDtm)enumNegocio.Expediente.CrearGestorDeTipo(contexto).LeerRegistroPorId(idTipo, aplicarJoin: false);
-
-            if (tipoDtm.UsaPpts && tipoDeDetalle == typeof(ApunteDeExpedienteDtm))
-                return true;
-
-            return false;
+            // los apuntes de gastos e ingresos los puede tener cualquier tipo de expediente: sus importes se calculan para todos (ver Gastos e Ingresos)
+            return tipoDeDetalle == typeof(ApunteDeExpedienteDtm);
         }
 
 
@@ -146,6 +142,51 @@ namespace GestorDeElementos.Extensores
                 var metodoCerrado = metodoGenericoBase.MakeGenericMethod(t);
                 metodoCerrado.Invoke(null, new object[] { expediente, contexto });
             }
+        }
+
+        // Lo que tiene imputado económicamente el expediente: entregas en su obra no devueltas del todo, facturas recibidas no canceladas,
+        // facturas emitidas no anuladas (de sus presupuestos o contratos) y apuntes de gastos o ingresos
+        public static List<string> Imputaciones(this ExpedienteDtm expediente, ContextoSe contexto)
+        {
+            var idExpediente = expediente.Id;
+            var imputaciones = new List<string>();
+
+            if (contexto.Set<RecepcionDeLineaDtm>().Where(r => r.IdExpediente == idExpediente).ToList().Any(r => r.CantidadPendienteDeDevolver(contexto) > 0))
+                imputaciones.Add("entregas de pedidos");
+
+            if (expediente.FacturasRec(contexto).Count > 0)
+                imputaciones.Add(enumNegocio.FacturaRecibida.Plural(true));
+
+            var faes = contexto.Set<FacturaEmtDtm>()
+                .Where(f => contexto.Set<PresupuestoDtm>().Any(p => p.IdExpediente == idExpediente && p.Id == f.IdPresupuesto) ||
+                            contexto.Set<ContratoDtm>().Any(c => c.IdExpediente == idExpediente && c.Id == f.IdContrato))
+                .ToList();
+            if (faes.Any(f => !f.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeFacturasEmt> { enumEtapasDeFacturasEmt.FAE_Etapa_Anulada })))
+                imputaciones.Add(enumNegocio.FacturaEmitida.Plural(true));
+
+            var apuntes = expediente.Detalles<ApunteDeExpedienteDtm>(contexto).ToList();
+            if (apuntes.Any(a => a.Clase == enumApunteDeExpediente.Gasto))
+                imputaciones.Add("apuntes de gastos");
+            if (apuntes.Any(a => a.Clase == enumApunteDeExpediente.Ingreso))
+                imputaciones.Add("apuntes de ingresos");
+
+            return imputaciones;
+        }
+
+        // La referencia del apunte no se guarda (se ignora en el modelo): la usan los mensajes y la cancelación de su preasiento
+        public static ApunteDeExpedienteDtm CalcularReferencia(this ApunteDeExpedienteDtm apunte, ContextoSe contexto)
+        {
+            var expediente = contexto.SeleccionarPorId<ExpedienteDtm>(apunte.IdElemento);
+            apunte.Referencia = $"{expediente.Referencia}: {(apunte.Clase == enumApunteDeExpediente.Gasto ? "gasto" : "ingreso")} nº {apunte.Orden} del {apunte.ImputadoEl:dd/MM/yyyy}";
+            return apunte;
+        }
+
+        // Se valida en cualquier transición que lleve el expediente a la etapa de cancelado, sea cual sea la etapa de la que parta
+        public static void ValidarQueNoTieneImputaciones(this ExpedienteDtm expediente, ContextoSe contexto)
+        {
+            var imputaciones = expediente.Imputaciones(contexto);
+            if (imputaciones.Count > 0)
+                GestorDeErrores.Emitir($"No se puede cancelar el {enumNegocio.Expediente.Singular(true)} '{expediente.Referencia}' por tener imputados/as: {string.Join(", ", imputaciones)}");
         }
 
         public static void CopiarDireccionesDel(this ExpedienteDtm expediente, ContextoSe contexto, IElementoDtm origen, enumCalificadorDireccion calificador, bool errorSiNoHay = false)
@@ -251,15 +292,11 @@ namespace GestorDeElementos.Extensores
             var cache = ServicioDeCaches.Obtener(CacheDe.Exp_Gastos);
             if (!cache.ContainsKey(expediente.Id.ToString()))
             {
-                if (expediente.Tipo<TipoDeExpedienteDtm>(contexto).UsaPpts)
-                {
-                    var fars = expediente.FacturasRec(contexto);
-                    var apuntes = expediente.Detalles<ApunteDeExpedienteDtm>(contexto).Where(a => a.Clase == enumApunteDeExpediente.Gasto);
+                // no depende de si el tipo usa presupuestos: lo imputado (facturas, apuntes, entregas en su obra) siempre cuenta
+                var fars = expediente.FacturasRec(contexto);
+                var apuntes = expediente.Detalles<ApunteDeExpedienteDtm>(contexto).Where(a => a.Clase == enumApunteDeExpediente.Gasto);
 
-                    cache[expediente.Id.ToString()] = fars.Sum(f => f.BaseImponible) + apuntes.Sum(a => a.Valor) + expediente.Recepcionado(contexto);
-                }
-                else
-                    cache[expediente.Id.ToString()] = (decimal)0;
+                cache[expediente.Id.ToString()] = fars.Sum(f => f.BaseImponible) + apuntes.Sum(a => a.Valor) + expediente.Recepcionado(contexto);
             }
             return (decimal)cache[expediente.Id.ToString()];
         }
@@ -279,9 +316,6 @@ namespace GestorDeElementos.Extensores
 
         public static decimal Ingresos(this ExpedienteDtm expediente, ContextoSe contexto)
         {
-            if (!expediente.Tipo<TipoDeExpedienteDtm>(contexto).UsaPpts)
-                return 0;
-
             var cache = ServicioDeCaches.Obtener(CacheDe.Exp_Ingresos);
             if (!cache.ContainsKey(expediente.Id.ToString()))
             {
@@ -305,9 +339,6 @@ namespace GestorDeElementos.Extensores
 
         public static decimal Pagos(this ExpedienteDtm expediente, ContextoSe contexto)
         {
-            if (!expediente.Tipo<TipoDeExpedienteDtm>(contexto).UsaPpts)
-                return 0;
-
             var cache = ServicioDeCaches.Obtener(CacheDe.Exp_Pagos);
             if (!cache.ContainsKey(expediente.Id.ToString()))
             {
@@ -327,9 +358,6 @@ namespace GestorDeElementos.Extensores
 
         public static decimal Cobros(this ExpedienteDtm expediente, ContextoSe contexto)
         {
-            if (!expediente.Tipo<TipoDeExpedienteDtm>(contexto).UsaPpts)
-                return 0;
-
             var cache = ServicioDeCaches.Obtener(CacheDe.Exp_Cobros);
             if (!cache.ContainsKey(expediente.Id.ToString()))
             {

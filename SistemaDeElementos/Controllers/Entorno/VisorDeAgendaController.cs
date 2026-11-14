@@ -105,8 +105,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var idEvento = (int)parametros.LeerValor<long>(nameof(EventoDeAgendaDtm.Id));
                 var evento = Contexto.SeleccionarPorId<EventoDeAgendaDtm>(idEvento);
                 var negocio = NegociosDeSe.ToEnumerado(evento.IdNegocio);
-                var vista = negocio.VistaMvc(Contexto);
-                r.Datos = $"{negocio.Controlador()}/{vista.Accion}?Id={evento.IdElemento}";
+                r.Datos = negocio.UrlDeEdicion(Contexto, evento.IdElemento);
                 r.Consola = $"Origen obtenido correctamente";
                 r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
                 r.Estado = enumEstadoPeticion.Ok;

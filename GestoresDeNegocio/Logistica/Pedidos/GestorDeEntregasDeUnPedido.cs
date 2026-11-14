@@ -296,6 +296,9 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(recepcion, elemento, parametros);
             elemento.CantidadDevuelta = recepcion.CantidadDevuelta(Contexto);
+            // desde el expediente: lo no devuelto, con la misma fórmula que ExtensorDeExpedientes.Recepcionado
+            if (parametros.Parametros.LeerValor(ltrEntregasDeUnPedido.ImporteNoDevuelto, false))
+                elemento.Importe = (recepcion.Cantidad - elemento.CantidadDevuelta) * recepcion.Precio * (1 - (recepcion.Descuento ?? 0) / 100);
             elemento.Contabilizada = recepcion.EntregaContabilizada(Contexto);
             elemento.Pedido = ((PedidoDtm)recepcion.LineaDePedido(Contexto).Elemento(Contexto)).Referencia;
         }

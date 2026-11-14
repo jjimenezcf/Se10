@@ -3287,6 +3287,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_NATURALEZA");
 
+                    b.Property<int?>("IdPreasiento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_PREASIENTO");
+
                     b.Property<int>("IdUsuaCrea")
                         .HasColumnType("INT")
                         .HasColumnName("ID_CREADOR");
@@ -3322,6 +3326,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdNaturaleza")
                         .HasDatabaseName("I_APUNTE_ID_NATURALEZA");
+
+                    b.HasIndex("IdPreasiento")
+                        .HasDatabaseName("I_APUNTE_ID_PREASIENTO");
 
                     b.HasIndex("IdUsuaCrea")
                         .HasDatabaseName("I_APUNTE_ID_CREADOR");
@@ -33309,6 +33316,12 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_APUNTE_ID_NATURALEZA");
 
+                    b.HasOne("ServicioDeDatos.Contabilidad.PreasientoDtm", "Preasiento")
+                        .WithMany()
+                        .HasForeignKey("IdPreasiento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_APUNTE_ID_PREASIENTO");
+
                     b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
                         .WithMany()
                         .HasForeignKey("IdUsuaCrea")
@@ -33325,6 +33338,8 @@ namespace Migraciones.Migrations
                     b.Navigation("Archivo");
 
                     b.Navigation("Naturaleza");
+
+                    b.Navigation("Preasiento");
 
                     b.Navigation("UsuarioCreador");
 

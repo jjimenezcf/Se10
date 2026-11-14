@@ -614,7 +614,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var factura = Contexto.SeleccionarPorId<FacturaEmtDtm>(idRegistro);
                 var rectificadaPor = factura.RectificadaPor(Contexto, errorSiNoHay: true);
 
-                r.Datos = $"{enumNegocio.FacturaEmitida.Controlador()}/{enumNegocio.FacturaEmitida.VistaMvc(Contexto).Accion}?Id={rectificadaPor.Id}";
+                r.Datos = enumNegocio.FacturaEmitida.UrlDeEdicion(Contexto, rectificadaPor.Id);
                 r.Consola = $"factura que me rectifica obtenida correctamente";
                 r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
                 r.Estado = enumEstadoPeticion.Ok;
@@ -640,7 +640,7 @@ namespace MVCSistemaDeElementos.Controllers
                 var factura = Contexto.SeleccionarPorId<FacturaEmtDtm>(idRegistro);
                 var rectificoA = factura.RectificaA(Contexto, errorSiNoHay: true);
 
-                r.Datos = $"{enumNegocio.FacturaEmitida.Controlador()}/{enumNegocio.FacturaEmitida.VistaMvc(Contexto).Accion}?Id={rectificoA.Id}";
+                r.Datos = enumNegocio.FacturaEmitida.UrlDeEdicion(Contexto, rectificoA.Id);
                 r.Consola = $"factura que me rectifica obtenida correctamente";
                 r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
                 r.Estado = enumEstadoPeticion.Ok;

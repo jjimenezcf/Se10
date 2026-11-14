@@ -12,6 +12,7 @@ using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Expediente;
 using ServicioDeDatos.Gastos;
+using ServicioDeDatos.Logistica;
 using ServicioDeDatos.Juridico;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.Tarea;
@@ -154,6 +155,10 @@ namespace GestoresDeNegocio.Expediente
             if (expediente.EstaEnLaEtapa(enumEtapasDeExpedientes.EXP_Etapa_Asociar_Presupuestos) && transicion.EsCancelado)
                 expediente.AntesDeCancelar(Contexto);
 
+            // desde cualquier etapa: no se cancela un expediente con entregas, facturas o apuntes imputados
+            if (transicion.EsCancelado || transicion.EntrarEnLaEtapaDe(enumEtapasDeExpedientes.EXP_Etapa_Cancelada.Estados()))
+                expediente.ValidarQueNoTieneImputaciones(Contexto);
+
             if (transicion.EsTerminado)
                 expediente.AntesDeTerminar(Contexto);
 
@@ -210,6 +215,22 @@ namespace GestoresDeNegocio.Expediente
                         elemento.informacion = $"El cliente '{cliente.Referencia(Contexto)}' está de baja, por tanto no es editable";
                     }
                 }
+            }
+
+            // en la edición, los importes se muestran (sólo consulta) si el expediente tiene algo imputado
+            if (parametros.LeerPorIdParaEditar)
+            {
+                elemento.TienePresupuestos = expediente.TienePresupuestos(Contexto);
+                elemento.Presupuestado = elemento.TienePresupuestos ? expediente.PresupuestadoEn(Contexto) : 0;
+                elemento.Gastos = expediente.Gastos(Contexto);
+                elemento.Ingresos = expediente.Ingresos(Contexto);
+                elemento.Pagado = expediente.Pagos(Contexto);
+                elemento.Cobrado = expediente.Cobros(Contexto);
+                // una entrega devuelta del todo no suma gastos ni impide cancelar, pero los importes se siguen mostrando
+                var idExpediente = expediente.Id;
+                elemento.TieneImputaciones = elemento.Gastos != 0 || elemento.Ingresos != 0 || elemento.Pagado != 0 || elemento.Cobrado != 0
+                                             || Contexto.Set<RecepcionDeLineaDtm>().Any(r => r.IdExpediente == idExpediente)
+                                             || expediente.Imputaciones(Contexto).Count > 0;
             }
 
             if (parametros.LeerDatosParaElGridOParaExportar)

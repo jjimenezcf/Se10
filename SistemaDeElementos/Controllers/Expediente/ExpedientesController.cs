@@ -180,6 +180,12 @@ namespace MVCSistemaDeElementos.Controllers
             switch (opcion)
             {
                 case eventosDeMf.Exp_VincularRegistroEntrada:
+                case eventosDeMf.Exp_VincularFacturaRec:
+                case eventosDeMf.Exp_CrearFacturaRec:
+                case eventosDeMf.Exp_AnadirApunte:
+                case eventosDeMf.Exp_VincularPresupuesto:
+                case eventosDeMf.Exp_CrearValoracion:
+                case eventosDeMf.Exp_CrearPresupuesto:
                     return null;
                 case eventosDeMf.Exp_IrATareas:
                     //ExtensorDeFacturasEmt.ValidarTieneParte(Contexto, (List<int>)parametros[ltrParametrosEp.ids]);

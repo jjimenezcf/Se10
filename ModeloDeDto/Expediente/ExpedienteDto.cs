@@ -109,20 +109,48 @@ namespace ModeloDeDto.Expediente
 
 
         //--------------------------------------------
-        [IUPropiedad(VisibleEnGrid = true, VisibleEnEdicion = false, PorAnchoMnt = 10, Etiqueta = "Gastos", Formato = enumFormato.Moneda)]
+        // Presupuestado, Gastos, Ingresos, Pagado y Cobrado: en la última fila de los datos generales, sólo consulta; la fila se oculta si no hay
+        // nada imputado y Presupuestado, si no hay presupuestos, se oculta manteniendo su hueco (ver Expedientes.ts)
+        [IUPropiedad(Etiqueta = "Presupuestado", Ayuda = "total de sus presupuestos no cancelados (sin iva)",
+            TipoDeControl = enumTipoControl.Editor, Tipo = typeof(decimal), Alineada = enumAliniacion.derecha, Formato = enumFormato.Moneda,
+            Fila = 7, Columna = 0, VisibleAlCrear = false, VisibleAlEditar = true, EditableAlCrear = false, EditableAlEditar = false,
+            VisibleEnGrid = false)]
+        public decimal Presupuestado { get; set; }
+
+        [IUPropiedad(Visible = false)]
+        public bool TienePresupuestos { get; set; }
+
+        //--------------------------------------------
+        [IUPropiedad(Etiqueta = "Gastos", Ayuda = "facturas recibidas, apuntes de gastos y entregas en su obra menos lo devuelto (sin iva)",
+            TipoDeControl = enumTipoControl.Editor, Tipo = typeof(decimal), Alineada = enumAliniacion.derecha, Formato = enumFormato.Moneda,
+            Fila = 7, Columna = 1, VisibleAlCrear = false, VisibleAlEditar = true, EditableAlCrear = false, EditableAlEditar = false,
+            VisibleEnGrid = true, PorAnchoMnt = 10)]
         public decimal Gastos { get; set; }
 
         //--------------------------------------------
-        [IUPropiedad(VisibleEnGrid = true, VisibleEnEdicion = false, PorAnchoMnt = 10, Etiqueta = "Ingresos", Formato = enumFormato.Moneda)]
+        [IUPropiedad(Etiqueta = "Ingresos", Ayuda = "facturas emitidas y apuntes de ingresos (sin iva)",
+            TipoDeControl = enumTipoControl.Editor, Tipo = typeof(decimal), Alineada = enumAliniacion.derecha, Formato = enumFormato.Moneda,
+            Fila = 7, Columna = 2, VisibleAlCrear = false, VisibleAlEditar = true, EditableAlCrear = false, EditableAlEditar = false,
+            VisibleEnGrid = true, PorAnchoMnt = 10)]
         public decimal Ingresos { get; set; }
 
         //--------------------------------------------
-        [IUPropiedad(VisibleEnGrid = true, VisibleEnEdicion = false, PorAnchoMnt = 10, Etiqueta = "Pagado", Formato = enumFormato.Moneda)]
+        [IUPropiedad(Etiqueta = "Pagado", Ayuda = "pagos realizados de sus facturas recibidas",
+            TipoDeControl = enumTipoControl.Editor, Tipo = typeof(decimal), Alineada = enumAliniacion.derecha, Formato = enumFormato.Moneda,
+            Fila = 7, Columna = 3, VisibleAlCrear = false, VisibleAlEditar = true, EditableAlCrear = false, EditableAlEditar = false,
+            VisibleEnGrid = true, PorAnchoMnt = 10)]
         public decimal Pagado { get; set; }
 
         //--------------------------------------------
-        [IUPropiedad(VisibleEnGrid = true, VisibleEnEdicion = false, PorAnchoMnt = 10, Etiqueta = "Cobrado", Formato = enumFormato.Moneda)]
+        [IUPropiedad(Etiqueta = "Cobrado", Ayuda = "cobros de sus facturas emitidas",
+            TipoDeControl = enumTipoControl.Editor, Tipo = typeof(decimal), Alineada = enumAliniacion.derecha, Formato = enumFormato.Moneda,
+            Fila = 7, Columna = 4, VisibleAlCrear = false, VisibleAlEditar = true, EditableAlCrear = false, EditableAlEditar = false,
+            VisibleEnGrid = true, PorAnchoMnt = 10)]
         public decimal Cobrado { get; set; }
+
+        //--------------------------------------------
+        [IUPropiedad(Visible = false)]
+        public bool TieneImputaciones { get; set; }
 
         //--------------------------------------------
         [IUPropiedad(VisibleEnGrid = true, VisibleEnEdicion = false, PorAnchoMnt = 10, Etiqueta = "Margen", Ayuda = "Margen de beneficio", Formato = enumFormato.Porcentaje)]

@@ -893,7 +893,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
                 idExpediente = expedientes[0].Id;
             }
 
-            r.Datos = $"{enumNegocio.Expediente.Controlador()}/{enumNegocio.Expediente.VistaMvc(Contexto).Accion}?Id={idExpediente}";
+            r.Datos = enumNegocio.Expediente.UrlDeEdicion(Contexto, idExpediente);
             r.Consola = $"Origen obtenido correctamente";
             r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
             r.Estado = enumEstadoPeticion.Ok;
@@ -922,7 +922,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
             if (!registro.GetType().ImplementaUsaProveedor())
                 GestorDeErrores.Emitir($"El negocio '{negocio.Singular()}' no usa '{enumNegocio.Proveedor.Singular()}'");
 
-            r.Datos = $"{enumNegocio.Proveedor.Controlador()}/{enumNegocio.Proveedor.VistaMvc(Contexto).Accion}?Id={((IUsaProveedor)registro).IdProveedor}";
+            r.Datos = enumNegocio.Proveedor.UrlDeEdicion(Contexto, ((IUsaProveedor)registro).IdProveedor);
             r.Consola = $"Origen obtenido correctamente";
             r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
             r.Estado = enumEstadoPeticion.Ok;
@@ -951,7 +951,7 @@ public class EntidadController<TContexto, TRegistro, TElemento> : BaseController
             if (!registro.GetType().ImplementaUsaCliente())
                 GestorDeErrores.Emitir($"El negocio '{negocio.Singular()}' no usa '{enumNegocio.Cliente.Singular()}'");
 
-            r.Datos = $"{enumNegocio.Cliente.Controlador()}/{enumNegocio.Cliente.VistaMvc(Contexto).Accion}?Id={((IUsaCliente)registro).IdCliente}";
+            r.Datos = enumNegocio.Cliente.UrlDeEdicion(Contexto, ((IUsaCliente)registro).IdCliente);
             r.Consola = $"Origen obtenido correctamente";
             r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
             r.Estado = enumEstadoPeticion.Ok;

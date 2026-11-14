@@ -521,30 +521,41 @@ public static class NegociosDeSe
             }
 
             cache[i] = ToEnumerado(registro);
-
-            //foreach (enumNegocio valor in Enum.GetValues(typeof(enumNegocio)))
-            //{
-            //    if (valor.ToString() == registro.Enumerado)
-            //    {
-            //        cache[i] = valor;
-            //        return valor;
-            //    }
-            //}
-
-            //throw new Exception($"No se ha localizado como negocio el dto {claseDto}");
         }
         return (enumNegocio)cache[i];
     }
 
-    public static VistaMvcDtm VistaMvc(this enumNegocio negocio, ContextoSe contexto)
+    // Si el negocio se muestra con varias vistas (p.e. los expedientes con CrudExpedientes y CrudActividades) se elige como al crear el link
+    // de un elemento (ver VistasPorTipoDeNegocio): la del tipo indicado en el parámetro Vista_Por_Tipo_De_Negocio, la de por defecto del
+    // negocio (tipo 0) o la que se llama 'Crud' + plural del negocio. Sin tipo (0) se usa la de por defecto o la de la convención
+    public static VistaMvcDtm VistaMvc(this enumNegocio negocio, ContextoSe contexto, int idTipo = 0)
     {
         var vistas = contexto.SeleccionarTodos<VistaMvcDtm>(new Dictionary<string, object> { { nameof(VistaMvcDtm.Controlador), negocio.Controlador() }, { nameof(VistaMvcDtm.ElementoDto), negocio.TipoDto().FullName } });
-        if (vistas == null)
+        if (vistas == null || vistas.Count == 0)
             GestorDeErrores.Emitir($"No se ha encontrado la vista para el negocio '{negocio.Singular()}' usando el controlador '{negocio.Controlador()}' con el dto '{negocio.TipoDto().FullName}'");
         if (vistas.Count > 1)
-            GestorDeErrores.Emitir($"Se han encontrado '{vistas.Count}' vistas para el negocio '{negocio.Singular()}' usando el controlador '{negocio.Controlador()}' con el dto '{negocio.TipoDto().FullName}'");
+        {
+            var vistaPorTipo = negocio.LeerNegocio().VistasPorTipoDeNegocio(idTipo, vistas);
+            return vistas.FirstOrDefault(v => v.Id == vistaPorTipo.IdVista) ?? contexto.SeleccionarPorId<VistaMvcDtm>(vistaPorTipo.IdVista);
+        }
         return vistas[0];
     }
+
+    // La vista con la que se edita un elemento del negocio: si el negocio usa tipos se pasa el del elemento, que ha de existir
+    public static VistaMvcDtm VistaMvcDelElemento(this enumNegocio negocio, ContextoSe contexto, int idElemento)
+    {
+        var idTipo = 0;
+        if (negocio.TipoDtm().ImplementaElementoConTipo())
+        {
+            IUsaTipo elemento = negocio.SeleccionarPorId(contexto, idElemento);
+            idTipo = elemento.IdTipo;
+        }
+        return negocio.VistaMvc(contexto, idTipo);
+    }
+
+    // Url relativa de la edición de un elemento del negocio con la vista que le corresponde
+    public static string UrlDeEdicion(this enumNegocio negocio, ContextoSe contexto, int idElemento) =>
+        $"{negocio.Controlador()}/{negocio.VistaMvcDelElemento(contexto, idElemento).Accion}?Id={idElemento}";
 
     public static Dictionary<int, enumNegocio> NegociosConAgenda()
     {

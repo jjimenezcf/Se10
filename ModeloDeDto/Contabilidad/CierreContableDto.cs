@@ -159,6 +159,17 @@ namespace ModeloDeDto.Contabilidad
             EditableAlEditar = false)]
         public int Pedidos { get; set; }
 
+        [IUPropiedad(Etiqueta = "Expedientes",
+            Ayuda = "asientos de apuntes de gastos e ingresos de expedientes del lote",
+            Tipo = typeof(int),
+            Alineada = enumAliniacion.derecha,
+            Fila = 1,
+            Columna = 3,
+            Posicion = 6,
+            VisibleEnGrid = true,
+            EditableAlEditar = false)]
+        public int Expedientes { get; set; }
+
         // Calculada: solo se puede eliminar el último cierre realizado de la sociedad
         [IUPropiedad(Etiqueta = "Es el último cierre", Visible = false)]
         public bool EsElUltimoCierre { get; set; }

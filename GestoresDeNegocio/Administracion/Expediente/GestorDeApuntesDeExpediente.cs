@@ -30,7 +30,10 @@ namespace GestoresDeNegocio.Expediente
                 .ForMember(dto => dto.Naturaleza, x => x.MapFrom(dtm => dtm.Naturaleza != null ? dtm.Naturaleza.Expresion : null));
                 CreateMap<ApunteDeExpedienteDto, ApunteDeExpedienteDtm>()
                 .ForMember(dtm => dtm.Naturaleza, dto => dto.Ignore())
-                .ForMember(dtm => dtm.Elemento, dto => dto.Ignore());
+                .ForMember(dtm => dtm.Elemento, dto => dto.Ignore())
+                .ForMember(dtm => dtm.IdPreasiento, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Preasiento, dto => dto.Ignore())
+                .ForMember(dtm => dtm.Referencia, dto => dto.Ignore());
             }
         }
 
@@ -52,9 +55,38 @@ namespace GestoresDeNegocio.Expediente
             return consulta;
         }
 
+        // Si la sociedad del expediente genera preasientos de expedientes: al crear el apunte se preasienta; al modificar su clase, naturaleza,
+        // valor o fecha se cancela su preasiento (ha de estar pendiente) y se genera otro; al eliminarlo se cancela. La única modificación
+        // que no lo toca es la de grabar el preasiento al activar los de expedientes (ver ActivacionDePreasientos)
         protected override void AntesDePersistir(ApunteDeExpedienteDtm apunte, ParametrosDeNegocio parametros)
         {
+            // al usar preasiento el apunte usa referencia, que no se guarda: la base exige que esté calculada
+            if (apunte.Referencia.IsNullOrEmpty())
+                apunte.CalcularReferencia(Contexto);
+
             base.AntesDePersistir(apunte, parametros);
+
+            if (parametros.Modificando && parametros.AccionQueSeEjecuta == ltrApuntesDeExpediente.Accion_GenerarPreasiento)
+                return;
+
+            if (parametros.Insertando)
+                apunte.Preasentar(Contexto);
+
+            if (parametros.Modificando)
+            {
+                var anterior = (ApunteDeExpedienteDtm)parametros.registroEnBd;
+                // el dto no lleva el preasiento: se conserva el que tenía
+                apunte.IdPreasiento = anterior.IdPreasiento;
+                if (apunte.Clase != anterior.Clase || apunte.IdNaturaleza != anterior.IdNaturaleza || apunte.Valor != anterior.Valor || apunte.ImputadoEl != anterior.ImputadoEl)
+                {
+                    apunte.CancelarPreasiento(Contexto);
+                    apunte.Preasentar(Contexto);
+                }
+            }
+
+            if (parametros.Eliminando)
+                ((ApunteDeExpedienteDtm)parametros.registroEnBd).CancelarPreasiento(Contexto);
+
             if (parametros.Modificando)
             {
                 if (apunte.IdArchivo is null) apunte.IdArchivo = ((ApunteDeExpedienteDtm)parametros.registroEnBd).IdArchivo;

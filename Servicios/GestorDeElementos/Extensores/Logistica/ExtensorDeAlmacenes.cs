@@ -111,7 +111,7 @@ namespace GestorDeElementos.Extensores
             if (documento.negocio == enumNegocio.No_Definido)
                 Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no tiene un documento de origen o destino al que navegar");
 
-            return $"{documento.negocio.Controlador()}/{documento.negocio.VistaMvc(contexto).Accion}?Id={documento.id}";
+            return documento.negocio.UrlDeEdicion(contexto, documento.id);
         }
 
         // Url de la edición del preasiento contable del movimiento
@@ -120,14 +120,14 @@ namespace GestorDeElementos.Extensores
             var preasiento = movimiento.Preasiento(contexto);
             if (preasiento is null)
                 Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no tiene preasiento contable");
-            return $"{enumNegocio.Preasiento.Controlador()}/{enumNegocio.Preasiento.VistaMvc(contexto).Accion}?Id={preasiento.Id}";
+            return enumNegocio.Preasiento.UrlDeEdicion(contexto, preasiento.Id);
         }
 
         // Url de la edición del proveedor del pedido cuya recepción generó el movimiento
         public static string UrlDelProveedor(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var proveedor = movimiento.Proveedor(contexto, emitirErrorSiNoEsRecepcion: true);
-            return $"{enumNegocio.Proveedor.Controlador()}/{enumNegocio.Proveedor.VistaMvc(contexto).Accion}?Id={proveedor.Id}";
+            return enumNegocio.Proveedor.UrlDeEdicion(contexto, proveedor.Id);
         }
 
         // Url de la edición del unitario del movimiento, para navegar desde la consulta de inventario. El unitario no tiene controlador

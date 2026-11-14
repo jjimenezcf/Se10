@@ -39,6 +39,13 @@ namespace MVCSistemaDeElementos.Controllers
             if (modoAcceso == enumModoDeAccesoDeDatos.SinPermiso)
                 GestorDeErrores.Emitir($"El usuario {Contexto.DatosDeConexion.Login} no tiene acceso al elemento del negocio: {negocio.Singular()}");
 
+            // en el expediente se muestra el importe de lo no devuelto, que es lo que cuenta en sus gastos
+            if (porExpediente is not null)
+            {
+                opcionesDeMapeo ??= new Dictionary<string, object>();
+                opcionesDeMapeo[ltrEntregasDeUnPedido.ImporteNoDevuelto] = true;
+            }
+
             return GestorDeEntregasDeUnPedido.Gestor(Contexto, Contexto.Mapeador).LeerElementos(posicion, cantidad, filtros, orden, opcionesDeMapeo);
         }
 

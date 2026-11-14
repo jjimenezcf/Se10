@@ -32,6 +32,7 @@ namespace GestoresDeNegocio.Contabilidad
                 .ForMember(dto => dto.Emitidas, x => x.Ignore())
                 .ForMember(dto => dto.Almacen, x => x.Ignore())
                 .ForMember(dto => dto.Pedidos, x => x.Ignore())
+                .ForMember(dto => dto.Expedientes, x => x.Ignore())
                 .ForMember(dto => dto.EsElUltimoCierre, x => x.Ignore())
                 .ForMember(dto => dto.Desde, x => x.Ignore())
                 .ForMember(dto => dto.CerradoEl, x => x.MapFrom(dtm => dtm.FechaCreacion));
@@ -282,6 +283,7 @@ namespace GestoresDeNegocio.Contabilidad
             elemento.Emitidas = Cantidad(enumNegocio.FacturaEmitida);
             elemento.Almacen = Cantidad(enumNegocio.Almacen);
             elemento.Pedidos = Cantidad(enumNegocio.Pedido);
+            elemento.Expedientes = Cantidad(enumNegocio.Expediente);
         }
     }
 }

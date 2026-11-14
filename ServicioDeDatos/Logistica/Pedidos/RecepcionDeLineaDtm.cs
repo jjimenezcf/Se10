@@ -22,6 +22,8 @@ namespace ServicioDeDatos.Logistica
         // Acción con la que se graba el preasiento de una entrega en obra ya registrada (al activar los preasientos de pedidos); es la
         // única modificación que admite una entrega
         public const string Accion_GenerarPreasiento = nameof(Accion_GenerarPreasiento);
+        // Al leer las entregas desde la edición del expediente, el importe es el de lo no devuelto (lo que suma en sus gastos)
+        public const string ImporteNoDevuelto = nameof(ImporteNoDevuelto);
     }
 
     // Entregas de una línea de un pedido: cada entrega va a un movimiento del almacén (IdAlmacen) o a un movimiento
