@@ -119,6 +119,12 @@ namespace MVCSistemaDeElementos.Controllers
                     if (ids.Count != 1)
                         GestorDeErrores.Emitir("Debe indicar el pedido a copiar");
                     return GestorDePedidos.CopiarElPedido(Contexto, ids[0]);
+                case eventosDeMf.Ped_QuitarContrato:
+                    ((GestorDePedidos)_GestorDeElementos).QuitarContrato((List<int>)parametros[ltrParametrosEp.ids]);
+                    return null;
+                case eventosDeMf.Ped_QuitarExpediente:
+                    ((GestorDePedidos)_GestorDeElementos).QuitarExpediente((List<int>)parametros[ltrParametrosEp.ids]);
+                    return null;
                 case eventosDeMf.Ped_RecepcionarPedido:
                     // "Dar por entregado": la modal se propone con los datos de la edición y al aceptar se llama a epRecepcionarPedido
                     return null;

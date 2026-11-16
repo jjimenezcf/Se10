@@ -710,10 +710,10 @@ namespace GestoresDeNegocio.Logistica
 
                     var contrato = Contexto.SeleccionarPorId<ContratoDtm>((int)pedido.IdContrato);
                     if (!contrato.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeContratos> { enumEtapasDeContratos.CTR_Etapa_Vigente }) && !contrato.EsInterventor(Contexto))
-                        Emitir($"Ha de ser interventor del contrato '{contrato.Referencia}' para poder quitarle pedidos o el contrato a de estar vigente");
+                        Emitir($"Ha de ser interventor del contrato '{contrato.Referencia}' para poder quitarle pedidos, o el contrato ha de estar vigente");
 
                     if (!pedido.EsInterventor(Contexto))
-                        Emitir($"Ha de ser interventor de El pedido '{pedido.Referencia}' para poder qitarle el contrato");
+                        Emitir($"Ha de ser interventor del pedido '{pedido.Referencia}' para poder quitarle el contrato");
 
                     pedido.IdContrato = null;
                     pedido.Modificar(Contexto, nameof(QuitarContrato));
@@ -740,10 +740,16 @@ namespace GestoresDeNegocio.Logistica
                     var expediente = Contexto.SeleccionarPorId<ExpedienteDtm>((int)pedido.IdExpediente);
 
                     if (!expediente.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDeExpedientes> { enumEtapasDeExpedientes.EXP_Etapa_Ejecucion, enumEtapasDeExpedientes.EXP_Etapa_Terminada }) && !expediente.EsInterventor(Contexto))
-                        Emitir($"Ha de ser interventor del contrato '{expediente.Referencia}' para poder anular la imputación de pedidos o el expediente ha de estar en las etapas válidas");
+                        Emitir($"Ha de ser interventor del expediente '{expediente.Referencia}' para poder quitarle pedidos, o el expediente ha de estar en {enumEtapasDeExpedientes.EXP_Etapa_Ejecucion.Nombre()} o {enumEtapasDeExpedientes.EXP_Etapa_Terminada.Nombre()}");
 
                     if (!pedido.EsInterventor(Contexto))
-                        Emitir($"Ha de ser interventor de El pedido '{pedido.Referencia}' para poder qitarle el expediente");
+                        Emitir($"Ha de ser interventor del pedido '{pedido.Referencia}' para poder quitarle el expediente");
+
+                    // lo entregado en la obra del expediente y no devuelto cuenta en sus gastos (y tiene su preasiento): antes se ha de devolver
+                    var lineasDelPedido = Contexto.Set<LineaDeUnPedidoDtm>().Where(l => l.IdElemento == pedido.Id).Select(l => l.Id);
+                    var entregasEnLaObra = Contexto.Set<RecepcionDeLineaDtm>().Where(r => r.IdExpediente == expediente.Id && lineasDelPedido.Contains(r.IdLinea)).ToList();
+                    if (entregasEnLaObra.Any(r => r.CantidadPendienteDeDevolver(Contexto) > 0))
+                        Emitir($"No se puede quitar el expediente '{expediente.Referencia}' al pedido '{pedido.Referencia}' por tener entregas en su obra sin devolver");
 
                     pedido.IdExpediente = null;
                     pedido.Modificar(Contexto, nameof(QuitarExpediente));
