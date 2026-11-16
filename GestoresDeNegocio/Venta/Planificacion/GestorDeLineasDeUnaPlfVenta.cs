@@ -140,10 +140,10 @@ namespace GestoresDeNegocio.Ventas
         {
             base.DespuesDePersistir(linea, parametros);
             var contrato = linea.DetalleDe<PlanificacionDeVentaDtm>(Contexto, aplicarJoin: true).Contrato;
-            if (contrato != null && !contrato.UsaLaAmpliacionDe(Contexto, typeof(AvanceDtm)))
+            if (contrato != null && contrato.UsaLaAmpliacionDe(Contexto, typeof(AvanceDtm)))
             {
-                decimal incremento = linea.ImporteConDto;
-                decimal anterior = parametros.Insertando ? 0 : ((LineaDeUnaPlfVentaDtm)parametros.registroEnBd).ImporteConDto;
+                decimal incremento = parametros.Eliminando ? 0 : linea.ImporteConDto;
+                decimal anterior = parametros.Insertando ? 0 : ((LineaDeUnaPlfVentaDtm)parametros.registroEnBd ?? linea).ImporteConDto;
                 contrato.RecalcularAvance(Contexto, enumAvaceOperacion.PlanificadoVariado, incremento - anterior, 0);
             }
         }

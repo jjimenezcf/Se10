@@ -130,6 +130,17 @@ namespace GestoresDeNegocio.Logistica
                 GestorDeErrores.Emitir($"El pedido {pedido.Referencia} va a un almacén, sólo se pueden pedir materiales y la línea {linea.Orden} es de {(linea.Clase(Contexto)?.ToString() ?? "una naturaleza sin clase")}");
         }
 
+        // Si el pedido está imputado a un contrato, lo planificado varía en lo que cambia el importe de la línea: al añadirla se suma, al
+        // borrarla se resta y al modificarla la diferencia (ver ExtensorDePedidos.VariarLoPlanificado)
+        protected override void DespuesDePersistir(LineaDeUnPedidoDtm linea, ParametrosDeNegocio parametros)
+        {
+            base.DespuesDePersistir(linea, parametros);
+
+            var anterior = parametros.Insertando ? 0m : ((LineaDeUnPedidoDtm)parametros.registroEnBd ?? linea).ImporteDeLinea;
+            var nuevo = parametros.Eliminando ? 0m : linea.ImporteDeLinea;
+            Contexto.SeleccionarPorId<PedidoDtm>(linea.IdElemento).VariarLoPlanificado(Contexto, nuevo - anterior);
+        }
+
         protected override void EliminarCaches(LineaDeUnPedidoDtm linea, ParametrosDeNegocio parametros)
         {
             base.EliminarCaches(linea, parametros);

@@ -229,16 +229,15 @@ namespace GestoresDeNegocio.Logistica
             {
                 var contratoCambiado = pedido.PropiedadCambiada<int?>(nameof(PedidoDtm.IdContrato), parametros);
 
+                // lo que aporta el pedido al avance se quita del contrato anterior y se suma al nuevo (ver ExtensorDePedidos.ImputarAlAvanceDelContrato)
                 if (contratoCambiado)
                 {
                     var anteriorId = ((PedidoDtm)parametros.registroEnBd).IdContrato.Entero();
-                    var anterior = anteriorId == 0 ? null : Contexto.SeleccionarPorId<ContratoDtm>(anteriorId);
+                    if (anteriorId > 0)
+                        pedido.QuitarDelAvanceDelContrato(Contexto, Contexto.SeleccionarPorId<ContratoDtm>(anteriorId));
 
-                    if (pedido.IdContrato is null)
-                        pedido.DecrementarLoPlanificado(Contexto, anterior);
-
-                    if (anterior is null)
-                        pedido.IncrementarLoPlanificado(Contexto, pedido.Contrato(Contexto));
+                    if (pedido.IdContrato is not null)
+                        pedido.ImputarAlAvanceDelContrato(Contexto, pedido.Contrato(Contexto));
                 }
             }
             // Sólo el archivo indicado por el usuario al cumplimentar; al cancelar la solicitud el pdf emitido se mantiene anexado y al quitar
@@ -368,7 +367,8 @@ namespace GestoresDeNegocio.Logistica
                     cambios.Add($"Correo: {Texto(pedido.eMail)} → {Texto(datos.eMail)}");
                 pedido.eMail = datos.eMail;
 
-                if (pedido.EntregarEl?.Date != datos.EntregarEl?.Date)
+                var entregaCambiada = pedido.EntregarEl?.Date != datos.EntregarEl?.Date;
+                if (entregaCambiada)
                     cambios.Add($"Entregar el: {Fecha(pedido.EntregarEl)} → {Fecha(datos.EntregarEl)}");
                 pedido.EntregarEl = datos.EntregarEl;
 
@@ -414,6 +414,10 @@ namespace GestoresDeNegocio.Logistica
                 if (cambios.Count > 0)
                     pedido.Modificar(contexto, ltrDeUnPedido.Accion_ModificarCabecera);
 
+                // una vez solicitado el pedido tiene evento de entrega en la agenda, que se recoloca a la nueva fecha
+                if (entregaCambiada && pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_De_Solicitud, enumEtapasDePedido.PED_Etapa_De_Recepcion, enumEtapasDePedido.PED_Etapa_Cerrado }))
+                    pedido.ModificarEventoDeEntrega(contexto);
+
                 if (guardarEnElProveedor)
                 {
                     cambios.Add($"Correo del proveedor '{proveedor.Nombre}': {Texto(proveedor.eMail)} → {Texto(datos.eMail)}");
@@ -447,8 +451,46 @@ namespace GestoresDeNegocio.Logistica
             if (SeDaPorRecibido(transicion))
                 GestorDeEntregasDeUnPedido.RecepcionarAlDarPorRecibido(Contexto, pedido);
 
+            // tras recepcionar al darlo por recibido, para que lo recibido ya haya pasado de planificado a realizado
+            if (SeFinaliza(transicion))
+                pedido.LiberarLoPendienteDelContrato(Contexto);
+
+            if (SeReactiva(transicion))
+                pedido.PlanificarLoPendienteEnElContrato(Contexto);
+
+            // evento de entrega en la agenda de la sociedad: al solicitar se anota en la fecha de entrega, al recibir se adelanta a la de
+            // recepción si es anterior y al anular la recepción vuelve a la de entrega; al cancelar la solicitud o el pedido se elimina
+            if (SeSolicita(transicion) || SeRecibe(transicion) || SeAnulaLaRecepcion(transicion))
+                pedido.ModificarEventoDeEntrega(Contexto);
+
+            if (SeCancelaLaSolicitud(transicion) || SeCancela(transicion))
+                pedido.EliminarEventoDeEntrega(Contexto);
+
             return pedido;
         }
+
+        // A cerrado o cancelado desde una etapa en la que el pedido está abierto
+        private static bool SeFinaliza(TransicionDtm transicion)
+        =>
+        DestinoFinalizado(transicion) && !OrigenFinalizado(transicion);
+
+        // De cerrado o cancelado a una etapa en la que el pedido está abierto
+        private static bool SeReactiva(TransicionDtm transicion)
+        =>
+        OrigenFinalizado(transicion) && !DestinoFinalizado(transicion);
+
+        private static bool OrigenFinalizado(TransicionDtm transicion)
+        =>
+        transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados()) || transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cancelado.Estados());
+
+        private static bool DestinoFinalizado(TransicionDtm transicion)
+        =>
+        transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cerrado.Estados()) || transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cancelado.Estados());
+
+        private static bool SeCancela(TransicionDtm transicion)
+        =>
+        transicion.DestinoEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cancelado.Estados()) &&
+        !transicion.OrigenEstaEnLaEtapa(enumEtapasDePedido.PED_Etapa_Cancelado.Estados());
 
         private static bool SeSolicita(TransicionDtm transicion)
         =>

@@ -230,7 +230,8 @@ namespace GestoresDeNegocio.Logistica
 
         // Al entregar en un almacén se registra su entrada de compra (el gestor de movimientos la preasienta y barre los posteriores) y,
         // con el pedido en recepción, la fecha de recepción de la cabecera pasa a ser la de la primera entrega. Al cancelar queda una
-        // traza en el pedido con quién la ha cancelado y los datos que tenía la entrega
+        // traza en el pedido con quién la ha cancelado y los datos que tenía la entrega. En el avance del contrato de compra lo entregado
+        // pasa de planificado a realizado, y al cancelar al revés
         protected override void DespuesDePersistir(RecepcionDeLineaDtm recepcion, ParametrosDeNegocio parametros)
         {
             base.DespuesDePersistir(recepcion, parametros);
@@ -243,9 +244,13 @@ namespace GestoresDeNegocio.Logistica
                     recepcion.EntradaDeCompra(Contexto, linea);
                 if (parametros.Parametros.LeerValor(ltrEntregasDeUnPedido.ExigirRecepcion, true))
                     pedido.AdelantarLaFechaDeRecepcion(Contexto, recepcion.RecepcionadaEl);
+                pedido.RecibirEnElContrato(Contexto, recepcion.Importe);
             }
             else if (parametros.Eliminando)
+            {
+                pedido.AnularRecepcionEnElContrato(Contexto, recepcion.Importe);
                 pedido.CrearTraza(Contexto, $"Entrega de la línea {linea.Orden} cancelada", (string)parametros.Parametros[ltrEntregasDeUnPedido.Descripcion]);
+            }
         }
 
         // Lo entregado de la línea y si el pedido tiene entregas se recalculan; se llama antes y después de persistir y también si falla

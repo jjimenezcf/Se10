@@ -105,7 +105,7 @@ namespace GestorDeElementos.Extensores
 
         public static ContratoDtm Contrato(this PedidoDtm pedido, ContextoSe contexto, bool aplicarJoin = false, bool errorSiNoHay = true)
         {
-            if (pedido.Contrato != null) return pedido.Contrato;
+            if (pedido.Contrato != null && pedido.IdContrato is not null && (int)pedido.IdContrato == pedido.Contrato.Id) return pedido.Contrato;
 
             if (pedido.IdContrato is null && errorSiNoHay)
                 Emitir($"El pedido '{pedido.Referencia}' no tiene contrato");
@@ -140,36 +140,72 @@ namespace GestorDeElementos.Extensores
             return pedido.Almacen = contexto.SeleccionarPorId<AlmacenDtm>((int)pedido.IdAlmacen, aplicarJoin);
         }
 
-        public static void IncrementarLoPlanificado(this PedidoDtm pedido, ContextoSe contexto, ContratoDtm contrato)
+        // Avance del contrato de compra al que se imputa el pedido (importes sin IVA). Lo que aporta un pedido abierto es:
+        //   planificado = importe de sus líneas - lo recibido (entregado menos devuelto)
+        //   realizado   = lo recibido
+        // Al cerrarlo o cancelarlo lo que queda sin recibir deja de estar planificado, y si se reabre se vuelve a planificar
+        public static bool EstaFinalizado(this PedidoDtm pedido)
+        => pedido.EstaEnAlgunaDeLasEtapa(new List<enumEtapasDePedido> { enumEtapasDePedido.PED_Etapa_Cerrado, enumEtapasDePedido.PED_Etapa_Cancelado });
+
+        public static decimal PendienteDeRecibir(this PedidoDtm pedido, ContextoSe contexto) => pedido.Importe(contexto) - pedido.Recibido(contexto);
+
+        // Al añadir, modificar o borrar una línea (sólo mientras se cumplimenta) varía lo planificado en la diferencia de importes
+        public static void VariarLoPlanificado(this PedidoDtm pedido, ContextoSe contexto, decimal variacion)
         {
-            var avance = contrato.Ampliacion<AvanceDtm>(contexto);
-            avance.Planificado = avance.Planificado + pedido.Importe(contexto);
-            avance.Modificar(contexto);
+            if (variacion != 0)
+                pedido.RecalcularAvance(contexto, enumAvaceOperacion.PlanificadoVariado, variacion, 0);
         }
 
-        public static void DecrementarLoPlanificado(this PedidoDtm pedido, ContextoSe contexto, ContratoDtm contrato)
+        // Al entregar una línea, lo entregado pasa de planificado a realizado
+        public static void RecibirEnElContrato(this PedidoDtm pedido, ContextoSe contexto, decimal importe)
+        => pedido.RecalcularAvance(contexto, enumAvaceOperacion.RecibirPedido, importe, importe);
+
+        // Al cancelar una entrega, lo entregado vuelve de realizado a planificado
+        public static void AnularRecepcionEnElContrato(this PedidoDtm pedido, ContextoSe contexto, decimal importe)
+        => pedido.RecalcularAvance(contexto, enumAvaceOperacion.AnularRecepcionDePedido, importe, importe);
+
+        // Devolver es como cancelar la entrega de lo devuelto; si el pedido ya está cerrado lo devuelto no se espera, sólo sale de lo realizado
+        public static void DevolverEnElContrato(this PedidoDtm pedido, ContextoSe contexto, decimal importe)
+        => pedido.RecalcularAvance(contexto, enumAvaceOperacion.AnularRecepcionDePedido, pedido.EstaFinalizado() ? 0 : importe, importe);
+
+        // Cancelar una devolución es como volver a entregar lo devuelto
+        public static void CancelarDevolucionEnElContrato(this PedidoDtm pedido, ContextoSe contexto, decimal importe)
+        => pedido.RecalcularAvance(contexto, enumAvaceOperacion.RecibirPedido, importe, pedido.EstaFinalizado() ? 0 : importe);
+
+        // Al cerrar o cancelar el pedido lo que no se ha recibido deja de estar planificado
+        public static void LiberarLoPendienteDelContrato(this PedidoDtm pedido, ContextoSe contexto)
         {
-            var avance = contrato.Ampliacion<AvanceDtm>(contexto);
-            avance.Planificado = avance.Planificado - pedido.Importe(contexto);
-            avance.Modificar(contexto);
+            var pendiente = pedido.PendienteDeRecibir(contexto);
+            if (pendiente != 0)
+                pedido.RecalcularAvance(contexto, enumAvaceOperacion.EliminarPlanificacion, 0, pendiente);
         }
 
-        public static void ModificarSaldosDelContrato(this PedidoDtm pedido, ContextoSe contexto, int idContrato)
-        {
-            var contrato = contexto.SeleccionarPorId<ContratoDtm>(idContrato);
-            var avance = contrato.Ampliacion<AvanceDtm>(contexto);
+        // Al reabrir un pedido cerrado o cancelado lo que no se ha recibido se vuelve a planificar
+        public static void PlanificarLoPendienteEnElContrato(this PedidoDtm pedido, ContextoSe contexto)
+        => pedido.VariarLoPlanificado(contexto, pedido.PendienteDeRecibir(contexto));
 
-            if (pedido.IdContrato is not null)
-            {
-                avance.Planificado = avance.Planificado + pedido.Importe(contexto);
-                pedido.CrearTraza(contexto, "pedido imputado al contrato", $"El usuario {contexto.DatosDeConexion.Login} ha imputado el pedido '{pedido.Referencia}' al contrato {contrato.Referencia}");
-            }
-            else
-            {
-                avance.Planificado = avance.Planificado + pedido.Importe(contexto);
-                pedido.CrearTraza(contexto, "pedido excluido del contrato", $"El usuario {contexto.DatosDeConexion.Login} ha excluido el pedido '{pedido.Referencia}' del contrato {contrato.Referencia}");
-            }
-            avance.Modificar(contexto, nameof(ModificarSaldosDelContrato));
+        // Al imputar el pedido a un contrato se le suma lo que aporta, y al quitárselo se le resta
+        public static void ImputarAlAvanceDelContrato(this PedidoDtm pedido, ContextoSe contexto, ContratoDtm contrato)
+        {
+            if (!pedido.EstaFinalizado())
+                contrato.RecalcularAvance(contexto, enumAvaceOperacion.PlanificadoVariado, pedido.PendienteDeRecibir(contexto), 0);
+            contrato.RecalcularAvance(contexto, enumAvaceOperacion.RecibirPedido, pedido.Recibido(contexto), 0);
+            pedido.CrearTraza(contexto, "Pedido imputado al contrato", $"El usuario {contexto.DatosDeConexion.Login} ha imputado el pedido '{pedido.Referencia}' al contrato {contrato.Referencia}");
+        }
+
+        public static void QuitarDelAvanceDelContrato(this PedidoDtm pedido, ContextoSe contexto, ContratoDtm contrato)
+        {
+            if (!pedido.EstaFinalizado())
+                contrato.RecalcularAvance(contexto, enumAvaceOperacion.EliminarPlanificacion, 0, pedido.PendienteDeRecibir(contexto));
+            contrato.RecalcularAvance(contexto, enumAvaceOperacion.AnularRecepcionDePedido, 0, pedido.Recibido(contexto));
+            pedido.CrearTraza(contexto, "Pedido excluido del contrato", $"El usuario {contexto.DatosDeConexion.Login} ha excluido el pedido '{pedido.Referencia}' del contrato {contrato.Referencia}");
+        }
+
+        private static void RecalcularAvance(this PedidoDtm pedido, ContextoSe contexto, enumAvaceOperacion operacion, decimal incremento, decimal decremento)
+        {
+            if (pedido.IdContrato is null)
+                return;
+            pedido.Contrato(contexto).RecalcularAvance(contexto, operacion, incremento, decremento);
         }
 
         public static decimal Importe(this PedidoDtm pedido, ContextoSe contexto)
@@ -195,7 +231,7 @@ namespace GestorDeElementos.Extensores
         {
             pedido.ValidarFechas(parametros);
             pedido.ValidarExpediente(contexto);
-            pedido.ValidarContrato(contexto);
+            pedido.ValidarContrato(contexto, parametros);
             pedido.ValidarSociedadDelDestino(contexto, pedido.IdAlmacen, pedido.IdExpediente);
         }
 
@@ -244,12 +280,20 @@ namespace GestorDeElementos.Extensores
             }
         }
 
-        public static void ValidarContrato(this PedidoDtm pedido, ContextoSe contexto)
+        public static void ValidarContrato(this PedidoDtm pedido, ContextoSe contexto, ParametrosDeNegocio parametros)
         {
-            if (pedido.IdContrato is null || pedido.PedidoEl is null)
+            if (pedido.IdContrato is null)
                 return;
 
+            // un pedido es una compra, sólo se imputa a contratos de compra
             var contrato = pedido.Contrato(contexto);
+            var seImputa = parametros.Insertando || pedido.PropiedadCambiada<int?>(nameof(PedidoDtm.IdContrato), parametros);
+            if (seImputa && contrato.ClaseDeContrato != enumClaseDeContrato.Compra)
+                Emitir($"El pedido '{pedido.Referencia}' sólo se puede imputar a un contrato de {enumClaseDeContrato.Compra.Descripcion()}, y '{contrato.Referencia}' es de {contrato.ClaseDeContrato.Descripcion()}");
+
+            if (pedido.PedidoEl is null)
+                return;
+
             var hitos = contrato.Hitos(contexto, enumEtapasDeContratos.CTR_Etapa_Vigente.Lista());
             var vigente = hitos.Any(hito => hito.Fecha.Date <= pedido.PedidoEl && (hito.Fin == null || ((DateTime)hito.Fin).Date.AddDays(1) > pedido.PedidoEl));
             if (!vigente)
@@ -339,8 +383,30 @@ namespace GestorDeElementos.Extensores
             return contexto.SeleccionarPorId<ArchivoDtm>((int)pedido.IdArchivo).FechaCreacion >= entradaEnSolicitud;
         }
 
+        // Evento de entrega en la agenda de la sociedad, como el de vencimiento de las facturas: se anota al solicitar el pedido en la fecha de
+        // entrega; si se recibe antes se mueve a la fecha de recepción y si se anula la recepción vuelve a la de entrega. Se elimina al cancelar
+        // la solicitud o el pedido. Sin fecha de entrega ni de recepción no hay evento
+        public static void ModificarEventoDeEntrega(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            var sociedad = pedido.Sociedad(contexto);
+            if (sociedad.IdAgenda is not null)
+                pedido.EliminarEventoDeEntrega(contexto);
+            pedido.AnotarEventoDeEntrega(contexto);
+        }
+
+        public static void EliminarEventoDeEntrega(this PedidoDtm pedido, ContextoSe contexto)
+        {
+            var eventos = contexto.SeleccionarEventos(pedido.Id, pedido.NombreDelEventoDeEntrega());
+            var p = new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } };
+            foreach (var e in eventos.Where(e => e.EsDelSistema && e.IdNegocio == enumNegocio.Pedido.IdNegocio())) pedido.Desvincular(contexto, e, p);
+        }
+
         private static void AnotarEventoDeEntrega(this PedidoDtm pedido, ContextoSe contexto)
         {
+            var fecha = pedido.FechaDelEventoDeEntrega();
+            if (fecha is null)
+                return;
+
             var sociedad = pedido.Sociedad(contexto);
             var agenda = sociedad.IdAgenda == null ? sociedad.CrearAgenda(contexto) : contexto.SeleccionarPorId<AgendaDtm>((int)sociedad.IdAgenda);
 
@@ -349,11 +415,22 @@ namespace GestorDeElementos.Extensores
             evento.IdElemento = pedido.Id;
             evento.IdNegocio = enumNegocio.Pedido.IdNegocio();
             evento.EsDelSistema = true;
-            evento.Inicio = ((DateTime)pedido.EntregarEl).Date;
-            evento.Nombre = ltrDeUnPedido.EventoDeEntrega.Replace($"[{nameof(PedidoDtm.Referencia)}]", pedido.Referencia);
+            evento.Inicio = (DateTime)fecha;
+            evento.Nombre = pedido.NombreDelEventoDeEntrega();
             evento.Descripcion = $"Entrega del pedido: {pedido.Referencia}";
             evento.Fin = evento.Inicio;
             GestorDeVinculos.Vincular(contexto, pedido, evento, new Dictionary<string, object> { { ltrParametrosNeg.EstaEjecutandoUnaAccion, true } });
+        }
+
+        private static string NombreDelEventoDeEntrega(this PedidoDtm pedido)
+        => ltrDeUnPedido.EventoDeEntrega.Replace($"[{nameof(PedidoDtm.Referencia)}]", pedido.Referencia);
+
+        // La de recepción si se ha recibido antes de la fecha de entrega, si no la de entrega
+        private static DateTime? FechaDelEventoDeEntrega(this PedidoDtm pedido)
+        {
+            if (pedido.RecibidoEl is not null && (pedido.EntregarEl is null || pedido.RecibidoEl.Value.Date < pedido.EntregarEl.Value.Date))
+                return pedido.RecibidoEl.Value.Date;
+            return pedido.EntregarEl?.Date;
         }
 
         // Fecha del primer hito de la racha actual de estados de la etapa de solicitud (los hitos vienen ordenados del más reciente al más antiguo)

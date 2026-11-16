@@ -208,13 +208,14 @@ namespace GestorDeElementos.Extensores
             }
         }
 
-        // La fecha de recepción de la cabecera es la de la primera entrega
+        // La fecha de recepción de la cabecera es la de la primera entrega; el evento de entrega de la agenda se mueve a ella si es anterior
         public static void AdelantarLaFechaDeRecepcion(this PedidoDtm pedido, ContextoSe contexto, DateTime recepcionadaEl)
         {
             if (pedido.RecibidoEl is not null && pedido.RecibidoEl.Value.Date <= recepcionadaEl.Date)
                 return;
             pedido.RecibidoEl = recepcionadaEl.Date;
             pedido.Modificar(contexto, nameof(AdelantarLaFechaDeRecepcion));
+            pedido.ModificarEventoDeEntrega(contexto);
         }
 
         // Validaciones de una entrega, sin mirar la etapa del pedido: el gestor exige que esté en recepción salvo al darlo por recibido (de

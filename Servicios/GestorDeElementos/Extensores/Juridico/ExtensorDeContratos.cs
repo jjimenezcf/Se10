@@ -371,6 +371,15 @@ namespace GestorDeElementos.Extensores
                     avance.Facturado = avance.Facturado - incremento;
                     avance.Cobrado = avance.Cobrado + incremento;
                     break;
+                // lo recibido de un pedido pasa de planificado a realizado; al cancelar la entrega o devolverla, al revés
+                case enumAvaceOperacion.RecibirPedido:
+                    avance.Realizado = avance.Realizado + incremento;
+                    avance.Planificado = avance.Planificado - decremento;
+                    break;
+                case enumAvaceOperacion.AnularRecepcionDePedido:
+                    avance.Planificado = avance.Planificado + incremento;
+                    avance.Realizado = avance.Realizado - decremento;
+                    break;
 
                 default: Emitir($"No se ha indicado como afecta en el avance del contrato la operación '{operacio}'"); break;
             }

@@ -6,7 +6,7 @@ using Utilidades;
 
 namespace ServicioDeDatos.Juridico
 {
-    public enum enumAvaceOperacion { PlanificadoVariado, EliminarPlanificacion, RealizarPartePlanificado, RealizarParteDeContrato, AnularRealizacionDeParte, AnularRealizacionDeContrato, FacturarPlanificado, FacturarRealizado, FacturarContrato, CobrarFactura, AnularCobro }
+    public enum enumAvaceOperacion { PlanificadoVariado, EliminarPlanificacion, RealizarPartePlanificado, RealizarParteDeContrato, AnularRealizacionDeParte, AnularRealizacionDeContrato, FacturarPlanificado, FacturarRealizado, FacturarContrato, CobrarFactura, AnularCobro, RecibirPedido, AnularRecepcionDePedido }
 
     [Table(Tablas.CONTRATO + "_" + nameof(Sufijo.AVANCE), Schema = Esquemas.JURIDICO)]
     public class AvanceDtm : Ampliacion<ContratoDtm>

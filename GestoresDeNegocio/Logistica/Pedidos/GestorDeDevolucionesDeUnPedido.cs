@@ -174,7 +174,8 @@ namespace GestoresDeNegocio.Logistica
         }
 
         // Al devolver, si la entrega fue a un almacén se saca lo devuelto (el gestor de movimientos barre los posteriores); en ambos casos
-        // queda una traza en el pedido
+        // queda una traza en el pedido. En el avance del contrato de compra devolver es como cancelar la entrega de lo devuelto, y
+        // cancelar la devolución como volver a entregarlo (ver ExtensorDePedidos.DevolverEnElContrato)
         protected override void DespuesDePersistir(DevolucionDeEntregaDtm devolucion, ParametrosDeNegocio parametros)
         {
             base.DespuesDePersistir(devolucion, parametros);
@@ -186,11 +187,18 @@ namespace GestoresDeNegocio.Logistica
             if (parametros.Insertando && recepcion.VaAlAlmacen)
                 devolucion.SalidaPorDevolucion(Contexto, recepcion, linea);
 
-            var descripcion = devolucion.DescripcionParaLaTraza(Contexto, recepcion, linea, devolucion.Importe(recepcion));
+            var importe = devolucion.Importe(recepcion);
+            var descripcion = devolucion.DescripcionParaLaTraza(Contexto, recepcion, linea, importe);
             if (parametros.Insertando)
+            {
+                pedido.DevolverEnElContrato(Contexto, importe);
                 pedido.CrearTraza(Contexto, $"Devolución de la línea {linea.Orden}", descripcion);
+            }
             else if (parametros.Eliminando)
+            {
+                pedido.CancelarDevolucionEnElContrato(Contexto, importe);
                 pedido.CrearTraza(Contexto, $"Devolución de la línea {linea.Orden} cancelada", $"Cancelada por {Contexto.Usuario.Expresion} el {DateTime.Now:dd/MM/yyyy HH:mm}{Environment.NewLine}{descripcion}");
+            }
         }
 
         // Lo devuelto de la entrega se recalcula: se llama antes y después de persistir y también si falla, así no queda en la caché
