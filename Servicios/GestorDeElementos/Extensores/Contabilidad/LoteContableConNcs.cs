@@ -298,6 +298,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
                     AsientoDeCompra(xmlWriter, preasiento);
                     break;
                 case enumNegocio.Expediente:
+                case enumNegocio.Sociedad:
                     AsientoDeApunteDeExpediente(xmlWriter, preasiento);
                     break;
                 default:
@@ -325,7 +326,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
         // Entrega o devolución de compra en un almacén o en la obra de un expediente (ver ExtensorDePreasientos.PreasentarCompra): asiento
         // libre sin registro de iva
         //   1º apunte: albaranes pendientes de recibir factura del proveedor (Alm_Albaran)
-        //   2º apunte: gasto de la naturaleza (Alm_Gasto)
+        //   2º apunte: existencias (311) en el almacén o gasto de la naturaleza en la obra de un expediente (Alm_Gasto)
         // en ncs lo que va al debe en positivo y lo que va al haber en negativo: en una entrega el albarán va al haber y el gasto al debe,
         // en una devolución al revés. Igual en el almacén que en la obra de un expediente (negocio de pedidos)
         private void AsientoDeCompra(XmlWriter xmlWriter, PreasientoDtm preasiento)
@@ -345,7 +346,8 @@ namespace GestorDeElementos.Extensores.Contabilidad
 
         // Apunte de gasto o ingreso de un expediente (ver ExtensorDePreasientos.Preasentar del apunte): asiento libre sin registro de iva
         // con la cuenta de la naturaleza (Exp_Naturaleza) y su contrapartida, partidas pendientes de aplicación (555), que reclasifica contabilidad
-        // (Exp_Contrapartida); en ncs lo que va al debe en positivo y lo que va al haber en negativo
+        // (Exp_Contrapartida); en ncs lo que va al debe en positivo y lo que va al haber en negativo. Igual el cuadre de existencias al cambiar
+        // el método de contabilización de las compras de una sociedad (311 contra 611, ver ExtensorDePreasientos.PreasentarCuadreDeExistencias)
         private void AsientoDeApunteDeExpediente(XmlWriter xmlWriter, PreasientoDtm preasiento)
         {
             WriteCabecera(xmlWriter, preasiento);
@@ -535,6 +537,8 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 ? ((MovimientoDeAlmacenDtm)preasiento.Referenciado(Contexto)).RealizadoEl.Date
                 : preasiento.NegocioReferenciado == enumNegocio.Pedido
                 ? preasiento.FechaDeLaCompraEnObra(Contexto)
+                : preasiento.EsUnCuadreDeExistencias()
+                ? preasiento.FechaContable.Date
                 : preasiento.NegocioReferenciado == enumNegocio.Expediente
                 ? preasiento.FechaDelApunteDeExpediente(Contexto)
                 : (DateTime)((FacturaRecDtm)preasiento.Referenciado(Contexto)).FacturadaEl;
@@ -1045,7 +1049,7 @@ namespace GestorDeElementos.Extensores.Contabilidad
                 return enumNcsCodigoConcepto.CobrosFacturasClientes;
 
             // como el pago de un gasto por naturaleza, es un asiento libre sin iva
-            if (negocio == enumNegocio.Almacen || negocio == enumNegocio.Pedido || negocio == enumNegocio.Expediente)
+            if (negocio == enumNegocio.Almacen || negocio == enumNegocio.Pedido || negocio == enumNegocio.Expediente || negocio == enumNegocio.Sociedad)
                 return enumNcsCodigoConcepto.PlanCuentasMayor;
 
             throw new Exception($"Ha de indicar el código del concepto asentado en la contabilidad de Ncs para el negocio '{negocio.Singular()}'");
@@ -1073,6 +1077,9 @@ namespace GestorDeElementos.Extensores.Contabilidad
                     return preasiento.FechaDeLaCompraEnObra(Contexto);
                 case enumNegocio.Expediente:
                     return preasiento.FechaDelApunteDeExpediente(Contexto);
+                case enumNegocio.Sociedad:
+                    // cuadre de existencias al cambiar el método de contabilización de las compras: no tiene documento
+                    return preasiento.FechaContable.Date;
             }
             throw new Exception($"Falta implementar cómo obtener la 'Fecha De Emision' para '{preasiento.NegocioReferenciado.Singular()}'");
         }

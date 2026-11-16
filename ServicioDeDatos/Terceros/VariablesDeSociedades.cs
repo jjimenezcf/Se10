@@ -21,7 +21,9 @@ namespace ServicioDeDatos.Terceros
         [Description("Indica si la sociedad con Id ha de facturar con IRPF")]
         SOCIEDAD_ID_FACTURAR_CON_IRPF,
         [Description("Indica el Id de aplicación para lexnet, asignado por el ministerio")]
-        LEXNET_Login
+        LEXNET_Login,
+        [Description("Indica por sociedad (Valor S/N, T/F o true/false) si contabiliza las compras de almacén por el método de la variación de existencias (al gasto) o contra la cuenta de existencias (311)")]
+        SOCIEDAD_USA_VARIACION_DE_EXISTENCIA
     }
 
 
@@ -54,6 +56,44 @@ namespace ServicioDeDatos.Terceros
         private static readonly string _jsonCgDeRRHH = "[{\"IdSociedad\": 0,\"IdCg\": 0}]";
 
         private static readonly string _jsonFacturarConIrpf = "[{\"IdSociedad\": 0,\"ConIrpf\": true}]";
+
+        private const string _jsonUsaVariacionDeExistencias = "[{\"IdSociedad\": 0,\"Valor\": \"F\"}]";
+
+        // Si la sociedad contabiliza las compras de almacén por el método de la variación de existencias: la entrega va al gasto de la
+        // naturaleza contra albaranes y a fin de ejercicio se regulariza la 311 contra la 611; si no, la entrega va a existencias (311).
+        // Sin entrada para la sociedad no la usa. Al crear el parámetro, las sociedades que ya generaban preasientos de almacén (que se
+        // hacían contra el gasto) entran usándola, así no cambian de método sin el asiento de cuadre (ver CambioDeVariacionDeExistencias)
+        public static bool UsaVariacionDeExistencias(this SociedadDtm sociedad) =>
+            SociedadesQueUsanVariacionDeExistencias(JsonDeUsaVariacionDeExistencias()).Contains(sociedad.Id);
+
+        private static string JsonDeUsaVariacionDeExistencias() =>
+            enumNegocio.Sociedad.Parametro(enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA, crearParametro: true, valorPorDefecto: ValorInicialDeUsaVariacionDeExistencias()).Valor;
+
+        private static string ValorInicialDeUsaVariacionDeExistencias()
+        {
+            var jsonArray = JArray.Parse(_jsonUsaVariacionDeExistencias);
+            foreach (var idSociedad in Contabilidad.VariablesDePreasiento.SociedadesQueGeneranPreasientos(enumNegocio.Almacen))
+                jsonArray.Add(new JObject { ["IdSociedad"] = idSociedad, ["Valor"] = "S" });
+            return jsonArray.ToString(Newtonsoft.Json.Formatting.None);
+        }
+
+        // Ids de las sociedades que usan la variación de existencias según el json del parámetro; la entrada 0 es la plantilla
+        public static List<int> SociedadesQueUsanVariacionDeExistencias(string json)
+        {
+            try
+            {
+                return JArray.Parse(json.IsNullOrEmpty() ? "[]" : json)
+                    .Select(item => new { IdSociedad = item["IdSociedad"].Value<int>(), Valor = item["Valor"]?.Value<string>() })
+                    .Where(x => x.IdSociedad > 0 && x.Valor.EsTrue())
+                    .Select(x => x.IdSociedad)
+                    .Distinct()
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw Excepciones.Emitir($"Error al parsear el json: '{json}' al objeto del tipo '{_jsonUsaVariacionDeExistencias}', debe definirlo en el parámetro de negocio '{enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA}'", ex);
+            }
+        }
 
 
         public static LEXNET_Login LexnetLogin(this SociedadDtm sociedad, bool errorSiNoDefinido = true)

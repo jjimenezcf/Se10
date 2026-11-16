@@ -107,8 +107,8 @@ namespace GestoresDeNegocio.Contabilidad
             {
                 var cancelados = Negocio.Estados(Contexto).Where(e => e.Cancelado).Select(e => e.Id).ToList();
                 // un pedido tiene un preasiento por cada entrega o devolución en obra, todos con el pedido como referenciado; igual un
-                // expediente, uno por cada apunte de gasto o ingreso
-                var preasiento = spr.NegocioReferenciado == enumNegocio.Pedido || spr.NegocioReferenciado == enumNegocio.Expediente
+                // expediente, uno por cada apunte de gasto o ingreso, y una sociedad, uno por almacén en cada cuadre de existencias
+                var preasiento = spr.NegocioReferenciado == enumNegocio.Pedido || spr.NegocioReferenciado == enumNegocio.Expediente || spr.EsUnCuadreDeExistencias()
                     ? null
                     : Contexto.Set<PreasientoDtm>().FirstOrDefault(x => x.NegocioReferenciado == spr.NegocioReferenciado && x.IdReferenciado == spr.IdReferenciado && !cancelados.Contains(x.IdEstado));
                 if (preasiento != null)
@@ -251,6 +251,12 @@ namespace GestoresDeNegocio.Contabilidad
                     elemento.Origen = "EX: " + apunte.Referencia;
                     elemento.Importe = spr.Detalles<ApunteDeUnPreasientoDtm>(Contexto).Where(a => a.Clase == enumClaseDeApunte.Exp_Naturaleza).Sum(a => a.Importe);
                 }
+            }
+            else if (spr.EsUnCuadreDeExistencias())
+            {
+                // cuadre de existencias al cambiar el método de contabilización de las compras: el importe es lo que va al debe
+                elemento.Origen = "SO: " + spr.Nombre;
+                elemento.Importe = spr.Detalles<ApunteDeUnPreasientoDtm>(Contexto).Where(a => a.Posicion == enumPosicionContable.Debe).Sum(a => a.Importe);
             }
         }
 

@@ -73,6 +73,8 @@ namespace ServicioDeDatos
 
         public static readonly string CTA_Cuenta_De_Proveedor = nameof(CTA_Cuenta_De_Proveedor);
         public static readonly string CTA_Cuenta_De_Albaran = nameof(CTA_Cuenta_De_Albaran);
+        public static readonly string CTA_Cuenta_De_Existencias = nameof(CTA_Cuenta_De_Existencias);
+        public static readonly string CTA_Cuenta_De_Variacion_De_Existencias = nameof(CTA_Cuenta_De_Variacion_De_Existencias);
         public static readonly string CTA_Cuenta_Pendiente_De_Aplicacion = nameof(CTA_Cuenta_Pendiente_De_Aplicacion);
         public static readonly string CTA_Cuenta_De_Cliente = nameof(CTA_Cuenta_De_Cliente);
         public static readonly string CTA_Cuenta_De_Sueldos = nameof(CTA_Cuenta_De_Sueldos);
@@ -125,6 +127,8 @@ namespace ServicioDeDatos
 
         public static readonly string CTA_Cuenta_De_Proveedor = $"Indica el nº de cuenta: {ltrCuenta.ProveedorDescripcion}";
         public static readonly string CTA_Cuenta_De_Albaran = $"Indica el nº de cuenta: {ltrCuenta.AlbaranDescripcion}";
+        public static readonly string CTA_Cuenta_De_Existencias = $"Indica el nº de cuenta: {ltrCuenta.ExistenciasDescripcion}";
+        public static readonly string CTA_Cuenta_De_Variacion_De_Existencias = $"Indica el nº de cuenta: {ltrCuenta.VariacionDeExistenciasDescripcion}";
         public static readonly string CTA_Cuenta_Pendiente_De_Aplicacion = $"Indica el nº de cuenta: {ltrCuenta.PendienteDeAplicacionDescripcion}";
         public static readonly string CTA_Cuenta_De_Cliente = $"Indica el nº de cuenta: {ltrCuenta.ClienteDescripcion}";
         public static readonly string CTA_Cuenta_De_Sueldos = $"Indica el nº de cuenta: {ltrCuenta.SueldosDescripcion}";

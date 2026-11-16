@@ -24,6 +24,8 @@ namespace ServicioDeDatos.Contabilidad
         public static readonly string ClienteDescripcion = "Cuenta de clientes";
         public static readonly string ProveedorDescripcion = "Cuenta de proveedores";
         public static readonly string AlbaranDescripcion = "Cuenta de albaranes";
+        public static readonly string ExistenciasDescripcion = "Cuenta de existencias del almacén";
+        public static readonly string VariacionDeExistenciasDescripcion = "Cuenta de variación de existencias";
         public static readonly string PendienteDeAplicacionDescripcion = "Cuenta de partidas pendientes de aplicación";
         public static readonly string SueldosDescripcion = "Cuenta de gastos de sueldos y salarios";
         public static readonly string ServiciosProfesionales = "Cuenta de servicios profesionales";
@@ -39,6 +41,10 @@ namespace ServicioDeDatos.Contabilidad
         public static string Sueldos => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Sueldos, Descripciones.CTA_Cuenta_De_Sueldos, "640000");
         public static string Proveedores => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Proveedor, Descripciones.CTA_Cuenta_De_Proveedor, "400000");
         public static string Albaranes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Albaran, Descripciones.CTA_Cuenta_De_Albaran, "400900");
+        // debe de las entregas de compra en un almacén (y haber de sus devoluciones): lo comprado entra en las existencias, no en el gasto
+        public static string Existencias => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Existencias, Descripciones.CTA_Cuenta_De_Existencias, "311000");
+        // contrapartida de la de existencias en el cuadre al cambiar el método de contabilización de las compras de almacén
+        public static string VariacionDeExistencias => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Variacion_De_Existencias, Descripciones.CTA_Cuenta_De_Variacion_De_Existencias, "611000");
         // contrapartida de los apuntes de gasto e ingreso de un expediente: contabilidad la reclasifica cuando llega el documento (factura, pago, cobro)
         public static string PendientesDeAplicacion => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_Pendiente_De_Aplicacion, Descripciones.CTA_Cuenta_Pendiente_De_Aplicacion, "555000");
         public static string Clientes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Cliente, Descripciones.CTA_Cuenta_De_Cliente, "430000");

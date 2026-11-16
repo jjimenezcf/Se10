@@ -874,7 +874,7 @@ namespace GestorDeElementos.Extensores
         }
 
         // Entrada de compra (recepción de una línea de pedido en un almacén), como al registrar una factura recibida pero sin impuestos:
-        //   Debe:  cuenta de gasto de la naturaleza del unitario recibido
+        //   Debe:  cuenta de existencias del almacén (311) o, si la sociedad usa la variación de existencias, la de gasto de la naturaleza
         //   Haber: cuenta de albaranes pendientes de recibir factura (VariablesDeCuentas.Albaranes) con la extensión del proveedor
         // por la base imponible de la entrega (cantidad * precio - % de descuento). El resto de entradas aún no se preasientan.
         // El tipo de preasiento es el que tiene como origen el negocio de almacén (parámetro SPR_Negocio_Origen); el referenciado es el
@@ -906,26 +906,39 @@ namespace GestorDeElementos.Extensores
                 $"Devolución de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'", esUnaDevolucion: true, generandoPreasientosAntiguos);
         }
 
-        // Asiento de una compra de almacén, como al registrar una factura recibida pero sin impuestos: en la entrada va al debe la cuenta de
-        // gasto de la naturaleza del material y al haber la de albaranes pendientes de recibir factura (VariablesDeCuentas.Albaranes) con la
-        // extensión del proveedor; en la devolución, al revés. El tipo de preasiento es el que tiene como origen el negocio de almacén
-        // (parámetro SPR_Negocio_Origen); el referenciado es el movimiento, que al insertarlo aún no tiene Id (lo engancha
-        // GestorDeMovimientosDeAlmacen.DespuesDePersistir)
+        // Asiento de una compra de almacén, como al registrar una factura recibida pero sin impuestos: en la entrada va al debe, si la sociedad
+        // usa la variación de existencias (parámetro SOCIEDAD_USA_VARIACION_DE_EXISTENCIA), la cuenta de gasto de la naturaleza del material,
+        // y si no, la de existencias (VariablesDeCuentas.Existencias, 311); al haber la de albaranes pendientes de recibir factura
+        // (VariablesDeCuentas.Albaranes, 4009) con la extensión del proveedor; en la devolución, al revés. El tipo de preasiento es el que
+        // tiene como origen el negocio de almacén (parámetro SPR_Negocio_Origen); el referenciado es el movimiento, que al insertarlo aún no
+        // tiene Id (lo engancha GestorDeMovimientosDeAlmacen.DespuesDePersistir)
         private static void PreasentarCompraDeAlmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, RecepcionDeLineaDtm recepcion, decimal importe, string concepto, bool esUnaDevolucion, bool generandoPreasientosAntiguos)
         {
             var almacen = movimiento.Almacen(contexto);
+            var sociedad = almacen.Sociedad(contexto);
             var linea = recepcion.LineaDePedido(contexto);
             var pedido = linea.DetalleDe<PedidoDtm>(contexto);
             var unitario = movimiento.Unitario(contexto, aplicarJoin: true);
-            var naturaleza = unitario.Naturaleza(contexto, aplicarJoin: true);
+            var conceptoDelDebe = linea.Concepto.IsNullOrEmpty() ? unitario.Expresion : linea.Concepto;
 
-            movimiento.Preasiento = PreasentarCompra(contexto, enumNegocio.Almacen, movimiento.Id, almacen.IdCg, almacen.Sociedad(contexto), movimiento.RealizadoEl,
-                pedido, linea, naturaleza, linea.Concepto.IsNullOrEmpty() ? unitario.Expresion : linea.Concepto, importe, concepto, esUnaDevolucion, generandoPreasientosAntiguos);
+            var (cuentaDelDebe, tipoDelDebe) = (VariablesDeCuentas.Existencias, "");
+            if (sociedad.UsaVariacionDeExistencias())
+            {
+                var naturaleza = unitario.Naturaleza(contexto, aplicarJoin: true);
+                if (naturaleza.IdCuentaDeGasto == null)
+                    GestorDeErrores.Emitir($"Ha de indicar la cuenta del gasto para la naturaleza '{naturaleza.Expresion}'");
+                // la naturaleza puede venir de la caché del unitario sin su cuenta de gasto cargada (p.e. al barrer): se lee aparte
+                (cuentaDelDebe, tipoDelDebe) = (naturaleza.CuentaDeGasto(contexto).Codigo, ltrTipoDeApunte.Gasto);
+            }
+
+            movimiento.Preasiento = PreasentarCompra(contexto, enumNegocio.Almacen, movimiento.Id, almacen.IdCg, sociedad, movimiento.RealizadoEl,
+                pedido, linea, cuentaDelDebe, tipoDelDebe, conceptoDelDebe, importe, concepto, esUnaDevolucion, generandoPreasientosAntiguos);
             movimiento.IdPreasiento = movimiento.Preasiento.Id;
         }
 
-        // Entrega de una línea de pedido en la obra de un expediente: el mismo asiento que la entrada de compra en un almacén (ver
-        // PreasentarCompraDeAlmacen) con la cuenta de gasto de la naturaleza de la línea, por el importe de la entrega. Sólo si la sociedad
+        // Entrega de una línea de pedido en la obra de un expediente: como la entrada de compra en un almacén (ver PreasentarCompraDeAlmacen)
+        // pero lo entregado se consume en la obra, al debe va la cuenta de gasto (grupo 6) de la naturaleza de la línea en lugar de la de
+        // existencias, y al haber la de albaranes (4009), por el importe de la entrega. Sólo si la sociedad
         // del pedido genera preasientos de pedidos (SPR_Generar_Preasiento_De_Pedido). Se llama antes de insertar la entrega, que aún no
         // tiene Id, por eso se pasan la línea y el pedido (ver GestorDeEntregasDeUnPedido.AntesDePersistir)
         public static RecepcionDeLineaDtm Preasentar(this RecepcionDeLineaDtm recepcion, ContextoSe contexto, LineaDeUnPedidoDtm linea, PedidoDtm pedido, bool generandoPreasientosAntiguos = false)
@@ -966,26 +979,26 @@ namespace GestorDeElementos.Extensores
             if (naturaleza is null)
                 GestorDeErrores.Emitir($"Para preasentar la {(esUnaDevolucion ? "devolución" : "entrega")} de la línea {linea.Orden} del pedido '{pedido.Referencia}' ésta ha de tener naturaleza");
 
+            if (naturaleza.IdCuentaDeGasto == null)
+                GestorDeErrores.Emitir($"Ha de indicar la cuenta del gasto para la naturaleza '{naturaleza.Expresion}'");
+            // la naturaleza puede venir de la caché sin su cuenta de gasto cargada (p.e. al barrer): se lee aparte
+            var cuentaDeGasto = naturaleza.CuentaDeGasto(contexto);
+
             return PreasentarCompra(contexto, enumNegocio.Pedido, pedido.Id, pedido.IdCg, sociedad, fecha,
-                pedido, linea, naturaleza, linea.Concepto.IsNullOrEmpty() ? naturaleza.Expresion : linea.Concepto, importe, concepto, esUnaDevolucion, generandoPreasientosAntiguos);
+                pedido, linea, cuentaDeGasto.Codigo, ltrTipoDeApunte.Gasto, linea.Concepto.IsNullOrEmpty() ? naturaleza.Expresion : linea.Concepto, importe, concepto, esUnaDevolucion, generandoPreasientosAntiguos);
         }
 
         // Asiento de una compra (entrega o devolución de una línea de pedido) en un almacén o en la obra de un expediente, como al registrar una
-        // factura recibida pero sin impuestos: en la entrega va al debe la cuenta de gasto de la naturaleza y al haber la de albaranes
-        // pendientes de recibir factura (VariablesDeCuentas.Albaranes) con la extensión del proveedor; en la devolución, al revés. El tipo de
-        // preasiento es el que tiene como origen el negocio indicado (parámetro SPR_Negocio_Origen). Los apuntes son de las clases Alm_Gasto y
-        // Alm_Albaran en ambos casos, así se exportan igual (ver LoteContableConNcs.AsientoDeCompra)
+        // factura recibida pero sin impuestos: en la entrega va al debe la cuenta indicada (existencias en el almacén, gasto de la naturaleza en
+        // la obra) y al haber la de albaranes pendientes de recibir factura (VariablesDeCuentas.Albaranes) con la extensión del proveedor; en la
+        // devolución, al revés. El tipo de preasiento es el que tiene como origen el negocio indicado (parámetro SPR_Negocio_Origen). Los apuntes
+        // son de las clases Alm_Gasto (la cuenta del debe) y Alm_Albaran en ambos casos, así se exportan igual (ver LoteContableConNcs.AsientoDeCompra)
         private static PreasientoDtm PreasentarCompra(ContextoSe contexto, enumNegocio negocio, int idReferenciado, int idCg, SociedadDtm sociedad, DateTime fecha,
-            PedidoDtm pedido, LineaDeUnPedidoDtm linea, NaturalezaDtm naturaleza, string conceptoDelGasto, decimal importe, string concepto, bool esUnaDevolucion, bool generandoPreasientosAntiguos)
+            PedidoDtm pedido, LineaDeUnPedidoDtm linea, string cuentaDelDebe, string tipoDelDebe, string conceptoDelDebe, decimal importe, string concepto, bool esUnaDevolucion, bool generandoPreasientosAntiguos)
         {
             var proveedor = pedido.Proveedor(contexto, aplicarJoin: true);
             if (proveedor.CodigoContable is null)
                 GestorDeErrores.Emitir($"Para preasentar la {(esUnaDevolucion ? "devolución" : "entrada")} de compra del pedido '{pedido.Referencia}' el proveedor '{proveedor.Expresion}' ha de tener código contable");
-
-            if (naturaleza.IdCuentaDeGasto == null)
-                GestorDeErrores.Emitir($"Ha de indicar la cuenta del gasto para la naturaleza '{naturaleza.Expresion}'");
-            // la naturaleza puede venir de la caché del unitario sin su cuenta de gasto cargada (p.e. al barrer): se lee aparte
-            var cuentaDeGasto = naturaleza.CuentaDeGasto(contexto);
 
             var idTipoPreasiento = VariablesDePreasiento.IdTipoPreasientoDelNegocio(negocio.IdNegocio(), negocio.Singular());
             var tipoDePreasiento = enumNegocio.Preasiento.Tipos(contexto).FirstOrDefault(x => x.Id == idTipoPreasiento);
@@ -1013,10 +1026,10 @@ namespace GestorDeElementos.Extensores
                 IdElemento = preasiento.Id,
                 Posicion = esUnaDevolucion ? enumPosicionContable.Haber : enumPosicionContable.Debe,
                 Clase = enumClaseDeApunte.Alm_Gasto,
-                Tipo = ltrTipoDeApunte.Gasto,
-                Cuenta = cuentaDeGasto.Codigo,
+                Tipo = tipoDelDebe,
+                Cuenta = cuentaDelDebe,
                 Importe = importe,
-                Concepto = conceptoDelGasto.Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
+                Concepto = conceptoDelDebe.Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
             };
 
             var albaran = new ApunteDeUnPreasientoDtm
@@ -1157,6 +1170,72 @@ namespace GestorDeElementos.Extensores
         {
         }
 
+        // Cuadre de las existencias de un almacén al cambiar el método de contabilización de las compras de su sociedad (ver
+        // GestoresDeNegocio.Contabilidad.CambioDeVariacionDeExistencias). Cada apunte es (cuenta del debe, cuenta del haber, importe, concepto)
+        // entre la de existencias (311, clase Alm_Existencias) y la de variación de existencias (611, clase Alm_Variacion); los de importe 0
+        // no se anotan y, si no queda ninguno, no se crea. No hay documento contable: el referenciado es la sociedad, el tipo el de almacén
+        // y la fecha la de hoy. Devuelve null si no se crea
+        public static PreasientoDtm PreasentarCuadreDeExistencias(this AlmacenDtm almacen, ContextoSe contexto, SociedadDtm sociedad, string nombre,
+            List<(bool existenciasAlDebe, decimal importe, string concepto)> cuadres)
+        {
+            cuadres = cuadres.Where(c => c.importe != 0).ToList();
+            if (cuadres.Count == 0)
+                return null;
+
+            var idTipoPreasiento = VariablesDePreasiento.IdTipoPreasientoDelNegocio(enumNegocio.Almacen.IdNegocio(), enumNegocio.Almacen.Singular());
+            var tipoDePreasiento = enumNegocio.Preasiento.Tipos(contexto).FirstOrDefault(x => x.Id == idTipoPreasiento);
+            if (tipoDePreasiento == null)
+                GestorDeErrores.Emitir($"El id del tipo del preasiento parametrizado en '{idTipoPreasiento}' no existe en la BD");
+
+            var fecha = DateTime.Today;
+            var preasiento = new PreasientoDtm
+            {
+                IdCg = almacen.IdCg,
+                IdTipo = idTipoPreasiento,
+                Nombre = nombre.Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1),
+                Ejercicio = fecha.Year,
+                CodigoDiario = tipoDePreasiento.CodigoDeDiario(contexto),
+                SociedadContable = sociedad.CodigoContable,
+                NegocioReferenciado = enumNegocio.Sociedad,
+                IdReferenciado = sociedad.Id,
+                FechaContable = fecha
+            }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(false));
+
+            var orden = 0;
+            foreach (var (existenciasAlDebe, importe, concepto) in cuadres)
+            {
+                var conceptoDelApunte = concepto.Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1);
+                // primero el apunte del debe
+                new ApunteDeUnPreasientoDtm
+                {
+                    IdElemento = preasiento.Id,
+                    Orden = orden += 10,
+                    Posicion = enumPosicionContable.Debe,
+                    Clase = existenciasAlDebe ? enumClaseDeApunte.Alm_Existencias : enumClaseDeApunte.Alm_Variacion,
+                    Tipo = "",
+                    Cuenta = existenciasAlDebe ? VariablesDeCuentas.Existencias : VariablesDeCuentas.VariacionDeExistencias,
+                    Importe = importe,
+                    Concepto = conceptoDelApunte,
+                }.InsertarComoAdministrador(contexto);
+
+                new ApunteDeUnPreasientoDtm
+                {
+                    IdElemento = preasiento.Id,
+                    Orden = orden += 10,
+                    Posicion = enumPosicionContable.Haber,
+                    Clase = existenciasAlDebe ? enumClaseDeApunte.Alm_Variacion : enumClaseDeApunte.Alm_Existencias,
+                    Tipo = "",
+                    Cuenta = existenciasAlDebe ? VariablesDeCuentas.VariacionDeExistencias : VariablesDeCuentas.Existencias,
+                    Importe = importe,
+                    Concepto = conceptoDelApunte,
+                }.InsertarComoAdministrador(contexto);
+            }
+            return preasiento;
+        }
+
+        // El cuadre de existencias es el único preasiento referenciado a una sociedad: no tiene documento contable (ver PreasentarCuadreDeExistencias)
+        public static bool EsUnCuadreDeExistencias(this PreasientoDtm spr) => spr.NegocioReferenciado == enumNegocio.Sociedad;
+
         // Nº de asientos del lote del cierre por negocio de origen (el referenciado de sus preasientos); se cachea por cierre, ya que su
         // lote no cambia mientras el cierre existe
         public static Dictionary<enumNegocio, int> AsientosPorOrigen(this CierreContableDtm cierre, ContextoSe contexto)
@@ -1185,7 +1264,8 @@ namespace GestorDeElementos.Extensores
 
         public static IUsaPreasiento Referenciado(this PreasientoDtm spr, ContextoSe contexto, bool errorSiNoHay = true)
         {
-            if (spr.NegocioReferenciado == enumNegocio.No_Definido) return null;
+            // el cuadre de existencias no tiene documento contable, su referenciado es la sociedad
+            if (spr.NegocioReferenciado == enumNegocio.No_Definido || spr.EsUnCuadreDeExistencias()) return null;
             var cache = ServicioDeCaches.Obtener(CacheDe.Spr_Referenciado);
             if (!cache.ContainsKey(spr.Id.ToString()))
             {
@@ -1213,6 +1293,10 @@ namespace GestorDeElementos.Extensores
             // y con los apuntes de gastos e ingresos de un expediente, que al eliminarlos cancelan su preasiento
             if (spr.NegocioReferenciado == enumNegocio.Almacen || spr.NegocioReferenciado == enumNegocio.Pedido || spr.NegocioReferenciado == enumNegocio.Expediente)
                 return spr.Referenciado(contexto, errorSiNoHay: false) is null;
+
+            // el cuadre de existencias no depende de ningún documento: siempre es contabilizable
+            if (spr.EsUnCuadreDeExistencias())
+                return false;
 
             var referenciado = spr.Referenciado(contexto);
 

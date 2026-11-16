@@ -61,6 +61,24 @@ namespace GestoresDeNegocio.Negocio
 
             ValidarQueNoSeDesactivaLaGeneracionDePreasientos(parametro, parametros);
             ValidarLaActivacionDePreasientos(parametro, parametros);
+            CambiarElMetodoDeContabilizarLasCompras(parametro, parametros);
+        }
+
+        // Las sociedades que pasan a usar o dejan de usar la variación de existencias cuadran la cuenta de existencias antes de grabar el
+        // parámetro (ver CambioDeVariacionDeExistencias). No se puede eliminar: dejaría a todas sin usarla y sin el cuadre
+        private void CambiarElMetodoDeContabilizarLasCompras(ParametroDeNegocioDtm parametro, ParametrosDeNegocio parametros)
+        {
+            if (parametros.Insertando)
+                return;
+
+            var enBd = (ParametroDeNegocioDtm)parametros.registroEnBd;
+            if (enBd is null || enBd.IdNegocio != enumNegocio.Sociedad.IdNegocio() || enBd.Nombre != enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA.ToString())
+                return;
+
+            if (parametros.Eliminando)
+                GestorDeErrores.Emitir($"No se puede eliminar el parámetro '{enBd.Nombre}', modifique el valor de las sociedades que cambian de método");
+
+            CambioDeVariacionDeExistencias.Aplicar(Contexto, enBd.Valor, parametro.Valor);
         }
 
         // Sociedades que pasan a generar preasientos del negocio del parámetro: antes de grabar se valida que se puedan generar los de sus

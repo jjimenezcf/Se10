@@ -13,7 +13,10 @@ public enum enumClaseDeApunte
     Cob_Deudor, Cob_Cobro,
     Alm_Gasto, Alm_Albaran,
     // apunte de gasto o ingreso de un expediente: la cuenta de su naturaleza y su contrapartida (partidas pendientes de aplicación)
-    Exp_Naturaleza, Exp_Contrapartida
+    Exp_Naturaleza, Exp_Contrapartida,
+    // cuadre de la cuenta de existencias (311) contra la de variación de existencias (611) al cambiar el método de contabilización de las
+    // compras de almacén de una sociedad (parámetro SOCIEDAD_USA_VARIACION_DE_EXISTENCIA)
+    Alm_Existencias, Alm_Variacion
 }
 public static class ltrTipoDeApunte 
 { 

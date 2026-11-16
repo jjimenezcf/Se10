@@ -778,6 +778,13 @@ namespace ServicioDeDatos.Contabilidad
         public static List<int> SociedadesQueEmpiezanAGenerarPreasientos(string jsonAnterior, string jsonNuevo) =>
             SociedadesQueDejanDeGenerarPreasientos(jsonNuevo, jsonAnterior);
 
+        // Ids de las sociedades configuradas para generar preasientos del negocio ("S"); la entrada 0 es la plantilla
+        public static List<int> SociedadesQueGeneranPreasientos(enumNegocio negocio)
+        {
+            var json = enumNegocio.Preasiento.Parametro(ParametroDeGenerarPreasiento(negocio), crearParametro: true, valorPorDefecto: _jsonDeSPR_Genera_Preasiento).Valor;
+            return ParsearUsaPreasiento(json).Where(x => x.IdSociedad > 0 && x.Valor.EsTrue()).Select(x => x.IdSociedad).Distinct().ToList();
+        }
+
         // Si la sociedad genera preasientos del negocio; null si no está configurado para ella
         public static bool? GeneraPreasientos(this SociedadDtm sociedad, enumNegocio negocio)
         {

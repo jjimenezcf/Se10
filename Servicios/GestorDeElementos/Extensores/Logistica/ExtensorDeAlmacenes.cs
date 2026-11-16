@@ -278,6 +278,26 @@ namespace GestorDeElementos.Extensores
             return cache[nameof(TipoMovimientoDtm)] as List<TipoMovimientoDtm>;
         }
 
+        // Valor del inventario del almacén antes del instante indicado: por cada unitario su último movimiento anterior, que tiene el
+        // stock y el precio medio (Valor) vigentes, como en la consulta de inventario (ver GestorDeInventario.AplicarFiltros)
+        public static decimal ValorDelInventario(this AlmacenDtm almacen, ContextoSe contexto, System.DateTime antesDe)
+        {
+            var movimientos = contexto.Set<MovimientoDeAlmacenDtm>();
+            var valor = movimientos
+                .Where(m => m.IdAlmacen == almacen.Id
+                         && m.RealizadoEl < antesDe
+                         && m.TipoMovimiento.ClaseMovimiento != enumClaseDeMovimiento.Nulo
+                         && !movimientos.Any(p => p.IdAlmacen == m.IdAlmacen
+                                               && p.IdUnitario == m.IdUnitario
+                                               && p.RealizadoEl < antesDe
+                                               && p.TipoMovimiento.ClaseMovimiento != enumClaseDeMovimiento.Nulo
+                                               && (p.RealizadoEl > m.RealizadoEl || (p.RealizadoEl == m.RealizadoEl && p.Id > m.Id))))
+                .Select(m => m.Stock * m.Valor)
+                .ToList()
+                .Sum();
+            return System.Math.Round(valor, 2);
+        }
+
         private static MovimientoDeAlmacenDtm ObtenerMovimientoAnterior(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             return contexto.Set<MovimientoDeAlmacenDtm>()
