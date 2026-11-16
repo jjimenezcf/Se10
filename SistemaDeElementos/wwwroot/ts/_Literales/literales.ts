@@ -4475,7 +4475,9 @@ const ltrMenus = {
                 RecepcionarLinea: 'recepcionar-linea-pedido',
                 RecepcionarPedido: 'recepcionar-pedido',
                 DevolverEntrega: 'devolver-entrega-pedido',
-                CopiarPedido: 'copiar-pedido'
+                CopiarPedido: 'copiar-pedido',
+                QuitarContrato: 'quitar-contrato',
+                QuitarExpediente: 'quitar-expediente'
             }
         },
         MaestrosTecnico: {

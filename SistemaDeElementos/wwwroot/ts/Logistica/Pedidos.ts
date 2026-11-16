@@ -753,6 +753,10 @@
             let estaAnulado = EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_Cancelado);
             ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Pedidos.ModificarCabecera, ltrMenus.enumOrigen.edicion, this.EsInterventorSinEstado && !estaAnulado);
 
+            // como en facturas recibidas: quitar el contrato o el expediente es cosa del interventor
+            ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Pedidos.QuitarContrato, ltrMenus.enumOrigen.edicion, !this.EsInterventorSinEstado);
+            ApiDeMenuFlotante.BloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Pedidos.QuitarExpediente, ltrMenus.enumOrigen.edicion, !this.EsInterventorSinEstado);
+
             // Solicitado y en recepción el servidor mantiene el permiso sobre el pedido para poder recepcionar, pero la cabecera es de consulta
             if (EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Solicitud) ||
                 EstaElEnumerado(etapas, enumEtapasDePedido, enumEtapasDePedido.PED_Etapa_De_Recepcion))
@@ -977,6 +981,13 @@
             if (opcion === ltrMenus.eventosDeMf.Logistica.Pedidos.ModificarCabecera) {
                 // la cabecera se propone desde la edición (ver CrudDePedidos.ModalDePedirDatos_TrasAbrir)
                 this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDePedidos).ModalModificarCabecera.id, this.ElementoEditado.Id);
+                return true;
+            }
+            if (opcion === ltrMenus.eventosDeMf.Logistica.Pedidos.QuitarContrato ||
+                opcion === ltrMenus.eventosDeMf.Logistica.Pedidos.QuitarExpediente) {
+                // como en facturas recibidas: se refrescan la cabecera (el contrato o el expediente) y las trazas
+                this.RecargarValoresDeCabecera(this.ElementoEditado.Id);
+                this.RecargarGridDeTrazas();
                 return true;
             }
             if (opcion === ltrMenus.eventosDeMf.Logistica.Pedidos.CopiarPedido) {
