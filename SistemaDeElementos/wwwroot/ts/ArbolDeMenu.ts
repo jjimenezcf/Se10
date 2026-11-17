@@ -32,6 +32,7 @@
     }
 
     const claveAnchoDelMenu: string = 'se-ancho-menu';
+    const anchoDelBordeDeRestablecer: number = 16;
     let observadorDelAncho: ResizeObserver = undefined;
 
     // El menú ajusta su ancho al contenido (seMenu.css). Si el usuario lo ensancha arrastrando la esquina,
@@ -46,6 +47,19 @@
 
         if (observadorDelAncho !== undefined || typeof ResizeObserver === 'undefined')
             return;
+
+        // Doble clic en el borde derecho (donde se arrastra): se olvida el ancho y el menú vuelve a ajustarse al contenido
+        modalMenu.addEventListener('dblclick', (event: MouseEvent) => {
+            const borde: DOMRect = modalMenu.getBoundingClientRect();
+            if (event.clientX < borde.right - anchoDelBordeDeRestablecer)
+                return;
+            event.preventDefault();
+            modalMenu.style.width = '';
+            try {
+                localStorage.removeItem(claveAnchoDelMenu);
+            }
+            catch { /* nada que olvidar */ }
+        });
 
         observadorDelAncho = new ResizeObserver(() => {
             const ancho: string = modalMenu.style.width;

@@ -169,7 +169,7 @@
     width: max-content; /* El ancho se ajusta a la opción visible más larga */
     min-width: 300px; /* Nunca más estrecho que el ancho original */
     max-width: calc(100vw - 12px); /* Nunca se sale de la pantalla (left + bordes) */
-    resize: horizontal; /* El usuario puede ensancharlo arrastrando la esquina inferior derecha */
+    resize: horizontal; /* El usuario puede ensancharlo arrastrando la esquina inferior derecha (doble clic en el borde derecho lo restablece) */
     height: 90%; /* Altura inicial del menú (JavaScript puede ajustarla) */
     overflow: auto; /* Habilita el scroll si el contenido excede la altura */
     /* ESTILOS MODERNOS (HEREDADOS de los menús de cabecera) */
