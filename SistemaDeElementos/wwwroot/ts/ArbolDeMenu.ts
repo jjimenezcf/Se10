@@ -23,11 +23,40 @@
             estadoMenu.setAttribute(atMenu.abierto, literal.true);
             modalMenu.style.display = ltrStyle.display.block;
             modalMenu.style.height = `${AlturaDelMenu().toString()}px`;
+            RestaurarAnchoDelMenu(modalMenu);
             EntornoSe.OcultarMenusRapidos();
         }
         else {
             CerrarMenu();
         }
+    }
+
+    const claveAnchoDelMenu: string = 'se-ancho-menu';
+    let observadorDelAncho: ResizeObserver = undefined;
+
+    // El menú ajusta su ancho al contenido (seMenu.css). Si el usuario lo ensancha arrastrando la esquina,
+    // el navegador fija style.width: ese ancho se guarda en localStorage y se aplica al volver a abrir el menú.
+    function RestaurarAnchoDelMenu(modalMenu: HTMLDivElement): void {
+        try {
+            const ancho: string = localStorage.getItem(claveAnchoDelMenu);
+            if (ancho)
+                modalMenu.style.width = ancho;
+        }
+        catch { /* sin localStorage el menú se ajusta al contenido */ }
+
+        if (observadorDelAncho !== undefined || typeof ResizeObserver === 'undefined')
+            return;
+
+        observadorDelAncho = new ResizeObserver(() => {
+            const ancho: string = modalMenu.style.width;
+            if (!ancho || modalMenu.style.display === ltrStyle.display.none)
+                return;
+            try {
+                localStorage.setItem(claveAnchoDelMenu, ancho);
+            }
+            catch { /* no se puede recordar el ancho */ }
+        });
+        observadorDelAncho.observe(modalMenu);
     }
 
     export function CerrarMenu(): void {
