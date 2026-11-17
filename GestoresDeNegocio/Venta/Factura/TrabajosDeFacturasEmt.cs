@@ -238,10 +238,11 @@ namespace GestoresDeNegocio.Ventas
 
                     if (factura.ClaseDeEmision == enumClaseDeEmision.Impresa) factura.ClaseDeEmision = enumClaseDeEmision.eFactura322;
 
-                    var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.FacturaEmitida.IdNegocio(), idFactura, enumOpercionesDeSemaforo.ASII, factura.Referencia).Id;
+                    var idSemaforo = 0;
                     var tran = contexto.IniciarTransaccion();
                     try
                     {
+                        idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.FacturaEmitida.IdNegocio(), idFactura, enumOpercionesDeSemaforo.ASII, factura.Referencia).Id;
                         new GeneradorSii(contexto, factura).AltaDeFacturaSif(esUnLote: true);
                         traza.Actualizar(entorno.ContextoDelEntorno, $"Factura '{factura.Referencia}' enviada");
                         comunicadas++;
@@ -263,7 +264,7 @@ namespace GestoresDeNegocio.Ventas
                     finally
                     {
                         contexto.CerrarTraza();
-                        SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                        if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                     }
                 }
             }
@@ -295,12 +296,13 @@ namespace GestoresDeNegocio.Ventas
             contexto.IniciarTraza(nameof(EnvioDeFacturaAeat));
 
             var someterImpresion = false;
-            var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.FacturaEmitida.IdNegocio(), idFactura, enumOpercionesDeSemaforo.ASII, factura.Referencia).Id;
+            var idSemaforo = 0;
             var tran = contexto.IniciarTransaccion();
             try
             {
                 try
                 {
+                    idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.FacturaEmitida.IdNegocio(), idFactura, enumOpercionesDeSemaforo.ASII, factura.Referencia).Id;
                     var generadorSii = ValidacionesQueExigeLaAeat(contexto, factura);
                     generadorSii.AltaDeFacturaSif(esUnLote: false);
                 }
@@ -319,23 +321,11 @@ namespace GestoresDeNegocio.Ventas
                 }
                 finally
                 {
-                    SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                    if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 }
 
                 // Informativa: si falla no debe deshacer la emisión, la AEAT ya tiene la factura
-                try
-                {
-                    var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
-                    {
-                        Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
-                        Query = $"id={entorno.TrabajoDeUsuario.Id}"
-                    }.Uri.ToString();
-                    factura.CrearObservacion(contexto, enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion(), urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
-                }
-                catch (Exception e)
-                {
-                    entorno.CrearTraza($"No se ha podido crear la observación '{enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion()}' en '{factura.Referencia}': {e.Message}");
-                }
+                entorno.AnotarElTrabajoEnElElemento(contexto, factura, enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion());
 
                 var log = contexto.SeleccionarPorPropiedad<LogDeEnvioDeFacturaDtm>(nameof(LogDeEnvioDeFacturaDtm.IdFactura), factura.Id);
                 log.EnviadaEl = DateTime.Now;

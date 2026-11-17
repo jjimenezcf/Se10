@@ -63,13 +63,15 @@ namespace GestoresDeNegocio.SistemaDocumental
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             contexto.IniciarTraza(nameof(ExportarArchivador));
 
-            var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.Archivador.IdNegocio(), idArchivador, enumOpercionesDeSemaforo.EARC, archivador.Referencia).Id;
+            var idSemaforo = 0;
             var tran = contexto.IniciarTransaccion();
             try
             {
+                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.Archivador.IdNegocio(), idArchivador, enumOpercionesDeSemaforo.EARC, archivador.Referencia).Id;
                 ArchivadorDtm destino = CrearArchivadorZip(entorno, $"Exportación de: {archivador.Referencia}");
                 ExportarArchivador(entorno, archivador, destino);
                 EnviarCorreoConElArchivador(entorno, destino);
+                entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
                 contexto.Commit(tran);
             }
             catch (Exception e)
@@ -79,7 +81,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
             finally
             {
-                SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 if (otorgado) entorno.Ejecutor.AnularAdministrador(contexto, otorgado);
                 contexto.CerrarTraza();
             }
@@ -214,11 +216,13 @@ namespace GestoresDeNegocio.SistemaDocumental
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             contexto.IniciarTraza(nameof(ProcesarFarConIa));
 
-            var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.Archivador.IdNegocio(), idArchivador, enumOpercionesDeSemaforo.IPFA, archivador.Referencia).Id;
+            var idSemaforo = 0;
             try
             {
+                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.Archivador.IdNegocio(), idArchivador, enumOpercionesDeSemaforo.IPFA, archivador.Referencia).Id;
                 TrabajosDeFacturasRec.ProcesarArchivosFar(entorno, archivador, idCg, idTipo, idProveedor, idCarpeta);
                 entorno.CrearTraza($"Fin del proceso realizado");
+                entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
             }
             catch (Exception e)
             {
@@ -226,7 +230,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
             finally
             {
-                SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 if (otorgado) entorno.Ejecutor.AnularAdministrador(contexto, otorgado);
                 contexto.CerrarTraza();
             }
@@ -285,6 +289,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             {
                 ImportarZipInterno(contexto, archivador, idArchivoZip, remplazar, renombrar, eliminarArchivo, eliminarCarpeta);
                 entorno.CrearTraza($"Fin del proceso realizado");
+                entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
                 contexto.Commit(tran);
             }
             catch (Exception e)

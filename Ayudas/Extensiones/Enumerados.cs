@@ -1002,6 +1002,8 @@ namespace Utilidades
         public const string Ped_DevolverEntrega = "devolver-entrega-pedido";
         public const string Ped_CopiarPedido = "copiar-pedido";
 
+        public const string Ral_ImportarRecuento = "importar-recuento";
+
         public const string Infantes_AsociarCurso = "asociar-curso";
 
         public const string Spr_CrearLote = "crear-lote";

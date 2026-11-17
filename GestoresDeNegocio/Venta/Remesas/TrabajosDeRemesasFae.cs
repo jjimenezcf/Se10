@@ -101,19 +101,7 @@ namespace GestoresDeNegocio.Ventas
         // Informativa: si falla no debe deshacer lo procesado en la remesa
         private static void AnotarTrabajoQueLaProceso(EntornoDeTrabajo entorno, RemesaFaeDtm remesa)
         {
-            try
-            {
-                var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
-                {
-                    Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
-                    Query = $"id={entorno.TrabajoDeUsuario.Id}"
-                }.Uri.ToString();
-                remesa.CrearObservacion(entorno.contextoDelProceso, enumTrabajosDeRemesasFae.ProcesosDeRemesasFae.Descripcion(), urlDelTrabajo, new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
-            }
-            catch (Exception e)
-            {
-                entorno.CrearTraza($"No se ha podido crear la observación '{enumTrabajosDeRemesasFae.ProcesosDeRemesasFae.Descripcion()}' en '{remesa.Referencia}': {e.Message}");
-            }
+            entorno.AnotarElTrabajoEnElElemento(entorno.contextoDelProceso, remesa, enumTrabajosDeRemesasFae.ProcesosDeRemesasFae.Descripcion());
         }
 
     }

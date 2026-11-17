@@ -175,29 +175,7 @@ namespace GestoresDeNegocio.Contabilidad
 
             resultado.Insert(0, conErrores ? ltrDeUnPreasiento.ActivacionConErrores : ltrDeUnPreasiento.ActivacionTodoCorrecto);
             sociedad.CrearTraza(contexto, ltrDeUnPreasiento.TrazaDeActivacionDePreasientos, string.Join(Environment.NewLine, resultado));
-            AnotarElTrabajoEnLaSociedad(entorno, contexto, sociedad);
-        }
-
-        // Como en la emisión de facturas: observación de administrador en la sociedad con la url del trabajo, numerada por las veces que se ha
-        // lanzado. Es informativa: si falla no afecta a los preasientos generados
-        private static void AnotarElTrabajoEnLaSociedad(EntornoDeTrabajo entorno, ContextoSe contexto, SociedadDtm sociedad)
-        {
-            try
-            {
-                var lanzado = enumNegocio.Sociedad.Observaciones(contexto)
-                    .Count(o => o.IdElemento == sociedad.Id && o.Nombre.StartsWith(ltrDeUnPreasiento.ObservacionTrabajoDeActivacion)) + 1;
-                var urlDelTrabajo = new UriBuilder(CacheDeVariable.Cfg_UrlBase)
-                {
-                    Path = $"/{enumControladoresEntorno.TrabajosDeUsuario}/{enumVistasEntorno.CrudDeTrabajosDeUsuario}",
-                    Query = $"id={entorno.TrabajoDeUsuario.Id}"
-                }.Uri.ToString();
-                sociedad.CrearObservacion(contexto, $"{ltrDeUnPreasiento.ObservacionTrabajoDeActivacion} ({lanzado})", urlDelTrabajo,
-                    new Dictionary<string, object> { { ltrDeObservaciones.CreadaPorAdminSe, true } });
-            }
-            catch (Exception e)
-            {
-                entorno.CrearTraza($"No se ha podido crear la observación '{ltrDeUnPreasiento.ObservacionTrabajoDeActivacion}' en la sociedad '{sociedad.Expresion}': {e.Message}");
-            }
+            entorno.AnotarElTrabajoEnElElemento(contexto, sociedad, ltrDeUnPreasiento.ObservacionTrabajoDeActivacion);
         }
 
         // Devuelve cuántos documentos del negocio se han preasentado y cuántos han fallado
@@ -494,11 +472,12 @@ namespace GestoresDeNegocio.Contabilidad
             }
 
             var otorgado = contexto.Usuario.OtorgarAdministrador(contexto);
-            var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, entorno.TrabajoSometido.Id, circuito.Id, enumOpercionesDeSemaforo.ALCT, circuito.Referencia).Id;
+            var idSemaforo = 0;
             contexto.IniciarTraza(nameof(AnularLoteContable));
             var tran = contexto.IniciarTransaccion();
             try
             {
+                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, entorno.TrabajoSometido.Id, circuito.Id, enumOpercionesDeSemaforo.ALCT, circuito.Referencia).Id;
                 AnularElLoteContable(entorno, contexto, circuito);
                 contexto.Commit(tran);
             }
@@ -510,7 +489,7 @@ namespace GestoresDeNegocio.Contabilidad
             finally
             {
                 if (otorgado) contexto.Usuario.AnularAdministrador(contexto, otorgado);
-                SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 contexto.CerrarTraza();
             }
         }
@@ -534,11 +513,12 @@ namespace GestoresDeNegocio.Contabilidad
             }
 
             var otorgado = contexto.Usuario.OtorgarAdministrador(contexto);
-            var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, entorno.TrabajoSometido.Id, circuito.Id, enumOpercionesDeSemaforo.ALCT, circuito.Referencia).Id;
+            var idSemaforo = 0;
             contexto.IniciarTraza(nameof(EliminarCierreContable));
             var tran = contexto.IniciarTransaccion();
             try
             {
+                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, entorno.TrabajoSometido.Id, circuito.Id, enumOpercionesDeSemaforo.ALCT, circuito.Referencia).Id;
                 AnularElLoteContable(entorno, contexto, circuito);
                 contexto.Commit(tran);
             }
@@ -550,7 +530,7 @@ namespace GestoresDeNegocio.Contabilidad
             finally
             {
                 if (otorgado) contexto.Usuario.AnularAdministrador(contexto, otorgado);
-                SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 contexto.CerrarTraza();
             }
         }
@@ -573,11 +553,12 @@ namespace GestoresDeNegocio.Contabilidad
             var circuito = contexto.SeleccionarPorId<CircuitoDocDtm>(idCircuito);
 
             var otorgado = contexto.Usuario.OtorgarAdministrador(contexto);
-            var idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, entorno.TrabajoSometido.Id, circuito.Id, enumOpercionesDeSemaforo.AETD, circuito.Referencia).Id;
+            var idSemaforo = 0;
             contexto.IniciarTraza(nameof(AnularEstimacionDirecta));
             var tran = contexto.IniciarTransaccion();
             try
             {
+                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, entorno.TrabajoSometido.Id, circuito.Id, enumOpercionesDeSemaforo.AETD, circuito.Referencia).Id;
                 entorno.CrearTraza($"Inicio del proceso");
                 ExtensorDePreasientos.AnularEstimacionDirecta(circuito, contexto, 0);
                 contexto.Commit(tran);
@@ -590,7 +571,7 @@ namespace GestoresDeNegocio.Contabilidad
             finally
             {
                 if (otorgado) contexto.Usuario.AnularAdministrador(contexto, otorgado);
-                SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 contexto.CerrarTraza();
             }
         }
