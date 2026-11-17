@@ -88,7 +88,7 @@ namespace ModeloDeDto.Terceros
             Posicion = 1)]
         public string PlanContable { get; set; }
 
-        //------------------------------------------------------------------------------------------- fila 1: qué genera preasientos
+        //------------------------------------------------------------------------------------------- filas 1 y 2: qué genera preasientos
         // SPR_Generar_Preasiento_De_FacturaEmitida, _FacturaRecibida, _Cobro, _Pago, _Almacen, _Pedido y _Expediente
         [IUPropiedad(Etiqueta = "Preasientos de emitidas", Ayuda = "Genera preasientos de las facturas emitidas", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 0)]
         public bool GenerarEmitidas { get; set; }
@@ -102,16 +102,21 @@ namespace ModeloDeDto.Terceros
         [IUPropiedad(Etiqueta = "Preasientos de pagos", Ayuda = "Genera preasientos de los pagos", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 3)]
         public bool GenerarPagos { get; set; }
 
-        [IUPropiedad(Etiqueta = "Preasientos de almacén", Ayuda = "Genera preasientos de las entradas de almacén", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 4)]
+        [IUPropiedad(Etiqueta = "Preasientos de almacén", Ayuda = "Genera preasientos de las entradas de almacén", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 2, Columna = 0)]
         public bool GenerarAlmacen { get; set; }
 
-        [IUPropiedad(Etiqueta = "Preasientos de pedidos", Ayuda = "Genera preasientos de las entregas y devoluciones de pedidos en la obra de un expediente", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 5)]
+        [IUPropiedad(Etiqueta = "Preasientos de pedidos", Ayuda = "Genera preasientos de las entregas y devoluciones de pedidos en la obra de un expediente", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 2, Columna = 1)]
         public bool GenerarPedidos { get; set; }
 
-        [IUPropiedad(Etiqueta = "Preasientos de expedientes", Ayuda = "Genera preasientos de los apuntes de gastos e ingresos de los expedientes", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 1, Columna = 6)]
+        [IUPropiedad(Etiqueta = "Preasientos de expedientes", Ayuda = "Genera preasientos de los apuntes de gastos e ingresos de los expedientes", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 2, Columna = 2)]
         public bool GenerarExpedientes { get; set; }
 
-        //------------------------------------------------------------------------------------------- fila 2: relanzar la activación de preasientos
+        //------------------------------------------------------------------------------------------- fila 3: cómo se contabilizan las compras de almacén
+        // SOCIEDAD_USA_VARIACION_DE_EXISTENCIA (ver ParametrosDeSociedades.UsaVariacionDeExistencias); al cambiarlo se cuadra la cuenta de existencias
+        [IUPropiedad(Etiqueta = "Usa variación de existencias", Ayuda = "Las compras de almacén van al gasto de la naturaleza (variación de existencias) en lugar de a la cuenta de existencias (311)", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 3, Columna = 0)]
+        public bool UsaVariacionDeExistencias { get; set; }
+
+        //------------------------------------------------------------------------------------------- fila 4: relanzar la activación de preasientos
         // la última activación de preasientos terminó con errores (su traza en la sociedad) o hay negocios activados con documentos sin
         // preasiento (lo completa InformacionContableDeSociedadController); no se pinta, la usa la acción
         [IUPropiedad(Visible = false)]
@@ -126,7 +131,7 @@ namespace ModeloDeDto.Terceros
             EnConsultaOcultar = true,
             AccionRef = "javascript:" + nameof(enumNameSpaceTs.Terceros) + "." + nameof(enumFunctionTs.Sociedad_Relanzar_Activacion_De_Preasientos) + "([" + nameof(PuedeRelanzarActivacionDePreasientos) + "])",
             Obligatorio = false,
-            Fila = 2,
+            Fila = 4,
             Columna = 0)]
         public string RelanzarActivacionDePreasientos { get; }
     }

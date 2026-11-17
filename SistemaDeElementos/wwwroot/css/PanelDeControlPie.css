@@ -108,6 +108,52 @@
     line-height: 18px;
 }
 
-.thead-historial-mensajes {
-    white-space: nowrap;
+/* Historial de mensajes (_Layout.cshtml, MensajesSe.MapearMensajesAlGrid): el mensaje y el origen bajan de línea si no caben en el
+   ancho de su columna, en vez de cortarse con puntos suspensivos */
+.tabla-historial-mensajes .div-td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+}
+
+/* En el móvil cada mensaje es una ficha: una línea por dato con su título (data-etiqueta, el de la cabecera) y el valor debajo del
+   título si no cabe a su lado */
+@media (max-width: 47.94em) {
+    .tabla-historial-mensajes {
+        display: block;
+    }
+
+        .tabla-historial-mensajes .div-thead {
+            display: none;
+        }
+
+        .tabla-historial-mensajes .div-tbody {
+            display: block;
+        }
+
+            .tabla-historial-mensajes .div-tbody .div-tr {
+                display: flex;
+                flex-direction: column;
+                padding: 6px 0;
+                border-bottom: 2px solid #ccc;
+            }
+
+            .tabla-historial-mensajes .div-tbody .div-td {
+                display: flex;
+                gap: 12px;
+                width: auto !important;
+                text-align: left !important;
+                padding: 3px 10px !important;
+                border-bottom: none;
+            }
+
+                .tabla-historial-mensajes .div-tbody .div-td::before {
+                    content: attr(data-etiqueta);
+                    flex: 0 0 5em;
+                    font-weight: bold;
+                }
+
+                .tabla-historial-mensajes .div-tbody .div-td:empty {
+                    display: none;
+                }
 }

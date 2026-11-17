@@ -24,23 +24,33 @@ namespace GestoresDeNegocio.Contabilidad
         public const string TrazaDeActivar = "Se activa la variación de existencias en la contabilización de las compras";
         public const string TrazaDeDesactivar = "Se desactiva la variación de existencias en la contabilización de las compras";
 
-        // Valida y aplica el cambio a las sociedades que pasan a usar o dejan de usar la variación de existencias entre los dos json
+        // Valida y aplica el cambio a las sociedades que pasan a usar o dejan de usar la variación de existencias entre los dos json. Una
+        // sociedad sin entrada en un json usa lo que se deduce de sus preasientos (ver ExtensorDePreasientos.DeducirVariacionDeExistencias):
+        // dar de alta su entrada con ese mismo valor no es un cambio
         public static void Aplicar(ContextoSe contexto, string jsonAnterior, string jsonNuevo)
         {
-            var antes = ParametrosDeSociedades.SociedadesQueUsanVariacionDeExistencias(jsonAnterior);
-            var despues = ParametrosDeSociedades.SociedadesQueUsanVariacionDeExistencias(jsonNuevo);
+            var antes = ParametrosDeSociedades.VariacionDeExistenciasPorSociedad(jsonAnterior);
+            var despues = ParametrosDeSociedades.VariacionDeExistenciasPorSociedad(jsonNuevo);
 
-            foreach (var idSociedad in antes.Except(despues))
-                Cambiar(contexto, idSociedad, activar: false);
+            foreach (var idSociedad in antes.Keys.Union(despues.Keys).ToList())
+            {
+                var sociedad = contexto.SeleccionarPorId<SociedadDtm>(idSociedad, errorSiNoHay: false);
+                if (sociedad is null)
+                    continue;
 
-            foreach (var idSociedad in despues.Except(antes))
-                Cambiar(contexto, idSociedad, activar: true);
+                bool? deducido = null;
+                bool Deducido() => deducido ??= sociedad.DeducirVariacionDeExistencias(contexto);
+
+                var usabaAntes = antes.TryGetValue(idSociedad, out var valorAntes) ? valorAntes : Deducido();
+                var usaDespues = despues.TryGetValue(idSociedad, out var valorDespues) ? valorDespues : Deducido();
+                if (usabaAntes != usaDespues)
+                    Cambiar(contexto, sociedad, activar: usaDespues);
+            }
         }
 
-        private static void Cambiar(ContextoSe contexto, int idSociedad, bool activar)
+        private static void Cambiar(ContextoSe contexto, SociedadDtm sociedad, bool activar)
         {
-            var sociedad = contexto.SeleccionarPorId<SociedadDtm>(idSociedad);
-            var cgsDeLaSociedad = contexto.Set<CentroGestorDtm>().Where(cg => cg.IdSociedad == idSociedad).Select(cg => cg.Id);
+            var cgsDeLaSociedad = contexto.Set<CentroGestorDtm>().Where(cg => cg.IdSociedad == sociedad.Id).Select(cg => cg.Id);
 
             ValidarQueEstaTodoContabilizado(contexto, sociedad, cgsDeLaSociedad, activar);
 

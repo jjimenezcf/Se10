@@ -245,6 +245,8 @@
                 let propiedad: string = celdaCabecera.getAttribute('propiedad');
                 celda.style.width = celdaCabecera.style.width;
                 celda.style.textAlign = celdaCabecera.style.textAlign;
+                // el título de la columna, que en el móvil se muestra delante del valor (ver .tabla-historial-mensajes)
+                celda.setAttribute('data-etiqueta', celdaCabecera.textContent.trim());
 
                 if (propiedad === '_fecha') {
                     const fecha = new Date(mensaje[propiedad]);

@@ -922,7 +922,7 @@ namespace GestorDeElementos.Extensores
             var conceptoDelDebe = linea.Concepto.IsNullOrEmpty() ? unitario.Expresion : linea.Concepto;
 
             var (cuentaDelDebe, tipoDelDebe) = (VariablesDeCuentas.Existencias, "");
-            if (sociedad.UsaVariacionDeExistencias())
+            if (sociedad.UsaVariacionDeExistencias(contexto))
             {
                 var naturaleza = unitario.Naturaleza(contexto, aplicarJoin: true);
                 if (naturaleza.IdCuentaDeGasto == null)
@@ -1231,6 +1231,37 @@ namespace GestorDeElementos.Extensores
                 }.InsertarComoAdministrador(contexto);
             }
             return preasiento;
+        }
+
+        // Si la sociedad usa la variación de existencias: lo indicado en el parámetro SOCIEDAD_USA_VARIACION_DE_EXISTENCIA o, si no tiene
+        // entrada para ella, lo que se deduce de sus preasientos (ver DeducirVariacionDeExistencias)
+        public static bool UsaVariacionDeExistencias(this SociedadDtm sociedad, ContextoSe contexto) =>
+            sociedad.VariacionDeExistenciasDefinida() ?? sociedad.DeducirVariacionDeExistencias(contexto);
+
+        // Sin el parámetro definido, de los apuntes de los preasientos de la sociedad (no cancelados ni anulados) a la cuenta de existencias
+        // (311) o a la de variación de existencias (611), en el debe o en el haber:
+        //  - si no hay ninguno a la 611 (haya o no a la 311) no la usa
+        //  - si hay alguno a la 611 la usa si después del último preasiento con la 611 (por fecha contable e id) no hay ninguno con la 311
+        public static bool DeducirVariacionDeExistencias(this SociedadDtm sociedad, ContextoSe contexto)
+        {
+            var cgsDeLaSociedad = contexto.Set<CentroGestorDtm>().Where(cg => cg.IdSociedad == sociedad.Id).Select(cg => cg.Id);
+            var descartados = enumEtapasDePreasiento.SPR_Etapa_Cancelado.Lista().Concat(enumEtapasDePreasiento.SPR_Etapa_Anulado.Lista()).ToList();
+            var existencias = VariablesDeCuentas.Existencias.Left(3);
+            var variacion = VariablesDeCuentas.VariacionDeExistencias.Left(3);
+
+            var apuntes = contexto.Set<ApunteDeUnPreasientoDtm>()
+                .Where(a => a.Cuenta.StartsWith(existencias) || a.Cuenta.StartsWith(variacion))
+                .Join(contexto.Set<PreasientoDtm>().Where(p => cgsDeLaSociedad.Contains(p.IdCg) && !descartados.Contains(p.IdEstado)),
+                      a => a.IdElemento, p => p.Id, (a, p) => new { p.Id, p.FechaContable, a.Cuenta });
+
+            var ultimoConVariacion = apuntes.Where(a => a.Cuenta.StartsWith(variacion))
+                .OrderByDescending(a => a.FechaContable).ThenByDescending(a => a.Id)
+                .FirstOrDefault();
+            if (ultimoConVariacion is null)
+                return false;
+
+            return !apuntes.Any(a => a.Cuenta.StartsWith(existencias)
+                                  && (a.FechaContable > ultimoConVariacion.FechaContable || (a.FechaContable == ultimoConVariacion.FechaContable && a.Id > ultimoConVariacion.Id)));
         }
 
         // El cuadre de existencias es el único preasiento referenciado a una sociedad: no tiene documento contable (ver PreasentarCuadreDeExistencias)

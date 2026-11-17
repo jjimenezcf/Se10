@@ -61,10 +61,28 @@ namespace ServicioDeDatos.Terceros
 
         // Si la sociedad contabiliza las compras de almacén por el método de la variación de existencias: la entrega va al gasto de la
         // naturaleza contra albaranes y a fin de ejercicio se regulariza la 311 contra la 611; si no, la entrega va a existencias (311).
-        // Sin entrada para la sociedad no la usa. Al crear el parámetro, las sociedades que ya generaban preasientos de almacén (que se
-        // hacían contra el gasto) entran usándola, así no cambian de método sin el asiento de cuadre (ver CambioDeVariacionDeExistencias)
-        public static bool UsaVariacionDeExistencias(this SociedadDtm sociedad) =>
-            SociedadesQueUsanVariacionDeExistencias(JsonDeUsaVariacionDeExistencias()).Contains(sociedad.Id);
+        // null si el parámetro no tiene entrada para la sociedad: entonces se deduce de sus preasientos (ver
+        // ExtensorDePreasientos.UsaVariacionDeExistencias). Al crear el parámetro, las sociedades que ya generaban preasientos de almacén
+        // (que se hacían contra el gasto) entran usándola, así no cambian de método sin el asiento de cuadre (ver CambioDeVariacionDeExistencias)
+        public static bool? VariacionDeExistenciasDefinida(this SociedadDtm sociedad) =>
+            VariacionDeExistenciasPorSociedad(JsonDeUsaVariacionDeExistencias()).TryGetValue(sociedad.Id, out var usa) ? usa : null;
+
+        // Json del parámetro con la entrada de la sociedad creada o actualizada con el valor indicado; null si no cambia
+        public static string JsonDeUsaVariacionDeExistenciasConLaSociedad(int idSociedad, bool usa)
+        {
+            var json = JsonDeUsaVariacionDeExistencias();
+            var jsonArray = JArray.Parse(json);
+            var item = jsonArray.FirstOrDefault(x => x["IdSociedad"]?.Value<int>() == idSociedad) as JObject;
+            if (item is null)
+            {
+                item = new JObject { ["IdSociedad"] = idSociedad };
+                jsonArray.Add(item);
+            }
+            item["Valor"] = usa ? "S" : "N";
+
+            var nuevo = jsonArray.ToString(Newtonsoft.Json.Formatting.None);
+            return nuevo == JArray.Parse(json).ToString(Newtonsoft.Json.Formatting.None) ? null : nuevo;
+        }
 
         private static string JsonDeUsaVariacionDeExistencias() =>
             enumNegocio.Sociedad.Parametro(enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA, crearParametro: true, valorPorDefecto: ValorInicialDeUsaVariacionDeExistencias()).Valor;
@@ -77,17 +95,16 @@ namespace ServicioDeDatos.Terceros
             return jsonArray.ToString(Newtonsoft.Json.Formatting.None);
         }
 
-        // Ids de las sociedades que usan la variación de existencias según el json del parámetro; la entrada 0 es la plantilla
-        public static List<int> SociedadesQueUsanVariacionDeExistencias(string json)
+        // Por cada sociedad con entrada en el json del parámetro, si usa la variación de existencias; la entrada 0 es la plantilla
+        public static Dictionary<int, bool> VariacionDeExistenciasPorSociedad(string json)
         {
             try
             {
                 return JArray.Parse(json.IsNullOrEmpty() ? "[]" : json)
                     .Select(item => new { IdSociedad = item["IdSociedad"].Value<int>(), Valor = item["Valor"]?.Value<string>() })
-                    .Where(x => x.IdSociedad > 0 && x.Valor.EsTrue())
-                    .Select(x => x.IdSociedad)
-                    .Distinct()
-                    .ToList();
+                    .Where(x => x.IdSociedad > 0)
+                    .GroupBy(x => x.IdSociedad)
+                    .ToDictionary(g => g.Key, g => g.Last().Valor.EsTrue());
             }
             catch (Exception ex)
             {
