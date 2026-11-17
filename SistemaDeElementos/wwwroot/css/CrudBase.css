@@ -211,6 +211,16 @@ body.resizing-en-progreso * {
             overflow: visible;
             text-overflow: clip;
         }
+
+    /* con opciones contextuales propias, el icono del menú va en una cuarta columna, tras la etiqueta de mostrar el filtro */
+    .div-mnt-menu-contenedor.menu-de-consulta.con-menu-contextual {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) 1.5em !important;
+        column-gap: 0.5em;
+    }
+
+        .div-mnt-menu-contenedor.menu-de-consulta.con-menu-contextual > .menu-contextual {
+            grid-column: 4;
+        }
 }
 
 /* Botón con la lista de opciones de creación que sustituye al select en el móvil (ZonaDeMenu) */

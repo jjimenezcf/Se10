@@ -54,6 +54,45 @@ namespace MVCSistemaDeElementos.Controllers
 
         }
 
+        protected override dynamic ProcesarOpcionMf(enumNegocio negocio, string opcion, Dictionary<string, object> parametros)
+        {
+            switch (opcion)
+            {
+                case eventosDeMf.Ral_PrepararRecuento:
+                    // la modal se abre con el almacén filtrado y al aceptar se llama a epPrepararRecuento
+                    return null;
+            }
+            return base.ProcesarOpcionMf(negocio, opcion, parametros);
+        }
+
+        // Somete el trabajo que genera el Excel del recuento del almacén
+        public JsonResult epPrepararRecuento(string parametrosJson)
+        {
+            var r = new Resultado();
+            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                if (!parametros.ContieneClave(nameof(PrepararRecuentoDto.IdAlmacen))) throw new Exception("Debe indicar el almacén del que se prepara el recuento");
+
+                var idAlmacen = (int)parametros.LeerValor<long>(nameof(PrepararRecuentoDto.IdAlmacen));
+                var referencia = parametros.LeerValor(nameof(PrepararRecuentoDto.Referencia), "");
+                var nombre = parametros.LeerValor(nameof(PrepararRecuentoDto.Nombre), "");
+
+                var trabajo = TrabajosParaRegularizaciones.SometerPrepararRecuento(Contexto, idAlmacen, referencia, nombre);
+
+                r.Consola = "Se ha sometido la preparación del recuento, se le enviará el Excel por correo cuando finalice";
+                r.Datos = trabajo;
+                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "Error al someter la preparación del recuento.");
+            }
+            return new JsonResult(r);
+        }
+
         // Url de la edición del unitario de la fila del inventario (el id de la fila es el de su último movimiento), para navegar desde la columna del material
         public JsonResult epObtenerUrlAlUnitario(string parametrosJson)
         {

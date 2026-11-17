@@ -722,6 +722,14 @@ namespace MVCSistemaDeElementos.Descriptores
                     renderCrud = $@"{renderCrud}
                                    <!--  *******************  div de edición -->
                                    {Editor?.RenderControl()??""}";
+
+                    // una consulta no pinta ni el menú contextual ni las modales, salvo que el descriptor haya añadido opciones propias (p.e. Preparar recuento del inventario)
+                    if (Mnt.OpcionesContextuales.Count > 0)
+                    {
+                        renderCrud = $@"{renderCrud}
+                                   {renderModales}
+                                   {Mnt.RenderMenuFlotanteContextual(menuContextual)}";
+                    }
                 }
                 if (Negocio.UsaDirecciones())
                 {

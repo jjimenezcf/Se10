@@ -497,7 +497,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
             return null;
         }
 
-        private static bool TryDecimal(ExcelWorksheet hoja, int fila, int columna, out decimal valor)
+        internal static bool TryDecimal(ExcelWorksheet hoja, int fila, int columna, out decimal valor)
         {
             valor = 0m;
             var celda = hoja.Cells[fila, columna];
@@ -685,7 +685,7 @@ namespace GestoresDeNegocio.MaestrosTecnico
             return null;
         }
 
-        private static string Texto(ExcelWorksheet hoja, int fila, int columna)
+        internal static string Texto(ExcelWorksheet hoja, int fila, int columna)
         {
             if (columna <= 0) return null;
             var valor = hoja.Cells[fila, columna].Text;

@@ -26,6 +26,11 @@ namespace ServicioDeDatos.Logistica
         RAL_IncrementarOrdenEn
     }
 
+    public static class ltrDeUnaRegularizacion
+    {
+        public const string IdRegularizacion = nameof(IdRegularizacion);
+    }
+
     public static class VariableDeRegularizaciones
     {
         private static string etapaInicia => enumNegocio.Regularizacion.Parametro(enumEtapasDeRegularizacion.RAL_Inicial)?.Valor ?? null;

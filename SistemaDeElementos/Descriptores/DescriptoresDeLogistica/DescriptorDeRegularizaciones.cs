@@ -1,4 +1,5 @@
 using ServicioDeDatos;
+using ServicioDeDatos.Seguridad;
 using MVCSistemaDeElementos.Controllers;
 using UtilidadesParaIu;
 using Utilidades;
@@ -19,6 +20,10 @@ namespace MVCSistemaDeElementos.Descriptores
                , rutaBase: enumNameSpaceTs.Logistica)
         {
             DescriptorDeLineasDeUnaRegularizacion();
+
+            // sólo se puede importar con la regularización recontando (ver CrudEdicionRegularizacion.AjustarLineasSegunEtapa)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(RecuentoDto), eventosDeMf.Ral_ImportarRecuento, "Seleccionar el recuento a importar"));
+            Editor.IncluirMfIndividual("Importar recuento", eventosDeMf.Ral_ImportarRecuento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
         }
 
         private void DescriptorDeLineasDeUnaRegularizacion()

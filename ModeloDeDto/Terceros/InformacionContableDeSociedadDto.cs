@@ -108,7 +108,8 @@ namespace ModeloDeDto.Terceros
         [IUPropiedad(Etiqueta = "Preasientos de pedidos", Ayuda = "Genera preasientos de las entregas y devoluciones de pedidos en la obra de un expediente", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 2, Columna = 1)]
         public bool GenerarPedidos { get; set; }
 
-        [IUPropiedad(Etiqueta = "Preasientos de expedientes", Ayuda = "Genera preasientos de los apuntes de gastos e ingresos de los expedientes", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 2, Columna = 2)]
+        // ocupa también la columna 3, vacía, para que los checks queden alineados con los de la fila 1
+        [IUPropiedad(Etiqueta = "Preasientos de expedientes", Ayuda = "Genera preasientos de los apuntes de gastos e ingresos de los expedientes", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 2, Columna = 2, ColSpan = 2)]
         public bool GenerarExpedientes { get; set; }
 
         //------------------------------------------------------------------------------------------- fila 3: cómo se contabilizan las compras de almacén

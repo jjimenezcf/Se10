@@ -647,73 +647,38 @@ namespace GestorDeElementos
             if (filtro.Clausula.Equals(filtrarPor, StringComparison.CurrentCultureIgnoreCase))
             {
                 filtro.ModificarCriterioDeFiltrado();
-                string expresion = "";
+
+                // el resto de criterios sobre texto siguen el estándar de filtrado por cadena (ver FiltrarPorTexto)
+                var valor = filtro.Valor;
                 switch (filtro.Criterio)
                 {
                     case enumCriteriosDeFiltrado.igual:
-                        expresion = ComponerFiltro(filtrarPor, filtro.Valor, porIgual: true);
-                        break;
+                        return consulta.FiltrarPorTexto(filtrarPor, valor, porIgual: true);
                     case enumCriteriosDeFiltrado.contiene:
-                        expresion = ComponerFiltro(filtrarPor, filtro.Valor, porIgual: false);
-                        break;
+                    case enumCriteriosDeFiltrado.esAlgunoDe:
+                        return consulta.FiltrarPorTexto(filtrarPor, valor);
                     case enumCriteriosDeFiltrado.noContiene:
-                        expresion = $"x => !x.{filtrarPor}.Contains(@0)";
-                        break;
+                        return consulta.FiltrarPorTexto(filtrarPor, valor, negar: true);
                     case enumCriteriosDeFiltrado.diferente:
-                        expresion = $"x => !x.{filtrarPor}.Equals(@0)";
-                        break;
+                        return consulta.FiltrarPorTexto(filtrarPor, valor, porIgual: true, negar: true);
                     case enumCriteriosDeFiltrado.comienza:
-                        expresion = $"x => x.{filtrarPor}.StartsWith(@0)";
-                        break;
+                        return consulta.FiltrarPorTexto(filtrarPor, valor, porComienzo: true);
                     case enumCriteriosDeFiltrado.termina:
-                        expresion = $"x => x.{filtrarPor}.EndsWith(@0)";
-                        break;
+                        return consulta.FiltrarPorTexto(filtrarPor, valor, porFin: true);
+                    case enumCriteriosDeFiltrado.porReferencia:
+                        return consulta.FiltrarPorTexto($"{nameof(INombre.Nombre)}{Simbolos.separadorDePropiedades}{nameof(IUsaReferencia.Referencia)}", valor);
+                    case enumCriteriosDeFiltrado.porMismaReferencia:
+                        return consulta.FiltrarPorTexto(nameof(IUsaReferencia.Referencia), valor, porIgual: true);
+                }
+
+                string expresion = "";
+                switch (filtro.Criterio)
+                {
                     case enumCriteriosDeFiltrado.esNulo:
                         expresion = $"x => string.IsNullOrWhiteSpace(x.{filtrarPor})";
                         break;
                     case enumCriteriosDeFiltrado.noEsNulo:
                         expresion = $"x => !string.IsNullOrWhiteSpace(x.{filtrarPor})";
-                        break;
-                    case enumCriteriosDeFiltrado.porReferencia:
-                        if (filtro.Valor.IndexOf(Simbolos.separadorDeCadenasDeFiltrado) > 0)
-                        {
-                            foreach (var item in filtro.Valor.Split(Simbolos.separadorDeCadenasDeFiltrado))
-                            {
-                                if (item.Length > 0)
-                                {
-                                    string expresionItem = "";
-                                    if (filtro.Criterio == enumCriteriosDeFiltrado.igual)
-                                    {
-                                        expresionItem = $"{(expresion.IsNullOrEmpty() ? "x => " : "")} x.{nameof(IUsaReferencia.Referencia)}.Equals(\"{item}\")";
-                                    }
-                                    else
-                                    {
-                                        expresionItem = $"{(expresion.IsNullOrEmpty() ? "x => " : "")} x.{nameof(INombre.Nombre)}.Contains(\"{item}\") || x.{nameof(IUsaReferencia.Referencia)}.Contains(\"{item}\")";
-                                    }
-                                    expresion = $"{(expresion.IsNullOrEmpty() ? "" : $"{expresion} || ")} {expresionItem}";
-                                }
-                            }
-                        }
-                        else expresion = $"x => x.{nameof(INombre.Nombre)}.Contains(@0) || x.{nameof(IUsaReferencia.Referencia)}.Contains(@0)";
-                        break;
-                    case enumCriteriosDeFiltrado.porMismaReferencia:
-                        foreach (var item in filtro.Valor.Split(Simbolos.separadorDeCadenasDeFiltrado))
-                        {
-                            if (item.Length > 0)
-                            {
-                                string expresionItem = "";
-                                expresionItem = $"{(expresion.IsNullOrEmpty() ? "x => " : "")} x.{nameof(IUsaReferencia.Referencia)}.Equals(\"{item}\")";
-                                expresion = $"{(expresion.IsNullOrEmpty() ? "" : $"{expresion} || ")} {expresionItem}";
-                            }
-                        }
-                        break;
-                    case enumCriteriosDeFiltrado.esAlgunoDe:
-                        foreach (var item in filtro.Valor.Split(Simbolos.separadorDeCadenasDeFiltrado))
-                        {
-                            string expresionItem = "";
-                            expresionItem = $"{(expresion.IsNullOrEmpty() ? "x => " : "")} x.{filtro.Clausula}.Contains(\"{item}\")";
-                            expresion = $"{(expresion.IsNullOrEmpty() ? "" : $"{expresion} || ")} {expresionItem}";
-                        }
                         break;
                     default:
                         GestorDeErrores.Emitir($"No se ha implementado la expresión de filtrado para el criterio {filtro.Criterio}");
@@ -740,7 +705,32 @@ namespace GestorDeElementos
             return consulta;
         }
 
-        private static string ComponerFiltro(string filtrarPor, string valor, bool porIgual)
+        // Estándar del sistema para filtrar por una cadena (lo usa AplicarFiltroDeCadena para todos sus criterios sobre texto y puede usarse
+        // directamente sobre cualquier consulta). La propiedad admite rutas, p.e. "Unitario.Referencia". Sintaxis del valor: ';' separa
+        // alternativas, '%' es cualquier cadena, '_' un carácter, '=' al inicio igualdad exacta y '|' al inicio o al fin empieza o termina por.
+        // porIgual/porComienzo/porFin fijan el modo por defecto de las cadenas que no llevan '=' o '|', y negar devuelve lo que no cumple
+        // ninguna de las alternativas. Sin valor devuelve la consulta tal cual
+        public static IQueryable<TRegistro> FiltrarPorTexto<TRegistro>(this IQueryable<TRegistro> consulta, string propiedad, string valor, bool porIgual = false, bool negar = false, bool porComienzo = false, bool porFin = false)
+        {
+            if (valor.IsNullOrEmpty()) return consulta;
+            var expresion = ComponerFiltro(propiedad, valor, porIgual, porComienzo, porFin);
+            if (expresion.IsNullOrEmpty()) return consulta;
+            if (negar)
+            {
+                const string prefijo = "x => ";
+                expresion = $"{prefijo}!({expresion.Substring(prefijo.Length)})";
+            }
+
+            var configTemp = new ParsingConfig();
+            var config = new ParsingConfig
+            {
+                UseParameterizedNamesInDynamicQuery = true,
+                CustomTypeProvider = new MyCustomTypeProvider(configTemp)
+            };
+            return consulta.Where(DynamicExpressionParser.ParseLambda<TRegistro, bool>(config, false, expresion));
+        }
+
+        private static string ComponerFiltro(string filtrarPor, string valor, bool porIgual, bool porComienzo = false, bool porFin = false)
         {
             var filtro = "";
             foreach (var propiedad in filtrarPor.Split(Simbolos.separadorDePropiedades))
@@ -748,16 +738,16 @@ namespace GestorDeElementos
                 foreach (var item in valor.Split(Simbolos.separadorDeCadenasDeFiltrado))
                 {
                     if (item.Length > 0)
-                        filtro = FiltrarPorUnaDeLasCadena(propiedad, filtro, item, porIgual);
+                        filtro = FiltrarPorUnaDeLasCadena(propiedad, filtro, item, porIgual, porComienzo, porFin);
                 }
             }
             return filtro;
         }
 
-        private static string FiltrarPorUnaDeLasCadena(string propiedad, string filtro, string item, bool porIgual)
+        private static string FiltrarPorUnaDeLasCadena(string propiedad, string filtro, string item, bool porIgual, bool porComienzoPorDefecto = false, bool porFinPorDefecto = false)
         {
-            var porComienzo = false;
-            var porFin = false;
+            var porComienzo = porComienzoPorDefecto;
+            var porFin = porFinPorDefecto;
 
             if (item.StartsWith(Simbolos.Igual))
             {
@@ -779,7 +769,7 @@ namespace GestorDeElementos
             string expresionItem;
 
             // Si contiene % construimos el patrón LIKE respetando además porComienzo/porFin
-            if (!porIgual && item.Contains(Simbolos.Porcentaje))
+            if (!porIgual && (item.Contains(Simbolos.Porcentaje) || item.Contains(Simbolos.Subrrallado)))
             {
                 var partes = item.Trim().Split(Simbolos.Porcentaje)
                                  .Select(p => p.Trim())

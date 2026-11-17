@@ -42,6 +42,8 @@ namespace ServicioDeDatos.Negocio
         // la referencia es la fecha hasta la que se cierra (aaaa-mm-dd), la leen las validaciones de los preasientos
         [Description("Cierre contable hasta: {Referencia}")]
         CCT,
+        [Description("Importar recuento en la regularización: {Referencia}")]
+        IRAL,
     }
 
     [Table(Tablas.LIBRO, Schema = Esquemas.NEGOCIO)]

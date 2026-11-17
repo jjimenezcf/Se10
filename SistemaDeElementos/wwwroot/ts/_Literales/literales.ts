@@ -588,6 +588,7 @@ const ltrControladores = {
     },
     Logistica: {
         Pedidos: 'Pedidos',
+        Regularizaciones: 'Regularizaciones',
         LineasDeUnPedido: 'LineasDeUnPedido',
         EntregasDeUnPedido: 'EntregasDeUnPedido',
         DevolucionesDeUnPedido: 'DevolucionesDeUnPedido'
@@ -1751,13 +1752,17 @@ const Ajax = {
             Pedidos: {
                 RecepcionarPedido: 'epRecepcionarPedido'
             },
+            Regularizaciones: {
+                ImportarRecuento: 'epImportarRecuento'
+            },
             MovimientosDeAlmacen: {
                 ObtenerUrlAlDocumento: 'epObtenerUrlAlDocumento',
                 ObtenerUrlAlProveedor: 'epObtenerUrlAlProveedorDelMovimiento',
                 ObtenerUrlAlPreasiento: 'epObtenerUrlAlPreasiento'
             },
             Inventario: {
-                ObtenerUrlAlUnitario: 'epObtenerUrlAlUnitario'
+                ObtenerUrlAlUnitario: 'epObtenerUrlAlUnitario',
+                PrepararRecuento: 'epPrepararRecuento'
             }
         },
         Contabilidad: {
@@ -3609,11 +3614,21 @@ const ltrPropiedades = {
             IdElemento: 'idElemento',
             Nombre: literal.nombre
         },
+        Inventario: {
+            FiltroPorFechaDeInventario: 'FiltroPorFechaDeInventario',
+            FiltroPorAlmacen: 'FiltroPorAlmacen',
+            // propiedad del almacén en la modal de preparar el recuento (ver PrepararRecuentoDto)
+            AlmacenDelRecuento: 'Almacen'
+        },
         Regularizacion: {
             IdAlmacen: 'idalmacen',
             Almacen: 'almacen',
             tipo: {
                 Clase: 'ClaseDeRegularizacion'
+            },
+            Recuento: {
+                IdRegularizacion: 'IdRegularizacion',
+                IdArchivo: 'IdArchivo'
             },
             linea: {
                 orden: 'orden',
@@ -4478,6 +4493,12 @@ const ltrMenus = {
                 CopiarPedido: 'copiar-pedido',
                 QuitarContrato: 'quitar-contrato',
                 QuitarExpediente: 'quitar-expediente'
+            },
+            Regularizaciones: {
+                ImportarRecuento: 'importar-recuento'
+            },
+            Inventario: {
+                PrepararRecuento: 'preparar-recuento'
             }
         },
         MaestrosTecnico: {

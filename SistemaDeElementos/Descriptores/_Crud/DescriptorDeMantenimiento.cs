@@ -87,7 +87,8 @@ namespace MVCSistemaDeElementos.Descriptores
 
         private void DefinirMfContextual()
         {
-            if ((bool)ApiDeAtributos.ValorDelAtributo(typeof(TElemento), nameof(IUDtoAttribute.OpcionDeExportar)))
+            // una consulta no pinta la modal de exportación, así que no se ofrece la opción
+            if (Crud.Modo != ModoDescriptor.Consulta && (bool)ApiDeAtributos.ValorDelAtributo(typeof(TElemento), nameof(IUDtoAttribute.OpcionDeExportar)))
                 IncluirMfContextual($"<li id='{DescriptorDeCrud<TElemento>.menuContextual}.{eventosDeMf.ModalDeExportar}' accion-menu='{eventosDeMf.ModalDeExportar}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Exportar datos</li>");
             //IncluirMfContextual($"<li id='menu.contextual.salvar' accion-menu='{eventosDeMf.SalvarDatosDelGrid}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Salvar nº de filas</li>");
 
@@ -338,9 +339,15 @@ namespace MVCSistemaDeElementos.Descriptores
             ? typeof(TElemento).Name.Replace("Dto", "")
             : $"Consulta de {Crud.Negocio.Plural().ToLower()}";
 
+            // si el descriptor ha añadido opciones contextuales (p.e. Preparar recuento del inventario) se pinta el icono que despliega el menú,
+            // en la zona de menú (primera columna de la barra)
+            var iconoDelMenuContextual = OpcionesContextuales.Count == 0 ? "" :
+                $"<div id='{IdHtml}.{DescriptorDeCrud<TElemento>.menuContextual}' class='{ExtensorDeCss.Render(enumCssMnt.MenuContextual)}' offset-x = 110 menu-flotante='{DescriptorDeCrud<TElemento>.menuContextual}'> </div>";
+            var conMenuContextual = OpcionesContextuales.Count == 0 ? "" : "con-menu-contextual";
+
             return $@"
             <!--  ******************* menú de consulta ******************* -->
-            <div id = ¨contenedor.{IdHtml}.MenuDelMnt¨ class=¨{ExtensorDeCss.Render(enumCssMnt.MntMenuContenedor)} sin-mfs menu-de-consulta¨>
+            <div id = ¨contenedor.{IdHtml}.MenuDelMnt¨ class=¨{ExtensorDeCss.Render(enumCssMnt.MntMenuContenedor)} sin-mfs menu-de-consulta {conMenuContextual}¨>
                 <div class=¨{ExtensorDeCss.Render(enumCssDiv.DivVisible)} {ExtensorDeCss.Render(enumCssMnt.MntMenuZona)}¨> </div>
                 <div id=¨{IdHtml}.menu.del.flujo¨ class='{ExtensorDeCss.Render(enumCssMnt.MenuDelProceso)} {ExtensorDeCss.Render(enumCssEdicion.Titulo)}'>
                 {Etiqueta}
@@ -349,6 +356,7 @@ namespace MVCSistemaDeElementos.Descriptores
                   <a id = ¨mostrar.{IdHtml}.ref¨ title=¨Ocultar filtro¨ href=¨javascript:Crud.{enumGestorDeEventos.EventosDelMantenimiento}('{eventosDeMnt.OcultarMostrarFiltro}', '{("")}');¨>Ocultar filtro</a>
                   <input id=¨expandir.{IdHtml}¨ type=¨hidden¨ value=¨1¨ >
                 </div>
+                {iconoDelMenuContextual}
             </div>";
         }
 

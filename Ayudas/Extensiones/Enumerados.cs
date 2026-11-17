@@ -1003,6 +1003,7 @@ namespace Utilidades
         public const string Ped_CopiarPedido = "copiar-pedido";
 
         public const string Ral_ImportarRecuento = "importar-recuento";
+        public const string Ral_PrepararRecuento = "preparar-recuento";
 
         public const string Infantes_AsociarCurso = "asociar-curso";
 

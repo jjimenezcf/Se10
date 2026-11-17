@@ -5,6 +5,7 @@ using MVCSistemaDeElementos.Controllers;
 using ServicioDeDatos;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Logistica;
+using ServicioDeDatos.Seguridad;
 using System.Collections.Generic;
 using Utilidades;
 using UtilidadesParaIu;
@@ -63,6 +64,10 @@ namespace MVCSistemaDeElementos.Descriptores
                  restringirPor: "",
                  alSeleccionarBlanquearControl: "")
             { OtrosClausulasDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_FiltrosPorClaseDeUnitario) + "()" };
+
+            // genera el Excel para el recuento del almacén filtrado (la modal se abre con el almacén seleccionado, ver Inventario.ts)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(PrepararRecuentoDto), eventosDeMf.Ral_PrepararRecuento, "Preparar recuento"));
+            Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Ral_PrepararRecuento}' accion-menu='{eventosDeMf.Ral_PrepararRecuento}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Preparar recuento</li>");
         }
 
         public override string RenderControl()
