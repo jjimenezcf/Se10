@@ -166,7 +166,10 @@
     margin-top: 1px; /* Margen superior (ajusta según necesidad, si está debajo de un header fijo) */
     top: 49px; /* Posicionado 49px desde la parte superior (debajo de tu div visible) */
     left: 1px;
-    width: 300px; /* Ancho fijo del menú */
+    width: max-content; /* El ancho se ajusta a la opción visible más larga */
+    min-width: 300px; /* Nunca más estrecho que el ancho original */
+    max-width: calc(100vw - 12px); /* Nunca se sale de la pantalla (left + bordes) */
+    resize: horizontal; /* El usuario puede ensancharlo arrastrando la esquina inferior derecha */
     height: 90%; /* Altura inicial del menú (JavaScript puede ajustarla) */
     overflow: auto; /* Habilita el scroll si el contenido excede la altura */
     /* ESTILOS MODERNOS (HEREDADOS de los menús de cabecera) */
