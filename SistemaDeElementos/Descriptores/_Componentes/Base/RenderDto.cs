@@ -490,6 +490,11 @@ namespace MVCSistemaDeElementos.Descriptores
             valores["Placeholder"] = atributos.AyudaDeCriteriosDeBusqueda.IsNullOrEmpty()
                 ? $"Seleccionar ({atributos.CriterioDeBusqueda}) ..."
                 : atributos.AyudaDeCriteriosDeBusqueda;
+            // si el placeholder es un literal corto (AyudaDeCriteriosDeBusqueda) y la ayuda es otra, la ayuda se muestra como tooltip del control
+            var ayuda = atributos.Ayuda.Replace("[Negocio]", tabla.Negocio.ConArticulo());
+            valores["Tooltip"] = ayuda != valores["Placeholder"].ToString() && ayuda != atributos.Etiqueta
+                ? ayuda.Replace("¨", "'").Replace("\"", "'")
+                : "";
             valores["GuardarEn"] = atributos.GuardarEn;
             valores["RestringidoPor"] = atributos.RestringidoPorControl.ToLower();
             valores["PropiedadRestrictora"] = atributos.PropiedadRestrictora.ToLower();

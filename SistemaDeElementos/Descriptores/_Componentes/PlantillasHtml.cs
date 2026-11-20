@@ -137,7 +137,8 @@ namespace MVCSistemaDeElementos.Descriptores
                                          aplicar-join=¨[AplicarJoin]¨
                                          cantidad-a-leer=¨[Cantidad]¨ 
                                          placeholder =¨[Placeholder]¨
-                                         oninput=¨[OnInput]¨ 
+                                         title=¨[Tooltip]¨
+                                         oninput=¨[OnInput]¨
                                          onfocus=¨[OnFocus]¨ 
                                          onblur=¨[OnChange]¨ 
                                          onclick='javascript:ApiListaDinamica.ListaPulsada(this)'
