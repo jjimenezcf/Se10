@@ -197,9 +197,15 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<ObservacionesDeUnInfanteDtm>().Cast<ObservacionDtm>();
                 case enumNegocio.CursoDeGuarderia:
                     return contexto.Set<ObservacionesDeUnCursoDeGuarderiaDtm>().Cast<ObservacionDtm>();
+                case enumNegocio.Almacen:
+                    return contexto.Set<ObservacionesDeUnAlmacenDtm>().Cast<ObservacionDtm>();
+                case enumNegocio.Regularizacion:
+                    return contexto.Set<ObservacionesDeUnaRegularizacionDtm>().Cast<ObservacionDtm>();
+                case enumNegocio.Venta:
+                    return contexto.Set<ObservacionesDeUnaVentaDtm>().Cast<ObservacionDtm>();
             }
 
-            throw new Exception($"Se debe indicar como obtener los tipos del negocio: {negocio}");
+            throw new Exception($"Se debe indicar como obtener las observaciones del negocio: {negocio}");
         }
 
     }

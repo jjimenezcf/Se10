@@ -176,9 +176,15 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<TrazasDeUnInfanteDtm>().Cast<TrazaDtm>();
                 case enumNegocio.CursoDeGuarderia:
                     return contexto.Set<TrazasDeUnCursoDeGuarderiaDtm>().Cast<TrazaDtm>();
+                case enumNegocio.Almacen:
+                    return contexto.Set<TrazasDeUnAlmacenDtm>().Cast<TrazaDtm>();
+                case enumNegocio.Regularizacion:
+                    return contexto.Set<TrazasDeUnaRegularizacionDtm>().Cast<TrazaDtm>();
+                case enumNegocio.Venta:
+                    return contexto.Set<TrazasDeUnaVentaDtm>().Cast<TrazaDtm>();
             }
 
-            throw new Exception($"Se debe indicar como obtener los tipos del negocio: {negocio}");
+            throw new Exception($"Se debe indicar como obtener las trazas del negocio: {negocio}");
         }
 
     }

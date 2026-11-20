@@ -87,6 +87,14 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<TipoDePagoDtm>().Cast<ITipoDeElementoDtm>();
                 case enumNegocio.RemesaPag:
                     return contexto.Set<TipoDeRemesaPagDto>().Cast<ITipoDeElementoDtm>();
+                case enumNegocio.PlanificacionDeVenta:
+                    return contexto.Set<TipoDePlanificacionDeVentaDtm>().Cast<ITipoDeElementoDtm>();
+                case enumNegocio.Almacen:
+                    return contexto.Set<TipoDeAlmacenDtm>().Cast<ITipoDeElementoDtm>();
+                case enumNegocio.Regularizacion:
+                    return contexto.Set<TipoDeRegularizacionDtm>().Cast<ITipoDeElementoDtm>();
+                case enumNegocio.Venta:
+                    return contexto.Set<TipoDeVentaDtm>().Cast<ITipoDeElementoDtm>();
             }
 
             throw new Exception($"Se debe indicar como obtener los tipos del negocio: {negocio}");

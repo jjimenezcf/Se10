@@ -259,13 +259,35 @@ caso del nuevo negocio en:
     otros, el panel de control — `ExtensorDelPanelDelControl.cs` — para listar tipos con flujo). Está en
     un fichero distinto a Estados/Transiciones/Acciones/Hitos, así que se olvida con la misma facilidad
     — se quedó fuera la primera vez tanto para Almacenes como para Regularizaciones.
+  - `TiposInterna(this enumNegocio negocio, ContextoSe contexto)` (privado, lo usa `Tipos(...)`, que
+    cachea la lista) — `case enumNegocio.Xxx: return contexto.Set<TipoDeXxxDtm>().Cast<
+    ITipoDeElementoDtm>();`. Ojo: es el **tipo** (`TipoDeXxxDtm`), no el elemento (`XxxDtm`). Es un
+    switch distinto al de `TiposConFlujo` y tiene sus propios casos: añadir el negocio en los dos. Si
+    falta, lanza `Se debe indicar como obtener los tipos del negocio: Xxx` (p. ej. al anotar una
+    observación del trabajo sometido en el elemento).
+- `Servicios/GestorDeElementos/Extensores/Elementos/ExtensorDeTrazas.cs`
+  - `Trazas(this enumNegocio negocio, ContextoSe contexto)` — `case enumNegocio.Xxx: return
+    contexto.Set<TrazasDeUnXxxDtm>().Cast<TrazaDtm>();`. Si falta, lanza `Se debe indicar como obtener
+    las trazas del negocio: Xxx`.
+- `Servicios/GestorDeElementos/Extensores/Parametrizacion/ExtensorDeObservaciones.cs`
+  - `Observaciones(this enumNegocio negocio, ContextoSe contexto)` — `case enumNegocio.Xxx: return
+    contexto.Set<ObservacionesDeUnXxxDtm>().Cast<ObservacionDtm>();`. Si falta, lanza `Se debe indicar
+    como obtener las observaciones del negocio: Xxx`.
 - `Servicios/GestorDeElementos/Extensores/Elementos/ExtensorDeHitos.cs`
   - `Negocio(Type tipo)` — mapea `HitosDeUnXxxDtm` → `enumNegocio.Xxx`.
   - `Hitos(this enumNegocio negocio, ContextoSe contexto)` — mapea `enumNegocio.Xxx` →
     `contexto.Set<HitosDeUnXxxDtm>().Cast<HitoDtm>()`. Es el mismo patrón de los tres anteriores
     (reverse-lookup por `Type` + forward-lookup por `enumNegocio`) pero para el histórico de hitos del
     flujo; se olvida fácilmente porque no está en el mismo fichero que Estados/Transiciones/Acciones —
-    conviene añadir los cinco extensores a la vez, no solo los tres primeros.
+    conviene añadir todos los extensores a la vez, no solo los tres primeros.
+
+Resumen de los `switch` por `enumNegocio` que hay que completar (cada uno con su propio fallo en tiempo
+de ejecución si falta el negocio): `Estados`, `SetDeTransiciones`, `Hitos`, `TiposConFlujo`,
+`TiposInterna`, `Trazas`, `Observaciones` y, si procede, `Archivadores`/`Archivos` (5.1). Las
+observaciones y las trazas no son opcionales: las usan los trabajos sometidos
+(`AnotarElTrabajoEnElElemento`) y el historial de cualquier negocio, aunque el negocio no las muestre en
+pantalla. Al terminar, comprobar que el negocio nuevo aparece en los siete con un `grep
+"enumNegocio.Xxx"` sobre `Servicios/GestorDeElementos/Extensores`.
 
 ### 5.1 Enchufar el negocio en el extensor de archivadores/archivos
 
@@ -650,7 +672,7 @@ cosas no son mecánicas y quedan fuera:
 | 4 | `Ayudas/Extensiones/Negocios.cs` | Valor de `enumNegocio`, `Plural`/`ConArticulo`/`Controlador` si hace falta |
 | 4 | `Ayudas/Extensiones/Controladores.cs` | Valor en `enumControladores<Área>` si falta |
 | 4 | `SistemaDeElementos/wwwroot/ts/_Literales/literales.ts` | Valor en `enum enumNegocio` (espejo del de C#; comparar los dos enumerados completos) — imprescindible |
-| 5 | `ExtensorDeEstados.cs` / `ExtensorDeTransiciones.cs` / `ExtensorDeAccionesDeTrn.cs` / `ExtensorDeTipos.cs` (`TiposConFlujo`) / `ExtensorDeHitos.cs` | Caso del negocio en cada `switch`/`if` |
+| 5 | `ExtensorDeEstados.cs` / `ExtensorDeTransiciones.cs` / `ExtensorDeAccionesDeTrn.cs` / `ExtensorDeTipos.cs` (`TiposConFlujo` y `TiposInterna`) / `ExtensorDeHitos.cs` / `ExtensorDeTrazas.cs` (`Trazas`) / `ExtensorDeObservaciones.cs` (`Observaciones`) | Caso del negocio en cada `switch`/`if` |
 | 5.1 | `ExtensorDeArchivadores.cs` | Caso del negocio en `Archivadores`/`Archivos` (solo los que use) |
 | 6 | `ServicioDeDatos/CreadorDelMd.cs` | `DefinirTablasDeXxx` + llamada desde `OnModelCreating` |
 | 7 | `Servicios/GestorDeElementos/MetadatosDelNegocio.cs` | `MetadatosDeXxxs()` (incl. `ListaDeEtapas`) + caso en el `switch` |
@@ -703,6 +725,12 @@ paso:
 - `ExtensorDeTipos.cs`: caso `enumNegocio.Almacen: return contexto.Set<TipoDeAlmacenDtm>().Cast<
   TipoConFlujoDtm>();` añadido en `TiposConFlujo(...)` — igual que los dos anteriores, se quedó fuera la
   primera vez tanto para Almacenes como para Regularizaciones.
+- `ExtensorDeTipos.cs` (`TiposInterna`), `ExtensorDeTrazas.cs` (`Trazas`) y `ExtensorDeObservaciones.cs`
+  (`Observaciones`): también se quedaron fuera para Almacenes, Regularizaciones y Ventas (documentos de
+  venta, `enumNegocio.Venta`), y falló el trabajo "Preparar recuento" al anotar la observación en el
+  almacén (`Se debe indicar como obtener los tipos del negocio: Almacen`). En `TiposInterna` el caso del
+  almacén devolvía por error `AlmacenDtm` en lugar de `TipoDeAlmacenDtm`. Ahora están los tres negocios en
+  los cuatro métodos (y `PlanificacionDeVenta` en `TiposInterna`).
 - `ListaDeEtapas` (paso 7): `MetadatosDeAlmacenes().ListaDeEtapas = registro => ((AlmacenDtm)
   registro).Lista()`, con `Lista(this AlmacenDtm almacen)` definido en `VariablesDeAlmacenes.cs` (paso
   2.1). Mismo patrón aplicado a Regularizaciones (`VariablesDeRegularizacion.cs`), que lo usa en
