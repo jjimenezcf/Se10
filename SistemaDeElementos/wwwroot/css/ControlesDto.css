@@ -265,6 +265,28 @@ a {
     .contenedor-listas > .boton-de-navegacion {
         flex: 0 0 auto;
     }
+
+    /* Selector de fecha y hora (con o sin botón de acción, p. ej. el de compartir): fecha, hora y botón en la misma línea.
+       ".div-td.dto-td.td-propiedad input" de CrudBase.css pone cada input al 100% y el botón caía a la línea siguiente */
+    .div-td.dto-td.td-propiedad .contenedor-fecha {
+        flex-wrap: nowrap !important;
+    }
+
+    .div-td.dto-td.td-propiedad .contenedor-fecha > input.fecha-dto {
+        flex: 3 1 0 !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    .div-td.dto-td.td-propiedad .contenedor-fecha > input.hora-dto {
+        flex: 2 1 0 !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    .div-td.dto-td.td-propiedad .contenedor-fecha > button {
+        flex: 0 0 auto;
+    }
 }
 
 .boton-de-compartir {
