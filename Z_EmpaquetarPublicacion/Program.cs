@@ -153,6 +153,7 @@ class Program
                    "NUglify.dll",
                    "Microsoft.Bcl.Cryptography.dll",
                    "RtfPipe.dll",
+                   "Markdig.dll",          // conversión de markdown (.md) a html en el visor de archivos
                    "Microsoft.IO.RecyclableMemoryStream.dll",
                
                    // OCR

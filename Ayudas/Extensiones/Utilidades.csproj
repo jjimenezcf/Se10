@@ -12,6 +12,7 @@
 		<PackageReference Include="EPPlus" Version="6.2.9" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
 		<PackageReference Include="itext" Version="9.6.0" />
+		<PackageReference Include="Markdig" Version="0.40.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7" />
 		<!-- ConvertApi trae la 1.6.23, vulnerable (CVE-2026-72923); se fija la corregida -->

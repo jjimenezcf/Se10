@@ -411,6 +411,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var uriDescargar = new UriBuilder(CacheDeVariable.Cfg_UrlBase) { Path = $"/images/menu/DescargarArchivo.png" };
             var uriWhatsapp = new UriBuilder(CacheDeVariable.Cfg_UrlBase) { Path = $"/images/whatsapp.png" };
             var uriPdf = new UriBuilder(CacheDeVariable.Cfg_UrlBase) { Path = $"/images/pdfRojo.svg" };
+            var uriLapiz = new UriBuilder(CacheDeVariable.Cfg_UrlBase) { Path = $"/images/lapiz.svg" };
             var uriCompartir = new UriBuilder(CacheDeVariable.Cfg_UrlBase) { Path = $"/images/compartir.png" };
             var htmlVisorDeArchivos = $@"
                                   <div id='{idHtmlCuerpoDeEdicion}_Contenedor_Visor' class='{enumCssEdicion.ContenedorDeEdicionCuerpoVisor.Render()}'>
@@ -431,6 +432,9 @@ namespace MVCSistemaDeElementos.Descriptores
                                       {(crud == null ? "" : $@"
                                       <button class=""{enumCssControles.ConvertirAPdf.Render()} {enumCssControles.DivNoVisible.Render()}"" title=""convertir a pdf"" onclick=""Crud.EventosDeEdicion('convertir-a-pdf')"">
                                          <img src='{uriPdf}'>
+                                      </button>
+                                      <button class=""{enumCssControles.EditarTexto.Render()} {enumCssControles.DivNoVisible.Render()}"" title=""editar el texto"" onclick=""Crud.EventosDeEdicion('editar-texto')"">
+                                         <img src='{uriLapiz}'>
                                       </button>
                                       <button class=""{enumCssControles.CompartirConWhatsApp.Render()}"" title=""compartir por WhatsApp"" onclick=""Crud.EventosDeEdicion('compartir-con-whatsapp')"">
                                          <img src='{uriWhatsapp}'>

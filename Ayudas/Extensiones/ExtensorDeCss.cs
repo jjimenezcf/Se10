@@ -329,6 +329,7 @@ namespace Utilidades
                 case enumCssControles.PasarOcr: return "pasar-ocr";
                 case enumCssControles.CompartirConWhatsApp: return "compartir-con-whatsapp";
                 case enumCssControles.ConvertirAPdf: return "convertir-a-pdf";
+                case enumCssControles.EditarTexto: return "editar-texto";
                 case enumCssControles.CompartirConGuid: return "compartir-con-guid";
                 case enumCssControles.AlternarVistaFichas: return "alternar-vista-fichas";
                 case enumCssControles.ConsultarConGuid: return "consultar-con-guid";

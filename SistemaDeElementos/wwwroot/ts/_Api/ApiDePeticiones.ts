@@ -581,6 +581,42 @@ namespace ApiDePeticiones {
         });
     }
 
+    // Guarda el texto editado en el visor como un archivo nuevo anexado al elemento, quitándole el editado.
+    // El contenido va en el cuerpo (FormData): puede ser demasiado largo para la url
+    export function GuardarTextoEditado(llamador: any, negocio: string, idElemento: number, idArchivo: number, contenido: string): Promise<ApiDeAjax.DescriptorAjax> {
+        return new Promise((resolve, reject) => {
+            const url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.GuardarTextoEditado}`;
+
+            const datosDeEntrada: any = {
+                "negocio": negocio,
+                "idElemento": idElemento,
+                "idArchivo": idArchivo
+            };
+
+            const a = new ApiDeAjax.DescriptorAjax(llamador
+                , Ajax.Archivos.accion.GuardarTextoEditado
+                , datosDeEntrada
+                , url
+                , ApiDeAjax.TipoPeticion.Asincrona
+                , ApiDeAjax.ModoPeticion.Post
+                , (peticion) => {
+                    resolve(peticion);
+                }
+                , (peticion) => {
+                    reject(peticion);
+                }
+            );
+
+            const datosPost = new FormData();
+            datosPost.append("negocio", negocio);
+            datosPost.append("idElemento", idElemento.toString());
+            datosPost.append("idArchivo", idArchivo.toString());
+            datosPost.append("contenido", contenido);
+            a.DatosPost = datosPost;
+            a.Ejecutar();
+        });
+    }
+
     // opciones: página con la que se convierte una hoja de cálculo; sin ellas no se envía el parámetro (txt, html y docx no lo necesitan)
     export function ConvertirAPdf(llamador: any, negocio: string, idElemento: number, idArchivo: number, opciones?: ApiVisorDeArchivos.OpcionesDePdf): Promise<ApiDeAjax.DescriptorAjax> {
         return new Promise((resolve, reject) => {

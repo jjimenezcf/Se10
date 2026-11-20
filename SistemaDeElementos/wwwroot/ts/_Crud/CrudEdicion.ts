@@ -956,6 +956,10 @@
                         this.ConvertirAPdf();
                         break;
                     }
+                    case ltrEventos.Edicion.EditarTexto: {
+                        this.EditarTexto();
+                        break;
+                    }
                     case ltrEventos.Edicion.CompartirConGuid: {
                         this.CompartirConGuid();
                         break;
@@ -2803,6 +2807,51 @@
                 })
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion))
                 .finally(() => { this._convirtiendoAPdf = false; });
+        }
+
+        private _editandoTexto: boolean = false;
+
+        // Edita el texto mostrado en el visor (lápiz de su barra): abre la modal con el texto y, al aceptar, el servidor anexa al elemento
+        // un archivo nuevo con lo escrito (mismo nombre) y le quita el editado; el visor pasa a mostrar el nuevo
+        public EditarTexto(): void {
+            const texto = ApiVisorDeArchivos.TextoEditable();
+            if (!Definido(this.IdArchivoMostrado) || this.IdArchivoMostrado === 0 || texto === null || this._editandoTexto)
+                return;
+
+            const input = this.ContenedorDelVisor.getElementsByClassName(ltrCss.crud.panelDeEdicion.VisorDeNombreAnexados)[0] as HTMLInputElement;
+            const nombre = Definido(input) ? input.value : '';
+            const idArchivo = this.IdArchivoMostrado;
+
+            this._editandoTexto = true;
+            ApiDeArchivos.AbrirModalDeEditarTexto(nombre, texto)
+                .then((editado) => {
+                    if (editado === null)
+                        return; // cerró la modal sin guardar
+
+                    if (editado === texto.replace(/\r\n?/g, '\n')) {
+                        MensajesSe.Info('No se ha modificado el texto, no se crea ningún archivo');
+                        return;
+                    }
+
+                    return ApiDePeticiones.GuardarTextoEditado(this.ContenedorDelVisor, this.CrudDeMnt.NombreDeNegocio, this.IdDelElementoDelVisor, idArchivo, editado)
+                        .then((peticion) => this.DespuesDeGuardarTextoEditado(peticion));
+                })
+                .catch((peticion) => ApiDePeticiones.EmitirError(peticion))
+                .finally(() => { this._editandoTexto = false; });
+        }
+
+        private DespuesDeGuardarTextoEditado(peticion: ApiDeAjax.DescriptorAjax): void {
+            MensajesSe.Info(peticion.resultado.mensaje);
+            this.RecargarArchivos();
+
+            const datos = peticion.resultado.datos;
+            if (!Definido(datos))
+                return;
+
+            const idEditado: number = Numero(ObtenerPropiedad(datos, ltrPropiedades.Ia.IdArchivo));
+            const nombreEditado: string = ObtenerPropiedad(datos, ltrPropiedades.Ia.Nombre);
+            if (idEditado > 0)
+                ApiVisorDeArchivos.RenderizarUrlsEnVisor(this.CrudDeMnt, idEditado, nombreEditado, false);
         }
 
         private DespuesDeConvertirAPdf(peticion: ApiDeAjax.DescriptorAjax): void {

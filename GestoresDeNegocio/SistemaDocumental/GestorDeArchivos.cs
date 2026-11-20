@@ -440,6 +440,81 @@ namespace GestoresDeNegocio.SistemaDocumental
             }
         }
 
+        // Guarda el texto editado en el visor: crea un archivo nuevo, con el mismo nombre, con el contenido indicado, lo anexa al
+        // elemento y le quita el original (igual que si se quitase a mano: si no está anexado en ningún otro sitio, se elimina).
+        // Se conservan la codificación (UTF-8 con o sin BOM, o Windows-1252) y los saltos de línea (CRLF o LF) del original.
+        public ArchivoDtm GuardarTextoEditado(enumNegocio negocio, int idElemento, int idArchivo, string contenido)
+        {
+            if (negocio == enumNegocio.No_Definido || idElemento <= 0)
+                GestorDeErrores.Emitir("Para editar un archivo se ha de indicar el elemento al que está anexado");
+
+            var gestor = NegociosDeSe.CrearGestor(Contexto, negocio);
+            var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+            var registro = gestor.LeerRegistroPorId(idElemento, aplicarJoin: false);
+
+            // Gestor del elemento, que no esté de baja, cancelado ni terminado
+            ServidorDocumental.ValidarPermisosDeOperacion(Contexto, archivo, negocio, (RegistroConNombreDtm)registro, enumOperacionesConArchivos.Editar);
+            ApiDeArchivos.ValidarQueEstaAnexado(Contexto, negocio, idElemento, idArchivo);
+
+            var rutaDeOrigen = ApiDeArchivos.ObtenerRutaArchivo(archivo);
+            var directorioDeTrabajo = Path.Combine(CacheDeVariable.Cfg_RutaDeDescarga, Guid.NewGuid().ToString("N"));
+            try
+            {
+                var original = File.ReadAllBytes(rutaDeOrigen);
+                if (Array.IndexOf(original, (byte)0) >= 0)
+                    GestorDeErrores.Emitir($"El archivo '{archivo.Nombre}' no es un texto, no se puede editar");
+
+                var (codificacion, conBom) = CodificacionDelTexto(original);
+                var texto = (contenido ?? "").Replace("\r\n", "\n").Replace("\r", "\n");
+                if (codificacion.GetString(original).Contains("\r\n"))
+                    texto = texto.Replace("\n", "\r\n");
+
+                // lo escrito puede tener caracteres que no caben en Windows-1252: entonces se guarda en UTF-8
+                if (codificacion.CodePage == 1252 && codificacion.GetString(codificacion.GetBytes(texto)) != texto)
+                    (codificacion, conBom) = (new System.Text.UTF8Encoding(false), true);
+
+                Directory.CreateDirectory(directorioDeTrabajo);
+                var fichero = Path.Combine(directorioDeTrabajo, archivo.Nombre);
+                var bytes = codificacion.GetBytes(texto);
+                File.WriteAllBytes(fichero, conBom ? System.Text.Encoding.UTF8.GetPreamble().Concat(bytes).ToArray() : bytes);
+
+                // primero se quita el original, así el nuevo conserva el nombre (si no, se le propondría otro por estar repetido)
+                QuitarAnexado(negocio, idElemento, idArchivo, enumPeticion.epQuitarAnexado);
+                var editado = ServidorDocumental.AnexarArchivo(Contexto, negocio, idElemento, fichero, sanitizar: true, validarPermisosDelElemento: false);
+
+                var traza = negocio == enumNegocio.Carpeta ? enumNegocio.Archivador.NuevaTrazaDtm<TrazaDtm>() : negocio.NuevaTrazaDtm<TrazaDtm>();
+                traza.IdElemento = negocio == enumNegocio.Carpeta ? GestorDeCarpetas.LeerRegistroPorId(Contexto, idElemento).IdArchivador : idElemento;
+                traza.Nombre = "Archivo de texto editado";
+                traza.Descripcion = $"El usuario {Contexto.SeleccionarPorId<UsuarioDtm>(Contexto.DatosDeConexion.IdUsuario).Expresion} " +
+                    $"ha editado el archivo '{archivo.Nombre}' ({archivo.Id}) desde el visor, sustituyéndolo por el archivo {editado.Id}";
+                traza.Insertar(Contexto);
+
+                return editado;
+            }
+            finally
+            {
+                try { Directory.Delete(directorioDeTrabajo, recursive: true); } catch { }
+                try { File.Delete(rutaDeOrigen); } catch { }
+            }
+        }
+
+        // Codificación con la que está escrito un texto: UTF-8 (indicando si lleva BOM) o, si no es UTF-8 válido, Windows-1252
+        private static (System.Text.Encoding codificacion, bool conBom) CodificacionDelTexto(byte[] bytes)
+        {
+            var bom = System.Text.Encoding.UTF8.GetPreamble();
+            if (bytes.Length >= bom.Length && bytes.Take(bom.Length).SequenceEqual(bom))
+                return (new System.Text.UTF8Encoding(false), true);
+            try
+            {
+                new System.Text.UTF8Encoding(false, throwOnInvalidBytes: true).GetString(bytes);
+                return (new System.Text.UTF8Encoding(false), false);
+            }
+            catch (System.Text.DecoderFallbackException)
+            {
+                return (System.Text.CodePagesEncodingProvider.Instance.GetEncoding(1252), false);
+            }
+        }
+
         public void AnularFirma(enumNegocio negocio, int idElemento, int idArchivo)
         {
             var gestor = NegociosDeSe.CrearGestor(Contexto, negocio == enumNegocio.Carpeta ? enumNegocio.Archivador : negocio);

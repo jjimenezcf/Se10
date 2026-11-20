@@ -1804,6 +1804,68 @@
         }
     }
 
+    // Modal para editar el texto que muestra el visor (se abre con el lápiz de su barra, ver CrudEdicion.EditarTexto).
+    // Plantilla en ltrHtml.Modales.EditarTexto, con la cabecera común de las modales (icono, título y ×) y el botón Aceptar.
+    // Devuelve el texto al pulsar Aceptar, o null si se cierra (× o Escape); si se ha modificado algo, pregunta antes de descartarlo.
+    // No se cierra al pulsar fuera de la ventana, para no perder lo escrito por un clic despistado.
+    export function AbrirModalDeEditarTexto(nombreDelArchivo: string, texto: string): Promise<string | null> {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div') as HTMLDivElement;
+            ApiControl.IncluirCss(modal, ltrCss.flujo.contenedorModal);
+            modal.innerHTML = ltrHtml.Modales.EditarTexto.replace('[titulo]', EscapeHtml(nombreDelArchivo ?? ''));
+            document.body.appendChild(modal);
+            // .contenedor-modal está oculta por defecto en CrudModal.css
+            modal.style.display = ltrStyle.display.block;
+
+            const editor = modal.querySelector('#editar-texto-contenido') as HTMLTextAreaElement;
+            const btnAceptar = modal.querySelector('#btn-editar-texto-aceptar') as HTMLButtonElement;
+            const btnCerrar = modal.querySelector('#btn-editar-texto-cerrar') as HTMLSpanElement;
+            ApiControl.IncluirCss(btnAceptar, ltrCss.Modal.BotonPrincipal);
+
+            // el textarea devuelve los saltos de línea como \n: se compara con el original normalizado igual
+            const original = (texto ?? '').replace(/\r\n?/g, '\n');
+            editor.value = original;
+
+            let resuelta = false;
+            const terminar = (resultado: string | null) => {
+                if (resuelta)
+                    return;
+                resuelta = true;
+                document.removeEventListener('keydown', alPulsarUnaTecla, true);
+                modal.remove();
+                resolve(resultado);
+            };
+            const cerrar = () => {
+                if (editor.value !== original && !confirm('Se perderán los cambios realizados. ¿Desea cerrar sin guardar?'))
+                    return;
+                terminar(null);
+            };
+            const alPulsarUnaTecla = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    cerrar();
+                }
+            };
+
+            // el tabulador escribe una tabulación en el texto (código fuente) en vez de saltar al botón
+            editor.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.altKey)
+                    return;
+                e.preventDefault();
+                const inicio = editor.selectionStart, fin = editor.selectionEnd;
+                editor.value = editor.value.substring(0, inicio) + '\t' + editor.value.substring(fin);
+                editor.selectionStart = editor.selectionEnd = inicio + 1;
+            });
+
+            btnAceptar.addEventListener('click', () => terminar(editor.value));
+            btnCerrar.addEventListener('click', cerrar);
+            // en captura: el Escape no debe llegar también a la edición que hay debajo y cerrarla
+            document.addEventListener('keydown', alPulsarUnaTecla, true);
+            setTimeout(() => { editor.focus(); editor.setSelectionRange(0, 0); editor.scrollTop = 0; }, 50);
+        });
+    }
+
 
 
 }

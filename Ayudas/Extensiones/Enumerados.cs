@@ -1518,6 +1518,7 @@ namespace Utilidades
         PasarOcr,
         CompartirConWhatsApp,
         ConvertirAPdf,
+        EditarTexto,
         CompartirConGuid,
         AlternarVistaFichas,
         ConsultarConGuid,

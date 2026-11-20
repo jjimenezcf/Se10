@@ -773,10 +773,20 @@ function LimpiarNif(nif): string {
     return nif.replace(/[\s.-]/g, "");
 }
 
+// Ficheros de texto (código fuente, configuración, logs...) que el visor muestra como texto. El servidor puede servirlos con
+// un tipo que no es de texto (p. ej. un .ts como vídeo): el visor los reconoce por el contenido (ApiVisorDeArchivos.LeerComoTexto)
+const ExtensionesDeTexto = [
+    ".md", ".markdown", ".log", ".ini", ".cfg", ".conf", ".config", ".yml", ".yaml", ".toml", ".properties", ".env", ".http", ".tsv",
+    ".cs", ".vb", ".fs", ".csproj", ".vbproj", ".sln", ".slnx", ".props", ".targets", ".cshtml", ".razor", ".resx", ".xsd", ".xsl", ".xslt",
+    ".ts", ".tsx", ".js", ".jsx", ".mjs", ".css", ".scss", ".less", ".htm",
+    ".java", ".kt", ".py", ".rb", ".php", ".go", ".rs", ".c", ".h", ".cpp", ".hpp", ".swift", ".dart", ".lua", ".pl", ".r", ".pas", ".dpr",
+    ".sh", ".ps1", ".psm1", ".cmd", ".vbs", ".graphql", ".proto"
+];
+
 function EsRenderizable(nombreFichero: string): boolean {
     const extensionesPermitidas = [".pdf", ".png", ".jpg", ".jpeg", ".xml", ".rtf", ".txt", ".docx", ".json", ".xlsx", ".zip", ".7z", ".html", ".csv", ".bat", ".sql"];
     const extension = obtenerExtension(nombreFichero);
-    return extensionesPermitidas.includes(extension);
+    return extensionesPermitidas.includes(extension) || ExtensionesDeTexto.includes(extension);
 }
 function ObtenerPropiedadJson(json: any, ruta: string): any {
     const partes = ruta.toLowerCase().split('.');

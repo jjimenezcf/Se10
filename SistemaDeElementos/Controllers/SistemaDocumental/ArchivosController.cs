@@ -56,6 +56,8 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             Contexto.AsignarUsuario(ExtensorDeUsuarios.Administrador(Contexto));
             ((GestorDeArchivos)_GestorDeElementos).ValidarDescargaConGuid(guid, id);
             Contexto.AnotarTraza("Descarga realizada", $"Descarga realizada por la ip: {ipAddress}");
+            if (LoPideUnNavegador() && MimeTypeMap.GetMimeTypeFromFilename(Contexto.SeleccionarPorId<ArchivoDtm>(id).Nombre) == MimeTypeMap.GetMimeType(".md"))
+                return DevolverMarkdownComoHtml(id);
             return DescargarArchivo(id, auditarDescarga: false, errorSiNoEsta: true);
         }
         catch (Exception ex)
@@ -81,6 +83,25 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         }
     }
 
+
+    // Un navegador que abre un enlace pide html en el Accept; un programa (curl, HttpClient, fetch...) no,
+    // así que a éste se le sigue devolviendo el fichero tal cual
+    private bool LoPideUnNavegador() =>
+        HttpContext.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase);
+
+    // Un .md abierto desde el navegador se muestra ya formateado; la página lleva un enlace para descargar el original
+    private ContentResult DevolverMarkdownComoHtml(int idArchivo)
+    {
+        var archivo = Contexto.SeleccionarPorId<ArchivoDtm>(idArchivo);
+        var pendienteDeBorrar = new Ficheros(HttpContext);
+        var rutaMd = ApiDeArchivos.DescargarArchivo(archivo.Id, archivo.Nombre, archivo.AlmacenadoEn, enumRutas.RutaDeDescarga, usarCacheado: true, ponerTickAlNombre: true);
+        if (rutaMd == ApiDeArchivos.FicheroNoEncontrado || rutaMd == ApiDeArchivos.FicheroBloqueado)
+            GestorDeErrores.Emitir($"El archivo solicitado {(ApiDeArchivos.FicheroNoEncontrado == rutaMd ? "ya no se encuentra en el sistema" : "está bloqueado")}");
+        pendienteDeBorrar.Add(rutaMd);
+
+        var html = ExtensorDeHtml.SanitizeHtml(ExtensorDeMarkdown.ToHtml(rutaMd, archivo.Nombre));
+        return Content(html, "text/html; charset=utf-8");
+    }
 
     public JsonResult epRegistrarDescargaConGuid(string negocio, int idElemento, int id, DateTime? caducaEl)
     {
@@ -155,6 +176,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
                 case nameof(epDescargarDocxToHtml): return epDescargarDocxToHtml(idArchivo);
                 case nameof(epDescargarXlsxToHtml): return epDescargarXlsxToHtml(idArchivo);
                 case nameof(epDescargarCsvToHtml): return epDescargarCsvToHtml(idArchivo);
+                case nameof(epDescargarMdToHtml): return epDescargarMdToHtml(idArchivo);
                 case nameof(epDescargarRtfToHtml): return epDescargarRtfToHtml(idArchivo);
                 case nameof(epDescargarZipToHtml): return epDescargarZipToHtml(idArchivo);
                 default:
@@ -333,6 +355,32 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
                 System.IO.File.WriteAllText(rutaHtml, contenidoHtml);
                 pendienteDeBorrar.Add(rutaCsv);
             }
+            pendienteDeBorrar.Add(rutaHtml);
+            return DevolverStream(rutaHtml, MimeTypeMap.GetMimeType(enumExtensiones.html.ToString()), Path.GetFileName(rutaHtml));
+        }
+        catch (Exception ex)
+        {
+            return DevolverErrorDeFichero(ex);
+        }
+    }
+
+    // El html se genera siempre (lleva el id en el nombre para no confundirse con el de otro archivo que se llame igual)
+    public FileStreamResult epDescargarMdToHtml(int idArchivo)
+    {
+        ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+        try
+        {
+            var archivo = _GestorDeElementos.LeerRegistroPorId(idArchivo, false, false, false, false);
+            var pendienteDeBorrar = new Ficheros(HttpContext);
+            var rutaMd = ApiDeArchivos.DescargarArchivo(archivo.Id, archivo.Nombre, archivo.AlmacenadoEn, enumRutas.RutaDeDescarga, usarCacheado: true, ponerTickAlNombre: false);
+            if (rutaMd.Contains(ApiDeArchivos.FicheroNoEncontrado))
+            {
+                throw new FileNotFoundException($"El archivo '{archivo.Nombre}' no se ha encontrado.");
+            }
+            pendienteDeBorrar.Add(rutaMd);
+
+            var rutaHtml = Path.Combine(CacheDeVariable.Cfg_RutaDeDescarga, $"{Path.GetFileNameWithoutExtension(archivo.Nombre)}-{archivo.Id}.{enumExtensiones.html}");
+            System.IO.File.WriteAllText(rutaHtml, ExtensorDeHtml.SanitizeHtml(ExtensorDeMarkdown.ToHtml(rutaMd)));
             pendienteDeBorrar.Add(rutaHtml);
             return DevolverStream(rutaHtml, MimeTypeMap.GetMimeType(enumExtensiones.html.ToString()), Path.GetFileName(rutaHtml));
         }
@@ -839,6 +887,41 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         {
             _GestorDeElementos.Rollback(tran);
             ApiController.PrepararError(e, r, "No se ha podido convertir el archivo a pdf.");
+        }
+        finally
+        {
+            Contexto.CerrarTraza();
+        }
+
+        return new JsonResult(r);
+    }
+
+    // Guarda el texto editado en el visor (ApiDeArchivos.AbrirModalDeEditarTexto): anexa al elemento un archivo nuevo con ese contenido
+    // y le quita el editado. El contenido llega en el cuerpo (FormData): puede ser largo para la url
+    [HttpPost]
+    public JsonResult epGuardarTextoEditado(string negocio, int idElemento, int idArchivo, string contenido)
+    {
+        var r = new Resultado();
+
+        var tran = _GestorDeElementos.IniciarTransaccion();
+        Contexto.IniciarTraza(GetType().Name + "_" + nameof(epGuardarTextoEditado));
+        try
+        {
+            ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            var negocioSe = NegociosDeSe.ToEnumerado(negocio);
+
+            var editado = ((GestorDeArchivos)_GestorDeElementos).GuardarTextoEditado(negocioSe, idElemento, idArchivo, contenido);
+
+            r.Datos = new ArchivoResultado { IdArchivo = editado.Id, Nombre = editado.Nombre };
+            r.Estado = enumEstadoPeticion.Ok;
+            r.Mensaje = $"Archivo '{editado.Nombre}' guardado";
+            r.ModoDeAcceso = ApiDePermisos.LeerModoDeAcceso(Contexto, negocioSe, idElemento).Render();
+            _GestorDeElementos.Commit(tran);
+        }
+        catch (Exception e)
+        {
+            _GestorDeElementos.Rollback(tran);
+            ApiController.PrepararError(e, r, "No se ha podido guardar el archivo editado.");
         }
         finally
         {

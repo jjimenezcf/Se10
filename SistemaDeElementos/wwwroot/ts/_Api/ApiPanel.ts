@@ -254,6 +254,58 @@
         RenderizarContenido(panel, text, blob.type === 'text/plain' ? 'texto' : 'html');
     }
 
+    // Muestra un texto plano (código fuente, logs...) tal cual: se escapa, así que lo que parezca html (p. ej. List<int>) se ve y no se interpreta
+    export function RenderizarTexto(panel: HTMLDivElement, texto: string) {
+        panel.innerHTML = '';
+        panel.style.overflow = 'hidden';
+        const iframe = document.createElement('iframe');
+        iframe.classList.add('visor-iframe-txt');
+        iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+            body { margin: 0; padding: 8px 12px; background: #fff; color: #1f2328; }
+            pre { margin: 0; font-family: Consolas, "Courier New", monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; tab-size: 4; }
+            </style></head><body><pre>${EscapeHtml(texto)}</pre></body></html>`;
+        panel.appendChild(iframe);
+    }
+
+    // Muestra el html en el que el servidor ha convertido un markdown (ya saneado y con sus estilos).
+    // No pasa por RenderizarContenido: aquel desescapa el html (los "&lt;" de los bloques de código se convertirían en etiquetas)
+    // Los enlaces internos (#titulo) se resuelven desplazándose dentro del iframe y los externos se abren en otra pestaña.
+    export async function RenderizarMarkdown(panel: HTMLDivElement, url: string) {
+        const response = await fetch(url);
+
+        const errorMessage = response.headers.get('X-Error-Message');
+        if (errorMessage) {
+            panel.innerHTML = errorMessage;
+            return;
+        }
+
+        const html = await response.text();
+        panel.innerHTML = '';
+        panel.style.overflow = 'hidden';
+        const iframe = document.createElement('iframe');
+        iframe.classList.add('visor-iframe-txt');
+        iframe.onload = () => {
+            const documento = iframe.contentDocument;
+            if (!documento)
+                return;
+            documento.addEventListener('click', (evento: MouseEvent) => {
+                const enlace = (evento.target as HTMLElement)?.closest('a') as HTMLAnchorElement;
+                if (!enlace)
+                    return;
+                const destino = enlace.getAttribute('href') ?? '';
+                evento.preventDefault();
+                if (destino.startsWith('#')) {
+                    const id = decodeURIComponent(destino.substring(1));
+                    documento.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                else if (destino !== '')
+                    window.open(enlace.href, '_blank', 'noopener');
+            });
+        };
+        iframe.srcdoc = html;
+        panel.appendChild(iframe);
+    }
+
 
     //export function RenderizarXml(panel: HTMLDivElement, objectUrl: string) {
     //    fetch(objectUrl)

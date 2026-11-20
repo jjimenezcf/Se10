@@ -42,7 +42,9 @@ namespace GestoresDeNegocio.SistemaDocumental
         [Description("firmar")]
         Firmar,
         [Description("convertir a pdf")]
-        ConvertirAPdf
+        ConvertirAPdf,
+        [Description("editar")]
+        Editar
     }
 
     public static class ServidorDocumental //: GestorDeElementos<ContextoSe, ArchivoDtm, ArchivoDto>

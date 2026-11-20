@@ -1227,6 +1227,7 @@ const ltrCss = {
             ProcesarConIa: 'procesar-con-ia',
             PasarOcr: 'pasar-ocr',
             ConvertirAPdf: 'convertir-a-pdf',
+            EditarTexto: 'editar-texto',
             Acciones: {
                 plegar: 'img-detalle-dto-plegar',
                 Desplegar: 'img-detalle-dto-desplegar',
@@ -1269,7 +1270,9 @@ const ltrCss = {
             cuerpo: 'modal-body',
             ContenedorDeHistorialIa: 'contenedor-historial-ia',
             LineaDelhistorialIa: 'item-historial-ia',
-            conversandoIa: 'modal-ia-conversando'
+            conversandoIa: 'modal-ia-conversando',
+            // modal para editar el texto mostrado en el visor (ApiDeArchivos.AbrirModalDeEditarTexto); el resto de sus clases son las comunes de ltrCss.flujo
+            editarTexto: 'modal-editar-texto'
         }
     },
     formulario: {
@@ -1614,6 +1617,7 @@ const Ajax = {
             DescargaConGuid: 'epDescargaConGuid',
             AnularFirma: 'epAnularFirma',
             ConvertirAPdf: 'epConvertirAPdf',
+            GuardarTextoEditado: 'epGuardarTextoEditado',
             LeerAnexados: 'epLeerAnexados',
             LeerAnexadosDirectos: 'epLeerAnexadosDirectos',
             LeerAnexadosPorGuid: 'epLeerAnexadosPorGuid',
@@ -1622,6 +1626,7 @@ const Ajax = {
             DescargarXlsxToHtml: 'epDescargarXlsxToHtml',
             DescargarRtfToHtml: 'epDescargarRtfToHtml',
             DescargarCsvToHtml: 'epDescargarCsvToHtml',
+            DescargarMdToHtml: 'epDescargarMdToHtml',
             DescargarParaCrear: 'epDescargarArchivoParaCrear',
             ProcesarAccion: 'epProcesarAccion',
             DescargarHtmlSanitizado: 'epDescargarHtmlSanitizado',
@@ -2333,6 +2338,7 @@ const ltrEventos = {
         DescargarArchivo: 'descargar-archivo',
         CompartirConWhatsApp: 'compartir-con-whatsapp',
         ConvertirAPdf: 'convertir-a-pdf',
+        EditarTexto: 'editar-texto',
         CompartirConGuid: 'compartir-con-guid',
         CompartirElemento: 'compartir-elemento',
         ConsultarConGuid: 'consultar-con-guid',
@@ -4684,6 +4690,25 @@ const ltrHtml = {
             </div>`
     },
     Modales: {
+        // Modal para editar el texto que muestra el visor (ver ApiDeArchivos.AbrirModalDeEditarTexto). Usa las clases comunes de las
+        // modales (CrudModal.css): cabecera azul con el icono, el título y la × de cerrar, y el botón Aceptar en el pie.
+        // [titulo] es el nombre del archivo; el texto se asigna al textarea desde el código (no se escapa en la plantilla)
+        EditarTexto: `
+                 <div class="${ltrCss.flujo.contenidoModal} ${ltrCss.crud.modal.editarTexto}">
+                     <div class="${ltrCss.flujo.cabeceraDeModal}">
+                         <span class="${ltrCss.flujo.rotuloDeModal}">
+                             <svg class="${ltrCss.flujo.iconoDeModal}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                             <h2>Editar: [titulo]</h2>
+                         </span>
+                         <span id="btn-editar-texto-cerrar" class="${ltrCss.flujo.cerrarDeModal}" title="Cerrar">&times;</span>
+                     </div>
+                     <div class="${ltrCss.flujo.cuerpo}">
+                         <textarea id="editar-texto-contenido" spellcheck="false" wrap="off"></textarea>
+                     </div>
+                     <div class="${ltrCss.flujo.pie}">
+                         <button id="btn-editar-texto-aceptar" title="Guarda el texto como un archivo nuevo y quita el que se está editando">Aceptar</button>
+                     </div>
+                 </div>`,
         // Modal para elegir la página con la que se convierte una hoja de cálculo a pdf (ver ApiVisorDeArchivos.PedirOpcionesDePdf)
         OpcionesDePdf: `
                  <div class="modal-opciones-pdf">

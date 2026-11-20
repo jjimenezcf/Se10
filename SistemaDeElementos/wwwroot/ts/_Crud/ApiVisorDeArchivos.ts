@@ -177,6 +177,7 @@ namespace ApiVisorDeArchivos {
 
         visor.innerHTML = 'Cargando...';
         MostrarBotonConvertirAPdf(crud, false);
+        MostrarBotonEditarTexto(crud, false);
         let url: string = undefined;
         if (crud.EstoyCreando) {
             let parametros = `idArchivo=${idArchivo}`;
@@ -216,6 +217,8 @@ namespace ApiVisorDeArchivos {
 
             // convertir a pdf sólo se ofrece sobre un txt, xlsx o docx renderizado de un elemento ya creado (el archivo ha de estar anexado a él)
             MostrarBotonConvertirAPdf(crud, renderizado && !crud.EstoyCreando && EsConvertibleAPdf(nombre, blob.type));
+            // editar sólo sobre un texto plano de un elemento ya creado (lo editado se anexa a él y se le quita el original)
+            MostrarBotonEditarTexto(crud, renderizado && !crud.EstoyCreando && TextoEditable() !== null);
 
             input[0].value = nombre;
             if (ajustarVisor) {
@@ -232,6 +235,7 @@ namespace ApiVisorDeArchivos {
     // por guid a su versión validada. Devuelve false si el tipo no se sabe previsualizar.
     export async function RenderizarBlobEnVisor(visor: HTMLDivElement, blob: Blob, urlDeConversion: (accion: string) => string): Promise<boolean> {
         const objectUrl = URL.createObjectURL(blob);
+        _textoEditable = null;
         if (blob.type.startsWith('image/')) {
             ApiPanel.RenderizarContenidoImagen(visor, `<img src="${objectUrl}" alt="Archivo descargado" style="max-width: 100%; height: auto;">`);
         }
@@ -240,6 +244,11 @@ namespace ApiVisorDeArchivos {
         }
         else if (blob.type === 'application/xml' || blob.type === 'text/xml') {
             ApiPanel.RenderizarXml(visor, objectUrl);
+        }
+        else if (blob.type === 'text/markdown') {
+            await ApiPanel.RenderizarMarkdown(visor, urlDeConversion(Ajax.Archivos.accion.DescargarMdToHtml));
+            // se muestra formateado, pero lo que se edita es el texto del markdown
+            AnotarTextoEditable(blob, await LeerComoTexto(blob));
         }
         else if (blob.type === 'text/csv') {
             ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarCsvToHtml));
@@ -259,19 +268,85 @@ namespace ApiVisorDeArchivos {
         else if (blob.type === 'text/html') {
             ApiPanel.RenderizarUrlToHtml(visor, urlDeConversion(Ajax.Archivos.accion.DescargarHtmlSanitizado));
         }
-        else if (blob.type === 'text/plain' || blob.type === 'application/json' || blob.type === 'application/text' || blob.type === 'application/octet-stream') {
-            const text = await blob.text();
-            ApiPanel.RenderizarContenido(visor, text, (blob.type === 'text/plain' || blob.type === 'application/text' || blob.type === 'application/octet-stream') && !(text.indexOf('</html>') > 0)
-                ? 'texto'
-                : blob.type === 'application/json'
-                    ? 'json'
-                    : 'html');
+        else if (blob.type === 'application/json') {
+            const json = await blob.text();
+            ApiPanel.RenderizarContenido(visor, json, 'json');
+            AnotarTextoEditable(blob, json);
         }
         else {
-            URL.revokeObjectURL(objectUrl);
-            return false;
+            // Cualquier otro tipo (text/plain, text/css, application/octet-stream, el de un .js o un .ts...) se muestra
+            // como texto si el contenido lo es. Un html guardado como txt se sigue mostrando como html.
+            const texto = await LeerComoTexto(blob);
+            if (texto === null) {
+                URL.revokeObjectURL(objectUrl);
+                return false;
+            }
+            if (texto.indexOf('</html>') > 0 && (blob.type === 'text/plain' || blob.type === 'application/text' || blob.type === 'application/octet-stream'))
+                ApiPanel.RenderizarContenido(visor, texto, 'html');
+            else {
+                ApiPanel.RenderizarTexto(visor, texto);
+                AnotarTextoEditable(blob, texto);
+            }
         }
         return true;
+    }
+
+    // ─── Edición del texto mostrado (lápiz de la barra del visor) ────────────
+
+    // Texto del archivo mostrado en el visor si se puede editar (texto plano, json o markdown), o null si no
+    let _textoEditable: string | null = null;
+
+    // Tamaño máximo de un texto que se deja editar (el servidor limita el tamaño de un campo del formulario)
+    const MaximoTextoEditable = 2 * 1024 * 1024;
+
+    function AnotarTextoEditable(blob: Blob, texto: string | null): void {
+        _textoEditable = blob.size <= MaximoTextoEditable ? texto : null;
+    }
+
+    export function TextoEditable(): string | null {
+        return _textoEditable;
+    }
+
+    // El lápiz está en la barra del visor y sólo es visible mientras lo renderizado es un texto plano (o un json o un markdown)
+    function MostrarBotonEditarTexto(crud: Crud.CrudMnt, mostrar: boolean): void {
+        const boton = crud.ContenedorDelVisor?.getElementsByClassName(ltrCss.crud.panelDeEdicion.EditarTexto)[0] as HTMLElement;
+        if (!Definido(boton))
+            return;
+
+        if (mostrar)
+            ApiControl.ExcluirCss(boton, ltrCss.divNoVisible);
+        else
+            ApiControl.IncluirCss(boton, ltrCss.divNoVisible);
+    }
+
+    // Tamaño máximo de un fichero de texto que se muestra en el visor
+    const MaximoTextoEnElVisor = 10 * 1024 * 1024;
+
+    // Devuelve el contenido del blob si es texto, o null si es binario (o demasiado grande para el visor).
+    // Se decide por los primeros 8 KB: un binario lleva bytes nulos o muchos caracteres de control.
+    // Se lee como UTF-8 y, si no lo es, como Windows-1252 (los fuentes antiguos de Windows)
+    export async function LeerComoTexto(blob: Blob): Promise<string | null> {
+        if (blob.size > MaximoTextoEnElVisor)
+            return null;
+
+        const inicio = new Uint8Array(await blob.slice(0, 8192).arrayBuffer());
+        let controles = 0;
+        for (const byte of inicio) {
+            if (byte === 0)
+                return null;
+            if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13 && byte !== 12)
+                controles++;
+        }
+        if (inicio.length > 0 && controles / inicio.length > 0.01)
+            return null;
+
+        const bytes = await blob.arrayBuffer();
+        try {
+            return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        }
+        catch {
+            return new TextDecoder('windows-1252').decode(bytes);
+        }
     }
 
     export async function ProcesarRenderizar(crud: Crud.CrudMnt, idArchivo: number, accion: string): Promise<boolean> {
@@ -285,6 +360,7 @@ namespace ApiVisorDeArchivos {
 
         actualizarMensajeVisor(visor, accion);
         MostrarBotonConvertirAPdf(crud, false);
+        MostrarBotonEditarTexto(crud, false);
 
         try {
             const url = construirUrl(crud, idArchivo, accion);
