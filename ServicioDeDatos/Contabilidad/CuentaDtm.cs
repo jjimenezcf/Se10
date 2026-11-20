@@ -33,18 +33,81 @@ namespace ServicioDeDatos.Contabilidad
         public static readonly string IvaRepercutidodescripcion = "Cuenta de Iva repercutido";
         public static readonly string IvaSoportadodescripcion = "Cuenta de Iva soportado";
         public static readonly string IrpfPersonaFisicadescripcion = "Cuenta de IRPF persona física";
+
+        //------------------------------------------------------------------------------------------- almacenes y obras (ver ExtensorDeCuentas)
+        // grupos y subgrupos del PGC de las cuentas de un almacén
+        public const string GrupoDeExistenciasDeMercaderias = "30";
+        public const string GrupoDeExistenciasDeMateriasPrimas = "31";
+        public const string GrupoDeOtrosAprovisionamientos = "32";
+        public const string GrupoDeComprasYGastos = "60";
+        public const string SubgrupoDeComprasDeMercaderias = "600";
+        public const string SubgrupoDeComprasDeMateriasPrimas = "601";
+        public const string SubgrupoDeComprasDeOtrosAprovisionamientos = "602";
+        public const string SubgrupoDeDevolucionesDeCompras = "608";
+        public const string SubgrupoDeVariacionDeMercaderias = "610";
+        public const string SubgrupoDeVariacionDeMateriasPrimas = "611";
+        public const string SubgrupoDeVariacionDeOtrosAprovisionamientos = "612";
+
+        // cuentas que se crean al inicializar los maestros (ver InzContable)
+        public const string MercaderiasCodigo = "300000";
+        public const string MercaderiasNombre = "Mercaderías";
+        public const string MateriasPrimasCodigo = "310000";
+        public const string MateriasPrimasNombre = "Materias primas";
+        public const string OtrosAprovisionamientosCodigo = "320000";
+        public const string OtrosAprovisionamientosNombre = "Otros aprovisionamientos";
+
+        public const string ComprasDeMercaderiasCodigo = "600000";
+        public const string ComprasDeMercaderiasNombre = "Compras de mercaderías";
+        public const string ComprasDeMateriasPrimasCodigo = "601000";
+        public const string ComprasDeMateriasPrimasNombre = "Compras de materias primas";
+        public const string ComprasDeOtrosAprovisionamientosCodigo = "602000";
+        public const string ComprasDeOtrosAprovisionamientosNombre = "Compras de otros aprovisionamientos";
+
+        public const string DevolucionesDeMercaderiasCodigo = "608000";
+        public const string DevolucionesDeMercaderiasNombre = "Devoluciones de compras de mercaderías";
+        public const string DevolucionesDeMateriasPrimasCodigo = "608100";
+        public const string DevolucionesDeMateriasPrimasNombre = "Devoluciones de compras de materias primas";
+        public const string DevolucionesDeOtrosAprovisionamientosCodigo = "608200";
+        public const string DevolucionesDeOtrosAprovisionamientosNombre = "Devoluciones de compras de otros aprovisionamientos";
+
+        public const string VariacionDeMercaderiasCodigo = "610000";
+        public const string VariacionDeMercaderiasNombre = "Variación de existencias de mercaderías";
+        public const string VariacionDeMateriasPrimasCodigo = "611000";
+        public const string VariacionDeMateriasPrimasNombre = "Variación de existencias de materias primas";
+        public const string VariacionDeOtrosAprovisionamientosCodigo = "612000";
+        public const string VariacionDeOtrosAprovisionamientosNombre = "Variación de existencias de otros aprovisionamientos";
+
+        // el código de estas dos es el de su variable (VariablesDeCuentas.Albaranes y PendientesDeAplicacion)
+        public const string AlbaranesNombre = "Proveedores, facturas pendientes de recibir";
+        public const string PendientesDeAplicacionNombre = "Partidas pendientes de aplicación";
     }
 
+
+    // Restrictor fijo de las listas dinámicas de cuentas ('FiltroPorUso;<uso>'): sólo se muestran las cuentas utilizables para ese uso
+    // (ver FiltrosDeCuentasContables.FiltrarPorUso)
+    public static class ltrUsoDeCuenta
+    {
+        public const string FiltroPorUso = nameof(FiltroPorUso);
+        public const string Existencias = nameof(Existencias);
+        public const string Variacion = nameof(Variacion);
+        public const string Compras = nameof(Compras);
+        public const string Devoluciones = nameof(Devoluciones);
+        public const string GastoDeMateriales = nameof(GastoDeMateriales);
+
+        // restrictores fijos de cada uso (constantes para poder usarlos en los atributos de los Dtos)
+        public const string RestrictorDeExistencias = FiltroPorUso + ";" + Existencias;
+        public const string RestrictorDeVariacion = FiltroPorUso + ";" + Variacion;
+        public const string RestrictorDeCompras = FiltroPorUso + ";" + Compras;
+        public const string RestrictorDeDevoluciones = FiltroPorUso + ";" + Devoluciones;
+        public const string RestrictorDeGastoDeMateriales = FiltroPorUso + ";" + GastoDeMateriales;
+    }
 
     public static class VariablesDeCuentas
     {
         public static string Sueldos => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Sueldos, Descripciones.CTA_Cuenta_De_Sueldos, "640000");
         public static string Proveedores => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Proveedor, Descripciones.CTA_Cuenta_De_Proveedor, "400000");
         public static string Albaranes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Albaran, Descripciones.CTA_Cuenta_De_Albaran, "400900");
-        // debe de las entregas de compra en un almacén (y haber de sus devoluciones): lo comprado entra en las existencias, no en el gasto
-        public static string Existencias => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Existencias, Descripciones.CTA_Cuenta_De_Existencias, "311000");
-        // contrapartida de la de existencias en el cuadre al cambiar el método de contabilización de las compras de almacén
-        public static string VariacionDeExistencias => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Variacion_De_Existencias, Descripciones.CTA_Cuenta_De_Variacion_De_Existencias, "611000");
+        // las cuentas de existencias y de variación de existencias son de cada almacén (ver AlmacenDtm)
         // contrapartida de los apuntes de gasto e ingreso de un expediente: contabilidad la reclasifica cuando llega el documento (factura, pago, cobro)
         public static string PendientesDeAplicacion => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_Pendiente_De_Aplicacion, Descripciones.CTA_Cuenta_Pendiente_De_Aplicacion, "555000");
         public static string Clientes => CacheDeVariable.ObtenerVariable(Variable.CTA_Cuenta_De_Cliente, Descripciones.CTA_Cuenta_De_Cliente, "430000");

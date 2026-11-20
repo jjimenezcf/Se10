@@ -118,7 +118,7 @@ namespace GestoresDeNegocio.Logistica
             if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Recontando.Estados()))
                 regularizacion.AntesDeIniciarElRecuento(Contexto);
             else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Cerrado.Estados()))
-                regularizacion.AntesDeCerrarElRecuento(Contexto);
+                regularizacion.AntesDeCerrarElRecuento(Contexto, parametros);
             else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Inicial.Estados()))
                 regularizacion.ValidarQueNoHayaLineasDeRecuento(Contexto);
 
@@ -131,6 +131,10 @@ namespace GestoresDeNegocio.Logistica
 
             if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Cerrado.Estados()) ||
                 transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Inicial.Estados()))
+                regularizacion.Almacen(Contexto).TransitarALaEtapa(Contexto, enumEtapasDeAlmacen.ALM_Etapa_Activo.EstadosDeLaEtapa(), delSistema: true);
+            // al cancelar el recuento el almacén vuelve de en inventario a activo; al cancelar desde abierto nunca llegó a pasar a inventario
+            else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeRegularizacion.RAL_Cancelar.Estados())
+                && regularizacion.Almacen(Contexto).EstaEnLaEtapa(enumEtapasDeAlmacen.ALM_Etapa_En_Inventario))
                 regularizacion.Almacen(Contexto).TransitarALaEtapa(Contexto, enumEtapasDeAlmacen.ALM_Etapa_Activo.EstadosDeLaEtapa(), delSistema: true);
 
             return regularizacion;

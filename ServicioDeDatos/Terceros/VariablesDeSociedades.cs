@@ -22,7 +22,7 @@ namespace ServicioDeDatos.Terceros
         SOCIEDAD_ID_FACTURAR_CON_IRPF,
         [Description("Indica el Id de aplicación para lexnet, asignado por el ministerio")]
         LEXNET_Login,
-        [Description("Indica por sociedad (Valor S/N, T/F o true/false) si contabiliza las compras de almacén por el método de la variación de existencias (al gasto) o contra la cuenta de existencias (311)")]
+        [Description("Obsoleto: el método de contabilización de las compras se indica en cada almacén. Se lee sólo para orientar al definir la información contable de los almacenes")]
         SOCIEDAD_USA_VARIACION_DE_EXISTENCIA
     }
 
@@ -57,58 +57,24 @@ namespace ServicioDeDatos.Terceros
 
         private static readonly string _jsonFacturarConIrpf = "[{\"IdSociedad\": 0,\"ConIrpf\": true}]";
 
-        private const string _jsonUsaVariacionDeExistencias = "[{\"IdSociedad\": 0,\"Valor\": \"F\"}]";
-
-        // Si la sociedad contabiliza las compras de almacén por el método de la variación de existencias: la entrega va al gasto de la
-        // naturaleza contra albaranes y a fin de ejercicio se regulariza la 311 contra la 611; si no, la entrega va a existencias (311).
-        // null si el parámetro no tiene entrada para la sociedad: entonces se deduce de sus preasientos (ver
-        // ExtensorDePreasientos.UsaVariacionDeExistencias). Al crear el parámetro, las sociedades que ya generaban preasientos de almacén
-        // (que se hacían contra el gasto) entran usándola, así no cambian de método sin el asiento de cuadre (ver CambioDeVariacionDeExistencias)
-        public static bool? VariacionDeExistenciasDefinida(this SociedadDtm sociedad) =>
-            VariacionDeExistenciasPorSociedad(JsonDeUsaVariacionDeExistencias()).TryGetValue(sociedad.Id, out var usa) ? usa : null;
-
-        // Json del parámetro con la entrada de la sociedad creada o actualizada con el valor indicado; null si no cambia
-        public static string JsonDeUsaVariacionDeExistenciasConLaSociedad(int idSociedad, bool usa)
-        {
-            var json = JsonDeUsaVariacionDeExistencias();
-            var jsonArray = JArray.Parse(json);
-            var item = jsonArray.FirstOrDefault(x => x["IdSociedad"]?.Value<int>() == idSociedad) as JObject;
-            if (item is null)
-            {
-                item = new JObject { ["IdSociedad"] = idSociedad };
-                jsonArray.Add(item);
-            }
-            item["Valor"] = usa ? "S" : "N";
-
-            var nuevo = jsonArray.ToString(Newtonsoft.Json.Formatting.None);
-            return nuevo == JArray.Parse(json).ToString(Newtonsoft.Json.Formatting.None) ? null : nuevo;
-        }
-
-        private static string JsonDeUsaVariacionDeExistencias() =>
-            enumNegocio.Sociedad.Parametro(enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA, crearParametro: true, valorPorDefecto: ValorInicialDeUsaVariacionDeExistencias()).Valor;
-
-        private static string ValorInicialDeUsaVariacionDeExistencias()
-        {
-            var jsonArray = JArray.Parse(_jsonUsaVariacionDeExistencias);
-            foreach (var idSociedad in Contabilidad.VariablesDePreasiento.SociedadesQueGeneranPreasientos(enumNegocio.Almacen))
-                jsonArray.Add(new JObject { ["IdSociedad"] = idSociedad, ["Valor"] = "S" });
-            return jsonArray.ToString(Newtonsoft.Json.Formatting.None);
-        }
-
-        // Por cada sociedad con entrada en el json del parámetro, si usa la variación de existencias; la entrada 0 es la plantilla
-        public static Dictionary<int, bool> VariacionDeExistenciasPorSociedad(string json)
+        // El método de contabilización de las compras de almacén se definía por sociedad en el parámetro SOCIEDAD_USA_VARIACION_DE_EXISTENCIA;
+        // ahora es de cada almacén (ver AlmacenDtm.UsaVariacionDeExistencias). Sólo se lee para orientar al definir la información contable
+        // de los almacenes que aún no la tienen (ver ExtensorDeAlmacenes.ValidarInformacionContable): null si no existe el parámetro, no
+        // tiene entrada para la sociedad o no se puede leer
+        public static bool? UsabaVariacionDeExistencias(this SociedadDtm sociedad)
         {
             try
             {
-                return JArray.Parse(json.IsNullOrEmpty() ? "[]" : json)
-                    .Select(item => new { IdSociedad = item["IdSociedad"].Value<int>(), Valor = item["Valor"]?.Value<string>() })
-                    .Where(x => x.IdSociedad > 0)
-                    .GroupBy(x => x.IdSociedad)
-                    .ToDictionary(g => g.Key, g => g.Last().Valor.EsTrue());
+                var json = enumNegocio.Sociedad.Parametro(enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA, emitirError: false)?.Valor;
+                if (json.IsNullOrEmpty())
+                    return null;
+
+                var entrada = JArray.Parse(json).FirstOrDefault(item => item["IdSociedad"]?.Value<int>() == sociedad.Id);
+                return entrada is null ? null : entrada["Valor"]?.Value<string>().EsTrue();
             }
-            catch (Exception ex)
+            catch
             {
-                throw Excepciones.Emitir($"Error al parsear el json: '{json}' al objeto del tipo '{_jsonUsaVariacionDeExistencias}', debe definirlo en el parámetro de negocio '{enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA}'", ex);
+                return null;
             }
         }
 

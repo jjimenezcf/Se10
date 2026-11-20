@@ -29,6 +29,10 @@ namespace ServicioDeDatos.Logistica
     public static class ltrDeUnaRegularizacion
     {
         public const string IdRegularizacion = nameof(IdRegularizacion);
+
+        // parámetro con el que el trabajo "Aplicar recuento" transita la regularización a aplicada: sin él, la transición de usuario no se
+        // permite porque el recuento se aplica con ese trabajo (ver TrabajosParaRegularizaciones.AplicarRecuento)
+        public const string AplicandoElRecuento = nameof(AplicandoElRecuento);
     }
 
     public static class VariableDeRegularizaciones

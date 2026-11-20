@@ -37,6 +37,8 @@ namespace Logistica {
         orden.value = (valor + incremento).toString();
         editor.UltimoOrdenPropuesto = valor + incremento;
 
+        ral_proponerLaFechaDeLaLinea(editor, modal, tabla);
+
         let unitario = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Regularizacion.linea.unitario, true) as HTMLInputElement;
         unitario.focus();
 
@@ -47,6 +49,53 @@ namespace Logistica {
         if (clase === ltrValores.Logistica.Regularizacion.Clase.Inicial) {
             const cantidad = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Regularizacion.linea.cantidad);
             cantidad.placeholder = 'Cantidad inicial';
+        }
+        ral_ajustarLaCantidadSegunLaClase(editor, modal);
+    }
+
+    export function Ral_InicializarModalParaEditarLineas() {
+        const editor = (Crud.crudMnt.crudDeEdicion as CrudEdicionRegularizacion);
+        ral_ajustarLaCantidadSegunLaClase(editor, editor.ModalDeEdicionDeLineas);
+    }
+
+    // En un ajuste de precios no se cuenta nada: la cantidad queda a 0 y bloqueada, sólo se indica el precio
+    function ral_ajustarLaCantidadSegunLaClase(editor: CrudEdicionRegularizacion, modal: HTMLDivElement) {
+        const cantidad = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Regularizacion.linea.cantidad) as HTMLInputElement;
+        if (NoDefinido(cantidad)) return;
+
+        const esAjusteDePrecio = ObtenerPropiedad(editor.Tipo, ltrPropiedades.Logistica.Regularizacion.tipo.Clase) === ltrValores.Logistica.Regularizacion.Clase.AjusteDePrecio;
+        cantidad.readOnly = esAjusteDePrecio;
+        if (esAjusteDePrecio) {
+            AsignarValor(cantidad, 0);
+            Ral_CalcularImportesDeLinea();
+        }
+    }
+
+    // La fecha de una línea nueva es la de la última línea introducida: la que el usuario escribió en esta sesión o, si aún no ha escrito
+    // ninguna, la de la última línea del grid y, si no hay líneas, hoy
+    function ral_proponerLaFechaDeLaLinea(editor: CrudEdicionRegularizacion, modal: HTMLDivElement, tabla: HTMLDivElement) {
+        let fecha = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Regularizacion.linea.fecha) as HTMLInputElement;
+        if (NoDefinido(fecha)) return;
+
+        let propuesta: string = editor.UltimaFechaDeLinea;
+        if (IsNullOrEmpty(propuesta) && Definido(tabla)) {
+            let filas = tabla.querySelectorAll<HTMLDivElement>('.' + ltrCss.crud.fila);
+            if (filas.length > 1) {
+                let ultima = filas[filas.length - 1].querySelector(`[propiedad=${ltrPropiedades.Logistica.Regularizacion.linea.fecha}]`) as HTMLInputElement;
+                if (Definido(ultima))
+                    propuesta = TextoAFechaIso(ultima.value ?? ultima.textContent);
+            }
+        }
+        if (IsNullOrEmpty(propuesta))
+            propuesta = FechaDeHoyIso();
+
+        fecha.value = propuesta;
+        editor.UltimaFechaDeLinea = propuesta;
+
+        // lo que el usuario escriba pasa a ser la propuesta de las siguientes líneas
+        if (fecha.dataset.recuerdaLaFecha !== 'si') {
+            fecha.dataset.recuerdaLaFecha = 'si';
+            fecha.addEventListener('change', () => { editor.UltimaFechaDeLinea = TextoAFechaIso(fecha.value); });
         }
     }
 

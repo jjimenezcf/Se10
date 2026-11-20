@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.SistemaDocumental;
@@ -18,6 +19,19 @@ namespace ServicioDeDatos.Logistica
     {
         public new TipoDeAlmacenDtm Tipo { get; set; }
         public new EstadoDeUnAlmacenDtm Estado { get; set; }
+
+        // Información contable (ver ExtensorDeAlmacenes.ValidarInformacionContable): está sin definir mientras no tiene cuenta de existencias,
+        // y entonces no se pueden preasentar sus movimientos. Sin variación de existencias cada movimiento va a la cuenta de existencias; con
+        // ella las compras van a la de compras (o a la de gasto de la naturaleza) y las existencias se cuadran contra la de variación al cerrar
+        public bool UsaVariacionDeExistencias { get; set; }
+        public int? IdCuentaDeExistencias { get; set; }
+        public CuentaDtm CuentaDeExistencias { get; set; }
+        public int? IdCuentaDeVariacion { get; set; }
+        public CuentaDtm CuentaDeVariacion { get; set; }
+        public int? IdCuentaDeCompras { get; set; }
+        public CuentaDtm CuentaDeCompras { get; set; }
+        public int? IdCuentaDeDevoluciones { get; set; }
+        public CuentaDtm CuentaDeDevoluciones { get; set; }
     }
 
 
@@ -81,6 +95,12 @@ namespace ServicioDeDatos.Logistica
             ApiDeElementoDtm.DefinirCampoCg<AlmacenDtm>(modelBuilder, nameof(AlmacenDtm.Cg));
             ApiDeElementoDtm.DefinirCampoTipo<AlmacenDtm>(modelBuilder, nameof(AlmacenDtm.Tipo));
             ApiDeElementoDtm.DefinirCampoEstado<AlmacenDtm>(modelBuilder, nameof(AlmacenDtm.Estado));
+
+            modelBuilder.Entity<AlmacenDtm>().Property(p => p.UsaVariacionDeExistencias).HasColumnName(ICampos.USA_VARIACION_EXISTENCIAS).HasColumnType(IDominio.BIT).HasDefaultValue(false).IsRequired();
+            ApiDeRegistroDtm.DefinirCampoFk<AlmacenDtm>(modelBuilder, nameof(AlmacenDtm.CuentaDeExistencias), nameof(AlmacenDtm.IdCuentaDeExistencias), ICampos.ID_CUENTA_EXISTENCIAS, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<AlmacenDtm>(modelBuilder, nameof(AlmacenDtm.CuentaDeVariacion), nameof(AlmacenDtm.IdCuentaDeVariacion), ICampos.ID_CUENTA_VARIACION, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<AlmacenDtm>(modelBuilder, nameof(AlmacenDtm.CuentaDeCompras), nameof(AlmacenDtm.IdCuentaDeCompras), ICampos.ID_CUENTA_COMPRAS, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<AlmacenDtm>(modelBuilder, nameof(AlmacenDtm.CuentaDeDevoluciones), nameof(AlmacenDtm.IdCuentaDeDevoluciones), ICampos.ID_CUENTA_DEVOLUCIONES, requerida: false, unico: false);
         }
 
         internal static void Trazas(ModelBuilder modelBuilder)

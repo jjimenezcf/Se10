@@ -112,10 +112,7 @@ namespace ModeloDeDto.Terceros
         [IUPropiedad(Etiqueta = "Preasientos de expedientes", Ayuda = "Genera preasientos de los apuntes de gastos e ingresos de los expedientes", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 2, Columna = 2, ColSpan = 2)]
         public bool GenerarExpedientes { get; set; }
 
-        //------------------------------------------------------------------------------------------- fila 3: cómo se contabilizan las compras de almacén
-        // SOCIEDAD_USA_VARIACION_DE_EXISTENCIA (ver ParametrosDeSociedades.UsaVariacionDeExistencias); al cambiarlo se cuadra la cuenta de existencias
-        [IUPropiedad(Etiqueta = "Usa variación de existencias", Ayuda = "Las compras de almacén van al gasto de la naturaleza (variación de existencias) en lugar de a la cuenta de existencias (311)", TipoDeControl = enumTipoControl.Check, css = enumCssControles.CheckApilado, Obligatorio = false, Fila = 3, Columna = 0)]
-        public bool UsaVariacionDeExistencias { get; set; }
+        // el método de contabilización de las compras de almacén (variación de existencias o no) y sus cuentas se indican en cada almacén
 
         //------------------------------------------------------------------------------------------- fila 4: relanzar la activación de preasientos
         // la última activación de preasientos terminó con errores (su traza en la sociedad) o hay negocios activados con documentos sin

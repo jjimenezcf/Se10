@@ -468,7 +468,6 @@ namespace GestorDeElementos.Extensores
                 GenerarAlmacen = sociedad.GeneraPreasientos(enumNegocio.Almacen) ?? false,
                 GenerarPedidos = sociedad.GeneraPreasientos(enumNegocio.Pedido) ?? false,
                 GenerarExpedientes = sociedad.GeneraPreasientos(enumNegocio.Expediente) ?? false,
-                UsaVariacionDeExistencias = sociedad.UsaVariacionDeExistencias(contexto),
                 PuedeRelanzarActivacionDePreasientos = sociedad.ActivacionDePreasientosConErrores(contexto),
                 ModoDeAcceso = modoDeAcceso
             };
@@ -493,15 +492,6 @@ namespace GestorDeElementos.Extensores
             foreach (var generar in GenerarPreasientos)
                 sociedad.ResetearParametroDeLaSociedad(contexto, VariablesDePreasiento.ParametroDeGenerarPreasiento(generar.Key),
                     new Dictionary<string, object> { { "Valor", generar.Value(informacion) ? "S" : "N" } });
-
-            // se graba sólo si cambia (el valor actual puede ser deducido); al modificar el parámetro se valida y se cuadran las existencias
-            // (ver GestorDeParametrosDeNegocio.CambiarElMetodoDeContabilizarLasCompras)
-            if (informacion.UsaVariacionDeExistencias != sociedad.UsaVariacionDeExistencias(contexto))
-            {
-                var json = ParametrosDeSociedades.JsonDeUsaVariacionDeExistenciasConLaSociedad(sociedad.Id, informacion.UsaVariacionDeExistencias);
-                if (json is not null)
-                    enumNegocio.Sociedad.ResetearParametro(contexto, enumParametrosDeSociedad.SOCIEDAD_USA_VARIACION_DE_EXISTENCIA, json);
-            }
 
             if (!informacion.PlanContable.IsNullOrEmpty())
                 sociedad.ResetearParametroDeLaSociedad(contexto, enumParametrosDePreasiento.SPR_Plan_Contable,

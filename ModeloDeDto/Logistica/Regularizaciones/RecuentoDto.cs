@@ -1,3 +1,4 @@
+using System;
 using Utilidades;
 
 namespace ModeloDeDto.Logistica
@@ -25,7 +26,7 @@ namespace ModeloDeDto.Logistica
 
 Se sube un fichero Excel (.xlsx) con lo contado en el almacén. Por cada fila de datos se crea una línea en la regularización que se está editando. Se ejecuta como un trabajo en segundo plano: se le avisará cuando termine y podrá consultar el detalle en la traza del trabajo.
 
-La regularización ha de estar recontando y las líneas se numeran de 10 en 10 a continuación de las que ya tenga.
+La regularización ha de estar recontando y las líneas se numeran de 10 en 10 a continuación de las que ya tenga. Todas las líneas importadas llevan la fecha del recuento que se indica en la modal (no puede ser posterior a hoy ni anterior al último cierre contable): al aplicar el recuento, los movimientos de almacén se generan a esa fecha.
 
 Las filas con errores se descartan (no se crean), pero no detienen la importación del resto del fichero. Es un error que la referencia no exista, que no sea de un material, que ya esté en el recuento, o que la cantidad o el precio no sean números válidos.
 
@@ -53,5 +54,19 @@ COLUMNAS OPCIONALES (se ignoran)
             Columna = 0,
             AutoSpan = true)]
         public int IdArchivo { get; set; }
+
+        //------------------------------------------------------------------------
+        [IUPropiedad(
+            VisibleEnGrid = false,
+            Etiqueta = "Fecha del recuento",
+            Ayuda = "Día en el que se hizo el recuento: es la fecha de todas las líneas que se importan",
+            Tipo = typeof(DateTime),
+            TipoDeControl = enumTipoControl.SelectorDeFecha,
+            Formato = enumFormato.Fecha,
+            Obligatorio = true,
+            Fila = 2,
+            Columna = 0,
+            AutoSpan = true)]
+        public DateTime Fecha { get; set; }
     }
 }

@@ -419,6 +419,21 @@ function FechaToIso(fecha: Date, hora: string) {
 }
 
 
+// Fecha de hoy como aaaa-mm-dd, el formato del valor de un selector de fecha
+function FechaDeHoyIso(): string {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+}
+
+// Pasa un texto aaaa-mm-dd o dd/mm/aaaa a aaaa-mm-dd; vacío si no es una fecha
+function TextoAFechaIso(texto: string): string {
+    if (IsNullOrEmpty(texto)) return '';
+    texto = texto.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(texto)) return texto.substring(0, 10);
+    const partes = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(texto);
+    return partes ? `${partes[3]}-${partes[2].padStart(2, '0')}-${partes[1].padStart(2, '0')}` : '';
+}
+
 function FechaToIsoMostrada(fecha: Date, hora: string) {
     var fechaIso = fecha.toISOString();
     var oraIso = '00:00:00.000Z'

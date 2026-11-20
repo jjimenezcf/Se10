@@ -331,11 +331,19 @@ namespace GestorDeElementos.Extensores.Contabilidad
         // en una devolución al revés. Igual en el almacén que en la obra de un expediente (negocio de pedidos)
         private void AsientoDeCompra(XmlWriter xmlWriter, PreasientoDtm preasiento)
         {
+            var apuntes = preasiento.Detalles<ApunteDeUnPreasientoDtm>(Contexto);
+
+            // regularización de existencias de un movimiento de almacén (311 contra 611): sin albarán ni gasto, se escriben todos sus apuntes
+            if (apuntes.Any(apunte => apunte.Clase == enumClaseDeApunte.Alm_Existencias || apunte.Clase == enumClaseDeApunte.Alm_Variacion))
+            {
+                AsientoDeApunteDeExpediente(xmlWriter, preasiento);
+                return;
+            }
+
             WriteCabecera(xmlWriter, preasiento);
             xmlWriter.WriteStartElement("LISTAREGIVA");
             xmlWriter.WriteEndElement();
 
-            var apuntes = preasiento.Detalles<ApunteDeUnPreasientoDtm>(Contexto);
             xmlWriter.WriteStartElement("LISTAAPUNTES");
             foreach (var apunte in apuntes.Where(apunte => apunte.Clase == enumClaseDeApunte.Alm_Albaran))
                 ApunteDeAlmacen(xmlWriter, preasiento, CuentaDelTercero(apunte.Cuenta), ImporteConSigno(apunte), apunte.Concepto);
@@ -346,8 +354,8 @@ namespace GestorDeElementos.Extensores.Contabilidad
 
         // Apunte de gasto o ingreso de un expediente (ver ExtensorDePreasientos.Preasentar del apunte): asiento libre sin registro de iva
         // con la cuenta de la naturaleza (Exp_Naturaleza) y su contrapartida, partidas pendientes de aplicación (555), que reclasifica contabilidad
-        // (Exp_Contrapartida); en ncs lo que va al debe en positivo y lo que va al haber en negativo. Igual el cuadre de existencias al cambiar
-        // el método de contabilización de las compras de una sociedad (311 contra 611, ver ExtensorDePreasientos.PreasentarCuadreDeExistencias)
+        // (Exp_Contrapartida); en ncs lo que va al debe en positivo y lo que va al haber en negativo. Igual el cuadre de existencias al cerrar
+        // de un almacén con variación de existencias (3xx contra 61x, ver ExtensorDePreasientos.PreasentarCuadreDeExistencias)
         private void AsientoDeApunteDeExpediente(XmlWriter xmlWriter, PreasientoDtm preasiento)
         {
             WriteCabecera(xmlWriter, preasiento);

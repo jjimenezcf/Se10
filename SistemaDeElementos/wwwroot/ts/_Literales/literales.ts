@@ -1753,7 +1753,8 @@ const Ajax = {
                 RecepcionarPedido: 'epRecepcionarPedido'
             },
             Regularizaciones: {
-                ImportarRecuento: 'epImportarRecuento'
+                ImportarRecuento: 'epImportarRecuento',
+                AplicarRecuento: 'epAplicarRecuento'
             },
             MovimientosDeAlmacen: {
                 ObtenerUrlAlDocumento: 'epObtenerUrlAlDocumento',
@@ -2111,7 +2112,11 @@ const ltrUrls = {
         Pagos: 'Pagos/CrudPagos'
     },
     Logistica: {
-        Pedidos: 'Pedidos/CrudPedidos'
+        Pedidos: 'Pedidos/CrudPedidos',
+        Ventas: 'Ventas/CrudVentas',
+        Regularizaciones: 'Regularizaciones/CrudRegularizaciones',
+        Inventario: 'Inventario/CrudInventario',
+        MovimientosDeAlmacen: 'MovimientosDeAlmacen/CrudMovimientosDeAlmacen'
     }
 };
 
@@ -3501,6 +3506,12 @@ const ltrPropiedades = {
         }
     },
     Logistica: {
+        // información contable del almacén (ver AlmacenDto)
+        Almacen: {
+            UsaVariacionDeExistencias: 'UsaVariacionDeExistencias',
+            CuentaDeCompras: 'CuentaDeCompras',
+            CuentaDeDevoluciones: 'CuentaDeDevoluciones'
+        },
         Pedido: {
             id: literal.id,
             idExpediente: 'idexpediente',
@@ -3618,7 +3629,9 @@ const ltrPropiedades = {
             FiltroPorFechaDeInventario: 'FiltroPorFechaDeInventario',
             FiltroPorAlmacen: 'FiltroPorAlmacen',
             // propiedad del almacén en la modal de preparar el recuento (ver PrepararRecuentoDto)
-            AlmacenDelRecuento: 'Almacen'
+            AlmacenDelRecuento: 'Almacen',
+            // clase de regularización para la que se prepara el Excel
+            ClaseDelRecuento: 'Clase'
         },
         Regularizacion: {
             IdAlmacen: 'idalmacen',
@@ -3628,10 +3641,12 @@ const ltrPropiedades = {
             },
             Recuento: {
                 IdRegularizacion: 'IdRegularizacion',
-                IdArchivo: 'IdArchivo'
+                IdArchivo: 'IdArchivo',
+                Fecha: 'Fecha'
             },
             linea: {
                 orden: 'orden',
+                fecha: 'fecha',
                 unitario: 'unitario',
                 cantidad: 'cantidad',
                 precio: 'precio',
@@ -4068,7 +4083,9 @@ const ltrValores = {
     Logistica: {
         Regularizacion: {
             Clase: {
-                Inicial: 'Inicial'
+                Inicial: 'Inicial',
+                Recuento: 'Recuento',
+                AjusteDePrecio: 'AjusteDePrecio'
             }
         }
     },
@@ -4169,6 +4186,8 @@ const ltrParametrosUrl = {
     id: 'id',
     restrictores: ltrClaveDeEstado.restrictoresUrl,
     filtros: ltrClaveDeEstado.filtrosUrl,
+    // si vale '1' y el mantenimiento llega sin elementos, pasa directamente a crear uno (con los restrictores de la url ya aplicados)
+    nuevoSiVacio: 'nuevosivacio',
     idSociedad: 'idSociedad',
     idPersona: 'IdPersona',
     idInterlocutor: 'IdInterlocutor',
@@ -4495,7 +4514,15 @@ const ltrMenus = {
                 QuitarExpediente: 'quitar-expediente'
             },
             Regularizaciones: {
-                ImportarRecuento: 'importar-recuento'
+                ImportarRecuento: 'importar-recuento',
+                AplicarRecuento: 'aplicar-recuento'
+            },
+            Almacenes: {
+                IrACompras: 'ir-a-compras-del-almacen',
+                IrAVentas: 'ir-a-ventas-del-almacen',
+                IrARecuentos: 'ir-a-recuentos-del-almacen',
+                IrAInventario: 'ir-a-inventario-del-almacen',
+                IrAMovimientos: 'ir-a-movimientos-del-almacen'
             },
             Inventario: {
                 PrepararRecuento: 'preparar-recuento'

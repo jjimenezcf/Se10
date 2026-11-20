@@ -618,6 +618,13 @@ namespace ServicioDeDatos.Elemento
         internal const string ID_CUENTA_CARGO = nameof(ID_CUENTA_CARGO);
         internal const string ID_CUENTA_ACREEDORA = nameof(ID_CUENTA_ACREEDORA);
         internal const string ID_CUENTA_NO_DEDUCIBLE = nameof(ID_CUENTA_NO_DEDUCIBLE);
+        internal const string USA_VARIACION_EXISTENCIAS = nameof(USA_VARIACION_EXISTENCIAS);
+        internal const string ID_CUENTA_EXISTENCIAS = nameof(ID_CUENTA_EXISTENCIAS);
+        internal const string ID_CUENTA_VARIACION = nameof(ID_CUENTA_VARIACION);
+        internal const string ID_CUENTA_COMPRAS = nameof(ID_CUENTA_COMPRAS);
+        internal const string ID_CUENTA_DEVOLUCIONES = nameof(ID_CUENTA_DEVOLUCIONES);
+        internal const string ID_CUENTA_CONSUMO = nameof(ID_CUENTA_CONSUMO);
+        internal const string ID_CUENTA_COMPRA_DIRECTA = nameof(ID_CUENTA_COMPRA_DIRECTA);
         public const string ID_TARJETA = nameof(ID_TARJETA);
 
         internal const string ID_CUENTA = nameof(ID_CUENTA);

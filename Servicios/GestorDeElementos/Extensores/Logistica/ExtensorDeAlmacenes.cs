@@ -21,6 +21,95 @@ namespace GestorDeElementos.Extensores
 
         public static void AntesDeRecontar(this AlmacenDtm almacen, ContextoSe contexto) => almacen.ValidarQueNoSSeEstaRecontando(contexto);
 
+        //------------------------------------------------------------------------------------------- información contable
+        // Está definida si tiene cuenta de existencias (la de variación se deduce de ella al grabar, ver PrepararInformacionContable)
+        public static bool TieneInformacionContable(this AlmacenDtm almacen) => almacen.IdCuentaDeExistencias is not null;
+
+        // Para preasentar un movimiento el almacén ha de tener definida su información contable. El mensaje indica el método que usaba su
+        // sociedad cuando se definía por sociedad, para que el almacén siga con el mismo
+        public static void ValidarInformacionContable(this AlmacenDtm almacen, ContextoSe contexto)
+        {
+            if (almacen.TieneInformacionContable())
+                return;
+
+            var sociedad = almacen.Sociedad(contexto);
+            var usaba = sociedad.UsabaVariacionDeExistencias();
+            Emitir($"El almacén '{almacen.Referencia}' no tiene definida su información contable: indique en él la cuenta de existencias y si usa variación de existencias" +
+                   (usaba is null ? "" : $" (su sociedad '{sociedad.Expresion}' {(usaba.Value ? "usaba" : "no usaba")} la variación de existencias)"));
+        }
+
+        public static CuentaDtm CuentaDeExistencias(this AlmacenDtm almacen, ContextoSe contexto)
+        {
+            almacen.ValidarInformacionContable(contexto);
+            if (almacen.CuentaDeExistencias is null || almacen.CuentaDeExistencias.Id != almacen.IdCuentaDeExistencias)
+                almacen.CuentaDeExistencias = ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeExistencias);
+            return almacen.CuentaDeExistencias;
+        }
+
+        public static CuentaDtm CuentaDeVariacion(this AlmacenDtm almacen, ContextoSe contexto)
+        {
+            almacen.ValidarInformacionContable(contexto);
+            if (almacen.IdCuentaDeVariacion is null)
+                Emitir($"El almacén '{almacen.Referencia}' no tiene cuenta de variación de existencias, grabe de nuevo su información contable para que se deduzca de la de existencias");
+            if (almacen.CuentaDeVariacion is null || almacen.CuentaDeVariacion.Id != almacen.IdCuentaDeVariacion)
+                almacen.CuentaDeVariacion = ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeVariacion);
+            return almacen.CuentaDeVariacion;
+        }
+
+        // Opcionales: si no se indican, las compras y las devoluciones con variación de existencias van a la cuenta de gasto de la naturaleza
+        public static CuentaDtm CuentaDeCompras(this AlmacenDtm almacen, ContextoSe contexto)
+        {
+            if (almacen.IdCuentaDeCompras is null)
+                return null;
+            if (almacen.CuentaDeCompras is null || almacen.CuentaDeCompras.Id != almacen.IdCuentaDeCompras)
+                almacen.CuentaDeCompras = ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeCompras);
+            return almacen.CuentaDeCompras;
+        }
+
+        public static CuentaDtm CuentaDeDevoluciones(this AlmacenDtm almacen, ContextoSe contexto)
+        {
+            if (almacen.IdCuentaDeDevoluciones is null)
+                return null;
+            if (almacen.CuentaDeDevoluciones is null || almacen.CuentaDeDevoluciones.Id != almacen.IdCuentaDeDevoluciones)
+                almacen.CuentaDeDevoluciones = ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeDevoluciones);
+            return almacen.CuentaDeDevoluciones;
+        }
+
+        // Al grabar el almacén (ver GestorDeAlmacenes.AntesDePersistir):
+        //  - sin cuenta de existencias la información está sin definir: no puede tener el resto de cuentas
+        //  - la de existencias ha de ser del grupo 30, 31 o 32; la de variación, si no se indica, se deduce de ella (y se crea si no existe),
+        //    y si se indica ha de ser la 61x de su grupo; las de compras (60x de su grupo) y devoluciones (608) son opcionales
+        //  - una vez definida, si el almacén tiene movimientos no se puede cambiar el método ni la cuenta de existencias: se cierra y se abre
+        //    otro con su inventario
+        public static void PrepararInformacionContable(this AlmacenDtm almacen, ContextoSe contexto, AlmacenDtm enBd)
+        {
+            if (enBd is not null && enBd.TieneInformacionContable()
+                && (enBd.UsaVariacionDeExistencias != almacen.UsaVariacionDeExistencias || enBd.IdCuentaDeExistencias != almacen.IdCuentaDeExistencias)
+                && contexto.Set<MovimientoDeAlmacenDtm>().Any(m => m.IdAlmacen == almacen.Id))
+                Emitir($"No se puede cambiar si usa variación de existencias ni la cuenta de existencias del almacén '{almacen.Referencia}' porque tiene movimientos: ciérrelo y abra otro con su inventario");
+
+            if (!almacen.TieneInformacionContable())
+            {
+                if (almacen.IdCuentaDeVariacion is not null || almacen.IdCuentaDeCompras is not null || almacen.IdCuentaDeDevoluciones is not null)
+                    Emitir($"Indique la cuenta de existencias del almacén '{almacen.Referencia}' antes que el resto de sus cuentas");
+                return;
+            }
+
+            var existencias = ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeExistencias);
+            var grupo = existencias.GrupoDeExistencias();
+
+            if (almacen.IdCuentaDeVariacion is null)
+                almacen.IdCuentaDeVariacion = existencias.DeducirCuentaDeVariacion(contexto).Id;
+            else
+                ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeVariacion).ValidarPrefijo(ExtensorDeCuentas.PrefijoDeVariacion(grupo), $"cuenta de variación de existencias de {ExtensorDeCuentas.DescripcionDelGrupo(grupo)}");
+
+            ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeCompras)?.ValidarPrefijo(ExtensorDeCuentas.PrefijoDeCompras(grupo), $"cuenta de compras de {ExtensorDeCuentas.DescripcionDelGrupo(grupo)}");
+            ExtensorDeCuentas.LeerCuenta(contexto, almacen.IdCuentaDeDevoluciones)?.ValidarPrefijo(ExtensorDeCuentas.PrefijoDeDevoluciones, "cuenta de devoluciones de compras");
+
+            // las navegaciones se leen de nuevo con los ids grabados (ver CuentaDeExistencias...)
+            almacen.CuentaDeExistencias = almacen.CuentaDeVariacion = almacen.CuentaDeCompras = almacen.CuentaDeDevoluciones = null;
+        }
+
         // Los tipos de movimiento se leen todos de una vez y se cachean por nombre (la descripción del enumerado), sin seguimiento porque
         // la caché se comparte entre peticiones. Se olvidan al persistir un tipo de movimiento (ver GestorDeTiposDeMovimiento)
         public static TipoMovimientoDtm LeerTipoDeMovimiento(this enumTiposDeMovimiento tipo, ContextoSe contexto)
@@ -298,14 +387,52 @@ namespace GestorDeElementos.Extensores
             return System.Math.Round(valor, 2);
         }
 
-        private static MovimientoDeAlmacenDtm ObtenerMovimientoAnterior(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        // Valor de los inventarios de apertura del almacén realizados en [desde, hasta): los stocks iniciales que no vienen de un recuento (sin
+        // línea de inventario o de una regularización de clase Inicial). No se preasientan porque son los saldos de apertura, que ya están en
+        // la contabilidad (ver ExtensorDePreasientos.PreasentarStockInicial). Un stock inicial no puede tener movimientos anteriores del mismo
+        // material (ver CalcularInventarioInicial), así que su valor es el que añade al inventario
+        public static decimal ValorDeLaAperturaEntre(this AlmacenDtm almacen, ContextoSe contexto, System.DateTime desde, System.DateTime hasta)
         {
+            var tiposDeApertura = contexto.Set<TipoDeRegularizacionDtm>().Where(t => t.ClaseDeRegularizacion == enumRegularizacionAlm.Inicial).Select(t => t.Id);
+            var regularizacionesDeApertura = contexto.Set<RegularizacionDtm>().Where(r => tiposDeApertura.Contains(r.IdTipo)).Select(r => r.Id);
+            var lineasDeApertura = contexto.Set<LineasDeUnaRegularizacionDtm>().Where(l => regularizacionesDeApertura.Contains(l.IdElemento)).Select(l => l.Id);
+
+            var valor = contexto.Set<MovimientoDeAlmacenDtm>()
+                .Where(m => m.IdAlmacen == almacen.Id
+                         && m.RealizadoEl >= desde && m.RealizadoEl < hasta
+                         && m.TipoMovimiento.ClaseMovimiento == enumClaseDeMovimiento.Inicial
+                         && (m.IdLineaInventario == null || lineasDeApertura.Contains((int)m.IdLineaInventario)))
+                .Select(m => m.Stock * m.Valor)
+                .ToList()
+                .Sum();
+            return System.Math.Round(valor, 2);
+        }
+
+        // Último movimiento del material en el almacén hasta el instante indicado, incluido (el que tiene el stock y el valor vigentes en ese
+        // momento); null si todavía no tenía movimientos. Los del mismo instante cuentan como anteriores porque un movimiento nuevo irá después
+        // de ellos (ver ObtenerMovimientoAnterior)
+        public static MovimientoDeAlmacenDtm UltimoMovimientoHasta(ContextoSe contexto, int idAlmacen, int idUnitario, System.DateTime instante)
+        {
+            return contexto.Set<MovimientoDeAlmacenDtm>()
+                .Where(x => x.IdAlmacen == idAlmacen
+                         && x.IdUnitario == idUnitario
+                         && x.RealizadoEl <= instante
+                         && x.TipoMovimiento.ClaseMovimiento != enumClaseDeMovimiento.Nulo)
+                .OrderByDescending(x => x.RealizadoEl).ThenByDescending(x => x.Id)
+                .FirstOrDefault();
+        }
+
+        public static MovimientoDeAlmacenDtm ObtenerMovimientoAnterior(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
+        {
+            // un movimiento que aún no se ha insertado (Id 0) irá después de los que ya existen en el mismo instante (p.e. el ajuste de precio
+            // que sigue en el mismo día a la regularización de stock de una línea del recuento)
+            var esNuevo = movimiento.Id == 0;
             return contexto.Set<MovimientoDeAlmacenDtm>()
                 .Where(x => x.IdAlmacen == movimiento.IdAlmacen
                          && x.IdUnitario == movimiento.IdUnitario
                          && x.Id != movimiento.Id
                          && x.TipoMovimiento.ClaseMovimiento != enumClaseDeMovimiento.Nulo
-                         && (x.RealizadoEl < movimiento.RealizadoEl || (x.RealizadoEl == movimiento.RealizadoEl && x.Id < movimiento.Id)))
+                         && (x.RealizadoEl < movimiento.RealizadoEl || (x.RealizadoEl == movimiento.RealizadoEl && (esNuevo || x.Id < movimiento.Id))))
                 .OrderByDescending(x => x.RealizadoEl).ThenByDescending(x => x.Id)
                 .FirstOrDefault();
         }
@@ -386,7 +513,7 @@ namespace GestorDeElementos.Extensores
         {
             var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
             if (anterior is not null)
-                Emitir($"El movimiento de almacén Nº '{movimiento.Id}' no puede ser un stock inicial ya que ya hay movimientos anteriores para el almacén y el unitario, use una regularización o un ajuste de precio");
+                Emitir($"El material '{movimiento.Unitario(contexto).Referencia}' no puede tener un stock inicial el {movimiento.RealizadoEl:dd/MM/yyyy HH:mm} ya que tiene movimientos anteriores en el almacén, use una regularización o un ajuste de precio");
 
             movimiento.Stock = movimiento.Cantidad;
             movimiento.Valor = movimiento.Precio;

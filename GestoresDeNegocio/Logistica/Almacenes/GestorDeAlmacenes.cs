@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -21,12 +22,20 @@ namespace GestoresDeNegocio.Logistica
                 CreateMap<AlmacenDtm, AlmacenDto>()
                 .ForMember(dto => dto.Tipo, dtm => dtm.MapFrom(dtm => dtm.Tipo.Expresion))
                 .ForMember(dto => dto.Cg, dtm => dtm.MapFrom(dtm => dtm.Cg.Expresion))
-                .ForMember(dto => dto.Estado, dtm => dtm.MapFrom(dtm => dtm.Estado.Nombre));
+                .ForMember(dto => dto.Estado, dtm => dtm.MapFrom(dtm => dtm.Estado.Nombre))
+                .ForMember(dto => dto.CuentaDeExistencias, dtm => dtm.MapFrom(dtm => dtm.CuentaDeExistencias.Expresion))
+                .ForMember(dto => dto.CuentaDeVariacion, dtm => dtm.MapFrom(dtm => dtm.CuentaDeVariacion.Expresion))
+                .ForMember(dto => dto.CuentaDeCompras, dtm => dtm.MapFrom(dtm => dtm.CuentaDeCompras.Expresion))
+                .ForMember(dto => dto.CuentaDeDevoluciones, dtm => dtm.MapFrom(dtm => dtm.CuentaDeDevoluciones.Expresion));
 
                 CreateMap<AlmacenDto, AlmacenDtm>()
                 .ForMember(dtm => dtm.Cg, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Tipo, dto => dto.Ignore())
-                .ForMember(dtm => dtm.Estado, dto => dto.Ignore());
+                .ForMember(dtm => dtm.Estado, dto => dto.Ignore())
+                .ForMember(dtm => dtm.CuentaDeExistencias, dto => dto.Ignore())
+                .ForMember(dtm => dtm.CuentaDeVariacion, dto => dto.Ignore())
+                .ForMember(dtm => dtm.CuentaDeCompras, dto => dto.Ignore())
+                .ForMember(dtm => dtm.CuentaDeDevoluciones, dto => dto.Ignore());
             }
         }
 
@@ -53,7 +62,11 @@ namespace GestoresDeNegocio.Logistica
         protected override IQueryable<AlmacenDtm> AplicarJoins(IQueryable<AlmacenDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
             consulta = base.AplicarJoins(consulta, filtros, parametros);
-            return consulta;
+            return consulta
+                .Include(x => x.CuentaDeExistencias)
+                .Include(x => x.CuentaDeVariacion)
+                .Include(x => x.CuentaDeCompras)
+                .Include(x => x.CuentaDeDevoluciones);
         }
 
         protected override IQueryable<AlmacenDtm> AplicarOrden(IQueryable<AlmacenDtm> consulta, List<ClausulaDeOrdenacion> ordenacion)
@@ -93,7 +106,8 @@ namespace GestoresDeNegocio.Logistica
         protected override void AntesDePersistir(AlmacenDtm almacen, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(almacen, parametros);
-            // TODO: completar cuando se conozca el detalle funcional del negocio de almacenes
+            if (!parametros.Eliminando)
+                almacen.PrepararInformacionContable(Contexto, (AlmacenDtm)parametros.registroEnBd);
         }
 
         protected override void DespuesDePersistir(AlmacenDtm almacen, ParametrosDeNegocio parametros)

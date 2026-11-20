@@ -1,6 +1,7 @@
 using AutoMapper;
 using ServicioDeDatos;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using Utilidades;
 using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
@@ -45,7 +46,13 @@ namespace GestoresDeNegocio.Logistica
         protected override void AntesDePersistir(LineasDeUnaRegularizacionDtm linea, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(linea, parametros);
-            // TODO: completar cuando se conozca el detalle funcional de las líneas de una regularización
+
+            if (parametros.Eliminando)
+                return;
+
+            // la fecha es sólo el día: los movimientos que genera la línea se hacen a las 00:00
+            linea.Fecha = linea.Fecha.Date;
+            linea.DetalleDe<RegularizacionDtm>(Contexto).ValidarLaFechaDelRecuento(Contexto, linea.Fecha);
         }
     }
 }

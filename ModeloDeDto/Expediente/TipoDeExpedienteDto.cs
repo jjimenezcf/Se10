@@ -1,6 +1,8 @@
 ﻿using Utilidades;
+using ModeloDeDto.Contabilidad;
 using ModeloDeDto.Negocio;
 using ServicioDeDatos;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Expediente;
 
 namespace ModeloDeDto.Expediente
@@ -137,5 +139,62 @@ namespace ModeloDeDto.Expediente
             )
         ]
         public bool ScDeCompra{ get; set; }
+
+        //------------------------------------------------------------------------------------------- cuentas de gasto de los materiales en la obra
+        // sólo para las naturalezas de clase Material; si no se indican se usa la de gasto de la naturaleza
+        [IUPropiedad(Etiqueta = "Id de la cuenta de consumo", Visible = false)]
+        public int? IdCuentaDeConsumo { get; set; }
+
+        [IUPropiedad(
+            Etiqueta = "Cuenta de consumo",
+            Ayuda = "Cuenta de gasto (grupo 60) de los materiales que salen de un almacén a la obra y de los que vuelven de ella; si no se indica, la de gasto de la naturaleza",
+            AyudaDeCriteriosDeBusqueda = "60x, vacía la de la naturaleza ...",
+            RestrictorFijo = ltrUsoDeCuenta.RestrictorDeGastoDeMateriales,
+            TipoDeControl = enumTipoControl.ListaDinamica,
+            SeleccionarDe = typeof(CuentaDto),
+            Controlador = nameof(enumControladoresContables.Cuentas),
+            VistaDondeNavegar = enumVistasContables.CrudCuentas,
+            BuscarPor = nameof(CuentaDto.Expresion),
+            MostrarExpresion = nameof(CuentaDto.Expresion),
+            CriterioDeBusqueda = enumCriteriosDeFiltrado.contiene,
+            OrdenarListaDinamicaPor = nameof(CuentaDto.Codigo),
+            LongitudMinimaParaBuscar = 1,
+            GuardarEn = nameof(IdCuentaDeConsumo),
+            VisibleEnGrid = false,
+            Obligatorio = false,
+            AutoSpan = true,
+            Fila = 9,
+            Columna = 0
+            )
+        ]
+        public string CuentaDeConsumo { get; set; }
+
+        //-------------------------------------------------
+        [IUPropiedad(Etiqueta = "Id de la cuenta de compra directa", Visible = false)]
+        public int? IdCuentaDeCompraDirecta { get; set; }
+
+        [IUPropiedad(
+            Etiqueta = "Cuenta de compra directa",
+            Ayuda = "Cuenta de gasto (grupo 60) de los materiales que el proveedor entrega directamente en la obra y de sus devoluciones; si no se indica, la de gasto de la naturaleza",
+            AyudaDeCriteriosDeBusqueda = "60x, vacía la de la naturaleza ...",
+            RestrictorFijo = ltrUsoDeCuenta.RestrictorDeGastoDeMateriales,
+            TipoDeControl = enumTipoControl.ListaDinamica,
+            SeleccionarDe = typeof(CuentaDto),
+            Controlador = nameof(enumControladoresContables.Cuentas),
+            VistaDondeNavegar = enumVistasContables.CrudCuentas,
+            BuscarPor = nameof(CuentaDto.Expresion),
+            MostrarExpresion = nameof(CuentaDto.Expresion),
+            CriterioDeBusqueda = enumCriteriosDeFiltrado.contiene,
+            OrdenarListaDinamicaPor = nameof(CuentaDto.Codigo),
+            LongitudMinimaParaBuscar = 1,
+            GuardarEn = nameof(IdCuentaDeCompraDirecta),
+            VisibleEnGrid = false,
+            Obligatorio = false,
+            AutoSpan = true,
+            Fila = 9,
+            Columna = 1
+            )
+        ]
+        public string CuentaDeCompraDirecta { get; set; }
     }
 }

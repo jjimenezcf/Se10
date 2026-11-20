@@ -61,15 +61,20 @@ namespace GestoresDeNegocio.Contabilidad
             if (fechaNoValida is not null)
                 GestorDeErrores.Emitir(fechaNoValida);
 
+            // los almacenes con movimientos en el periodo han de tener su información contable; si alguno usa la variación de existencias, el
+            // cierre genera su preasiento de variación: puede no haber otros que traspasar
+            CuadreDeExistencias.ValidarAlmacenesAlCerrar(contexto, sociedad, GestorDeCierresContables.FechaDelUltimoCierre(contexto, idSociedad), cerrarHasta);
             var sinPreasientos = GestorDeCierresContables.MotivoSinPreasientosParaTraspasar(contexto, sociedad, cerrarHasta);
-            if (sinPreasientos is not null)
+            if (sinPreasientos is not null && !CuadreDeExistencias.CuadraAlCerrar(contexto, sociedad))
                 GestorDeErrores.Emitir(sinPreasientos);
 
             GestorDeCierresContables.ValidarEjercicioDelCierre(contexto, sociedad, ejercicio);
             sociedad.CambiarSistemaContable(contexto, sistema, digitos);
             sociedad.ValidarCuentasDeTesoreriaParaContasol(contexto);
 
-            return SometerLoteContable(contexto, enumTrabajosContables.CrearCierreContable, idSociedad, ejercicio, descontabilizar: false, respetarFechaContable: true, fechaContable: null, filtros: "", cerrarHasta: cerrarHasta.Date);
+            // el enlace al trabajo queda en las observaciones de la sociedad desde que se somete, para poder navegar a él, pararlo o ejecutarlo
+            return SometerLoteContable(contexto, enumTrabajosContables.CrearCierreContable, idSociedad, ejercicio, descontabilizar: false, respetarFechaContable: true, fechaContable: null, filtros: "", cerrarHasta: cerrarHasta.Date)
+                .AnotarElTrabajoSometidoEnElElemento(contexto, sociedad, $"Cierre contable hasta el {cerrarHasta:dd/MM/yyyy}");
         }
 
         //------------------------------------------------------------------------ activar los preasientos de una clase en una sociedad
@@ -130,7 +135,8 @@ namespace GestoresDeNegocio.Contabilidad
             {
                     { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() }
             };
-            return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion);
+            return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion)
+                .AnotarElTrabajoSometidoEnElElemento(contexto, contexto.SeleccionarPorId<SociedadDtm>(idSociedad), ltrDeUnPreasiento.ObservacionTrabajoDeActivacion);
         }
 
         private const string NegociosAActivar = nameof(NegociosAActivar);
@@ -149,6 +155,9 @@ namespace GestoresDeNegocio.Contabilidad
                 .Select(n => ApiDeEnsamblados.ToEnumerado<enumNegocio>(n))
                 .ToList();
             var sociedad = contexto.SeleccionarPorId<SociedadDtm>(idSociedad);
+
+            // la observación con el enlace al trabajo se anota al empezar, así sigue ahí aunque el trabajo falle
+            entorno.AnotarElTrabajoEnElElemento(contexto, sociedad, ltrDeUnPreasiento.ObservacionTrabajoDeActivacion);
 
             var resultado = new List<string>();
             var conErrores = false;
@@ -175,7 +184,6 @@ namespace GestoresDeNegocio.Contabilidad
 
             resultado.Insert(0, conErrores ? ltrDeUnPreasiento.ActivacionConErrores : ltrDeUnPreasiento.ActivacionTodoCorrecto);
             sociedad.CrearTraza(contexto, ltrDeUnPreasiento.TrazaDeActivacionDePreasientos, string.Join(Environment.NewLine, resultado));
-            entorno.AnotarElTrabajoEnElElemento(contexto, sociedad, ltrDeUnPreasiento.ObservacionTrabajoDeActivacion);
         }
 
         // Devuelve cuántos documentos del negocio se han preasentado y cuántos han fallado
@@ -359,7 +367,8 @@ namespace GestoresDeNegocio.Contabilidad
 
             // lo primero es ver si hay algo que traspasar: si no, se anota y se termina el trabajo
             var sinPreasientos = GestorDeCierresContables.MotivoSinPreasientosParaTraspasar(contexto, sociedad, (DateTime)cerrarHasta);
-            if (sinPreasientos is not null)
+            var cuadraExistencias = CuadreDeExistencias.CuadraAlCerrar(contexto, sociedad);
+            if (sinPreasientos is not null && !cuadraExistencias)
             {
                 entorno.CrearTraza(sinPreasientos);
                 return;
@@ -371,13 +380,30 @@ namespace GestoresDeNegocio.Contabilidad
             // el ajuste de fechas y la creación del lote van en la misma transacción: si algo falla se deshace todo; mientras dura, el semáforo
             // impide crear, eliminar o cancelar desde otros procesos preasientos de la sociedad con fecha contable anterior a la de cierre
             var idSemaforo = 0;
+            var idSemaforoDeSociedad = 0;
             contexto.IniciarTraza(nameof(CrearCierreContable));
             entorno.CrearTraza($"Traza informativa del proceso");
             var tran = contexto.IniciarTransaccion();
             try
             {
+                // además del semáforo del cierre, la sociedad queda bloqueada (no se puede modificar ni transitar) hasta que termine; se pone con el
+                // contexto del proceso para que el propio cierre, que usa ese contexto, no choque con él
+                idSemaforoDeSociedad = GestorDeCierresContables.PonerSemaforoDeSociedadCerrandose(contexto, sociedad);
                 idSemaforo = GestorDeCierresContables.PonerSemaforoDeCierre(contexto, idSociedad, (DateTime)cerrarHasta);
                 GestorDeCierresContables.AjustarPreasientosAnterioresAlUltimoCierre(contexto, idSociedad, mensaje => entorno.CrearTraza(mensaje));
+                // los almacenes que usan la variación de existencias generan antes del lote su preasiento de variación (inventario del último
+                // cierre contra el de la fecha de cierre) para que entre en él
+                var desde = (DateTime)parametros[nameof(CierreContableDto.Desde)];
+                CuadreDeExistencias.ValidarAlmacenesAlCerrar(contexto, sociedad, desde, (DateTime)cerrarHasta);
+                CuadreDeExistencias.CuadrarExistenciasAlCerrar(contexto, sociedad, desde, (DateTime)cerrarHasta, mensaje => entorno.CrearTraza(mensaje));
+
+                if (sinPreasientos is not null && GestorDeCierresContables.MotivoSinPreasientosParaTraspasar(contexto, sociedad, (DateTime)cerrarHasta) is string todaviaSinNada)
+                {
+                    contexto.Rollback(tran);
+                    entorno.CrearTraza(todaviaSinNada);
+                    return;
+                }
+
                 GenerarLoteContable(entorno, contexto, parametros);
                 contexto.Commit(tran);
             }
@@ -389,6 +415,7 @@ namespace GestoresDeNegocio.Contabilidad
             finally
             {
                 SemaforoDeProcesoSql.QuitarSemaforo(contexto, idSemaforo);
+                SemaforoDeProcesoSql.QuitarSemaforo(contexto, idSemaforoDeSociedad);
                 contexto.CerrarTraza();
             }
         }

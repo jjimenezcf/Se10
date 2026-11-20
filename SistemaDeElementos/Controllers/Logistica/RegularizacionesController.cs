@@ -46,6 +46,9 @@ namespace MVCSistemaDeElementos.Controllers
                 case eventosDeMf.Ral_ImportarRecuento:
                     // la modal se propone con los datos de la edición y al aceptar se llama a epImportarRecuento
                     return null;
+                case eventosDeMf.Ral_AplicarRecuento:
+                    // sin modal: el cliente confirma y llama a epAplicarRecuento
+                    return null;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -63,8 +66,11 @@ namespace MVCSistemaDeElementos.Controllers
 
                 var idArchivo = (int)parametros.LeerValor<long>(nameof(RecuentoDto.IdArchivo));
                 var idRegularizacion = (int)parametros.LeerValor<long>(ltrDeUnaRegularizacion.IdRegularizacion);
+                if (!parametros.ContieneClave(nameof(RecuentoDto.Fecha))) throw new Exception("Debe indicar la fecha del recuento");
+                var fecha = parametros.LeerValor<DateTime>(nameof(RecuentoDto.Fecha), default);
+                if (fecha == default) throw new Exception("Debe indicar la fecha del recuento");
 
-                var trabajo = TrabajosParaRegularizaciones.SometerImportarRecuentos(Contexto, idArchivo, idRegularizacion);
+                var trabajo = TrabajosParaRegularizaciones.SometerImportarRecuentos(Contexto, idArchivo, idRegularizacion, fecha);
 
                 r.Consola = "Se ha sometido la importación del recuento, se le notificará cuando finalice";
                 r.Datos = trabajo;
@@ -74,6 +80,31 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 ApiController.PrepararError(e, r, "Error al someter la importación del recuento.");
+            }
+            return new JsonResult(r);
+        }
+
+        // Somete el trabajo que aplica el recuento: genera los movimientos de almacén de las líneas y pasa la regularización a aplicada
+        public JsonResult epAplicarRecuento(string parametrosJson)
+        {
+            var r = new Resultado();
+            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                if (!parametros.ContieneClave(ltrDeUnaRegularizacion.IdRegularizacion)) throw new Exception("Debe indicar la regularización cuyo recuento se aplica");
+
+                var idRegularizacion = (int)parametros.LeerValor<long>(ltrDeUnaRegularizacion.IdRegularizacion);
+                var trabajo = TrabajosParaRegularizaciones.SometerAplicarRecuento(Contexto, idRegularizacion);
+
+                r.Consola = "Se ha sometido la aplicación del recuento, se le notificará cuando finalice";
+                r.Datos = trabajo;
+                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "Error al someter la aplicación del recuento.");
             }
             return new JsonResult(r);
         }

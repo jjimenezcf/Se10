@@ -4286,6 +4286,14 @@ namespace Migraciones.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("EDITAR_TRAS_CREAR");
 
+                    b.Property<int?>("IdCuentaDeCompraDirecta")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CUENTA_COMPRA_DIRECTA");
+
+                    b.Property<int?>("IdCuentaDeConsumo")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CUENTA_CONSUMO");
+
                     b.Property<int>("IdEstado")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ESTADO");
@@ -4381,6 +4389,12 @@ namespace Migraciones.Migrations
                         .HasColumnName("USA_TAREAS");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IdCuentaDeCompraDirecta")
+                        .HasDatabaseName("I_EXPEDIENTE_TIPO_ID_CUENTA_COMPRA_DIRECTA");
+
+                    b.HasIndex("IdCuentaDeConsumo")
+                        .HasDatabaseName("I_EXPEDIENTE_TIPO_ID_CUENTA_CONSUMO");
 
                     b.HasIndex("IdEstado")
                         .HasDatabaseName("I_EXPEDIENTE_TIPO_ID_ESTADO");
@@ -11754,6 +11768,22 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_CG");
 
+                    b.Property<int?>("IdCuentaDeCompras")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CUENTA_COMPRAS");
+
+                    b.Property<int?>("IdCuentaDeDevoluciones")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CUENTA_DEVOLUCIONES");
+
+                    b.Property<int?>("IdCuentaDeExistencias")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CUENTA_EXISTENCIAS");
+
+                    b.Property<int?>("IdCuentaDeVariacion")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CUENTA_VARIACION");
+
                     b.Property<int>("IdEstado")
                         .HasColumnType("INT")
                         .HasColumnName("ID_ESTADO");
@@ -11786,10 +11816,28 @@ namespace Migraciones.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<bool>("UsaVariacionDeExistencias")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false)
+                        .HasColumnName("USA_VARIACION_EXISTENCIAS");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IdCg")
                         .HasDatabaseName("I_ALMACEN_ID_CG");
+
+                    b.HasIndex("IdCuentaDeCompras")
+                        .HasDatabaseName("I_ALMACEN_ID_CUENTA_COMPRAS");
+
+                    b.HasIndex("IdCuentaDeDevoluciones")
+                        .HasDatabaseName("I_ALMACEN_ID_CUENTA_DEVOLUCIONES");
+
+                    b.HasIndex("IdCuentaDeExistencias")
+                        .HasDatabaseName("I_ALMACEN_ID_CUENTA_EXISTENCIAS");
+
+                    b.HasIndex("IdCuentaDeVariacion")
+                        .HasDatabaseName("I_ALMACEN_ID_CUENTA_VARIACION");
 
                     b.HasIndex("IdEstado")
                         .HasDatabaseName("I_ALMACEN_ID_ESTADO");
@@ -13277,6 +13325,10 @@ namespace Migraciones.Migrations
                     b.Property<decimal>("Cantidad")
                         .HasColumnType("DECIMAL(18,6)")
                         .HasColumnName("CANTIDAD");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("DATE")
+                        .HasColumnName("FECHA");
 
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("DATETIME2(7)")
@@ -33791,6 +33843,18 @@ namespace Migraciones.Migrations
 
             modelBuilder.Entity("ServicioDeDatos.Expediente.TipoDeExpedienteDtm", b =>
                 {
+                    b.HasOne("ServicioDeDatos.Contabilidad.CuentaDtm", "CuentaDeCompraDirecta")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaDeCompraDirecta")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_EXPEDIENTE_TIPO_ID_CUENTA_COMPRA_DIRECTA");
+
+                    b.HasOne("ServicioDeDatos.Contabilidad.CuentaDtm", "CuentaDeConsumo")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaDeConsumo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_EXPEDIENTE_TIPO_ID_CUENTA_CONSUMO");
+
                     b.HasOne("ServicioDeDatos.Expediente.EstadoDeUnExpedienteDtm", "Estado")
                         .WithMany()
                         .HasForeignKey("IdEstado")
@@ -33831,6 +33895,10 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_EXPEDIENTE_TIPO_ID_INTERVENTOR");
+
+                    b.Navigation("CuentaDeCompraDirecta");
+
+                    b.Navigation("CuentaDeConsumo");
 
                     b.Navigation("Estado");
 
@@ -36985,6 +37053,30 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_ALMACEN_ID_CG");
 
+                    b.HasOne("ServicioDeDatos.Contabilidad.CuentaDtm", "CuentaDeCompras")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaDeCompras")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_ID_CUENTA_COMPRAS");
+
+                    b.HasOne("ServicioDeDatos.Contabilidad.CuentaDtm", "CuentaDeDevoluciones")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaDeDevoluciones")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_ID_CUENTA_DEVOLUCIONES");
+
+                    b.HasOne("ServicioDeDatos.Contabilidad.CuentaDtm", "CuentaDeExistencias")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaDeExistencias")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_ID_CUENTA_EXISTENCIAS");
+
+                    b.HasOne("ServicioDeDatos.Contabilidad.CuentaDtm", "CuentaDeVariacion")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaDeVariacion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_ID_CUENTA_VARIACION");
+
                     b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnAlmacenDtm", "Estado")
                         .WithMany()
                         .HasForeignKey("IdEstado")
@@ -37013,6 +37105,14 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_ALMACEN_ID_MODIFICADOR");
 
                     b.Navigation("Cg");
+
+                    b.Navigation("CuentaDeCompras");
+
+                    b.Navigation("CuentaDeDevoluciones");
+
+                    b.Navigation("CuentaDeExistencias");
+
+                    b.Navigation("CuentaDeVariacion");
 
                     b.Navigation("Estado");
 

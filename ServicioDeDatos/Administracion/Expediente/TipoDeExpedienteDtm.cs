@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Seguridad;
 using Utilidades;
@@ -69,6 +70,14 @@ namespace ServicioDeDatos.Expediente
         public bool UsaDatosJuridicos { get; set; }
         public static new enumNegocio Negocio => enumNegocio.Expediente;
 
+        // Cuentas de gasto de los materiales (naturaleza de clase Material) en la obra de los expedientes del tipo; si no se indican se usa
+        // la de gasto de la naturaleza. Las devoluciones van a la misma cuenta, al revés
+        //  - consumo: lo que sale de un almacén a la obra (y lo que vuelve de ella al almacén)
+        //  - compra directa: lo que se entrega del proveedor en la obra sin pasar por un almacén (ver ExtensorDePreasientos.PreasentarCompraEnObra)
+        public int? IdCuentaDeConsumo { get; set; }
+        public CuentaDtm CuentaDeConsumo { get; set; }
+        public int? IdCuentaDeCompraDirecta { get; set; }
+        public CuentaDtm CuentaDeCompraDirecta { get; set; }
     }
 
 
@@ -113,6 +122,8 @@ namespace ServicioDeDatos.Expediente
             modelBuilder.Entity<TipoDeExpedienteDtm>().Property(p => p.ScDeVenta).HasColumnName(ICampos.SC_VENTA).HasColumnType(IDominio.BIT).HasDefaultValue(false).IsRequired();
             modelBuilder.Entity<TipoDeExpedienteDtm>().Property(p => p.UsaDatosJuridicos).HasColumnName(ICampos.USA_DATOS_JURIDICOS).HasColumnType(IDominio.BIT).HasDefaultValue(false).IsRequired();
             modelBuilder.Entity<TipoDeExpedienteDtm>().Property(p => p.ScDeCompra).HasColumnName(ICampos.SC_COMPRA).HasColumnType(IDominio.BIT).HasDefaultValue(false).IsRequired();
+            ApiDeRegistroDtm.DefinirCampoFk<TipoDeExpedienteDtm>(modelBuilder, nameof(TipoDeExpedienteDtm.CuentaDeConsumo), nameof(TipoDeExpedienteDtm.IdCuentaDeConsumo), ICampos.ID_CUENTA_CONSUMO, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<TipoDeExpedienteDtm>(modelBuilder, nameof(TipoDeExpedienteDtm.CuentaDeCompraDirecta), nameof(TipoDeExpedienteDtm.IdCuentaDeCompraDirecta), ICampos.ID_CUENTA_COMPRA_DIRECTA, requerida: false, unico: false);
         }
 
         internal static void PlantillaPorTipo(ModelBuilder modelBuilder)

@@ -19,6 +19,7 @@ using ServicioDeDatos.TrabajosSometidos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,7 +33,10 @@ namespace GestoresDeNegocio.Logistica
         ImportarRecuentos,
 
         [Description("Preparar recuento")]
-        PrepararRecuento
+        PrepararRecuento,
+
+        [Description("Aplicar recuento")]
+        AplicarRecuento
     }
 
     public static class TrabajosParaRegularizaciones
@@ -46,13 +50,17 @@ namespace GestoresDeNegocio.Logistica
         private const int ColumnaDePrecioDelRecuento = 7;
         private const double AnchoMinimoDeLasEditables = 20;
 
+        // formato con el que viajan las fechas en los parámetros de los trabajos
+        private const string FormatoDeFechaDelTrabajo = "yyyy-MM-dd";
+
         //-------------------------------------------------------------------------------------------------------------
         // Sometimiento del job: la regularización ha de estar recontando y el usuario ha de ser gestor
         //-------------------------------------------------------------------------------------------------------------
-        public static TrabajoDeUsuarioDtm SometerImportarRecuentos(ContextoSe contexto, int idArchivo, int idRegularizacion)
+        public static TrabajoDeUsuarioDtm SometerImportarRecuentos(ContextoSe contexto, int idArchivo, int idRegularizacion, DateTime fecha)
         {
             var regularizacion = contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false);
             regularizacion.ValidarQueSePuedeImportarUnRecuento(contexto);
+            regularizacion.ValidarLaFechaDelRecuento(contexto, fecha);
 
             var dll = Assembly.GetExecutingAssembly().GetName().Name;
             var clase = typeof(TrabajosParaRegularizaciones).FullName;
@@ -60,7 +68,8 @@ namespace GestoresDeNegocio.Logistica
 
             var parametrosEntrada = new Dictionary<string, object> {
                 { nameof(RecuentoDto.IdArchivo), idArchivo },
-                { ltrDeUnaRegularizacion.IdRegularizacion, idRegularizacion }
+                { ltrDeUnaRegularizacion.IdRegularizacion, idRegularizacion },
+                { nameof(RecuentoDto.Fecha), fecha.ToString(FormatoDeFechaDelTrabajo) }
             };
             var datosDeCreacion = new Dictionary<string, object>
             {
@@ -68,7 +77,8 @@ namespace GestoresDeNegocio.Logistica
                 { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
             };
 
-            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion);
+            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion)
+                .AnotarElTrabajoSometidoEnElElemento(contexto, regularizacion, "Importación de recuento");
         }
 
         //-------------------------------------------------------------------------------------------------------------
@@ -80,22 +90,25 @@ namespace GestoresDeNegocio.Logistica
             Dictionary<string, object> parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
             var idArchivo = (int)parametros.LeerValor<long>(nameof(RecuentoDto.IdArchivo));
             var idRegularizacion = (int)parametros.LeerValor<long>(ltrDeUnaRegularizacion.IdRegularizacion);
+            var fecha = DateTime.ParseExact(parametros.LeerValor(nameof(RecuentoDto.Fecha), ""), FormatoDeFechaDelTrabajo, CultureInfo.InvariantCulture);
 
             contexto.IniciarTraza(nameof(enumTrabajosDeRegularizaciones.ImportarRecuentos));
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             var idSemaforo = 0;
             try
             {
+                // la observación con el enlace al trabajo se anota al empezar, así sigue ahí aunque el trabajo falle
+                entorno.AnotarElTrabajoEnElElemento(contexto, contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false), "Importación de recuento");
+
                 // mientras se cargan las líneas nadie más puede importar un recuento en la misma regularización
                 var referencia = contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false).Referencia;
                 idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.Regularizacion.IdNegocio(), idRegularizacion, enumOpercionesDeSemaforo.IRAL, referencia).Id;
 
-                var resumen = ImportarRecuentosInterno(entorno, idArchivo, idRegularizacion);
+                var resumen = ImportarRecuentosInterno(entorno, idArchivo, idRegularizacion, fecha);
                 entorno.CrearTraza($"Importación finalizada: {resumen.TotalFilas} filas en el Excel, {resumen.Creados} importadas correctamente, {resumen.Descartados} con error");
 
                 var regularizacion = contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false);
                 AnexarElArchivoALaRegularizacion(entorno, contexto, regularizacion, contexto.SeleccionarPorId<ArchivoDtm>(idArchivo));
-                entorno.AnotarElTrabajoEnElElemento(contexto, regularizacion, "Importación de recuento");
             }
             catch (Exception e)
             {
@@ -143,7 +156,7 @@ namespace GestoresDeNegocio.Logistica
         // Lógica de importación: cada fila con error se descarta (con rollback) y se anota en el log del trabajo,
         // sin abortar el resto del fichero. Las líneas se numeran de incremento en incremento a continuación de las existentes
         //-------------------------------------------------------------------------------------------------------------
-        public static ResumenDeImportacionDeCatalogo ImportarRecuentosInterno(EntornoDeTrabajo entorno, int idArchivo, int idRegularizacion)
+        public static ResumenDeImportacionDeCatalogo ImportarRecuentosInterno(EntornoDeTrabajo entorno, int idArchivo, int idRegularizacion, DateTime fecha)
         {
             var contexto = entorno.contextoDelProceso;
             var regularizacion = contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false);
@@ -210,6 +223,7 @@ namespace GestoresDeNegocio.Logistica
                         {
                             IdElemento = idRegularizacion,
                             Orden = orden + incremento,
+                            Fecha = fecha.Date,
                             IdUnitario = unitario.Id,
                             Cantidad = cantidad,
                             Precio = precio
@@ -289,9 +303,88 @@ namespace GestoresDeNegocio.Logistica
         }
 
         //-------------------------------------------------------------------------------------------------------------
+        // Aplicar recuento. Sometimiento del job: la regularización ha de estar recontando, con líneas, y el usuario ha de ser gestor
+        //-------------------------------------------------------------------------------------------------------------
+        public static TrabajoDeUsuarioDtm SometerAplicarRecuento(ContextoSe contexto, int idRegularizacion)
+        {
+            var regularizacion = contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false);
+            if (!ApiDePermisos.LeerModoDeAcceso(contexto, enumNegocio.Regularizacion, regularizacion).HayPermisosDe(enumModoDeAccesoDeDatos.Gestor))
+                GestorDeErrores.Emitir($"Ha de ser gestor de la regularización '{regularizacion.Referencia}' para aplicar el recuento");
+            regularizacion.ValidarQueSePuedeAplicarElRecuento(contexto);
+
+            var dll = Assembly.GetExecutingAssembly().GetName().Name;
+            var clase = typeof(TrabajosParaRegularizaciones).FullName;
+            var ts = GestorDeTrabajosSometido.CrearObtener(contexto, enumTrabajosDeRegularizaciones.AplicarRecuento.Descripcion(), dll, clase, nameof(enumTrabajosDeRegularizaciones.AplicarRecuento), comunicarFin: true);
+
+            var datosDeCreacion = new Dictionary<string, object>
+            {
+                { nameof(TrabajoDeUsuarioDtm.Parametros), new Dictionary<string, object> { { ltrDeUnaRegularizacion.IdRegularizacion, idRegularizacion } }.ToJson() },
+                { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
+            };
+
+            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion)
+                .AnotarElTrabajoSometidoEnElElemento(contexto, regularizacion, "Aplicar recuento");
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+        // Punto de entrada del job. Todo en una transacción: se generan los movimientos de almacén de las líneas (con sus preasientos y el
+        // barrido de los posteriores) y se pasa la regularización a aplicada, lo que devuelve el almacén a activo. Si algo falla no se
+        // aplica nada y la regularización sigue recontando
+        //-------------------------------------------------------------------------------------------------------------
+        public static void AplicarRecuento(EntornoDeTrabajo entorno)
+        {
+            var contexto = entorno.contextoDelProceso;
+            Dictionary<string, object> parametros = entorno.TrabajoDeUsuario.Parametros.ToDiccionarioDeParametros();
+            var idRegularizacion = (int)parametros.LeerValor<long>(ltrDeUnaRegularizacion.IdRegularizacion);
+
+            contexto.IniciarTraza(nameof(enumTrabajosDeRegularizaciones.AplicarRecuento));
+            var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
+            var idSemaforo = 0;
+            try
+            {
+                // la observación con el enlace al trabajo se anota al empezar y antes de la transacción, así sigue ahí si el trabajo falla y se deshace
+                var regularizacion = contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false);
+                entorno.AnotarElTrabajoEnElElemento(contexto, regularizacion, "Aplicar recuento");
+
+                // mientras se aplica nadie más puede importar ni aplicar un recuento en la misma regularización
+                // el semáforo se pone con el contexto del proceso (no con el del entorno): la transición a aplicada que hace este mismo trabajo pone su
+                // propio semáforo sobre la regularización y sólo lo reconoce como suyo si es de la misma operación (mismo IdOperacion del contexto)
+                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(contexto, enumNegocio.Regularizacion.IdNegocio(), idRegularizacion, enumOpercionesDeSemaforo.ARAL, regularizacion.Referencia).Id;
+
+                var tran = contexto.IniciarTransaccion();
+                try
+                {
+                    regularizacion = contexto.SeleccionarPorId<RegularizacionDtm>(idRegularizacion, usarLaCache: false);
+                    regularizacion.ValidarQueSePuedeAplicarElRecuento(contexto);
+                    regularizacion.AplicarElRecuento(contexto, texto => entorno.CrearTraza(texto));
+                    regularizacion.TransitarALaEtapa(contexto, enumEtapasDeRegularizacion.RAL_Cerrado.EstadosDeLaEtapa(),
+                        new Dictionary<string, object> { { ltrDeUnaRegularizacion.AplicandoElRecuento, true } }, delSistema: true);
+                    contexto.Commit(tran);
+                }
+                catch
+                {
+                    contexto.Rollback(tran);
+                    throw;
+                }
+
+                entorno.CrearTraza($"Recuento aplicado: la regularización '{regularizacion.Referencia}' ha pasado a aplicada");
+            }
+            catch (Exception e)
+            {
+                entorno.AnotarError(e);
+            }
+            finally
+            {
+                if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
+                if (otorgado) entorno.Ejecutor.AnularAdministrador(contexto, otorgado);
+                contexto.CerrarTraza();
+            }
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
         // Preparar recuento. Sometimiento del job: genera el Excel del inventario de hoy del almacén para hacer un recuento
         //-------------------------------------------------------------------------------------------------------------
-        public static TrabajoDeUsuarioDtm SometerPrepararRecuento(ContextoSe contexto, int idAlmacen, string referencia, string nombre)
+        public static TrabajoDeUsuarioDtm SometerPrepararRecuento(ContextoSe contexto, int idAlmacen, string referencia, string nombre, enumRegularizacionAlm claseDeRegularizacion)
         {
             var almacen = contexto.SeleccionarPorId<AlmacenDtm>(idAlmacen, usarLaCache: false);
 
@@ -302,7 +395,8 @@ namespace GestoresDeNegocio.Logistica
             var parametrosEntrada = new Dictionary<string, object> {
                 { nameof(AlmacenDtm.Id), almacen.Id },
                 { nameof(UnitarioDtm.Referencia), referencia ?? "" },
-                { nameof(UnitarioDtm.Nombre), nombre ?? "" }
+                { nameof(UnitarioDtm.Nombre), nombre ?? "" },
+                { nameof(PrepararRecuentoDto.Clase), claseDeRegularizacion.ToString() }
             };
             var datosDeCreacion = new Dictionary<string, object>
             {
@@ -310,7 +404,8 @@ namespace GestoresDeNegocio.Logistica
                 { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
             };
 
-            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion);
+            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion)
+                .AnotarElTrabajoSometidoEnElElemento(contexto, almacen, ts.Nombre);
         }
 
         //-------------------------------------------------------------------------------------------------------------
@@ -323,13 +418,18 @@ namespace GestoresDeNegocio.Logistica
             var idAlmacen = (int)parametros.LeerValor<long>(nameof(AlmacenDtm.Id));
             var referencia = parametros.LeerValor(nameof(UnitarioDtm.Referencia), "");
             var nombre = parametros.LeerValor(nameof(UnitarioDtm.Nombre), "");
+            var clase = Enum.Parse<enumRegularizacionAlm>(parametros.LeerValor(nameof(PrepararRecuentoDto.Clase), ""));
 
             contexto.IniciarTraza(nameof(enumTrabajosDeRegularizaciones.PrepararRecuento));
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             try
             {
                 var almacen = contexto.SeleccionarPorId<AlmacenDtm>(idAlmacen, usarLaCache: false);
-                var fichero = GenerarElExcelDelRecuento(entorno, contexto, almacen, referencia, nombre);
+
+                // la observación con el enlace al trabajo se anota al empezar, así sigue ahí aunque el trabajo falle
+                entorno.AnotarElTrabajoEnElElemento(contexto, almacen);
+
+                var fichero = GenerarElExcelDelRecuento(entorno, contexto, almacen, referencia, nombre, clase);
 
                 // se anexa una copia al almacén y el original se envía por correo a quien sometió el trabajo
                 almacen.AnexarArchivo(contexto, fichero, copiar: true);
@@ -341,7 +441,6 @@ namespace GestoresDeNegocio.Logistica
                     , new List<TipoDtoElmento>()
                     , new List<string> { fichero });
 
-                entorno.AnotarElTrabajoEnElElemento(contexto, almacen);
                 entorno.CrearTraza($"Recuento preparado: '{Path.GetFileName(fichero)}'");
             }
             catch (Exception e)
@@ -359,8 +458,10 @@ namespace GestoresDeNegocio.Logistica
         // Excel con el inventario de hoy del almacén: el último movimiento de cada material hasta el fin del día es el que tiene el
         // stock y el valor medio vigentes (misma consulta que GestorDeInventario). Sólo se pueden editar Cantidad y Precio
         //-------------------------------------------------------------------------------------------------------------
-        private static string GenerarElExcelDelRecuento(EntornoDeTrabajo entorno, ContextoSe contexto, AlmacenDtm almacen, string referencia, string nombre)
+        private static string GenerarElExcelDelRecuento(EntornoDeTrabajo entorno, ContextoSe contexto, AlmacenDtm almacen, string referencia, string nombre, enumRegularizacionAlm clase)
         {
+            // en un ajuste de precios no se cuenta: la cantidad es la de hoy y no se puede cambiar, sólo el precio
+            var soloPrecio = clase == enumRegularizacionAlm.AjusteDePrecio;
             var hasta = DateTime.Today.AddDays(1);
             var movimientos = contexto.Set<MovimientoDeAlmacenDtm>();
             var consulta = movimientos.Where(m => m.IdAlmacen == almacen.Id
@@ -394,7 +495,7 @@ namespace GestoresDeNegocio.Logistica
                 new ValorDeCelda { Valor = siglasDeUnidades.GetValueOrDefault(l.IdUnidad), Bloqueada = true },
                 new ValorDeCelda { Valor = l.Stock, Bloqueada = true },
                 new ValorDeCelda { Valor = l.Valor, Bloqueada = true },
-                new ValorDeCelda { Valor = null, Bloqueada = false },
+                new ValorDeCelda { Valor = soloPrecio ? (object)l.Stock : null, Bloqueada = soloPrecio },
                 new ValorDeCelda { Valor = l.Valor, Bloqueada = false }
             }).ToList();
 
@@ -410,7 +511,7 @@ namespace GestoresDeNegocio.Logistica
             .Tabla("A", PrimeraFilaDeDatosDelRecuento, filas)
             .Cells.AutoFitColumns();
 
-            foreach (var columna in new[] { ColumnaDeCantidadDelRecuento, ColumnaDePrecioDelRecuento })
+            foreach (var columna in soloPrecio ? new[] { ColumnaDePrecioDelRecuento } : new[] { ColumnaDeCantidadDelRecuento, ColumnaDePrecioDelRecuento })
             {
                 var celdas = hoja.Cells[PrimeraFilaDeDatosDelRecuento, columna, ultimaFila, columna];
                 celdas.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;

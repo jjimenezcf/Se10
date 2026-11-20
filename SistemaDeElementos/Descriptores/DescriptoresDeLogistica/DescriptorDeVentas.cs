@@ -18,6 +18,22 @@ namespace MVCSistemaDeElementos.Descriptores
                , modo
                , rutaBase: enumNameSpaceTs.Logistica)
         {
+            // filtro (y restrictor al llegar desde el menú del almacén) por el almacén de la venta
+            new ListasDinamicas<VentaDto>(Mnt.BloqueGeneral,
+                etiqueta: enumNegocio.Almacen.Singular(),
+                filtrarPor: nameof(VentaDto.IdAlmacen),
+                ayuda: "seleccione el almacén",
+                seleccionarDe: nameof(AlmacenDto),
+                buscarPor: nameof(AlmacenDto.Expresion),
+                mostrarExpresion: nameof(AlmacenDto.Expresion),
+                criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                posicion: new Posicion(0, 1),
+                controlador: nameof(AlmacenesController),
+                navegarA: nameof(AlmacenesController.CrudAlmacenes),
+                restringirPor: "",
+                alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+
             DescriptorDeLineasDeUnaVenta();
         }
 

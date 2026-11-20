@@ -19,11 +19,30 @@ namespace MVCSistemaDeElementos.Descriptores
                , modo
                , rutaBase: enumNameSpaceTs.Logistica)
         {
+            // filtro (y restrictor al llegar desde el menú del almacén) por el almacén de la regularización
+            new ListasDinamicas<RegularizacionDto>(Mnt.BloqueGeneral,
+                etiqueta: enumNegocio.Almacen.Singular(),
+                filtrarPor: nameof(RegularizacionDto.IdAlmacen),
+                ayuda: "seleccione el almacén",
+                seleccionarDe: nameof(AlmacenDto),
+                buscarPor: nameof(AlmacenDto.Expresion),
+                mostrarExpresion: nameof(AlmacenDto.Expresion),
+                criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                posicion: new Posicion(0, 1),
+                controlador: nameof(AlmacenesController),
+                navegarA: nameof(AlmacenesController.CrudAlmacenes),
+                restringirPor: "",
+                alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+
             DescriptorDeLineasDeUnaRegularizacion();
 
             // sólo se puede importar con la regularización recontando (ver CrudEdicionRegularizacion.AjustarLineasSegunEtapa)
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(RecuentoDto), eventosDeMf.Ral_ImportarRecuento, "Seleccionar el recuento a importar"));
             Editor.IncluirMfIndividual("Importar recuento", eventosDeMf.Ral_ImportarRecuento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
+
+            // aplicar el recuento genera los movimientos de almacén en segundo plano (ver TrabajosParaRegularizaciones.AplicarRecuento)
+            Editor.IncluirMfIndividual("Aplicar recuento", eventosDeMf.Ral_AplicarRecuento, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Gestor);
         }
 
         private void DescriptorDeLineasDeUnaRegularizacion()
@@ -35,6 +54,7 @@ namespace MVCSistemaDeElementos.Descriptores
             //Definimos el grid de detalles de la regularización
             var columnas = new DescriptorDeColumnas("lineasDeUnaRegularizacion");
             columnas.Add(titulo: nameof(LineasDeUnaRegularizacionDto.Orden), alineacion: enumAliniacion.derecha, tamano: 100);
+            columnas.Add(titulo: nameof(LineasDeUnaRegularizacionDto.Fecha), alineacion: enumAliniacion.centrada, tamano: 120, formato: enumFormato.Fecha);
             columnas.Add(titulo: nameof(LineasDeUnaRegularizacionDto.Unitario));
             columnas.Add(titulo: nameof(LineasDeUnaRegularizacionDto.Cantidad), tamano: 150, formato: enumFormato.Numero_6);
             columnas.Add(titulo: nameof(LineasDeUnaRegularizacionDto.Precio), formato: enumFormato.Moneda, tamano: 150);
@@ -56,7 +76,8 @@ namespace MVCSistemaDeElementos.Descriptores
             var modalDeCreacion = expansor.DescriptorDeCrearRelaciones(Editor.Crud.Contexto, typeof(LineasDeUnaRegularizacionDto), typeof(LineasDeUnaRegularizacionController), nameof(LineasDeUnaRegularizacionDto.IdElemento), "Añadir línea");
             modalDeCreacion.AccionTrasAbrirModal = $"javascript: {RutaBase}.{enumFunctionTs.Ral_InicializarModalParaCrearLineas}({ExtensorDeRegularizaciones.IncrementarOrdenEn(Contexto)})";
 
-            expansor.DescriptorDeEditarRelaciones(Editor.Crud.Contexto, typeof(LineasDeUnaRegularizacionDto), typeof(LineasDeUnaRegularizacionController), "Editar línea", soloConsulta: false);
+            var modalDeEdicion = expansor.DescriptorDeEditarRelaciones(Editor.Crud.Contexto, typeof(LineasDeUnaRegularizacionDto), typeof(LineasDeUnaRegularizacionController), "Editar línea", soloConsulta: false);
+            modalDeEdicion.AccionTrasAbrirModal = $"javascript: {RutaBase}.{enumFunctionTs.Ral_InicializarModalParaEditarLineas}()";
         }
 
         public override string RenderControl()

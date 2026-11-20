@@ -1,4 +1,6 @@
 using ServicioDeDatos;
+using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Seguridad;
 using MVCSistemaDeElementos.Controllers;
 using UtilidadesParaIu;
 using Utilidades;
@@ -15,7 +17,18 @@ namespace MVCSistemaDeElementos.Descriptores
                , modo
                , rutaBase: enumNameSpaceTs.Logistica)
         {
+            // navegan a otros mantenimientos con el almacén seleccionado fijado (ver CrudDeAlmacenes.DespuesDeProcesarOpcionMf)
+            IncluirOpcionDeRelacion(eventosDeMf.Alm_IrACompras, "Compras");
+            IncluirOpcionDeRelacion(eventosDeMf.Alm_IrAVentas, "Ventas");
+            IncluirOpcionDeRelacion(eventosDeMf.Alm_IrARecuentos, "Recuentos");
+            Mnt.IncluirMfDeRelacion("<hr>");
+            IncluirOpcionDeRelacion(eventosDeMf.Alm_IrAInventario, "Inventario");
+            IncluirOpcionDeRelacion(eventosDeMf.Alm_IrAMovimientos, "Movimientos");
+        }
 
+        private void IncluirOpcionDeRelacion(string accion, string texto)
+        {
+            Mnt.IncluirMfDeRelacion($"<li id='{menuDeRelaciones}.{accion}' accion-menu='{accion}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>{texto}</li>");
         }
 
         public override string RenderControl()

@@ -38,6 +38,10 @@ namespace Logistica {
 
             let modal = this.ModalPrepararRecuento;
             ApiPanel.BlanquearControlesDeIU(modal);
+            // por defecto se prepara un recuento (el blanqueo deja el desplegable en la primera clase)
+            let clase = ApiControl.BuscarControl(modal, ltrPropiedades.Logistica.Inventario.ClaseDelRecuento, false);
+            if (clase instanceof HTMLSelectElement)
+                MapearAlControl.ListaDeValores(clase, ltrValores.Logistica.Regularizacion.Clase.Recuento);
             let almacenes = ApiControl.BuscarControl(this.PanelFiltro, ltrPropiedades.Logistica.Inventario.FiltroPorAlmacen, false);
             if (almacenes instanceof HTMLSelectElement && Numero(almacenes.value) > 0) {
                 let lista = ApiControl.BuscarListaDinamicaPorPropiedad(modal, ltrPropiedades.Logistica.Inventario.AlmacenDelRecuento) as HTMLInputElement;

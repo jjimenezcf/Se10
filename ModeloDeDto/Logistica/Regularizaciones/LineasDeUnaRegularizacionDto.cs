@@ -1,3 +1,4 @@
+using System;
 using ServicioDeDatos;
 using Utilidades;
 using ModeloDeDto.MaestrosTecnico;
@@ -77,6 +78,21 @@ namespace ModeloDeDto.Logistica
            Columna = 1)
         ]
         public decimal Precio { get; set; }
+
+        //--------------------------------------------
+        // Día del recuento de la línea: los movimientos de almacén que genera al aplicarla se hacen a esa fecha (a las 00:00). Al crear una línea
+        // se propone la de la última línea introducida (ver Ral_InicializarModalParaCrearLineas)
+        [IUPropiedad(
+           Etiqueta = "Fecha",
+           Tipo = typeof(DateTime),
+           Ayuda = "día del recuento: los movimientos de almacén se generan a esta fecha",
+           TipoDeControl = enumTipoControl.SelectorDeFecha,
+           Formato = enumFormato.Fecha,
+           Obligatorio = true,
+           Fila = 2,
+           Columna = 2)
+        ]
+        public DateTime Fecha { get; set; }
 
         //--------------------------------------------
         [IUPropiedad(

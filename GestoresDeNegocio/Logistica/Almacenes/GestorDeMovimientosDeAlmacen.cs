@@ -130,7 +130,10 @@ namespace GestoresDeNegocio.Logistica
             int idSemaforo;
             var almacenABloquear = movimiento.Almacen(Contexto);
 
-            var etapaNecesaria = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento == enumClaseDeMovimiento.Inicial
+            // los movimientos que genera una regularización (stock inicial, regularización de stock y ajuste de precio) se hacen con el almacén
+            // en inventario (bloqueado mientras se cuenta); el resto con el almacén activo
+            var claseDeMovimiento = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento;
+            var etapaNecesaria = claseDeMovimiento is enumClaseDeMovimiento.Inicial or enumClaseDeMovimiento.Regularizacion or enumClaseDeMovimiento.Ajuste
             ? enumEtapasDeAlmacen.ALM_Etapa_En_Inventario
             : enumEtapasDeAlmacen.ALM_Etapa_Activo;
 

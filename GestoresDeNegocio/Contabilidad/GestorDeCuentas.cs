@@ -47,31 +47,9 @@ namespace GestoresDeNegocio.Contabilidad
         protected override IQueryable<CuentaDtm> AplicarFiltros(IQueryable<CuentaDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
         {
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
-
-            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(CuentaDto.Expresion).ToLower());
-            if (filtro != null)
-            {
-                if (filtro.Valor.EsEntero())
-                    consulta = consulta.AplicarPredicado(filtro, x => x.Codigo.StartsWith(filtro.Valor));
-                else
-                    consulta = consulta.AplicarPredicado(filtro, x => x.Codigo.Contains(filtro.Valor) || x.Nombre.Contains(filtro.Valor));
-                filtro.Aplicado = true;
-            }
-
-            filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrVariables.FiltroPorVariable);
-            if (filtro != null)
-            {
-                var codigo = "";
-                if (filtro.Valor.ToLower() == nameof(VariablesDeCuentas.Sueldos).ToLower())
-                    codigo = VariablesDeCuentas.Sueldos;
-                else if (filtro.Valor.ToLower() == nameof(VariablesDeCuentas.Proveedores).ToLower())
-                    codigo = VariablesDeCuentas.Proveedores;
-                else if (filtro.Valor.ToLower() == nameof(VariablesDeCuentas.Clientes).ToLower())
-                    codigo = VariablesDeCuentas.Clientes;
-                else GestorDeErrores.Emitir($"No hay variable de cuenta contable del tipo : {filtro.Valor}");
-
-                consulta = consulta.AplicarPredicado(filtro, x => x.Codigo == codigo);
-            }
+            consulta = consulta.FiltrarPorUso(Contexto, filtros);
+            consulta = consulta.FiltrarPorCodigoONombre(filtros);
+            consulta = consulta.FiltrarPorVariable(filtros);
             return consulta;
         }
         protected override void ValidarPermisosDePersistencia(CuentaDtm registro, ParametrosDeNegocio parametros)

@@ -31,10 +31,14 @@ namespace GestoresDeNegocio.Expediente
                 ReglasDeMapeoDelDtmAlDto(CreateMap<TipoDeExpedienteDtm, TipoDeExpedienteDto>())
                .ForMember(dto => dto.Negocio, dtm => enumLiteralesDeNegocio.Plural(enumNegocio.Expediente))
                .ForMember(dto => dto.Padre, dtm => dtm.MapFrom(x => x.Padre.Expresion))
-               .ForMember(dto => dto.Estado, dtm => dtm.MapFrom(x => x.Estado.Nombre));
+               .ForMember(dto => dto.Estado, dtm => dtm.MapFrom(x => x.Estado.Nombre))
+               .ForMember(dto => dto.CuentaDeConsumo, dtm => dtm.MapFrom(x => x.CuentaDeConsumo.Expresion))
+               .ForMember(dto => dto.CuentaDeCompraDirecta, dtm => dtm.MapFrom(x => x.CuentaDeCompraDirecta.Expresion));
 
                 ReglasDeMapeoDelDtoAlDtm(CreateMap<TipoDeExpedienteDto, TipoDeExpedienteDtm>())
-                .ForMember(dtm => dtm.Padre, dto => dto.Ignore());
+                .ForMember(dtm => dtm.Padre, dto => dto.Ignore())
+                .ForMember(dtm => dtm.CuentaDeConsumo, dto => dto.Ignore())
+                .ForMember(dtm => dtm.CuentaDeCompraDirecta, dto => dto.Ignore());
             }
         }
 
@@ -82,7 +86,9 @@ namespace GestoresDeNegocio.Expediente
         {
             consulta = base.AplicarJoins(consulta, filtros, parametros);
             return consulta.Include(x => x.Padre)
-                .Include(x => x.Estado);
+                .Include(x => x.Estado)
+                .Include(x => x.CuentaDeConsumo)
+                .Include(x => x.CuentaDeCompraDirecta);
         }
 
         protected override IQueryable<TipoDeExpedienteDtm> AplicarFiltros(IQueryable<TipoDeExpedienteDtm> consulta, List<ClausulaDeFiltrado> filtros, ParametrosDeNegocio parametros)
@@ -95,6 +101,14 @@ namespace GestoresDeNegocio.Expediente
         protected override void AntesDePersistir(TipoDeExpedienteDtm tipoDeElemento, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(tipoDeElemento, parametros);
+
+            // las cuentas de gasto de los materiales en la obra son del grupo 60 (aprovisionamientos)
+            if (!parametros.Eliminando)
+            {
+                ExtensorDeCuentas.LeerCuenta(Contexto, tipoDeElemento.IdCuentaDeConsumo)?.ValidarPrefijo(ExtensorDeCuentas.PrefijoDeGastoDeMateriales, "cuenta de consumo de materiales");
+                ExtensorDeCuentas.LeerCuenta(Contexto, tipoDeElemento.IdCuentaDeCompraDirecta)?.ValidarPrefijo(ExtensorDeCuentas.PrefijoDeGastoDeMateriales, "cuenta de compra directa de materiales");
+                tipoDeElemento.CuentaDeConsumo = tipoDeElemento.CuentaDeCompraDirecta = null;
+            }
         }
 
         protected override int ValidarNoHayElementos(TipoDeExpedienteDtm tipoDeExpediente, ParametrosDeNegocio parametros)

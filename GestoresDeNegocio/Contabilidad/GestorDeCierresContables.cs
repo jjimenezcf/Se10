@@ -206,6 +206,21 @@ namespace GestoresDeNegocio.Contabilidad
             return DateTime.ParseExact(fecha, FormatoDeFechaDelSemaforo, System.Globalization.CultureInfo.InvariantCulture);
         }
 
+        // Semáforo sobre la propia sociedad mientras se ejecuta su cierre; devuelve su id para quitarlo al terminar. Como la clave es la de la
+        // sociedad, mientras dura tampoco se puede transitar ni activar nada que ponga un semáforo sobre ella
+        public static int PonerSemaforoDeSociedadCerrandose(ContextoSe contexto, SociedadDtm sociedad) =>
+            SemaforoDeProcesoSql.PonerSemaforo(contexto, enumNegocio.Sociedad.IdNegocio(), sociedad.Id, enumOpercionesDeSemaforo.CIER, sociedad.Expresion).Id;
+
+        // Mientras otro proceso cierra la sociedad no se puede modificar ni eliminar (el propio proceso del cierre sí, por eso se excluye su IdOperacion)
+        public static void ValidarQueLaSociedadNoSeEstaCerrando(ContextoSe contexto, SociedadDtm sociedad)
+        {
+            var semaforo = SemaforoDeProcesoSql.LeerSemaforos(contexto, enumNegocio.Sociedad.IdNegocio(), enumOpercionesDeSemaforo.CIER)
+                .FirstOrDefault(s => s.IdElemento == sociedad.Id && s.IdProceso != contexto.IdOperacion);
+            if (semaforo is not null)
+                GestorDeErrores.Emitir($"No se puede modificar la sociedad '{sociedad.Expresion}' porque se está ejecutando su cierre contable (iniciado por '{semaforo.Login}' el " +
+                                       $"{semaforo.Fecha:dd/MM/yyyy HH:mm}), inténtelo cuando termine");
+        }
+
         // Mientras se cierra una sociedad no se pueden crear, eliminar ni cancelar preasientos suyos con fecha contable anterior a la de cierre
         public static void ValidarQueNoHayCierreEnCurso(ContextoSe contexto, PreasientoDtm preasiento, string accion)
         {

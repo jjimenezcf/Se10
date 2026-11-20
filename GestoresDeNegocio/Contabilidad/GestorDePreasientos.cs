@@ -229,7 +229,10 @@ namespace GestoresDeNegocio.Contabilidad
                 if (movimiento != null)
                 {
                     elemento.Origen = "AL: " + movimiento.Referencia(Contexto);
-                    elemento.Importe = Math.Round(movimiento.Cantidad * movimiento.Precio, 2);
+                    // el de una regularización (stock inicial, regularización o ajuste de precio) es lo que va al debe; el de una compra, cantidad por precio
+                    elemento.Importe = movimiento.IdLineaInventario is not null
+                        ? spr.Detalles<ApunteDeUnPreasientoDtm>(Contexto).Where(a => a.Posicion == enumPosicionContable.Debe).Sum(a => a.Importe)
+                        : Math.Round(movimiento.Cantidad * movimiento.Precio, 2);
                 }
             }
             else if (spr.NegocioReferenciado == enumNegocio.Pedido)

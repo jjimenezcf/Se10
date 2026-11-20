@@ -42,8 +42,13 @@ namespace ServicioDeDatos.Negocio
         // la referencia es la fecha hasta la que se cierra (aaaa-mm-dd), la leen las validaciones de los preasientos
         [Description("Cierre contable hasta: {Referencia}")]
         CCT,
+        // semáforo sobre la propia sociedad mientras se ejecuta su cierre: nadie más puede modificarla ni transitarla (ver GestorDeCierresContables.ValidarQueLaSociedadNoSeEstaCerrando)
+        [Description("Cerrando contablemente la sociedad: {Referencia}")]
+        CIER,
         [Description("Importar recuento en la regularización: {Referencia}")]
         IRAL,
+        [Description("Aplicar el recuento de la regularización: {Referencia}")]
+        ARAL,
     }
 
     [Table(Tablas.LIBRO, Schema = Esquemas.NEGOCIO)]
@@ -424,7 +429,7 @@ namespace ServicioDeDatos.Negocio
                         }
                         else
                         {
-                            GestorDeErrores.Emitir($"El proceso '{semaforo.IdProceso}' del usuario '{semaforo.Login}' está ejecutándose desde '{semaforo.Fecha.ToLongDateString()}, {semaforo.Fecha.ToShortTimeString()}', motivo:'{semaforo.Anotacion}' espere unos minutos a que finalice.");
+                            GestorDeErrores.Emitir($"No se puede iniciar la operación '{operacion}' ('{anotacion}') porque el proceso '{semaforo.IdProceso}' del usuario '{semaforo.Login}' está ejecutando la operación '{semaforo.Operacion}' desde '{semaforo.Fecha.ToLongDateString()}, {semaforo.Fecha.ToShortTimeString()}', motivo:'{semaforo.Anotacion}', espere unos minutos a que finalice.");
                         }
                     }
                     GestorDeErrores.Emitir($"Había un bloqueo en la BD, ya se ha liberado, vuelva a intentar la operación.");

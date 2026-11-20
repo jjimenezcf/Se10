@@ -228,6 +228,8 @@ namespace Utilidades
         IvaRep_AlCambiar_Exento,
         IvaSop_AlCambiar_Exento,
 
+        Alm_AlCambiar_UsaVariacion,
+
         Trb_ProponerDatosDelUsuarioSeleccionado,
         Trb_ProponerDatosDelCg,
         Trb_TrasCargarCuentasContables,
@@ -487,6 +489,7 @@ namespace Utilidades
         Ral_Tras_Seleccionar_Unitario,
         Ral_Tras_Blanquear_Unitario,
         Ral_InicializarModalParaCrearLineas,
+        Ral_InicializarModalParaEditarLineas,
         Ral_CalcularImportesDeLinea,
         Ral_FiltrosPorClaseDeUnitario,
 
@@ -1004,6 +1007,14 @@ namespace Utilidades
 
         public const string Ral_ImportarRecuento = "importar-recuento";
         public const string Ral_PrepararRecuento = "preparar-recuento";
+        public const string Ral_AplicarRecuento = "aplicar-recuento";
+
+        // opciones del menú de un almacén que navegan a otros mantenimientos con el almacén fijado (ver DescriptorDeAlmacenes)
+        public const string Alm_IrACompras = "ir-a-compras-del-almacen";
+        public const string Alm_IrAVentas = "ir-a-ventas-del-almacen";
+        public const string Alm_IrARecuentos = "ir-a-recuentos-del-almacen";
+        public const string Alm_IrAInventario = "ir-a-inventario-del-almacen";
+        public const string Alm_IrAMovimientos = "ir-a-movimientos-del-almacen";
 
         public const string Infantes_AsociarCurso = "asociar-curso";
 

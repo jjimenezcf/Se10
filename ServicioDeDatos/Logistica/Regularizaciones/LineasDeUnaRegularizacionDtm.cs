@@ -18,6 +18,9 @@ namespace ServicioDeDatos.Logistica
         IElementoDtm IDetalle.Elemento => Elemento;
 
         public int Orden { get; set; }
+
+        // día en el que se hizo el recuento de la línea: es la fecha (a las 00:00) de los movimientos de almacén que genera al aplicarla
+        public DateTime Fecha { get; set; }
         public int IdUnitario { get; set; }
         public UnitarioDtm Unitario { get; set; }
 
@@ -47,6 +50,8 @@ namespace ServicioDeDatos.Logistica
             ApiDeRegistroDtm.DefinirCampoFk<LineasDeUnaRegularizacionDtm>(modelBuilder, nameof(LineasDeUnaRegularizacionDtm.Elemento), nameof(LineasDeUnaRegularizacionDtm.IdElemento), ICampos.ID_ELEMENTO, requerida: true, unico: false);
 
             modelBuilder.Entity<LineasDeUnaRegularizacionDtm>().Property(nameof(LineasDeUnaRegularizacionDtm.Orden)).HasColumnName(ICampos.ORDEN).HasColumnType(IDominio.INT).IsRequired(true);
+
+            modelBuilder.Entity<LineasDeUnaRegularizacionDtm>().Property(nameof(LineasDeUnaRegularizacionDtm.Fecha)).HasColumnName(ICampos.FECHA).HasColumnType(IDominio.DATE).IsRequired(true);
 
             ApiDeRegistroDtm.DefinirCampoFk<LineasDeUnaRegularizacionDtm>(modelBuilder, nameof(LineasDeUnaRegularizacionDtm.Unitario), nameof(LineasDeUnaRegularizacionDtm.IdUnitario), ICampos.ID_UNITARIO, requerida: true, unico: false);
 

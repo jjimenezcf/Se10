@@ -3,6 +3,7 @@ using Gestor.Errores;
 using Microsoft.AspNetCore.Mvc;
 using MVCSistemaDeElementos.Descriptores;
 using System;
+using System.Collections.Generic;
 using Utilidades;
 using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
@@ -22,6 +23,21 @@ namespace MVCSistemaDeElementos.Controllers
            gestorDeErrores
          )
         {
+        }
+
+        // las opciones de navegación del menú no hacen nada en el servidor: abren el otro mantenimiento en el cliente
+        protected override dynamic ProcesarOpcionMf(enumNegocio negocio, string opcion, Dictionary<string, object> parametros)
+        {
+            switch (opcion)
+            {
+                case eventosDeMf.Alm_IrACompras:
+                case eventosDeMf.Alm_IrAVentas:
+                case eventosDeMf.Alm_IrARecuentos:
+                case eventosDeMf.Alm_IrAInventario:
+                case eventosDeMf.Alm_IrAMovimientos:
+                    return null;
+            }
+            return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
 
         public IActionResult CrudAlmacenes()

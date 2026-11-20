@@ -79,7 +79,12 @@ namespace MVCSistemaDeElementos.Controllers
                 var referencia = parametros.LeerValor(nameof(PrepararRecuentoDto.Referencia), "");
                 var nombre = parametros.LeerValor(nameof(PrepararRecuentoDto.Nombre), "");
 
-                var trabajo = TrabajosParaRegularizaciones.SometerPrepararRecuento(Contexto, idAlmacen, referencia, nombre);
+                var clase = parametros.LeerValor(nameof(PrepararRecuentoDto.Clase), "");
+                // ha de llegar uno de los valores del enumerado (Inicial, Recuento o AjusteDePrecio), no un número que lo parezca
+                if (!Enum.GetNames<enumRegularizacionAlm>().Contains(clase) || !Enum.TryParse<enumRegularizacionAlm>(clase, out var claseDeRegularizacion))
+                    throw new Exception($"Debe indicar la clase de regularización para la que se prepara el Excel: {string.Join(", ", Enum.GetNames<enumRegularizacionAlm>())}");
+
+                var trabajo = TrabajosParaRegularizaciones.SometerPrepararRecuento(Contexto, idAlmacen, referencia, nombre, claseDeRegularizacion);
 
                 r.Consola = "Se ha sometido la preparación del recuento, se le enviará el Excel por correo cuando finalice";
                 r.Datos = trabajo;

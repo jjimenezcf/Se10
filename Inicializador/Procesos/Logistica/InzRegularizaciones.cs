@@ -73,6 +73,7 @@ namespace Inicializador.Logistica
         public static readonly string n_tran_ral_iniciar = $"{n_ral}: Iniciar";
         public static readonly string n_tran_ral_aplicar = $"{n_ral}: Aplicar";
         public static readonly string n_tran_ral_devolver = $"{n_ral}: Devolver";
+        public static readonly string n_tran_ral_cancelar_recuento = $"{n_ral}: Cancelar recuento";
 
         private static void Transiciones(ContextoSe contexto)
         {
@@ -83,9 +84,10 @@ namespace Inicializador.Logistica
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Regularizacion, n_tran_ral_iniciar, n_estado_ral_abierto, n_estado_ral_recontando);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Regularizacion, n_tran_ral_cancelar, n_estado_ral_abierto, n_estado_ral_cancelado, asunto: "Motivo de cancelación");
 
-                //recontando --> aplicado, abierto
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Regularizacion, n_tran_ral_aplicar, n_estado_ral_recontando, n_estado_ral_aplicado);
+                //recontando --> aplicado, abierto, cancelado (al cancelar el almacén vuelve de en inventario a activo, ver GestorDeRegularizaciones)
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Regularizacion, n_tran_ral_aplicar, n_estado_ral_recontando, n_estado_ral_aplicado, delSistema: true);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Regularizacion, n_tran_ral_devolver, n_estado_ral_recontando, n_estado_ral_abierto);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Regularizacion, n_tran_ral_cancelar_recuento, n_estado_ral_recontando, n_estado_ral_cancelado, asunto: "Motivo de cancelación");
             }
             finally
             {

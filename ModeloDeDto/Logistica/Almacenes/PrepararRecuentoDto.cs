@@ -1,4 +1,5 @@
 using ServicioDeDatos;
+using ServicioDeDatos.Logistica;
 using Utilidades;
 
 namespace ModeloDeDto.Logistica
@@ -28,6 +29,8 @@ Se genera un Excel con el inventario del almacén a día de hoy para que el oper
 
 Sólo se pueden rellenar las columnas Cantidad (lo contado) y Precio (propuesto con el valor medio, para ajustarlo); el resto está bloqueado. Con el Excel relleno se puede importar el recuento en una regularización.
 
+Si la clase es 'Ajuste de precio', la Cantidad sale bloqueada con el stock de hoy y sólo se puede cambiar el Precio.
+
 Los filtros por referencia y por nombre son opcionales y buscan por contenido. Admiten: ';' para separar varias alternativas, '%' para cualquier cadena de caracteres y '_' para un solo carácter (p.e. Mat%12_;Mat%1_50). Con '=' al inicio la coincidencia ha de ser exacta, y con '|' al inicio o al final, el texto ha de empezar o terminar así.")]
         public string Instrucciones { get; set; }
 
@@ -52,9 +55,23 @@ Los filtros por referencia y por nombre son opcionales y buscan por contenido. A
             Tipo = typeof(string),
             Fila = 1,
             Columna = 0,
-            EditableAlCrear = true,
-            AutoSpan = true)]
+            EditableAlCrear = true)]
         public string Almacen { get; set; }
+
+        //------------------------------------------------------------------------
+        // Para qué clase de regularización se prepara el Excel; con un ajuste de precios la cantidad sale bloqueada con el stock de hoy
+        [IUPropiedad(
+            Etiqueta = "Clase",
+            Ayuda = "Clase de regularización para la que se prepara el Excel",
+            TipoDeControl = enumTipoControl.Enumerado,
+            Tipo = typeof(enumRegularizacionAlm),
+            ValorPorDefecto = nameof(enumRegularizacionAlm.Recuento),
+            Obligatorio = true,
+            EditableAlCrear = true,
+            Fila = 1,
+            Columna = 1,
+            AutoSpan = true)]
+        public string Clase { get; set; }
 
         //------------------------------------------------------------------------
         [IUPropiedad(

@@ -14,8 +14,8 @@ public enum enumClaseDeApunte
     Alm_Gasto, Alm_Albaran,
     // apunte de gasto o ingreso de un expediente: la cuenta de su naturaleza y su contrapartida (partidas pendientes de aplicación)
     Exp_Naturaleza, Exp_Contrapartida,
-    // cuadre de la cuenta de existencias (311) contra la de variación de existencias (611) al cambiar el método de contabilización de las
-    // compras de almacén de una sociedad (parámetro SOCIEDAD_USA_VARIACION_DE_EXISTENCIA)
+    // cuenta de existencias (3xx) y de variación de existencias (61x) del almacén: regularizaciones de un almacén sin variación de existencias
+    // y cuadre al cerrar de uno con ella (ver CuadreDeExistencias)
     Alm_Existencias, Alm_Variacion
 }
 public static class ltrTipoDeApunte 

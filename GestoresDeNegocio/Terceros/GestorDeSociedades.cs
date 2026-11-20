@@ -141,6 +141,9 @@ namespace GestoresDeNegocio.Terceros
         protected override void AntesDePersistir(SociedadDtm sociedad, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(sociedad, parametros);
+            // mientras otro proceso ejecuta el cierre contable de la sociedad no se puede modificar ni eliminar (ver TrabajosContables.CrearCierreContable)
+            if (!parametros.Insertando)
+                GestoresDeNegocio.Contabilidad.GestorDeCierresContables.ValidarQueLaSociedadNoSeEstaCerrando(Contexto, sociedad);
             if (sociedad.IdArchivo == 0 || sociedad.IdArchivo == null)
             {
                 sociedad.IdArchivo = null;

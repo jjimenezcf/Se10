@@ -2155,7 +2155,10 @@
                                         MapearAlControl.ListaDeValores(control, parametros[i].valor)
                                     }
                                 }
-                                this.CargarGrid().then(() => this.AplicarModoDePresentacionAlIniciar());
+                                this.CargarGrid().then(() => {
+                                    this.AplicarModoDePresentacionAlIniciar();
+                                    this.IrACrearSiNoHayElementos();
+                                });
                             }
                         }
                     }
@@ -2436,6 +2439,18 @@
         public IraCrear() {
             if (this.SoloConGrid) return;
             this.crudDeCreacion.ComenzarCreacion();
+        }
+
+        // Si la url trae nuevosivacio=1 y, con los filtros/restrictores de la url aplicados, no hay ningún elemento, pasa directamente al modo
+        // nuevo (los restrictores ya están mapeados en el panel de creación). Sólo si el usuario puede crear
+        private IrACrearSiNoHayElementos(): void {
+            if (ObtenerParametroUrl(ltrParametrosUrl.nuevoSiVacio, '', false) !== '1')
+                return;
+            if (this.Navegador.Total > 0)
+                return;
+            if (!EsTrue(this.CuerpoCabecera.getAttribute(atMantenimniento.permiteCrear)))
+                return;
+            this.IraCrear();
         }
 
         public CrearElemento() {

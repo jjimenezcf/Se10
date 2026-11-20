@@ -41,6 +41,8 @@ namespace Logistica {
                 .then((peticion) => {
                     super.ModalDePedirDatos_Cerrar(modal);
                     MensajesSe.Info(peticion.resultado.consola);
+                    // el trabajo deja en las observaciones de la regularización el enlace a él al someterlo
+                    this.crudDeEdicion.RecargarGridDeObservaciones();
                 })
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
         }
@@ -87,6 +89,16 @@ namespace Logistica {
             this._ultimoOrdenPropuesto = valor;
         }
 
+        // Última fecha (aaaa-mm-dd) introducida en una línea: se propone como fecha de la siguiente. Vacía hasta que el usuario la cambia;
+        // entonces se propone la de la última línea del grid o, si no hay, la de hoy (ver Ral_InicializarModalParaCrearLineas)
+        private _ultimaFechaDeLinea: string = '';
+        public get UltimaFechaDeLinea(): string {
+            return this._ultimaFechaDeLinea;
+        }
+        public set UltimaFechaDeLinea(valor: string) {
+            this._ultimaFechaDeLinea = valor;
+        }
+
         private get _estaRecontando(): boolean {
             return EstaElEnumerado(this.Etapas, enumEtapasDeRegularizacion, enumEtapasDeRegularizacion.RAL_Recontando);
         }
@@ -98,6 +110,7 @@ namespace Logistica {
         public CargaCompletada() {
             super.CargaCompletada();
             this._ultimoOrdenPropuesto = 0;
+            this._ultimaFechaDeLinea = '';
             this.AjustarLineasSegunEtapa();
         }
 
@@ -120,6 +133,8 @@ namespace Logistica {
 
             // importar un recuento crea líneas, así que sólo se permite cuando se pueden modificar
             ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Regularizaciones.ImportarRecuento, ltrMenus.enumOrigen.edicion, puedeModificarLineas);
+            // aplicar el recuento sólo tiene sentido mientras se recuenta
+            ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Logistica.Regularizaciones.AplicarRecuento, ltrMenus.enumOrigen.edicion, puedeModificarLineas);
         }
 
         public DespuesDeProcesarOpcionMf(peticion: ApiDeAjax.DescriptorAjax): boolean {
@@ -130,8 +145,33 @@ namespace Logistica {
             if (opcion === ltrMenus.eventosDeMf.Logistica.Regularizaciones.ImportarRecuento) {
                 if (!this._estaRecontando)
                     MensajesSe.Error('Importar recuento', 'Solo se puede importar un recuento con la regularización recontando');
-                else
-                    this.Expansor_AbrirModalParaPedirDatos((this.CrudDeMnt as CrudDeRegularizaciones).ModalImportarRecuento.id, this.ElementoEditado.Id);
+                else {
+                    let modal = (this.CrudDeMnt as CrudDeRegularizaciones).ModalImportarRecuento;
+                    this.Expansor_AbrirModalParaPedirDatos(modal.id, this.ElementoEditado.Id);
+                    // el día del recuento se propone a hoy
+                    let fecha = ApiControl.BuscarEditor(modal, ltrPropiedades.Logistica.Regularizacion.Recuento.Fecha);
+                    if (Definido(fecha) && IsNullOrEmpty(fecha.value))
+                        fecha.value = FechaDeHoyIso();
+                }
+                return true;
+            }
+            if (opcion === ltrMenus.eventosDeMf.Logistica.Regularizaciones.AplicarRecuento) {
+                if (!this._estaRecontando) {
+                    MensajesSe.Error('Aplicar recuento', 'Solo se puede aplicar el recuento con la regularización recontando');
+                    return true;
+                }
+                if (!confirm('Se van a generar los movimientos de almacén de las líneas del recuento a la fecha de cada línea y la regularización pasará a aplicada. Es un proceso en segundo plano y no se puede deshacer. ¿Desea aplicar el recuento?'))
+                    return true;
+
+                let parametros: Array<Parametro> = new Array<Parametro>();
+                parametros.push(new Parametro(ltrPropiedades.Logistica.Regularizacion.Recuento.IdRegularizacion, this.ElementoEditado.Id));
+                ApiDePeticiones.EjecutarPeticion(this.CrudDeMnt, this.CrudDeMnt.Controlador, Ajax.EndPoint.Logistica.Regularizaciones.AplicarRecuento, parametros, new Array<Parametro>())
+                    .then((peticion) => {
+                        MensajesSe.Info(peticion.resultado.consola);
+                        // el trabajo deja en las observaciones de la regularización el enlace a él al someterlo
+                        this.RecargarGridDeObservaciones();
+                    })
+                    .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
                 return true;
             }
             return false;
