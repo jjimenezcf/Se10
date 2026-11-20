@@ -8,6 +8,9 @@
     <Nullable>disable</Nullable>
     <AssemblyName>TestLogistica</AssemblyName>
     <RootNamespace>TestLogistica</RootNamespace>
+    <!-- se publica como un único exe autocontenido (Properties/PublishProfiles/PublicarTestLogistica.pubxml) aunque referencia la aplicación
+         web, que no lo es: de ella sólo se usan sus ensamblados y su Startup, no se ejecuta -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,5 +31,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <!-- al publicar no se lleva el contenido de la aplicación web que no usan las pruebas (sí LatoFont, las fuentes de los pdfs) -->
+  <Target Name="QuitarContenidoDeLaWebAlPublicar" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '^(Publicacion|Publicacion_Completa|Movil|PeticionesTest)[\\/]|^(web\.config|tsconfig\.json|libman\.json|testEnvironments\.json|appsettings\.Development\.json)$'))" />
+    </ItemGroup>
+  </Target>
 
 </Project>
