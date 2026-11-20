@@ -130,8 +130,12 @@ class Program
         }
         finally
         {
-            Console.WriteLine("Presiona una tecla para salir...");
-            Console.ReadKey();
+            // Lanzado desde un script o un despliegue no hay consola en la que esperar una tecla
+            if (!Console.IsInputRedirected)
+            {
+                Console.WriteLine("Presiona una tecla para salir...");
+                Console.ReadKey();
+            }
         }
     }
 
