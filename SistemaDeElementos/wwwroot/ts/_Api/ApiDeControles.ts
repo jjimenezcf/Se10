@@ -1744,14 +1744,13 @@ namespace ApiControl {
     }
 
     export function MapearComoOrdenar(columna: HTMLTableCellElement, orden: Tipos.Orden) {
-        let a: HTMLElement = columna.getElementsByTagName('a')[0] as HTMLElement;
-        if (NoDefinido(a)) {
-            MensajesSe.Error("AjustarColumnaDelGrid", `el orden aplicado a la propiedad ${orden.Propiedad} no se puede aplicar`);
-            return false;
-        }
         columna.setAttribute(atControl.ordenarPor, orden.OrdenarPor);
         columna.setAttribute(atControl.modoOrdenacion, orden.Modo);
-        a.setAttribute("class", orden.ccsClase);
+        // una columna sin enlace de ordenar (p.e. el Id oculto) puede estar en la ordenación inicial del descriptor como criterio de
+        // desempate (ver DescriptorDeMovimientosDeAlmacen): se ordena por ella, pero no hay icono que marcar
+        let a: HTMLElement = columna.getElementsByTagName('a')[0] as HTMLElement;
+        if (Definido(a))
+            a.setAttribute("class", orden.ccsClase);
     }
 
     export function HacerVisibleLaBarra(barraHtml: HTMLDivElement, mostrar: boolean) {

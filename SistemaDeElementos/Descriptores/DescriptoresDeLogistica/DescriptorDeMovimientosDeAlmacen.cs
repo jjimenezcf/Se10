@@ -27,7 +27,8 @@ namespace MVCSistemaDeElementos.Descriptores
               tituloPlural: ltrVistasTitulos.CrudDeMovimientosDeAlmacen)
         {
             // por la fecha en la que se realizó cada movimiento, primero los más recientes
-            Mnt.OrdenacionInicial = $"{nameof(MovimientoDeAlmacenDto.RealizadoEl)}:{nameof(MovimientoDeAlmacenDtm.RealizadoEl)}:{enumModoOrdenacion.descendente.Render()}";
+            Mnt.OrdenacionInicial = $"{nameof(MovimientoDeAlmacenDto.RealizadoEl)}:{nameof(MovimientoDeAlmacenDtm.RealizadoEl)}:{enumModoOrdenacion.descendente.Render()};" +
+                                       $"{nameof(MovimientoDeAlmacenDto.Id)}:{nameof(MovimientoDeAlmacenDtm.Id)}:{enumModoOrdenacion.descendente.Render()}";
 
            Mnt.BloqueGeneral.QuitarControl(nameof(INombre.Nombre));
 
