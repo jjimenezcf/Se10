@@ -135,15 +135,23 @@
                 ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.SisDoc.Archivadores.ImportarZip, parametros, datosDeEntrada)
                     .then((peticion) => {
                         super.ModalDePedirDatos_Cerrar(modal);
+                        this.RecargarObservacionesSiEstoyEditando();
                     })
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
             else if (modal.id === this.ModalProcesarFarConIa.id)
                 ApiDePeticiones.EjecutarPeticion(this, this.Controlador, Ajax.EndPoint.SisDoc.Archivadores.ProcesarFarConIa, parametros, datosDeEntrada)
                     .then((peticion) => {
                         super.ModalDePedirDatos_Cerrar(modal);
+                        this.RecargarObservacionesSiEstoyEditando();
                     })
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
             else super.ModalDePedirDatos_Aceptar(modal);
+        }
+
+        // el trabajo sometido deja en las observaciones del archivador el enlace a él: si se sometió desde la edición, se recarga el grid para verlo
+        private RecargarObservacionesSiEstoyEditando(): void {
+            if (this.EstoyEditandoConsultando)
+                this.crudDeEdicion.RecargarGridDeObservaciones();
         }
     }
 
@@ -293,6 +301,7 @@
             }
             if (opcion === ltrMenus.eventosDeMf.SisDoc.Archivadores.Arc_Exportar) {
                 MensajesSe.Info("Trabajo de exportación sometido correctamente, en breve recibira un correo y se creará el archivador con la exportación");
+                this.RecargarGridDeObservaciones();
                 return true;
             }
 

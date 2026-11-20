@@ -141,7 +141,8 @@ namespace GestoresDeNegocio.Ventas
                     { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() },
                     { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
                 };
-            return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion);
+            return GestorDeTrabajosDeUsuario.CrearSiNoEstaPendiente(contexto, ts, datosDeCreacion)
+                .AnotarElTrabajoSometidoEnElElemento(contexto, factura, enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion());
         }
 
         public static TrabajoDeUsuarioDtm SometerEnvioDeLoteDeFacturaAeat(ContextoSe contexto, List<int> loteDeFacturas, int idSociedad, int idsemaforo)
@@ -295,6 +296,10 @@ namespace GestoresDeNegocio.Ventas
             var factura = contexto.SeleccionarPorId<FacturaEmtDtm>(idFactura);
             contexto.IniciarTraza(nameof(EnvioDeFacturaAeat));
 
+            // La observación con el enlace al trabajo se anota al empezar y antes de abrir la transacción: si el envío falla y se deshace la
+            // transacción sigue ahí, y no retiene bloqueos mientras se espera a la AEAT. Es informativa: si falla sólo se anota en la traza
+            entorno.AnotarElTrabajoEnElElemento(contexto, factura, enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion());
+
             var someterImpresion = false;
             var idSemaforo = 0;
             var tran = contexto.IniciarTransaccion();
@@ -323,9 +328,6 @@ namespace GestoresDeNegocio.Ventas
                 {
                     if (idSemaforo > 0) SemaforoDeProcesoSql.QuitarSemaforo(entorno.ContextoDelEntorno, idSemaforo);
                 }
-
-                // Informativa: si falla no debe deshacer la emisión, la AEAT ya tiene la factura
-                entorno.AnotarElTrabajoEnElElemento(contexto, factura, enumTrabajosDeFacturasEmt.EnvioDeFacturaAeat.Descripcion());
 
                 var log = contexto.SeleccionarPorPropiedad<LogDeEnvioDeFacturaDtm>(nameof(LogDeEnvioDeFacturaDtm.IdFactura), factura.Id);
                 log.EnviadaEl = DateTime.Now;

@@ -50,7 +50,8 @@ namespace GestoresDeNegocio.SistemaDocumental
                 {
                     { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() }
                 };
-                GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion);
+                GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion)
+                    .AnotarElTrabajoSometidoEnElElemento(contexto, contexto.SeleccionarPorId<ArchivadorDtm>(idArchivador), ts.Nombre);
             }
         }
 
@@ -63,6 +64,9 @@ namespace GestoresDeNegocio.SistemaDocumental
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             contexto.IniciarTraza(nameof(ExportarArchivador));
 
+            // la observación con el enlace al trabajo se anota al empezar y fuera de la transacción, así sigue ahí si el trabajo falla
+            entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
+
             var idSemaforo = 0;
             var tran = contexto.IniciarTransaccion();
             try
@@ -71,7 +75,6 @@ namespace GestoresDeNegocio.SistemaDocumental
                 ArchivadorDtm destino = CrearArchivadorZip(entorno, $"Exportación de: {archivador.Referencia}");
                 ExportarArchivador(entorno, archivador, destino);
                 EnviarCorreoConElArchivador(entorno, destino);
-                entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
                 contexto.Commit(tran);
             }
             catch (Exception e)
@@ -200,7 +203,8 @@ namespace GestoresDeNegocio.SistemaDocumental
                     { nameof(TrabajoDeUsuarioDtm.Parametros), parametrosEntrada.ToJson() },
                     { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
                 };
-            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion);
+            return GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion)
+                .AnotarElTrabajoSometidoEnElElemento(contexto, contexto.SeleccionarPorId<ArchivadorDtm>(idArchivador), ts.Nombre);
         }
 
         public static void ProcesarFarConIa(EntornoDeTrabajo entorno)
@@ -216,13 +220,15 @@ namespace GestoresDeNegocio.SistemaDocumental
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
             contexto.IniciarTraza(nameof(ProcesarFarConIa));
 
+            // la observación con el enlace al trabajo se anota al empezar, así sigue ahí si el trabajo falla
+            entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
+
             var idSemaforo = 0;
             try
             {
                 idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(entorno.ContextoDelEntorno, enumNegocio.Archivador.IdNegocio(), idArchivador, enumOpercionesDeSemaforo.IPFA, archivador.Referencia).Id;
                 TrabajosDeFacturasRec.ProcesarArchivosFar(entorno, archivador, idCg, idTipo, idProveedor, idCarpeta);
                 entorno.CrearTraza($"Fin del proceso realizado");
-                entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
             }
             catch (Exception e)
             {
@@ -256,7 +262,8 @@ namespace GestoresDeNegocio.SistemaDocumental
                     { nameof(TrabajoDeUsuarioDtm.Planificado), DateTime.Now.AddMinutes(-1) }
                 };
 
-                var trabajo = GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion);
+                var trabajo = GestorDeTrabajosDeUsuario.Crear(contexto, ts, datosDeCreacion)
+                    .AnotarElTrabajoSometidoEnElElemento(contexto, contexto.SeleccionarPorId<ArchivadorDtm>(idArchivador), ts.Nombre);
                 var archivo = contexto.SeleccionarPorId<ArchivoDtm>(idArchivoZip);
                 contexto.SeleccionarPorId<ArchivadorDtm>(idArchivador).CrearTraza(contexto, "Pendiente de importar zip", $"Se ha sometido el trabajo de importación para el archivo '{archivo.Nombre}'");
 
@@ -284,12 +291,15 @@ namespace GestoresDeNegocio.SistemaDocumental
 
             contexto.IniciarTraza(nameof(enumTrabajosDeArchivadores.ImportarZip));
             var otorgado = entorno.Ejecutor.OtorgarAdministrador(contexto);
+
+            // la observación con el enlace al trabajo se anota al empezar y fuera de la transacción, así sigue ahí si el trabajo falla
+            entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
+
             var tran = contexto.IniciarTransaccion();
             try
             {
                 ImportarZipInterno(contexto, archivador, idArchivoZip, remplazar, renombrar, eliminarArchivo, eliminarCarpeta);
                 entorno.CrearTraza($"Fin del proceso realizado");
-                entorno.AnotarElTrabajoEnElElemento(contexto, archivador);
                 contexto.Commit(tran);
             }
             catch (Exception e)
