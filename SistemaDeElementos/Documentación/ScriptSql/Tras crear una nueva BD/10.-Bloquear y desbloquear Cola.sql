@@ -48,6 +48,10 @@ BEGIN
 
     BEGIN TRY
         delete from [NEGOCIO].[SEMAFORO_PROCESO] where id_negocio = @idNegocio and ID_ELEMENTO = @idElemento and OPERACION = @Operacion
+
+        -- Una pasada de la cola (EJEC) que lleva más de 30 minutos es un semáforo que se quedó sin quitar: impediría bloquear la cola en el
+        -- despliegue, ya que comparte negocio y elemento con el BLOC (AK_SEMAFORO_PROCESO)
+        delete from [NEGOCIO].[SEMAFORO_PROCESO] where id_negocio = @idNegocio and ID_ELEMENTO = @idElemento and OPERACION = 'EJEC' and FECHA < DATEADD(MINUTE, -30, GETDATE())
         SELECT 'Cola de la BD [' + DB_NAME() + '] arrancada' AS Result
     END TRY
     BEGIN CATCH

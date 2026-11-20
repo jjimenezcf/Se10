@@ -83,7 +83,7 @@ public class BackgroundCola_II : BackgroundService
             try
             {
                 contexto.IniciarTraza(Literal.TrabajosSometidos.NombreFicheroDebug, debugar: trazar);
-                idSemaforo = SemaforoDeProcesoSql.PonerSemaforo(contexto, enumNegocio.Variable.IdNegocio(), 0, enumOpercionesDeSemaforo.EJEC, "").Id;
+                idSemaforo = PonerSemaforoDeLaCola(contexto);
                 await EjecutarTrabajoPendiente(contexto, stoppingToken).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -118,6 +118,21 @@ public class BackgroundCola_II : BackgroundService
                 }
             }
         }
+    }
+
+    // La cola usa el mismo contexto en todas sus pasadas, y con él el mismo IdOperacion. Si un semáforo de una pasada anterior no se quitó,
+    // PonerSemaforo lo da por propio y devuelve 0, y al quitar el 0 no se borraba nunca: se quedaba puesto mientras vivía el sitio e
+    // impedía bloquear la cola en los despliegues (Bloquear_Cola). Se devuelve el que ya tiene el proceso para que se quite al terminar.
+    private static int PonerSemaforoDeLaCola(ContextoSe contexto)
+    {
+        var idNegocio = enumNegocio.Variable.IdNegocio();
+        var id = SemaforoDeProcesoSql.PonerSemaforo(contexto, idNegocio, 0, enumOpercionesDeSemaforo.EJEC, "").Id;
+        if (id != 0)
+            return id;
+
+        var propio = SemaforoDeProcesoSql.LeerSemaforos(contexto, idNegocio, enumOpercionesDeSemaforo.EJEC)
+            .Find(s => s.IdElemento == 0 && s.IdProceso == contexto.IdOperacion);
+        return propio?.Id ?? 0;
     }
 
     private async Task EjecutarTrabajoPendiente(ContextoSe contexto, CancellationToken stoppingToken)
