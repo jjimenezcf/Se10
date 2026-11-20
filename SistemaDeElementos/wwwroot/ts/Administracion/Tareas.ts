@@ -259,6 +259,16 @@
                     EstaElEnumerado(etapasDeLaTarea, enumEtapasDeTareas, enumEtapasDeTareas.TAR_Etapa_En_Espera);
                 ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Administracion.Tareas.CuandoRealizar, ltrMenus.enumOrigen.edicion, puedeIndicarCuandoRealizar);
             }
+
+            // Si la tarea está en validación, terminada o cancelada, la secuencia de ejecución ya no se puede eliminar
+            if (this.EsInterventor) {
+                let etapasDeLaTarea: Array<string> = ObtenerPropiedad(this.Registro, ltrPropiedades.Tarea.Etapas);
+                let secuenciaYaRealizada =
+                    EstaElEnumerado(etapasDeLaTarea, enumEtapasDeTareas, enumEtapasDeTareas.TAR_Etapa_Validacion) ||
+                    EstaElEnumerado(etapasDeLaTarea, enumEtapasDeTareas, enumEtapasDeTareas.TAR_Etapa_Terminada) ||
+                    EstaElEnumerado(etapasDeLaTarea, enumEtapasDeTareas, enumEtapasDeTareas.TAR_Etapa_Cancelado);
+                ApiDeMenuFlotante.DesbloquearOpcionDeMenuSi(this.ContenedorMenu, ltrMenus.eventosDeMf.Administracion.Tareas.EliminarCuandoRealizar, ltrMenus.enumOrigen.edicion, !secuenciaYaRealizada);
+            }
         }
 
         public Expansor_TrasCargarAmpliacion(ampliacion: HTMLDivElement): void {

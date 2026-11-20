@@ -580,11 +580,19 @@ namespace GestoresDeNegocio.Tarea
 
             var idTareaOrigen = (int)(long)parametros[nameof(CopiarTareaDto.IdElemento)];
             var t1 = contexto.SeleccionarPorId<TareaDtm>(idTareaOrigen);
+
+            var referenciadaComo = parametros.ContieneClave(nameof(CopiarTareaDto.ReferenciadaComo))
+                ? parametros.LeerValor(nameof(CopiarTareaDto.ReferenciadaComo), enumTareaReferenciadaComo.Seleccionar)
+                : enumTareaReferenciadaComo.Seleccionar;
+
+            // Se valida antes de crear la copia, para no dejar una tarea creada sin su secuencia
+            if (referenciadaComo == enumTareaReferenciadaComo.DespuesDe || referenciadaComo == enumTareaReferenciadaComo.AntesDe)
+                ValidarQueLaTareaAdmiteSecuencia(t1);
+
             var t2 = t1.Copiar(contexto, parametros);
 
             if (parametros.ContieneClave(nameof(CopiarTareaDto.ReferenciadaComo)))
             {
-                var referenciadaComo = parametros.LeerValor(nameof(CopiarTareaDto.ReferenciadaComo), enumTareaReferenciadaComo.Seleccionar);
                 if (referenciadaComo == enumTareaReferenciadaComo.DespuesDe || referenciadaComo == enumTareaReferenciadaComo.AntesDe)
                 {
                     var idsDeLaSecuencia = new Dictionary<string, object> { { nameof(CuandoRealizarDto.IdTareaEditada), (long)t2.Id } };
@@ -649,16 +657,19 @@ namespace GestoresDeNegocio.Tarea
                 GestorDeErrores.Emitir($"Sólo un interventor de la tarea '{tarea.Referencia}' puede establecer su secuencia de ejecución");
         }
 
+        // Una tarea en validación, terminada o cancelada ya no puede formar parte de una secuencia de ejecución
+        private static void ValidarQueLaTareaAdmiteSecuencia(TareaDtm tarea)
+        {
+            var etapasNoPermitidas = new List<enumEtapasDeTareas> { enumEtapasDeTareas.TAR_Etapa_Validacion, enumEtapasDeTareas.TAR_Etapa_Terminada, enumEtapasDeTareas.TAR_Etapa_Cancelado };
+            if (tarea.EstaEnAlgunaDeLasEtapa(etapasNoPermitidas))
+                GestorDeErrores.Emitir($"La tarea '{tarea.Referencia}' no puede formar parte de una secuencia de ejecución por estar en etapa '{tarea.Etapa().Nombre(minusculas: true)}'");
+        }
+
         // Enlaza 'tareaAnterior' y 'tareaPosterior' como secuencia de ejecución, creando la observación correspondiente en cada una.
         private static void EnlazarSecuencia(ContextoSe contexto, TareaDtm tareaAnterior, TareaDtm tareaPosterior)
         {
-            var etapasNoPermitidas = new List<enumEtapasDeTareas> { enumEtapasDeTareas.TAR_Etapa_Validacion, enumEtapasDeTareas.TAR_Etapa_Terminada, enumEtapasDeTareas.TAR_Etapa_Cancelado };
-
-            if (tareaAnterior.EstaEnAlgunaDeLasEtapa(etapasNoPermitidas))
-                GestorDeErrores.Emitir($"La tarea '{tareaAnterior.Referencia}' no puede formar parte de una secuencia de ejecución por estar en etapa '{tareaAnterior.Etapa().Nombre(minusculas: true)}'");
-
-            if (tareaPosterior.EstaEnAlgunaDeLasEtapa(etapasNoPermitidas))
-                GestorDeErrores.Emitir($"La tarea '{tareaPosterior.Referencia}' no puede formar parte de una secuencia de ejecución por estar en etapa '{tareaPosterior.Etapa().Nombre(minusculas: true)}'");
+            ValidarQueLaTareaAdmiteSecuencia(tareaAnterior);
+            ValidarQueLaTareaAdmiteSecuencia(tareaPosterior);
 
             if (tareaPosterior.ArbolDeRealizacionPosterior(contexto).Any(t => t.Id == tareaAnterior.Id))
                 GestorDeErrores.Emitir($"No se puede indicar que la tarea '{tareaAnterior.Referencia}' se ha de ejecutar antes que '{tareaPosterior.Referencia}' porque se entraría en una secuencia recursiva de ejecución");
