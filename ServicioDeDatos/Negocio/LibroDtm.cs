@@ -218,6 +218,9 @@ namespace ServicioDeDatos.Negocio
 
     public class SemaforoDeProcesoSql
     {
+        // operación del semáforo con el que Bloquear_Cola (procedimiento de la BD) para la cola durante un despliegue
+        private const string SemaforoDeBloqueoDeLaCola = "BLOC";
+
         public static int SemaforosColocados(ContextoSe contexto, int idNegocio)
         {
             var consulta = $@"select count(*) as Cantidad 
@@ -422,6 +425,11 @@ namespace ServicioDeDatos.Negocio
                     var semaforos = LeerSemaforos(contexto, idNegocio, idElemento);
                     foreach (var semaforo in semaforos)
                     {
+                        // el BLOC lo pone Bloquear_Cola al desplegar y lo quita Desbloquear_Cola al terminar: no se libera por antigüedad, si
+                        // no la cola de un sitio aún vivo lo quitaría a los 5 minutos y quedaría desbloqueada en mitad del despliegue
+                        if (semaforo.Operacion == SemaforoDeBloqueoDeLaCola)
+                            GestorDeErrores.Emitir($"No se puede iniciar la operación '{operacion}' ('{anotacion}') porque la cola está bloqueada desde '{semaforo.Fecha.ToLongDateString()}, {semaforo.Fecha.ToShortTimeString()}', motivo:'{semaforo.Anotacion}'.");
+
                         TimeSpan diferencia = DateTime.Now - semaforo.Fecha;
                         if (diferencia.TotalMinutes > 5)
                         {
