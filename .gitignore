@@ -295,6 +295,8 @@ SistemaDeElementos/wwwroot/lib/jar/xades/FirmaDss.jar
 # El JRE portable se regenera con jlink (ver README en wwwroot/lib/jar/xades)
 SistemaDeElementos/wwwroot/lib/jre/
 /Pruebas/Facturador/TestFacturador/config.json
+# datos de las pruebas de logística de cada uno; si no está, el programa lo crea con los valores por defecto (ver Config.cs)
+/Pruebas/Logistica/TestLogistica/config.json
 /SistemaDeElementos/Publicacion/TestFacturador/config.json
 /SistemaDeElementos/Publicacion/TestFacturador/TestFacturador.exe
 /SistemaDeElementos/Publicacion_Completa/Z_EmpaquetarPublicacionCompleta.dll
