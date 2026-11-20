@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests de integración de Guarderías (los de ValidacionesDeReglasDeNegocio) como programa de consola con menú, contra la BD de test -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>TestGuarderias</AssemblyName>
+    <RootNamespace>PruebasDeIntegracion</RootNamespace>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- sólo el framework: Assert, [Test]... los ejecuta MenuDeTests, no un runner de NUnit -->
+    <PackageReference Include="NUnit" Version="3.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- el entorno es el de la aplicación web: su Startup registra el contexto, el mapeador y los gestores -->
+    <ProjectReference Include="..\..\SistemaDeElementos\SistemaDeElementos.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- la cadena de conexión es la de la aplicación web; el programa sólo deja seguir si la BD es la permitida en config.json -->
+    <None Include="..\..\SistemaDeElementos\appsettings.json" Link="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
