@@ -587,7 +587,10 @@ namespace GestoresDeNegocio.Tarea
 
             // Se valida antes de crear la copia, para no dejar una tarea creada sin su secuencia
             if (referenciadaComo == enumTareaReferenciadaComo.DespuesDe || referenciadaComo == enumTareaReferenciadaComo.AntesDe)
+            {
                 ValidarQueLaTareaAdmiteSecuencia(t1);
+                ValidarEsInterventorDeLaSecuencia(contexto, t1);
+            }
 
             var t2 = t1.Copiar(contexto, parametros);
 
