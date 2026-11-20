@@ -67,6 +67,12 @@ namespace ServicioDeDatos.Elemento
         public int IdCreador { get; set; }
         public DateTime CreadaEl { get; set; }
         public string Creador { get; }
+
+        // Copia exacta de la dirección (con su Id, su elemento y sus datos de sólo lectura), a diferencia de Copiar, que la prepara para
+        // insertarla en otro elemento. La usa la cache de direcciones para no entregar sus propias instancias: si quien las lee las
+        // modificara (el calificador, el elemento...) cambiaría lo cacheado para el resto de la aplicación
+        public DireccionDtm Clonar() => (DireccionDtm)MemberwiseClone();
+
         public DireccionDtm Copiar()
         {
             return new DireccionDtm()

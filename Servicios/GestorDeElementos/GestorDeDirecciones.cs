@@ -107,7 +107,9 @@ namespace GestorDeElementos
                     foreach (var d in direccionesParaCache) d.Negocio = Negocio;
                     cache[indice] = direccionesParaCache;
                 }
-                return (IEnumerable<DireccionDtm>)cache[indice];
+                // se devuelven clones: quien las lee puede modificarlas (el calificador, el elemento al asociarla a otro...) y, si fueran
+                // las instancias cacheadas, el cambio lo verían todos (p.e. una sociedad sin dirección fiscal hasta que se limpie la cache)
+                return ((IEnumerable<DireccionDtm>)cache[indice]).Select(d => d.Clonar()).ToList();
             }
 
             var direcciones = DireccionSql.DireccionesDeUnElemento(Contexto, _Tabla, Negocio.TipoDtm(), idElemento, posicion, cantidad);
