@@ -48,6 +48,7 @@ while (true)
     Console.WriteLine();
     Console.WriteLine("1. Crear cliente");
     Console.WriteLine("2. Crear factura");
+    Console.WriteLine("3. Definición de las llamadas");
     Console.WriteLine("0. Salir");
     Console.Write("Opción: ");
     var opcionInicial = Console.ReadLine();
@@ -60,6 +61,10 @@ while (true)
 
         case "2":
             await CrearFacturaConMenuAsync(http, nif, apiKey, config, jsonOpciones);
+            break;
+
+        case "3":
+            DefinicionDeLlamadas.Mostrar(uriBase, nif, jsonOpciones);
             break;
 
         case "0":
