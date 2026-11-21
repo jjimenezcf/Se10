@@ -437,14 +437,50 @@ Carpeta: `GestoresDeNegocio/<Área>/Xxxs/`.
 Cuatro piezas, todas calcadas del ejemplo más simple posible (`NaturalezasController`/
 `DescriptorDeNaturalezas`/`Naturalezas.ts` — un CRUD sin particularidades de filtros ni de menú), no de
 uno con mucha lógica añadida como Pedidos, salvo que el punto 0 indique particularidades desde el
-principio:
+principio. Excepción: la acción `CrudXxxs()` del controlador y el constructor del render cacheado del
+descriptor se toman del punto 1 y 2 de abajo, no de `NaturalezasController`, que no cachea el render:
 
 1. **Controlador** — `SistemaDeElementos/Controllers/<Área>/XxxsController.cs`, hereda de
    `EntidadController<ContextoSe, XxxDtm, XxxDto>`, recibe por constructor `GestorDeXxx` (el mismo del
-   paso 8) y `GestorDeErrores`, y expone `CrudXxxs()`: `ApiController.CumplimentarDatosDeUsuarioDeConexion(...)` y devuelve `ViewCrud(new DescriptorDeXxx(Contexto, ModoDescriptor.Mantenimiento))` en un
-   `try/catch` que llama a `RenderMensaje(e.Message)` si falla.
+   paso 8) y `GestorDeErrores`, y expone `CrudXxxs()` **con caché de render por usuario** (siempre, no
+   construir el descriptor en cada visita con `ViewCrud(new DescriptorDeXxx(...))` a secas):
+   ```csharp
+   public IActionResult CrudXxxs()
+   {
+       ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Contexto.Mapeador, HttpContext);
+
+       var modo = ModoDescriptor.Mantenimiento;
+       var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{modo}-{typeof(DescriptorDeXxx).FullName}";
+       var cache = ServicioDeCaches.Obtener(CacheDe.RenderCrud);
+       try
+       {
+           if (cache.ContainsKey(indice))
+           {
+               ViewBag.DatosDeConexion = DatosDeConexion;
+               var destino = $"../{enumNameSpaceTs.<Área>}/{nameof(CrudXxxs)}";
+               return base.View(destino, new DescriptorDeXxx(Contexto, (string)cache[indice]));
+           }
+           else
+           {
+               var descriptor = DescriptorDeCrud<XxxDto>.CrearDescriptor(Contexto, modo, () => new DescriptorDeXxx(Contexto, modo));
+               return ViewCrud(descriptor);
+           }
+       }
+       catch (Exception e)
+       {
+           return RenderizarErrorDe(indice, e);
+       }
+   }
+   ```
+   Calcado de `FacturasRecController.CrudFacturasRec` o `VentasController.CrudVentas`; el porqué de cada
+   paso y el aviso de no copiar mal el `typeof(...)` del índice están en
+   `ImplementacionDeUnCrudDeVisualizacion.md` (apartado del controlador). `RenderizarErrorDe` limpia la
+   entrada de caché si el render falla.
 2. **Descriptor de crud** — `SistemaDeElementos/Descriptores/DescriptoresDe<Área>/DescriptorDeXxx.cs`,
-   hereda de `DescriptorDeCrud<XxxDto>`. El constructor solo llama al de la base pasando
+   hereda de `DescriptorDeCrud<XxxDto>`. Tiene **dos constructores**: el del render cacheado,
+   `public DescriptorDeXxx(ContextoSe contexto, string renderCache) : base(contexto, renderCache) { }`, que
+   usa el controlador cuando ya hay HTML en caché, y el normal `(ContextoSe contexto, ModoDescriptor modo)`,
+   que solo llama al de la base pasando
    `nameof(XxxsController)`, `nameof(XxxsController.CrudXxxs)`, `modo` y `rutaBase` (el
    `enumNameSpaceTs` del área). Si no hay particularidades el cuerpo se deja vacío; solo se sobrescribe
    `RenderControl()` para inyectar el `<script>` que carga `Xxx.js` y llama a

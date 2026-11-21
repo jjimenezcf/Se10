@@ -28,14 +28,28 @@ namespace MVCSistemaDeElementos.Controllers
 
         public IActionResult CrudRegularizaciones()
         {
+            ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Contexto.Mapeador, HttpContext);
+
+            var modo = ModoDescriptor.Mantenimiento;
+            var indice = $"{Contexto.DatosDeConexion.IdUsuario.ToString()}-{modo}-{typeof(DescriptorDeRegularizaciones).FullName}";
+            var cache = ServicioDeCaches.Obtener(CacheDe.RenderCrud);
             try
             {
-                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Contexto.Mapeador, HttpContext);
-                return ViewCrud(new DescriptorDeRegularizaciones(Contexto, ModoDescriptor.Mantenimiento));
+                if (cache.ContainsKey(indice))
+                {
+                    ViewBag.DatosDeConexion = DatosDeConexion;
+                    var destino = $"../{enumNameSpaceTs.Logistica}/{nameof(CrudRegularizaciones)}";
+                    return base.View(destino, new DescriptorDeRegularizaciones(Contexto, (string)cache[indice]));
+                }
+                else
+                {
+                    var descriptor = DescriptorDeCrud<RegularizacionDto>.CrearDescriptor(Contexto, modo, () => new DescriptorDeRegularizaciones(Contexto, modo));
+                    return ViewCrud(descriptor);
+                }
             }
             catch (Exception e)
             {
-                return RenderMensaje(e.Message);
+                return RenderizarErrorDe(indice, e);
             }
         }
 

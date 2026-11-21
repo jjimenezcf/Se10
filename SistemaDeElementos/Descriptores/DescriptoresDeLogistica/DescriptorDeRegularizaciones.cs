@@ -12,6 +12,10 @@ namespace MVCSistemaDeElementos.Descriptores
 {
     public class DescriptorDeRegularizaciones : DescriptorDeCrud<RegularizacionDto>
     {
+        public DescriptorDeRegularizaciones(ContextoSe contexto, string renderCache) : base(contexto, renderCache)
+        {
+        }
+
         public DescriptorDeRegularizaciones(ContextoSe contexto, ModoDescriptor modo)
         : base(contexto
                , nameof(RegularizacionesController)
