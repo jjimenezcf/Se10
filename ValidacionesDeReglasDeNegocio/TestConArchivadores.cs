@@ -156,10 +156,7 @@ namespace ValidacionesDeRn
         //[Test]
         //public void CrearTipoPorReflexion()
         //{
-        //    //var options = new DbContextOptionsBuilder<ContextoSe>().UseSqlServer("Server=DESARROLLO2;Database=SE_2;uid=admin;Password=kadmon;MultipleActiveResultSets=true").Options;
-        //    // With the options generated above, we can then just construct a new DbContext class
 
-        //    // var options = SqlServerDbContextOptionsExtensions.UseSqlServer(new DbContextOptionsBuilder(), "Server=DESARROLLO2;Database=SE_2;uid=admin;Password=kadmon;MultipleActiveResultSets=true").Options;
         //    var contexto = Inicializaciones.CrearContextoParaUsuario(ContextoSe.Login_Admin); void prueba()
         //    {
         //        ApiDeEnsamblados.EjecutarMetodoEstatico(ApiDeEnsamblados.DllDelGestorDeNegocio, "GestoresDeNegocio.SistemaDocumental.GestorDeTiposDeArchivadores", "PersistirTipo"
