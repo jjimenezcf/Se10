@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pruebas de integración de la aplicación contra la BD de test, como programa de consola: primero se elige el ámbito funcional
+       (una carpeta por ámbito) y luego sus pruebas. Comun tiene el entorno, el menú y las validaciones que comparten todos -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>TestSe</AssemblyName>
+    <RootNamespace>PruebasDeIntegracion</RootNamespace>
+    <!-- se publica como un único exe autocontenido (Properties/PublishProfiles/PublicarTestSe.pubxml) aunque referencia la aplicación
+         web, que no lo es: de ella sólo se usan sus ensamblados y su Startup, no se ejecuta -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- el entorno es el de la aplicación web: su Startup registra el contexto, el mapeador y los gestores -->
+    <ProjectReference Include="..\..\SistemaDeElementos\SistemaDeElementos.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- la cadena de conexión es la de la aplicación web; el programa sólo deja seguir si la BD es la permitida en config.json -->
+    <None Include="..\..\SistemaDeElementos\appsettings.json" Link="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- pdf y almacén de claves de Maestros/TestSignBCSimple, que los busca junto al ejecutable (el .p12 no se sube al repositorio) -->
+    <None Update="Maestros\circles.pdf" Link="circles.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Maestros\test1234.p12" Link="test1234.p12">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- llegan dos BouncyCastle (BouncyCastle.Crypto 1.8 y BouncyCastle.Cryptography 2.x, la de iText) con los mismos tipos:
+       TestSignBCSimple usa los de la 2.x, la antigua queda fuera del espacio global con un alias -->
+  <Target Name="AliasBouncyCastleAntiguo" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'BouncyCastle.Crypto'">
+        <Aliases>BouncyCastleAntiguo</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+
+  <!-- al publicar no se lleva el contenido de la aplicación web que no usan las pruebas (sí LatoFont, las fuentes de los pdfs) -->
+  <Target Name="QuitarContenidoDeLaWebAlPublicar" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '^(Publicacion|Publicacion_Completa|Movil|PeticionesTest)[\\/]|^(web\.config|tsconfig\.json|libman\.json|testEnvironments\.json|appsettings\.Development\.json)$'))" />
+    </ItemGroup>
+  </Target>
+
+</Project>

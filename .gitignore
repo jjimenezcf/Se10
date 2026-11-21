@@ -301,7 +301,7 @@ SistemaDeElementos/wwwroot/lib/jre/
 /Pruebas/*/config.json
 /SistemaDeElementos/Publicacion/TestFacturador/config.json
 /SistemaDeElementos/Publicacion/TestFacturador/TestFacturador.exe
-# publicación de las pruebas de logística (Pruebas/Logistica, perfil PublicarTestLogistica): lleva una copia de appsettings.json
-/SistemaDeElementos/Publicacion/TestLogistica/
+# publicación de las pruebas (Pruebas/TestSe, perfil PublicarTestSe): lleva una copia de appsettings.json
+/SistemaDeElementos/Publicacion/TestSe/
 /SistemaDeElementos/Publicacion_Completa/Z_EmpaquetarPublicacionCompleta.dll
 /SistemaDeElementos/Publicacion_Completa/Z_EmpaquetarPublicacionCompleta.exe
