@@ -71,6 +71,10 @@ public class Startup
         {
             options.AllowSynchronousIO = true;
         });
+        services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+        {
+            options.AllowSynchronousIO = true;
+        });
 
 
         services.AddHttpClient<IPdfServerClient, PdfServerApiClient>();
