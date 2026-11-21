@@ -207,6 +207,8 @@ ClientBin/
 *.dbmdl
 *.dbproj.schemaview
 *.pfx
+# certificados y almacenes de claves (.p12): nunca se suben, ni los de pruebas
+*.p12
 *.publishsettings
 node_modules/
 orleans.codegen.cs
