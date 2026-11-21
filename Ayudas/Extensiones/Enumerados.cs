@@ -1012,6 +1012,9 @@ namespace Utilidades
         public const string Ped_DevolverEntrega = "devolver-entrega-pedido";
         public const string Ped_CopiarPedido = "copiar-pedido";
 
+        // documentos de venta (de salida): "Imprimir seleccionado" imprime su oferta (ver VentasController.ProcesarOpcionMf)
+        public const string Dsa_ModalDeImprimir = ModalDeImprimir;
+
         public const string Ral_ImportarRecuento = "importar-recuento";
         public const string Ral_PrepararRecuento = "preparar-recuento";
         public const string Ral_VenderMaterial = "vender-material";

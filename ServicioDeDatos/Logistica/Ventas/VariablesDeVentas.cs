@@ -23,7 +23,9 @@ namespace ServicioDeDatos.Logistica
     public enum enumParametrosDeVentas
     {
         [Description("Indica el incremento al enumerar las filas")]
-        DSA_IncrementarOrdenEn
+        DSA_IncrementarOrdenEn,
+        [Description("Indica los datos por defecto para usar en la impresión de la oferta de un documento de venta")]
+        DSA_DatosDeImpresion
     }
 
     public static class VariableDeVentas

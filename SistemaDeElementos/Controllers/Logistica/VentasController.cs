@@ -12,6 +12,8 @@ using GestoresDeNegocio.Logistica;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using Inicializador.Logistica;
+using GestoresDeNegocio.SistemaDocumental;
+using ModeloDeDto.SistemaDocumental;
 
 namespace MVCSistemaDeElementos.Controllers
 {
@@ -24,6 +26,41 @@ namespace MVCSistemaDeElementos.Controllers
            gestorDeErrores
          )
         {
+        }
+
+        // "Imprimir seleccionado": si no hay más plantillas que la estándar se imprime directamente la oferta de cada documento de venta
+        // seleccionado; si las hay, se abre la modal para elegir y al aceptar se llama a Imprimir (como en PedidosController)
+        protected override dynamic ProcesarOpcionMf(enumNegocio negocio, string opcion, Dictionary<string, object> parametros)
+        {
+            switch (opcion)
+            {
+                case eventosDeMf.Dsa_ModalDeImprimir:
+                    var ids = (List<int>)parametros[ltrParametrosEp.ids];
+                    var plantillas = new ServicioDePlantillas(Contexto, enumNegocio.Venta, ids).Plantillas();
+                    if (!plantillas.Abrir)
+                        ImprimirOfertas(ids);
+                    return plantillas;
+            }
+            return base.ProcesarOpcionMf(negocio, opcion, parametros);
+        }
+
+        protected override bool Imprimir(int idNegocio, Dictionary<string, object> parametros)
+        {
+            if (base.Imprimir(idNegocio, parametros))
+                return true;
+
+            var plantilla = parametros.LeerValor<string>(ltrParametrosEp.Plantilla);
+            if (plantilla != EstandarPlt.Estandard)
+                return false;
+
+            ImprimirOfertas(new List<int> { (int)parametros.LeerValor<long>(ltrParametrosEp.idElemento) });
+            return true;
+        }
+
+        private void ImprimirOfertas(List<int> idsDeVentas)
+        {
+            foreach (var id in idsDeVentas)
+                GestorDeVentas.ImprimirOferta(Contexto, Contexto.SeleccionarPorId<VentaDtm>(id));
         }
 
         public IActionResult CrudVentas()

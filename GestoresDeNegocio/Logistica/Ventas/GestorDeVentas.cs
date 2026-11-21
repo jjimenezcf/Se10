@@ -9,6 +9,11 @@ using System.Collections.Generic;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Logistica;
 using ModeloDeDto.Logistica;
+using System.IO;
+using GestoresDeNegocio.Entorno;
+using GestoresDeNegocio.SistemaDocumental;
+using QuestPDF.Fluent;
+using ServicioDeReportes.Logistica;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -131,6 +136,18 @@ namespace GestoresDeNegocio.Logistica
                 venta.CrearPrefactura(Contexto);
 
             return venta;
+        }
+
+        // Oferta del documento de venta (ver ReporteDeOfertaDeVenta): se genera su pdf, se sube al servidor documental y se anexa a los
+        // archivos del documento de venta, como la impresión del pedido (GestorDePedidos.ImprimirPedido)
+        public static void ImprimirOferta(ContextoSe contexto, VentaDtm venta)
+        {
+            var nombrePropuesto = venta.ProponerNombreDeArchivo(contexto, $"Oferta-{venta.Referencia}.pdf".NormalizarFichero());
+            var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
+            var ofertaRpt = new GeneradorDeOfertaDeVentaRpt(contexto, venta).ObtenerInformacionDeRpt(plantilla: null);
+            new ReporteDeOfertaDeVenta(ofertaRpt).GeneratePdf(rutaConFichero);
+            var idArchivo = ServidorDocumental.SubirArchivo(contexto, rutaConFichero, sanitizar: false);
+            GestorDeVinculos.Vincular(contexto, enumNegocio.Venta, enumNegocio.Archivos, venta.Id, idArchivo);
         }
 
         protected override void DespuesDeMapearElElemento(VentaDtm venta, VentaDto elemento, ParametrosDeNegocio parametros)
