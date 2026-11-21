@@ -275,6 +275,10 @@ namespace GestorDeElementos.Extensores
                                   Replace($"[{nameof(FacturaEmtDtm.Expresion)}]", factura.Expresion)
                 }.InsertarTraza(contexto);
 
+                // la transición queda anotada con una observación de asunto "Al cancelar prefactura {referencia}" y de cuerpo el enlace a la
+                // prefactura cancelada, para poder navegar a ella desde el parte (GestorDeHitos.Transitar la crea con estos parámetros)
+                parametros[ltrParametrosEp.asunto] = $"Al cancelar prefactura {factura.Referencia}";
+                parametros[ltrParametrosEp.detalleAsunto] = enumNegocio.FacturaEmitida.ComponerUrlPorId(contexto, factura.Id).ToString();
             }
 
             return parte;

@@ -214,6 +214,8 @@ namespace ServicioDeDatos.Ventas
         Total,
         ImporteIrpf,
         BiIvaExento,
+        // base imponible facturada de un material (calculado:ImporteDeMaterial:referencia)
+        ImporteDeMaterial,
         // Claves virtuales de agrupación
         PorcentajeIrpf,
         PorcentajeIva,
@@ -256,6 +258,7 @@ namespace ServicioDeDatos.Ventas
 - **PresupuestoDtm** (`IdPresupuesto`): presupuesto del que se originó la factura
 - **ContratoDtm** (`IdContrato`): contrato asociado si existe
 - **ParteTrDtm** (`IdParteTr`): parte de trabajo asociado si existe
+- **VentaDtm** (relación 1:N por `VentaDtm.IdFacturaEmt`): documento de salida de material (documento de venta, venta de material del almacén) que la factura prefactura; sus líneas (`LineaDeUnaVentaDtm`) llevan el material (`UnitarioDtm`: `Referencia`, `Nombre`), la cantidad y el precio. En la factura, cada línea de un documento de salida es una línea alzada con el concepto ""(referencia) nombre"" del material
 - **TareaDtm** (relación 1:N por `IdFacturaEmt`): tareas vinculadas a la factura
 - **AbonoDeFaeDtm** (relación N:M con `PagoDtm`): registros de cobro parcial o total
 - **FacturaEmtDeUnaRemesaDtm** (relación N:M): facturas incluidas en remesas bancarias
@@ -271,6 +274,8 @@ namespace ServicioDeDatos.Ventas
 ### Campos calculados disponibles (métricas):
 - `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteIrpf)}` — importe retenido de IRPF de cada factura (para suma, media, etc.)
 - `calculado:{nameof(enumEtiquetasDeFacturasEmt.BiIvaExento)}` — suma de la base imponible de las líneas con IVA exento (Porcentaje == 0) de cada factura
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}:referencia` — base imponible (sin IVA, con descuento) facturada de un material en cada factura: líneas cuyo unitario tiene esa referencia o nombre, o cuyo concepto lo contiene (p. ej. `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}:M-MAT-02`)
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}` (sin referencia) — base imponible de las facturas que prefacturan un documento de salida de material
 
 ### Claves de agrupación disponibles (además de las directas):
 - `{nameof(enumEtiquetasDeFacturasEmt.PorcentajeIrpf)}` — agrupa por porcentaje de retención IRPF (p. ej. ""15 %"", ""7 %"", ""Sin IRPF"")
@@ -381,6 +386,58 @@ namespace ServicioDeDatos.Ventas
   1. `{""Clausula"": ""AsociadaAUnPtr"", ""Criterio"": ""igual"", ""Valor"": ""6""}` (Representa SinRelacion).
 
 **Jerarquía:** Si se detecta una búsqueda por nombre o número (R.7.1), se omiten las reglas de situación (R.7.2 y R.7.3).
+
+### R.FacturasVenta.23 · Relación con Documentos de Salida de material (documentos de venta, ventas del almacén)
+
+**R.FacturasVenta.23.1 · Búsqueda por datos del Documento de Salida (`NombreVenta`)**
+- **Disparador positivo:** Facturas ""del documento de salida [Nombre/Referencia]"", ""de la venta de material [X]"", ""del documento de venta [Y]"".
+- **Disparador negativo:** Facturas ""que NO sean del documento de salida [X]"".
+- **Acción (positivo):** `{""Clausula"": ""NombreVenta"", ""Criterio"": ""contiene"", ""Valor"": ""nombre_o_referencia""}`
+- **Acción (negativo):** `{""Clausula"": ""NombreVenta"", ""Criterio"": ""noContiene"", ""Valor"": ""nombre_o_referencia""}`
+
+**R.FacturasVenta.23.2 · Situación: Facturas de algún Documento de Salida (`AsociadaAUnaVenta`)**
+- **Disparador:** Facturas ""de/sobre/con/para/hechas con documentos de salida"", ""de salidas de material"", ""de ventas de material"", ""de materiales"", ""del almacén"", ""de ventas del almacén"", ""de material vendido"".
+- **Acción:** `{""Clausula"": ""AsociadaAUnaVenta"", ""Criterio"": ""igual"", ""Valor"": ""5""}` (Representa ConRelacion).
+
+**R.FacturasVenta.23.3 · Situación: Facturas sin Documento de Salida (`AsociadaAUnaVenta`)**
+- **Disparador:** Facturas ""que no son de documentos de salida"", ""sin salidas de material"", ""que no son de ventas de material"", ""que no son del almacén"".
+- **Acción:** `{""Clausula"": ""AsociadaAUnaVenta"", ""Criterio"": ""igual"", ""Valor"": ""6""}` (Representa SinRelacion).
+
+**Jerarquía:** Si se detecta una búsqueda por nombre o referencia del documento (R.23.1), se omiten las reglas de situación (R.23.2 y R.23.3).
+**Importe:** Si se pide el importe de esas facturas, usa como métrica `calculado:Total` (con IVA) o `calculado:ImporteDeMaterial` (base imponible, sin IVA) si dice ""sin IVA"", ""base"" o ""neto"".
+**Ejemplos:**
+- ""cuántas facturas tengo de documentos de salida"" →
+  ```json
+  {
+    ""Filtros"": [{""Clausula"": ""AsociadaAUnaVenta"", ""Criterio"": ""igual"", ""Valor"": ""5""}],
+    ""AgruparPor"": [],
+    ""Metricas"": [{""Operacion"": ""Cuenta"", ""Campo"": """", ""Alias"": ""Facturas""}]
+  }
+  ```
+- ""qué importe he facturado de materiales del almacén"" →
+  ```json
+  {
+    ""Filtros"": [{""Clausula"": ""AsociadaAUnaVenta"", ""Criterio"": ""igual"", ""Valor"": ""5""}],
+    ""AgruparPor"": [],
+    ""Metricas"": [{""Operacion"": ""Cuenta"", ""Campo"": """", ""Alias"": ""Facturas""},
+                  {""Operacion"": ""Suma"", ""Campo"": ""calculado:Total"", ""Alias"": ""Importe""}]
+  }
+  ```
+
+### R.FacturasVenta.24 · Material facturado (`MaterialFacturado`, `calculado:ImporteDeMaterial:referencia`)
+- **Disparador:** Facturas ""del material [referencia/nombre]"", ""en las que he facturado [referencia]"", ""que incluyan el material [X]"", ""de la referencia [X]"".
+- **Acción:** `{""Clausula"": ""MaterialFacturado"", ""Criterio"": ""contiene"", ""Valor"": ""referencia_o_nombre""}`
+- **Nota:** Busca el material en las líneas de la factura (unitario con esa referencia o nombre, o concepto que la contiene) y en las líneas de los documentos de salida que prefactura.
+- **Cuánto he facturado de una referencia:** Si el usuario pide ""cuánto he facturado de [referencia]"", ""importe facturado del material [X]"", ""qué he facturado de la referencia [X]"", filtra con `MaterialFacturado` y usa la métrica `calculado:ImporteDeMaterial:[referencia]` (base imponible sólo de las líneas de ese material, no el total de la factura).
+- **Ejemplo:** ""cuánto he facturado de la referencia M-MAT-02"" →
+  ```json
+  {
+    ""Filtros"": [{""Clausula"": ""MaterialFacturado"", ""Criterio"": ""contiene"", ""Valor"": ""M-MAT-02""}],
+    ""AgruparPor"": [],
+    ""Metricas"": [{""Operacion"": ""Cuenta"", ""Campo"": """", ""Alias"": ""Facturas""},
+                  {""Operacion"": ""Suma"", ""Campo"": ""calculado:ImporteDeMaterial:M-MAT-02"", ""Alias"": ""Facturado (sin IVA)""}]
+  }
+  ```
 
 ### R.FacturasVenta.8 · Facturas Rectificadas (`Rectificadas`)
 

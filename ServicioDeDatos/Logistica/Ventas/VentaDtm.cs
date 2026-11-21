@@ -10,6 +10,12 @@ using Utilidades;
 
 namespace ServicioDeDatos.Logistica
 {
+    public class ltrDeUnaVenta
+    {
+        public const string IdFacturaEmt = nameof(VentaDtm.IdFacturaEmt);
+        // con o sin factura (ltrParametrosNeg.ConRelacion / SinRelacion)
+        public const string Facturado = nameof(Facturado);
+    }
 
     [Table(Tablas.VENTA, Schema = Esquemas.LOGISTICA)]
     public class VentaDtm : ElementoDeProcesoDtm, IUsaCliente
@@ -26,8 +32,8 @@ namespace ServicioDeDatos.Logistica
         public DateTime? SolicitadoEl { get; set; }
         public DateTime? ServidoEl { get; set; }
 
-        public int? IdFactura { get; set; }
-        public FacturaEmtDtm Factura { get; set; }
+        public int? IdFacturaEmt { get; set; }
+        public FacturaEmtDtm FacturaEmt { get; set; }
 
         public new TipoDeVentaDtm Tipo { get; set; }
         public new EstadoDeUnaVentaDtm Estado { get; set; }
@@ -94,7 +100,7 @@ namespace ServicioDeDatos.Logistica
             modelBuilder.Entity<VentaDtm>().Property(p => p.SolicitadoEl).HasColumnName(ICampos.SOLICITADO_EL).HasColumnType(IDominio.DATETIME_2).IsRequired(false);
             modelBuilder.Entity<VentaDtm>().Property(p => p.ServidoEl).HasColumnName(ICampos.SERVIDO_EL).HasColumnType(IDominio.DATETIME_2).IsRequired(false);
 
-            ApiDeRegistroDtm.DefinirCampoFk<VentaDtm>(modelBuilder, nameof(VentaDtm.Factura), nameof(VentaDtm.IdFactura), ICampos.ID_FACTURA_EMT, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<VentaDtm>(modelBuilder, nameof(VentaDtm.FacturaEmt), nameof(VentaDtm.IdFacturaEmt), ICampos.ID_FACTURA_EMT, requerida: false, unico: false);
         }
 
         internal static void Trazas(ModelBuilder modelBuilder)

@@ -19,6 +19,9 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public Type Dto { get; set; }
 
+        // Ampliación calculada que sólo se muestra (p.e. los enlaces de una factura): el cliente no la persiste al guardar ni al transitar
+        public bool SoloConsulta { get; set; } = false;
+
         private string _controlador;
         public string Controlador { get { return _controlador.Replace(ltrEndPoint.Controller, ""); } set { _controlador = value; } }
 
@@ -52,7 +55,7 @@ namespace MVCSistemaDeElementos.Descriptores
         public string RenderContenedorDeCuerpo()
         {
             var idHtmlCuerpoDeCreacion = $"contenedor_dto_{IdHtml}";
-            var htmlModal = $@"<div id=¨{idHtmlCuerpoDeCreacion}¨ class=¨{enumCssEdicion.ContenedorDeAmpliacion.Render()}¨ tipo='{Tipo.Render()}' es-ampliacion='true' controlador = '{Controlador}' tipoDto ='{Dto.FullName}'>
+            var htmlModal = $@"<div id=¨{idHtmlCuerpoDeCreacion}¨ class=¨{enumCssEdicion.ContenedorDeAmpliacion.Render()}¨ tipo='{Tipo.Render()}' es-ampliacion='true' solo-consulta='{(SoloConsulta ? "true" : "false")}' controlador = '{Controlador}' tipoDto ='{Dto.FullName}'>
                                  {DescriptorDeTabla.htmlRenderObjetoVacio(Padre, Dto, Controlador, idHtmlCuerpoDeCreacion, enumCssEdicion.TablaDeEdicion.Render(), enumModoDeTrabajo.Edicion, Tabla.NoRenderizar)}
                                </div>";
             return htmlModal;

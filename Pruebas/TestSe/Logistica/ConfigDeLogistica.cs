@@ -24,6 +24,11 @@ namespace TestLogistica
 
         // cuánto se devuelve de la entrega de la primera línea
         public decimal CantidadADevolver { get; set; } = 3;
+
+        // venta de material (documento de salida) del material de la primera línea, desde el almacén de la compra
+        public int IdCliente { get; set; } = 255;
+        public decimal CantidadAVender { get; set; } = 2;
+        public decimal PrecioDeVenta { get; set; } = 18.75m;
     }
 
     public class LineaDePrueba

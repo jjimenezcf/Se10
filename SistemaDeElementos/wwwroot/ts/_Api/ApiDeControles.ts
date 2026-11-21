@@ -1336,7 +1336,7 @@ namespace ApiControl {
         var formato = input.getAttribute(atControl.formato);
         if (formato === enumFormato.Moneda || formato === enumFormato.Porcentaje)
             return IsNullOrEmpty(valor) ? null : Importe(valor, true, false)
-        if (formato === enumFormato.Numero || formato === enumFormato.Numero_2 || formato === enumFormato.Numero_6)
+        if (formato === enumFormato.Numero || formato === enumFormato.Numero_2 || formato === enumFormato.Numero_4 || formato === enumFormato.Numero_6)
             return IsNullOrEmpty(valor) ? null : Importe(valor, true, true);
         if (formato === enumFormato.base64 && valor === '0' || IsNullOrEmpty(valor))
             return btoa(valor);

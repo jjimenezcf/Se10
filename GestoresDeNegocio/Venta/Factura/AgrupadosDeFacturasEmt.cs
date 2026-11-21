@@ -3,7 +3,6 @@ using GestorDeElementos.Extensores;
 using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
-using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Ventas;
 using ServicioDeDatos.Terceros;
 using System;
@@ -34,6 +33,33 @@ namespace GestoresDeNegocio.Ventas
                 var irpf = contexto.Set<IrpfEmtDtm>()
                     .FirstOrDefault(i => i.IdElemento == factura.Id);
                 return irpf?.Importe;
+            }
+
+            // ImporteDeMaterial:referencia — base imponible (sin iva, con descuento) de las líneas de la factura del material: las de tipo
+            // unitario cuyo unitario tiene esa referencia o nombre y las alzadas cuyo concepto lo contiene (las prefacturas de los documentos
+            // de venta llevan como concepto "(referencia) nombre"). Sin referencia, la de todas las líneas con material de un documento de salida
+            var prefijoMaterial = nameof(ImporteDeMaterial).ToLowerInvariant();
+            if (campo == prefijoMaterial || campo.StartsWith(prefijoMaterial + ":"))
+            {
+                var material = campo.Length > prefijoMaterial.Length ? campo.Substring(prefijoMaterial.Length + 1).Trim() : "";
+                var lineas = contexto.Set<LineaDeUnaFaeDtm>().Where(l => l.IdElemento == factura.Id).ToList();
+                if (material.Length == 0)
+                {
+                    if (!contexto.Set<ServicioDeDatos.Logistica.VentaDtm>().Any(v => v.IdFacturaEmt == factura.Id))
+                        return null;
+                    var biDeLaVenta = lineas.Sum(l => l.ImporteConDto);
+                    return biDeLaVenta != 0 ? biDeLaVenta : (decimal?)null;
+                }
+
+                var idsDeUnitarios = contexto.Set<ServicioDeDatos.MaestrosTecnico.UnitarioDtm>()
+                    .Where(u => u.Referencia.ToLower().Contains(material) || u.Nombre.ToLower().Contains(material))
+                    .Select(u => u.Id)
+                    .ToList();
+                var bi = lineas
+                    .Where(l => (l.IdUnitario != null && idsDeUnitarios.Contains((int)l.IdUnitario))
+                             || (l.Concepto != null && l.Concepto.ToLowerInvariant().Contains(material)))
+                    .Sum(l => l.ImporteConDto);
+                return bi != 0 ? bi : (decimal?)null;
             }
 
             if (campo == nameof(BiIvaExento).ToLowerInvariant() || campo is "biexento" or "baseexenta")

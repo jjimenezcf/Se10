@@ -14,7 +14,9 @@ namespace TestLogistica
                 (new PruebaDeCompras(config, conVariacion: true).Nombre, (c, i) => new PruebaDeCompras(config, conVariacion: true).Ejecutar(c, i)),
                 (new PruebaDeCompras(config, conVariacion: false).Nombre, (c, i) => new PruebaDeCompras(config, conVariacion: false).Ejecutar(c, i)),
                 (new PruebaDeCierre(config, conVariacion: true).Nombre, (c, i) => new PruebaDeCierre(config, conVariacion: true).Ejecutar(c, i)),
-                (new PruebaDeCierre(config, conVariacion: false).Nombre, (c, i) => new PruebaDeCierre(config, conVariacion: false).Ejecutar(c, i))
+                (new PruebaDeCierre(config, conVariacion: false).Nombre, (c, i) => new PruebaDeCierre(config, conVariacion: false).Ejecutar(c, i)),
+                (new PruebaDeVentas(config, conVariacion: true).Nombre, (c, i) => new PruebaDeVentas(config, conVariacion: true).Ejecutar(c, i)),
+                (new PruebaDeVentas(config, conVariacion: false).Nombre, (c, i) => new PruebaDeVentas(config, conVariacion: false).Ejecutar(c, i))
             };
 
             while (true)

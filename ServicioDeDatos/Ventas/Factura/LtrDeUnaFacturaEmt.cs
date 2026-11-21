@@ -34,6 +34,13 @@
         public const string AsociadaAUnPtr = nameof(AsociadaAUnPtr);
         public const string NombreParteTr = nameof(NombreParteTr);
 
+        // documentos de salida de material (documentos de venta, VentaDtm.IdFacturaEmt) prefacturados en la factura
+        public const string IdVenta = nameof(IdVenta);
+        public const string AsociadaAUnaVenta = nameof(AsociadaAUnaVenta);
+        public const string NombreVenta = nameof(NombreVenta);
+        // material (referencia o nombre del unitario) facturado en las líneas de la factura
+        public const string MaterialFacturado = nameof(MaterialFacturado);
+
         public const string IdContrato = nameof(IdContrato);
         public const string AsociadaAUnContrato = nameof(AsociadaAUnContrato);
         public const string NombreContrato = nameof(NombreContrato);

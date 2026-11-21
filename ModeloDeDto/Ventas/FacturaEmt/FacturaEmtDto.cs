@@ -315,6 +315,8 @@ namespace ModeloDeDto.Ventas
            Fila = 12,
            Columna = 3,
            Posicion =0,
+           // al editar, el presupuesto, el parte, el contrato y el preasiento van en la ampliación Enlaces: los importes no se desplazan
+           MantenerHuecoDeLaIzquierda = true,
            Formato = enumFormato.Moneda
             )
         ]
@@ -421,6 +423,8 @@ namespace ModeloDeDto.Ventas
             VistaDondeNavegar = enumVistasVentas.CrudPresupuestos,
             Fila = 12,
             Columna = 0,
+            // al editar se muestra en la ampliación Enlaces (ver EnlacesDeFaeDto); su valor se conserva al guardar (ver GestorDeFacturasEmt.DespuesDeMapearElRegistro)
+            VisibleAlEditar = false,
             EditableAlCrear = false,
             EditableAlEditar = false,
             VisibleEnGrid = false
@@ -441,6 +445,7 @@ namespace ModeloDeDto.Ventas
             MostrarExpresion = nameof(ParteTr),
             Fila = 12,
             Columna = 1,
+            VisibleAlEditar = false,
             EditableAlCrear = false,
             EditableAlEditar = false,
             VisibleEnGrid = false
@@ -463,6 +468,7 @@ namespace ModeloDeDto.Ventas
             ParametrosParaNavegar = nameof(ltrParametrosEp.Clase) + "=" + nameof(enumClaseDeContrato.Venta),
             Fila = 12,
             Columna = 2,
+            VisibleAlEditar = false,
             EditableAlCrear = false,
             EditableAlEditar = false,
             VisibleEnGrid = false
@@ -485,7 +491,8 @@ namespace ModeloDeDto.Ventas
             Posicion = 1,
             VisibleEnGrid = false,
             VisibleAlCrear = false,
-            VisibleAlEditar = true,
+            // se muestra en la ampliación Enlaces
+            VisibleAlEditar = false,
             EditableAlEditar = false,
             Controlador = nameof(enumControladoresContables.Preasientos),
             VistaDondeNavegar = enumVistasContables.CrudPreasientos,

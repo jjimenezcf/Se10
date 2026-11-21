@@ -720,7 +720,8 @@ namespace MVCSistemaDeElementos.Descriptores
                 valores["type"] = descriptorControl.Atributos.Formato.Descripcion() == enumFormato.Moneda.Descripcion() ||
                                   descriptorControl.Atributos.Formato.Descripcion() == enumFormato.Porcentaje.Descripcion() ||
                                   descriptorControl.Atributos.Formato.Descripcion() == enumFormato.Numero_2.Descripcion() ||
-                                  descriptorControl.Atributos.Formato.Descripcion() == enumFormato.Numero_6.Descripcion()
+                                  descriptorControl.Atributos.Formato.Descripcion() == enumFormato.Numero_6.Descripcion() ||
+                                  descriptorControl.Atributos.Formato.Descripcion() == enumFormato.Numero_4.Descripcion()
                 ? "string"
                 : "number";
             }

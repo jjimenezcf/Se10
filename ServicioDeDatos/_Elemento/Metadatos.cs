@@ -665,6 +665,7 @@ namespace ServicioDeDatos.Elemento
         internal const string ID_LINEA_RECEPCION = nameof(ID_LINEA_RECEPCION);
         internal const string ID_LINEA_DEVOLUCION = nameof(ID_LINEA_DEVOLUCION);
         internal const string ID_LINEA_INVENTARIO = nameof(ID_LINEA_INVENTARIO);
+        internal const string ID_LINEA_VENTA = nameof(ID_LINEA_VENTA);
         internal const string ID_IVA_R = nameof(ID_IVA_R);
         internal const string ID_IVA_S = nameof(ID_IVA_S);
         internal const string ID_IRPF = nameof(ID_IRPF);

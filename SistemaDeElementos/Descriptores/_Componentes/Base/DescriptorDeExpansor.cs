@@ -344,11 +344,14 @@ namespace MVCSistemaDeElementos.Descriptores
             foreach (var expan in expanes)
             {
                 html = $"{(html.IsNullOrEmpty() ? "" : html + Environment.NewLine)}{expan.RenderExpansor()}";
-                if (ampliacionDetrasDe is not null && ampliacionDetrasDe.ContainsValue(expan.Id))
+                // puede haber varias ampliaciones detrás del mismo expansor: se pintan en el orden en el que se indicaron
+                if (ampliacionDetrasDe is not null)
                 {
-                    var entrada = ampliacionDetrasDe.First(x => x.Value == expan.Id);
-                    var ampliacion = ampliaciones.First(a => a.Id == entrada.Key);
-                    html = $"{html}{Environment.NewLine}{ampliacion.RenderAmpliacion()}";
+                    foreach (var entrada in ampliacionDetrasDe.Where(x => x.Value == expan.Id))
+                    {
+                        var ampliacion = ampliaciones.First(a => a.Id == entrada.Key);
+                        html = $"{html}{Environment.NewLine}{ampliacion.RenderAmpliacion()}";
+                    }
                 }
             }
             return html;

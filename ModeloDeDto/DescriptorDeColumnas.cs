@@ -42,7 +42,7 @@ namespace ModeloDeDto
             if (formato != null) alineacion = enumAliniacion.derecha;
             if (propiedad.IsNullOrEmpty()) propiedad = titulo;
 
-            var esnumero = formato != null && (formato == enumFormato.Moneda || formato == enumFormato.Porcentaje || formato == enumFormato.Numero_2 || formato == enumFormato.Numero_6);
+            var esnumero = formato != null && (formato == enumFormato.Moneda || formato == enumFormato.Porcentaje || formato == enumFormato.Numero_2 || formato == enumFormato.Numero_6 || formato == enumFormato.Numero_4);
             if (esnumero && tamano == 0 ) tamano = 150;
 
 

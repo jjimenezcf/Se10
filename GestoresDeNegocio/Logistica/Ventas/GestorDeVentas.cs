@@ -25,7 +25,8 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.Estado, dtm => dtm.MapFrom(dtm => dtm.Estado.Nombre))
                 .ForMember(dto => dto.Cliente, dtm => dtm.MapFrom(dtm => dtm.Cliente.Expresion))
                 .ForMember(dto => dto.Almacen, dtm => dtm.MapFrom(dtm => dtm.Almacen.Expresion))
-                .ForMember(dto => dto.Factura, dtm => dtm.MapFrom(dtm => dtm.Factura == null ? null : dtm.Factura.Expresion));
+                .ForMember(dto => dto.FacturaEmt, dtm => dtm.MapFrom(dtm => dtm.FacturaEmt == null ? null : dtm.FacturaEmt.Expresion))
+                .ForMember(dto => dto.TotalSinIva, dtm => dtm.Ignore());
 
                 CreateMap<VentaDto, VentaDtm>()
                 .ForMember(dtm => dtm.Cg, dto => dto.Ignore())
@@ -33,7 +34,7 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dtm => dtm.Estado, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Cliente, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Almacen, dto => dto.Ignore())
-                .ForMember(dtm => dtm.Factura, dto => dto.Ignore());
+                .ForMember(dtm => dtm.FacturaEmt, dto => dto.Ignore());
             }
         }
 
@@ -62,7 +63,7 @@ namespace GestoresDeNegocio.Logistica
             consulta = base.AplicarJoins(consulta, filtros, parametros);
             return consulta.Include(x => x.Cliente)
                            .Include(x => x.Almacen)
-                           .Include(x => x.Factura);
+                           .Include(x => x.FacturaEmt);
         }
 
         protected override IQueryable<VentaDtm> AplicarOrden(IQueryable<VentaDtm> consulta, List<ClausulaDeOrdenacion> ordenacion)
@@ -74,6 +75,7 @@ namespace GestoresDeNegocio.Logistica
         {
             // TODO: completar los filtros propios del negocio de documentos de venta
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
+            consulta = consulta.FiltroPorFactura(filtros, parametros);
             return consulta;
         }
 
@@ -103,7 +105,14 @@ namespace GestoresDeNegocio.Logistica
         {
             venta = base.AntesDeTransitar(venta, transicion, parametros);
 
-            if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Facturacion.Estados()))
+            // lo que se cambia aquí en la venta se guarda al transitar (ver GestorDeHitos.Transitar)
+            if (transicion.EntreEtapas(enumEtapasDeVenta.DSA_Etapa_Solicitud.Estados(), enumEtapasDeVenta.DSA_Etapa_Servicio.Estados()))
+                venta.AntesDeServir(Contexto);
+            else if (transicion.EntreEtapas(enumEtapasDeVenta.DSA_Etapa_Servicio.Estados(), enumEtapasDeVenta.DSA_Etapa_Solicitud.Estados()))
+                venta.AntesDeDevolverASolicitado(Contexto);
+            else if (transicion.EntreEtapas(enumEtapasDeVenta.DSA_Etapa_Facturacion.Estados(), enumEtapasDeVenta.DSA_Etapa_Servicio.Estados()))
+                venta.AlCancelarPrefactura(Contexto, parametros);
+            else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Facturacion.Estados()))
                 venta.AntesDeFacturar(Contexto);
             else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Cancelacion.Estados()))
                 venta.AntesDeCancelar(Contexto);
@@ -115,7 +124,10 @@ namespace GestoresDeNegocio.Logistica
         {
             venta = base.DespuesDeTransitar(venta, transicion, parametros);
 
-            if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Facturacion.Estados()))
+            // al servir se crean las salidas del almacén de sus líneas (con su preasiento y el barrido de los posteriores)
+            if (transicion.EntreEtapas(enumEtapasDeVenta.DSA_Etapa_Solicitud.Estados(), enumEtapasDeVenta.DSA_Etapa_Servicio.Estados()))
+                venta.CrearSalidasDelAlmacen(Contexto);
+            else if (transicion.DestinoEstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Facturacion.Estados()))
                 venta.CrearPrefactura(Contexto);
 
             return venta;
@@ -124,6 +136,7 @@ namespace GestoresDeNegocio.Logistica
         protected override void DespuesDeMapearElElemento(VentaDtm venta, VentaDto elemento, ParametrosDeNegocio parametros)
         {
             base.DespuesDeMapearElElemento(venta, elemento, parametros);
+            elemento.TotalSinIva = venta.TotalSinIva(Contexto);
         }
 
     }

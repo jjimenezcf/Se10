@@ -10,6 +10,7 @@ using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
 using ServicioDeDatos.Gastos;
 using ServicioDeDatos.Juridico;
+using ServicioDeDatos.Logistica;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Presupuesto;
@@ -1123,6 +1124,11 @@ namespace GestorDeElementos.Extensores
                 factura.ParteTr = null;
             }
 
+            // si es la prefactura de un documento de venta, éste vuelve de facturado a servido y se desvincula (ver ExtensorDeVentas.AlCancelarPrefactura)
+            var venta = contexto.Set<VentaDtm>().FirstOrDefault(v => v.IdFacturaEmt == factura.Id);
+            if (venta is not null)
+                venta.CancelarPrefactura(contexto);
+
             var lineas = factura.Detalles<LineaDeUnaFaeDtm>(contexto, errorSiNoHay: false);
             foreach (var linea in lineas)
             {
@@ -1786,6 +1792,16 @@ namespace GestorDeElementos.Extensores
                     foreach (var linea in lineas) if (linea.IdParteTr != null) return;
                     Emitir($"La factura {fae.Referencia} no tiene partes de trabajo");
                 }
+            }
+        }
+
+        // Para navegar a los documentos de salida de material (documentos de venta) prefacturados en las facturas
+        public static void ValidarTieneVenta(ContextoSe contexto, List<int> idsDeFaes)
+        {
+            foreach (var id in idsDeFaes)
+            {
+                if (!contexto.Set<VentaDtm>().Any(v => v.IdFacturaEmt == id))
+                    Emitir($"La factura {contexto.SeleccionarPorId<FacturaEmtDtm>(id).Referencia} no tiene documentos de salida de material");
             }
         }
 

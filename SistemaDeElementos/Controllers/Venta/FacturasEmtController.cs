@@ -200,6 +200,9 @@ namespace MVCSistemaDeElementos.Controllers
                 case eventosDeMf.Fae_IrAPartesTr:
                     ExtensorDeFacturasEmt.ValidarTieneParte(Contexto, (List<int>)parametros[ltrParametrosEp.ids]);
                     return null;
+                case eventosDeMf.Fae_IrAVentas:
+                    ExtensorDeFacturasEmt.ValidarTieneVenta(Contexto, (List<int>)parametros[ltrParametrosEp.ids]);
+                    return null;
                 case eventosDeMf.Fae_IrAPpts:
                     enumNegocio.FacturaEmitida.ValidarTieneRefearenciaA(Contexto, (List<int>)parametros[ltrParametrosEp.ids], nameof(FacturaEmtDtm.IdPresupuesto));
                     return null;

@@ -1382,7 +1382,7 @@ namespace GestorDeElementos
             {
                 var filtroPorIdReferenciado = $"x => x.{filtrarPor} == {filtro.Valor.Entero()}";
                 consulta = consulta.AplicarFiltroPorExpresion(filtroPorIdReferenciado);
-                if (!aplicarFiltroDeEstado) parametros.AplicarFiltroQueMostrar = filtros.OmitirFiltrosPorEstado(new List<string> { filtrarPor });
+                if (!aplicarFiltroDeEstado) parametros.AplicarFiltroQueMostrar = !filtros.OmitirFiltrosPorEstado(new List<string> { filtrarPor });
                 filtro.Aplicado = true;
                 return consulta;
             }

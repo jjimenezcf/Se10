@@ -244,7 +244,7 @@ namespace MVCSistemaDeElementos.Descriptores
             var esFecha = propiedadDto.EsFecha ? "es-fecha = 'T'" : "";
             var formato = propiedadDto.Formato is null ? "" : $"formato = '{propiedadDto.Formato.Descripcion()}'";
 
-            var paddingRigth = propiedadDto.Formato == enumFormato.Porcentaje || propiedadDto.Formato == enumFormato.Moneda || propiedadDto.Formato == enumFormato.Numero_2 || propiedadDto.Formato == enumFormato.Numero_6 ? "padding-right: 1em;" : "";
+            var paddingRigth = propiedadDto.Formato == enumFormato.Porcentaje || propiedadDto.Formato == enumFormato.Moneda || propiedadDto.Formato == enumFormato.Numero_2 || propiedadDto.Formato == enumFormato.Numero_6 || propiedadDto.Formato == enumFormato.Numero_4 ? "padding-right: 1em;" : "";
             var tamanoFijo = propiedadDto.Tamano == 0 ? "" : $"tamano-fijo='{propiedadDto.Tamano}'";
             return @$"
                 <div scope='col' id='[{nameof(IdHtml)}]-{p}' class='{enumCssDiv.Th.Render()} {clasesCss}' propiedad='{p}' {tamanoFijo} {formato} {esFecha} style='text-align:{alineacion}; {paddingRigth}'> 

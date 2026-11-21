@@ -381,6 +381,7 @@ namespace Utilidades
                                     case enumFormato.Porcentaje: formato = "0.00%"; break;
                                     case enumFormato.Numero_2: formato = "#,##0.00"; break;
                                     case enumFormato.Numero_6: formato = "#,##0.000000"; break;
+                                    case enumFormato.Numero_4: formato = "#,##0.0000"; break;
                                     case enumFormato.Moneda: formato = "€0.00"; break;
                                 }
                             }
@@ -590,6 +591,9 @@ namespace Utilidades
                     return celdas;
                 case enumFormato.Numero_6:
                     celdas.Style.Numberformat.Format = "0.000000";
+                    return celdas;
+                case enumFormato.Numero_4:
+                    celdas.Style.Numberformat.Format = "0.0000";
                     return celdas;
             }
             throw new Exception($"No se ha indicado como formatear en Excel el formato '{formato}'");

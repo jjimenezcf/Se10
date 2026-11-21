@@ -2,6 +2,7 @@
 using GestorDeElementos.Extensores;
 using ModeloDeDto;
 using ModeloDeDto.Juridico;
+using ModeloDeDto.Logistica;
 using ModeloDeDto.Presupuesto;
 using ModeloDeDto.SistemaDocumental;
 using ModeloDeDto.Tarea;
@@ -39,12 +40,14 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Mnt.Filtro.FiltroDeNombre.CambiarAtributos("Varios", nameof(ltrDeUnaFacturaEmt.BuscarPorVarios), "concepto (c:) o nombre de cliente (d:) o por número (n:año-serie-nº)");
             IncluirFiltros();
-            var irpf = DescriptorDeIrpfEmt();                
+            // las ampliaciones se pintan tras los datos principales y antes del detalle, en el orden en el que se añaden: primero el irpf
+            // (sólo visible si la factura tiene irpf) y luego los enlaces a los documentos relacionados
+            var irpf = DescriptorDeIrpfEmt();
+            DescriptorDeEnlaces();
             DescriptorDePeriodoEmt();
             DescriptorDeVerifactu();
             DescriptorDeRectificativas();
-            var lineas = DescriptorDeLineasDeUnaFae();
-            Editor.AmpliacionesDetrasDe[irpf.Id] = lineas.Id;
+            DescriptorDeLineasDeUnaFae();
             //if (enumNegocio.FacturaEmitida.Parametro(enumParametrosDeFacturasEmt.FAE_SII_Activo, crearParametro: true, valorPorDefecto: "N").Valor.EsTrue())
             //{
             //    var verifactu = DescriptorDeVerifactu();
@@ -62,6 +65,7 @@ namespace MVCSistemaDeElementos.Descriptores
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CambiarDatosFae), eventosDeMf.Fae_CambiarDatos, "Cambiar Datos"));
 
             Mnt.IncluirMfDeRelacion($"<li id='{menuDeRelaciones}.{enumNegocio.ParteDeTrabajo}' accion-menu='{eventosDeMf.Fae_IrAPartesTr}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>{enumNegocio.ParteDeTrabajo.Plural()}</li>");
+            Mnt.IncluirMfDeRelacion($"<li id='{menuDeRelaciones}.{enumNegocio.Venta}' accion-menu='{eventosDeMf.Fae_IrAVentas}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Documentos de salida</li>");
             Mnt.IncluirMfDeRelacion($"<li id='{menuDeRelaciones}.{enumNegocio.Presupuesto}' accion-menu='{eventosDeMf.Fae_IrAPpts}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>{enumNegocio.Presupuesto.Plural()}</li>");
             Mnt.IncluirMfDeRelacion($"<li id='{menuDeRelaciones}.{enumNegocio.Contrato}' accion-menu='{eventosDeMf.Fae_IrAContrato}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>{enumNegocio.Contrato.Plural()}</li>");
 
@@ -114,6 +118,7 @@ namespace MVCSistemaDeElementos.Descriptores
             FiltroPorPresupuesto(modalDeRelacion);
             FiltroPorPlfVenta(modalDeRelacion);
             FiltroPorParteTr(modalDeRelacion);
+            FiltroPorVenta(modalDeRelacion);
             FiltroPorContrato(modalDeRelacion);
             FiltroPorRemesa(modalDeRelacion);
             FiltroPorEstimacionDirecta(modalDeRelacion);
@@ -284,6 +289,38 @@ namespace MVCSistemaDeElementos.Descriptores
                 propiedad: ltrDeUnaFacturaEmt.AsociadaAUnPtr,
                 filtrarPor: ltrDeUnaFacturaEmt.AsociadaAUnPtr,
                 ayuda: "Filtros de partes de trabajo"
+                ));
+        }
+
+        // Documentos de salida de material (documentos de venta) prefacturados en la factura
+        private static void FiltroPorVenta(ModalDeFiltrado<FacturaEmtDto> modal)
+        {
+            var lista = new ListasDinamicas<FacturaEmtDto>(modal,
+                etiqueta: "Documento de salida",
+                filtrarPor: ltrDeUnaFacturaEmt.IdVenta,
+                ayuda: "seleccione el documento de salida de material",
+                seleccionarDe: nameof(VentaDto),
+                buscarPor: nameof(VentaDto.Expresion),
+                mostrarExpresion: nameof(VentaDto.Expresion),
+                criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                posicion: new Posicion(1, 0),
+                controlador: nameof(VentasController),
+                navegarA: nameof(VentasController.CrudVentas),
+                restringirPor: "",
+                alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+
+            var opciones = new Dictionary<string, string> {
+                      { $"{ltrParametrosNeg.MostrarTodos}", "con o sin documento de salida" }
+                    , { $"{ltrParametrosNeg.ConRelacion}", "facturas de un documento de salida" }
+                    , { $"{ltrParametrosNeg.SinRelacion}", "facturas que no son de un documento de salida" } };
+
+            modal.ControlesDeFiltrado.Add(new FiltroDeRelacion<FacturaEmtDto>(modal,
+                lista: lista,
+                opciones: opciones,
+                propiedad: ltrDeUnaFacturaEmt.AsociadaAUnaVenta,
+                filtrarPor: ltrDeUnaFacturaEmt.AsociadaAUnaVenta,
+                ayuda: "Filtros de documentos de salida de material"
                 ));
         }
 
@@ -458,6 +495,18 @@ namespace MVCSistemaDeElementos.Descriptores
             irpf.Controlador = nameof(IrpfsEmtController);
             Editor.Ampliaciones.Add(irpf);
             return irpf;
+        }
+
+        // Bloque "Enlaces": presupuesto, parte, contrato, preasiento y documento de salida de la factura, para navegar a ellos. Es una
+        // ampliación ficticia (sin tabla) que se calcula al leerla y sólo se consulta (ver EnlacesDeFaeController)
+        private AmpliacionDeEdicion DescriptorDeEnlaces()
+        {
+            var enlaces = new AmpliacionDeEdicion(Editor, Ampliaciones.FacturasEmt.enlacesEmt, "Enlaces", new Dimension(2, 3), ayuda: "Documentos relacionados con la factura");
+            enlaces.Dto = typeof(EnlacesDeFaeDto);
+            enlaces.Controlador = nameof(EnlacesDeFaeController);
+            enlaces.SoloConsulta = true;
+            Editor.Ampliaciones.Add(enlaces);
+            return enlaces;
         }
 
         private AmpliacionDeEdicion DescriptorDeVerifactu()

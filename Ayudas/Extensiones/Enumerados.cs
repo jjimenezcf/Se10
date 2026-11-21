@@ -70,7 +70,9 @@ namespace Utilidades
         [Description("base64")]
         base64,
         [Description("linkHtml")]
-        LinkHtml
+        LinkHtml,
+        [Description("numero.4")]
+        Numero_4
     }
 
     public enum enumGestorDeEventos
@@ -492,6 +494,9 @@ namespace Utilidades
         Ral_InicializarModalParaEditarLineas,
         Ral_CalcularImportesDeLinea,
         Ral_FiltrosPorClaseDeUnitario,
+        Dsa_CalcularTotalDeLaVenta,
+        Dsa_AlCambiarServido,
+        Dsa_AlCambiarFacturar,
 
         Dsa_Tras_Seleccionar_Almacen,
         Dsa_Tras_Blanquear_Almacen,
@@ -949,6 +954,8 @@ namespace Utilidades
         public const string Fae_IrAContrato = IrAContrato;
         public const string Fae_IrAPpts = IrAPpts;
         public const string Fae_IrAPartesTr = IrAPartesTr;
+        // documentos de salida de material (documentos de venta) prefacturados en la factura
+        public const string Fae_IrAVentas = "ir-a-documentos-de-salida";
         public const string Fae_ModalDeImprimir = ModalDeImprimir;
         public const string Fae_GenerarPreasiento = "generar-preasiento";
         public const string Fae_GenerarUbl = "generar-ubl";
@@ -1007,6 +1014,7 @@ namespace Utilidades
 
         public const string Ral_ImportarRecuento = "importar-recuento";
         public const string Ral_PrepararRecuento = "preparar-recuento";
+        public const string Ral_VenderMaterial = "vender-material";
         public const string Ral_AplicarRecuento = "aplicar-recuento";
 
         // opciones del menú de un almacén que navegan a otros mantenimientos con el almacén fijado (ver DescriptorDeAlmacenes)

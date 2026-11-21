@@ -83,6 +83,25 @@ namespace GestoresDeNegocio.Ventas
         protected override void DespuesDeMapearElRegistro(FacturaEmtDto dto, FacturaEmtDtm dtm, ParametrosDeNegocio opciones)
         {
             base.DespuesDeMapearElRegistro(dto, dtm, opciones);
+
+            // al editar, el presupuesto, el parte, el contrato y el preasiento no están en los datos principales (se muestran en la ampliación
+            // Enlaces, ver EnlacesDeFaeDto) y no llegan en el Dto: se conservan los de la BD. Se cambian con "Cambiar datos" o las acciones
+            // de la factura, que modifican el registro sin pasar por el Dto
+            if (opciones.Operacion == enumTipoOperacion.Modificar && dtm.Id > 0)
+            {
+                var enBd = Contexto.Set<FacturaEmtDtm>()
+                    .Where(f => f.Id == dtm.Id)
+                    .Select(f => new { f.IdPresupuesto, f.IdParteTr, f.IdContrato, f.IdPreasiento })
+                    .FirstOrDefault();
+                if (enBd is not null)
+                {
+                    dtm.IdPresupuesto = enBd.IdPresupuesto;
+                    dtm.IdParteTr = enBd.IdParteTr;
+                    dtm.IdContrato = enBd.IdContrato;
+                    dtm.IdPreasiento = enBd.IdPreasiento;
+                }
+            }
+
             if (!dto.ClaseRectificativa.IsNullOrEmpty())
             {
                 dtm.ClaseRectificativa = ExtensorDeEnum.Enumerado<enumClaseDeRectificativa>(dto.ClaseRectificativa);
@@ -126,6 +145,7 @@ namespace GestoresDeNegocio.Ventas
             parametros.AplicarFiltroQueMostrar = !filtros.OmitirFiltrosPorEstado(new List<string> {
                 ltrDeUnaFacturaEmt.IdContrato,
                 ltrDeUnaFacturaEmt.IdParteTr,
+                ltrDeUnaFacturaEmt.IdVenta,
                 ltrDeUnParteTr.IdPresupuesto,
                 ltrDeUnaFacturaEmt.IdPlfDeVenta });
 
@@ -135,6 +155,8 @@ namespace GestoresDeNegocio.Ventas
             consulta = consulta.FiltroPorPresupuestos(filtros);
             consulta = consulta.FiltroPorPlanificacionesDeVenta(Contexto, filtros);
             consulta = consulta.FiltroPorPartesTr(Contexto, filtros);
+            consulta = consulta.FiltroPorVentas(Contexto, filtros);
+            consulta = consulta.FiltroPorMaterialFacturado(Contexto, filtros);
             consulta = consulta.FiltroPorContratos(Contexto, filtros);
             consulta = consulta.FiltroPorCliente(filtros);
             consulta = consulta.FiltroPorRemesas(Contexto, filtros);

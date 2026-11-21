@@ -4,6 +4,8 @@ using ServicioDeDatos;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Juridico;
+using ServicioDeDatos.Logistica;
+using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Presupuesto;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Tarea;
@@ -513,6 +515,66 @@ namespace GestoresDeNegocio.Ventas
                     consulta = consulta.Where(x => x.IdParteTr == null && contexto.Set<LineaDeUnaFaeDtm>().Where(l => l.IdParteTr == null && l.IdElemento == x.Id).Any());
                 filtro.Aplicado = true;
             }
+            return consulta;
+        }
+
+        // Documentos de salida de material (documentos de venta) prefacturados en la factura (VentaDtm.IdFacturaEmt): por el documento, por su
+        // nombre o referencia, o facturas con o sin documento de salida
+        public static IQueryable<FacturaEmtDtm> FiltroPorVentas(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.IdVenta.ToLower() && !x.Aplicado);
+            if (filtro != null && filtro.Valor.Entero() > 0)
+            {
+                var idVenta = filtro.Valor.Entero();
+                consulta = consulta.Where(fae => contexto.Set<VentaDtm>().Any(v => v.Id == idVenta && v.IdFacturaEmt == fae.Id));
+                filtro.Aplicado = true;
+                return consulta;
+            }
+
+            var filtroNombre = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.NombreVenta.ToLower() && !x.Aplicado);
+            if (filtroNombre != null && !string.IsNullOrEmpty(filtroNombre.Valor))
+            {
+                var busqueda = filtroNombre.Valor.ToLower();
+                var ventas = contexto.Set<VentaDtm>().Where(v => v.IdFacturaEmt != null && (v.Nombre.ToLower().Contains(busqueda) || v.Referencia.ToLower().Contains(busqueda)));
+                consulta = filtroNombre.Criterio == enumCriteriosDeFiltrado.noContiene
+                    ? consulta.Where(fae => !ventas.Any(v => v.IdFacturaEmt == fae.Id))
+                    : consulta.Where(fae => ventas.Any(v => v.IdFacturaEmt == fae.Id));
+                filtroNombre.Aplicado = true;
+                return consulta;
+            }
+
+            filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.AsociadaAUnaVenta.ToLower() && !x.Aplicado);
+            if (filtro != null)
+            {
+                if (filtro.Valor.Entero() == ltrParametrosNeg.ConRelacion)
+                    consulta = consulta.Where(fae => contexto.Set<VentaDtm>().Any(v => v.IdFacturaEmt == fae.Id));
+                if (filtro.Valor.Entero() == ltrParametrosNeg.SinRelacion)
+                    consulta = consulta.Where(fae => !contexto.Set<VentaDtm>().Any(v => v.IdFacturaEmt == fae.Id));
+                filtro.Aplicado = true;
+            }
+            return consulta;
+        }
+
+        // Material facturado: facturas con alguna línea del material (unitario cuya referencia o nombre contiene el texto, o cuyo concepto lo
+        // contiene: las prefacturas de los documentos de venta llevan como concepto la expresión del material, "(referencia) nombre"), o que
+        // prefacturan un documento de salida con alguna línea de ese material
+        public static IQueryable<FacturaEmtDtm> FiltroPorMaterialFacturado(this IQueryable<FacturaEmtDtm> consulta, ContextoSe contexto, List<ClausulaDeFiltrado> filtros)
+        {
+            var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.MaterialFacturado.ToLower() && !x.Aplicado);
+            if (filtro == null || string.IsNullOrEmpty(filtro.Valor))
+                return consulta;
+
+            var busqueda = filtro.Valor.ToLower();
+            var unitarios = contexto.Set<UnitarioDtm>()
+                .Where(u => u.Referencia.ToLower().Contains(busqueda) || u.Nombre.ToLower().Contains(busqueda))
+                .Select(u => u.Id);
+
+            consulta = consulta.Where(fae =>
+                contexto.Set<LineaDeUnaFaeDtm>().Any(l => l.IdElemento == fae.Id
+                    && ((l.IdUnitario != null && unitarios.Contains((int)l.IdUnitario)) || l.Concepto.ToLower().Contains(busqueda)))
+                || contexto.Set<VentaDtm>().Any(v => v.IdFacturaEmt == fae.Id
+                    && contexto.Set<LineaDeUnaVentaDtm>().Any(lv => lv.IdElemento == v.Id && unitarios.Contains(lv.IdUnitario))));
+            filtro.Aplicado = true;
             return consulta;
         }
 

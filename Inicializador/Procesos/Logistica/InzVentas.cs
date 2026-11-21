@@ -84,7 +84,7 @@ namespace Inicializador.Logistica
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_servir, n_estado_dsa_solicitado, n_estado_dsa_sirviendo, delSistema: true);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_cancelar, n_estado_dsa_solicitado, n_estado_dsa_cancelado, asunto: "Motivo de cancelación");
 
-                //sirviendo --> facturado (crea la prefactura), solicitado (del sistema: tras anular el último movimiento de salida)
+                //sirviendo --> facturado (crea la prefactura), solicitado (del sistema: anula las salidas del almacén y sus preasientos y barre)
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_facturar, n_estado_dsa_sirviendo, n_estado_dsa_facturado);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_devolver_a_solicitado, n_estado_dsa_sirviendo, n_estado_dsa_solicitado, delSistema: true);
 

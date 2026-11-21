@@ -200,7 +200,12 @@
                 ApiPanel.MapearControlesDesdeElPanelALaListaDeParametros(modal, parametros);
                 let datosDeEntrada = new Array<Parametro>();
                 Venta.CambiarDatos(this, this.Controlador, parametros, datosDeEntrada)
-                    .then((peticion) => super.ModalDePedirDatos_Aceptar(modal))
+                    .then((peticion) => {
+                        super.ModalDePedirDatos_Aceptar(modal);
+                        // el presupuesto y el contrato se muestran en la ampliación Enlaces: se vuelve a leer
+                        if (this.ModoTrabajo === enumModoTrabajo.editando)
+                            this.crudDeEdicion.RecargarAmpliaciones();
+                    })
                     .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
             }
             else if (modal.id === this.ModalHacerRectificativa.id) {
@@ -917,6 +922,9 @@
         switch (opcion) {
             case ltrMenus.eventosDeMf.Venta.FacturasEmt.IrAPartesTr:
                 urlDestino = `${window.location.origin}/${ltrUrls.Ventas.PartesTr}?${ltrParametrosUrl.filtros}=[${idRestrictor}=${ids[0]}=${textos[0]}]`;
+                break;
+            case ltrMenus.eventosDeMf.Venta.FacturasEmt.IrAVentas:
+                urlDestino = `${window.location.origin}/${ltrUrls.Logistica.Ventas}?${ltrParametrosUrl.filtros}=[${idRestrictor}=${ids[0]}=${textos[0]}]`;
                 break;
             case ltrMenus.eventosDeMf.Venta.FacturasEmt.IrAPpts:
                 urlDestino = `${window.location.origin}/${ltrUrls.Ventas.Presupuestos}?${ltrParametrosUrl.filtros}=[${idRestrictor}=${ids[0]}=${textos[0]}]`;

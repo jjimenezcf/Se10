@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Elemento;
+using ServicioDeDatos.Seguridad;
+using ServicioDeDatos.Ventas;
 using Utilidades;
 
 namespace ServicioDeDatos.Logistica
@@ -24,9 +26,15 @@ namespace ServicioDeDatos.Logistica
 
 
     [Table(Tablas.VENTA + "_" + Sufijo.TIPO, Schema = Esquemas.LOGISTICA)]
-    public class TipoDeVentaDtm : TipoConFlujoDtm
+    public class TipoDeVentaDtm : TipoConFlujoDtm, IPermisoDeInterventor
     {
         public TipoDeVentaDtm Padre { get; set; }
+        public int IdPermisoInterventor { get; set; }
+        public PermisoDtm PermisoDeInterventor { get; set; }
+
+        // tipo de la prefactura que se crea al facturar el documento de venta (ver ExtensorDeVentas.CrearPrefactura)
+        public int? IdTipoFacturaEmt { get; set; }
+        public TipoDeFacturaEmtDtm TipoFacturaEmt { get; set; }
         public new EstadoDeUnaVentaDtm Estado { get; set; }
 
         public override IEstado iEstado => Estado;
@@ -58,6 +66,7 @@ namespace ServicioDeDatos.Logistica
 
             ApiDeRegistroDtm.DefinirFk<TipoDeVentaDtm>(modelBuilder, nameof(TipoDeVentaDtm.Padre), nameof(TipoDeVentaDtm.IdPadre), ICampos.ID_PADRE, unico: false);
             ApiDeRegistroDtm.DefinirFk<TipoDeVentaDtm>(modelBuilder, nameof(TipoDeVentaDtm.Estado), nameof(TipoDeVentaDtm.IdEstado), ICampos.ID_ESTADO, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<TipoDeVentaDtm>(modelBuilder, nameof(TipoDeVentaDtm.TipoFacturaEmt), nameof(TipoDeVentaDtm.IdTipoFacturaEmt), ICampos.ID_TIPO_FACTURA, requerida: false, unico: false);
         }
     }
 }

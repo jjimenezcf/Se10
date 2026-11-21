@@ -892,9 +892,21 @@ namespace GestorDeElementos.Extensores
         }
 
         // Devolución de compra (salida de lo devuelto de una entrega en un almacén): el preasiento de la entrada al revés, por el importe devuelto
-        // (cantidad devuelta * precio - % de descuento de la entrega). El resto de salidas aún no se preasientan
+        // (cantidad devuelta * precio - % de descuento de la entrega).
+        // Venta de material (salida de lo vendido en la línea de un documento de venta): baja de existencias valorada al precio medio vigente,
+        // al debe la cuenta de variación (61x) y al haber la de existencias (3xx), salvo que el almacén use la variación de existencias
+        // (ver PreasentarVariacionDeExistencias). El resto de salidas aún no se preasientan
         public static void PreasentarSalidaDelmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
+            if (movimiento.IdLineaDeVenta is not null)
+            {
+                var lineaDeVenta = contexto.SeleccionarPorId<LineaDeUnaVentaDtm>((int)movimiento.IdLineaDeVenta);
+                var venta = lineaDeVenta.Venta(contexto);
+                movimiento.PreasentarVariacionDeExistencias(contexto, -(movimiento.Cantidad * movimiento.Precio),
+                    $"Venta de la línea nº {lineaDeVenta.Orden} del documento de venta '{venta.Referencia}'", generandoPreasientosAntiguos);
+                return;
+            }
+
             if (movimiento.IdLineaDevolucion is null)
                 return;
 

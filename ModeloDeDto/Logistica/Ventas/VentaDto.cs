@@ -150,7 +150,7 @@ namespace ModeloDeDto.Logistica
             TipoDeControl = enumTipoControl.RestrictorDeEdicion,
             Controlador = nameof(enumControladoresVentas.FacturasEmt),
             VistaDondeNavegar = enumVistasVentas.CrudFacturasEmt,
-            MostrarExpresion = nameof(Factura),
+            MostrarExpresion = nameof(FacturaEmt),
             Fila = 12,
             Columna = 0,
             VisibleAlCrear = false,
@@ -158,10 +158,29 @@ namespace ModeloDeDto.Logistica
             VisibleEnGrid = false
             )
         ]
-        public int? IdFactura { get; set; }
+        public int? IdFacturaEmt { get; set; }
 
         [IUPropiedad(Visible = false)]
-        public string Factura { get; set; }
+        public string FacturaEmt { get; set; }
+
+        //--------------------------------------------
+        // en la misma fila que la factura, a la derecha: suma de los importes de las líneas (ver GestorDeVentas.DespuesDeMapearElElemento)
+        [IUPropiedad(
+           Etiqueta = "Total (sin IVA)",
+           Tipo = typeof(decimal),
+           Ayuda = "importe total de la venta sin iva: suma de las líneas con su descuento",
+           TipoDeControl = enumTipoControl.Editor,
+           Alineada = enumAliniacion.derecha,
+           VisibleAlCrear = false,
+           EditableAlEditar = false,
+           Obligatorio = false,
+           Formato = enumFormato.Moneda,
+           Fila = 12,
+           Columna = 2,
+           VisibleEnGrid = false
+            )
+        ]
+        public decimal? TotalSinIva { get; set; }
 
     }
 

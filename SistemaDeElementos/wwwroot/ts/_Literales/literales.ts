@@ -591,7 +591,8 @@ const ltrControladores = {
         Regularizaciones: 'Regularizaciones',
         LineasDeUnPedido: 'LineasDeUnPedido',
         EntregasDeUnPedido: 'EntregasDeUnPedido',
-        DevolucionesDeUnPedido: 'DevolucionesDeUnPedido'
+        DevolucionesDeUnPedido: 'DevolucionesDeUnPedido',
+        Ventas: 'Ventas'
     },
     Guarderias: {
         Cursos: 'CursosDeGuarderia',
@@ -670,6 +671,8 @@ const atControl = {
     negocio: literal.negocio,
     transiciones: 'transiciones',
     esAmpliacion: 'es-ampliacion',
+    // ampliación calculada que sólo se muestra (ver AmpliacionDeEdicion.SoloConsulta): no se persiste
+    ampliacionSoloConsulta: 'solo-consulta',
     esDetalle: 'es-detalle',
     objeto: 'datos-del-objeto',
     TrasMapear: 'tras-mapear',
@@ -728,6 +731,7 @@ const enumFormato = {
     Numero: 'numero',
     Numero_2: 'numero.2',
     Numero_6: 'numero.6',
+    Numero_4: 'numero.4',
     Porcentaje: 'porcentaje',
     FechaHora: 'yyyy-MM-dd HH:mm:ss',
     ddMMyyyyHHmm: 'dd-MM-yyyy HH:mm',
@@ -1768,7 +1772,11 @@ const Ajax = {
             },
             Inventario: {
                 ObtenerUrlAlUnitario: 'epObtenerUrlAlUnitario',
-                PrepararRecuento: 'epPrepararRecuento'
+                PrepararRecuento: 'epPrepararRecuento',
+                DatosParaVender: 'epDatosParaVender'
+            },
+            Ventas: {
+                CrearVenta: 'epCrearVenta'
             }
         },
         Contabilidad: {
@@ -3637,7 +3645,19 @@ const ltrPropiedades = {
             // propiedad del almacén en la modal de preparar el recuento (ver PrepararRecuentoDto)
             AlmacenDelRecuento: 'Almacen',
             // clase de regularización para la que se prepara el Excel
-            ClaseDelRecuento: 'Clase'
+            ClaseDelRecuento: 'Clase',
+            // propiedades de la modal de venta de material (ver CrearVentaDto)
+            Venta: {
+                IdAlmacen: 'IdAlmacen',
+                IdUnitario: 'IdUnitario',
+                Cliente: 'Cliente',
+                Fecha: 'Fecha',
+                Cantidad: 'Cantidad',
+                Precio: 'Precio',
+                Total: 'Total',
+                Servido: 'Servido',
+                Facturar: 'Facturar'
+            }
         },
         Regularizacion: {
             IdAlmacen: 'idalmacen',
@@ -4531,7 +4551,8 @@ const ltrMenus = {
                 IrAMovimientos: 'ir-a-movimientos-del-almacen'
             },
             Inventario: {
-                PrepararRecuento: 'preparar-recuento'
+                PrepararRecuento: 'preparar-recuento',
+                VenderMaterial: 'vender-material'
             }
         },
         MaestrosTecnico: {
@@ -4556,6 +4577,7 @@ const ltrMenus = {
         Venta: {
             FacturasEmt: {
                 IrAPartesTr: 'ir-a-partes-trabajo',
+                IrAVentas: 'ir-a-documentos-de-salida',
                 IrAPpts: 'ir-a-ppts',
                 IrAContratos: 'ir-a-contratos',
                 IrAFacturasEmt: 'ir-a-facturasEmt',

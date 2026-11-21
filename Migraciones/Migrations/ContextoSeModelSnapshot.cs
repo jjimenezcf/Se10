@@ -13422,6 +13422,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_LINEA_RECEPCION");
 
+                    b.Property<int?>("IdLineaDeVenta")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LINEA_VENTA");
+
                     b.Property<int?>("IdLineaDevolucion")
                         .HasColumnType("INT")
                         .HasColumnName("ID_LINEA_DEVOLUCION");
@@ -13482,6 +13486,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdLineaDeRecepcion")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_RECEPCION");
+
+                    b.HasIndex("IdLineaDeVenta")
+                        .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_VENTA");
 
                     b.HasIndex("IdLineaDevolucion")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_DEVOLUCION");
@@ -14712,6 +14719,14 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_GESTOR");
 
+                    b.Property<int>("IdPermisoInterventor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_INTERVENTOR");
+
+                    b.Property<int?>("IdTipoFacturaEmt")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_TIPO_FACTURA");
+
                     b.Property<string>("Marcador")
                         .HasColumnType("VARCHAR(255)")
                         .HasColumnName("MARCADOR");
@@ -14771,6 +14786,13 @@ namespace Migraciones.Migrations
                     b.HasIndex("IdPermisoDeGestor")
                         .IsUnique()
                         .HasDatabaseName("I_VENTA_TIPO_ID_GESTOR");
+
+                    b.HasIndex("IdPermisoInterventor")
+                        .IsUnique()
+                        .HasDatabaseName("I_VENTA_TIPO_ID_INTERVENTOR");
+
+                    b.HasIndex("IdTipoFacturaEmt")
+                        .HasDatabaseName("I_VENTA_TIPO_ID_TIPO_FACTURA");
 
                     b.HasIndex("Nombre")
                         .IsUnique()
@@ -15372,7 +15394,7 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_ESTADO");
 
-                    b.Property<int?>("IdFactura")
+                    b.Property<int?>("IdFacturaEmt")
                         .HasColumnType("INT")
                         .HasColumnName("ID_FACTURA_EMT");
 
@@ -15436,7 +15458,7 @@ namespace Migraciones.Migrations
                     b.HasIndex("IdEstado")
                         .HasDatabaseName("I_VENTA_ID_ESTADO");
 
-                    b.HasIndex("IdFactura")
+                    b.HasIndex("IdFacturaEmt")
                         .HasDatabaseName("I_VENTA_ID_FACTURA_EMT");
 
                     b.HasIndex("IdTipo")
@@ -37782,6 +37804,12 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_LINEA_RECEPCION");
 
+                    b.HasOne("ServicioDeDatos.Logistica.LineaDeUnaVentaDtm", "LineaDeVenta")
+                        .WithMany()
+                        .HasForeignKey("IdLineaDeVenta")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_LINEA_VENTA");
+
                     b.HasOne("ServicioDeDatos.Logistica.DevolucionDeEntregaDtm", "LineaDeDevolucion")
                         .WithMany()
                         .HasForeignKey("IdLineaDevolucion")
@@ -37826,6 +37854,8 @@ namespace Migraciones.Migrations
                     b.Navigation("LineaDeDevolucion");
 
                     b.Navigation("LineaDeRecepcion");
+
+                    b.Navigation("LineaDeVenta");
 
                     b.Navigation("Preasiento");
 
@@ -38422,6 +38452,19 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_VENTA_TIPO_ID_GESTOR");
 
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeInterventor")
+                        .WithMany()
+                        .HasForeignKey("IdPermisoInterventor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_VENTA_TIPO_ID_INTERVENTOR");
+
+                    b.HasOne("ServicioDeDatos.Ventas.TipoDeFacturaEmtDtm", "TipoFacturaEmt")
+                        .WithMany()
+                        .HasForeignKey("IdTipoFacturaEmt")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_VENTA_TIPO_ID_TIPO_FACTURA");
+
                     b.Navigation("Estado");
 
                     b.Navigation("Padre");
@@ -38431,6 +38474,10 @@ namespace Migraciones.Migrations
                     b.Navigation("PermisoDeConsultor");
 
                     b.Navigation("PermisoDeGestor");
+
+                    b.Navigation("PermisoDeInterventor");
+
+                    b.Navigation("TipoFacturaEmt");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.TransicionesDeUnAlmacenDtm", b =>
@@ -38627,9 +38674,9 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_VENTA_ID_ESTADO");
 
-                    b.HasOne("ServicioDeDatos.Ventas.FacturaEmtDtm", "Factura")
+                    b.HasOne("ServicioDeDatos.Ventas.FacturaEmtDtm", "FacturaEmt")
                         .WithMany()
-                        .HasForeignKey("IdFactura")
+                        .HasForeignKey("IdFacturaEmt")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_VENTA_ID_FACTURA_EMT");
 
@@ -38661,7 +38708,7 @@ namespace Migraciones.Migrations
 
                     b.Navigation("Estado");
 
-                    b.Navigation("Factura");
+                    b.Navigation("FacturaEmt");
 
                     b.Navigation("Tipo");
 

@@ -61,6 +61,9 @@ namespace MVCSistemaDeElementos.Controllers
                 case eventosDeMf.Ral_PrepararRecuento:
                     // la modal se abre con el almacén filtrado y al aceptar se llama a epPrepararRecuento
                     return null;
+                case eventosDeMf.Ral_VenderMaterial:
+                    // la modal se abre con los datos de la fila (ver epDatosParaVender) y al aceptar se llama a VentasController.epCrearVenta
+                    return null;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -94,6 +97,40 @@ namespace MVCSistemaDeElementos.Controllers
             catch (Exception e)
             {
                 ApiController.PrepararError(e, r, "Error al someter la preparación del recuento.");
+            }
+            return new JsonResult(r);
+        }
+
+        // Datos con los que se abre la modal de venta de material (CrearVentaDto) para la fila del inventario: su id es el de su último
+        // movimiento, del que se toman el almacén y el material; el precio que se propone es el de venta del material
+        public JsonResult epDatosParaVender(string parametrosJson)
+        {
+            var r = new Resultado();
+            Dictionary<string, object> parametros = parametrosJson.ToDiccionarioDeParametros();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+
+                var idMovimiento = (int)parametros.LeerValor<long>(ltrParametrosEp.id);
+                var movimiento = Contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(idMovimiento);
+                var almacen = movimiento.Almacen(Contexto);
+                var unitario = movimiento.Unitario(Contexto);
+                r.Datos = new CrearVentaDto
+                {
+                    IdAlmacen = almacen.Id,
+                    Almacen = almacen.Expresion,
+                    IdUnitario = unitario.Id,
+                    Unitario = unitario.Expresion,
+                    Fecha = DateTime.Today,
+                    Precio = unitario.Venta
+                };
+                r.Consola = "Datos para la venta obtenidos correctamente";
+                r.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor.Render();
+                r.Estado = enumEstadoPeticion.Ok;
+            }
+            catch (Exception e)
+            {
+                ApiController.PrepararError(e, r, "No se pueden obtener los datos para vender el material.");
             }
             return new JsonResult(r);
         }

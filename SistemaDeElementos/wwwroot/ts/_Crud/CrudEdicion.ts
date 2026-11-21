@@ -1,5 +1,9 @@
 ﻿namespace Crud {
 
+    // Ampliación calculada que sólo se muestra (ver AmpliacionDeEdicion.SoloConsulta): no cuenta como cambio ni se persiste
+    export function EsAmpliacionDeSoloConsulta(ampliacion: HTMLDivElement): boolean {
+        return EsTrue(ampliacion.getAttribute(atControl.ampliacionSoloConsulta));
+    }
 
     export class CrudEdicion extends CrudBase {
 
@@ -144,6 +148,7 @@
             if (hay) return true;
             let ampliaciones: NodeListOf<HTMLDivElement> = this.PanelDeEditar.querySelectorAll(`div[${atControl.esAmpliacion}="true"]`) as NodeListOf<HTMLDivElement>;
             for (let i = 0; i < ampliaciones.length; i++) {
+                if (EsAmpliacionDeSoloConsulta(ampliaciones[i])) continue;
                 let valores = this.ValoresInicales.get(ampliaciones[i].id);
                 var hay = !Definido(valores) ? true : ApiPanel.HayCambios(ampliaciones[i], valores);
                 if (hay) return true;
@@ -1918,7 +1923,7 @@
             for (var i = 0; i < ampliaciones.length; i++) {
                 let ampliacion: HTMLDivElement = ampliaciones[i] as HTMLDivElement;
                 let bloqueDeAmpliacion = ampliacion.parentNode.parentNode as HTMLDivElement;
-                if (!bloqueDeAmpliacion.classList.contains(ltrCss.divNoVisible)) {
+                if (!bloqueDeAmpliacion.classList.contains(ltrCss.divNoVisible) && !EsAmpliacionDeSoloConsulta(ampliacion)) {
                     let jsonAmpliacion: JSON = ApiDelCrud.MapearControlesDesdeElCrudAlJson(this, ampliacion, enumModoTrabajo.editando);
                     parametros.push(new Parametro(ampliaciones[i].getAttribute(ltrAmpliaciones.tipoDto), jsonAmpliacion));
                 }
@@ -2002,7 +2007,7 @@
                 let bloqueDeAmpliacion = ampliacion.parentNode.parentNode as HTMLDivElement;
                 let valores = this.ValoresInicales.get(ampliacion.id);
                 let hayCambios = !Definido(valores) ? true : ApiPanel.HayCambios(ampliacion, valores);
-                if (!bloqueDeAmpliacion.classList.contains(ltrCss.divNoVisible) && hayCambios) {
+                if (!bloqueDeAmpliacion.classList.contains(ltrCss.divNoVisible) && hayCambios && !EsAmpliacionDeSoloConsulta(ampliacion)) {
                     let json: JSON = ApiDelCrud.MapearControlesDesdeElCrudAlJson(crudEdicion, ampliacion, enumModoTrabajo.editando);
                     let controlador = ampliacion.getAttribute(ltrAmpliaciones.controlador);
                     ApiDePeticiones.PersistirAmpliacion(crudEdicion, controlador, Ajax.EndPoint.PersistirAmpliacion, crudEdicion.CrudDeMnt.IdNegocio, json)

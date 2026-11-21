@@ -151,9 +151,18 @@ namespace GestoresDeNegocio.Logistica
             if (parametros.Parametros.LeerValor(ltrDeUnMovimientoDeAlmacen.EstoyBarriendo, false))
                 return;
 
-            // sólo se borran al cancelar la entrega de una recepción en un almacén; los posteriores se barren en DespuesDePersistir
+            // sólo se borran al cancelar la entrega de una recepción en un almacén, una devolución de compra o al devolver a solicitado un
+            // documento de venta; los posteriores se barren en DespuesDePersistir
             if (parametros.Eliminando)
             {
+                if (parametros.AccionQueSeEjecuta == ltrDeUnMovimientoDeAlmacen.Accion_AnularSalidaDeVenta)
+                {
+                    if (movimiento.IdLineaDeVenta is null)
+                        GestorDeErrores.Emitir($"El movimiento de referencia '{movimiento.Referencia(Contexto)}' no es una salida por venta, no se puede anular");
+                    movimiento.QuitarPreasiento(Contexto);
+                    return;
+                }
+
                 if (parametros.AccionQueSeEjecuta != ltrDeUnMovimientoDeAlmacen.Accion_AnularEntradaDeCompra
                     && parametros.AccionQueSeEjecuta != ltrDeUnMovimientoDeAlmacen.Accion_AnularDevolucionDeCompra)
                     GestorDeErrores.Emitir("No se pueden eliminar movimientos de almacén");
@@ -216,6 +225,11 @@ namespace GestoresDeNegocio.Logistica
                     : $"Recepción de la línea nº {linea.Orden} del pedido '{pedido.Referencia}'";
             }
             if (movimiento.IdLineaDevolucion != null) return $"Devolución Nº {movimiento.IdLineaDevolucion}";
+            if (movimiento.IdLineaDeVenta != null)
+            {
+                var linea = Contexto.SeleccionarPorId<LineaDeUnaVentaDtm>((int)movimiento.IdLineaDeVenta);
+                return $"Venta de la línea nº {linea.Orden} del documento de venta '{linea.Venta(Contexto).Referencia}'";
+            }
             if (movimiento.IdLineaInventario != null)
             {
                 var linea = Contexto.SeleccionarPorId<LineasDeUnaRegularizacionDtm>((int)movimiento.IdLineaInventario);

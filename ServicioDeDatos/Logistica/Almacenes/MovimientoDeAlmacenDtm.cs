@@ -68,6 +68,8 @@ namespace ServicioDeDatos.Logistica
 
         public static string Accion_AnularEntradaDeCompra => nameof(Accion_AnularEntradaDeCompra);
         public static string Accion_AnularDevolucionDeCompra => nameof(Accion_AnularDevolucionDeCompra);
+        // al devolver un documento de venta de servido a solicitado se borran las salidas de sus líneas (ver ExtensorDeVentas.AntesDeDevolverASolicitado)
+        public static string Accion_AnularSalidaDeVenta => nameof(Accion_AnularSalidaDeVenta);
 
     }
 
@@ -106,6 +108,10 @@ namespace ServicioDeDatos.Logistica
         public int? IdLineaDevolucion { get; set; }
         public DevolucionDeEntregaDtm LineaDeDevolucion { get; set; }
         public int? IdLineaInventario { get; set; }
+
+        // venta de material: la salida de lo vendido en la línea de un documento de venta
+        public int? IdLineaDeVenta { get; set; }
+        public LineaDeUnaVentaDtm LineaDeVenta { get; set; }
 
         public int? IdPreasiento { get; set; }
         public PreasientoDtm Preasiento { get; set; }
@@ -152,6 +158,7 @@ namespace ServicioDeDatos.Logistica
             // la entrada de compra apunta a la entrega de la línea del pedido que la origina (RecepcionDeLineaDtm)
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeRecepcion), nameof(MovimientoDeAlmacenDtm.IdLineaDeRecepcion), ICampos.ID_LINEA_RECEPCION, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeDevolucion), nameof(MovimientoDeAlmacenDtm.IdLineaDevolucion), ICampos.ID_LINEA_DEVOLUCION, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeVenta), nameof(MovimientoDeAlmacenDtm.IdLineaDeVenta), ICampos.ID_LINEA_VENTA, requerida: false, unico: false);
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaInventario).HasColumnName(ICampos.ID_LINEA_INVENTARIO).HasColumnType(IDominio.INT).IsRequired(false);
 
             ApiDeElementoDtm.DefinirCamposDeAuditoria<MovimientoDeAlmacenDtm>(modelBuilder);

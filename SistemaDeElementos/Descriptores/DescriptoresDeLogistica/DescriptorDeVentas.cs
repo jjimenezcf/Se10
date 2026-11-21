@@ -4,13 +4,19 @@ using UtilidadesParaIu;
 using Utilidades;
 using ModeloDeDto;
 using ModeloDeDto.Logistica;
+using ModeloDeDto.Ventas;
 using System.Collections.Generic;
+using GestorDeElementos;
 using GestorDeElementos.Extensores;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
     public class DescriptorDeVentas : DescriptorDeCrud<VentaDto>
     {
+        public DescriptorDeVentas(ContextoSe contexto, string renderCache) : base(contexto, renderCache)
+        {
+        }
+
         public DescriptorDeVentas(ContextoSe contexto, ModoDescriptor modo)
         : base(contexto
                , nameof(VentasController)
@@ -33,6 +39,34 @@ namespace MVCSistemaDeElementos.Descriptores
                 restringirPor: "",
                 alSeleccionarBlanquearControl: "")
             { LongitudMinimaParaBuscar = 1 };
+
+            // filtro (y restrictor al navegar desde las relaciones de una factura emitida) por la prefactura del documento de venta
+            new ListasDinamicas<VentaDto>(Mnt.BloqueGeneral,
+                etiqueta: enumNegocio.FacturaEmitida.Singular(),
+                filtrarPor: nameof(VentaDto.IdFacturaEmt),
+                ayuda: $"seleccione la {enumNegocio.FacturaEmitida.Singular(true)}",
+                seleccionarDe: nameof(FacturaEmtDto),
+                buscarPor: nameof(FacturaEmtDto.Expresion),
+                mostrarExpresion: nameof(FacturaEmtDto.Expresion),
+                criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                posicion: new Posicion(0, 2),
+                controlador: nameof(FacturasEmtController),
+                navegarA: nameof(FacturasEmtController.CrudFacturasEmt),
+                restringirPor: "",
+                alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+
+            // filtro por documentos de venta con o sin factura (ver FiltrosDeDocumentosDeVenta.FiltroPorFactura)
+            var opcionesDeFacturado = new Dictionary<string, string> {
+                      { $"{ltrParametrosNeg.MostrarTodos}", "con o sin factura" }
+                    , { $"{ltrParametrosNeg.ConRelacion}", "facturados" }
+                    , { $"{ltrParametrosNeg.SinRelacion}", "sin facturar" } };
+            new ListaDeValores<VentaDto>(Mnt.BloqueGeneral,
+                etiqueta: "Facturado",
+                ayuda: "con o sin factura",
+                opciones: opcionesDeFacturado,
+                filtraPor: ServicioDeDatos.Logistica.ltrDeUnaVenta.Facturado,
+                posicion: new Posicion(1, 0));
 
             DescriptorDeLineasDeUnaVenta();
         }

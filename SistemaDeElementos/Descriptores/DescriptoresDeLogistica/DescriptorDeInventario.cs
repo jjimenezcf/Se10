@@ -65,6 +65,11 @@ namespace MVCSistemaDeElementos.Descriptores
                  alSeleccionarBlanquearControl: "")
             { OtrosClausulasDeFiltrado = "javascript: " + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Ral_FiltrosPorClaseDeUnitario) + "()" };
 
+            // vende el material de la fila seleccionada: la modal se abre con su almacén, su material y su precio de venta (ver Inventario.ts)
+            // y al aceptar crea el documento de venta, la salida del almacén y su preasiento (ver VentasController.epCrearVenta)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CrearVentaDto), eventosDeMf.Ral_VenderMaterial, "Venta de material"));
+            Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Ral_VenderMaterial}' accion-menu='{eventosDeMf.Ral_VenderMaterial}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Venta de material</li>");
+
             // genera el Excel para el recuento del almacén filtrado (la modal se abre con el almacén seleccionado, ver Inventario.ts)
             modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(PrepararRecuentoDto), eventosDeMf.Ral_PrepararRecuento, "Preparar recuento"));
             Mnt.IncluirMfContextual($"<li id='{menuContextual}.{eventosDeMf.Ral_PrepararRecuento}' accion-menu='{eventosDeMf.Ral_PrepararRecuento}' {AtributosHtml.Mf(enumCssOpcionMenu.DeVista, enumModoDeAccesoDeDatos.Consultor, false)}>Preparar recuento</li>");

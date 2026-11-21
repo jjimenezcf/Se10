@@ -28,6 +28,8 @@
             public static readonly string irpfEmt = nameof(irpfEmt);
             public static readonly string periodoEmt = nameof(periodoEmt);
             public static readonly string verifactu = nameof(verifactu);
+            // enlaces a los documentos relacionados (ampliación ficticia de sólo consulta, ver EnlacesDeFaeDto)
+            public static readonly string enlacesEmt = nameof(enlacesEmt);
             public static readonly string DireccionAlCrear = Comunes.DireccionAlCrear;
         }
 
