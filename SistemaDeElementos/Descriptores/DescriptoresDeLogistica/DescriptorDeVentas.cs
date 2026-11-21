@@ -5,6 +5,7 @@ using Utilidades;
 using ModeloDeDto;
 using ModeloDeDto.Logistica;
 using ModeloDeDto.Ventas;
+using ModeloDeDto.MaestrosTecnico;
 using System.Collections.Generic;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
@@ -24,7 +25,9 @@ namespace MVCSistemaDeElementos.Descriptores
                , modo
                , rutaBase: enumNameSpaceTs.Logistica)
         {
-            // filtro (y restrictor al llegar desde el menú del almacén) por el almacén de la venta
+            // en el bloque general no se filtra por centro gestor: en su sitio va el almacén (filtro, y restrictor al llegar desde el menú del
+            // almacén)
+            Mnt.BloqueGeneral.QuitarControl(Mnt.Filtro.FiltroDeCg.Propiedad);
             new ListasDinamicas<VentaDto>(Mnt.BloqueGeneral,
                 etiqueta: enumNegocio.Almacen.Singular(),
                 filtrarPor: nameof(VentaDto.IdAlmacen),
@@ -33,15 +36,61 @@ namespace MVCSistemaDeElementos.Descriptores
                 buscarPor: nameof(AlmacenDto.Expresion),
                 mostrarExpresion: nameof(AlmacenDto.Expresion),
                 criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
-                posicion: new Posicion(0, 1),
+                posicion: new Posicion(0, 0),
                 controlador: nameof(AlmacenesController),
                 navegarA: nameof(AlmacenesController.CrudAlmacenes),
                 restringirPor: "",
                 alSeleccionarBlanquearControl: "")
             { LongitudMinimaParaBuscar = 1 };
 
-            // filtro (y restrictor al navegar desde las relaciones de una factura emitida) por la prefactura del documento de venta
-            new ListasDinamicas<VentaDto>(Mnt.BloqueGeneral,
+            IncluirFiltrosDeVentas();
+            DescriptorDeLineasDeUnaVenta();
+        }
+
+        // Bloque de filtrado "Datos de ventas", como "Relaciones con el pedido" en DescriptorDePedidos
+        private void IncluirFiltrosDeVentas()
+        {
+            var modal = new ModalDeFiltrado<VentaDto>(Mnt.Filtro, "filtrosDeVentas", "Datos de ventas");
+            Mnt.Filtro.Modales.Add(modal);
+            FiltroPorUnitario(modal);
+            FiltroPorImporte(modal);
+            FiltroPorFacturaEmt(modal);
+        }
+
+        // documentos de venta con alguna línea del material (ver FiltrosDeDocumentosDeVenta.FiltroPorUnitario)
+        private static void FiltroPorUnitario(ModalDeFiltrado<VentaDto> modal)
+        {
+            var ld = new ListasDinamicas<VentaDto>(modal,
+                 etiqueta: "Unitario",
+                 filtrarPor: ServicioDeDatos.Logistica.ltrDeUnaVenta.FiltroPorUnitario,
+                 ayuda: "documentos de venta con alguna línea del material",
+                 seleccionarDe: nameof(UnitarioDto),
+                 buscarPor: nameof(UnitarioDto.Expresion),
+                 mostrarExpresion: nameof(UnitarioDto.Expresion),
+                 criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
+                 posicion: new Posicion(1, 0),
+                 controlador: nameof(UnitariosController),
+                 navegarA: nameof(UnitariosController.CrudUnitarios),
+                 restringirPor: "",
+                 alSeleccionarBlanquearControl: "")
+            { LongitudMinimaParaBuscar = 1 };
+            modal.ControlesDeFiltrado.Add(ld);
+        }
+
+        // rango de la base imponible del documento de venta, sin iva (ver FiltrosDeDocumentosDeVenta.FiltroPorImporte)
+        private static void FiltroPorImporte(ModalDeFiltrado<VentaDto> modal)
+        {
+            modal.ControlesDeFiltrado.Add(new FiltroEntreImportes<VentaDto>(modal,
+                    etiqueta: "Importe",
+                    propiedad: ServicioDeDatos.Logistica.ltrDeUnaVenta.FiltroPorImporte,
+                    ayuda: "filtrar por rango de la base imponible"));
+        }
+
+        // Por su prefactura (también restrictor al navegar desde las relaciones de una factura emitida) o con / sin factura (ver
+        // FiltrosDeDocumentosDeVenta.FiltroPorFactura)
+        private static void FiltroPorFacturaEmt(ModalDeFiltrado<VentaDto> modal)
+        {
+            var lista = new ListasDinamicas<VentaDto>(modal,
                 etiqueta: enumNegocio.FacturaEmitida.Singular(),
                 filtrarPor: nameof(VentaDto.IdFacturaEmt),
                 ayuda: $"seleccione la {enumNegocio.FacturaEmitida.Singular(true)}",
@@ -49,26 +98,25 @@ namespace MVCSistemaDeElementos.Descriptores
                 buscarPor: nameof(FacturaEmtDto.Expresion),
                 mostrarExpresion: nameof(FacturaEmtDto.Expresion),
                 criterioDeBusqueda: enumCriteriosDeFiltrado.contiene,
-                posicion: new Posicion(0, 2),
+                posicion: new Posicion(1, 0),
                 controlador: nameof(FacturasEmtController),
                 navegarA: nameof(FacturasEmtController.CrudFacturasEmt),
                 restringirPor: "",
                 alSeleccionarBlanquearControl: "")
             { LongitudMinimaParaBuscar = 1 };
 
-            // filtro por documentos de venta con o sin factura (ver FiltrosDeDocumentosDeVenta.FiltroPorFactura)
-            var opcionesDeFacturado = new Dictionary<string, string> {
+            var opciones = new Dictionary<string, string> {
                       { $"{ltrParametrosNeg.MostrarTodos}", "con o sin factura" }
                     , { $"{ltrParametrosNeg.ConRelacion}", "facturados" }
                     , { $"{ltrParametrosNeg.SinRelacion}", "sin facturar" } };
-            new ListaDeValores<VentaDto>(Mnt.BloqueGeneral,
-                etiqueta: "Facturado",
-                ayuda: "con o sin factura",
-                opciones: opcionesDeFacturado,
-                filtraPor: ServicioDeDatos.Logistica.ltrDeUnaVenta.Facturado,
-                posicion: new Posicion(1, 0));
 
-            DescriptorDeLineasDeUnaVenta();
+            modal.ControlesDeFiltrado.Add(new FiltroDeRelacion<VentaDto>(modal,
+                lista: lista,
+                opciones: opciones,
+                propiedad: ServicioDeDatos.Logistica.ltrDeUnaVenta.Facturado,
+                filtrarPor: ServicioDeDatos.Logistica.ltrDeUnaVenta.Facturado,
+                ayuda: $"Filtros de {enumNegocio.FacturaEmitida.Plural(true)}"
+                ));
         }
 
         private void DescriptorDeLineasDeUnaVenta()

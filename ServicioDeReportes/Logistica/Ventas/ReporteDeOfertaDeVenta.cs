@@ -36,7 +36,8 @@ namespace ServicioDeReportes.Logistica
                 });
         }
 
-        // A la izquierda el título y la fecha de la oferta, a la derecha el logo (o el nif) de la sociedad
+        // A la izquierda el título y la fecha de la oferta, a la derecha el logo de la sociedad que vende (si no tiene, el hueco queda vacío:
+        // su nif ya va en el bloque "De")
         private void Cabecera(IContainer encabezado)
         {
             encabezado.Row(cabecera =>
@@ -58,7 +59,7 @@ namespace ServicioDeReportes.Logistica
 
                 cabecera.ConstantItem(10);
                 cabecera.ConstantItem(Oferta.AnchoLogo).AlignRight().Row(fila =>
-                    ApiDeReportes.RenderLogo(fila, Oferta.MostrarLogo ? Oferta.Logo : string.Empty, Oferta.AnchoLogo, Oferta.AnchoLogo, texto: Oferta.Sociedad.Nif));
+                    ApiDeReportes.RenderLogo(fila, Oferta.MostrarLogo ? Oferta.Logo : string.Empty, Oferta.AnchoLogo, Oferta.AnchoLogo, texto: " "));
             });
         }
 

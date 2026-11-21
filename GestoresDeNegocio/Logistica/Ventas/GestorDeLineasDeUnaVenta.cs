@@ -8,6 +8,8 @@ using ModeloDeDto.Logistica;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Gestor.Errores;
+using ServicioDeDatos.Seguridad;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -49,7 +51,14 @@ namespace GestoresDeNegocio.Logistica
         protected override void AntesDePersistir(LineaDeUnaVentaDtm linea, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(linea, parametros);
-            // TODO: completar cuando se conozca el detalle funcional de las líneas de un documento de venta
+
+            // las líneas sólo se crean, modifican o borran mientras el documento de venta está en la etapa de solicitud: una vez servido
+            // tienen su salida del almacén (y quizá su prefactura)
+            if (parametros.EsUnaTransicion || parametros.EstaEjecutandoUnaAccion)
+                return;
+            var venta = Contexto.SeleccionarPorId<VentaDtm>(linea.IdElemento, usarLaCache: false);
+            if (!venta.EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Solicitud))
+                GestorDeErrores.Emitir($"Las líneas del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' no se pueden {(parametros.Operacion == enumTipoOperacion.Eliminar ? "borrar" : parametros.Operacion == enumTipoOperacion.Insertar ? "añadir" : "modificar")} por no estar en la etapa de {enumEtapasDeVenta.DSA_Etapa_Solicitud.Nombre(true)}");
         }
 
         protected override void DespuesDeMapearElElemento(LineaDeUnaVentaDtm linea, LineaDeUnaVentaDto elemento, ParametrosDeNegocio parametros)
@@ -57,6 +66,11 @@ namespace GestoresDeNegocio.Logistica
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.PrecioAlmacen = linea.PrecioAlmacen(Contexto);
             elemento.Margen = linea.Margen(elemento.PrecioAlmacen);
+
+            // las líneas sólo se editan en la etapa de solicitud del documento de venta (ver AntesDePersistir): en el resto se consultan
+            if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)
+                && !Contexto.SeleccionarPorId<VentaDtm>(linea.IdElemento).EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Solicitud))
+                elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;
         }
     }
 }

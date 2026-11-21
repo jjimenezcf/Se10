@@ -14,6 +14,8 @@ using GestoresDeNegocio.Entorno;
 using GestoresDeNegocio.SistemaDocumental;
 using QuestPDF.Fluent;
 using ServicioDeReportes.Logistica;
+using Gestor.Errores;
+using ServicioDeDatos.Seguridad;
 
 namespace GestoresDeNegocio.Logistica
 {
@@ -81,6 +83,8 @@ namespace GestoresDeNegocio.Logistica
             // TODO: completar los filtros propios del negocio de documentos de venta
             consulta = base.AplicarFiltros(consulta, filtros, parametros);
             consulta = consulta.FiltroPorFactura(filtros, parametros);
+            consulta = consulta.FiltroPorUnitario(Contexto, filtros);
+            consulta = consulta.FiltroPorImporte(Contexto, filtros);
             return consulta;
         }
 
@@ -98,7 +102,22 @@ namespace GestoresDeNegocio.Logistica
         protected override void AntesDePersistir(VentaDtm venta, ParametrosDeNegocio parametros)
         {
             base.AntesDePersistir(venta, parametros);
+            ValidarQueEsModificable(venta, parametros);
             venta.InicializarDatosCliente(Contexto, parametros);
+        }
+
+        // Una vez servido (y facturado o cancelado) el documento de venta no se puede modificar ni borrar: sólo en la etapa de solicitud.
+        // Lo que cambia el propio sistema al transitar o al ejecutar una acción (fecha de servicio, prefactura...) sí se guarda
+        private void ValidarQueEsModificable(VentaDtm venta, ParametrosDeNegocio parametros)
+        {
+            if (parametros.Operacion != enumTipoOperacion.Modificar && parametros.Operacion != enumTipoOperacion.Eliminar)
+                return;
+            if (parametros.EsUnaTransicion || parametros.EstaEjecutandoUnaAccion)
+                return;
+
+            var ventaEnBd = Contexto.SeleccionarPorId<VentaDtm>(venta.Id, usarLaCache: false);
+            if (!ventaEnBd.EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Solicitud))
+                GestorDeErrores.Emitir($"El {enumNegocio.Venta.Singular(true)} '{ventaEnBd.Referencia}' no se puede {(parametros.Operacion == enumTipoOperacion.Eliminar ? "borrar" : "modificar")} por no estar en la etapa de {enumEtapasDeVenta.DSA_Etapa_Solicitud.Nombre(true)}");
         }
 
         protected override void DespuesDePersistir(VentaDtm venta, ParametrosDeNegocio parametros)
@@ -154,6 +173,11 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(venta, elemento, parametros);
             elemento.TotalSinIva = venta.TotalSinIva(Contexto);
+
+            // sólo se edita en la etapa de solicitud (ver ValidarQueEsModificable): en el resto se consulta, aunque se puede transitar
+            if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)
+                && !venta.EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Solicitud))
+                elemento.ModoDeAcceso = enumModoDeAccesoDeDatos.Consultor;
         }
 
     }

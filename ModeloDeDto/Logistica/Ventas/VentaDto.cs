@@ -175,6 +175,8 @@ namespace ModeloDeDto.Logistica
            EditableAlEditar = false,
            Obligatorio = false,
            Formato = enumFormato.Moneda,
+           AnchoMaximo = "300px",
+           MantenerHuecoDeLaIzquierda = true,
            Fila = 12,
            Columna = 2,
            VisibleEnGrid = false

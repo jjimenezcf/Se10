@@ -15,6 +15,10 @@ namespace ServicioDeDatos.Logistica
         public const string IdFacturaEmt = nameof(VentaDtm.IdFacturaEmt);
         // con o sin factura (ltrParametrosNeg.ConRelacion / SinRelacion)
         public const string Facturado = nameof(Facturado);
+        // con alguna línea del unitario
+        public const string FiltroPorUnitario = nameof(FiltroPorUnitario);
+        // rango de la base imponible (lo vendido en sus líneas con su descuento, sin iva)
+        public const string FiltroPorImporte = nameof(FiltroPorImporte);
     }
 
     [Table(Tablas.VENTA, Schema = Esquemas.LOGISTICA)]

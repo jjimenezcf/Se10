@@ -902,8 +902,10 @@ namespace GestorDeElementos.Extensores
             {
                 var lineaDeVenta = contexto.SeleccionarPorId<LineaDeUnaVentaDtm>((int)movimiento.IdLineaDeVenta);
                 var venta = lineaDeVenta.Venta(contexto);
+                // el concepto de los apuntes se abrevia para que quepa: "venta '{documento}', Mat: '{material}'"
                 movimiento.PreasentarVariacionDeExistencias(contexto, -(movimiento.Cantidad * movimiento.Precio),
-                    $"Venta de la línea nº {lineaDeVenta.Orden} del documento de venta '{venta.Referencia}'", generandoPreasientosAntiguos);
+                    $"Venta '{venta.Referencia}'", generandoPreasientosAntiguos,
+                    conceptoDelApunte: $"venta '{venta.Referencia}', Mat: '{movimiento.Unitario(contexto, aplicarJoin: true).Referencia}'");
                 return;
             }
 
@@ -1231,8 +1233,8 @@ namespace GestorDeElementos.Extensores
         // baja, al revés, por el valor absoluto. No se preasienta si no cambia el valor ni si el almacén usa la variación de existencias (sus
         // existencias se cuadran al cerrar, ver CuadreDeExistencias). Como en el resto de preasientos de almacén, el referenciado es el
         // movimiento, que al insertarlo aún no tiene Id (lo engancha GestorDeMovimientosDeAlmacen.DespuesDePersistir), y la fecha contable la
-        // del movimiento
-        private static void PreasentarVariacionDeExistencias(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, decimal variacion, string concepto, bool generandoPreasientosAntiguos)
+        // del movimiento. El concepto de los apuntes es "{referencia del material}: {concepto}", salvo que se indique otro (conceptoDelApunte)
+        private static void PreasentarVariacionDeExistencias(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, decimal variacion, string concepto, bool generandoPreasientosAntiguos, string conceptoDelApunte = null)
         {
             var importe = Math.Round(Math.Abs(variacion), 2);
             if (importe == 0)
@@ -1271,7 +1273,7 @@ namespace GestorDeElementos.Extensores
             }.InsertarComoAdministrador(contexto, parametros: ParametrosDeInsercion(generandoPreasientosAntiguos));
 
             var existenciasAlDebe = variacion > 0;
-            var conceptoDelApunte = $"{unitario.Referencia}: {concepto}".Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1);
+            conceptoDelApunte = (conceptoDelApunte ?? $"{unitario.Referencia}: {concepto}").Left(IDominio.Longitud(IDominio.VARCHAR_250) - 1);
             // primero el apunte del debe
             new ApunteDeUnPreasientoDtm
             {
