@@ -69,11 +69,13 @@ namespace Inicializador.Logistica
         }
 
 
+        public static readonly string n_tran_dsa_servir_auto = $"{n_dsa}: Servir (Auto)";
         public static readonly string n_tran_dsa_servir = $"{n_dsa}: Servir";
         public static readonly string n_tran_dsa_cancelar = $"{n_dsa}: Cancelar";
         public static readonly string n_tran_dsa_facturar = $"{n_dsa}: Facturar";
+        public static readonly string n_tran_dsa_devolver_a_solicitado_auto = $"{n_dsa}: Devolver a solicitado (Auto)";
         public static readonly string n_tran_dsa_devolver_a_solicitado = $"{n_dsa}: Devolver a solicitado";
-        public static readonly string n_tran_dsa_cancelar_prefactura = $"{n_dsa}: Cancelar prefactura";
+        public static readonly string n_tran_dsa_cancelar_prefactura_auto = $"{n_dsa}: Cancelar prefactura (Auto)";
 
         private static void Transiciones(ContextoSe contexto)
         {
@@ -81,15 +83,17 @@ namespace Inicializador.Logistica
             try
             {
                 //solicitado --> sirviendo (del sistema: al hacer la 1ª salida del almacén), cancelado
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_servir, n_estado_dsa_solicitado, n_estado_dsa_sirviendo, delSistema: true);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_servir_auto, n_estado_dsa_solicitado, n_estado_dsa_sirviendo, delSistema: true);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_servir, n_estado_dsa_solicitado, n_estado_dsa_sirviendo, delSistema: false);
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_cancelar, n_estado_dsa_solicitado, n_estado_dsa_cancelado, asunto: "Motivo de cancelación");
 
                 //sirviendo --> facturado (crea la prefactura), solicitado (del sistema: anula las salidas del almacén y sus preasientos y barre)
                 GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_facturar, n_estado_dsa_sirviendo, n_estado_dsa_facturado);
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_devolver_a_solicitado, n_estado_dsa_sirviendo, n_estado_dsa_solicitado, delSistema: true);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_devolver_a_solicitado_auto, n_estado_dsa_sirviendo, n_estado_dsa_solicitado, delSistema: true);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_devolver_a_solicitado, n_estado_dsa_sirviendo, n_estado_dsa_solicitado, delSistema: false);
 
                 //facturado --> sirviendo (del sistema: al cancelar la prefactura)
-                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_cancelar_prefactura, n_estado_dsa_facturado, n_estado_dsa_sirviendo, delSistema: true);
+                GestorDeTransiciones.DefinirTransicion(contexto, enumNegocio.Venta, n_tran_dsa_cancelar_prefactura_auto, n_estado_dsa_facturado, n_estado_dsa_sirviendo, delSistema: true);
             }
             finally
             {
