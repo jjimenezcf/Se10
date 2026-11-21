@@ -119,7 +119,7 @@ namespace ModeloDeDto.Logistica
         public decimal? Precio { get; set; }
 
         //--------------------------------------------
-        // Fila 3: total de la venta (cantidad por precio), sólo se muestra
+        // Fila 3, a la derecha (bajo el precio): total de la venta (cantidad por precio), sólo se muestra
         [IUPropiedad(
            Etiqueta = "Total",
            Tipo = typeof(decimal),
@@ -131,14 +131,16 @@ namespace ModeloDeDto.Logistica
            Obligatorio = false,
            Formato = enumFormato.Moneda,
            AnchoMaximo = "300px",
+           MantenerHuecoDeLaIzquierda = true,
            Fila = 3,
-           Columna = 0)
+           Columna = 2)
         ]
         public decimal? Total { get; set; }
 
         //--------------------------------------------
-        // Fila 3, a la derecha del total: qué más se hace tras crear el documento de venta. Facturar exige servido: al marcar facturar se
-        // marca servido y al desmarcar servido se desmarca facturar (ver Inventario.ts)
+        // Filas 4 y 5, a la derecha bajo el total y uno debajo del otro (CheckApilado, sin margen superior): qué más se hace tras crear el
+        // documento de venta. Facturar exige servido: al marcar facturar se marca servido y al desmarcar servido se desmarca facturar
+        // (ver Inventario.ts)
         [IUPropiedad(
             Etiqueta = "Servido",
             Ayuda = "Tras crear el documento de venta se pasa a la etapa de servicio",
@@ -147,8 +149,9 @@ namespace ModeloDeDto.Logistica
             VisibleEnGrid = false,
             Obligatorio = false,
             OnChange = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Dsa_AlCambiarServido) + "(this)",
-            Fila = 3,
-            Columna = 1
+            MantenerHuecoDeLaIzquierda = true,
+            Fila = 4,
+            Columna = 2
             )
         ]
         public bool Servido { get; set; }
@@ -161,7 +164,8 @@ namespace ModeloDeDto.Logistica
             VisibleEnGrid = false,
             Obligatorio = false,
             OnChange = "javascript:" + nameof(enumNameSpaceTs.Logistica) + "." + nameof(enumFunctionTs.Dsa_AlCambiarFacturar) + "(this)",
-            Fila = 3,
+            MantenerHuecoDeLaIzquierda = true,
+            Fila = 5,
             Columna = 2
             )
         ]
