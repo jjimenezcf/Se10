@@ -167,18 +167,63 @@ body.resizing-en-progreso * {
     border: 1px dashed red !important; /* Usar outline en lugar de border */
 }
 
-.div-mnt-menu-contenedor-clienteWeb {
-    grid-template-columns: auto 0.3fr 0.3fr 0em 0em 0em 0em 0em !important;
-}
-
+/* Barra del mantenimiento (ver DescriptorDeMantenimiento.RenderMenuDelMnt): una fila flex en la que cada parte toma su ancho real, sin
+   columnas fijas, así vale tenga los botones que tenga, salga o no la etiqueta de preguntar a la IA y estén o no los iconos (los que no
+   aplican llevan div-nulo y no ocupan):
+     - los botones de menú y la zona del filtro (preguntar a la IA y mostrar/ocultar filtro) con su ancho entero, nunca se recortan
+     - los iconos (mapa, detalle, filtro, contextual, individual, relaciones) con su 1.5em
+     - el título se queda con lo que sobra, centrado; si no cabe es lo primero que se recorta (con ...), antes que "Mostrar filtro"
+   En el móvil se ocultan el título y los iconos (ver la media query de más abajo) */
 .div-mnt-menu-contenedor {
     width: 100%;
     padding: 0.2em;
-    display: grid;
-    grid-template-columns: auto 15% auto 1.5em 1.5em 1.5em 1.5em 1.5em 1.5em 0em;
-    grid-template-rows: 1fr;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
     column-gap: 0.5em;
 }
+
+    /* si ni sin título cabe todo (muchos botones y la etiqueta de la IA en una pantalla estrecha) lo que cede es la zona de botones, que
+       se desplaza en horizontal, para que el filtro y los iconos sigan visibles */
+    .div-mnt-menu-contenedor > .div-mnt-menu-zona {
+        flex: 0 1 auto;
+        width: auto;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+        .div-mnt-menu-contenedor > .div-mnt-menu-zona > .botones-de-menu {
+            min-width: 0;
+        }
+
+    .div-mnt-menu-contenedor > .contenedor-titulo {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+    }
+
+    .div-mnt-menu-contenedor > .div-mnt-filtro-expansor {
+        flex: 0 0 auto;
+        width: auto;
+        padding-right: 0.5em;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .div-mnt-menu-contenedor > .menu-de-mostrar-mapa,
+    .div-mnt-menu-contenedor > .menu-de-detalle,
+    .div-mnt-menu-contenedor > .menu-de-filtro,
+    .div-mnt-menu-contenedor > .menu-contextual,
+    .div-mnt-menu-contenedor > .menu-individual,
+    .div-mnt-menu-contenedor > .menu-de-relaciones {
+        flex: 0 0 1.5em;
+    }
+
+    .div-mnt-menu-contenedor > .div-vacio-derecha {
+        flex: 0 0 0;
+        min-width: 0;
+    }
 
     /* la barra de una página de consulta (ver DescriptorDeMantenimiento.RenderMenuDeConsulta) sólo tiene el título y la etiqueta de
        mostrar u ocultar el filtro: sin las columnas de los iconos del mantenimiento, la etiqueta (o el embudo en el móvil) va a la derecha */
@@ -386,10 +431,19 @@ body.resizing-en-progreso * {
 
 
 @media (max-width: 47.94em) {
+    /* en el móvil sólo quedan los botones (como iconos) a la izquierda y el filtro (embudo y "?") pegado a la derecha */
     .div-mnt-menu-contenedor {
-        grid-template-columns: minmax(0, 1fr) auto !important;
         column-gap: 0em;
     }
+
+        .div-mnt-menu-contenedor > .div-mnt-menu-zona {
+            flex: 0 1 auto;
+            min-width: 0;
+        }
+
+        .div-mnt-menu-contenedor > .div-mnt-filtro-expansor {
+            margin-left: auto;
+        }
 
         /* en el móvil solo quedan Nuevo, Editar (o Consultar si no es editable) e Historial, como iconos */
         .div-mnt-menu-contenedor .botones-de-menu > *:not([value="Nuevo"]):not([value="Editar"]):not([value="Consultar"]):not([value="Historial"]) {
@@ -761,9 +815,9 @@ body.resizing-en-progreso * {
     max-width: 1.5em;
 }
 
+/* sin menús flotantes: sus iconos llevan div-nulo y no ocupan en la barra flex del mantenimiento */
 .sin-mfs {
-    grid-template-columns: 15em auto 0.4fr 0em 0em 0em 0em 0em !important;
-    column-gap: 0em;
+    column-gap: 0.5em;
 }
 
 .div-nulo {
