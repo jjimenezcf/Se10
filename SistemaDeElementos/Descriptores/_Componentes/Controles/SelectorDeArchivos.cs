@@ -36,6 +36,9 @@ namespace MVCSistemaDeElementos.Descriptores
                                      <button id='{idSelector}-subir-porta-papeles' title='Subir porta papeles' onclick={enumNameSpaceTs.ApiDeArchivos}.PulsadoSubirPortaPapeles('{IdHtml}')> 
                                         <img src='{CacheDeVariable.Uri_SubirDelPortaPapeles}'>
                                       </button>
+                                     <button id='{idSelector}-escribir' title='Escribir un archivo de texto y anexarlo' onclick={enumNameSpaceTs.ApiDeArchivos}.PulsadoEscribirArchivo('{IdHtml}')>
+                                        <img src='/images/menu/EscribirArchivo.svg'>
+                                      </button>
                                    </div>
                                    <div class='{enumCssControles.ContenedorDeOpcion.Render()}'>
 

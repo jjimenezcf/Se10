@@ -438,6 +438,126 @@
     }
 
 
+    const SufijoDelArchivoEscrito = 'escrito';
+
+    // Botón de escribir un archivo (junto al de pegar del porta papeles): abre la modal de editar texto vacía y, al aceptar, pide el nombre
+    // y anexa el texto como un .txt por el mismo camino que un archivo seleccionado: la misma validación del selector (extensión y
+    // limite-en-byte, ver ValidarArchivoSeleccionado) y el mismo endpoint (epAnexarArchivo), así que también los mismos límites del servidor.
+    // Si se cancela el nombre o la subida falla, la modal sigue abierta con lo escrito.
+    export function PulsadoEscribirArchivo(idSelector: string) {
+        const llamador = this;
+        const selectorDeArchivos = document.getElementById(idSelector) as HTMLInputElement;
+        const negocio = selectorDeArchivos.getAttribute(atControl.negocio);
+        const idElemento = selectorDeArchivos.getAttribute(atControl.idElemento);
+        const dondeMostrar = document.getElementById(selectorDeArchivos.getAttribute('contenedor-donde-mostrar')) as HTMLDivElement;
+
+        if (NoDefinido(negocio))
+            MensajesSe.EmitirExcepcion("PulsadoEscribirArchivo", "Debe definir un negocio al que anexar los archivos");
+
+        if (Numero(idElemento) == 0)
+            MensajesSe.EmitirExcepcion("PulsadoEscribirArchivo", "Debe definir el elemento al que anexar los archivos");
+
+        const alAceptar = async (texto: string): Promise<boolean> => {
+            if (IsNullOrEmpty(texto.trim())) {
+                MensajesSe.Info("Escriba o pegue el texto del archivo");
+                return false;
+            }
+
+            // el textarea da los saltos de línea como \n: el archivo se guarda con los de Windows
+            const contenido = texto.replace(/\r?\n/g, '\r\n');
+
+            // el tamaño se valida antes de pedir el nombre, para no preguntarlo si se va a rechazar
+            ValidarArchivoSeleccionado(selectorDeArchivos, new File([contenido], 'texto.txt', { type: 'text/plain' }));
+
+            const nombre = await PedirNombreDeArchivo(NombreConFechaYHora('texto', 'txt'));
+            if (nombre === null)
+                return false;
+
+            const fichero = new File([contenido], nombre, { type: 'text/plain' });
+            const idInfoArchivo = `info-${selectorDeArchivos.id}.${SufijoDelArchivoEscrito}`;
+            let infoArchivo = document.getElementById(idInfoArchivo) as HTMLInputElement;
+            if (!infoArchivo) {
+                infoArchivo = document.createElement('input');
+                infoArchivo.type = 'hidden';
+                infoArchivo.id = idInfoArchivo;
+                selectorDeArchivos.appendChild(infoArchivo);
+            }
+
+            try {
+                const peticion = await ApiDePeticiones.AnexarArchivo(llamador, negocio, idElemento, fichero, infoArchivo, dondeMostrar);
+                ApiDeArchivos.DespuesDeAnexarArchivo(peticion);
+                return true;
+            }
+            catch (peticion) {
+                ApiDeAjax.ErrorTrasPeticion(Ajax.Archivos.accion.AnexarArchivo, peticion);
+                return false;
+            }
+        };
+
+        AbrirModalDeEditarTexto('', '', false, undefined, { nuevo: true, alAceptar: alAceptar });
+    }
+
+    // "<prefijo>_aaaammdd_hhmmss.<extension>", como el nombre de lo que se pega del porta papeles
+    function NombreConFechaYHora(prefijo: string, extension: string): string {
+        const f = new Date();
+        const dos = (n: number) => n.toString().padStart(2, '0');
+        return `${prefijo}_${f.getFullYear()}${dos(f.getMonth() + 1)}${dos(f.getDate())}_${dos(f.getHours())}${dos(f.getMinutes())}${dos(f.getSeconds())}.${extension}`;
+    }
+
+    // Pide el nombre del archivo que se va a crear (propone uno con la fecha y la hora) y lo devuelve siempre con la extensión .txt y sin
+    // los caracteres que no admite un nombre de archivo; null si se cancela (botón Cancelar, Escape o clic fuera de la ventana)
+    function PedirNombreDeArchivo(propuesto: string): Promise<string | null> {
+        return new Promise((resolve) => {
+            const modalOverlay = document.createElement('div') as HTMLDivElement;
+            ApiControl.IncluirCss(modalOverlay, ltrCss.crud.modal.dinamica);
+            modalOverlay.innerHTML = ltrHtml.Modales.NombreDeArchivo;
+            document.body.appendChild(modalOverlay);
+
+            const input = modalOverlay.querySelector('#nombre-de-archivo') as HTMLInputElement;
+            const btnAceptar = modalOverlay.querySelector('#btn-nombre-de-archivo-aceptar') as HTMLButtonElement;
+            const btnCancelar = modalOverlay.querySelector('#btn-nombre-de-archivo-cancelar') as HTMLButtonElement;
+            ApiControl.IncluirCss(btnAceptar, ltrCss.Modal.BotonPrincipal);
+            ApiControl.IncluirCss(btnCancelar, ltrCss.Modal.BotonSecundario);
+            input.value = propuesto;
+
+            setTimeout(() => ApiControl.IncluirCss(modalOverlay, 'fade-in'), 10);
+
+            let resuelta = false;
+            const cerrar = (resultado: string | null) => {
+                if (resuelta)
+                    return;
+                resuelta = true;
+                document.removeEventListener('keydown', alPulsarUnaTecla);
+                ApiControl.ExcluirCss(modalOverlay, 'fade-in');
+                setTimeout(() => modalOverlay.remove(), 300);
+                resolve(resultado);
+            };
+            const aceptar = () => {
+                // sin la extensión que haya escrito (siempre es un .txt) ni caracteres no válidos en un nombre de archivo
+                const nombre = input.value.trim().replace(/\.txt$/i, '').replace(/[\\/:*?"<>|]/g, '_').trim();
+                if (IsNullOrEmpty(nombre)) {
+                    MensajesSe.Info("Indique el nombre del archivo");
+                    input.focus();
+                    return;
+                }
+                cerrar(`${nombre}.txt`);
+            };
+            const alPulsarUnaTecla = (e: KeyboardEvent) => {
+                if (e.key === 'Escape')
+                    cerrar(null);
+                else if (e.key === 'Enter')
+                    aceptar();
+            };
+
+            btnAceptar.addEventListener('click', aceptar);
+            btnCancelar.addEventListener('click', () => cerrar(null));
+            modalOverlay.onclick = (e) => { if (e.target === modalOverlay) cerrar(null); };
+            document.addEventListener('keydown', alPulsarUnaTecla);
+            // se selecciona el nombre sin la extensión, para escribir encima directamente
+            setTimeout(() => { input.focus(); input.setSelectionRange(0, propuesto.lastIndexOf('.')); }, 100);
+        });
+    }
+
     export function PulsadoAnexarArchivos(idSelector: string) {
         let selectorDeArchivos: HTMLInputElement = document.getElementById(idSelector) as HTMLInputElement;
         let negocio = selectorDeArchivos.getAttribute(atControl.negocio);
@@ -967,7 +1087,8 @@
             return;
         }
 
-        if (!infoarchivo.id.includes('portapapeles')) infoarchivo.parentElement.remove();
+        // el del porta papeles y el del archivo escrito son inputs ocultos dentro del selector: no hay visor de pendiente que quitar
+        if (!infoarchivo.id.includes('portapapeles') && !infoarchivo.id.includes(SufijoDelArchivoEscrito)) infoarchivo.parentElement.remove();
         ApiDeArchivos.MostrarArchivoAnexado(dondeMostrar, negocio, idElemento, archivoDto);
 
         let referencia = document.getElementById(dondeMostrar.id.replace('contenedor-', 'mostrar.') + '.ref') as HTMLAnchorElement;
@@ -1810,11 +1931,19 @@
     // No se cierra al pulsar fuera de la ventana, para no perder lo escrito por un clic despistado.
     // Con sinAceptar = true el botón Aceptar queda deshabilitado (el texto es sólo para consultar y nunca se devuelve).
     // Con urlDeMarkdown el textarea se sustituye por el html que devuelve esa url (un markdown ya convertido, como en el visor de archivos).
-    export function AbrirModalDeEditarTexto(nombreDelArchivo: string, texto: string, sinAceptar: boolean = false, urlDeMarkdown?: string): Promise<string | null> {
+    // Con opciones.nuevo se escribe un archivo nuevo (ver PulsadoEscribirArchivo): la cabecera dice "Nuevo archivo de texto".
+    // Con opciones.alAceptar, al pulsar Aceptar se le pasa el texto y la modal sólo se cierra si devuelve true; si devuelve false o falla
+    // sigue abierta con lo escrito (p. ej. se cancela el nombre del archivo o no se ha podido subir).
+    export function AbrirModalDeEditarTexto(nombreDelArchivo: string, texto: string, sinAceptar: boolean = false, urlDeMarkdown?: string,
+        opciones?: { nuevo?: boolean, alAceptar?: (texto: string) => Promise<boolean> }): Promise<string | null> {
         return new Promise((resolve) => {
             const modal = document.createElement('div') as HTMLDivElement;
             ApiControl.IncluirCss(modal, ltrCss.flujo.contenedorModal);
             modal.innerHTML = ltrHtml.Modales.EditarTexto.replace('[titulo]', EscapeHtml(nombreDelArchivo ?? ''));
+            if (opciones?.nuevo) {
+                modal.querySelector('h2').textContent = 'Nuevo archivo de texto';
+                (modal.querySelector('#btn-editar-texto-aceptar') as HTMLButtonElement).title = 'Pide el nombre del archivo y lo anexa como un .txt';
+            }
             document.body.appendChild(modal);
             // .contenedor-modal está oculta por defecto en CrudModal.css
             modal.style.display = ltrStyle.display.block;
@@ -1852,6 +1981,8 @@
             }
 
             let resuelta = false;
+            // mientras se ejecuta alAceptar (p. ej. con el diálogo del nombre abierto) el Escape es de ese diálogo, no de esta modal
+            let aceptando = false;
             const terminar = (resultado: string | null) => {
                 if (resuelta)
                     return;
@@ -1866,6 +1997,8 @@
                 terminar(null);
             };
             const alPulsarUnaTecla = (e: KeyboardEvent) => {
+                if (aceptando)
+                    return;
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1883,8 +2016,29 @@
                 editor.selectionStart = editor.selectionEnd = inicio + 1;
             });
 
-            btnAceptar.addEventListener('click', () => terminar(editor.value));
-            btnCerrar.addEventListener('click', cerrar);
+            btnAceptar.addEventListener('click', async () => {
+                if (!opciones?.alAceptar) {
+                    terminar(editor.value);
+                    return;
+                }
+                if (aceptando)
+                    return;
+                aceptando = true;
+                btnAceptar.disabled = true;
+                try {
+                    if (await opciones.alAceptar(editor.value))
+                        terminar(editor.value);
+                }
+                catch (e) {
+                    // el error ya se ha mostrado (MensajesSe.EmitirExcepcion); se sigue editando
+                    console.log(e);
+                }
+                finally {
+                    aceptando = false;
+                    btnAceptar.disabled = false;
+                }
+            });
+            btnCerrar.addEventListener('click', () => { if (!aceptando) cerrar(); });
             // en captura: el Escape no debe llegar también a la edición que hay debajo y cerrarla
             document.addEventListener('keydown', alPulsarUnaTecla, true);
             setTimeout(() => { editor.focus(); editor.setSelectionRange(0, 0); editor.scrollTop = 0; }, 50);

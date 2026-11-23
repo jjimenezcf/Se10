@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1f6feb" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- hoja con la esquina doblada -->
+  <path d="M13 3H6a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 6 21h7"/>
+  <path d="M13 3l5 5h-5z" fill="#dbe9ff"/>
+  <!-- líneas de texto -->
+  <line x1="7.5" y1="11" x2="13" y2="11"/>
+  <line x1="7.5" y1="14" x2="11.5" y2="14"/>
+  <line x1="7.5" y1="17" x2="10" y2="17"/>
+  <!-- lápiz escribiendo -->
+  <path d="M19.6 11.4a1.4 1.4 0 0 1 2 2l-6.3 6.3-2.7.7.7-2.7z" fill="#fff3c4" stroke="#b7791f"/>
+</svg>

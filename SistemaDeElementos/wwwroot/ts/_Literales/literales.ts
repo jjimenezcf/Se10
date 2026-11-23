@@ -4833,6 +4833,19 @@ const ltrHtml = {
                          <button id="btn-pdf-aceptar">Aceptar</button>
                      </div>
                  </div>`,
+        // Modal para pedir el nombre del archivo de texto que se escribe desde el selector de archivos (ver ApiDeArchivos.PedirNombreDeArchivo)
+        NombreDeArchivo: `
+                 <div class="modal-nombre-de-archivo">
+                     <h2>Nombre del archivo</h2>
+                     <div class="${ltrCss.crud.modal.cuerpo}">
+                         <label class="label-propiedad" for="nombre-de-archivo">Se anexará como un archivo .txt</label>
+                         <input id="nombre-de-archivo" type="text" maxlength="200" autocomplete="off" />
+                     </div>
+                     <div class="${ltrCss.crud.modal.pie}">
+                         <button id="btn-nombre-de-archivo-cancelar">Cancelar</button>
+                         <button id="btn-nombre-de-archivo-aceptar">Aceptar</button>
+                     </div>
+                 </div>`,
         PreguntasIa: `
                  <div id="modal-ia-container">
                      <div class="grafica-conteo-cabecera">
