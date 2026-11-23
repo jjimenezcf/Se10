@@ -80,9 +80,10 @@ namespace MVCSistemaDeElementos.Descriptores
             var cssDelDivDelaTd = tabla.ObtenerFila(i).ObtenerColumna(j).CssDelDivDeLaCelda;
             var colspan = tabla.ObtenerFila(i).ObtenerColumna(j).ColSpan;
             var estilo = visible ? $"" : "display:none";
-            var renderTd = $@"<div id='{tabla.IdHtml}_{i}_{j}' 
-                            name='td-propiedad' 
-                            class='{enumCssDiv.Td.Render()} {enumCssEdicion.Td.Render()} td-propiedad' >
+            var agruparEnFilaEnMovil = CeldaConUnSoloControlParaAgruparEnFilaEnMovil(tabla, tabla.ObtenerFila(i).ObtenerColumna(j));
+            var renderTd = $@"<div id='{tabla.IdHtml}_{i}_{j}'
+                            name='td-propiedad'
+                            class='{enumCssDiv.Td.Render()} {enumCssEdicion.Td.Render()} td-propiedad{(agruparEnFilaEnMovil ? " td-en-fila-movil" : "")}' >
                             [renderControles]
                       </div>
                      ";
@@ -156,6 +157,9 @@ namespace MVCSistemaDeElementos.Descriptores
             var controlesVisibles = ControlVisibleEnLaColumna(tabla, columna);
             var hayMasDeUnControl = controlesVisibles > 1;
 
+            // Pre-renderizamos los controles para poder agrupar los marcados con AgruparEnFilaEnMovil
+            var controlesRenderizados = new List<(string html, bool agruparEnMovil, bool oculto)>();
+
             for (short z = 0; z <= columna.PosicionMaxima; z++)
             {
                 var descriptorControl = columna.ObtenerControlEnLaPosicion(z);
@@ -190,9 +194,12 @@ namespace MVCSistemaDeElementos.Descriptores
 
                 anadirSeparador = true;
                 if (descriptorControl.Atributos.Oculto)
-                    htmlControles = htmlControles + Environment.NewLine + htmlControl;
+                {
+                    controlesRenderizados.Add((htmlControl, false, true));
+                }
                 else
                 {
+                    string htmlDelControl;
                     if (hayMasDeUnControl)
                     {
                         var ancho = "auto";
@@ -201,17 +208,47 @@ namespace MVCSistemaDeElementos.Descriptores
                         else if (!descriptorControl.Atributos.AnchoMaximo.IsNullOrEmpty())
                             ancho = descriptorControl.Atributos.AnchoMaximo;
 
-                        // Con flex, cada control fija su propio hueco en la fila; si no se
-                        // indicó un ancho concreto se deja el flex:1 1 auto por defecto del CSS.
                         var estiloDelControl = ancho == "auto" ? "" : $"style=¨flex: 0 0 {ancho}¨";
-
-                        htmlControles = htmlControles + Environment.NewLine +
-                        $@"<div {estiloDelControl}>
+                        htmlDelControl = $@"<div {estiloDelControl}>
                             {htmlEtiqueta + Environment.NewLine + htmlControl + Environment.NewLine + htmlSeparador}
                            </div>";
                     }
                     else
-                        htmlControles = htmlControles + Environment.NewLine + htmlEtiqueta + Environment.NewLine + htmlControl;
+                        htmlDelControl = htmlEtiqueta + Environment.NewLine + htmlControl;
+
+                    controlesRenderizados.Add((htmlDelControl, descriptorControl.Atributos.AgruparEnFilaEnMovil, false));
+                }
+            }
+
+            // Emitir los controles agrupando en div los consecutivos marcados con AgruparEnFilaEnMovil
+            var idx = 0;
+            while (idx < controlesRenderizados.Count)
+            {
+                var (html, agrupar, oculto) = controlesRenderizados[idx];
+                if (oculto)
+                {
+                    htmlControles += Environment.NewLine + html;
+                    idx++;
+                    continue;
+                }
+
+                if (agrupar)
+                {
+                    var grupoHtml = html;
+                    var siguiente = idx + 1;
+                    while (siguiente < controlesRenderizados.Count && controlesRenderizados[siguiente].agruparEnMovil && !controlesRenderizados[siguiente].oculto)
+                    {
+                        grupoHtml += Environment.NewLine + controlesRenderizados[siguiente].html;
+                        siguiente++;
+                    }
+                    // un control solo no se agrupa dentro de su celda: si va con las celdas contiguas se encarga .td-en-fila-movil
+                    htmlControles += Environment.NewLine + (siguiente - idx > 1 ? $"<div class=¨grupo-en-fila-movil¨>{grupoHtml}</div>" : grupoHtml);
+                    idx = siguiente;
+                }
+                else
+                {
+                    htmlControles += Environment.NewLine + html;
+                    idx++;
                 }
             }
 
@@ -239,6 +276,27 @@ namespace MVCSistemaDeElementos.Descriptores
             }
 
             return controlesvisibles;
+        }
+
+        // Una celda con un único control marcado con AgruparEnFilaEnMovil se coloca en el móvil junto a las celdas contiguas de su fila que también lo estén
+        // (ver .td-en-fila-movil); si la celda tiene varios controles, se agrupan ellos dentro de la celda (ver .grupo-en-fila-movil)
+        private static bool CeldaConUnSoloControlParaAgruparEnFilaEnMovil(DescriptorDeTabla tabla, DescriptorDeColumna columna)
+        {
+            if (ControlVisibleEnLaColumna(tabla, columna) != 1)
+                return false;
+
+            for (short z = 0; z <= columna.PosicionMaxima; z++)
+            {
+                var descriptorControl = columna.ObtenerControlEnLaPosicion(z);
+                if (descriptorControl == null || !descriptorControl.Atributos.EsVisible(tabla.ModoDeTrabajo))
+                    continue;
+                if (tabla.NoRenderizar != null && tabla.NoRenderizar.Contains(descriptorControl.propiedad, StringComparer.InvariantCultureIgnoreCase))
+                    continue;
+                if (descriptorControl.Atributos.Oculto)
+                    continue;
+                return descriptorControl.Atributos.AgruparEnFilaEnMovil;
+            }
+            return false;
         }
 
         private static bool AlinearElContenidoALaDerecha(DescriptorDeTabla tabla, DescriptorDeColumna columna)

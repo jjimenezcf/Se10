@@ -211,6 +211,7 @@ namespace ModeloDeDto
         public string OrdenarListaDinamicaPor { get; set; }
         public string AnchoMaximo { get; set; } = null;
         public string AnchoMaximoContenedor { get; set; } = null;
+        public bool AgruparEnFilaEnMovil { get; set; } = false;
 
 
         public int PosicionEnGrid { get; set; } = -1;

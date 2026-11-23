@@ -30,7 +30,8 @@ namespace ModeloDeDto.Ventas
              Obligatorio = false,
              Fila = 0,
              Columna = 4,
-             Posicion = 0
+             Posicion = 0,
+             AgruparEnFilaEnMovil = true
               )
           ]
         public int? Ano { get; set; }
@@ -46,7 +47,8 @@ namespace ModeloDeDto.Ventas
              Obligatorio = false,
              Fila = 0,
              Columna = 4,
-             Posicion = 1
+             Posicion = 1,
+             AgruparEnFilaEnMovil = true
               )
           ]
         public string Serie { get; set; }
@@ -63,7 +65,8 @@ namespace ModeloDeDto.Ventas
           Obligatorio = false,
           Fila = 0,
           Columna = 4,
-          Posicion = 2
+          Posicion = 2,
+          AgruparEnFilaEnMovil = true
            )
        ]
         public int? Numero { get; set; }
@@ -182,6 +185,7 @@ namespace ModeloDeDto.Ventas
         [IUPropiedad(TipoDeControl = enumTipoControl.Editor,
             Fila = 3, Columna = 1
             , Etiqueta = "Teléfono"
+            , AgruparEnFilaEnMovil = true
             , VisibleAlCrear = false
             , VisibleAlEditar = true
             , VisibleEnGrid = false)]
@@ -191,6 +195,7 @@ namespace ModeloDeDto.Ventas
         [IUPropiedad(TipoDeControl = enumTipoControl.Editor,
             Fila = 3, Columna = 2
             , Etiqueta = "eMail"
+            , AgruparEnFilaEnMovil = true
             , VisibleAlCrear = false
             , VisibleAlEditar = true
             , VisibleEnGrid = false)]

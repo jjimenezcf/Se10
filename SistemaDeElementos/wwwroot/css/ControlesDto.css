@@ -2059,3 +2059,60 @@ a.deshabilitado {
     height: auto !important;
     overflow: visible !important;
 }
+
+/* Agrupa en fila horizontal en móvil los controles marcados con AgruparEnFilaEnMovil */
+@media (max-width: 47.94em) {
+    .grupo-en-fila-movil {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5em;
+        width: 100%;
+        min-width: 0;
+        align-items: flex-start;
+    }
+
+    .grupo-en-fila-movil > div {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    /* CrudBase.css da a los inputs min-width 100% en el móvil: en el grupo eso suma los anchos naturales y desborda la fila */
+    .div-td.dto-td.td-propiedad .grupo-en-fila-movil input,
+    .div-td.dto-td.td-propiedad .grupo-en-fila-movil select {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* la columna única de los datos no crece por el min-content de sus controles */
+    .dto-tbody,
+    .div-tr.dto-tr {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .div-td.dto-td {
+        min-width: 0 !important;
+    }
+
+    /* Una celda con colspan (CrudEdicion.css: grid-column: span 2) obligaba a la fila a crear una segunda columna implícita, y las celdas
+       siguientes se colocaban a su lado en vez de debajo */
+    .div-tr.dto-tr > .td-propiedad[colspan] {
+        grid-column: 1 !important;
+    }
+
+    /* Celdas contiguas marcadas con AgruparEnFilaEnMovil: la fila pasa a flex con salto de línea; cada celda ocupa toda la línea salvo las
+       marcadas, que se reparten una misma línea a partes iguales */
+    .div-tr.dto-tr:has(> .td-en-fila-movil) {
+        display: flex !important;
+        flex-wrap: wrap;
+    }
+
+        .div-tr.dto-tr:has(> .td-en-fila-movil) > .td-propiedad {
+            flex: 0 0 100%;
+        }
+
+        /* con base 0 una celda marcada cabría en la misma línea que la siguiente celda de 100% y se quedaría sin ancho: con el 30% de base
+           caben hasta tres marcadas por línea, y cualquier celda de 100% salta a la línea de abajo */
+        .div-tr.dto-tr:has(> .td-en-fila-movil) > .td-en-fila-movil {
+            flex: 1 1 30%;
+        }
+}
