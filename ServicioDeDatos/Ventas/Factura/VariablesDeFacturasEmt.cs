@@ -216,9 +216,16 @@ namespace ServicioDeDatos.Ventas
         BiIvaExento,
         // base imponible facturada de un material (calculado:ImporteDeMaterial:referencia)
         ImporteDeMaterial,
+        // unidades facturadas de los artículos (calculado:UnidadesFacturadas[:referencia]); las rectificativas restan
+        UnidadesFacturadas,
+        // unidades e importe (sin iva) devueltos en devoluciones de venta aceptadas de los documentos de venta de la factura
+        UnidadesDevueltas,
+        ImporteDevuelto,
         // Claves virtuales de agrupación
         PorcentajeIrpf,
         PorcentajeIva,
+        // clave multivaluada: "(referencia) nombre" de cada artículo de la factura (una factura cae en el grupo de cada uno de sus artículos)
+        Articulo,
     }
 
     public static class VariableDeFacturasEmt
@@ -258,7 +265,7 @@ namespace ServicioDeDatos.Ventas
 - **PresupuestoDtm** (`IdPresupuesto`): presupuesto del que se originó la factura
 - **ContratoDtm** (`IdContrato`): contrato asociado si existe
 - **ParteTrDtm** (`IdParteTr`): parte de trabajo asociado si existe
-- **VentaDtm** (relación 1:N por `VentaDtm.IdFacturaEmt`): documento de salida de material (documento de venta, venta de material del almacén) que la factura prefactura; sus líneas (`LineaDeUnaVentaDtm`) llevan el material (`UnitarioDtm`: `Referencia`, `Nombre`), la cantidad y el precio. En la factura, cada línea de un documento de salida es una línea alzada con el concepto ""(referencia) nombre"" del material
+- **VentaDtm** (relación 1:N por `VentaDtm.IdFacturaEmt`): documento de salida de material (documento de venta, venta de material del almacén) que la factura prefactura; sus líneas (`LineaDeUnaVentaDtm`) llevan el material (`UnitarioDtm`: `Referencia`, `Nombre`), la cantidad y el precio. En la factura, cada línea de un documento de salida es una línea de tipo unitario del material (concepto ""(referencia) nombre"") que apunta a la línea vendida (IdLineaDeVenta)
 - **TareaDtm** (relación 1:N por `IdFacturaEmt`): tareas vinculadas a la factura
 - **AbonoDeFaeDtm** (relación N:M con `PagoDtm`): registros de cobro parcial o total
 - **FacturaEmtDeUnaRemesaDtm** (relación N:M): facturas incluidas en remesas bancarias
@@ -275,11 +282,15 @@ namespace ServicioDeDatos.Ventas
 - `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteIrpf)}` — importe retenido de IRPF de cada factura (para suma, media, etc.)
 - `calculado:{nameof(enumEtiquetasDeFacturasEmt.BiIvaExento)}` — suma de la base imponible de las líneas con IVA exento (Porcentaje == 0) de cada factura
 - `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}:referencia` — base imponible (sin IVA, con descuento) facturada de un material en cada factura: líneas cuyo unitario tiene esa referencia o nombre, o cuyo concepto lo contiene (p. ej. `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}:M-MAT-02`)
-- `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}` (sin referencia) — base imponible de las facturas que prefacturan un documento de salida de material
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}` (sin referencia) — base imponible de las facturas que prefacturan un documento de salida de material; agrupando por `{nameof(enumEtiquetasDeFacturasEmt.Articulo)}`, la base imponible facturada de cada artículo
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.UnidadesFacturadas)}` — unidades facturadas de artículos (las rectificativas restan); agrupando por `{nameof(enumEtiquetasDeFacturasEmt.Articulo)}`, las de cada artículo; con `:referencia` (p. ej. `calculado:{nameof(enumEtiquetasDeFacturasEmt.UnidadesFacturadas)}:M-MAT-02`), las de los artículos cuya referencia o nombre la contiene
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.UnidadesDevueltas)}` — unidades devueltas en devoluciones de venta aceptadas de los documentos de venta de la factura; admite `:referencia` y la agrupación por `{nameof(enumEtiquetasDeFacturasEmt.Articulo)}` como la anterior
+- `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDevuelto)}` — importe (sin IVA) devuelto en esas devoluciones; admite `:referencia` y la agrupación por `{nameof(enumEtiquetasDeFacturasEmt.Articulo)}`
 
 ### Claves de agrupación disponibles (además de las directas):
 - `{nameof(enumEtiquetasDeFacturasEmt.PorcentajeIrpf)}` — agrupa por porcentaje de retención IRPF (p. ej. ""15 %"", ""7 %"", ""Sin IRPF"")
 - `{nameof(enumEtiquetasDeFacturasEmt.PorcentajeIva)}` — agrupa por tipo(s) de IVA repercutido de la factura (p. ej. ""21 %"", ""10 %"", ""Exento"", ""21 % / 10 %"" si tiene varios)
+- `{nameof(enumEtiquetasDeFacturasEmt.Articulo)}` — agrupa por artículo (""(referencia) nombre"" del material); una factura aparece en el grupo de cada uno de sus artículos facturados o devueltos. Úsala con las métricas `calculado:{nameof(enumEtiquetasDeFacturasEmt.UnidadesFacturadas)}`, `calculado:{nameof(enumEtiquetasDeFacturasEmt.UnidadesDevueltas)}`, `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDevuelto)}` o `calculado:{nameof(enumEtiquetasDeFacturasEmt.ImporteDeMaterial)}` (sin referencia), que devuelven la parte de ese artículo; `Cuenta` da las facturas en las que está el artículo. No uses `calculado:Total` con esta agrupación (sería el total de toda la factura)
 ";
 
         internal static readonly string IA_Reglas_de_filtrado = @"
@@ -436,6 +447,30 @@ namespace ServicioDeDatos.Ventas
     ""AgruparPor"": [],
     ""Metricas"": [{""Operacion"": ""Cuenta"", ""Campo"": """", ""Alias"": ""Facturas""},
                   {""Operacion"": ""Suma"", ""Campo"": ""calculado:ImporteDeMaterial:M-MAT-02"", ""Alias"": ""Facturado (sin IVA)""}]
+  }
+  ```
+
+### R.FacturasVenta.25 · Ranking por artículo (`Articulo`, `calculado:UnidadesFacturadas`, `calculado:UnidadesDevueltas`)
+- **Disparador:** ""artículo más vendido"", ""qué artículo he vendido/facturado más"", ""unidades vendidas por artículo"", ""artículo más devuelto"", ""qué material se devuelve más"", ""unidades devueltas de cada artículo"", ""ranking de artículos"".
+- **Acción:** `""AgruparPor"": [""Articulo""]` y como métrica principal (la primera, por la que se ordena):
+  - vendido / facturado → `{""Operacion"": ""Suma"", ""Campo"": ""calculado:UnidadesFacturadas"", ""Alias"": ""Unidades vendidas""}`; si pide el importe, añade `calculado:ImporteDeMaterial` (sin referencia) con alias ""Importe (sin IVA)"".
+  - devuelto → `{""Operacion"": ""Suma"", ""Campo"": ""calculado:UnidadesDevueltas"", ""Alias"": ""Unidades devueltas""}`; si pide el importe, añade `calculado:ImporteDevuelto`.
+  - ""de mayor a menor"" es el orden por defecto; ""de menor a mayor"" → `""ordenarPor"": [{""Campo"": ""<alias de la métrica>"", ""Ascendente"": true}]`.
+- **Un artículo concreto sin agrupar:** ""cuántas unidades he vendido de [referencia]"" → filtro `MaterialFacturado` y métrica `calculado:UnidadesFacturadas:[referencia]`; ""cuántas he devuelto"" → `calculado:UnidadesDevueltas:[referencia]`.
+- **Ejemplo:** ""dime de mayor a menor qué artículo es el más devuelto y cuántas unidades"" →
+  ```json
+  {
+    ""Filtros"": [],
+    ""AgruparPor"": [""Articulo""],
+    ""Metricas"": [{""Operacion"": ""Suma"", ""Campo"": ""calculado:UnidadesDevueltas"", ""Alias"": ""Unidades devueltas""}]
+  }
+  ```
+- **Ejemplo:** ""cuál es el artículo más vendido y la cantidad vendida en 2026"" → filtro de fecha de emisión de 2026 y
+  ```json
+  {
+    ""AgruparPor"": [""Articulo""],
+    ""Metricas"": [{""Operacion"": ""Suma"", ""Campo"": ""calculado:UnidadesFacturadas"", ""Alias"": ""Unidades vendidas""},
+                  {""Operacion"": ""Suma"", ""Campo"": ""calculado:ImporteDeMaterial"", ""Alias"": ""Importe (sin IVA)""}]
   }
   ```
 

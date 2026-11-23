@@ -35,6 +35,34 @@ namespace GestoresDeNegocio.Ventas
                 return irpf?.Importe;
             }
 
+            // Unidades facturadas / devueltas e importe devuelto de los artículos de la factura: agrupando por Articulo, los del artículo del
+            // grupo; con :referencia, los de los artículos cuya referencia o nombre la contiene; si no, los de todos sus artículos
+            var esUnidadesFacturadas = EsCampo(campo, UnidadesFacturadas, out var materialFacturado);
+            var esUnidadesDevueltas = EsCampo(campo, UnidadesDevueltas, out var materialDevuelto);
+            var esImporteDevuelto = EsCampo(campo, ImporteDevuelto, out var materialDeImporteDevuelto);
+            if (esUnidadesFacturadas || esUnidadesDevueltas || esImporteDevuelto)
+            {
+                var material = esUnidadesFacturadas ? materialFacturado : esUnidadesDevueltas ? materialDevuelto : materialDeImporteDevuelto;
+                var cifras = CifrasDeArticulos.De(factura.Id, contexto)
+                    .Where(c => c.Key.CumpleArticulo(metrica, material))
+                    .Select(c => c.Value)
+                    .ToList();
+                if (cifras.Count == 0)
+                    return null;
+                var valor = esUnidadesFacturadas ? cifras.Sum(c => c.UnidadesFacturadas)
+                          : esUnidadesDevueltas ? cifras.Sum(c => c.UnidadesDevueltas)
+                          : cifras.Sum(c => c.ImporteDevuelto);
+                return valor != 0 ? valor : (decimal?)null;
+            }
+
+            // ImporteDeMaterial sin referencia agrupando por Articulo: la base imponible facturada del artículo del grupo
+            if (campo == nameof(ImporteDeMaterial).ToLowerInvariant() && ArticuloDelGrupo(metrica) != null)
+            {
+                var cifras = CifrasDeArticulos.De(factura.Id, contexto).Where(c => c.Key.CumpleArticulo(metrica, "")).Select(c => c.Value).ToList();
+                var bi = cifras.Sum(c => c.ImporteFacturado);
+                return bi != 0 ? bi : (decimal?)null;
+            }
+
             // ImporteDeMaterial:referencia — base imponible (sin iva, con descuento) de las líneas de la factura del material: las de tipo
             // unitario cuyo unitario tiene esa referencia o nombre y las alzadas cuyo concepto lo contiene (las prefacturas de los documentos
             // de venta llevan como concepto "(referencia) nombre"). Sin referencia, la de todas las líneas con material de un documento de salida
@@ -73,6 +101,47 @@ namespace GestoresDeNegocio.Ventas
             return null;
         }
 
+        // campo es la etiqueta o la etiqueta seguida de ":referencia" (devuelta en material, en minúsculas; "" si no se indica)
+        private static bool EsCampo(string campo, enumEtiquetasDeFacturasEmt etiqueta, out string material)
+        {
+            var prefijo = etiqueta.ToString().ToLowerInvariant();
+            material = "";
+            if (campo == prefijo)
+                return true;
+            if (!campo.StartsWith(prefijo + ":"))
+                return false;
+            material = campo.Substring(prefijo.Length + 1).Trim();
+            return true;
+        }
+
+        private static string ArticuloDelGrupo(MetricaDeTotales metrica)
+            => metrica.ClavesDelGrupo != null && metrica.ClavesDelGrupo.TryGetValue(nameof(Articulo), out var articulo) ? articulo : null;
+
+        // un artículo cuenta si es el del grupo (agrupando por Articulo) y, si se indica material, su "(referencia) nombre" lo contiene
+        private static bool CumpleArticulo(this string articulo, MetricaDeTotales metrica, string material)
+        {
+            var delGrupo = ArticuloDelGrupo(metrica);
+            if (delGrupo != null && articulo != delGrupo)
+                return false;
+            return material.Length == 0 || articulo.ToLowerInvariant().Contains(material);
+        }
+
+        // Claves multivaluadas: Articulo — los artículos de cada factura, de sus líneas y de lo devuelto de sus documentos de venta
+        public static Func<string, ElementoDeProcesoDtm, IEnumerable<string>> ObtenerResolverDeClavesMultiples(
+            IEnumerable<int> idElementos, ContextoSe contexto, IEnumerable<string> agruparPor)
+        {
+            if (!agruparPor.Any(p => p.Equals(nameof(Articulo), StringComparison.OrdinalIgnoreCase)))
+                return null;
+
+            var cifras = CifrasDeArticulos.Cargar(idElementos, contexto);
+            return (prop, registro) =>
+            {
+                if (!prop.Equals(nameof(Articulo), StringComparison.OrdinalIgnoreCase))
+                    return null;
+                return cifras.TryGetValue(registro.Id, out var articulos) ? articulos.Keys.ToList() : new List<string>();
+            };
+        }
+
         public static string ResolverEtiqueta(
             string prop, object id, ContextoSe contexto,
             List<ITipoDeElementoDtm> tipos, List<EstadoDtm> estados, List<CentroGestorDtm> cgs)
@@ -82,6 +151,9 @@ namespace GestoresDeNegocio.Ventas
 
             if (prop.Equals(nameof(PorcentajeIva), StringComparison.OrdinalIgnoreCase))
                 return id?.ToString() is string v && v.Length > 0 ? v : "Sin IVA";
+
+            if (prop.Equals(nameof(Articulo), StringComparison.OrdinalIgnoreCase))
+                return id?.ToString() is string a && a.Length > 0 ? a : "—";
 
             return AgrupadosDeUnProcesoHelper.ResolverEtiquetaComun(prop, id, contexto, tipos, estados, cgs);
         }
