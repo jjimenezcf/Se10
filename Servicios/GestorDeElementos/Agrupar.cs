@@ -36,7 +36,8 @@ namespace GestorDeElementos
             this IEnumerable<ElementoDeProcesoDtm> registros,
             List<AgrupacionDeTotales> agrupaciones,
             Func<ElementoDeProcesoDtm, MetricaDeTotales, decimal?> resolverCalculado = null,
-            Func<string, ElementoDeProcesoDtm, string> resolverClaveVirtual = null)
+            Func<string, ElementoDeProcesoDtm, string> resolverClaveVirtual = null,
+            Func<string, ElementoDeProcesoDtm, IEnumerable<string>> resolverClavesMultiples = null)
         {
             var resultado = new List<BloqueDeTotales>();
 
@@ -48,38 +49,44 @@ namespace GestorDeElementos
                     Filas = new List<FilaDeTotales>()
                 };
 
-                // Agrupar por clave compuesta usando el tipo real en tiempo de ejecución
-                var grupos = registros
-                    .GroupBy(r => string.Join("|", agrupacion.PropiedadesDeAgrupacion.Select(prop =>
+                // Cada registro aporta una o varias combinaciones de claves: una si todas las claves son de un valor (propiedad del tipo real
+                // o clave virtual) y varias si alguna es multivaluada (resolverClavesMultiples no devuelve null; p. ej. los artículos de una
+                // factura). Un registro sin ningún valor en una clave multivaluada no cae en ningún grupo
+                var entradas = registros
+                    .SelectMany(r =>
                     {
-                        var pi = r.GetType().GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                        if (pi != null) return pi.GetValue(r)?.ToString() ?? string.Empty;
-                        return resolverClaveVirtual?.Invoke(prop, r) ?? string.Empty;
-                    })))
+                        var (combinaciones, multivaluadas) = CombinacionesDeClaves(r, agrupacion.PropiedadesDeAgrupacion, resolverClaveVirtual, resolverClavesMultiples);
+                        return combinaciones.Select(claves => (registro: r, claves, multivaluadas));
+                    })
+                    .ToList();
+
+                var grupos = entradas
+                    .GroupBy(e => string.Join("|", agrupacion.PropiedadesDeAgrupacion.Select(prop => e.claves[prop]?.ToString() ?? string.Empty)))
                     .ToList();
 
                 foreach (var grupo in grupos)
                 {
                     var fila   = new FilaDeTotales();
-                    var items  = grupo.ToList();
+                    var items  = grupo.Select(e => e.registro).Distinct().ToList();
                     var primero = items.FirstOrDefault();
                     var tipoReal = primero?.GetType() ?? typeof(ElementoDeProcesoDtm);
+                    var primeraEntrada = grupo.First();
 
                     // Claves del grupo
                     foreach (var prop in agrupacion.PropiedadesDeAgrupacion)
-                    {
-                        var pi = tipoReal.GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                        if (pi != null)
-                            fila.Claves[prop] = primero != null ? pi.GetValue(primero) : null;
-                        else if (resolverClaveVirtual != null && primero != null)
-                            fila.Claves[prop] = resolverClaveVirtual(prop, primero);
-                        else
-                            fila.Claves[prop] = null;
-                    }
+                        fila.Claves[prop] = primeraEntrada.claves[prop];
+
+                    // valor de las claves multivaluadas del grupo, para que los campos calculados devuelvan la parte de cada registro
+                    var clavesDelGrupo = primeraEntrada.multivaluadas.Count == 0
+                        ? null
+                        : primeraEntrada.multivaluadas.ToDictionary(p => p, p => primeraEntrada.claves[p]?.ToString(), StringComparer.OrdinalIgnoreCase);
 
                     // Métricas
-                    foreach (var metrica in agrupacion.Metricas)
+                    foreach (var metricaDeLaAgrupacion in agrupacion.Metricas)
                     {
+                        var metrica = clavesDelGrupo == null
+                            ? metricaDeLaAgrupacion
+                            : new MetricaDeTotales(metricaDeLaAgrupacion.Operacion, metricaDeLaAgrupacion.Campo, metricaDeLaAgrupacion.Alias) { ClavesDelGrupo = clavesDelGrupo };
                         if (metrica.Operacion == enumOperacionDeTotales.Cuenta)
                         {
                             if (metrica.Campo.StartsWith("calculado:", StringComparison.OrdinalIgnoreCase) && resolverCalculado != null)
@@ -116,6 +123,44 @@ namespace GestorDeElementos
             }
 
             return resultado;
+        }
+
+        // Combinaciones de valores de las claves de agrupación de un registro: el producto de los valores de cada clave. Una propiedad del
+        // tipo real o una clave virtual aporta un valor; una clave multivaluada (resolverClavesMultiples distinto de null) aporta sus valores
+        // distintos, y si no tiene ninguno el registro no aporta combinaciones. Devuelve también qué claves son multivaluadas
+        private static (List<Dictionary<string, object>> combinaciones, List<string> multivaluadas) CombinacionesDeClaves(
+            ElementoDeProcesoDtm registro,
+            List<string> propiedades,
+            Func<string, ElementoDeProcesoDtm, string> resolverClaveVirtual,
+            Func<string, ElementoDeProcesoDtm, IEnumerable<string>> resolverClavesMultiples)
+        {
+            var combinaciones = new List<Dictionary<string, object>> { new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase) };
+            var multivaluadas = new List<string>();
+
+            foreach (var prop in propiedades)
+            {
+                var valores = new List<object>();
+                var pi = registro.GetType().GetProperty(prop, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (pi != null)
+                    valores.Add(pi.GetValue(registro));
+                else
+                {
+                    var multiples = resolverClavesMultiples?.Invoke(prop, registro);
+                    if (multiples != null)
+                    {
+                        multivaluadas.Add(prop);
+                        valores.AddRange(multiples.Where(v => v != null).Distinct());
+                    }
+                    else
+                        valores.Add(resolverClaveVirtual?.Invoke(prop, registro));
+                }
+
+                combinaciones = combinaciones
+                    .SelectMany(c => valores.Select(v => new Dictionary<string, object>(c, StringComparer.OrdinalIgnoreCase) { [prop] = v }))
+                    .ToList();
+            }
+
+            return (combinaciones, multivaluadas);
         }
     }
 

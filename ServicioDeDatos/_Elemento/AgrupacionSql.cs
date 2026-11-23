@@ -17,6 +17,11 @@ namespace ServicioDeDatos.Elemento
         public string Campo { get; set; }
         public string Alias { get; set; }
 
+        // Sólo al agrupar por una clave multivaluada (p. ej. Articulo en facturas emitidas, un elemento cae en varios grupos): valor de
+        // esas claves en el grupo que se está calculando, para que el campo calculado devuelva la parte del elemento de ese grupo
+        // (las unidades del artículo en la factura, no las de toda la factura). Null en el resto de casos
+        public Dictionary<string, string> ClavesDelGrupo { get; set; }
+
         public MetricaDeTotales(enumOperacionDeTotales operacion, string campo, string alias)
         {
             Operacion = operacion;

@@ -43,6 +43,8 @@ namespace GestorDeElementos
         private static readonly Dictionary<enumNegocio, ResolverEtiquetaDelegate>  _etiquetaResolvers      = new();
         // Método fábrica que, dado un conjunto de IDs y el contexto, devuelve un resolver de claves virtuales
         private static readonly Dictionary<enumNegocio, MethodInfo>                _claveVirtualFactories  = new();
+        // Ídem para las claves multivaluadas (un elemento en varios grupos, p. ej. Articulo en facturas emitidas)
+        private static readonly Dictionary<enumNegocio, MethodInfo>                _clavesMultiplesFactories = new();
 
         private static void CargarResolversDeMetadatos(enumNegocio negocio)
         {
@@ -64,6 +66,10 @@ namespace GestorDeElementos
             var mClaves = tipo.GetMethod(MetadatosDelNegocio.Metodo_ObtenerResolverDeClaves, flags);
             if (mClaves != null)
                 _claveVirtualFactories[negocio] = mClaves;
+
+            var mMultiples = tipo.GetMethod(MetadatosDelNegocio.Metodo_ObtenerResolverDeClavesMultiples, flags);
+            if (mMultiples != null)
+                _clavesMultiplesFactories[negocio] = mMultiples;
         }
 
         public static async Task<(string Texto, string FiltrosJson)> Resolver(ContextoSe contexto, enumNegocio negocio, string pregunta, List<ClausulaDeFiltrado> filtrosDePantalla, string historial = null)
@@ -177,6 +183,18 @@ namespace GestorDeElementos
                     {
                         resolverClavesNegocio = (Func<string, ElementoDeProcesoDtm, string>)
                             mFab.Invoke(null, new object[] { idElementos2.ToList(), contexto, respuesta.AgruparPor });
+                    }
+                    catch { /* si falla el batch-load, simplemente no hay resolver */ }
+                }
+
+                // Resolver de claves multivaluadas del negocio: devuelve los valores de la clave para un elemento, o null si no es suya
+                Func<string, ElementoDeProcesoDtm, IEnumerable<string>> resolverClavesMultiples = null;
+                if (_clavesMultiplesFactories.TryGetValue(negocio, out var mFabMultiples))
+                {
+                    try
+                    {
+                        resolverClavesMultiples = (Func<string, ElementoDeProcesoDtm, IEnumerable<string>>)
+                            mFabMultiples.Invoke(null, new object[] { idElementos2.ToList(), contexto, respuesta.AgruparPor });
                     }
                     catch { /* si falla el batch-load, simplemente no hay resolver */ }
                 }
@@ -334,7 +352,8 @@ namespace GestorDeElementos
                     new AgrupacionDeTotales(respuesta.AgruparPor, respuesta.Metricas)
                         },
                         resolverCalculado,
-                        resolverClaveVirtual)[0];
+                        resolverClaveVirtual,
+                        resolverClavesMultiples)[0];
 
                     resultado = FormatearOpcionB(bloque, respuesta.AgruparPor, respuesta.Metricas, resolverEtiqueta, respuesta.OrdenarPor);
                 }

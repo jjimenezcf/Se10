@@ -123,6 +123,8 @@ namespace GestorDeElementos
         public const string Metodo_ResolverEtiqueta       = "ResolverEtiqueta";
         public const string Metodo_ResolverCampoCalculado  = "ResolverCampoCalculado";
         public const string Metodo_ObtenerResolverDeClaves = "ObtenerResolverDeClaves";
+        // claves de agrupación con varios valores por elemento (p. ej. los artículos de una factura): el elemento cae en varios grupos
+        public const string Metodo_ObtenerResolverDeClavesMultiples = "ObtenerResolverDeClavesMultiples";
 
         public static Metadatos ObtenerMetadatos(this enumNegocio negocio, bool emitirError = true)
         {
