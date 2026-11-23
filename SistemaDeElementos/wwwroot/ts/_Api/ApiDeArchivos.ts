@@ -438,6 +438,25 @@
     }
 
 
+    // Tamaño máximo, en bytes, de un archivo que se sube o se anexa (variable CFG_ARCHIVOS_MAXIMO_TAMAÑO). Llega en los indicadores de la vista
+    // al abrir el crud (ver CrudMnt.AplicarIndicadores); mientras sea 0 no se valida en el cliente, pero lo sigue validando el servidor
+    export let TamanoMaximoEnBytes: number = 0;
+
+    // Mensaje si el archivo pasa del tamaño máximo, null si cabe (o si aún no se conoce el máximo)
+    export function MensajeSiSuperaElTamanoMaximo(fichero: File): string | null {
+        if (!(TamanoMaximoEnBytes > 0) || !Definido(fichero) || fichero.size <= TamanoMaximoEnBytes)
+            return null;
+        return `El archivo '${fichero.name}' ocupa ${TamanoDelArchivo(fichero.size, fichero.size >= 1024 * 1024)} y el tamaño máximo permitido es de `
+            + `${TamanoDelArchivo(TamanoMaximoEnBytes, TamanoMaximoEnBytes >= 1024 * 1024)}. Redúzcalo o divídalo antes de subirlo`;
+    }
+
+    // Lanza la excepción (y la muestra) si el archivo pasa del tamaño máximo
+    export function ValidarTamanoMaximo(fichero: File): void {
+        const mensaje = MensajeSiSuperaElTamanoMaximo(fichero);
+        if (mensaje !== null)
+            MensajesSe.EmitirExcepcion("ValidarTamanoMaximo", mensaje);
+    }
+
     const SufijoDelArchivoEscrito = 'escrito';
 
     // Botón de escribir un archivo (junto al de pegar del porta papeles): abre la modal de editar texto vacía y, al aceptar, pide el nombre
@@ -775,6 +794,7 @@
     }
 
     function ValidarArchivoSeleccionado(archivo: HTMLInputElement, fichero: File) {
+        ValidarTamanoMaximo(fichero);
         let extensiones: string = archivo.getAttribute(atArchivo.extensionesValidas);
         let limite: number = Numero(archivo.getAttribute(atArchivo.limiteEnByte));
 
@@ -1067,6 +1087,12 @@
     }
 
     function AnexarArchivo(negocio: string, idElemento: string, fichero: File, infoArchivo: HTMLInputElement, dondeMostrar: HTMLDivElement, recargarArchivosTrasTerminarSubida: boolean = false) {
+        // seleccionado, arrastrado o pegado del porta papeles: si pasa del máximo no se sube
+        const mensaje = MensajeSiSuperaElTamanoMaximo(fichero);
+        if (mensaje !== null) {
+            MensajesSe.Error("AnexarArchivo", mensaje);
+            return;
+        }
         ApiDePeticiones.AnexarArchivo(this, negocio, idElemento, fichero, infoArchivo, dondeMostrar)
             .then((peticion) => {
                 ApiDeArchivos.DespuesDeAnexarArchivo(peticion);
@@ -1737,6 +1763,13 @@
 
             let archivo: HTMLInputElement = document.getElementById(idArchivo) as HTMLInputElement;
             let ficheros = archivo.files;
+
+            const mensaje = MensajeSiSuperaElTamanoMaximo(ficheros[0]);
+            if (mensaje !== null) {
+                MensajesSe.Error("SubirArchivo", mensaje);
+                reject(mensaje);
+                return;
+            }
 
             let url: string = `/${controlador}/${Ajax.Archivos.accion.SubirArchivo}`;
 

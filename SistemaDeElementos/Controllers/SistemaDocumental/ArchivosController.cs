@@ -1031,6 +1031,15 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             {
                 await chunk.CopyToAsync(stream);
             }
+
+            // lo subido hasta ahora no puede pasar del tamaño máximo (CFG_ARCHIVOS_MAXIMO_TAMAÑO): se descarta y se dice por qué
+            var subido = new DirectoryInfo(tempDir).GetFiles("chunk_*.part").Sum(f => f.Length);
+            if (subido > TamanoDeArchivos.MaximoEnBytes)
+            {
+                Directory.Delete(tempDir, true);
+                return BadRequest(new { message = $"El archivo '{fileName}' ocupa más de {TamanoDeArchivos.Formatear(TamanoDeArchivos.MaximoEnBytes)}, que es el tamaño máximo permitido. Redúzcalo o divídalo (el límite lo fija la variable '{Variable.CFG_ARCHIVOS_MAXIMO_TAMAÑO}')" });
+            }
+
             var idArchivo = 0;
 
             // Verificar si todos los fragmentos han sido subidos
@@ -1246,6 +1255,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             }
 
             ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            TamanoDeArchivos.Validar(fichero.FileName, fichero.Length);
             var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, fichero.FileName);
 
             using (var stream = new FileStream(rutaConFichero, FileMode.Create))
@@ -1294,7 +1304,9 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
     }
 
     [HttpPost("movil/[controller]/anexos/{negocio}/{idElemento:int}/upload")]
-    [RequestSizeLimit(20971520)] // 20 megabytes in bytes
+    // el tamaño del archivo lo limita la variable CFG_ARCHIVOS_MAXIMO_TAMAÑO (ver TamanoDeArchivos.Validar), con un mensaje claro; este límite
+    // de la petición es el del servidor web (maxAllowedContentLength del web.config, 50 MB), para que no corte antes que la variable
+    [RequestSizeLimit(52428800)]
     //[DisableRequestSizeLimit,
     // RequestFormLimits(MultipartBodyLengthLimit = int.MaxValue,
     // ValueLengthLimit = int.MaxValue)]
@@ -1310,6 +1322,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
             }
 
             ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            TamanoDeArchivos.Validar(file.FileName, file.Length);
             var filePath = Path.Combine(GestorDeVariables.RutaDeDescarga, file.FileName);
 
             await using (var stream = new FileStream(filePath, FileMode.Create))

@@ -49,6 +49,7 @@ namespace ServicioDeDatos
         public static readonly string Cfg_Tipo_De_Archivador_Zip = nameof(Cfg_Tipo_De_Archivador_Zip);
         public static readonly string Cfg_Tipo_De_Archivador_Sii = nameof(Cfg_Tipo_De_Archivador_Sii);
         public static readonly string CFG_Tamano_Maximo_Zip = nameof(CFG_Tamano_Maximo_Zip);
+        public static readonly string CFG_ARCHIVOS_MAXIMO_TAMAÑO = nameof(CFG_ARCHIVOS_MAXIMO_TAMAÑO);
         public static readonly string CFG_Horas_De_Validez_De_Enlaces_Archivos = nameof(CFG_Horas_De_Validez_De_Enlaces_Archivos);
         public static readonly string CFG_Mensajeria_Modo = nameof(CFG_Mensajeria_Modo);
         public static readonly string CFG_Mensajeria_Canal = nameof(CFG_Mensajeria_Canal);
@@ -119,6 +120,7 @@ namespace ServicioDeDatos
 
         public static readonly string CFG_SeparadorDecimal_En_BD = "Indica el separador decimal usado por la BD";
 
+        public static readonly string CFG_ARCHIVOS_MAXIMO_TAMAÑO = "Tamaño máximo, en MB, de un archivo que se sube o se anexa (p. ej. 25). Ha de ser menor que el límite del servidor web (maxAllowedContentLength del web.config, 50 MB)";
         public static readonly string CFG_Horas_De_Validez_De_Enlaces_Archivos = "Indica las horas durante las que se pueden descargar los archivos de los enlaces con guid que se envían por correo";
         public static readonly string CFG_Mensajeria_Modo = "Indica quién envía los mensajes a un teléfono: CLIENTE (se abre en su equipo la aplicación del canal con el mensaje escrito, lo envía el usuario) o SERVIDOR (lo envía el servidor llamando al servicio web del canal)";
         public static readonly string CFG_Mensajeria_Canal = "Indica el canal por el que se envían los mensajes a un teléfono: WHATSAPP, TELEGRAM o SMS (las credenciales de cada canal están en la sección ServidorDeMensajes del appsettings)";
@@ -260,6 +262,19 @@ namespace ServicioDeDatos
         }
 
 
+
+        // Tamaño máximo de un archivo que se sube o se anexa (ver TamanoDeArchivos). El valor está en MB; admite decimales y el sufijo "MB"
+        public static long CFG_Archivos_Maximo_Tamano_En_Bytes
+        {
+            get
+            {
+                var valor = ObtenerVariable(Variable.CFG_ARCHIVOS_MAXIMO_TAMAÑO, Descripciones.CFG_ARCHIVOS_MAXIMO_TAMAÑO, "25");
+                var numero = valor.Trim().ToUpperInvariant().Replace("MB", "").Trim().Replace(',', '.');
+                if (!decimal.TryParse(numero, NumberStyles.Number, CultureInfo.InvariantCulture, out var megas) || megas <= 0)
+                    GestorDeErrores.Emitir($"La variable '{Variable.CFG_ARCHIVOS_MAXIMO_TAMAÑO}' está mal definida: '{valor}' no es un tamaño en MB válido (p. ej. 25)");
+                return (long)(megas * 1024 * 1024);
+            }
+        }
 
         public static int CFG_Horas_De_Validez_De_Enlaces_Archivos
         {
@@ -507,6 +522,29 @@ namespace ServicioDeDatos
         public static void BorrarCache(string variable)
         {
             ServicioDeCaches.EliminarElemento(typeof(VariableDtm).FullName, variable);
+        }
+    }
+
+    // Límite de tamaño de los archivos que se suben o se anexan (variable CFG_ARCHIVOS_MAXIMO_TAMAÑO): lo validan los endpoints de subida y el
+    // cliente lo recibe en los indicadores de la vista (ver BaseController.IndicadoresParaInicializarLaVistaMnt y ApiDeArchivos.ts)
+    public static class TamanoDeArchivos
+    {
+        public static long MaximoEnBytes => CacheDeVariable.CFG_Archivos_Maximo_Tamano_En_Bytes;
+
+        public static void Validar(string nombreDelArchivo, long bytes)
+        {
+            var maximo = MaximoEnBytes;
+            if (bytes > maximo)
+                GestorDeErrores.Emitir($"El archivo '{nombreDelArchivo}' ocupa {Formatear(bytes)} y el tamaño máximo permitido es de {Formatear(maximo)}. " +
+                                       $"Redúzcalo o divídalo (el límite lo fija la variable '{Variable.CFG_ARCHIVOS_MAXIMO_TAMAÑO}')");
+        }
+
+        public static string Formatear(long bytes)
+        {
+            var es = CultureInfo.GetCultureInfo("es-ES");
+            return bytes >= 1024 * 1024
+                ? $"{(bytes / (1024m * 1024m)).ToString("#,##0.##", es)} MB"
+                : $"{(bytes / 1024m).ToString("#,##0.##", es)} KB";
         }
     }
 }

@@ -1893,6 +1893,9 @@
             this._usaTotalizador = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaTotalizador);
             this._usaDirecciones = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.UsaDirecciones);
 
+            // tamaño máximo de un archivo que se sube o se anexa (CFG_ARCHIVOS_MAXIMO_TAMAÑO): lo valida ApiDeArchivos antes de subirlo
+            ApiDeArchivos.TamanoMaximoEnBytes = Numero(mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.ArchivosMaximoTamano));
+
             this._permitirFichas = mapIndicadores.get(ltrPropiedades.Entorno.Vista.Indicadores.PermitirFichas);
             if (this._permitirFichas && Definido(this.BotonVistaDeFichas)) {
                 ApiControl.ExcluirCss(this.BotonVistaDeFichas, ltrCss.divNoVisible);

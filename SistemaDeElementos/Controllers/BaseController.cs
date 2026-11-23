@@ -135,6 +135,7 @@ namespace MVCSistemaDeElementos.Controllers
                 }
 
                 ApiController.CumplimentarDatosDeUsuarioDeConexion(contexto, mapeador, httpContext);
+                TamanoDeArchivos.Validar(fichero.FileName, fichero.Length);
                 ValidarExtension(fichero, extensionesValidas.ToLower());
                 var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, fichero.FileName);
                 using (var stream = new FileStream(rutaConFichero, FileMode.Create))
@@ -304,6 +305,8 @@ namespace MVCSistemaDeElementos.Controllers
             {
                 { IndCrud.SiempreEnConsulta, false },
                 { IndCrud.CapaConVinculados, enumNegocio.VistaMvc.Parametro(enumParametrosDeVistaMvc.Con_Capa_Los_Vinculados,crearParametro: true, valorPorDefecto: "S").Valor.EsTrue() },
+                // el cliente valida el tamaño antes de subir o anexar un archivo (ver ApiDeArchivos.TamanoMaximoEnBytes en ApiDeArchivos.ts)
+                { IndCrud.ArchivosMaximoTamano, TamanoDeArchivos.MaximoEnBytes },
             };
             var negocio = parametros.LeerValor(nameof(enumNegocio), enumNegocio.No_Definido);
             if (negocio != enumNegocio.No_Definido)

@@ -14,6 +14,8 @@ namespace ModeloDeDto
         public const string PermitirFichas = nameof(PermitirFichas);
         public const string UsaPrioridades = nameof(UsaPrioridades);
         public const string ModoDePresentacion = nameof(ModoDePresentacion);
+        // tamaño máximo en bytes de un archivo que se sube o se anexa (variable CFG_ARCHIVOS_MAXIMO_TAMAÑO)
+        public const string ArchivosMaximoTamano = nameof(ArchivosMaximoTamano);
     }
 
     public interface IUsaNombreDto : IElementoDto

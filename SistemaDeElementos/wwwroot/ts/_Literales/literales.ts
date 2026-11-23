@@ -2740,7 +2740,9 @@ const ltrPropiedades = {
                 UsaDirecciones: 'UsaDirecciones',
                 PermitirFichas: 'PermitirFichas',
                 UsaPrioridades: 'UsaPrioridades',
-                ModoDePresentacion: 'ModoDePresentacion'
+                ModoDePresentacion: 'ModoDePresentacion',
+                // tamaño máximo en bytes de un archivo que se sube o se anexa (IndCrud.ArchivosMaximoTamano)
+                ArchivosMaximoTamano: 'ArchivosMaximoTamano'
             }
         },
         seguridad: {

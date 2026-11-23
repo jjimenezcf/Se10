@@ -2117,6 +2117,15 @@ namespace ApiDePeticiones {
         // Configurar la barra de progreso
         ConfigurarBarraProgreso(infoArchivo, barraHtml);
 
+        // si pasa del tamaño máximo (CFG_ARCHIVOS_MAXIMO_TAMAÑO) no se empieza a subir
+        const mensaje = ApiDeArchivos.MensajeSiSuperaElTamanoMaximo(file);
+        if (mensaje !== null) {
+            MensajesSe.Error('SubirPorTrozos', mensaje);
+            barraHtml.classList.remove(ltrCss.barraAzul);
+            barraHtml.classList.add(ltrCss.barraRoja);
+            return;
+        }
+
         PonerCapa();
         try {
             for (let currentChunk = 1; currentChunk <= totalChunks; currentChunk++) {
@@ -2135,7 +2144,9 @@ namespace ApiDePeticiones {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Error en la subida del trozo');
+                    // el servidor explica el motivo en message (p. ej. que pasa del tamaño máximo, ver ArchivosController.epSubirTrozo)
+                    const respuesta = await response.json().catch(() => null);
+                    throw new Error(Definido(respuesta?.message) ? respuesta.message : 'Error en la subida del trozo');
                 }
 
                 const data = await response.json();
