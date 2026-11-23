@@ -1267,7 +1267,7 @@ namespace GestorDeElementos.Extensores
                     RecibidaEl = recibidaEl,
                     BaseImponible = parametros.LeerValor<decimal>(nameof(CopiarFarDto.BaseImponible)),
                     TotalDelPago = parametros.LeerValor<decimal>(nameof(CopiarFarDto.TotalDelPago)),
-                    Descripcion = parametros.LeerValor<string>(nameof(CopiarFarDto.Descripcion)),
+                    Descripcion = parametros.LeerValor<string>(nameof(CopiarFarDto.Descripcion), null),
                     IdExpediente = idExpediente == 0 ? null : idExpediente,
                     IdContrato = idContrato == 0 ? null : idContrato,
                     IdArchivo = idArchivo == 0 ? null : idArchivo,

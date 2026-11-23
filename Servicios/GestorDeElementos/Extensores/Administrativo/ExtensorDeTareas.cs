@@ -524,7 +524,7 @@ namespace GestorDeElementos.Extensores
                     IdSolicitante = contexto.SeleccionarPorId<InterlocutorDtm>((int)(long)parametros[nameof(CopiarTareaDto.IdSolicitante)]).Id,
                     IdTipo = contexto.SeleccionarPorId<TipoDeTareaDtm>((int)(long)parametros[nameof(CopiarTareaDto.IdTipo)]).Id,
                     Nombre = parametros.LeerValor<string>(nameof(CopiarTareaDto.Nombre)),
-                    Descripcion = parametros.LeerValor<string>(nameof(CopiarTareaDto.Descripcion))
+                    Descripcion = parametros.LeerValor<string>(nameof(CopiarTareaDto.Descripcion), null)
                 }.Insertar(contexto, new Dictionary<string, object> {
                                  { ltrDeUnaTarea.TrazaDeCopiaDeTarea, $"Copia de la tarea {origen.Expresion}" },
                                  { nameof(TareaDto.IdArchivoAlCrear), idArchivo},

@@ -549,7 +549,7 @@ namespace GestoresDeNegocio.SistemaDocumental
             var idcg = (int)parametros.LeerValor<long>(nameof(CopiarArchDto.IdCg));
             var idtipo = (int)parametros.LeerValor<long>(nameof(CopiarArchDto.IdTipo));
             var nombre = parametros.LeerValor<string>(nameof(CopiarArchDto.Nombre));
-            var descripcion = parametros.LeerValor<string>(nameof(CopiarArchDto.Descripcion));
+            var descripcion = parametros.LeerValor<string>(nameof(CopiarArchDto.Descripcion), null);
             var copiarCarpetas = parametros.LeerValor<bool>(nameof(CopiarArchDto.CopiarCarpetas));
             var copiarArchivos = parametros.LeerValor<bool>(nameof(CopiarArchDto.CopiarArchivos));
             var enlazarArchivos = parametros.LeerValor<bool>(nameof(CopiarArchDto.EnlazarArchivos));

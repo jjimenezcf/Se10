@@ -204,7 +204,7 @@ namespace GestorDeElementos.Extensores
                     IdTipo = contexto.SeleccionarPorId<TipoDePresupuestoDtm>((int)(long)parametros[nameof(CopiarPptDto.IdTipo)]).Id,
                     IdEstado = 0,
                     Nombre = parametros.LeerValor<string>(nameof(CopiarPptDto.Nombre)),
-                    Descripcion = parametros.LeerValor<string>(nameof(CopiarPptDto.Descripcion)),
+                    Descripcion = parametros.LeerValor<string>(nameof(CopiarPptDto.Descripcion), null),
                     ClaseDePresupuesto = pptOrigen.ClaseDePresupuesto,
                     IdExpediente = idExpediente == 0 ? null : idExpediente,
                 }.Insertar(contexto, new Dictionary<string, object> { { ltrDeUnPresupuesto.TrazaDelCambioDeExpediente, $"Copia del presupuesto {pptOrigen.Expresion}" } });
