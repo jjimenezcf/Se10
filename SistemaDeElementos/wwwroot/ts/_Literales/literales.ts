@@ -1310,6 +1310,8 @@ const ltrCss = {
             GraficaCerrar: 'grafica-cerrar',
             // botón cambio de modo (tarta / barras / matriz)
             GraficaModo: 'grafica-modo',
+            // botón de ayuda (?) junto a la ✕: abre la documentación del proceso del negocio
+            GraficaAyuda: 'grafica-ayuda',
             // botones de movimiento (flechas)
             GraficaPreguntar: 'grafica-preguntar',
             GraficaMover: 'grafica-mover',
@@ -1913,6 +1915,8 @@ const Ajax = {
                 AyudaDelFlujo: 'epAyudaDelFlujo',
                 DescargarAyudaDelFlujo: 'epDescargarAyudaDelFlujo',
                 ExplicarTransiciones: 'epExplicarTransiciones',
+                AyudaDelNegocio: 'epAyudaDelNegocio',
+                AyudaDelFlujoHtml: 'epAyudaDelFlujoHtml',
                 GrabarEtapas: 'epGrabarEtapasDeUnEstado'
             }
         },
@@ -4725,7 +4729,7 @@ const ltrHtml = {
                          <span id="btn-editar-texto-cerrar" class="${ltrCss.flujo.cerrarDeModal}" title="Cerrar">&times;</span>
                      </div>
                      <div class="${ltrCss.flujo.cuerpo}">
-                         <textarea id="editar-texto-contenido" spellcheck="false" wrap="off"></textarea>
+                         <textarea id="editar-texto-contenido" spellcheck="false"></textarea>
                      </div>
                      <div class="${ltrCss.flujo.pie}">
                          <button id="btn-editar-texto-aceptar" title="Guarda el texto como un archivo nuevo y quita el que se está editando">Aceptar</button>

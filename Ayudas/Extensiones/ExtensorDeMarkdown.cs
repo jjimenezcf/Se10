@@ -24,12 +24,15 @@ namespace Utilidades
         // incrustado en el propio enlace (data:), así descargarlo no hace una segunda petición al servidor (los enlaces
         // de descarga con guid pueden ser de un solo uso)
         public static string ToHtml(string rutaDelMd, string nombreDeDescarga = null)
+            => ToHtmlDeTexto(File.ReadAllText(rutaDelMd), Path.GetFileNameWithoutExtension(nombreDeDescarga ?? rutaDelMd), nombreDeDescarga);
+
+        // Igual que ToHtml, pero partiendo del texto del markdown (p. ej. varios documentos fusionados) y no de un fichero
+        public static string ToHtmlDeTexto(string markdown, string tituloDeLaPagina, string nombreDeDescarga = null)
         {
-            var markdown = File.ReadAllText(rutaDelMd);
             var documento = Markdown.Parse(markdown, Pipeline);
             QuitarEnlacesConCodigo(documento);
             var cuerpo = documento.ToHtml(Pipeline);
-            var titulo = WebUtility.HtmlEncode(Path.GetFileNameWithoutExtension(nombreDeDescarga ?? rutaDelMd));
+            var titulo = WebUtility.HtmlEncode(tituloDeLaPagina);
             if (!string.IsNullOrEmpty(nombreDeDescarga))
             {
                 var nombre = WebUtility.HtmlEncode(nombreDeDescarga);

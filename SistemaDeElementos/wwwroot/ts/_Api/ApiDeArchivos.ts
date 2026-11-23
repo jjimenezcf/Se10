@@ -1808,7 +1808,9 @@
     // Plantilla en ltrHtml.Modales.EditarTexto, con la cabecera común de las modales (icono, título y ×) y el botón Aceptar.
     // Devuelve el texto al pulsar Aceptar, o null si se cierra (× o Escape); si se ha modificado algo, pregunta antes de descartarlo.
     // No se cierra al pulsar fuera de la ventana, para no perder lo escrito por un clic despistado.
-    export function AbrirModalDeEditarTexto(nombreDelArchivo: string, texto: string): Promise<string | null> {
+    // Con sinAceptar = true el botón Aceptar queda deshabilitado (el texto es sólo para consultar y nunca se devuelve).
+    // Con urlDeMarkdown el textarea se sustituye por el html que devuelve esa url (un markdown ya convertido, como en el visor de archivos).
+    export function AbrirModalDeEditarTexto(nombreDelArchivo: string, texto: string, sinAceptar: boolean = false, urlDeMarkdown?: string): Promise<string | null> {
         return new Promise((resolve) => {
             const modal = document.createElement('div') as HTMLDivElement;
             ApiControl.IncluirCss(modal, ltrCss.flujo.contenedorModal);
@@ -1821,10 +1823,33 @@
             const btnAceptar = modal.querySelector('#btn-editar-texto-aceptar') as HTMLButtonElement;
             const btnCerrar = modal.querySelector('#btn-editar-texto-cerrar') as HTMLSpanElement;
             ApiControl.IncluirCss(btnAceptar, ltrCss.Modal.BotonPrincipal);
+            if (sinAceptar) {
+                // sólo de consulta: el botón Aceptar se oculta para no confundir y el lápiz de la cabecera pasa a ser una i de información
+                btnAceptar.disabled = true;
+                btnAceptar.title = 'Este texto es sólo de consulta, no se guarda';
+                btnAceptar.style.display = ltrStyle.display.none;
+                const icono = modal.querySelector('svg');
+                if (icono)
+                    icono.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+            }
 
             // el textarea devuelve los saltos de línea como \n: se compara con el original normalizado igual
             const original = (texto ?? '').replace(/\r\n?/g, '\n');
             editor.value = original;
+
+            if (!IsNullOrEmpty(urlDeMarkdown)) {
+                const panel = document.createElement('div') as HTMLDivElement;
+                panel.style.cssText = 'flex:1; min-height:0; width:100%; border:1px solid #ced4da; border-radius:4px; overflow:hidden';
+                editor.style.display = ltrStyle.display.none;
+                editor.parentElement.appendChild(panel);
+                ApiPanel.RenderizarMarkdown(panel, urlDeMarkdown)
+                    .then(() => {
+                        const iframe = panel.querySelector('iframe');
+                        if (iframe)
+                            iframe.style.cssText = 'width:100%; height:100%; border:0';
+                    })
+                    .catch(() => { panel.textContent = 'No se ha podido mostrar el documento'; });
+            }
 
             let resuelta = false;
             const terminar = (resultado: string | null) => {

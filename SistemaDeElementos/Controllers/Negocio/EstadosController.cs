@@ -180,6 +180,67 @@ namespace MVCSistemaDeElementos.Controllers
             return new JsonResult(r);
         }
 
+        /// <summary>
+        /// Documentos de ayuda (wwwroot/ayuda/procesos/{negocio}/*.md) de un negocio, fusionados en uno solo y convertidos a html
+        /// con la misma conversión (y saneado) que usa el visor de archivos para los .md (ApiPanel.RenderizarMarkdown).
+        /// El negocio puede venir como el enumerado de una ficha del dashboard ('Expediente_Actividades'): se usa lo que hay antes del '_'.
+        /// Si no hay documentos, el html va vacío y el motivo en la cabecera X-Error-Message (como hace el visor).
+        /// </summary>
+        [HttpGet]
+        public ContentResult epAyudaDelNegocio(string negocio)
+        {
+            try
+            {
+                var enumerado = NegociosDeSe.ToEnumerado((negocio ?? string.Empty).Split('_')[0]);
+                var carpeta = Path.Combine(HttpContext.RequestServices.GetService<IWebHostEnvironment>().WebRootPath, "ayuda", "procesos", enumerado.ToString());
+                var ficheros = Directory.Exists(carpeta) ? Directory.GetFiles(carpeta, "*.md").OrderBy(f => f).ToList() : new List<string>();
+                if (ficheros.Count == 0)
+                {
+                    Response.Headers["X-Error-Message"] = $"No hay documentos de ayuda para {enumerado}";
+                    return Content(string.Empty, "text/html; charset=utf-8");
+                }
+
+                var markdown = string.Join("\n\n---\n\n", ficheros.Select(f => System.IO.File.ReadAllText(f).Trim()));
+                return Content(ExtensorDeHtml.SanitizeHtml(ExtensorDeMarkdown.ToHtmlDeTexto(markdown, $"Ayuda de {enumerado}")), "text/html; charset=utf-8");
+            }
+            catch (Exception e)
+            {
+                // la cabecera sólo admite ASCII
+                Response.Headers["X-Error-Message"] = new string(e.Message.Select(c => c < 128 && !char.IsControl(c) ? c : ' ').ToArray());
+                return Content(string.Empty, "text/html; charset=utf-8");
+            }
+        }
+
+        /// <summary>
+        /// Html del documento de ayuda del flujo al que pertenece el estado, para la modal de consulta de ApiDeArchivos.
+        /// Si no hay documento, el html va vacío y el motivo en la cabecera X-Error-Message (como epAyudaDelNegocio).
+        /// </summary>
+        [HttpGet]
+        public ContentResult epAyudaDelFlujoHtml(string negocio, string estado)
+        {
+            try
+            {
+                var carpeta = Path.Combine(HttpContext.RequestServices.GetService<IWebHostEnvironment>().WebRootPath, "ayuda", "procesos", NegociosDeSe.ToEnumerado((negocio ?? string.Empty).Split('_')[0]).ToString());
+                var documentos = Directory.Exists(carpeta) && !string.IsNullOrWhiteSpace(estado)
+                    ? Directory.GetFiles(carpeta, "*.md").OrderBy(f => f).Select(f => System.IO.File.ReadAllText(f)).Where(t => t.Contains(estado)).ToList()
+                    : new List<string>();
+                var markdown = documentos.FirstOrDefault(t => t.Contains($"### {estado} ---> ")) ?? documentos.FirstOrDefault();
+                if (markdown == null)
+                {
+                    Response.Headers["X-Error-Message"] = "No hay documento de ayuda para este flujo";
+                    return Content(string.Empty, "text/html; charset=utf-8");
+                }
+
+                return Content(ExtensorDeHtml.SanitizeHtml(ExtensorDeMarkdown.ToHtmlDeTexto(markdown, $"Ayuda del flujo {estado}")), "text/html; charset=utf-8");
+            }
+            catch (Exception e)
+            {
+                // la cabecera sólo admite ASCII
+                Response.Headers["X-Error-Message"] = new string(e.Message.Select(c => c < 128 && !char.IsControl(c) ? c : ' ').ToArray());
+                return Content(string.Empty, "text/html; charset=utf-8");
+            }
+        }
+
         /// <summary>Descarga el documento .md de ayuda del flujo al que pertenece el estado</summary>
         [HttpGet]
         public IActionResult epDescargarAyudaDelFlujo(string negocio, string estado)

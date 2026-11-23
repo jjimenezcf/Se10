@@ -97,7 +97,8 @@ namespace Flujo {
 
     // ─────────────────────────────────────────────────────────────────────────
     //  DescargarAyudaDelFlujo
-    //  Icono de ayuda junto al control del estado: abre en otra pestaña la ayuda del flujo del estado que muestra el control.
+    //  Icono de ayuda junto al control del estado: muestra, ya como html, la ayuda del flujo del estado que muestra el
+    //  control en la modal de consulta de ApiDeArchivos (la misma que usa el panel de control); Aceptar queda deshabilitado.
     // ─────────────────────────────────────────────────────────────────────────
     export function DescargarAyudaDelFlujo(boton: HTMLElement): boolean {
         const input  = boton.parentElement?.querySelector('input') as HTMLInputElement | null;
@@ -107,8 +108,9 @@ namespace Flujo {
             return false;
         }
         const negocio = boton.getAttribute('negocio') || '';
-        window.open(`/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujo}`
-            + `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`, '_blank');
+        const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujoHtml}`
+            + `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
+        ApiDeArchivos.AbrirModalDeEditarTexto(`Ayuda del flujo: ${estado}`, '', true, url);
         return false;
     }
 
@@ -334,9 +336,12 @@ namespace Flujo {
         btnAyuda.title = 'Ayuda sobre este flujo';
         btnAyuda.textContent = '?';
         btnAyuda.addEventListener('click', () => {
-            const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujo}`
+            const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujoHtml}`
                 + `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(nombreEstado)}`;
-            window.open(url, '_blank');
+            // se oculta la modal del flujo mientras se lee la ayuda; al cerrarla vuelve a mostrarse
+            modal.style.display = ltrStyle.display.none;
+            ApiDeArchivos.AbrirModalDeEditarTexto(`Ayuda del flujo: ${nombreEstado}`, '', true, url)
+                .finally(() => { if (document.body.contains(modal)) modal.style.display = ltrStyle.display.block; });
         });
 
         const acciones = document.createElement('div');

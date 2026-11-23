@@ -246,7 +246,7 @@
     font-size: 13px;
     font-weight: 600;
     margin: 0 0 8px 0;
-    padding-right: 126px;   /* espacio para los 5 botones: ✕ modo ? → ← */
+    padding-right: 150px;   /* espacio para los 6 botones: ✕ ayuda modo ? → ← */
     color: #24292f;
     white-space: nowrap;
     overflow: hidden;
@@ -275,6 +275,7 @@
 }
 
 .grafica-cerrar,
+.grafica-ayuda,
 .grafica-modo,
 .grafica-preguntar,
 .grafica-mover {
@@ -303,8 +304,19 @@
     background: #a40e26;
 }
 
-.grafica-modo {
+.grafica-ayuda {
     right: 30px;
+    background: #8250df;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.grafica-ayuda:hover {
+    background: #6639ba;
+}
+
+.grafica-modo {
+    right: 54px;
     background: #4e79a7;
 }
 
@@ -313,7 +325,7 @@
 }
 
 .grafica-preguntar {
-    right: 54px;
+    right: 78px;
     background: #2e7d32;
     font-size: 13px;
     font-weight: bold;
@@ -332,11 +344,11 @@
 }
 
 .grafica-mover-der {
-    right: 78px;
+    right: 102px;
 }
 
 .grafica-mover-izq {
-    right: 102px;
+    right: 126px;
 }
 
 /* ── Modal de pregunta de conteo ── */

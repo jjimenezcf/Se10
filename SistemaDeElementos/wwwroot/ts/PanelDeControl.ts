@@ -102,11 +102,17 @@ namespace PanelDeControl {
         <rect x="1" y="11" width="12" height="3" opacity="0.25"/>
     </svg>`;
 
-    const SVG_PREGUNTA = `<svg width="11" height="11" viewBox="0 0 14 14" fill="none"
-        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="7" cy="7" r="6"/>
-        <path d="M5.2,5.2 a1.8,1.8 0 1,1 1.8,1.8 v1.2"/>
-        <circle cx="7" cy="11" r="0.5" fill="currentColor" stroke="none"/>
+    // robot con antenas: pregunta a la IA (el ? queda para la ayuda del proceso)
+    const SVG_ROBOT = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+        stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="1.8" x2="6.2" y2="4"/>
+        <line x1="11" y1="1.8" x2="9.8" y2="4"/>
+        <circle cx="5" cy="1.6" r="0.7" fill="currentColor" stroke="none"/>
+        <circle cx="11" cy="1.6" r="0.7" fill="currentColor" stroke="none"/>
+        <rect x="2.5" y="4" width="11" height="9.5" rx="2.2"/>
+        <circle cx="6" cy="8" r="1.1" fill="currentColor" stroke="none"/>
+        <circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none"/>
+        <line x1="6" y1="11.2" x2="10" y2="11.2"/>
     </svg>`;
 
     const SVG_FLECHA_DER = `<svg width="10" height="10" viewBox="0 0 10 10"
@@ -176,6 +182,13 @@ namespace PanelDeControl {
                 GuardarDisposicion();
             });
 
+            // ── ? Ayuda del proceso (documentos .md del negocio, sólo consulta) ──
+            const btnAyuda = document.createElement('button');
+            btnAyuda.className = css.GraficaAyuda;
+            btnAyuda.title = 'Ayuda del proceso';
+            btnAyuda.textContent = '?';
+            btnAyuda.addEventListener('click', () => MostrarAyudaDelNegocio(negocio));
+
             // ── Modo vista ──
             const btnModo = document.createElement('button');
             btnModo.className = css.GraficaModo;
@@ -186,11 +199,11 @@ namespace PanelDeControl {
                 GuardarDisposicion();
             });
 
-            // ── ? Pregunta IA ──
+            // ── Robot: pregunta a la IA ──
             const btnPregunta = document.createElement('button');
             btnPregunta.className = css.GraficaPreguntar;
             btnPregunta.title = 'Hacer una pregunta';
-            btnPregunta.innerHTML = SVG_PREGUNTA;
+            btnPregunta.innerHTML = SVG_ROBOT;
             ApiPreguntasIa.InyectarConteoIA(negocio.enumerado, negocio.nombre, btnPregunta, negocio.url);
 
             // ── → Mover derecha ──
@@ -245,6 +258,7 @@ namespace PanelDeControl {
             vistaDiv.appendChild(ConstruirMatriz(negocio));
 
             tarjeta.appendChild(btnCerrar);
+            tarjeta.appendChild(btnAyuda);
             tarjeta.appendChild(btnModo);
             tarjeta.appendChild(btnPregunta);
             tarjeta.appendChild(btnDer);
@@ -253,6 +267,15 @@ namespace PanelDeControl {
             tarjeta.appendChild(vistaDiv);
             contenedor.appendChild(tarjeta);
         });
+    }
+
+    // ─── Ayuda del proceso ────────────────────────────────────────────────────
+
+    // Abre la modal de edición de texto mostrando, ya renderizados como html (igual que el visor de archivos), los documentos de ayuda
+    // (wwwroot/ayuda/procesos/{negocio}) fusionados en uno. Aceptar queda deshabilitado: es sólo para consultar, no se graba nada.
+    function MostrarAyudaDelNegocio(negocio: DatosDeNegocio): void {
+        const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelNegocio}?negocio=${encodeURIComponent(negocio.enumerado)}`;
+        ApiDeArchivos.AbrirModalDeEditarTexto(`Ayuda de ${negocio.nombre}`, '', true, url);
     }
 
     // ─── Mover tarjeta ────────────────────────────────────────────────────────

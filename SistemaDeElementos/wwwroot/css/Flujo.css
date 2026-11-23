@@ -39,13 +39,19 @@ a[href*="AyudaDeUnaTransicion"]::before {
     z-index: 9999;
 }
 
+/* tamaño máximo de la modal: si la explicación no cabe, el cuerpo muestra su scroll y la cabecera se queda fija */
 .flujo-ayuda-modal {
+    display: flex;
+    flex-direction: column;
     max-width: min(90vw, 40em);
+    max-height: min(70vh, 30em);
+    max-height: min(70dvh, 30em);   /* dvh: la zona visible real en el móvil (si no se entiende, vale el vh de arriba) */
 }
 
 .flujo-ayuda-cuerpo {
-    max-height: calc(100vh - 220px);
-    overflow: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .flujo-ayuda-apartado {
@@ -102,8 +108,8 @@ a[href*="AyudaDeUnaTransicion"]::before {
    (.contenedor-modal deja 100px arriba; se deja un margen abajo) */
 .flujo-modal {
     max-width: min(90vw, 60em);
-    height: calc(100vh - 140px);
-    max-height: calc(100vh - 140px);
+    height: calc(100% - 40px);       /* % del contenedor (zona visible): con vh el móvil cuenta la barra del navegador y el pie se perdía */
+    max-height: calc(100% - 40px);
 }
 
 /* el cuerpo muestra las barras de scroll cuando el svg es mayor que él (ver ApiFlujo.ts: el lienzo

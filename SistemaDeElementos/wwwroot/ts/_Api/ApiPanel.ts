@@ -270,6 +270,31 @@
     // Muestra el html en el que el servidor ha convertido un markdown (ya saneado y con sus estilos).
     // No pasa por RenderizarContenido: aquel desescapa el html (los "&lt;" de los bloques de código se convertirían en etiquetas)
     // Los enlaces internos (#titulo) se resuelven desplazándose dentro del iframe y los externos se abren en otra pestaña.
+    // Los bloques ```mermaid del markdown llegan como código (pre > code.language-mermaid) o como div.mermaid: si el documento los trae,
+    // se carga mermaid (wwwroot/lib/mermaid, sin depender de internet) dentro del iframe y se dibujan como diagramas.
+    // Si la librería no se carga, el bloque se queda como texto.
+    function DibujarDiagramasMermaid(documento: Document): void {
+        documento.querySelectorAll('pre > code.language-mermaid').forEach(codigo => {
+            const diagrama = documento.createElement('div');
+            diagrama.className = 'mermaid';
+            diagrama.textContent = codigo.textContent;
+            codigo.parentElement.replaceWith(diagrama);
+        });
+        if (documento.querySelectorAll('.mermaid').length === 0)
+            return;
+
+        const script = documento.createElement('script');
+        script.src = `${window.location.origin}/lib/mermaid/mermaid.min.js`;
+        script.onload = () => {
+            const mermaid = (documento.defaultView as any)?.mermaid;
+            if (!mermaid)
+                return;
+            mermaid.initialize({ startOnLoad: false });
+            mermaid.run({ querySelector: '.mermaid' });
+        };
+        documento.head.appendChild(script);
+    }
+
     export async function RenderizarMarkdown(panel: HTMLDivElement, url: string) {
         const response = await fetch(url);
 
@@ -288,6 +313,7 @@
             const documento = iframe.contentDocument;
             if (!documento)
                 return;
+            DibujarDiagramasMermaid(documento);
             documento.addEventListener('click', (evento: MouseEvent) => {
                 const enlace = (evento.target as HTMLElement)?.closest('a') as HTMLAnchorElement;
                 if (!enlace)
