@@ -1,5 +1,6 @@
 ﻿using Gestor.Errores;
 using GestorDeElementos;
+using GestorDeElementos.Extensores;
 using ModeloDeDto;
 using ModeloDeDto.Negocio;
 using ModeloDeDto.Seguridad;
@@ -78,7 +79,7 @@ namespace MVCSistemaDeElementos.Descriptores
             if (typeof(TElemento).ImplementaProcesoDto()) MenuDeEdicion.AnadirOpcionDeIrAHistorial();
             MenuDeEdicion.AnadirOpcionDeCancelarEdicion();
 
-            DefinirMfIndividual(crud.Negocio, OpcionesMf);
+            DefinirMfIndividual(crud.Contexto, crud.Negocio, OpcionesMf);
         }
 
 
@@ -98,7 +99,7 @@ namespace MVCSistemaDeElementos.Descriptores
             MenuDeEdicion.AnadirOpcionDeCancelarEdicion();
         }
 
-        internal static void DefinirMfIndividual(enumNegocio Negocio, List<string> mfDeEdicion)
+        internal static void DefinirMfIndividual(ContextoSe contexto, enumNegocio Negocio, List<string> mfDeEdicion)
         {
             if (Negocio.UsaBaja())
             {
@@ -130,7 +131,7 @@ namespace MVCSistemaDeElementos.Descriptores
             if (Negocio != enumNegocio.No_Definido)
                 mfDeEdicion.Add($"<li id='{DescriptorDeCrud<ElementoDto>.menuEdicion}.imprimir' accion-menu='{eventosDeMf.Comun_Imprimir}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Imprimir seleccionado</li>");
 
-            if (Negocio.UsaPermisosPorElemento())
+            if (Negocio.UsaPermisosPorElemento() && (contexto.DatosDeConexion.EsAdministrador || contexto.SePuedeParametrizar()))
             {
                 mfDeEdicion.Add("<hr>");
                 mfDeEdicion.Add($"<li id='{DescriptorDeCrud<ElementoDto>.menuEdicion}.permisos' accion-menu='{eventosDeMf.Comun_PermisosDeElemento}' {AtributosHtml.Mf(enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor, false)}>Permiso del elemento</li>");

@@ -56,7 +56,7 @@ namespace MVCSistemaDeElementos.Descriptores
             Filtro = new ZonaDeFiltro<TElemento>(padre: this);
             Datos = new ZonaDeDatos<TElemento>(padre: this);
 
-            DescriptorDeEdicion<TElemento>.DefinirMfIndividual(crud.Negocio, OpcionesPorElemento);
+            DescriptorDeEdicion<TElemento>.DefinirMfIndividual(crud.Contexto, crud.Negocio, OpcionesPorElemento);
             DefinirMfContextual();
             DefinirMfDeFiltro();
             var p = crud.AtributosJson.Find(x => x.propiedad.Equals(nameof(OrdenacionInicial), StringComparison.CurrentCultureIgnoreCase));
