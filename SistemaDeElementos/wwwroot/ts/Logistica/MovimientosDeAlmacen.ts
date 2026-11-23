@@ -48,6 +48,16 @@ namespace Logistica {
         // El filtro empieza plegado; se despliega con la etiqueta "Mostrar filtro" en la web o con el embudo de la barra en el móvil.
         // Se pliega al acabar de inicializar el crud, que es cuando el mantenimiento fija si el filtro se ve (ver OcultarMostrarFiltro)
         protected DespuesDeInicializarCrud(modoAccesoAlNegocio: ModoAcceso.enumModoDeAccesoDeDatos) {
+            // Se fija el primer almacén de la lista antes de que el crud base cargue el grid, así se entra viendo los movimientos de un almacén y
+            // no los de todos mezclados (el stock y el valor se calculan por almacén y material). El usuario puede cambiarlo; si la url o el estado
+            // guardado traen un almacén, el crud base lo aplica después y prevalece (ver Inventario.ts, que hace algo parecido)
+            const almacenes = ApiControl.BuscarControl(this.PanelFiltro, ltrPropiedades.Logistica.MovimientosDeAlmacen.FiltroPorAlmacen, false);
+            if (almacenes instanceof HTMLSelectElement && Numero(almacenes.value) <= 0) {
+                const primero = Array.from(almacenes.options).find(o => !IsNullOrEmpty(o.value) && Numero(o.value) > 0);
+                if (Definido(primero))
+                    MapearAlControl.ListaDeValores(almacenes, primero.value);
+            }
+
             super.DespuesDeInicializarCrud(modoAccesoAlNegocio);
             this.OcultarFiltro();
         }

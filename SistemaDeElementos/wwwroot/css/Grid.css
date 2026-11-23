@@ -948,6 +948,25 @@ ul, ol {
     background-color: #43A047; /* verde */
 }
 
+/* Candado contable pintado en el grid (enumTipoControl.CirculoEnCelda, igual que el semáforo): la celda trae "candado-grid;candado-<estado>".
+   La imagen es un svg en línea (como el resto de iconos de css): cerrado en granate, abierto en verde. */
+.candado-grid {
+    width: 1.3em;
+    height: 1.3em;
+    display: inline-block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.candado-cerrado {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4' fill='none' stroke='%23800020' stroke-width='2.5' stroke-linecap='round'/%3E%3Crect x='5' y='11' width='14' height='10' rx='2' fill='%23800020'/%3E%3Ccircle cx='12' cy='15' r='1.5' fill='%23fff'/%3E%3Crect x='11.2' y='15.5' width='1.6' height='3' rx='0.8' fill='%23fff'/%3E%3C/svg%3E");
+}
+
+.candado-abierto {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 11V7a4 4 0 0 1 7.46-2' fill='none' stroke='%2343A047' stroke-width='2.5' stroke-linecap='round'/%3E%3Crect x='5' y='11' width='14' height='10' rx='2' fill='%2343A047'/%3E%3Ccircle cx='12' cy='15' r='1.5' fill='%23fff'/%3E%3Crect x='11.2' y='15.5' width='1.6' height='3' rx='0.8' fill='%23fff'/%3E%3C/svg%3E");
+}
+
 .semaforo-amarillo {
     background-color: #FDD835; /* amarillo */
 }

@@ -114,6 +114,11 @@ namespace Utilidades
 
         public const string SemaforoEnGrid = "semaforo-grid";
 
+        // Candado contable pintado en el grid (ver Grid.css): como el semáforo, la celda trae la clase base y la del estado separadas por ';'
+        public const string CandadoEnGrid = "candado-grid";
+        public const string CandadoCerrado = "candado-cerrado";
+        public const string CandadoAbierto = "candado-abierto";
+
         public static string Render(this enumCssSelectorEnModal clase)
         {
             switch (clase)

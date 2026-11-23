@@ -3643,6 +3643,10 @@ const ltrPropiedades = {
             IdElemento: 'idElemento',
             Nombre: literal.nombre
         },
+        // filtros del crud de movimientos de almacén (ver ltrDeUnMovimientoDeAlmacen)
+        MovimientosDeAlmacen: {
+            FiltroPorAlmacen: 'FiltroPorAlmacen'
+        },
         Inventario: {
             FiltroPorFechaDeInventario: 'FiltroPorFechaDeInventario',
             FiltroPorAlmacen: 'FiltroPorAlmacen',

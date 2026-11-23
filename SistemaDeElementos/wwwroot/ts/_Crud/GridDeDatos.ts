@@ -1892,6 +1892,12 @@
                     const prioridad = ObtenerPropiedad(registro, ltrPropiedades.Elemento.ConPrioridad.Prioridad, undefined);
                     if (prioridad)
                         celdaDelTd.setAttribute('title', prioridad);
+                    else {
+                        // el resto de círculos/imágenes de celda (p.e. el candado contable de los movimientos de almacén) traen su ayuda en <propiedad>Titulo
+                        const titulo = ObtenerPropiedad(registro, `${columnaCabecera.propiedad}Titulo`, undefined);
+                        if (titulo)
+                            celdaDelTd.setAttribute('title', titulo);
+                    }
                 }
                 fila.append(celdaDelTd);
             }

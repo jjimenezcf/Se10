@@ -3,6 +3,7 @@ using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Logistica;
 using ServicioDeDatos.MaestrosTecnico;
 using ServicioDeDatos.Terceros;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -170,6 +171,25 @@ namespace GestorDeElementos.Extensores
         {
             var preasiento = movimiento.Preasiento(contexto);
             return preasiento is not null && preasiento.EstaEnLaEtapa(enumEtapasDePreasiento.SPR_Etapa_Contabilizado) ? preasiento : null;
+        }
+
+        // Fecha del último cierre contable de la sociedad del almacén, null si aún no ha cerrado ninguno
+        public static DateTime? FechaDelUltimoCierreContable(this AlmacenDtm almacen, ContextoSe contexto)
+            => ExtensorDeSociedades.UltimoCierreContable(contexto, almacen.Sociedad(contexto).Id)?.CerradaEl.Date;
+
+        // Motivo por el que el movimiento está cerrado a la contabilidad (candado cerrado del grid), null si sigue abierto: se realizó antes del
+        // último cierre contable de la sociedad de su almacén o su preasiento está contabilizado. La fecha del último cierre la lee el llamador
+        // una sola vez por almacén (ver FechaDelUltimoCierreContable) para no consultarla por cada movimiento
+        public static string MotivoDeCierreContable(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, DateTime? ultimoCierre)
+        {
+            if (ultimoCierre is not null && movimiento.RealizadoEl.Date < ultimoCierre.Value)
+                return $"Cerrado: realizado antes del último cierre contable de la sociedad ({ultimoCierre.Value:dd/MM/yyyy})";
+
+            var preasiento = movimiento.PreasientoContabilizado(contexto);
+            if (preasiento is not null)
+                return $"Cerrado: su preasiento '{preasiento.Referencia}' está contabilizado";
+
+            return null;
         }
 
         // Antes de borrar la entrada de compra de una recepción cancelada: su preasiento, si lo tiene, ha de estar pendiente y se cancela;

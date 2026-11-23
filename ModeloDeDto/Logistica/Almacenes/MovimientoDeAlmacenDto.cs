@@ -6,6 +6,24 @@ namespace ModeloDeDto.Logistica
     [IUDto(AnchoEtiqueta = 20, AnchoSeparador = 5, MostrarExpresion = nameof(MovimientoDeAlmacenDto.TipoMovimiento), SoloGrid = true, OpcionDeEnviar = false, OpcionDeTransitar = false)]
     public class MovimientoDeAlmacenDto : ElmentoAuditadoDto
     {
+        // Candado contable, primera columna del grid: cerrado (granate) si el movimiento se realizó antes del último cierre contable de la sociedad
+// del almacén o su preasiento está contabilizado, abierto (verde) en otro caso (ver GestorDeMovimientosDeAlmacen.DespuesDeMapearElElemento).
+// Como el semáforo de la prioridad, trae las clases css de la celda; el texto que explica el candado va en CandadoTitulo
+        [IUPropiedad(
+            TipoDeControl = enumTipoControl.CirculoEnCelda,
+            Ayuda = "Candado contable: cerrado si el movimiento es anterior al último cierre contable de la sociedad o su preasiento está contabilizado, abierto en otro caso",
+            TamanoFijo = "2em",
+            VisibleEnEdicion = false,
+            VisibleEnGrid = true,
+            ColumnaOcultable = false
+          )
+        ]
+        public string Candado { get; set; }
+
+        // Motivo por el que el candado está cerrado (o abierto); la celda lo muestra como ayuda (ver GridDeDatos.ts)
+        [IUPropiedad(Visible = false)]
+        public string CandadoTitulo { get; set; }
+
         [IUPropiedad(Etiqueta = "Tipo de movimiento", Ayuda = "tipo de movimiento de almacén", VisibleEnGrid = true, Obligatorio = false)]
         public string TipoMovimiento { get; set; }
 

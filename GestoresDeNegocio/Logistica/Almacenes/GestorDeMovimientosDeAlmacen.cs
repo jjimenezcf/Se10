@@ -1,4 +1,5 @@
 using AutoMapper;
+using System;
 using Gestor.Errores;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
@@ -34,6 +35,10 @@ namespace GestoresDeNegocio.Logistica
         }
 
         public override enumNegocio Negocio => enumNegocio.No_Definido;
+
+        // Fecha del último cierre contable por almacén, para pintar el candado de cada movimiento sin consultarla en cada fila. El gestor vive lo
+        // que la petición, así que lo cacheado no sobrevive a un cierre posterior
+        private readonly Dictionary<int, DateTime?> _ultimosCierresPorAlmacen = new();
 
         public GestorDeMovimientosDeAlmacen(ContextoSe contexto, IMapper mapeador) : base(contexto, mapeador)
         {
@@ -206,6 +211,14 @@ namespace GestoresDeNegocio.Logistica
             var claseDeMovimiento = movimiento.TipoDeMovimiento(Contexto).ClaseMovimiento;
             elemento.Proveedor = movimiento.Proveedor(Contexto, emitirErrorSiNoEsRecepcion: false)?.Referencia(Contexto) ?? string.Empty;
             elemento.Preasiento = movimiento.Preasiento(Contexto)?.Referencia ?? string.Empty;
+
+            // candado contable: cerrado (granate) o abierto (verde), con el motivo como ayuda de la celda
+            if (!_ultimosCierresPorAlmacen.TryGetValue(movimiento.IdAlmacen, out var ultimoCierre))
+                _ultimosCierresPorAlmacen[movimiento.IdAlmacen] = ultimoCierre = movimiento.Almacen(Contexto).FechaDelUltimoCierreContable(Contexto);
+
+            var motivoDelCierre = movimiento.MotivoDeCierreContable(Contexto, ultimoCierre);
+            elemento.Candado = $"{ExtensorDeCss.CandadoEnGrid}{Simbolos.separadorCss}{(motivoDelCierre is null ? ExtensorDeCss.CandadoAbierto : ExtensorDeCss.CandadoCerrado)}";
+            elemento.CandadoTitulo = motivoDelCierre ?? "Abierto: posterior al último cierre contable y sin preasiento contabilizado";
 
             // el origen es la operación que generó el movimiento, sea entrada o salida; al pulsarlo se navega a su edición
             // (ver ExtensorDeAlmacenes.UrlDelDocumento)
