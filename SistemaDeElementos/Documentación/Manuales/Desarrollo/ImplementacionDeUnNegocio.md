@@ -432,6 +432,42 @@ Carpeta: `GestoresDeNegocio/<Área>/Xxxs/`.
   `GestoresDeNegocio/ServiceExtensions.cs`, dentro del método `Configure<Área>` correspondiente,
   `services.AddScoped<GestorDeXxx>();` (el de tipos no se registra, ver arriba).
 
+### 8.1 Buenas prácticas con los objetos dependientes de la cabecera (`IDetalle`)
+
+Las líneas y cualquier otro objeto que cuelga de la cabecera (`IdElemento`) implementan `IDetalle`, por
+ejemplo `LineaDeUnaXxxDtm`. Para leerlos se usa la API de detalles (`Servicios/GestorDeElementos/ApiDeDetalles.cs`),
+que está cacheada; los `contexto.Set<...>` no lo están.
+
+- **Detalles de una cabecera:** `xxx.Detalles<LineaDeUnaXxxDtm>(contexto)` ya filtra por `IdElemento`, así
+  que no hace falta añadir `.Where(l => l.IdElemento == xxx.Id)`. No se usa
+  `contexto.Set<LineaDeUnaXxxDtm>().Where(l => l.IdElemento == xxx.Id)` ni
+  `contexto.SeleccionarTodos<LineaDeUnaXxxDtm>(nameof(IdElemento), xxx.Id)`.
+  ```csharp
+  // bien
+  var ultimo = xxx.Detalles<LineaDeUnaXxxDtm>(contexto).Max(l => (int?)l.Orden) ?? 0;
+  var total  = xxx.Detalles<LineaDeUnaXxxDtm>(contexto).Sum(l => l.Importe);
+  // mal: sin caché y con un filtro que ya hace Detalles
+  var ultimo = contexto.Set<LineaDeUnaXxxDtm>().Where(l => l.IdElemento == xxx.Id).Max(l => (int?)l.Orden) ?? 0;
+  ```
+- **Cabecera de un detalle:** `linea.DetalleDe<XxxDtm>(contexto)`. Si la navegación ya está cargada la
+  devuelve, y si no la lee con caché. No se usa la navegación `linea.Elemento` directamente, porque puede
+  venir null desde la caché (ver la regla de usar accesores y no navegaciones).
+- **Registro en BD en los gestores:** en `AntesDePersistir` y en las validaciones del gestor, el registro
+  tal como está en BD es `parametros.registroEnBd`. `PersistirRegistro` lo lee sin caché en cualquier
+  operación que no sea insertar, así que no hay que volver a leerlo con
+  `Contexto.SeleccionarPorId<XxxDtm>(id, usarLaCache: false)`.
+  ```csharp
+  if (parametros.Insertando) return;
+  var enBd = (XxxDtm)parametros.registroEnBd;
+  ```
+- **Si se van a modificar o copiar:** los objetos que devuelve `Detalles` son los de la caché. Si se van
+  a modificar (cambiar una cantidad) o copiar a otra cabecera (`Id = 0; IdElemento = otra.Id; Insertar`),
+  se leen con `usarLaCache: false` para no alterar los objetos cacheados:
+  `xxx.Detalles<LineaDeUnaXxxDtm>(contexto, usarLaCache: false)`.
+- **Cuándo sí se usa `contexto.Set<...>`:** cuando la consulta no es «los detalles de esta cabecera», por
+  ejemplo todas las líneas de devolución de una misma línea vendida (`Where(l => l.IdLineaDeVenta == id)`),
+  o dentro de una expresión `IQueryable` que se traduce a SQL, como un filtro de `AplicarFiltros`.
+
 ## 9. Controlador MVC, Descriptor de crud, vista y TypeScript del CRUD básico
 
 Cuatro piezas, todas calcadas del ejemplo más simple posible (`NaturalezasController`/
