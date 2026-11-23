@@ -17,7 +17,8 @@ namespace Utilidades
         private enum enumModelosGeminis
         {
             [Description("gemini-1.0-pro")] gemini_pro,
-            [Description("gemini-2.5-flash")] geminis_flash
+            [Description("gemini-2.5-flash")] geminis_flash,
+            [Description("gemini-3.5-flash")] geminis_3_5_flash
         }
 
         //// Puedes añadir una propiedad para obtener la lista ordenada de modelos a probar
