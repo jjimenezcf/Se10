@@ -500,6 +500,14 @@ namespace GestorDeElementos.Extensores
             }
         }
 
+        // Formato de las cantidades en los mensajes de stock: dos decimales, o los que tenga el stock del almacén si son más (sin contar los
+        // ceros finales), p. ej. 26 --> "26,00", 26,125 --> "26,125"
+        public static string FormatoDeCantidad(decimal stock)
+        {
+            var decimales = (decimal.GetBits(stock / 1.000000000000000000000000000000000m)[3] >> 16) & 0xFF;
+            return $"N{Math.Max(2, decimales)}";
+        }
+
         private static void CalcularInventarioSalida(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto)
         {
             var anterior = movimiento.ObtenerMovimientoAnterior(contexto);
@@ -508,7 +516,12 @@ namespace GestorDeElementos.Extensores
 
             movimiento.Stock = anterior.Stock - movimiento.Cantidad;
             if (movimiento.Stock < 0)
-                Emitir($"No hay stock suficiente para la salida del movimiento de almacén Nº '{movimiento.Id}': quedan {anterior.Stock} y se piden {movimiento.Cantidad}");
+            {
+                var formato = FormatoDeCantidad(anterior.Stock);
+                if (movimiento.IdLineaDeVenta is not null)
+                    Emitir($"No puede realizarse la venta ya que sólo quedan {anterior.Stock.ToString(formato)} y se solicitan {movimiento.Cantidad.ToString(formato)}");
+                Emitir($"No puede realizarse la salida del almacén ya que sólo quedan {anterior.Stock.ToString(formato)} y se solicitan {movimiento.Cantidad.ToString(formato)}");
+            }
 
             // la salida se valora al precio medio vigente, que no cambia por salir
             movimiento.Precio = anterior.Valor;
@@ -525,7 +538,7 @@ namespace GestorDeElementos.Extensores
 
             movimiento.Stock = anterior.Stock - movimiento.Cantidad;
             if (movimiento.Stock < 0)
-                Emitir($"No hay stock suficiente para la devolución del movimiento de almacén '{movimiento.Referencia(contexto)}': quedan {anterior.Stock} y se devuelven {movimiento.Cantidad}");
+                Emitir($"No puede realizarse la devolución del movimiento de almacén '{movimiento.Referencia(contexto)}' ya que sólo quedan {anterior.Stock.ToString(FormatoDeCantidad(anterior.Stock))} y se devuelven {movimiento.Cantidad.ToString(FormatoDeCantidad(anterior.Stock))}");
 
             var valorQueQueda = anterior.Stock * anterior.Valor - movimiento.Cantidad * movimiento.Precio;
             movimiento.Valor = movimiento.Stock == 0 || valorQueQueda < 0 ? anterior.Valor : valorQueQueda / movimiento.Stock;
