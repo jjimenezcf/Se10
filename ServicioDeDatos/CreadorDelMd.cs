@@ -84,6 +84,8 @@ namespace ServicioDeDatos
 
             DefinirTablasDeVentas(modelBuilder);
 
+            DefinirTablasDeDevolucionesDeVenta(modelBuilder);
+
             DefinirTablasDeGuarderias(modelBuilder);
 
         }
@@ -192,6 +194,25 @@ namespace ServicioDeDatos
             ModeloDeVenta.Archivadores(modelBuilder);
 
             ModeloDeVenta.DatosDeLineaDeUnaVenta(modelBuilder);
+        }
+
+        private static void DefinirTablasDeDevolucionesDeVenta(ModelBuilder modelBuilder)
+        {
+            ModeloDeDevolucionDeVenta.EstadosDeUnaDevolucionDeVenta(modelBuilder);
+            ModeloDeDevolucionDeVenta.TransicionesDeUnaDevolucionDeVenta(modelBuilder);
+            ModeloDeDevolucionDeVenta.AccionesDeUnaDevolucionDeVenta(modelBuilder);
+            ModeloDeDevolucionDeVenta.TipoDeDevolucionDeVenta(modelBuilder);
+
+            ModeloDeDevolucionDeVenta.DevolucionDeVenta(modelBuilder);
+            ModeloDeDevolucionDeVenta.Trazas(modelBuilder);
+            ModeloDeDevolucionDeVenta.Auditoria(modelBuilder);
+            ModeloDeDevolucionDeVenta.Archivos(modelBuilder);
+            ModeloDeDevolucionDeVenta.Observaciones(modelBuilder);
+            ModeloDeDevolucionDeVenta.Permisos(modelBuilder);
+            ModeloDeDevolucionDeVenta.Historia(modelBuilder);
+            ModeloDeDevolucionDeVenta.Archivadores(modelBuilder);
+
+            ModeloDeDevolucionDeVenta.DatosDeLineaDeUnaDevolucionDeVenta(modelBuilder);
         }
 
         private static void DefinirEsquemaDeSeguridad(ModelBuilder modelBuilder)

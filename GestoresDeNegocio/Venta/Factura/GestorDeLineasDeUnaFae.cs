@@ -39,7 +39,11 @@ namespace GestoresDeNegocio.Ventas
                 .ForMember(dtm => dtm.Naturaleza, dto => dto.Ignore())
                 .ForMember(dtm => dtm.Unidad, dto => dto.Ignore())
                 .ForMember(dtm => dtm.IvaRepercutido, dto => dto.Ignore())
-                .ForMember(dtm => dtm.ParteTr, dto => dto.Ignore());
+                .ForMember(dtm => dtm.ParteTr, dto => dto.Ignore())
+                .ForMember(dtm => dtm.IdLineaDeVenta, dto => dto.Ignore())
+                .ForMember(dtm => dtm.LineaDeVenta, dto => dto.Ignore())
+                .ForMember(dtm => dtm.IdLineaDeDevolucionDeVenta, dto => dto.Ignore())
+                .ForMember(dtm => dtm.LineaDeDevolucionDeVenta, dto => dto.Ignore());
             }
         }
 
@@ -73,7 +77,23 @@ namespace GestoresDeNegocio.Ventas
 
 
             if (!parametros.Insertando)
-                linea.IdParteTr = ((LineaDeUnaFaeDtm)parametros.registroEnBd).IdParteTr;
+            {
+                var enBd = (LineaDeUnaFaeDtm)parametros.registroEnBd;
+                linea.IdParteTr = enBd.IdParteTr;
+                // el origen (línea vendida o devuelta) no se edita desde la interfaz: el DTO no lo lleva
+                linea.IdLineaDeVenta = enBd.IdLineaDeVenta;
+                linea.IdLineaDeDevolucionDeVenta = enBd.IdLineaDeDevolucionDeVenta;
+
+                // lo que factura una línea vendida sólo lo cambia el sistema: lo que se devuelve se devuelve desde el documento de venta, que
+                // al aceptar la devolución ajusta la prefactura (ver ExtensorDeDevolucionesDeVenta.RegularizarFacturas)
+                if (enBd.IdLineaDeVenta is not null && !parametros.EstaEjecutandoUnaAccion)
+                {
+                    if (parametros.Eliminando)
+                        GestorDeErrores.Emitir($"La línea {enBd.Orden} de la factura '{fae.Referencia}' factura una línea de un {enumNegocio.Venta.Singular(true)} y no se puede borrar: lo que no se vende se devuelve desde el {enumNegocio.Venta.Singular(true)}");
+                    if (linea.Cantidad != enBd.Cantidad || linea.Precio != enBd.Precio || linea.Descuento != enBd.Descuento || linea.IdUnitario != enBd.IdUnitario)
+                        GestorDeErrores.Emitir($"La línea {enBd.Orden} de la factura '{fae.Referencia}' factura una línea de un {enumNegocio.Venta.Singular(true)}: no se puede cambiar su material, cantidad, precio ni descuento. Lo que no se vende se devuelve desde el {enumNegocio.Venta.Singular(true)}, y al aceptar la devolución se ajusta la prefactura");
+                }
+            }
 
             if (fae.IdPresupuesto is not null && linea.IdParteTr is not null && linea.ParteTr(Contexto).IdPresupuesto != fae.IdPresupuesto)
             {
@@ -128,7 +148,10 @@ namespace GestoresDeNegocio.Ventas
                     if (parametros.Insertando)
                     {
                         var unitario = Contexto.SeleccionarPorId<UnitarioDtm>((int)linea.IdUnitario, aplicarJoin: true);
-                        linea.Precio = unitario.Venta;
+                        // si factura una línea de un documento de venta (prefactura, rectificativa o sustitución) el precio es el vendido,
+                        // no el del maestro (ver ExtensorDeVentas.CrearPrefactura)
+                        if (linea.IdLineaDeVenta is null)
+                            linea.Precio = unitario.Venta;
                         linea.Concepto = unitario.Expresion;
                         linea.IdNaturaleza = unitario.IdNaturaleza;
                         linea.IdUnidad = unitario.IdUnidad;

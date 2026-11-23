@@ -203,6 +203,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<ObservacionesDeUnaRegularizacionDtm>().Cast<ObservacionDtm>();
                 case enumNegocio.Venta:
                     return contexto.Set<ObservacionesDeUnaVentaDtm>().Cast<ObservacionDtm>();
+                case enumNegocio.DevolucionVenta:
+                    return contexto.Set<ObservacionesDeUnaDevolucionDeVentaDtm>().Cast<ObservacionDtm>();
             }
 
             throw new Exception($"Se debe indicar como obtener las observaciones del negocio: {negocio}");

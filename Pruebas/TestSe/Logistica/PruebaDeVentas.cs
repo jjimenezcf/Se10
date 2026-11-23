@@ -55,7 +55,7 @@ namespace TestLogistica
             compras.Ejecutar(contexto, informe);
             _almacen = compras.Almacen;
 
-            DefinirElTipoDePrefactura();
+            DefinirElTipoDePrefactura(_contexto, _informe);
             Vender();
             ValidarLaSalidaDelAlmacen();
             ValidarLaPrefactura();
@@ -66,7 +66,7 @@ namespace TestLogistica
         //------------------------------------------------------------------------------------------------------------ tipo de prefactura
         // El tipo con el que se venden materiales (el primero activo que permite crear) ha de indicar el tipo de prefactura: si no lo tiene se
         // le asigna el primero de facturas emitidas (se deshace con el rollback)
-        private void DefinirElTipoDePrefactura()
+        internal static void DefinirElTipoDePrefactura(ContextoSe _contexto, Informe _informe)
         {
             _informe.Paso("Comprobar el tipo de prefactura del tipo de venta");
             var tipo = _contexto.Set<TipoDeVentaDtm>().Where(t => t.Activo && t.PermiteCrear).OrderBy(t => t.Id).FirstOrDefault();
@@ -167,7 +167,8 @@ namespace TestLogistica
             if (!_informe.Comprobar(lineas.Count == 1, "una línea en la prefactura", $"tiene {lineas.Count}"))
                 return;
             var linea = lineas[0];
-            _informe.Comprobar(linea.TipoDeLinea == enumTipoDeLinea.Alzada, "la línea es alzada", $"es {linea.TipoDeLinea}");
+            _informe.Comprobar(linea.TipoDeLinea == enumTipoDeLinea.Unitario && linea.IdUnitario == _unitario.Id, $"la línea es del unitario '{_unitario.Referencia}'", $"es {linea.TipoDeLinea} del unitario {linea.IdUnitario}");
+            _informe.Comprobar(linea.IdLineaDeVenta is not null, "la línea apunta a la línea vendida");
             _informe.Comprobar(linea.Concepto?.Contains(_unitario.Referencia) == true, $"su concepto lleva la referencia '{_unitario.Referencia}'", $"es '{linea.Concepto}'");
             _informe.Comprobar(linea.Cantidad == _config.CantidadAVender && linea.Precio == _config.PrecioDeVenta,
                 $"{_config.CantidadAVender} x {_config.PrecioDeVenta:N2}", $"es {linea.Cantidad} x {linea.Precio:N2}");

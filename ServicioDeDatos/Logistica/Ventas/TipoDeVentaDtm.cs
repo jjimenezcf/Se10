@@ -35,6 +35,11 @@ namespace ServicioDeDatos.Logistica
         // tipo de la prefactura que se crea al facturar el documento de venta (ver ExtensorDeVentas.CrearPrefactura)
         public int? IdTipoFacturaEmt { get; set; }
         public TipoDeFacturaEmtDtm TipoFacturaEmt { get; set; }
+
+        // tipo de la devolución de venta que se crea al devolver líneas de un documento de venta de este tipo (ver
+        // ExtensorDeDevolucionesDeVenta.DevolverLineaDeVenta)
+        public int? IdTipoDevolucion { get; set; }
+        public TipoDeDevolucionDeVentaDtm TipoDevolucion { get; set; }
         public new EstadoDeUnaVentaDtm Estado { get; set; }
 
         public override IEstado iEstado => Estado;
@@ -67,6 +72,7 @@ namespace ServicioDeDatos.Logistica
             ApiDeRegistroDtm.DefinirFk<TipoDeVentaDtm>(modelBuilder, nameof(TipoDeVentaDtm.Padre), nameof(TipoDeVentaDtm.IdPadre), ICampos.ID_PADRE, unico: false);
             ApiDeRegistroDtm.DefinirFk<TipoDeVentaDtm>(modelBuilder, nameof(TipoDeVentaDtm.Estado), nameof(TipoDeVentaDtm.IdEstado), ICampos.ID_ESTADO, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<TipoDeVentaDtm>(modelBuilder, nameof(TipoDeVentaDtm.TipoFacturaEmt), nameof(TipoDeVentaDtm.IdTipoFacturaEmt), ICampos.ID_TIPO_FACTURA, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<TipoDeVentaDtm>(modelBuilder, nameof(TipoDeVentaDtm.TipoDevolucion), nameof(TipoDeVentaDtm.IdTipoDevolucion), ICampos.ID_TIPO_DEVOLUCION, requerida: false, unico: false);
         }
     }
 }

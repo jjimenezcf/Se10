@@ -40,6 +40,8 @@ namespace MVCSistemaDeElementos.Controllers
                     if (!plantillas.Abrir)
                         ImprimirOfertas(ids);
                     return plantillas;
+                case eventosDeMf.Dsa_CambiarDatos:
+                    return null;
             }
             return base.ProcesarOpcionMf(negocio, opcion, parametros);
         }
@@ -61,6 +63,95 @@ namespace MVCSistemaDeElementos.Controllers
         {
             foreach (var id in idsDeVentas)
                 GestorDeVentas.ImprimirOferta(Contexto, Contexto.SeleccionarPorId<VentaDtm>(id));
+        }
+
+        // Acción Devolver de las líneas de un documento de venta servido (aún sin prefacturar): corrige lo servido de la línea (cantidad y
+        // precio de venta) y su salida del almacén, y si la oferta estaba impresa la reimprime (ver ExtensorDeVentas.ModificarLineaServida y
+        // GestorDeVentas.ReimprimirOferta)
+        public JsonResult epModificarLineaServida(string parametrosJson)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epModificarLineaServida));
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var parametros = parametrosJson.ToDiccionarioDeParametros();
+
+                var idLineaDeVenta = (int)parametros.LeerValor<long>(nameof(ModificarLineaVentaDto.IdLineaDeVenta), 0);
+                if (idLineaDeVenta == 0)
+                    GestorDeErrores.Emitir("Ha de indicar la línea servida que se modifica");
+                var cantidad = parametros.LeerValor<decimal?>(nameof(ModificarLineaVentaDto.Cantidad), null);
+                if (cantidad is null)
+                    GestorDeErrores.Emitir("Ha de indicar la cantidad servida");
+                var precio = parametros.LeerValor<decimal?>(nameof(ModificarLineaVentaDto.Precio), null);
+                if (precio is null)
+                    GestorDeErrores.Emitir("Ha de indicar el precio de venta");
+
+                var resultado = ExtensorDeVentas.ModificarLineaServida(Contexto, idLineaDeVenta, cantidad.Value, precio.Value);
+                var ofertaAnterior = resultado.LineaModificada ? GestorDeVentas.ReimprimirOferta(Contexto, resultado.Venta) : null;
+
+                r.Datos = idLineaDeVenta;
+                r.Consola = $"Se ha modificado lo servido de la línea"
+                    + (resultado.Devolucion is null ? "" : $"; la salida está en un periodo cerrado, lo no servido se devuelve en la {enumNegocio.DevolucionVenta.Singular(true)} '{resultado.Devolucion.Referencia}', acéptela en el grid de devoluciones")
+                    + (ofertaAnterior is null ? "" : $"; la oferta anterior se ha renombrado a '{ofertaAnterior}' y se ha vuelto a imprimir");
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error al modificar lo servido de la línea.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
+        }
+
+        // "Cambiar datos" del menú de edición (modal CambiarDatosDeVentaDto): cambia el nombre, el cliente y la fecha de servicio; si está
+        // servido rehace las salidas del almacén (ver ExtensorDeVentas.CambiarDatos). Si la oferta estaba impresa, la anterior se renombra
+        // con un postfijo "(n)" y se imprime de nuevo (ver GestorDeVentas.ReimprimirOferta)
+        public JsonResult epCambiarDatos(string parametrosJson)
+        {
+            var r = new Resultado();
+            Contexto.IniciarTraza(GetType().Name + "_" + nameof(epCambiarDatos));
+            var tran = Contexto.IniciarTransaccion();
+            try
+            {
+                ApiController.CumplimentarDatosDeUsuarioDeConexion(Contexto, Mapeador, HttpContext);
+                var parametros = parametrosJson.ToDiccionarioDeParametros();
+
+                var idVenta = (int)parametros.LeerValor<long>(nameof(CambiarDatosDeVentaDto.IdElemento), 0);
+                if (idVenta == 0)
+                    GestorDeErrores.Emitir($"Ha de indicar el {enumNegocio.Venta.Singular(true)}");
+                if (!ApiDePermisos.LeerModoDeAcceso(Contexto, enumNegocio.Venta, idVenta).HayPermisosDe(enumModoDeAccesoDeDatos.Gestor))
+                    GestorDeErrores.Emitir($"El usuario {Contexto.DatosDeConexion.Login} no tiene permiso de gestor sobre el {enumNegocio.Venta.Singular(true)}, no puede cambiar sus datos");
+                var nombre = parametros.LeerValor<string>(nameof(CambiarDatosDeVentaDto.Nombre), null);
+                var idCliente = (int)parametros.LeerValor<long>(nameof(CambiarDatosDeVentaDto.IdCliente), 0);
+                var servidoEl = parametros.LeerValor<DateTime?>(nameof(CambiarDatosDeVentaDto.ServidoEl), null);
+
+                var venta = ExtensorDeVentas.CambiarDatos(Contexto, idVenta, nombre, idCliente, servidoEl);
+                var ofertaAnterior = GestorDeVentas.ReimprimirOferta(Contexto, venta);
+
+                r.Datos = venta.Id;
+                r.Consola = $"Se han cambiado los datos del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}'"
+                    + (venta.EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Servicio) ? $"; las salidas del almacén se han rehecho a la fecha {venta.ServidoEl:dd/MM/yyyy}" : "")
+                    + (ofertaAnterior is null ? "" : $"; la oferta anterior se ha renombrado a '{ofertaAnterior}' y se ha vuelto a imprimir");
+                r.Estado = enumEstadoPeticion.Ok;
+                Contexto.Commit(tran);
+            }
+            catch (Exception e)
+            {
+                Contexto.Rollback(tran);
+                ApiController.PrepararError(e, r, "Error al cambiar los datos del documento de venta.");
+            }
+            finally
+            {
+                Contexto.CerrarTraza();
+            }
+            return new JsonResult(r);
         }
 
         public IActionResult CrudVentas()

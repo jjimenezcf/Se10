@@ -113,6 +113,10 @@ namespace ServicioDeDatos.Logistica
         public int? IdLineaDeVenta { get; set; }
         public LineaDeUnaVentaDtm LineaDeVenta { get; set; }
 
+        // devolución de venta: la entrada de lo devuelto en la línea de una devolución de venta
+        public int? IdLineaDeDevolucionDeVenta { get; set; }
+        public LineaDeUnaDevolucionDeVentaDtm LineaDeDevolucionDeVenta { get; set; }
+
         public int? IdPreasiento { get; set; }
         public PreasientoDtm Preasiento { get; set; }
         public string Referencia { get; set; }
@@ -159,6 +163,7 @@ namespace ServicioDeDatos.Logistica
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeRecepcion), nameof(MovimientoDeAlmacenDtm.IdLineaDeRecepcion), ICampos.ID_LINEA_RECEPCION, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeDevolucion), nameof(MovimientoDeAlmacenDtm.IdLineaDevolucion), ICampos.ID_LINEA_DEVOLUCION, requerida: false, unico: false);
             ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeVenta), nameof(MovimientoDeAlmacenDtm.IdLineaDeVenta), ICampos.ID_LINEA_VENTA, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<MovimientoDeAlmacenDtm>(modelBuilder, nameof(MovimientoDeAlmacenDtm.LineaDeDevolucionDeVenta), nameof(MovimientoDeAlmacenDtm.IdLineaDeDevolucionDeVenta), ICampos.ID_LINEA_DEVOLUCION_VENTA, requerida: false, unico: false);
             modelBuilder.Entity<MovimientoDeAlmacenDtm>().Property(p => p.IdLineaInventario).HasColumnName(ICampos.ID_LINEA_INVENTARIO).HasColumnType(IDominio.INT).IsRequired(false);
 
             ApiDeElementoDtm.DefinirCamposDeAuditoria<MovimientoDeAlmacenDtm>(modelBuilder);

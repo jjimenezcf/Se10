@@ -47,6 +47,7 @@ namespace MVCSistemaDeElementos.Controllers
         public IActionResult TiposDeAlmacen() => TiposDeElemento(enumNegocio.Almacen, nameof(TiposDeAlmacen));
         public IActionResult TiposDeRegularizacion() => TiposDeElemento(enumNegocio.Regularizacion, nameof(TiposDeRegularizacion));
         public IActionResult TiposDeVenta() => TiposDeElemento(enumNegocio.Venta, nameof(TiposDeVenta));
+        public IActionResult TiposDeDevolucionDeVenta() => TiposDeElemento(enumNegocio.DevolucionVenta, nameof(TiposDeDevolucionDeVenta));
 
         public IActionResult TiposDeElemento(enumNegocio negocio, string accion)
         {

@@ -115,7 +115,10 @@ namespace GestorDeElementos.Extensores
             var anterior = ExtensorDeAlmacenes.UltimoMovimientoHasta(contexto, idAlmacen, idUnitario, fecha);
             var stock = anterior?.Stock ?? 0;
             if (stock < cantidad)
-                GestorDeErrores.Emitir($"No hay stock suficiente el {fecha:dd/MM/yyyy}: quedan {stock:0.####} y se quieren vender {cantidad:0.####}");
+            {
+                var formato = ExtensorDeAlmacenes.FormatoDeCantidad(stock);
+                GestorDeErrores.Emitir($"No puede realizarse la venta ya que el {fecha:dd/MM/yyyy} sólo quedan {stock.ToString(formato)} y se solicitan {cantidad.ToString(formato)}");
+            }
         }
 
         // Tipo con el que se crean las ventas de material: el primero activo que permite crear
@@ -185,7 +188,7 @@ namespace GestorDeElementos.Extensores
 
         // Importe de la venta sin iva: suma de los importes de sus líneas con su descuento (el importe no se guarda, se calcula en memoria)
         public static decimal TotalSinIva(this VentaDtm venta, ContextoSe contexto)
-            => Math.Round(contexto.Set<LineaDeUnaVentaDtm>().Where(l => l.IdElemento == venta.Id).ToList().Sum(l => l.Importe), 2);
+            => Math.Round(venta.Detalles<LineaDeUnaVentaDtm>(contexto).Sum(l => l.Importe), 2);
 
         public static TipoDeVentaDtm TipoDeVenta(this VentaDtm venta, ContextoSe contexto)
             => contexto.SeleccionarPorId<TipoDeVentaDtm>(venta.IdTipo);
@@ -211,9 +214,25 @@ namespace GestorDeElementos.Extensores
         // del almacén); se guarda con la transición
         public static void AntesDeServir(this VentaDtm venta, ContextoSe contexto)
         {
-            if (!contexto.Set<LineaDeUnaVentaDtm>().Any(l => l.IdElemento == venta.Id))
+            if (venta.Detalles<LineaDeUnaVentaDtm>(contexto).Count == 0)
                 GestorDeErrores.Emitir($"El {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' no tiene líneas, no se puede servir");
             venta.ServidoEl = (venta.ServidoEl ?? DateTime.Today).Date;
+            venta.ValidarFechaDeServicio();
+        }
+
+        // "Servido el" (la fecha de las salidas del almacén, ver CrearSalidasDelAlmacen) se puede indicar mientras el documento de venta está
+        // solicitado: no puede ser anterior a la fecha de solicitud ni posterior a hoy. Se valida al guardar (GestorDeVentas.AntesDePersistir)
+        // y al servir (AntesDeServir)
+        public static void ValidarFechaDeServicio(this VentaDtm venta)
+        {
+            if (venta.ServidoEl is null)
+                return;
+
+            var servidoEl = ((DateTime)venta.ServidoEl).Date;
+            if (venta.SolicitadoEl is not null && servidoEl < ((DateTime)venta.SolicitadoEl).Date)
+                GestorDeErrores.Emitir($"La fecha de servicio ({servidoEl:dd/MM/yyyy}) no puede ser anterior a la de solicitud del {enumNegocio.Venta.Singular(true)} ({venta.SolicitadoEl:dd/MM/yyyy})");
+            if (servidoEl > DateTime.Today)
+                GestorDeErrores.Emitir($"La fecha de servicio ({servidoEl:dd/MM/yyyy}) no puede ser posterior a hoy ({DateTime.Today:dd/MM/yyyy})");
         }
 
         // Solicitado --> Sirviendo, después de transitar: una salida del almacén de la venta por cada línea, a la fecha en la que se sirve
@@ -223,7 +242,7 @@ namespace GestorDeElementos.Extensores
         {
             var fecha = (venta.ServidoEl ?? DateTime.Today).Date;
             var idTipoDeMovimiento = enumTiposDeMovimiento.Venta.LeerTipoDeMovimiento(contexto).Id;
-            var lineas = contexto.SeleccionarTodos<LineaDeUnaVentaDtm>(nameof(LineaDeUnaVentaDtm.IdElemento), venta.Id);
+            var lineas = venta.Detalles<LineaDeUnaVentaDtm>(contexto);
             var salidas = new List<string>();
             foreach (var linea in lineas.OrderBy(l => l.Orden))
             {
@@ -288,13 +307,280 @@ namespace GestorDeElementos.Extensores
                 venta.CrearTraza(contexto, "Salidas del almacén anuladas", $"Al devolver a solicitado, {contexto.Usuario.Expresion} ha anulado las salidas del almacén:{Environment.NewLine}{string.Join(Environment.NewLine, borradas)}");
         }
 
+        /// <summary>
+        /// "Cambiar datos" del menú de edición (ver VentasController.epCambiarDatos): cambia el nombre, el cliente y la fecha de servicio del
+        /// documento de venta. Sólo en la etapa de solicitud o en la de servicio, sin prefactura ni factura y sin devoluciones. En la de servicio
+        /// se rehacen las salidas del almacén: se borran (el gestor de movimientos cancela su preasiento y barre los posteriores) y se crean de
+        /// nuevo a la nueva fecha (con su preasiento y el barrido). No se puede si alguna salida tiene el preasiento contabilizado o si hay un
+        /// cierre contable en o después de la fecha anterior o de la nueva. Devuelve la venta releída
+        /// </summary>
+        public static VentaDtm CambiarDatos(ContextoSe contexto, int idVenta, string nombre, int idCliente, DateTime? servidoEl)
+        {
+            var venta = contexto.SeleccionarPorId<VentaDtm>(idVenta, usarLaCache: false);
+            var enSolicitud = venta.EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Solicitud);
+            var enServicio = venta.EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Servicio);
+            if (!enSolicitud && !enServicio)
+                GestorDeErrores.Emitir($"Sólo se pueden cambiar los datos del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' en la etapa de {enumEtapasDeVenta.DSA_Etapa_Solicitud.Nombre(true)} o en la de {enumEtapasDeVenta.DSA_Etapa_Servicio.Nombre(true)}");
+            if (venta.IdFacturaEmt is not null)
+                GestorDeErrores.Emitir($"No se pueden cambiar los datos del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}': tiene prefactura o factura");
+            if (venta.Detalles<LineaDeUnaVentaDtm>(contexto, usarLaCache: false).Any(l => l.CantidadDevuelta(contexto) > 0))
+                GestorDeErrores.Emitir($"No se pueden cambiar los datos del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}': tiene {enumNegocio.DevolucionVenta.Plural(true)}");
+            if (nombre.IsNullOrEmpty())
+                GestorDeErrores.Emitir($"Ha de indicar el nombre del {enumNegocio.Venta.Singular(true)}");
+            if (idCliente == 0)
+                GestorDeErrores.Emitir($"Ha de indicar el cliente del {enumNegocio.Venta.Singular(true)}");
+            if (enServicio && servidoEl is null)
+                GestorDeErrores.Emitir($"El {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' está servido: ha de indicar la fecha de servicio");
+
+            var fechaAnterior = venta.ServidoEl?.Date;
+            var fechaNueva = servidoEl?.Date;
+            var cambios = new List<string>();
+            if (venta.Nombre != nombre) cambios.Add($"nombre '{venta.Nombre}' --> '{nombre}'");
+            if (venta.IdCliente != idCliente) cambios.Add($"cliente {venta.IdCliente} --> {idCliente}");
+            if (fechaAnterior != fechaNueva) cambios.Add($"servido el {fechaAnterior:dd/MM/yyyy} --> {fechaNueva:dd/MM/yyyy}");
+
+            var salidas = enServicio ? venta.SalidasDelAlmacen(contexto) : new List<MovimientoDeAlmacenDtm>();
+            if (enServicio)
+            {
+                foreach (var salida in salidas)
+                {
+                    var preasiento = salida.PreasientoContabilizado(contexto);
+                    if (preasiento is not null)
+                        GestorDeErrores.Emitir($"No se pueden cambiar los datos del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}': la salida del almacén '{salida.Referencia(contexto)}' tiene el preasiento '{preasiento.Referencia}' contabilizado");
+                }
+
+                var cierre = ExtensorDeSociedades.UltimoCierreContable(contexto, venta.Almacen(contexto).Sociedad(contexto).Id);
+                if (cierre is not null)
+                {
+                    var cerradaEl = cierre.CerradaEl.Date;
+                    if (fechaAnterior is not null && fechaAnterior <= cerradaEl)
+                        GestorDeErrores.Emitir($"No se pueden cambiar los datos del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}': se sirvió el {fechaAnterior:dd/MM/yyyy} y hay un cierre contable el {cerradaEl:dd/MM/yyyy}");
+                    if (fechaNueva <= cerradaEl)
+                        GestorDeErrores.Emitir($"No se pueden cambiar los datos del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}': la nueva fecha de servicio ({fechaNueva:dd/MM/yyyy}) no es posterior al cierre contable del {cerradaEl:dd/MM/yyyy}");
+                }
+            }
+
+            var cambiaElCliente = venta.IdCliente != idCliente;
+            venta.Nombre = nombre;
+            venta.IdCliente = idCliente;
+            if (cambiaElCliente)
+                venta.CambiarDatosCliente(contexto);
+            venta.ServidoEl = fechaNueva;
+            venta.ValidarFechaDeServicio();
+
+            if (enServicio)
+            {
+                // primero se borran las salidas (de la más reciente a la más antigua), luego se guarda la venta y se crean las nuevas
+                foreach (var salida in salidas.OrderByDescending(m => m.RealizadoEl).ThenByDescending(m => m.Id))
+                    salida.EliminarComoAdministrador(contexto, accionEjecutada: ltrDeUnMovimientoDeAlmacen.Accion_AnularSalidaDeVenta);
+            }
+
+            venta.Modificar(contexto, esUnaAccion: true);
+            venta = contexto.SeleccionarPorId<VentaDtm>(idVenta, usarLaCache: false);
+
+            if (enServicio)
+                venta.CrearSalidasDelAlmacen(contexto);
+
+            venta.CrearTraza(contexto, "Datos cambiados", $"{contexto.Usuario.Expresion} ha cambiado los datos del {enumNegocio.Venta.Singular(true)}" +
+                (cambios.Count == 0 ? " (sin cambios)" : $": {string.Join(", ", cambios)}") +
+                (enServicio ? $"{Environment.NewLine}Se han rehecho las salidas del almacén a la fecha {fechaNueva:dd/MM/yyyy}" : ""));
+            return venta;
+        }
+
         // Salidas del almacén de las líneas del documento de venta
         public static List<MovimientoDeAlmacenDtm> SalidasDelAlmacen(this VentaDtm venta, ContextoSe contexto)
         {
-            var idsDeLineas = contexto.Set<LineaDeUnaVentaDtm>().Where(l => l.IdElemento == venta.Id).Select(l => l.Id).ToList();
+            var idsDeLineas = venta.Detalles<LineaDeUnaVentaDtm>(contexto).Select(l => l.Id).ToList();
             return contexto.Set<MovimientoDeAlmacenDtm>()
                 .Where(m => m.IdLineaDeVenta != null && idsDeLineas.Contains((int)m.IdLineaDeVenta))
                 .ToList();
+        }
+
+        // Importe sin iva de lo devuelto del documento de venta en devoluciones ya aceptadas (las que están en tramitación aún no cuentan)
+        public static decimal TotalDevueltoSinIva(this VentaDtm venta, ContextoSe contexto)
+        {
+            var idsDeLineas = venta.Detalles<LineaDeUnaVentaDtm>(contexto).Select(l => l.Id).ToList();
+            var aceptadas = enumEtapasDeDevolucionDeVenta.DDV_Etapa_Aceptada.Lista();
+            return Math.Round(contexto.Set<LineaDeUnaDevolucionDeVentaDtm>()
+                .Where(l => idsDeLineas.Contains(l.IdLineaDeVenta)
+                         && contexto.Set<DevolucionDeVentaDtm>().Any(d => d.Id == l.IdElemento && aceptadas.Contains(d.IdEstado)))
+                .ToList()
+                .Sum(l => l.Importe), 2);
+        }
+
+        /// <summary>
+        /// Antes de emitir una factura (ver ExtensorDeFacturasEmt.AntesDeEmitirFactura): si hay documentos de venta que apuntan a ella, su base
+        /// imponible ha de ser lo vendido en ellos menos lo devuelto en devoluciones aceptadas. Al aceptar una devolución de un documento de
+        /// venta prefacturado la prefactura no se toca (ver ExtensorDeDevolucionesDeVenta.RegularizarFacturas): es aquí donde se pide corregirla
+        /// </summary>
+        public static void ValidarImporteDeLasVentas(this FacturaEmtDtm factura, ContextoSe contexto)
+        {
+            var ventas = contexto.Set<VentaDtm>().Where(v => v.IdFacturaEmt == factura.Id).ToList();
+            if (ventas.Count == 0)
+                return;
+
+            var vendido = ventas.Sum(v => v.TotalSinIva(contexto));
+            var devuelto = ventas.Sum(v => v.TotalDevueltoSinIva(contexto));
+            var esperado = Math.Round(vendido - devuelto, 2);
+            var lineasDeLaFactura = factura.Detalles<LineaDeUnaFaeDtm>(contexto, usarLaCache: false);
+            var baseImponible = Math.Round(lineasDeLaFactura.Sum(l => l.ImporteConDto), 2);
+            if (Math.Abs(baseImponible - esperado) < 0.01m)
+                return;
+
+            var documentos = string.Join(", ", ventas.Select(v => $"'{v.Referencia}'"));
+            GestorDeErrores.Emitir($"No se puede emitir la factura '{factura.Referencia}': su base imponible ({baseImponible:N2}) no coincide con lo que realmente se vende " +
+                $"en {(ventas.Count == 1 ? $"el {enumNegocio.Venta.Singular(true)}" : $"los {enumNegocio.Venta.Plural(true)}")} {documentos} ({esperado:N2}: " +
+                $"vendido {vendido:N2}{(devuelto == 0 ? "" : $" menos {devuelto:N2} devuelto en {enumNegocio.DevolucionVenta.Plural(true)} aceptadas")}). " +
+                $"Modifique las líneas de la factura para que su base imponible sea {esperado:N2}.{DiferenciasPorLinea(contexto, ventas, lineasDeLaFactura)}");
+        }
+
+        /// <summary>
+        /// Antes de emitir una factura (ver ExtensorDeFacturasEmt.AntesDeEmitirFactura): ninguna de las líneas vendidas que factura puede tener
+        /// una devolución en tramitación. Mientras no se acepta, lo devuelto no ha entrado en el almacén ni se ha quitado de la prefactura:
+        /// emitirla facturaría material que el cliente ha devuelto y dejaría en el almacén menos existencias de las que hay. Hay que aceptar
+        /// la devolución (o cancelarla) desde el documento de venta
+        /// </summary>
+        public static void ValidarDevolucionesPendientes(this FacturaEmtDtm factura, ContextoSe contexto)
+        {
+            var idsDeLineasVendidas = contexto.Set<LineaDeUnaFaeDtm>()
+                .Where(l => l.IdElemento == factura.Id && l.IdLineaDeVenta != null)
+                .Select(l => (int)l.IdLineaDeVenta)
+                .ToList();
+            if (idsDeLineasVendidas.Count == 0)
+                return;
+
+            var enTramitacion = enumEtapasDeDevolucionDeVenta.DDV_Etapa_Tramitacion.Lista();
+            var pendientes = contexto.Set<LineaDeUnaDevolucionDeVentaDtm>()
+                .Where(l => idsDeLineasVendidas.Contains(l.IdLineaDeVenta)
+                         && contexto.Set<DevolucionDeVentaDtm>().Any(d => d.Id == l.IdElemento && enTramitacion.Contains(d.IdEstado)))
+                .Select(l => l.IdElemento)
+                .Distinct()
+                .ToList();
+            if (pendientes.Count == 0)
+                return;
+
+            var referencias = contexto.Set<DevolucionDeVentaDtm>().Where(d => pendientes.Contains(d.Id)).Select(d => d.Referencia).ToList();
+            GestorDeErrores.Emitir($"No se puede emitir la factura '{factura.Referencia}': {(referencias.Count == 1 ? $"la {enumNegocio.DevolucionVenta.Singular(true)}" : $"las {enumNegocio.DevolucionVenta.Plural(true)}")} " +
+                $"{string.Join(", ", referencias.Select(r => $"'{r}'"))} de sus líneas {(referencias.Count == 1 ? "está" : "están")} pendiente{(referencias.Count == 1 ? "" : "s")} de aceptar. " +
+                $"Acéptela{(referencias.Count == 1 ? "" : "s")} o cancéle{(referencias.Count == 1 ? "la" : "las")} desde el {enumNegocio.Venta.Singular(true)}: si se emitiera, se facturaría material devuelto y el almacén quedaría con menos existencias de las que hay");
+        }
+
+        // Qué líneas no cuadran, por el origen de cada línea de la factura (IdLineaDeVenta): las vendidas cuya cantidad o importe facturado
+        // no es lo vendido menos lo devuelto y las líneas de la factura que no vienen de ningún documento de venta
+        private static string DiferenciasPorLinea(ContextoSe contexto, List<VentaDtm> ventas, List<LineaDeUnaFaeDtm> lineasDeLaFactura)
+        {
+            const int maximo = 10;
+            var diferencias = new List<string>();
+            foreach (var venta in ventas)
+            {
+                foreach (var vendida in venta.Detalles<LineaDeUnaVentaDtm>(contexto).OrderBy(l => l.Orden))
+                {
+                    var devuelta = vendida.CantidadDevueltaAceptada(contexto);
+                    var cantidadEsperada = vendida.Cantidad - devuelta;
+                    var importeEsperado = Math.Round(vendida.Importe * (vendida.Cantidad == 0 ? 0 : cantidadEsperada / vendida.Cantidad), 2);
+                    var facturadas = lineasDeLaFactura.Where(l => l.IdLineaDeVenta == vendida.Id).ToList();
+                    var cantidadFacturada = facturadas.Sum(l => l.Cantidad ?? 0);
+                    var importeFacturado = Math.Round(facturadas.Sum(l => l.ImporteConDto), 2);
+                    if (cantidadFacturada == cantidadEsperada && Math.Abs(importeFacturado - importeEsperado) < 0.01m)
+                        continue;
+
+                    var unitario = contexto.SeleccionarPorId<UnitarioDtm>(vendida.IdUnitario);
+                    diferencias.Add($"'{venta.Referencia}' línea {vendida.Orden} {unitario.Expresion}: facturado {cantidadFacturada:0.####} por {importeFacturado:N2}, " +
+                        $"ha de ser {cantidadEsperada:0.####} por {importeEsperado:N2} (vendido {vendida.Cantidad:0.####}{(devuelta == 0 ? "" : $", devuelto {devuelta:0.####}")})");
+                }
+            }
+
+            foreach (var sinOrigen in lineasDeLaFactura.Where(l => l.IdLineaDeVenta is null && l.ImporteConDto != 0).OrderBy(l => l.Orden))
+                diferencias.Add($"línea {sinOrigen.Orden} de la factura '{sinOrigen.Concepto}' ({sinOrigen.ImporteConDto:N2}) no corresponde a ningún {enumNegocio.Venta.Singular(true)}");
+
+            if (diferencias.Count == 0)
+                return "";
+            var mas = diferencias.Count > maximo ? $"{Environment.NewLine}... y {diferencias.Count - maximo} más" : "";
+            return $"{Environment.NewLine}Diferencias:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", diferencias.Take(maximo))}{mas}";
+        }
+
+        // Lo que ha hecho ModificarLineaServida: si ha modificado la línea (para reimprimir la oferta) y la devolución creada, si la hay
+        public class ResultadoDeModificarLoServido
+        {
+            public VentaDtm Venta { get; set; }
+            public bool LineaModificada { get; set; }
+            public DevolucionDeVentaDtm Devolucion { get; set; }
+        }
+
+        /// <summary>
+        /// Acción Devolver de una línea con el documento de venta servido (aún sin prefacturar, ver VentasController.epModificarLineaServida):
+        /// se corrige lo servido. La cantidad es lo realmente servido, sin lo ya devuelto.
+        ///  - si la salida del almacén está en un periodo abierto se modifican la cantidad (lo servido más lo devuelto) y el precio de la línea
+        ///    y la salida: al guardarla el gestor de movimientos cancela su preasiento, recalcula el inventario, la vuelve a preasentar y barre
+        ///    los posteriores (ver GestorDeMovimientosDeAlmacen.AntesDePersistir y DespuesDePersistir)
+        ///  - si está en un periodo cerrado (en o antes del último cierre contable, o con el preasiento contabilizado) la salida no se toca:
+        ///    se modifica el precio de la línea y lo que se deja de servir se devuelve en una devolución de venta nueva, en tramitación, que se
+        ///    acepta desde el grid de devoluciones del documento de venta (su entrada en el almacén va al día siguiente al cierre, ver
+        ///    ExtensorDeDevolucionesDeVenta.AntesDeAceptar). Tras el cierre no se puede aumentar lo servido
+        /// La reimpresión de la oferta la hace GestorDeVentas
+        /// </summary>
+        public static ResultadoDeModificarLoServido ModificarLineaServida(ContextoSe contexto, int idLineaDeVenta, decimal cantidad, decimal precio)
+        {
+            var linea = contexto.SeleccionarPorId<LineaDeUnaVentaDtm>(idLineaDeVenta, usarLaCache: false);
+            var venta = contexto.SeleccionarPorId<VentaDtm>(linea.IdElemento, usarLaCache: false);
+            if (!venta.EstaEnLaEtapa(enumEtapasDeVenta.DSA_Etapa_Servicio))
+                GestorDeErrores.Emitir($"Sólo se puede modificar lo servido de un {enumNegocio.Venta.Singular(true)} en la etapa de {enumEtapasDeVenta.DSA_Etapa_Servicio.Nombre(true)}, el '{venta.Referencia}' está en '{venta.Estado(contexto).Nombre}'");
+            if (cantidad <= 0)
+                GestorDeErrores.Emitir($"La cantidad servida ha de ser mayor que 0; para quitar la línea devuelva el {enumNegocio.Venta.Singular(true)} a solicitado");
+            if (precio < 0)
+                GestorDeErrores.Emitir("El precio de venta no puede ser negativo");
+
+            var devuelta = linea.CantidadDevuelta(contexto);
+            var servida = linea.Cantidad - devuelta;
+            if (cantidad == servida && precio == linea.Precio)
+                GestorDeErrores.Emitir($"No ha cambiado ni la cantidad servida ni el precio de venta de la línea {linea.Orden}");
+
+            var salida = contexto.Set<MovimientoDeAlmacenDtm>().FirstOrDefault(m => m.IdLineaDeVenta == linea.Id);
+            if (salida is null)
+                GestorDeErrores.Emitir($"La línea {linea.Orden} del {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' no tiene salida del almacén");
+
+            var contabilizado = salida.PreasientoContabilizado(contexto);
+            var periodoCerrado = contabilizado is not null
+                || ExtensorDeDevolucionesDeVenta.FechaTrasElCierre(contexto, venta, salida.RealizadoEl) != salida.RealizadoEl.Date;
+            if (periodoCerrado && cantidad > servida)
+                GestorDeErrores.Emitir($"La salida del almacén '{salida.Referencia(contexto)}' de la línea {linea.Orden} está en un periodo cerrado" +
+                    (contabilizado is null ? "" : $" (su preasiento '{contabilizado.Referencia}' está contabilizado)") + ", no se puede aumentar lo servido");
+
+            var resultado = new ResultadoDeModificarLoServido { Venta = venta };
+            var antes = $"{servida:0.####} a {linea.Precio:N2}";
+            var detalles = new List<string>();
+
+            // la línea: en un periodo abierto la cantidad y el precio, en uno cerrado sólo el precio
+            var cambiaLaSalida = !periodoCerrado && cantidad != servida;
+            if (cambiaLaSalida || precio != linea.Precio)
+            {
+                if (cambiaLaSalida)
+                    linea.Cantidad = cantidad + devuelta;
+                linea.Precio = precio;
+                linea.Modificar(contexto, esUnaAccion: true);
+                resultado.LineaModificada = true;
+            }
+
+            if (cambiaLaSalida)
+            {
+                var preasientoAnterior = salida.IdPreasiento;
+                salida.Cantidad = linea.Cantidad;
+                salida.ModificarComoAdministrador(contexto);
+                salida = contexto.SeleccionarPorId<MovimientoDeAlmacenDtm>(salida.Id, usarLaCache: false);
+                detalles.Add($"Salida del almacén '{salida.Referencia(contexto)}': salen {salida.Cantidad:0.####} valoradas a {salida.Precio:N4}" +
+                    (preasientoAnterior is null && salida.IdPreasiento is null ? "" : $", preasiento {(salida.IdPreasiento is null ? "cancelado" : "regenerado")}"));
+            }
+
+            // en un periodo cerrado lo que se deja de servir se devuelve (después de cambiar el precio: la devolución toma el de la línea)
+            if (periodoCerrado && cantidad < servida)
+            {
+                resultado.Devolucion = ExtensorDeDevolucionesDeVenta.DevolverLineaDeVenta(contexto, linea.Id, servida - cantidad, idDevolucion: 0);
+                detalles.Add($"La salida del almacén '{salida.Referencia(contexto)}' está en un periodo cerrado: se devuelven {servida - cantidad:0.####} en la {enumNegocio.DevolucionVenta.Singular(true)} '{resultado.Devolucion.Referencia}', pendiente de aceptar");
+            }
+
+            venta.CrearTraza(contexto, "Línea servida modificada", $"{contexto.Usuario.Expresion} ha modificado lo servido de la línea {linea.Orden}: de {antes} a {cantidad:0.####} a {precio:N2}" +
+                (detalles.Count == 0 ? "" : $"{Environment.NewLine}{string.Join(Environment.NewLine, detalles)}"));
+            return resultado;
         }
 
         /// <summary>
@@ -304,21 +590,22 @@ namespace GestorDeElementos.Extensores
         {
             if (venta.IdFacturaEmt is not null)
                 GestorDeErrores.Emitir($"El {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' ya tiene una factura asociada");
-            if (!contexto.Set<LineaDeUnaVentaDtm>().Any(l => l.IdElemento == venta.Id))
+            if (venta.Detalles<LineaDeUnaVentaDtm>(contexto).Count == 0)
                 GestorDeErrores.Emitir($"El {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' no tiene líneas, no se puede facturar");
             venta.TipoDeVenta(contexto).TipoDeFacturaEmt(contexto);
         }
 
         /// <summary>
-        /// DSA: Sirviendo --> DSA: Facturar --> DSA: Facturado: crea la prefactura al cliente del documento de venta con una línea alzada por
-        /// cada línea de la venta (concepto, naturaleza y unidad del material, su cantidad, precio y descuento, y el iva por defecto del tipo
-        /// de factura); no es de tipo unitario porque ésta tomaría el precio de venta del material en lugar del vendido. El tipo de la
-        /// prefactura es el indicado en el tipo de documento de venta. Asigna IdFacturaEmt
+        /// DSA: Sirviendo --> DSA: Facturar --> DSA: Facturado: crea la prefactura al cliente del documento de venta con una línea de tipo
+        /// unitario por cada línea de la venta (el material, su concepto, naturaleza y unidad, la cantidad, el precio y el descuento vendidos,
+        /// y el iva por defecto del tipo de factura). Como la línea apunta a la vendida (IdLineaDeVenta), su precio es el de la venta y no el
+        /// del maestro (ver GestorDeLineasDeUnaFae.ValidarDatosSegunTipoDeLinea). El tipo de la prefactura es el indicado en el tipo de
+        /// documento de venta. Asigna IdFacturaEmt
         /// </summary>
         public static FacturaEmtDtm CrearPrefactura(this VentaDtm venta, ContextoSe contexto)
         {
             var tipo = venta.TipoDeVenta(contexto).TipoDeFacturaEmt(contexto);
-            var lineas = contexto.SeleccionarTodos<LineaDeUnaVentaDtm>(nameof(LineaDeUnaVentaDtm.IdElemento), venta.Id);
+            var lineas = venta.Detalles<LineaDeUnaVentaDtm>(contexto);
             if (lineas.Count == 0)
                 GestorDeErrores.Emitir($"El {enumNegocio.Venta.Singular(true)} '{venta.Referencia}' no tiene líneas, no se puede crear la prefactura");
 
@@ -341,24 +628,30 @@ namespace GestorDeElementos.Extensores
                 MotivoDeRectificacion = null
             }.Insertar(contexto);
 
+            // se factura lo que realmente se vende: lo servido menos lo devuelto en devoluciones aceptadas (p.e. al modificar lo servido con la
+            // salida en un periodo cerrado, ver ModificarLineaServida); lo devuelto por completo no se factura
             decimal? porcentajeDeIva = tipo.IdIvaRDefecto is null ? null : contexto.SeleccionarPorId<IvaRepercutidoDtm>((int)tipo.IdIvaRDefecto).Porcentaje;
             foreach (var linea in lineas.OrderBy(l => l.Orden))
             {
+                var cantidad = linea.Cantidad - linea.CantidadDevueltaAceptada(contexto);
+                if (cantidad <= 0)
+                    continue;
                 var unitario = contexto.SeleccionarPorId<UnitarioDtm>(linea.IdUnitario);
                 new LineaDeUnaFaeDtm
                 {
                     IdElemento = factura.Id,
                     Orden = linea.Orden,
-                    TipoDeLinea = enumTipoDeLinea.Alzada,
-                    IdUnitario = null,
+                    TipoDeLinea = enumTipoDeLinea.Unitario,
+                    IdUnitario = unitario.Id,
                     Concepto = unitario.Expresion,
-                    Cantidad = linea.Cantidad,
+                    Cantidad = cantidad,
                     Precio = linea.Precio,
                     Descuento = linea.Descuento,
                     IdIvaR = tipo.IdIvaRDefecto,
                     Iva = porcentajeDeIva,
                     IdUnidad = unitario.IdUnidad,
-                    IdNaturaleza = unitario.IdNaturaleza
+                    IdNaturaleza = unitario.IdNaturaleza,
+                    IdLineaDeVenta = linea.Id
                 }.Insertar(contexto);
             }
 

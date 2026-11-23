@@ -369,6 +369,7 @@ namespace SistemaDeElementos.Inicializador
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Almacen, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeAlmacen, enumVistas.Logistica.MaestrosDeAlmacenes, orden: 5);
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Pedido, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDePedido, enumVistas.Logistica.MaestrosDePedidos, orden: 10);
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Venta, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeVenta, enumVistas.Logistica.MaestrosDeVentas, orden: 12);
+            MenusDeConfiguracionDeProceso(gestor, enumNegocio.DevolucionVenta, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeDevolucionDeVenta, enumVistas.Logistica.MaestrosDeDevolucionesDeVenta, orden: 13);
             MenusDeConfiguracionDeProceso(gestor, enumNegocio.Regularizacion, padre: $"{ModuloDeLogistica}.{Configuracion}", enumVistas.Logistica.TipoDeRegularizacion, enumVistas.Logistica.MaestrosDeRegularizaciones, orden: 15);
 
             GestorDeMenus.CrearMenuSiNoExiste(gestor
@@ -381,17 +382,22 @@ namespace SistemaDeElementos.Inicializador
                 , descripcion: $"Gestión de {enumNegocio.Pedido.Plural()}"
                 , icono: enumNegocio.Pedido.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Pedidos, orden: 45);
 
-            // Los documentos de venta van detrás de Pedidos y por delante de Regularizaciones.
+            // Los documentos de venta van detrás de Pedidos, seguidos de las devoluciones de venta y de las regularizaciones.
             GestorDeMenus.CrearMenuSiNoExiste(gestor
                 , nombre: enumVistas.Logistica.Ventas
                 , descripcion: $"Gestión de {enumNegocio.Venta.Plural().ToLower()}"
                 , icono: enumNegocio.Venta.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Ventas, orden: 46);
 
-            // Regularizaciones va detrás de los documentos de venta y por delante de los movimientos de almacén.
+            GestorDeMenus.CrearMenuSiNoExiste(gestor
+                , nombre: enumVistas.Logistica.DevolucionesDeVenta
+                , descripcion: $"Gestión de {enumNegocio.DevolucionVenta.Plural().ToLower()}"
+                , icono: enumNegocio.DevolucionVenta.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.DevolucionesDeVenta, orden: 47);
+
+            // Regularizaciones va detrás de las devoluciones de venta (como en la configuración) y por delante de los movimientos de almacén.
             GestorDeMenus.CrearMenuSiNoExiste(gestor
                 , nombre: enumVistas.Logistica.Regularizaciones
                 , descripcion: $"Gestión de {enumNegocio.Regularizacion.Plural()}"
-                , icono: enumNegocio.Regularizacion.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Regularizaciones, orden: 47);
+                , icono: enumNegocio.Regularizacion.Icono(), padre: ModuloDeLogistica, vista: enumVistas.Logistica.Regularizaciones, orden: 48);
 
             GestorDeMenus.CrearMenuSiNoExiste(gestor
                 , nombre: enumVistas.Logistica.MovimientosDeAlmacen

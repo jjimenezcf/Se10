@@ -80,5 +80,33 @@ namespace ModeloDeDto.Logistica
             AutoSpan = true)]
         public string TipoFacturaEmt { get; set; }
 
+        //-------------------------------------------------------------------------------------------------------
+        // tipo de la devolución de venta que se crea al devolver líneas de un documento de venta de este tipo
+        [IUPropiedad(
+              Etiqueta = "Id del tipo de devolución de venta",
+              Visible = false
+              )]
+        public int? IdTipoDevolucion { get; set; }
+
+        [IUPropiedad(
+            Etiqueta = "Tipo de devolución",
+            Ayuda = "Tipo de la devolución de venta que se crea al devolver líneas del documento de venta",
+            TipoDeControl = enumTipoControl.ListaDinamica,
+            Negocio = enumNegocio.DevolucionVenta,
+            GuardarEn = nameof(IdTipoDevolucion),
+            Controlador = nameof(enumControladoresNegocio.TiposDeElemento),
+            VistaDondeNavegar = enumVistasLogisticas.TiposDeDevolucionDeVenta,
+            MostrarExpresion = nameof(TipoDeElementoDto.Nombre),
+            SoloEnAlta = true,
+            LongitudMinimaParaBuscar = 1,
+            Obligatorio = false,
+            Fila = 5,
+            Columna = 0,
+            VisibleEnGrid = false,
+            EditableAlCrear = true,
+            EditableAlEditar = true,
+            AutoSpan = true)]
+        public string TipoDevolucion { get; set; }
+
     }
 }

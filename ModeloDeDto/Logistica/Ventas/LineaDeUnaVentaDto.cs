@@ -140,5 +140,9 @@ namespace ModeloDeDto.Logistica
         ]
         public decimal? Margen { get; set; }
 
+        // lo ya devuelto de la línea en las devoluciones de venta, para proponer lo que queda por devolver (ver Logistica.Dsa_DevolverLinea)
+        [IUPropiedad(Etiqueta = "Cantidad devuelta", Visible = false)]
+        public decimal CantidadDevuelta { get; set; }
+
     }
 }

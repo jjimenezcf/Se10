@@ -172,6 +172,9 @@ namespace SistemaDeElementos.Inicializador
             public static readonly string TipoDeVenta = $"Tipos de {enumNegocio.Venta.Singular().ToLower()}";
             public static readonly string MaestrosDeVentas = $"Maestros de {enumNegocio.Venta.Plural().ToLower()}";
             public static readonly string Ventas = enumNegocio.Venta.Plural();
+            public static readonly string TipoDeDevolucionDeVenta = $"Tipos de {enumNegocio.DevolucionVenta.Singular().ToLower()}";
+            public static readonly string MaestrosDeDevolucionesDeVenta = $"Maestros de {enumNegocio.DevolucionVenta.Plural().ToLower()}";
+            public static readonly string DevolucionesDeVenta = enumNegocio.DevolucionVenta.Plural();
         }
 
 
@@ -405,6 +408,10 @@ namespace SistemaDeElementos.Inicializador
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MaestrosDeVentas, enumControladoresLogistica.Ventas, enumVistasLogisticas.MaestrosDeVentas, true, null);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.TipoDeVenta, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.Venta), true, typeof(TipoDeVentaDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.Logistica.Ventas, enumControladoresLogistica.Ventas, enumVistasLogisticas.CrudVentas, false, typeof(VentaDto).FullName);
+
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.MaestrosDeDevolucionesDeVenta, enumControladoresLogistica.DevolucionesDeVenta, enumVistasLogisticas.MaestrosDeDevolucionesDeVenta, true, null);
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.TipoDeDevolucionDeVenta, enumControladoresNegocio.TiposDeElemento, enumVistasNegocio.CrudDeTipos(enumNegocio.DevolucionVenta), true, typeof(TipoDeDevolucionDeVentaDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Logistica.DevolucionesDeVenta, enumControladoresLogistica.DevolucionesDeVenta, enumVistasLogisticas.CrudDevolucionesDeVenta, false, typeof(DevolucionDeVentaDto).FullName);
         }
 
         private static void CrearVistasDelModuloDeGastos(GestorDeVistaMvc gestor)

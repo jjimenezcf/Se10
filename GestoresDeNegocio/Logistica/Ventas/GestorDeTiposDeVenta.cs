@@ -22,11 +22,13 @@ namespace GestoresDeNegocio.Logistica
                .ForMember(dto => dto.Negocio, dtm => enumLiteralesDeNegocio.Plural(enumNegocio.Venta))
                .ForMember(dto => dto.Padre, dtm => dtm.MapFrom(x => x.Padre.Expresion))
                .ForMember(dto => dto.Estado, dtm => dtm.MapFrom(x => x.Estado.Nombre))
-               .ForMember(dto => dto.TipoFacturaEmt, dtm => dtm.MapFrom(x => x.TipoFacturaEmt == null ? null : x.TipoFacturaEmt.Nombre));
+               .ForMember(dto => dto.TipoFacturaEmt, dtm => dtm.MapFrom(x => x.TipoFacturaEmt == null ? null : x.TipoFacturaEmt.Nombre))
+               .ForMember(dto => dto.TipoDevolucion, dtm => dtm.MapFrom(x => x.TipoDevolucion == null ? null : x.TipoDevolucion.Nombre));
 
                 ReglasDeMapeoDelDtoAlDtm(CreateMap<TipoDeVentaDto, TipoDeVentaDtm>())
                 .ForMember(dtm => dtm.Padre, dto => dto.Ignore())
-                .ForMember(dtm => dtm.TipoFacturaEmt, dto => dto.Ignore());
+                .ForMember(dtm => dtm.TipoFacturaEmt, dto => dto.Ignore())
+                .ForMember(dtm => dtm.TipoDevolucion, dto => dto.Ignore());
             }
         }
 
@@ -72,7 +74,8 @@ namespace GestoresDeNegocio.Logistica
             consulta = base.AplicarJoins(consulta, filtros, parametros);
             return consulta.Include(x => x.Padre)
                            .Include(x => x.Estado)
-                           .Include(x => x.TipoFacturaEmt);
+                           .Include(x => x.TipoFacturaEmt)
+                           .Include(x => x.TipoDevolucion);
         }
 
         protected override int ValidarNoHayElementos(TipoDeVentaDtm registro, ParametrosDeNegocio parametros)

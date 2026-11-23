@@ -87,6 +87,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<ArchivadoresDeUnaRegularizacionDtm>();
                 case enumNegocio.Venta:
                     return contexto.Set<ArchivadoresDeUnaVentaDtm>();
+                case enumNegocio.DevolucionVenta:
+                    return contexto.Set<ArchivadoresDeUnaDevolucionDeVentaDtm>();
                 case enumNegocio.Gasto:
                     return contexto.Set<ArchivadoresDeUnGastoDtm>();
             }
@@ -156,6 +158,8 @@ namespace GestorDeElementos.Extensores
                     return contexto.Set<ArchivosDeUnaRegularizacionDtm>();
                 case enumNegocio.Venta:
                     return contexto.Set<ArchivosDeUnaVentaDtm>();
+                case enumNegocio.DevolucionVenta:
+                    return contexto.Set<ArchivosDeUnaDevolucionDeVentaDtm>();
                 case enumNegocio.Almacen:
                     return contexto.Set<ArchivosDeUnAlmacenDtm>();
             }

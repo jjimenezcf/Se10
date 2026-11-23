@@ -964,6 +964,9 @@ namespace GestorDeElementos.Extensores
         {
             if (faeOrigen.EsRectificativa)
                 Emitir($"La factura '{faeOrigen.Referencia}' es rectificativa, y por tanto no se puede copiar");
+            // copiar material de un documento de venta sería facturarlo sin que salga del almacén: para volver a venderlo, un documento nuevo
+            if (contexto.Set<LineaDeUnaFaeDtm>().Any(l => l.IdElemento == faeOrigen.Id && l.IdLineaDeVenta != null))
+                Emitir($"La factura '{faeOrigen.Referencia}' factura material de {enumNegocio.Venta.Plural(true)} y no se puede copiar: copiarla sería facturar material que no ha salido del almacén. Para volver a venderlo cree un {enumNegocio.Venta.Singular(true)}");
 
             var transaccion = contexto.IniciarTransaccion();
             try
@@ -974,7 +977,8 @@ namespace GestorDeElementos.Extensores
                     IdCliente = contexto.SeleccionarPorId<ClienteDtm>(parametros.LeerValor<int>(nameof(CopiarFaeDto.IdCliente))).Id,
                     IdTipo = contexto.SeleccionarPorId<TipoDeFacturaEmtDtm>(parametros.LeerValor<int>(nameof(CopiarFaeDto.IdTipo))).Id,
                     Nombre = parametros.LeerValor<string>(nameof(CopiarFaeDto.Nombre)),
-                    Descripcion = parametros.LeerValor<string>(nameof(CopiarFaeDto.Descripcion)),
+                    // la descripción es opcional: si no se indica llega nula
+                    Descripcion = parametros.LeerValor<string>(nameof(CopiarFaeDto.Descripcion), null),
                     IdPresupuesto = faeOrigen.IdPresupuesto,
                     IdContrato = faeOrigen.IdContrato,
                     ClaseRectificativa = null,
@@ -991,6 +995,12 @@ namespace GestorDeElementos.Extensores
                 {
                     linea.Id = 0;
                     linea.IdElemento = faeNuevo.Id;
+                    // la copia es una factura nueva: no factura las líneas vendidas ni regulariza las devoluciones de la original (sólo la
+                    // rectificativa y la prefactura de sustitución conservan el origen)
+                    linea.IdLineaDeVenta = null;
+                    linea.LineaDeVenta = null;
+                    linea.IdLineaDeDevolucionDeVenta = null;
+                    linea.LineaDeDevolucionDeVenta = null;
                     linea.Insertar(contexto);
                 }
 
@@ -1197,6 +1207,11 @@ namespace GestorDeElementos.Extensores
             if (lineas.Count == 0) Emitir($"No puede emitir la factura '{factura.Referencia}', debe definir las líneas de lo facturado");
 
             FirmadorXadesService.ValidarQueSePuedeFirmarConXade();
+
+            // no se emite con devoluciones de sus líneas vendidas pendientes de aceptar, y lo facturado de los documentos de venta ha de ser
+            // lo vendido menos lo devuelto
+            factura.ValidarDevolucionesPendientes(contexto);
+            factura.ValidarImporteDeLasVentas(contexto);
 
             factura.ValidarIva(lineas);
             factura.ValidarIrpf(contexto);

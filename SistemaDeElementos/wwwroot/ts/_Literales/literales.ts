@@ -93,7 +93,8 @@ enum enumNegocio {
     Almacen = 'Almacen',
     Regularizacion = 'Regularizacion',
     CierreContable = 'CierreContable',
-    Venta = 'Venta'
+    Venta = 'Venta',
+    DevolucionVenta = 'DevolucionVenta'
 }
 
 const literal = {
@@ -400,7 +401,11 @@ const ltrEspanes = {
             Lineas: 'lineasdeunaregularizacion'
         },
         Ventas: {
-            Lineas: 'lineasdeunaventa'
+            Lineas: 'lineasdeunaventa',
+            Devoluciones: 'devolucionesdeunaventa'
+        },
+        DevolucionesDeVenta: {
+            Lineas: 'lineasdeunadevoluciondeventa'
         }
     },
     Venta: {
@@ -497,6 +502,9 @@ const ltrModalDeCrearRelacion = {
         },
         Ventas: {
             Lineas: ltrEspanes.Logistica.Ventas.Lineas
+        },
+        DevolucionesDeVenta: {
+            Lineas: ltrEspanes.Logistica.DevolucionesDeVenta.Lineas
         }
     }
 };
@@ -592,7 +600,8 @@ const ltrControladores = {
         LineasDeUnPedido: 'LineasDeUnPedido',
         EntregasDeUnPedido: 'EntregasDeUnPedido',
         DevolucionesDeUnPedido: 'DevolucionesDeUnPedido',
-        Ventas: 'Ventas'
+        Ventas: 'Ventas',
+        DevolucionesDeVenta: 'DevolucionesDeVenta'
     },
     Guarderias: {
         Cursos: 'CursosDeGuarderia',
@@ -1778,7 +1787,14 @@ const Ajax = {
                 DatosParaVender: 'epDatosParaVender'
             },
             Ventas: {
-                CrearVenta: 'epCrearVenta'
+                CrearVenta: 'epCrearVenta',
+                ModificarLineaServida: 'epModificarLineaServida',
+                CambiarDatos: 'epCambiarDatos'
+            },
+            DevolucionesDeVenta: {
+                DevolverLineaDeVenta: 'epDevolverLineaDeVenta',
+                AceptarDevolucion: 'epAceptarDevolucion',
+                CancelarDevolucion: 'epCancelarDevolucion'
             }
         },
         Contabilidad: {
@@ -3690,9 +3706,61 @@ const ltrPropiedades = {
         Venta: {
             IdAlmacen: 'idalmacen',
             Almacen: 'almacen',
+            IdCliente: 'idcliente',
             linea: {
                 orden: 'orden',
                 unitario: 'unitario',
+                cantidad: 'cantidad',
+                precio: 'precio',
+                descuento: 'descuento',
+                importe: 'importe',
+                cantidadDevuelta: 'cantidaddevuelta'
+            },
+            DevolverLinea: {
+                IdLineaDeVenta: 'IdLineaDeVenta',
+                Cantidad: 'Cantidad',
+                Precio: 'Precio',
+                Descuento: 'Descuento',
+                Importe: 'Importe',
+                IdDevolucion: 'IdDevolucion',
+                Devolucion: 'Devolucion'
+            },
+            // grid de devoluciones de la edición del documento de venta (ver DescriptorDeVentas.DescriptorDeDevolucionesDeUnaVenta)
+            Devolucion: {
+                IdDevolucion: 'IdDevolucion',
+                idElemento: 'idelemento',
+                aceptada: 'aceptada',
+                cancelada: 'cancelada',
+                devolucion: 'devolucion',
+                Aceptar: 'Aceptar',
+                Cancelar: 'Cancelar'
+            },
+            ModificarLineaServida: {
+                IdLineaDeVenta: 'IdLineaDeVenta',
+                Descuento: 'Descuento',
+                Cantidad: 'Cantidad',
+                Precio: 'Precio',
+                Importe: 'Importe'
+            },
+            // modal de "Cambiar datos" del menú de edición (ver CambiarDatosDeVentaDto) y lo que se lee del documento de venta editado
+            CambiarDatos: {
+                IdElemento: 'IdElemento',
+                Nombre: 'Nombre',
+                Cliente: 'Cliente',
+                ServidoEl: 'ServidoEl',
+                tieneDevoluciones: 'tienedevoluciones',
+                idFacturaEmt: 'idfacturaemt'
+            }
+        },
+        DevolucionDeVenta: {
+            FiltroEnTramitacion: 'FiltroEnTramitacion',
+            FiltroPorCliente: 'FiltroPorCliente',
+            linea: {
+                orden: 'orden',
+                idVenta: 'idventa',
+                venta: 'venta',
+                idLineaDeVenta: 'idlineadeventa',
+                lineaDeVenta: 'lineadeventa',
                 cantidad: 'cantidad',
                 precio: 'precio',
                 descuento: 'descuento',
@@ -4561,6 +4629,11 @@ const ltrMenus = {
             Inventario: {
                 PrepararRecuento: 'preparar-recuento',
                 VenderMaterial: 'vender-material'
+            },
+            Ventas: {
+                DevolverLinea: 'devolver-linea-venta',
+                ModificarLineaServida: 'modificar-linea-servida',
+                CambiarDatos: 'cambiar-datos-venta'
             }
         },
         MaestrosTecnico: {

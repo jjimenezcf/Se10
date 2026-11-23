@@ -42,6 +42,7 @@ namespace GestorDeElementos.Extensores
             if (typeof(AccionesDeUnAlmacenDtm) == tipo) return enumNegocio.Almacen;
             if (typeof(AccionesDeUnaRegularizacionDtm) == tipo) return enumNegocio.Regularizacion;
             if (typeof(AccionesDeUnaVentaDtm) == tipo) return enumNegocio.Venta;
+            if (typeof(AccionesDeUnaDevolucionDeVentaDtm) == tipo) return enumNegocio.DevolucionVenta;
 
             throw new Exception($"No se ha definido cual es el negocio para la clase accionTrn {tipo.Name}");
         }

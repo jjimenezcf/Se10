@@ -9,6 +9,7 @@ using ModeloDeDto.MaestrosTecnico;
 using System.Collections.Generic;
 using GestorDeElementos;
 using GestorDeElementos.Extensores;
+using ServicioDeDatos.Seguridad;
 
 namespace MVCSistemaDeElementos.Descriptores
 {
@@ -43,8 +44,54 @@ namespace MVCSistemaDeElementos.Descriptores
                 alSeleccionarBlanquearControl: "")
             { LongitudMinimaParaBuscar = 1 };
 
+            // se abre desde la acción Devolver de las líneas de un documento de venta facturado (ver Logistica.Dsa_DevolverLinea)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(DevolverVentaDto), eventosDeMf.Dsa_DevolverLinea, "Devolver línea"));
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(ModificarLineaVentaDto), eventosDeMf.Dsa_ModificarLineaServida, "Modificar lo servido"));
+
+            // "Cambiar datos" del menú de edición, debajo de "Permiso del elemento" (ver Logistica.CrudEdicionVenta.AjustarCambiarDatos y
+            // VentasController.epCambiarDatos)
+            modalesParaPedirDatos.Add(new ModalParaPedirDatos(this, typeof(CambiarDatosDeVentaDto), eventosDeMf.Dsa_CambiarDatos, "Cambiar datos del documento de venta"));
+            // con permiso de consultor: en servido la edición está en consulta; el permiso de gestor lo valida epCambiarDatos
+            Editor.IncluirMfIndividual("Cambiar datos", eventosDeMf.Dsa_CambiarDatos, enumCssOpcionMenu.DeElemento, enumModoDeAccesoDeDatos.Consultor);
+
             IncluirFiltrosDeVentas();
             DescriptorDeLineasDeUnaVenta();
+            DescriptorDeDevolucionesDeUnaVenta();
+        }
+
+        // Líneas devueltas del documento de venta (las de las devoluciones de venta de sus líneas), con el check para aceptar la devolución
+        // si aún está solicitada (ver Logistica.Dsa_AceptarDevolucion y CrudEdicionVenta.AjustarGridDeDevoluciones)
+        private void DescriptorDeDevolucionesDeUnaVenta()
+        {
+            var expansor = new DescriptorDeExpansor(Editor, $"{Editor.Id}-devolucionesDeUnaVenta", "Devoluciones", mostrarPlegado: true, "Líneas devueltas del documento de venta");
+            expansor.EsDetalle = true;
+            Editor.Expanes.Insert(1, expansor);
+
+            var columnas = new DescriptorDeColumnas("devolucionesDeUnaVenta");
+            columnas.Add(titulo: nameof(LineaDeUnaDevolucionDeVentaDto.Devolucion), propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.Devolucion), tamano: 150);
+            columnas.Add(titulo: "Artículo devuelto", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.LineaDeVenta));
+            columnas.Add(titulo: "Cantidad devuelta", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.Cantidad), formato: enumFormato.Numero_6, tamano: 150);
+            columnas.Add(titulo: "Estado", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.EstadoDeLaDevolucion), tamano: 120);
+            columnas.Add(titulo: "Aceptada", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.Aceptada), mostrar: false);
+            columnas.Add(titulo: "Cancelada", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.Cancelada), mostrar: false);
+            columnas.Add(titulo: "IdVenta", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.IdVenta), mostrar: false);
+            columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.IdElemento), mostrar: false);
+            columnas.Add(titulo: "Id", propiedad: nameof(LineaDeUnaDevolucionDeVentaDto.Id), mostrar: false);
+
+            var parametros = new Dictionary<string, object> {
+                   { nameof(GridDeRelacion.Controlador), typeof(LineasDeUnaDevolucionDeVentaController) }
+                 , { nameof(GridDeRelacion.AccionDeConsulta), nameof(LineasDeUnaDevolucionDeVentaController.epLeerElementos)}
+                 , { nameof(GridDeRelacion.PropiedadRestrictora), nameof(LineaDeUnaDevolucionDeVentaDto.IdVenta) }
+                 , { nameof(GridDeRelacion.OrdenarPor), $"{nameof(LineaDeUnaDevolucionDeVentaDto.Id)}:{enumModoOrdenacion.ascendente.Render()}" }
+                 , { nameof(GridDeRelacion.OcultarSiVacio), false}
+                 // icono de navegar a la edición de la devolución (el IdElemento de la línea)
+                 , { nameof(GridDeRelacion.PaginaDondeNavegarAlEditar), $"{nameof(DevolucionesDeVentaController)}/{nameof(DevolucionesDeVentaController.CrudDevolucionesDeVenta)}?id={nameof(LineaDeUnaDevolucionDeVentaDto.IdElemento)}" }
+                };
+            var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
+            gridDeRelacion.PermitirBorrar = false;
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Venta_AceptarDevolucion(expansor), titulo = "Aceptar", tamano = 100, visible = true });
+            // en lugar de borrar, se cancela la devolución (DDV: Cancelar); aceptar y cancelar sólo mientras se tramita
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Venta_CancelarDevolucion(expansor), titulo = "Cancelar", tamano = 100, visible = true });
         }
 
         // Bloque de filtrado "Datos de ventas", como "Relaciones con el pedido" en DescriptorDePedidos
@@ -135,6 +182,7 @@ namespace MVCSistemaDeElementos.Descriptores
             columnas.Add(titulo: nameof(LineaDeUnaVentaDto.Importe), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: "Precio almacén", propiedad: nameof(LineaDeUnaVentaDto.PrecioAlmacen), formato: enumFormato.Moneda, tamano: 150);
             columnas.Add(titulo: nameof(LineaDeUnaVentaDto.Margen), formato: enumFormato.Porcentaje, tamano: 100);
+            columnas.Add(titulo: "CantidadDevuelta", propiedad: nameof(LineaDeUnaVentaDto.CantidadDevuelta), mostrar: false);
             columnas.Add(titulo: "IdElemento", propiedad: nameof(LineaDeUnaVentaDto.IdElemento), mostrar: false);
             columnas.Add(titulo: "Id", propiedad: nameof(LineaDeUnaVentaDto.Id), mostrar: false);
 
@@ -149,6 +197,9 @@ namespace MVCSistemaDeElementos.Descriptores
                 };
             var gridDeRelacion = new GridDeRelacion(expansor, columnas, parametros);
             gridDeRelacion.PermitirBorrar = true;
+            // sólo se ve con el documento de venta servido (modifica lo servido) o facturado (devuelve), ver Logistica.Dsa_DevolverLinea; en la
+            // solicitud se ve la papelera de borrar la línea
+            gridDeRelacion.acciones.Add(new ColumnaAccion { accion = Referencia.Venta_DevolverLinea(expansor), titulo = "Devolver", tamano = 100, visible = true });
 
             var modalDeCreacion = expansor.DescriptorDeCrearRelaciones(Editor.Crud.Contexto, typeof(LineaDeUnaVentaDto), typeof(LineasDeUnaVentaController), nameof(LineaDeUnaVentaDto.IdElemento), "Añadir línea");
             modalDeCreacion.AccionTrasAbrirModal = $"javascript: {RutaBase}.{enumFunctionTs.Dsa_InicializarModalParaCrearLineas}({ExtensorDeVentas.IncrementarOrdenEn(Contexto)})";

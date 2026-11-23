@@ -243,6 +243,12 @@ namespace GestoresDeNegocio.Logistica
                 var linea = Contexto.SeleccionarPorId<LineaDeUnaVentaDtm>((int)movimiento.IdLineaDeVenta);
                 return $"Venta de la línea nº {linea.Orden} del documento de venta '{linea.Venta(Contexto).Referencia}'";
             }
+            if (movimiento.IdLineaDeDevolucionDeVenta != null)
+            {
+                var linea = Contexto.SeleccionarPorId<LineaDeUnaDevolucionDeVentaDtm>((int)movimiento.IdLineaDeDevolucionDeVenta);
+                var devolucion = Contexto.SeleccionarPorId<DevolucionDeVentaDtm>(linea.IdElemento);
+                return $"Devolución de la línea nº {linea.Orden} de la devolución de venta '{devolucion.Referencia}'";
+            }
             if (movimiento.IdLineaInventario != null)
             {
                 var linea = Contexto.SeleccionarPorId<LineasDeUnaRegularizacionDtm>((int)movimiento.IdLineaInventario);

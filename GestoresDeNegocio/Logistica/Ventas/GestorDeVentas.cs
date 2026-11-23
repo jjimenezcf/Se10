@@ -33,7 +33,8 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.Cliente, dtm => dtm.MapFrom(dtm => dtm.Cliente.Expresion))
                 .ForMember(dto => dto.Almacen, dtm => dtm.MapFrom(dtm => dtm.Almacen.Expresion))
                 .ForMember(dto => dto.FacturaEmt, dtm => dtm.MapFrom(dtm => dtm.FacturaEmt == null ? null : dtm.FacturaEmt.Expresion))
-                .ForMember(dto => dto.TotalSinIva, dtm => dtm.Ignore());
+                .ForMember(dto => dto.TotalSinIva, dtm => dtm.Ignore())
+                .ForMember(dto => dto.TieneDevoluciones, dtm => dtm.Ignore());
 
                 CreateMap<VentaDto, VentaDtm>()
                 .ForMember(dtm => dtm.Cg, dto => dto.Ignore())
@@ -104,6 +105,14 @@ namespace GestoresDeNegocio.Logistica
             base.AntesDePersistir(venta, parametros);
             ValidarQueEsModificable(venta, parametros);
             venta.InicializarDatosCliente(Contexto, parametros);
+
+            // la fecha de servicio la indica el usuario mientras está solicitado; al transitar o ejecutar una acción la pone el sistema
+            if ((parametros.Insertando || parametros.Modificando) && !parametros.EsUnaTransicion && !parametros.EstaEjecutandoUnaAccion)
+            {
+                if (venta.ServidoEl is not null)
+                    venta.ServidoEl = ((System.DateTime)venta.ServidoEl).Date;
+                venta.ValidarFechaDeServicio();
+            }
         }
 
         // Una vez servido (y facturado o cancelado) el documento de venta no se puede modificar ni borrar: sólo en la etapa de solicitud.
@@ -159,9 +168,34 @@ namespace GestoresDeNegocio.Logistica
 
         // Oferta del documento de venta (ver ReporteDeOfertaDeVenta): se genera su pdf, se sube al servidor documental y se anexa a los
         // archivos del documento de venta, como la impresión del pedido (GestorDePedidos.ImprimirPedido)
+        private static string NombreDeLaOferta(VentaDtm venta) => $"Oferta-{venta.Referencia}.pdf".NormalizarFichero();
+
+        // Al modificar lo servido (ver ExtensorDeVentas.ModificarLineaServida): si la oferta ya estaba impresa y anexada (no se guarda su
+        // id, se busca por su nombre) se renombra con un postfijo numérico, "Oferta-ref (1).pdf", "(2)"..., y se vuelve a imprimir con el
+        // nombre original. Devuelve el nombre con el que ha quedado la anterior, o null si no estaba impresa
+        public static string ReimprimirOferta(ContextoSe contexto, VentaDtm venta)
+        {
+            var nombre = NombreDeLaOferta(venta);
+            var anexados = venta.LeerAnexados(contexto);
+            var impresa = anexados.FirstOrDefault(a => a.Nombre.Equals(nombre, System.StringComparison.CurrentCultureIgnoreCase));
+            if (impresa is null)
+                return null;
+
+            var sinExtension = Path.GetFileNameWithoutExtension(nombre);
+            var extension = Path.GetExtension(nombre);
+            var numero = 1;
+            while (anexados.Any(a => a.Nombre.Equals($"{sinExtension} ({numero}){extension}", System.StringComparison.CurrentCultureIgnoreCase)))
+                numero++;
+
+            var renombrada = $"{sinExtension} ({numero}){extension}";
+            impresa.Renombrar(contexto, renombrada);
+            ImprimirOferta(contexto, venta);
+            return renombrada;
+        }
+
         public static void ImprimirOferta(ContextoSe contexto, VentaDtm venta)
         {
-            var nombrePropuesto = venta.ProponerNombreDeArchivo(contexto, $"Oferta-{venta.Referencia}.pdf".NormalizarFichero());
+            var nombrePropuesto = venta.ProponerNombreDeArchivo(contexto, NombreDeLaOferta(venta));
             var rutaConFichero = Path.Combine(GestorDeVariables.RutaDeDescarga, nombrePropuesto);
             var ofertaRpt = new GeneradorDeOfertaDeVentaRpt(contexto, venta).ObtenerInformacionDeRpt(plantilla: null);
             new ReporteDeOfertaDeVenta(ofertaRpt).GeneratePdf(rutaConFichero);
@@ -173,6 +207,8 @@ namespace GestoresDeNegocio.Logistica
         {
             base.DespuesDeMapearElElemento(venta, elemento, parametros);
             elemento.TotalSinIva = venta.TotalSinIva(Contexto);
+            if (parametros.LeerPorId)
+                elemento.TieneDevoluciones = venta.Detalles<LineaDeUnaVentaDtm>(Contexto).Any(l => l.CantidadDevuelta(Contexto) > 0);
 
             // sólo se edita en la etapa de solicitud (ver ValidarQueEsModificable): en el resto se consulta, aunque se puede transitar
             if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)

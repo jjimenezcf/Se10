@@ -11590,6 +11590,64 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.AccionesDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("BIT")
+                        .HasColumnName("ACTIVO");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("VARCHAR(2000)")
+                        .HasColumnName("DESCRIPCION");
+
+                    b.Property<int>("IdAccion")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ACCION");
+
+                    b.Property<int>("IdTransicion")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_TRANSICION");
+
+                    b.Property<string>("Momento")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(1)")
+                        .HasColumnName("MOMENTO");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("INT")
+                        .HasColumnName("ORDEN");
+
+                    b.Property<string>("Parametros")
+                        .HasColumnType("VARCHAR(2000)")
+                        .HasColumnName("PARAMETROS");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdAccion")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ACCION_ID_ACCION");
+
+                    b.HasIndex("IdTransicion")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ACCION_ID_TRANSICION");
+
+                    b.HasIndex("IdTransicion", "Momento", "Orden")
+                        .IsUnique()
+                        .HasDatabaseName("I_ACCION_POR_ORDEN");
+
+                    b.ToTable("DEVOLUCIONVENTA_ACCION", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_ACCION_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.AccionesDeUnaRegularizacionDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -11938,6 +11996,42 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivadoresDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("idElemento1")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO1");
+
+                    b.Property<int>("idElemento2")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO2");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("idElemento1", "idElemento2")
+                        .HasName("AK_DEVOLUCIONVENTA_ARCHIVADOR");
+
+                    b.HasIndex("idElemento1")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ARCHIVADOR_ID_ELEMENTO1");
+
+                    b.HasIndex("idElemento2")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ARCHIVADOR_ID_ELEMENTO2");
+
+                    b.ToTable("DEVOLUCIONVENTA_ARCHIVADOR", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_ARCHIVADOR_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivadoresDeUnaRegularizacionDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -12077,6 +12171,42 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_ARCHIVO", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_ARCHIVO_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivosDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("idElemento1")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO1");
+
+                    b.Property<int>("idElemento2")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO2");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("idElemento1", "idElemento2")
+                        .HasName("AK_DEVOLUCIONVENTA_ARCHIVO");
+
+                    b.HasIndex("idElemento1")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ARCHIVO_ID_ELEMENTO1");
+
+                    b.HasIndex("idElemento2")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ARCHIVO_ID_ELEMENTO2");
+
+                    b.ToTable("DEVOLUCIONVENTA_ARCHIVO", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_ARCHIVO_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -12248,6 +12378,53 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.AuditoriaDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AuditadoEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("AUDITADO_EL");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_USUARIO");
+
+                    b.Property<string>("Operacion")
+                        .IsRequired()
+                        .HasColumnType("CHAR(1)")
+                        .HasColumnName("OPERACION");
+
+                    b.Property<string>("registroJson")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(MAX)")
+                        .HasColumnName("REGISTRO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_AUDITORIA_ID_ELEMENTO");
+
+                    b.HasIndex("IdUsuario")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_AUDITORIA_ID_USUARIO");
+
+                    b.ToTable("DEVOLUCIONVENTA_AUDITORIA", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_AUDITORIA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.AuditoriaDeUnaRegularizacionDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -12412,6 +12589,122 @@ namespace Migraciones.Migrations
                             t.HasTrigger("PEDIDO_LINEA_DEVOLUCION_Trigger");
 
                             t.HasCheckConstraint("CK_PEDIDO_LINEA_DEVOLUCION_CANTIDAD", "[CANTIDAD] > 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Contacto")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("CONTACTO");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR")
+                        .HasColumnName("DESCRIPCION");
+
+                    b.Property<DateTime?>("DevueltaEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("DEVUELTA_EL");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECCRE");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECMOD");
+
+                    b.Property<int>("IdCg")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CG");
+
+                    b.Property<int>("IdCliente")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CLIENTE");
+
+                    b.Property<int>("IdEstado")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ESTADO");
+
+                    b.Property<int>("IdTipo")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_TIPO");
+
+                    b.Property<int>("IdUsuaCrea")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CREADOR");
+
+                    b.Property<int?>("IdUsuaModi")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_MODIFICADOR");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("NOMBRE");
+
+                    b.Property<string>("Referencia")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("VARCHAR")
+                        .HasColumnName("REFERENCIA");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(15)")
+                        .HasColumnName("TELEFONO");
+
+                    b.Property<string>("eMail")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(50)")
+                        .HasColumnName("EMAIL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdCg")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ID_CG");
+
+                    b.HasIndex("IdCliente")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ID_CLIENTE");
+
+                    b.HasIndex("IdEstado")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ID_ESTADO");
+
+                    b.HasIndex("IdTipo")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ID_TIPO");
+
+                    b.HasIndex("IdUsuaCrea")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ID_CREADOR");
+
+                    b.HasIndex("IdUsuaModi")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ID_MODIFICADOR");
+
+                    b.HasIndex("Nombre")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_NOMBRE");
+
+                    b.HasIndex("Referencia")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_REFERENCIA");
+
+                    b.ToTable("DEVOLUCIONVENTA", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -12781,6 +13074,58 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.EstadoDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Cancelado")
+                        .HasColumnType("BIT")
+                        .HasColumnName("CANCELADO");
+
+                    b.Property<int>("IdPermiso")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_PERMISO");
+
+                    b.Property<bool>("Inicial")
+                        .HasColumnType("BIT")
+                        .HasColumnName("INICIAL");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("NOMBRE");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("INT")
+                        .HasColumnName("ORDEN");
+
+                    b.Property<bool>("Terminado")
+                        .HasColumnType("BIT")
+                        .HasColumnName("TERMINADO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdPermiso")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ESTADO_ID_PERMISO");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_ESTADO_NOMBRE");
+
+                    b.ToTable("DEVOLUCIONVENTA_ESTADO", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_ESTADO_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -13004,6 +13349,68 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_HISTORIA", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_HISTORIA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.HitosDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECHA");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdEstado")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ESTADO");
+
+                    b.Property<int?>("IdObservacion")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_OBSERVACION");
+
+                    b.Property<int?>("IdTransicion")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_TRANSICION");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_USUARIO");
+
+                    b.Property<long?>("Tiempo")
+                        .HasColumnType("BIGINT")
+                        .HasColumnName("TIEMPO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_HISTORIA_ID_ELEMENTO");
+
+                    b.HasIndex("IdEstado")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_HISTORIA_ID_ESTADO");
+
+                    b.HasIndex("IdObservacion")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_HISTORIA_ID_OBSERVACION");
+
+                    b.HasIndex("IdTransicion")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_HISTORIA_ID_TRANSICION");
+
+                    b.HasIndex("IdUsuario")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_HISTORIA_ID_USUARIO");
+
+                    b.ToTable("DEVOLUCIONVENTA_HISTORIA", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_HISTORIA_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -13237,6 +13644,82 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.LineaDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Cantidad")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("CANTIDAD");
+
+                    b.Property<decimal?>("Descuento")
+                        .HasColumnType("DECIMAL(4,2)")
+                        .HasColumnName("DESCUENTO");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECCRE");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("FECMOD");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdLineaDeVenta")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LINEA_VENTA");
+
+                    b.Property<int>("IdUsuaCrea")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CREADOR");
+
+                    b.Property<int?>("IdUsuaModi")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_MODIFICADOR");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("INT")
+                        .HasColumnName("ORDEN");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("DECIMAL(18,6)")
+                        .HasColumnName("PRECIO");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_LINEA_ID_ELEMENTO");
+
+                    b.HasIndex("IdLineaDeVenta")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_LINEA_ID_LINEA_VENTA");
+
+                    b.HasIndex("IdUsuaCrea")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_LINEA_ID_CREADOR");
+
+                    b.HasIndex("IdUsuaModi")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_LINEA_ID_MODIFICADOR");
+
+                    b.ToTable("DEVOLUCIONVENTA_LINEA", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_LINEA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.LineaDeUnaVentaDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -13418,6 +13901,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_ALMACEN");
 
+                    b.Property<int?>("IdLineaDeDevolucionDeVenta")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LINEA_DEVOLUCION_VENTA");
+
                     b.Property<int?>("IdLineaDeRecepcion")
                         .HasColumnType("INT")
                         .HasColumnName("ID_LINEA_RECEPCION");
@@ -13483,6 +13970,9 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdAlmacen")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_ALMACEN");
+
+                    b.HasIndex("IdLineaDeDevolucionDeVenta")
+                        .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_DEVOLUCION_VENTA");
 
                     b.HasIndex("IdLineaDeRecepcion")
                         .HasDatabaseName("I_ALMACEN_MOVIMIENTO_ID_LINEA_RECEPCION");
@@ -13629,6 +14119,65 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_OBSERVACION", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_OBSERVACION_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.ObservacionesDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreadaEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("CREADO_EL");
+
+                    b.Property<string>("Creador")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("VARCHAR(255)")
+                        .HasColumnName("CREADOR")
+                        .HasComputedColumnSql("ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR")
+                        .HasColumnName("DESCRIPCION");
+
+                    b.Property<string>("Elemento")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("VARCHAR(255)")
+                        .HasColumnName("ELEMENTO")
+                        .HasComputedColumnSql("LOGISTICA.CC_DEVOLUCIONVENTA_NOMBRE(ID_ELEMENTO)");
+
+                    b.Property<int>("IdCreador")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CREADOR");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("NOMBRE");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdCreador")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_OBSERVACION_ID_CREADOR");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_OBSERVACION_ID_ELEMENTO");
+
+                    b.ToTable("DEVOLUCIONVENTA_OBSERVACION", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_OBSERVACION_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -13903,6 +14452,57 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.PermisoDeLaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdAdministrador")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ADM");
+
+                    b.Property<int>("IdConsultor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CONSULTOR");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<int>("IdGestor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_GESTOR");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdAdministrador")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_PERMISO_ID_ADM");
+
+                    b.HasIndex("IdConsultor")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_PERMISO_ID_CONSULTOR");
+
+                    b.HasIndex("IdElemento")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_PERMISO_ID_ELEMENTO");
+
+                    b.HasIndex("IdGestor")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_PERMISO_ID_GESTOR");
+
+                    b.ToTable("DEVOLUCIONVENTA_PERMISO", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_PERMISO_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -14430,6 +15030,130 @@ namespace Migraciones.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.TipoDeDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("BIT")
+                        .HasColumnName("ACTIVO");
+
+                    b.Property<string>("ClaseDeLibro")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("CLASE_DE_LIBRO");
+
+                    b.Property<bool>("EditarTrasCrear")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(true)
+                        .HasColumnName("EDITAR_TRAS_CREAR");
+
+                    b.Property<int>("IdEstado")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ESTADO");
+
+                    b.Property<int?>("IdPadre")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_PADRE");
+
+                    b.Property<int>("IdPermisoDeAdministrador")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ADM");
+
+                    b.Property<int>("IdPermisoDeConsultor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CONSULTOR");
+
+                    b.Property<int>("IdPermisoDeGestor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_GESTOR");
+
+                    b.Property<int>("IdPermisoInterventor")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_INTERVENTOR");
+
+                    b.Property<string>("Marcador")
+                        .HasColumnType("VARCHAR(255)")
+                        .HasColumnName("MARCADOR");
+
+                    b.Property<string>("Mascara")
+                        .HasColumnType("VARCHAR(255)")
+                        .HasColumnName("MASCARA");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("NOMBRE");
+
+                    b.Property<bool>("NombreModificable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(true)
+                        .HasColumnName("NOMBRE_MODIFICABLE");
+
+                    b.Property<bool>("PermiteCrear")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(true)
+                        .HasColumnName("PERMITE_CREAR");
+
+                    b.Property<string>("Sigla")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(5)")
+                        .HasColumnName("SIGLA");
+
+                    b.Property<string>("TipoDtm")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("TIPO_DTM");
+
+                    b.Property<string>("TipoDto")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("TIPO_DTO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdEstado")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TIPO_ID_ESTADO");
+
+                    b.HasIndex("IdPadre")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TIPO_ID_PADRE");
+
+                    b.HasIndex("IdPermisoDeAdministrador")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TIPO_ID_ADM");
+
+                    b.HasIndex("IdPermisoDeConsultor")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TIPO_ID_CONSULTOR");
+
+                    b.HasIndex("IdPermisoDeGestor")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TIPO_ID_GESTOR");
+
+                    b.HasIndex("IdPermisoInterventor")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TIPO_ID_INTERVENTOR");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TIPO_NOMBRE");
+
+                    b.ToTable("DEVOLUCIONVENTA_TIPO", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_TIPO_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.TipoDePedidoDtm", b =>
                 {
                     b.Property<int>("Id")
@@ -14723,6 +15447,10 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_INTERVENTOR");
 
+                    b.Property<int?>("IdTipoDevolucion")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_TIPO_DEVOLUCION");
+
                     b.Property<int?>("IdTipoFacturaEmt")
                         .HasColumnType("INT")
                         .HasColumnName("ID_TIPO_FACTURA");
@@ -14790,6 +15518,9 @@ namespace Migraciones.Migrations
                     b.HasIndex("IdPermisoInterventor")
                         .IsUnique()
                         .HasDatabaseName("I_VENTA_TIPO_ID_INTERVENTOR");
+
+                    b.HasIndex("IdTipoDevolucion")
+                        .HasDatabaseName("I_VENTA_TIPO_ID_TIPO_DEVOLUCION");
 
                     b.HasIndex("IdTipoFacturaEmt")
                         .HasDatabaseName("I_VENTA_TIPO_ID_TIPO_FACTURA");
@@ -14984,6 +15715,81 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_TRANSICION", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_TRANSICION_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.TransicionesDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("BIT")
+                        .HasColumnName("ACTIVO");
+
+                    b.Property<string>("Asunto")
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("ASUNTO");
+
+                    b.Property<bool>("ConObservacion")
+                        .HasColumnType("BIT")
+                        .HasColumnName("CON_OBSERVACION");
+
+                    b.Property<bool>("DelSistema")
+                        .HasColumnType("BIT")
+                        .HasColumnName("DEL_SISTEMA");
+
+                    b.Property<int>("IdDestino")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_DESTINO");
+
+                    b.Property<int>("IdOrigen")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ORIGEN");
+
+                    b.Property<int>("IdPermiso")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_PERMISO");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("NOMBRE");
+
+                    b.Property<bool>("PorDefecto")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false)
+                        .HasColumnName("POR_DEFECCTO");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdDestino")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TRANSICION_ID_DESTINO");
+
+                    b.HasIndex("IdOrigen")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TRANSICION_ID_ORIGEN");
+
+                    b.HasIndex("IdPermiso")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TRANSICION_ID_PERMISO");
+
+                    b.HasIndex("Nombre")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TRANSICION_NOMBRE");
+
+                    b.HasIndex("Nombre", "IdOrigen", "IdDestino")
+                        .IsUnique()
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TRANSICION_NOMBRE_ID_ORIGEN_ID_DESTINO");
+
+                    b.ToTable("DEVOLUCIONVENTA_TRANSICION", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_TRANSICION_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -15240,6 +16046,59 @@ namespace Migraciones.Migrations
                     b.ToTable("PEDIDO_TRAZA", "LOGISTICA", t =>
                         {
                             t.HasTrigger("PEDIDO_TRAZA_Trigger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.TrazasDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INT")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreadaEl")
+                        .HasColumnType("DATETIME2(7)")
+                        .HasColumnName("CREADO_EL");
+
+                    b.Property<string>("Creador")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("VARCHAR(255)")
+                        .HasColumnName("CREADOR")
+                        .HasComputedColumnSql("ENTORNO.CC_USUARIO_EXPRESION(ID_CREADOR)");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR")
+                        .HasColumnName("DESCRIPCION");
+
+                    b.Property<int>("IdCreador")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_CREADOR");
+
+                    b.Property<int>("IdElemento")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_ELEMENTO");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(250)")
+                        .HasColumnName("NOMBRE");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdCreador")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TRAZA_ID_CREADOR");
+
+                    b.HasIndex("IdElemento")
+                        .HasDatabaseName("I_DEVOLUCIONVENTA_TRAZA_ID_ELEMENTO");
+
+                    b.ToTable("DEVOLUCIONVENTA_TRAZA", "LOGISTICA", t =>
+                        {
+                            t.HasTrigger("DEVOLUCIONVENTA_TRAZA_Trigger");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -29972,6 +30831,14 @@ namespace Migraciones.Migrations
                         .HasColumnType("INT")
                         .HasColumnName("ID_IVA_R");
 
+                    b.Property<int?>("IdLineaDeDevolucionDeVenta")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LINEA_DEVOLUCION_VENTA");
+
+                    b.Property<int?>("IdLineaDeVenta")
+                        .HasColumnType("INT")
+                        .HasColumnName("ID_LINEA_VENTA");
+
                     b.Property<int?>("IdNaturaleza")
                         .HasColumnType("INT")
                         .HasColumnName("ID_NATURALEZA");
@@ -30025,6 +30892,12 @@ namespace Migraciones.Migrations
 
                     b.HasIndex("IdIvaR")
                         .HasDatabaseName("I_FACTURA_EMT_LINEA_ID_IVA_R");
+
+                    b.HasIndex("IdLineaDeDevolucionDeVenta")
+                        .HasDatabaseName("I_FACTURA_EMT_LINEA_ID_LINEA_DEVOLUCION_VENTA");
+
+                    b.HasIndex("IdLineaDeVenta")
+                        .HasDatabaseName("I_FACTURA_EMT_LINEA_ID_LINEA_VENTA");
 
                     b.HasIndex("IdNaturaleza")
                         .HasDatabaseName("I_FACTURA_EMT_LINEA_ID_NATURALEZA");
@@ -37011,6 +37884,23 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_PEDIDO_ACCION_ID_TRANSICION");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.AccionesDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Entorno.AccionDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdAccion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ACCION_ID_ACCION");
+
+                    b.HasOne("ServicioDeDatos.Logistica.TransicionesDeUnaDevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdTransicion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ACCION_ID_TRANSICION");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.AccionesDeUnaRegularizacionDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Entorno.AccionDtm", null)
@@ -37187,6 +38077,27 @@ namespace Migraciones.Migrations
                     b.Navigation("Pedido");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivadoresDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", "DevolucionDeVenta")
+                        .WithMany()
+                        .HasForeignKey("idElemento1")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ARCHIVADOR_ID_ELEMENTO1");
+
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivadorDtm", "Archivador")
+                        .WithMany()
+                        .HasForeignKey("idElemento2")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ARCHIVADOR_ID_ELEMENTO2");
+
+                    b.Navigation("Archivador");
+
+                    b.Navigation("DevolucionDeVenta");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivadoresDeUnaRegularizacionDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", "Regularizacion")
@@ -37271,6 +38182,27 @@ namespace Migraciones.Migrations
                     b.Navigation("Pedido");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivosDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", "DevolucionDeVenta")
+                        .WithMany()
+                        .HasForeignKey("idElemento1")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ARCHIVO_ID_ELEMENTO1");
+
+                    b.HasOne("ServicioDeDatos.SistemaDocumental.ArchivoDtm", "Archivo")
+                        .WithMany()
+                        .HasForeignKey("idElemento2")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ARCHIVO_ID_ELEMENTO2");
+
+                    b.Navigation("Archivo");
+
+                    b.Navigation("DevolucionDeVenta");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.ArchivosDeUnaRegularizacionDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.RegularizacionDtm", "Regularizacion")
@@ -37344,6 +38276,62 @@ namespace Migraciones.Migrations
                     b.Navigation("LineaDeRecepcion");
 
                     b.Navigation("Preasiento");
+
+                    b.Navigation("UsuarioCreador");
+
+                    b.Navigation("UsuarioModificador");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Terceros.CentroGestorDtm", "Cg")
+                        .WithMany()
+                        .HasForeignKey("IdCg")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ID_CG");
+
+                    b.HasOne("ServicioDeDatos.Terceros.ClienteDtm", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("IdCliente")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ID_CLIENTE");
+
+                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaDevolucionDeVentaDtm", "Estado")
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ID_ESTADO");
+
+                    b.HasOne("ServicioDeDatos.Logistica.TipoDeDevolucionDeVentaDtm", "Tipo")
+                        .WithMany()
+                        .HasForeignKey("IdTipo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ID_TIPO");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaCrea")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ID_CREADOR");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioModificador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaModi")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ID_MODIFICADOR");
+
+                    b.Navigation("Cg");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Estado");
+
+                    b.Navigation("Tipo");
 
                     b.Navigation("UsuarioCreador");
 
@@ -37496,6 +38484,16 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_PEDIDO_ESTADO_ID_PERMISO");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.EstadoDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdPermiso")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_ESTADO_ID_PERMISO");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.EstadoDeUnaRegularizacionDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
@@ -37586,6 +38584,42 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_HISTORIA_ID_USUARIO");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.HitosDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_HISTORIA_ID_ELEMENTO");
+
+                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaDevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_HISTORIA_ID_ESTADO");
+
+                    b.HasOne("ServicioDeDatos.Logistica.ObservacionesDeUnaDevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdObservacion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_HISTORIA_ID_OBSERVACION");
+
+                    b.HasOne("ServicioDeDatos.Logistica.TransicionesDeUnaDevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdTransicion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_HISTORIA_ID_TRANSICION");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_HISTORIA_ID_USUARIO");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.HitosDeUnaRegularizacionDtm", b =>
@@ -37713,6 +38747,44 @@ namespace Migraciones.Migrations
                     b.Navigation("UsuarioModificador");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.LineaDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", "Elemento")
+                        .WithMany()
+                        .HasForeignKey("IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_LINEA_ID_ELEMENTO");
+
+                    b.HasOne("ServicioDeDatos.Logistica.LineaDeUnaVentaDtm", "LineaDeVenta")
+                        .WithMany()
+                        .HasForeignKey("IdLineaDeVenta")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_LINEA_ID_LINEA_VENTA");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioCreador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaCrea")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_LINEA_ID_CREADOR");
+
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", "UsuarioModificador")
+                        .WithMany()
+                        .HasForeignKey("IdUsuaModi")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_LINEA_ID_MODIFICADOR");
+
+                    b.Navigation("Elemento");
+
+                    b.Navigation("LineaDeVenta");
+
+                    b.Navigation("UsuarioCreador");
+
+                    b.Navigation("UsuarioModificador");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.LineaDeUnaVentaDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.VentaDtm", "Elemento")
@@ -37798,6 +38870,12 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_ALMACEN");
 
+                    b.HasOne("ServicioDeDatos.Logistica.LineaDeUnaDevolucionDeVentaDtm", "LineaDeDevolucionDeVenta")
+                        .WithMany()
+                        .HasForeignKey("IdLineaDeDevolucionDeVenta")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ALMACEN_MOVIMIENTO_ID_LINEA_DEVOLUCION_VENTA");
+
                     b.HasOne("ServicioDeDatos.Logistica.RecepcionDeLineaDtm", "LineaDeRecepcion")
                         .WithMany()
                         .HasForeignKey("IdLineaDeRecepcion")
@@ -37853,6 +38931,8 @@ namespace Migraciones.Migrations
 
                     b.Navigation("LineaDeDevolucion");
 
+                    b.Navigation("LineaDeDevolucionDeVenta");
+
                     b.Navigation("LineaDeRecepcion");
 
                     b.Navigation("LineaDeVenta");
@@ -37900,6 +38980,23 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_OBSERVACION_ID_ELEMENTO");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.ObservacionesDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdCreador")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_OBSERVACION_ID_CREADOR");
+
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_OBSERVACION_ID_ELEMENTO");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.ObservacionesDeUnaRegularizacionDtm", b =>
@@ -38022,6 +39119,37 @@ namespace Migraciones.Migrations
                     b.Navigation("UsuarioCreador");
 
                     b.Navigation("UsuarioModificador");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.PermisoDeLaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdAdministrador")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_PERMISO_ID_ADM");
+
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdConsultor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_PERMISO_ID_CONSULTOR");
+
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_PERMISO_ID_ELEMENTO");
+
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdGestor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_PERMISO_ID_GESTOR");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.PermisoDeLaRegularizacionDtm", b =>
@@ -38313,6 +39441,62 @@ namespace Migraciones.Migrations
                     b.Navigation("PermisoDeInterventor");
                 });
 
+            modelBuilder.Entity("ServicioDeDatos.Logistica.TipoDeDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaDevolucionDeVentaDtm", "Estado")
+                        .WithMany()
+                        .HasForeignKey("IdEstado")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TIPO_ID_ESTADO");
+
+                    b.HasOne("ServicioDeDatos.Logistica.TipoDeDevolucionDeVentaDtm", "Padre")
+                        .WithMany()
+                        .HasForeignKey("IdPadre")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TIPO_ID_PADRE");
+
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeAdministrador")
+                        .WithMany()
+                        .HasForeignKey("IdPermisoDeAdministrador")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TIPO_ID_ADM");
+
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeConsultor")
+                        .WithMany()
+                        .HasForeignKey("IdPermisoDeConsultor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TIPO_ID_CONSULTOR");
+
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeGestor")
+                        .WithMany()
+                        .HasForeignKey("IdPermisoDeGestor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TIPO_ID_GESTOR");
+
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", "PermisoDeInterventor")
+                        .WithMany()
+                        .HasForeignKey("IdPermisoInterventor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TIPO_ID_INTERVENTOR");
+
+                    b.Navigation("Estado");
+
+                    b.Navigation("Padre");
+
+                    b.Navigation("PermisoDeAdministrador");
+
+                    b.Navigation("PermisoDeConsultor");
+
+                    b.Navigation("PermisoDeGestor");
+
+                    b.Navigation("PermisoDeInterventor");
+                });
+
             modelBuilder.Entity("ServicioDeDatos.Logistica.TipoDePedidoDtm", b =>
                 {
                     b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnPedidoDtm", "Estado")
@@ -38459,6 +39643,12 @@ namespace Migraciones.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_VENTA_TIPO_ID_INTERVENTOR");
 
+                    b.HasOne("ServicioDeDatos.Logistica.TipoDeDevolucionDeVentaDtm", "TipoDevolucion")
+                        .WithMany()
+                        .HasForeignKey("IdTipoDevolucion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_VENTA_TIPO_ID_TIPO_DEVOLUCION");
+
                     b.HasOne("ServicioDeDatos.Ventas.TipoDeFacturaEmtDtm", "TipoFacturaEmt")
                         .WithMany()
                         .HasForeignKey("IdTipoFacturaEmt")
@@ -38476,6 +39666,8 @@ namespace Migraciones.Migrations
                     b.Navigation("PermisoDeGestor");
 
                     b.Navigation("PermisoDeInterventor");
+
+                    b.Navigation("TipoDevolucion");
 
                     b.Navigation("TipoFacturaEmt");
                 });
@@ -38526,6 +39718,30 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_TRANSICION_ID_PERMISO");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.TransicionesDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaDevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdDestino")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TRANSICION_ID_DESTINO");
+
+                    b.HasOne("ServicioDeDatos.Logistica.EstadoDeUnaDevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdOrigen")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TRANSICION_ID_ORIGEN");
+
+                    b.HasOne("ServicioDeDatos.Seguridad.PermisoDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdPermiso")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TRANSICION_ID_PERMISO");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.TransicionesDeUnaRegularizacionDtm", b =>
@@ -38608,6 +39824,23 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_PEDIDO_TRAZA_ID_ELEMENTO");
+                });
+
+            modelBuilder.Entity("ServicioDeDatos.Logistica.TrazasDeUnaDevolucionDeVentaDtm", b =>
+                {
+                    b.HasOne("ServicioDeDatos.Entorno.UsuarioDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdCreador")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TRAZA_ID_CREADOR");
+
+                    b.HasOne("ServicioDeDatos.Logistica.DevolucionDeVentaDtm", null)
+                        .WithMany()
+                        .HasForeignKey("IdElemento")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_DEVOLUCIONVENTA_TRAZA_ID_ELEMENTO");
                 });
 
             modelBuilder.Entity("ServicioDeDatos.Logistica.TrazasDeUnaRegularizacionDtm", b =>
@@ -44643,6 +45876,18 @@ namespace Migraciones.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_FACTURA_EMT_LINEA_ID_IVA_R");
 
+                    b.HasOne("ServicioDeDatos.Logistica.LineaDeUnaDevolucionDeVentaDtm", "LineaDeDevolucionDeVenta")
+                        .WithMany()
+                        .HasForeignKey("IdLineaDeDevolucionDeVenta")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FACTURA_EMT_LINEA_ID_LINEA_DEVOLUCION_VENTA");
+
+                    b.HasOne("ServicioDeDatos.Logistica.LineaDeUnaVentaDtm", "LineaDeVenta")
+                        .WithMany()
+                        .HasForeignKey("IdLineaDeVenta")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FACTURA_EMT_LINEA_ID_LINEA_VENTA");
+
                     b.HasOne("ServicioDeDatos.MaestrosTecnico.NaturalezaDtm", "Naturaleza")
                         .WithMany()
                         .HasForeignKey("IdNaturaleza")
@@ -44681,6 +45926,10 @@ namespace Migraciones.Migrations
                         .HasConstraintName("FK_FACTURA_EMT_LINEA_ID_MODIFICADOR");
 
                     b.Navigation("IvaRepercutido");
+
+                    b.Navigation("LineaDeDevolucionDeVenta");
+
+                    b.Navigation("LineaDeVenta");
 
                     b.Navigation("Naturaleza");
 

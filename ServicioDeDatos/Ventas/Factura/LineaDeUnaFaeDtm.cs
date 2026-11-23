@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Contabilidad;
 using ServicioDeDatos.Elemento;
 using ServicioDeDatos.Entorno;
+using ServicioDeDatos.Logistica;
 using ServicioDeDatos.MaestrosTecnico;
 using Utilidades;
 using static ServicioDeDatos.Elemento.Enumerados;
@@ -47,6 +48,14 @@ namespace ServicioDeDatos.Ventas
         public NaturalezaDtm Naturaleza { get; set; }
         public int? IdParteTr { get; set; }
         public ParteTrDtm ParteTr { get; set; }
+
+        // Origen de la línea: la línea del documento de venta que factura (ver ExtensorDeVentas.CrearPrefactura) y la línea de la devolución
+        // de venta que regulariza. Se copian al rectificar y al sustituir la factura, así que todas las facturas de una línea vendida apuntan
+        // a ella. No se editan desde la interfaz: al modificar la línea se conservan los de la BD (ver GestorDeLineasDeUnaFae.AntesDePersistir)
+        public int? IdLineaDeVenta { get; set; }
+        public LineaDeUnaVentaDtm LineaDeVenta { get; set; }
+        public int? IdLineaDeDevolucionDeVenta { get; set; }
+        public LineaDeUnaDevolucionDeVentaDtm LineaDeDevolucionDeVenta { get; set; }
 
         public enumNegocio Negocio => enumNegocio.FacturaEmitida;
 
@@ -101,6 +110,9 @@ namespace ServicioDeDatos.Ventas
 
 
             ApiDeRegistroDtm.DefinirDependencia<LineaDeUnaFaeDtm, ParteTrDtm>(modelBuilder, apuntadoPor: nameof(LineaDeUnaFaeDtm.IdParteTr), idCampo: ICampos.ID_PARTE_TR, requerido: false);
+
+            ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnaFaeDtm>(modelBuilder, nameof(LineaDeUnaFaeDtm.LineaDeVenta), nameof(LineaDeUnaFaeDtm.IdLineaDeVenta), ICampos.ID_LINEA_VENTA, requerida: false, unico: false);
+            ApiDeRegistroDtm.DefinirCampoFk<LineaDeUnaFaeDtm>(modelBuilder, nameof(LineaDeUnaFaeDtm.LineaDeDevolucionDeVenta), nameof(LineaDeUnaFaeDtm.IdLineaDeDevolucionDeVenta), ICampos.ID_LINEA_DEVOLUCION_VENTA, requerida: false, unico: false);
 
             ApiDeElementoDtm.DefinirCamposDeAuditoria<LineaDeUnaFaeDtm>(modelBuilder);
 

@@ -609,7 +609,9 @@ div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarEntrega"]
 div[propiedad="Consultar"] a[href^="javascript:Logistica.Pedido_ConsultarDevolucion"],
 div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarDevolucion"],
 div[propiedad="Recibida"] a[href^="javascript:Logistica.Pedido_RecibirLinea"],
-div[propiedad="Devolver"] a[href^="javascript:Logistica.Pedido_DevolverEntrega"] {
+div[propiedad="Devolver"] a[href^="javascript:Logistica.Pedido_DevolverEntrega"],
+div[propiedad="Devolver"] a[href^="javascript:Logistica.Dsa_DevolverLinea"],
+div[propiedad="Cancelar"] a[href^="javascript:Logistica.Dsa_CancelarDevolucion"] {
     font-size: 0;
     display: inline-block;
     width: 16px;
@@ -631,7 +633,9 @@ div[propiedad="Consultar"] a[href^="javascript:Logistica.Pedido_ConsultarEntrega
 }
 
 div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarEntrega"],
-div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarDevolucion"] {
+/* cancelar una devolución: en pedidos y en el grid de devoluciones del documento de venta (deshabilitado si no está en tramitación) */
+div[propiedad="Cancelar"] a[href^="javascript:Logistica.Pedido_CancelarDevolucion"],
+div[propiedad="Cancelar"] a[href^="javascript:Logistica.Dsa_CancelarDevolucion"] {
     background-image: url('/images/menu/LineaNoEntregada.svg');
 }
 
@@ -648,10 +652,38 @@ div[propiedad="Devolver"] a[href^="javascript:Logistica.Pedido_DevolverEntrega"]
     background-image: url('/images/menu/DevolverEntrega.svg');
 }
 
+/* aceptar una devolución desde el grid de devoluciones del documento de venta: el check verde (deshabilitado si ya está aceptada) */
+div[propiedad="Aceptar"] a[href^="javascript:Logistica.Dsa_AceptarDevolucion"] {
+    font-size: 0;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url('/images/menu/Aceptar.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+/* devolver una línea de un documento de venta facturado: el icono rojo del menú de devoluciones de venta */
+div[propiedad="Devolver"] a[href^="javascript:Logistica.Dsa_DevolverLinea"] {
+    background-image: url('/images/menu/DevolucionVenta.svg');
+}
+
 a.accion-deshabilitada {
     opacity: 0.3;
     pointer-events: none;
     cursor: default;
+}
+
+/* aceptar y cancelar en el grid de devoluciones del documento de venta, cuando la devolución ya está aceptada o cancelada: el check
+   queda en un verde apagado (desaturado y atenuado) y la celda no reacciona; el motivo se muestra en el title de la celda (ver
+   CrudEdicionVenta.AjustarGridDeDevoluciones) */
+div[propiedad="Aceptar"] a.accion-deshabilitada[href^="javascript:Logistica.Dsa_AceptarDevolucion"],
+div[propiedad="Cancelar"] a.accion-deshabilitada[href^="javascript:Logistica.Dsa_CancelarDevolucion"] {
+    opacity: 0.35;
+    filter: grayscale(70%);
 }
 
 div[propiedad="Destino"] a[href^="javascript:Crud.EventosDeExpansores('navegar-a-editar'"] {

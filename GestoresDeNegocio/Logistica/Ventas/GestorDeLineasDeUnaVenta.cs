@@ -25,7 +25,8 @@ namespace GestoresDeNegocio.Logistica
                 .ForMember(dto => dto.Unitario, x => x.MapFrom(dtm => dtm.Unitario.Expresion))
                 .ForMember(dto => dto.Importe, x => x.MapFrom(dtm => dtm.Importe))
                 .ForMember(dto => dto.PrecioAlmacen, x => x.Ignore())
-                .ForMember(dto => dto.Margen, x => x.Ignore());
+                .ForMember(dto => dto.Margen, x => x.Ignore())
+                .ForMember(dto => dto.CantidadDevuelta, x => x.Ignore());
                 CreateMap<LineaDeUnaVentaDto, LineaDeUnaVentaDtm>()
                 .ForMember(dtm => dtm.Unitario, dto => dto.Ignore());
             }
@@ -66,6 +67,7 @@ namespace GestoresDeNegocio.Logistica
             base.DespuesDeMapearElElemento(linea, elemento, parametros);
             elemento.PrecioAlmacen = linea.PrecioAlmacen(Contexto);
             elemento.Margen = linea.Margen(elemento.PrecioAlmacen);
+            elemento.CantidadDevuelta = linea.CantidadDevuelta(Contexto);
 
             // las líneas sólo se editan en la etapa de solicitud del documento de venta (ver AntesDePersistir): en el resto se consultan
             if (parametros.LeerPorId && elemento.ModoDeAcceso.HayPermisosDe(enumModoDeAccesoDeDatos.Gestor)

@@ -293,6 +293,8 @@ namespace Utilidades
                     return enumVistasLogisticas.TiposDeRegularizacion;
                 case enumNegocio.Venta:
                     return enumVistasLogisticas.TiposDeVenta;
+                case enumNegocio.DevolucionVenta:
+                    return enumVistasLogisticas.TiposDeDevolucionDeVenta;
                 case enumNegocio.Preasiento:
                     return enumVistasContables.TiposDePreasiento;
             }
@@ -463,7 +465,10 @@ namespace Utilidades
         MovimientosDeAlmacen,
         Inventario,
         Regularizaciones,
-        Ventas
+        Ventas,
+        LineasDeUnaVenta,
+        DevolucionesDeVenta,
+        LineasDeUnaDevolucionDeVenta
     }
 
     public static class ltrVistasTitulos
@@ -514,6 +519,9 @@ namespace Utilidades
         public const string TiposDeVenta = nameof(TiposDeVenta);
         public const string CrudVentas = nameof(CrudVentas);
         public const string MaestrosDeVentas = nameof(MaestrosDeVentas);
+        public const string TiposDeDevolucionDeVenta = nameof(TiposDeDevolucionDeVenta);
+        public const string CrudDevolucionesDeVenta = nameof(CrudDevolucionesDeVenta);
+        public const string MaestrosDeDevolucionesDeVenta = nameof(MaestrosDeDevolucionesDeVenta);
     }
 
     public static class enumVistasGastos

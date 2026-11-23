@@ -504,6 +504,17 @@ namespace Utilidades
         Dsa_Tras_Blanquear_Unitario,
         Dsa_CalcularImportesDeLinea,
         Dsa_InicializarModalParaCrearLineas,
+        Dsa_DevolverLinea,
+        Dsa_CalcularImporteADevolver,
+        Dsa_CalcularImporteServido,
+        Dsa_AceptarDevolucion,
+        Dsa_CancelarDevolucion,
+
+        Ddv_Tras_Seleccionar_Venta,
+        Ddv_Tras_Blanquear_Venta,
+        Ddv_Tras_Seleccionar_LineaDeVenta,
+        Ddv_CalcularImporteDeLinea,
+        Ddv_InicializarModalParaCrearLineas,
 
         Mal_IrAlDocumento,
         Mal_IrAlProveedor,
@@ -1014,6 +1025,11 @@ namespace Utilidades
 
         // documentos de venta (de salida): "Imprimir seleccionado" imprime su oferta (ver VentasController.ProcesarOpcionMf)
         public const string Dsa_ModalDeImprimir = ModalDeImprimir;
+        // se abre desde la acción Devolver de las líneas de un documento de venta facturado (ver Logistica.Dsa_DevolverLinea)
+        public const string Dsa_DevolverLinea = "devolver-linea-venta";
+        // la misma acción con el documento de venta servido (sin prefacturar): modifica lo servido (ver Logistica.Dsa_DevolverLinea)
+        public const string Dsa_ModificarLineaServida = "modificar-linea-servida";
+        public const string Dsa_CambiarDatos = "cambiar-datos-venta";
 
         public const string Ral_ImportarRecuento = "importar-recuento";
         public const string Ral_PrepararRecuento = "preparar-recuento";

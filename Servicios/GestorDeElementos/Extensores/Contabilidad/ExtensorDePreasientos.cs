@@ -881,6 +881,18 @@ namespace GestorDeElementos.Extensores
         // movimiento, que al insertarlo aún no tiene Id (lo engancha GestorDeMovimientosDeAlmacen.DespuesDePersistir)
         public static void PreasentarEntradaDeAlmacen(this MovimientoDeAlmacenDtm movimiento, ContextoSe contexto, bool generandoPreasientosAntiguos = false)
         {
+            // devolución de venta: lo devuelto vuelve a las existencias al precio al que salió, al revés que la venta (al debe existencias y al
+            // haber la variación), salvo que el almacén use la variación de existencias (ver PreasentarVariacionDeExistencias)
+            if (movimiento.IdLineaDeDevolucionDeVenta is not null)
+            {
+                var lineaDevuelta = contexto.SeleccionarPorId<LineaDeUnaDevolucionDeVentaDtm>((int)movimiento.IdLineaDeDevolucionDeVenta);
+                var devolucion = contexto.SeleccionarPorId<DevolucionDeVentaDtm>(lineaDevuelta.IdElemento);
+                movimiento.PreasentarVariacionDeExistencias(contexto, movimiento.Cantidad * movimiento.Precio,
+                    $"Devolución de venta '{devolucion.Referencia}'", generandoPreasientosAntiguos,
+                    conceptoDelApunte: $"dev. venta '{devolucion.Referencia}', Mat: '{movimiento.Unitario(contexto, aplicarJoin: true).Referencia}'");
+                return;
+            }
+
             if (movimiento.IdLineaDeRecepcion is null)
                 GestorDeErrores.Emitir($"No se puede preasentar la entrada de compra del movimiento de almacén '{movimiento.Referencia(contexto)}' porque no tiene línea de recepción asociada");
 

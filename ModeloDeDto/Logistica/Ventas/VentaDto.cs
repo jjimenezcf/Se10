@@ -129,13 +129,13 @@ namespace ModeloDeDto.Logistica
         [IUPropiedad(
               PorAnchoMnt = 15
             , Etiqueta = "Servido el"
-            , Ayuda = "Fecha en la que se sirvió la venta"
+            , Ayuda = "Fecha en la que se sirve la venta (la de las salidas del almacén): se puede indicar mientras está solicitado, entre la fecha de solicitud y hoy; si no se indica, se sirve el día en que pasa a servido"
             , Ordenar = true
             , OrdenarGridPor = nameof(VentaDto.ServidoEl)
             , TipoDeControl = enumTipoControl.SelectorDeFecha
             , VisibleEnGrid = true
             , VisibleAlCrear = false
-            , EditableAlEditar = false
+            , EditableAlEditar = true
             , Formato = enumFormato.Fecha
             , Fila = 2
             , Columna = 0
@@ -183,6 +183,10 @@ namespace ModeloDeDto.Logistica
             )
         ]
         public decimal? TotalSinIva { get; set; }
+
+        // si tiene devoluciones (no canceladas): con ellas no se pueden cambiar los datos (ver CrudEdicionVenta.AjustarCambiarDatos)
+        [IUPropiedad(Etiqueta = "Tiene devoluciones", Visible = false)]
+        public bool TieneDevoluciones { get; set; }
 
     }
 

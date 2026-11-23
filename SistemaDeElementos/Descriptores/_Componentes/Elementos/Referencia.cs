@@ -171,6 +171,18 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_RecibirLinea}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
         }
+        internal static string Venta_DevolverLinea(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Dsa_DevolverLinea}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Venta_AceptarDevolucion(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Dsa_AceptarDevolucion}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
+        internal static string Venta_CancelarDevolucion(DescriptorDeExpansor expansor)
+        {
+            return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Dsa_CancelarDevolucion}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";
+        }
         internal static string Pedido_DevolverEntrega(DescriptorDeExpansor expansor)
         {
             return $"javascript:{enumNameSpaceTs.Logistica}.{enumFunctionTs.Pedido_DevolverEntrega}('{expansor.IdHtmlGridDeRelacion};numeroDeFila')";

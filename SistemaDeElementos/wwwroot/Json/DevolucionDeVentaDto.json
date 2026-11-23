@@ -1,0 +1,40 @@
+[
+  {
+    "propiedad": "Tipo",
+    "ordenarGridPor": "Tipo.Nombre",
+    "PosicionEnGrid": 2,
+    "SeleccionarDe": "ModeloDeDto.Logistica.TipoDeDevolucionDeVentaDto",
+    "VistaDondeNavegar": "TiposDeDevolucionDeVenta",
+    "RestrictorFijo": "Negocio;DevolucionVenta;Gestor",
+    "Negocio": "DevolucionVenta",
+    "AutoSpan": true
+  },
+  {
+    "propiedad": "Referencia",
+    "ordenarGridPor": "Referencia",
+    "PosicionEnGrid": 4,
+    "TamanoFijo": "10em",
+    "colspan": 2
+  },
+  {
+    "propiedad": "Cliente",
+    "ordenarGridPor": "Cliente.Nombre",
+    "PosicionEnGrid": 6,
+    "PorAnchoMnt": 25
+  },
+  {
+    "propiedad": "Nombre",
+    "ordenarGridPor": "Nombre",
+    "PosicionEnGrid": 7,
+    "PorAnchoMnt": 25
+  },
+  {
+    "propiedad": "DevueltaEl",
+    "PosicionEnGrid": 8
+  },
+  {
+    "propiedad": "Estado",
+    "ordenarGridPor": "Estado.Orden",
+    "PosicionEnGrid": 20
+  }
+]

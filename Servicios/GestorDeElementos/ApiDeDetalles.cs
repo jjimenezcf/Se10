@@ -192,6 +192,7 @@ namespace GestorDeElementos
                 case enumNegocio.CursoDeGuarderia: return tipoDetalle == typeof(ProfeDeCursoDeGuarderiaDtm) || tipoDetalle == typeof(InfanteDeUnCursoDtm);
                 case enumNegocio.Regularizacion: return tipoDetalle == typeof(LineasDeUnaRegularizacionDtm);
                 case enumNegocio.Venta: return tipoDetalle == typeof(LineaDeUnaVentaDtm);
+                case enumNegocio.DevolucionVenta: return tipoDetalle == typeof(LineaDeUnaDevolucionDeVentaDtm);
             }
             return false;
         }

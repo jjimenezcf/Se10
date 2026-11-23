@@ -218,6 +218,8 @@ namespace GestorDeElementos.Extensores
                 documento = (enumNegocio.Regularizacion, contexto.SeleccionarPorId<LineasDeUnaRegularizacionDtm>((int)movimiento.IdLineaInventario).IdElemento);
             else if (movimiento.IdLineaDeVenta != null)
                 documento = (enumNegocio.Venta, contexto.SeleccionarPorId<LineaDeUnaVentaDtm>((int)movimiento.IdLineaDeVenta).IdElemento);
+            else if (movimiento.IdLineaDeDevolucionDeVenta != null)
+                documento = (enumNegocio.DevolucionVenta, contexto.SeleccionarPorId<LineaDeUnaDevolucionDeVentaDtm>((int)movimiento.IdLineaDeDevolucionDeVenta).IdElemento);
 
             if (documento.negocio == enumNegocio.No_Definido)
                 Emitir($"El movimiento de almacén '{movimiento.Referencia(contexto)}' no tiene un documento de origen o destino al que navegar");

@@ -251,6 +251,8 @@ namespace ServicioDeDatos.Elemento
         internal const string ALMACEN_MOVIMIENTO = nameof(ALMACEN_MOVIMIENTO);
         internal const string REGULARIZACION = nameof(REGULARIZACION);
         internal const string VENTA = nameof(VENTA);
+        // ha de coincidir con enumNegocio.DevolucionVenta (sin guiones): ApiTipoDeElementoDtm.Negocio deduce el negocio de la tabla de tipo
+        internal const string DEVOLUCIONVENTA = nameof(DEVOLUCIONVENTA);
 
 
         internal const string AULA = nameof(AULA);
@@ -581,6 +583,7 @@ namespace ServicioDeDatos.Elemento
         internal const string ID_LOTE = nameof(ID_LOTE);
         internal const string ID_TIPO_PLANIFICACION = nameof(ID_TIPO_PLANIFICACION);
         internal const string ID_TIPO_FACTURA = nameof(ID_TIPO_FACTURA);
+        internal const string ID_TIPO_DEVOLUCION = nameof(ID_TIPO_DEVOLUCION);
         internal const string ID_TIPO_FAR = nameof(ID_TIPO_FAR);
         internal const string ID_TIPO_PARTE = nameof(ID_TIPO_PARTE);
         internal const string ID_FACTURA_EMT = nameof(ID_FACTURA_EMT);
@@ -666,6 +669,7 @@ namespace ServicioDeDatos.Elemento
         internal const string ID_LINEA_DEVOLUCION = nameof(ID_LINEA_DEVOLUCION);
         internal const string ID_LINEA_INVENTARIO = nameof(ID_LINEA_INVENTARIO);
         internal const string ID_LINEA_VENTA = nameof(ID_LINEA_VENTA);
+        internal const string ID_LINEA_DEVOLUCION_VENTA = nameof(ID_LINEA_DEVOLUCION_VENTA);
         internal const string ID_IVA_R = nameof(ID_IVA_R);
         internal const string ID_IVA_S = nameof(ID_IVA_S);
         internal const string ID_IRPF = nameof(ID_IRPF);
