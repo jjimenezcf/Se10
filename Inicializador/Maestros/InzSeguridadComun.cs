@@ -8,6 +8,7 @@ using ServicioDeDatos.Negocio;
 using ServicioDeDatos.Seguridad;
 using ServicioDeDatos.SistemaDocumental;
 using ServicioDeDatos.Terceros;
+using System.Collections.Generic;
 using Utilidades;
 
 namespace SistemaDeElementos.Inicializador
@@ -15,13 +16,16 @@ namespace SistemaDeElementos.Inicializador
     public static class InzSeguridadComun
     {
         public const string n_rol_AFB_Entorno = "AFB: Entorno";
-        public const string n_rol_AFB_Callejero = "AFB: Callejero";
-        public const string n_rol_AFB_TercerosBasico = "AFB: Terceros básicos";
-        public const string n_rol_AFB_Sistema_Documental = "AFB: Sistema documental";
-        public const string n_rol_AFB_RegistroEs = "AFB: Registro de E/S";
-        public const string n_rol_AFB_Tareas = "AFB: Tareas";
-        public const string n_rol_AFB_Expedientes = "AFB: Expedientes";
-        public const string n_rol_AFB_Seguridad_Acceso = "AFB: Seguridad de acceso";
+        public const string n_rol_archivador_basico = "Archivador: Básico";
+
+        // roles AFB por menú (InzRolesFuncionales) que sustituyen a los antiguos AFB de callejero, terceros básicos, sistema documental,
+        // registro de E/S, tareas y expedientes; el de sistema documental se completa con el rol de datos de archivadores básico
+        public static readonly string[] n_roles_AFB_Callejero = [InzRolesFuncionales.NombreDelRol(InzMenus.Maestros, InzMenus.Callejero)];
+        public static readonly string[] n_roles_AFB_TercerosBasico = [InzRolesFuncionales.NombreDelRol(InzMenus.Maestros), InzRolesFuncionales.NombreDelRol(InzMenus.Maestros, InzMenus.Terceros)];
+        public static readonly string[] n_roles_AFB_Sistema_Documental = [InzRolesFuncionales.NombreDelRol(InzMenus.SistemaDocumental), InzRolesFuncionales.NombreDelRol(InzMenus.SistemaDocumental, InzMenus.Configuracion), n_rol_archivador_basico];
+        public static readonly string[] n_roles_AFB_RegistroEs = [InzRolesFuncionales.NombreDelRol(InzMenus.GestionAdministrativa), InzRolesFuncionales.NombreDelRol(InzMenus.GestionAdministrativa, InzMenus.Configuracion, enumNegocio.Registro.ToString())];
+        public static readonly string[] n_roles_AFB_Tareas = [InzRolesFuncionales.NombreDelRol(InzMenus.GestionAdministrativa), InzRolesFuncionales.NombreDelRol(InzMenus.GestionAdministrativa, InzMenus.Configuracion, enumNegocio.Tarea.ToString())];
+        public static readonly string[] n_roles_AFB_Expedientes = [InzRolesFuncionales.NombreDelRol(InzMenus.GestionAdministrativa), InzRolesFuncionales.NombreDelRol(InzMenus.GestionAdministrativa, InzMenus.Configuracion, enumNegocio.Expediente.ToString())];
 
 
         public const string n_rol_callejero_gestor = "Callejero: Gestor";
@@ -34,18 +38,13 @@ namespace SistemaDeElementos.Inicializador
 
         public static void SeguridadFuncional(ContextoSe contexto)
         {
+            InzRolesFuncionales.DefinirRoles(contexto);
             contexto.IniciarTraza("Definir seguridad funcional");
             var t = contexto.IniciarTransaccion();
             try
             {
                 CrearRol_AFB_Entorno(contexto);
-                CrearRol_AFB_Seguridad_Acceso(contexto);
-                CrearRol_AFB_Callejero(contexto);
-                CrearRol_AFB_Sistema_Documental(contexto);
-                CrearRol_AFB_Terceros_Basicos(contexto);
-                CrearRol_AFB_RegistroEs(contexto);
-                CrearRol_AFB_Tareas(contexto);
-                CrearRol_AFB_Expedientes(contexto);
+                CrearRol_Archivador_Basico(contexto);
                 contexto.Commit(t);
             }
             catch
@@ -84,157 +83,6 @@ namespace SistemaDeElementos.Inicializador
             }
         }
 
-        private static void CrearRol_AFB_Tareas(ContextoSe contexto)
-        {
-            var rol = new RolDtm();
-            rol.Nombre = n_rol_AFB_Tareas;
-            rol.Descripcion = "Define los permisos de acceso a la funcionalidad básisca al acceso de las tareas";
-
-            if (contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), rol.Nombre, false) == null)
-            {
-                rol = rol.Insertar(contexto);
-
-                var gestor = GestorDePermisosDeUnRol.Gestor(contexto, contexto.Mapeador);
-                var idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Administracion.Tareas).First().IdPermiso;
-                gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-                idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Administracion.TipoDeTareas).First().IdPermiso;
-                gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-            }
-        }
-        private static void CrearRol_AFB_Expedientes(ContextoSe contexto)
-        {
-            var rol = new RolDtm();
-            rol.Nombre = n_rol_AFB_Expedientes;
-            rol.Descripcion = "Define los permisos de acceso a la funcionalidad básisca al acceso de los expedientes";
-
-            if (contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), rol.Nombre, false) == null)
-            {
-                rol = rol.Insertar(contexto);
-
-                var gestor = GestorDePermisosDeUnRol.Gestor(contexto, contexto.Mapeador);
-                var idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Administracion.Expedientes).First().IdPermiso;
-                gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-                idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Administracion.TipoDeExpedientes).First().IdPermiso;
-                gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-            }
-        }
-
-        internal static void CrearRol_AFB_Sistema_Documental(ContextoSe contexto)
-        {
-            var rol = new RolDtm();
-            rol.Nombre = n_rol_AFB_Sistema_Documental;
-            rol.Descripcion = "Define los permisos de acceso a la funcionalidad básisca al acceso del sistema documental";
-
-            rol = rol.PersistirPorNombre(contexto);
-
-            var gestor = GestorDePermisosDeUnRol.Gestor(contexto, contexto.Mapeador);
-            var idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.SistemaDocumental.Archivadores).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.SistemaDocumental.Carpetas).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.SistemaDocumental.TipoDeArchivadores).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            var idTipo = GestorDeTiposDeArchivadores.Cfg_Id_Tipo_De_Archivador_De_Exportacion(contexto);
-            var tipoExportacion = contexto.SeleccionarPorId<TipoDeArchivadorDtm>(idTipo);
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, tipoExportacion.IdPermisoDeConsultor, false);
-
-            idTipo = GestorDeTiposDeArchivadores.Cfg_Id_Tipo_De_Archivador_Basico(contexto);
-            var tipoBasicon = contexto.SeleccionarPorId<TipoDeArchivadorDtm>(idTipo);
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, tipoBasicon.IdPermisoDeGestor, false);
-        }
-
-        private static void CrearRol_AFB_RegistroEs(ContextoSe contexto)
-        {
-            var rol = new RolDtm();
-            rol.Nombre = n_rol_AFB_RegistroEs;
-            rol.Descripcion = "Define los permisos de acceso a la funcionalidad básisca al acceso del registro de Entrada y Salida";
-
-            if (contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), rol.Nombre, false) == null)
-            {
-                rol = rol.Insertar(contexto);
-
-                var gestor = GestorDePermisosDeUnRol.Gestor(contexto, contexto.Mapeador);
-                var idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Administracion.RegistrosEs).First().IdPermiso;
-                gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-                idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Administracion.TipoDeRegistros).First().IdPermiso;
-                gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-            }
-        }
-
-        internal static void CrearRol_AFB_Terceros_Basicos(ContextoSe contexto)
-        {
-            var rol = new RolDtm();
-            rol.Nombre = n_rol_AFB_TercerosBasico;
-            rol.Descripcion = "Define los permisos de acceso a la funcionalidad básisca personas, sociedaes e interlocutores y centrods gestores";
-            rol = rol.PersistirPorNombre(contexto);
-
-            var gestor = GestorDePermisosDeUnRol.Gestor(contexto, contexto.Mapeador);
-            var idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Terceros.Personas).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Terceros.Sociedades).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Terceros.Interlocutores).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Terceros.CentrosGestores).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Terceros.Bancos ).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-        }
-
-        internal static void CrearRol_AFB_Callejero(ContextoSe contexto)
-        {
-
-            var rol = new RolDtm();
-            rol.Nombre = n_rol_AFB_Callejero;
-            rol.Descripcion = "Define los permisos de acceso a la funcionalidad del callejero";
-            rol = rol.PersistirPorNombre(contexto);
-
-            var idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.TipoDeVia).First().IdPermiso;
-            contexto.CrearRelacion<PermisosDeUnRolDtm>(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso);
-
-            var gestor = GestorDePermisosDeUnRol.Gestor(contexto, contexto.Mapeador);
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.Paises).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.Provincias).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.Municipios).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.Calles).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.Zonas).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.Barrios).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.CpsDeProv).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.CpsDeMuni).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.CallesDeUnBarrio).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Callejero.CallesDeUnaZona).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
-        }
-
         internal static void CrearRol_AFB_Entorno(ContextoSe contexto)
         {
             var rol = new RolDtm();
@@ -262,25 +110,41 @@ namespace SistemaDeElementos.Inicializador
             idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Entorno.MiCalendario).First().IdPermiso;
             gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
 
+            // vistas secundarias que no son de ningún módulo: auditoría (desde cualquier crud), errores y trazas (desde trabajos de usuario) y el correo del panel personal
+            foreach (var vista in new[] { enumVistas.Configuracion.AuditoríaDeElementos, enumVistas.Entorno.ErroresDeUnTrabajo, enumVistas.Entorno.TrazasDeUnTrabajo,
+                                          enumVistas.Entorno.MiCorreo, enumVistas.Entorno.MiCorreoImap, enumVistas.Entorno.MiCorreoApiKey })
+            {
+                idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == vista).First().IdPermiso;
+                gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
+            }
         }
 
-        internal static void CrearRol_AFB_Seguridad_Acceso(ContextoSe contexto)
+        // rol de datos que conserva los permisos de tipo de archivador que daba el antiguo "AFB: Sistema documental"
+        internal static void CrearRol_Archivador_Basico(ContextoSe contexto)
         {
             var rol = new RolDtm();
-            rol.Nombre = n_rol_AFB_Seguridad_Acceso;
-            rol.Descripcion = "Define los permisos de acceso a la funcionalidad básisca de la seguridad de acceso al sistema de elementos";
-
+            rol.Nombre = n_rol_archivador_basico;
+            rol.Descripcion = "Permisos de datos básicos sobre archivadores: gestor del tipo básico y consultor del de exportación";
             rol = rol.PersistirPorNombre(contexto);
 
             var gestor = GestorDePermisosDeUnRol.Gestor(contexto, contexto.Mapeador);
-            var idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Entorno.PuestosDeTrabajo).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
+            var idTipo = GestorDeTiposDeArchivadores.Cfg_Id_Tipo_De_Archivador_De_Exportacion(contexto);
+            var tipoExportacion = contexto.SeleccionarPorId<TipoDeArchivadorDtm>(idTipo);
+            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, tipoExportacion.IdPermisoDeConsultor, false);
 
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Entorno.Roles).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
+            idTipo = GestorDeTiposDeArchivadores.Cfg_Id_Tipo_De_Archivador_Basico(contexto);
+            var tipoBasico = contexto.SeleccionarPorId<TipoDeArchivadorDtm>(idTipo);
+            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, tipoBasico.IdPermisoDeGestor, false);
+        }
 
-            idPermiso = contexto.Set<VistaMvcDtm>().Where(x => x.Nombre == enumVistas.Entorno.Permisos).First().IdPermiso;
-            gestor.CrearRelacion(nameof(PermisosDeUnRolDtm.IdRol), rol.Id, idPermiso, false);
+        public static void AsignarRolesAlPuesto(ContextoSe contexto, int idPuesto, IEnumerable<string> roles)
+        {
+            var gestor = GestorDeRolesDeUnPuesto.Gestor(contexto, contexto.Mapeador);
+            foreach (var nombre in roles.Distinct())
+            {
+                var rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), nombre);
+                gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), idPuesto, rol.Id, errorSiYaExiste: false);
+            }
         }
 
         internal static RolDtm CrearRolDeCallejeroDe(ContextoSe contexto, enumModoDeAccesoDeDatos modo)

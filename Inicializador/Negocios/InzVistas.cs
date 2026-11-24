@@ -58,6 +58,15 @@ namespace SistemaDeElementos.Inicializador
             public static readonly string Roles = "Roles";
             public static readonly string Permisos = "Permisos";
             public static readonly string Seguridad = "Seguridad de usuarios";
+            public static readonly string ClasesDePermisos = "Clases de permisos";
+            public static readonly string PuestosDeUnUsuario = "Puestos de trabajo de un usuario";
+            public static readonly string RolesDeUnPuesto = "Roles de un puesto";
+            public static readonly string PermisosDeUnRol = "Permisos de un rol";
+            public static readonly string PermisosDeUnUsuario = "Permisos de un usuario";
+            public static readonly string RolesDeUnPermiso = "Roles de un permiso";
+            public static readonly string PuestosDeUnRol = "Puestos de un rol";
+            public static readonly string UsuariosDeUnPuesto = "Usuarios de un puesto";
+            public static readonly string PermisosDeUnPuesto = "Permisos de un puesto de trabajo";
             public static readonly string Certificados = "Certificados";
             public static readonly string InicializarEntorno = "Inicializar entorno";
 
@@ -490,20 +499,20 @@ namespace SistemaDeElementos.Inicializador
 
         private static void CrearVistasDeSeguridad(GestorDeVistaMvc gestor)
         {
-            gestor.CrearVistaSiNoExiste("Clases de permisos", enumControladoresSeguridad.ClaseDePermiso, enumVistasSeguridad.CrudClaseDePermiso, true, typeof(ClasePermisoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.ClasesDePermisos, enumControladoresSeguridad.ClaseDePermiso, enumVistasSeguridad.CrudClaseDePermiso, true, typeof(ClasePermisoDto).FullName);
 
-            gestor.CrearVistaSiNoExiste("Puestos de trabajo", enumControladoresSeguridad.PuestoDeTrabajo, enumVistasSeguridad.CrudPuestoDeTrabajo, false, typeof(PuestoDto).FullName);
-            gestor.CrearVistaSiNoExiste("Roles", enumControladoresSeguridad.Rol, enumVistasSeguridad.CrudRol, false, typeof(RolDto).FullName);
-            gestor.CrearVistaSiNoExiste("Permisos", enumControladoresSeguridad.Permisos, enumVistasSeguridad.CrudPermiso, false, typeof(PermisoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.PuestosDeTrabajo, enumControladoresSeguridad.PuestoDeTrabajo, enumVistasSeguridad.CrudPuestoDeTrabajo, false, typeof(PuestoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.Roles, enumControladoresSeguridad.Rol, enumVistasSeguridad.CrudRol, false, typeof(RolDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.Permisos, enumControladoresSeguridad.Permisos, enumVistasSeguridad.CrudPermiso, false, typeof(PermisoDto).FullName);
 
-            gestor.CrearVistaSiNoExiste("Puestos de trabajo de un usuario", enumControladoresSeguridad.PuestosDeUnUsuario, enumVistasSeguridad.CrudPuestosDeUnUsuario, true, typeof(PuestosDeUnUsuarioDto).FullName);
-            gestor.CrearVistaSiNoExiste("Roles de un puesto", enumControladoresSeguridad.RolesDeUnPuesto, enumVistasSeguridad.CrudRolesDeUnPuesto, true, typeof(RolesDeUnPuestoDto).FullName);
-            gestor.CrearVistaSiNoExiste("Permisos de un rol", enumControladoresSeguridad.PermisosDeUnRol, enumVistasSeguridad.CrudPermisosDeUnRol, true, typeof(PermisosDeUnRolDto).FullName);
-            gestor.CrearVistaSiNoExiste("Permisos de un usuario", enumControladoresSeguridad.PermisosDeUnUsuario, enumVistasSeguridad.CrudPermisosDeUnUsuario, true, typeof(PermisosDeUnUsuarioDto).FullName);
-            gestor.CrearVistaSiNoExiste("Roles de un permiso", enumControladoresSeguridad.RolesDeUnPermiso, enumVistasSeguridad.CrudRolesDeUnPermiso, false, typeof(RolesDeUnPermisoDto).FullName);
-            gestor.CrearVistaSiNoExiste("Puestos de un rol", enumControladoresSeguridad.PuestosDeUnRol, enumVistasSeguridad.CrudPuestosDeUnRol, false, typeof(PuestosDeUnRolDto).FullName);
-            gestor.CrearVistaSiNoExiste("Usuarios de un puesto", enumControladoresSeguridad.UsuariosDeUnPuesto, enumVistasSeguridad.CrudUsuariosDeUnPuesto, false, typeof(UsuariosDeUnPuestoDto).FullName);
-            gestor.CrearVistaSiNoExiste("Permisos de un puesto de trabajo", enumControladoresSeguridad.PermisosHeredados, enumVistasSeguridad.CrudPermisosHeredados, false, typeof(PermisosDeUnPuestoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.PuestosDeUnUsuario, enumControladoresSeguridad.PuestosDeUnUsuario, enumVistasSeguridad.CrudPuestosDeUnUsuario, true, typeof(PuestosDeUnUsuarioDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.RolesDeUnPuesto, enumControladoresSeguridad.RolesDeUnPuesto, enumVistasSeguridad.CrudRolesDeUnPuesto, true, typeof(RolesDeUnPuestoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.PermisosDeUnRol, enumControladoresSeguridad.PermisosDeUnRol, enumVistasSeguridad.CrudPermisosDeUnRol, true, typeof(PermisosDeUnRolDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.PermisosDeUnUsuario, enumControladoresSeguridad.PermisosDeUnUsuario, enumVistasSeguridad.CrudPermisosDeUnUsuario, true, typeof(PermisosDeUnUsuarioDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.RolesDeUnPermiso, enumControladoresSeguridad.RolesDeUnPermiso, enumVistasSeguridad.CrudRolesDeUnPermiso, false, typeof(RolesDeUnPermisoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.PuestosDeUnRol, enumControladoresSeguridad.PuestosDeUnRol, enumVistasSeguridad.CrudPuestosDeUnRol, false, typeof(PuestosDeUnRolDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.UsuariosDeUnPuesto, enumControladoresSeguridad.UsuariosDeUnPuesto, enumVistasSeguridad.CrudUsuariosDeUnPuesto, false, typeof(UsuariosDeUnPuestoDto).FullName);
+            gestor.CrearVistaSiNoExiste(enumVistas.Entorno.PermisosDeUnPuesto, enumControladoresSeguridad.PermisosHeredados, enumVistasSeguridad.CrudPermisosHeredados, false, typeof(PermisosDeUnPuestoDto).FullName);
             gestor.CrearVistaSiNoExiste(enumVistas.Entorno.Seguridad, enumControladoresSeguridad.Seguridad, enumVistasSeguridad.SeguridadDeUsuarios, false, typeof(UsuarioDto).FullName);
         }
 

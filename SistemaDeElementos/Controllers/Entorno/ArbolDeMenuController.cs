@@ -164,6 +164,7 @@ namespace SistemaDeElementos.Controllers.Entorno
             InzNegocios.DefinirNegocios(contexto);
             InzVistas.DefinirVistas(contexto);
             InzMenus.DefinirMenus(contexto);
+            InzRolesFuncionales.DefinirRoles(contexto);
             InzMaestrosTecnicos.AccionesMt(contexto);
             InzTrabajos.SometerTrabajos(contexto);
         }

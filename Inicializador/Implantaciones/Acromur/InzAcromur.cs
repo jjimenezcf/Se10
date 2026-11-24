@@ -225,26 +225,16 @@ namespace SistemaDeElementos.Inicializador.Acromur
 
         private static void AsignarAccesoFuncional(ContextoSe contexto, PuestoDtm pt)
         {
-            var rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Entorno);
-            contexto.CrearRelacion<RolesDeUnPuestoDtm>(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Callejero);
-            contexto.CrearRelacion<RolesDeUnPuestoDtm>(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_TercerosBasico);
-            contexto.CrearRelacion<RolesDeUnPuestoDtm>(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Sistema_Documental);
-            contexto.CrearRelacion<RolesDeUnPuestoDtm>(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_RegistroEs);
-            contexto.CrearRelacion<RolesDeUnPuestoDtm>(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Tareas);
-            contexto.CrearRelacion<RolesDeUnPuestoDtm>(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Expedientes);
-            contexto.CrearRelacion<RolesDeUnPuestoDtm>(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id);
+            InzSeguridadComun.AsignarRolesAlPuesto(contexto, pt.Id,
+            [
+                InzSeguridadComun.n_rol_AFB_Entorno,
+                .. InzSeguridadComun.n_roles_AFB_Callejero,
+                .. InzSeguridadComun.n_roles_AFB_TercerosBasico,
+                .. InzSeguridadComun.n_roles_AFB_Sistema_Documental,
+                .. InzSeguridadComun.n_roles_AFB_RegistroEs,
+                .. InzSeguridadComun.n_roles_AFB_Tareas,
+                .. InzSeguridadComun.n_roles_AFB_Expedientes
+            ]);
         }
 
 

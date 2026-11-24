@@ -172,42 +172,26 @@ namespace SistemaDeElementos.Inicializador.AytoBeniel
 
         private static void AsociarAccesoFuncionalDelRegistroEs(ContextoSe contexto, PuestoDtm pt)
         {
-            var gestor = GestorDeRolesDeUnPuesto.Gestor(contexto, contexto.Mapeador);
-            var rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Entorno);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-            
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Callejero);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_TercerosBasico);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Sistema_Documental);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_RegistroEs);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Tareas);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
+            InzSeguridadComun.AsignarRolesAlPuesto(contexto, pt.Id,
+            [
+                InzSeguridadComun.n_rol_AFB_Entorno,
+                .. InzSeguridadComun.n_roles_AFB_Callejero,
+                .. InzSeguridadComun.n_roles_AFB_TercerosBasico,
+                .. InzSeguridadComun.n_roles_AFB_Sistema_Documental,
+                .. InzSeguridadComun.n_roles_AFB_RegistroEs,
+                .. InzSeguridadComun.n_roles_AFB_Tareas
+            ]);
         }
 
         private static void AsociarAccesoFuncionalDeTareas(ContextoSe contexto, PuestoDtm pt)
         {
-            var gestor = GestorDeRolesDeUnPuesto.Gestor(contexto, contexto.Mapeador);
-            var rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Entorno);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_TercerosBasico);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Sistema_Documental);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
-            rol = contexto.SeleccionarPorPropiedad<RolDtm>(nameof(RolDtm.Nombre), InzSeguridadComun.n_rol_AFB_Tareas);
-            gestor.CrearRelacion(nameof(RolesDeUnPuestoDtm.IdPuesto), pt.Id, rol.Id, errorSiYaExiste: false);
-
+            InzSeguridadComun.AsignarRolesAlPuesto(contexto, pt.Id,
+            [
+                InzSeguridadComun.n_rol_AFB_Entorno,
+                .. InzSeguridadComun.n_roles_AFB_TercerosBasico,
+                .. InzSeguridadComun.n_roles_AFB_Sistema_Documental,
+                .. InzSeguridadComun.n_roles_AFB_Tareas
+            ]);
         }
 
         private static void AsociarRolesParaLaConsultaDelRegistroRee(ContextoSe contexto, PuestoDtm pt)

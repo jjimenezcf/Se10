@@ -21,12 +21,12 @@ namespace SistemaDeElementos.Inicializador
         public const string ModuloDeGastos = "Módulo de Gastos";
         public const string ModuloDeLogistica = "Módulo de Logística";
         public const string ModuloDeGuarderias = "Módulo de Guarderías";
-        private const string ModuloMts = "Módulo Mt";
+        public const string ModuloMts = "Módulo Mt";
         private const string GrupsoDeNaturaleza = "Grupos por Naturaleza";
         private const string NaturalezasContables = "Naturalezas";
         private const string Unidades = "Unidades";
-        private const string ModuloContable = "Módulo Contable";
-        private const string ModuloRRHH = "Módulo RRHH";
+        public const string ModuloContable = "Módulo Contable";
+        public const string ModuloRRHH = "Módulo RRHH";
         private const string Cuentas = "Cuentas";
         private const string IvaRepercutido = "Iva repercutido";
         private const string IvaSoportado = "Iva soportado";
@@ -35,6 +35,15 @@ namespace SistemaDeElementos.Inicializador
 
         public const string Agendas = nameof(Agendas);
         public const string Certificados = nameof(Certificados);
+
+        // menús intermedios: forman la ruta de las opciones y el nombre de los roles funcionales (ver InzRolesFuncionales)
+        public const string Funcionalidad = nameof(Funcionalidad);
+        public const string Accesos = nameof(Accesos);
+        public const string Negocios = nameof(Negocios);
+        public const string Callejero = nameof(Callejero);
+        public const string Terceros = nameof(Terceros);
+        public const string Logistica = "Logística";
+        public const string Juridico = "Jurídico";
 
         public static void DefinirMenus(ContextoSe contexto)
         {
@@ -91,9 +100,9 @@ namespace SistemaDeElementos.Inicializador
 
         private static void MenusDeFuncionalidad(GestorDeMenus gestor, string padre)
         {
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Funcionalidad", descripcion: "Funcionalidad del sistema", icono: "funcionalidad-3.svg", padre: padre, vista: "", orden: 1);
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Funcionalidad, descripcion: "Funcionalidad del sistema", icono: "funcionalidad-3.svg", padre: padre, vista: "", orden: 1);
 
-            padre = $"{padre}.Funcionalidad";
+            padre = $"{padre}.{Funcionalidad}";
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Vistas", descripcion: "Gestión de las vistas del sistema", icono: "vista.svg", padre: padre, vista: enumVistas.Entorno.VistasDeSe, orden: 0);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Variables", descripcion: "Mantenimiento de variables del sistema", icono: "cog-solid.svg", padre: padre, vista: enumVistas.Entorno.Variables, orden: 10);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Menus", descripcion: "Menús a mostrar en el árbol de la funcionalidad del sistema de elementos...", icono: "cp.svg", padre: padre, vista: enumVistas.Entorno.MenusSe, orden: 20);
@@ -106,9 +115,9 @@ namespace SistemaDeElementos.Inicializador
 
         private static void MenusDeAccesos(GestorDeMenus gestor, string padre)
         {
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Accesos", descripcion: "Menú para definir los accesos", icono: "accesos.svg", padre: padre, vista: "", orden: 15);
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Accesos, descripcion: "Menú para definir los accesos", icono: "accesos.svg", padre: padre, vista: "", orden: 15);
 
-            padre = $"{padre}.Accesos";
+            padre = $"{padre}.{Accesos}";
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Usuarios", descripcion: "Usuarios del sistema", icono: "usuario.svg", padre: padre, vista: enumVistas.Entorno.Usuarios, orden: 1);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Puestos", descripcion: "Puestos de trabajo por CG", icono: "puestoDeTrabajo.svg", padre: padre, vista: enumVistas.Entorno.PuestosDeTrabajo, orden: 10);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Roles", descripcion: "Roles del siste", icono: "roles.svg", padre: padre, vista: enumVistas.Entorno.Roles, orden: 20);
@@ -118,30 +127,30 @@ namespace SistemaDeElementos.Inicializador
 
         private static void MenusDeNegociosSe(GestorDeMenus gestor, string padre)
         {
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Negocios", descripcion: "Menús de gestión de Negocios", icono: "bars-solid.svg", padre: padre, vista: "", orden: 20);
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Negocios, descripcion: "Menús de gestión de Negocios", icono: "bars-solid.svg", padre: padre, vista: "", orden: 20);
 
-            padre = $"{padre}.Negocios";
+            padre = $"{padre}.{Negocios}";
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Configuracion.NegociosDeSE, descripcion: "Declaración de los negocios del sistema", icono: "red.svg", padre: padre, vista: enumVistas.Configuracion.NegociosDeSE, orden: 1);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Negocio.AccionesDeRelacion, descripcion: "Acciones al relacionar dos elemenetos del sistema", icono: "AccionesDeRelacion.svg", padre: padre, vista: enumVistas.Negocio.AccionesDeRelacion, orden: 1);
         }
 
         private static void MenusDeTerceros(GestorDeMenus gestor)
         {
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Terceros", descripcion: "Gestión de terceros", icono: "Terceros.svg", padre: Maestros, vista: "", orden: 5);
-            string maestrosTerceros = $"{Maestros}.Terceros";
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Terceros, descripcion: "Gestión de terceros", icono: "Terceros.svg", padre: Maestros, vista: "", orden: 5);
+            string maestrosTerceros = $"{Maestros}.{Terceros}";
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Personas", descripcion: "Personas del sistema", icono: "Persona.svg", padre: maestrosTerceros, vista: enumVistas.Terceros.Personas, orden: 5);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Sociedades", descripcion: "Sociedades del sistema", icono: enumNegocio.Sociedad.Icono(), padre: maestrosTerceros, vista: enumVistas.Terceros.Sociedades, orden: 10);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Interlocutores", descripcion: "Interlocutores del sistema", icono: "Interlocutor.svg", padre: maestrosTerceros, vista: enumVistas.Terceros.Interlocutores, orden: 12);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.Bancos, descripcion: "Bancos del sistema", icono: enumNegocio.Banco.Icono(), padre: maestrosTerceros, vista: enumVistas.Terceros.Bancos, orden: 20);
 
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Logística", descripcion: "Gestión de maestros de logística", icono: "Logistica.svg", padre: Maestros, vista: "", orden: 5);
-            string maestrosLogistica = $"{Maestros}.Logística";
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Logistica, descripcion: "Gestión de maestros de logística", icono: "Logistica.svg", padre: Maestros, vista: "", orden: 5);
+            string maestrosLogistica = $"{Maestros}.{Logistica}";
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.Proveedores, descripcion: "Proveedores del sistema", icono: "Proveedor.svg", padre: maestrosLogistica, vista: enumVistas.Terceros.Proveedores, orden: 5);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.Clientes, descripcion: "Clientes del sistema", icono: "Cliente.svg", padre: maestrosLogistica, vista: enumVistas.Terceros.Clientes, orden: 10);
 
 
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Jurídico", descripcion: "Gestión de maestros jurídicos", icono: "Juridico.svg", padre: Maestros, vista: "", orden: 10);
-            string maestrosJuridico = $"{Maestros}.Jurídico";
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Juridico, descripcion: "Gestión de maestros jurídicos", icono: "Juridico.svg", padre: Maestros, vista: "", orden: 10);
+            string maestrosJuridico = $"{Maestros}.{Juridico}";
 
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.ClasesDeJuzgados, descripcion: "Clases de juzgado del sistema", icono: "ClaseDeJuzgado.svg", padre: maestrosJuridico, vista: enumVistas.Terceros.ClasesDeJuzgados, orden: 1);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: enumVistas.Terceros.Juzgados, descripcion: "Juzgado del sistema", icono: "Juzgado.svg", padre: maestrosJuridico, vista: enumVistas.Terceros.Juzgados, orden: 5);
@@ -613,8 +622,8 @@ namespace SistemaDeElementos.Inicializador
         private static void MenusDelCallejero(GestorDeMenus gestor)
         {
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Maestros, descripcion: "Información de datos maestros", icono: "home-solid.svg", padre: null, vista: "", orden: 5);
-            string maestrosCallejero = $"{Maestros}.Callejero";
-            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Callejero", descripcion: "Gestión del callejero", icono: "callejero.svg", padre: Maestros, vista: "", orden: 1);
+            string maestrosCallejero = $"{Maestros}.{Callejero}";
+            GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: Callejero, descripcion: "Gestión del callejero", icono: "callejero.svg", padre: Maestros, vista: "", orden: 1);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Tipos de vía", descripcion: "Mantenimiento de tipos de vía", icono: "TipoDeVia.svg", padre: maestrosCallejero, vista: enumVistas.Callejero.TipoDeVia, orden: 1);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Paises", descripcion: "Gestión de paises", icono: "paises.svg", padre: maestrosCallejero, vista: enumVistas.Callejero.Paises, orden: 10);
             GestorDeMenus.CrearMenuSiNoExiste(gestor, nombre: "Provincias", descripcion: "Mantenimiento de provincias", icono: "provincias.svg", padre: maestrosCallejero, vista: enumVistas.Callejero.Provincias, orden: 20);
