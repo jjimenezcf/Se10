@@ -512,6 +512,8 @@ const ltrModalDeCrearRelacion = {
 const ltrVistas = {
     Entorno: {
         Conectar: 'Conectar',
+        // página de inicio con el dashboard (no es un crud): nombre de vista con el que se pide su manual (Entorno/Home/PanelDeControl.md)
+        PanelDeControl: 'PanelDeControl',
     },
     Juridicas: {
         Procedimientos: 'Procedimientos judiciales'
@@ -1143,6 +1145,8 @@ const ltrCss = {
         cuerpo: 'cuerpo',
         cuerpoSoloConGrid: 'cuerpo-solo-con-grid',
         cabecera: 'cuerpo-cabecera',
+        // cabecera de las páginas de formulario (DescriptorDeFormulario: árboles de centros gestores, carpetas, menús)
+        cabeceraFormulario: 'cuerpo-cabecera-formulario',
         datos: 'cuerpo-datos',
         filtro: {
             expansor:'div-mnt-filtro-expansor',
@@ -1344,6 +1348,24 @@ const ltrCss = {
             GraficaBarraItem: 'grafica-barra-item',
             GraficaBarraSvg: 'grafica-barra-svg',
         },
+        // diálogo de preguntar a la IA (robot de las tarjetas y "¿Cómo se hace...?" del manual de una vista), PanelDeControl.css
+        Conteo: {
+            Overlay: 'grafica-conteo-overlay',
+            Modal: 'grafica-conteo-modal',
+            Cabecera: 'grafica-conteo-cabecera',
+            Titulo: 'grafica-conteo-titulo',
+            Consultar: 'grafica-conteo-consultar',
+            Pregunta: 'grafica-conteo-pregunta',
+            RespuestaCabecera: 'grafica-conteo-respuesta-cabecera',
+            Respuesta: 'grafica-conteo-respuesta',
+            // la respuesta de "¿Cómo se hace...?" es texto (no un json de filtros): ajusta líneas con la fuente normal
+            RespuestaDeTexto: 'grafica-conteo-respuesta-texto',
+            Botones: 'grafica-conteo-botones',
+            MismaConversacion: 'grafica-conteo-misma-conv',
+            Segundero: 'grafica-conteo-segundero',
+            // el diálogo se abre encima de otra modal (la del manual, z-index 9999)
+            SobreModal: 'grafica-conteo-sobre-modal'
+        },
     },
     controlNoVisible: 'controlNoVisible',
     crtlValido: 'propiedad-valida',
@@ -1428,6 +1450,10 @@ const ltrCss = {
         ContenedorEdicionCuerpo: 'contenedor-edicion-cuerpo',
         BotonPrincipal: 'boton-modal btn btn-primary boton-por-defecto',
         BotonSecundario: 'boton-modal btn btn-secondary',
+        // aparición suave de una modal dinámica (se incluye tras añadirla al body y se excluye antes de quitarla)
+        FadeIn: 'fade-in',
+        // robot verde de la IA en la cabecera de la modal del manual de una vista (CrudModal.css), a la izquierda de la ×
+        BotonIa: 'boton-ia-de-modal',
         MostrarDireccion: {
             Css: 'modal-mostrar-direccion',
             Dialogo: 'modal-mostrar-direccion-dialogo',
@@ -1633,6 +1659,7 @@ const Ajax = {
             AnularFirma: 'epAnularFirma',
             ConvertirAPdf: 'epConvertirAPdf',
             GuardarTextoEditado: 'epGuardarTextoEditado',
+            ComoSeHace: 'epComoSeHace',
             LeerAnexados: 'epLeerAnexados',
             LeerAnexadosDirectos: 'epLeerAnexadosDirectos',
             LeerAnexadosPorGuid: 'epLeerAnexadosPorGuid',
@@ -1670,6 +1697,7 @@ const Ajax = {
     EndPoint: {
         ProcesarOpcionMf: 'epProcesarOpcionMf',
         ProcesarPeticion: 'epProcesarPeticion',
+        ManualDeLaVista: 'epManualDeLaVista',
         CrearElemento: 'epCrearElemento',
         CrearElementoPorPost: 'epCrearElementoPorPost',
         CrearNodo: 'epCrearNodo',
@@ -1947,6 +1975,9 @@ const Ajax = {
     },
     Param: {
         Nombre: 'nombre',
+        // pregunta a la IA y título de la vista (Archivos/epComoSeHace, también controlador y vista: literal.controlador / literal.vista)
+        Pregunta: 'pregunta',
+        Titulo: 'titulo',
         elementoJson: 'elementoJson',
         idModal: 'idModal',
         idGrid: 'idGrid',
@@ -2164,6 +2195,8 @@ const ltrMantenimiento = {
     posicion: 'posicion',
     CheckDeSeleccion: 'chksel',
     idCuerpoDePagina: 'cuerpo-de-pagina',
+    // final del id del título de la cabecera del mantenimiento ({IdHtml}.menu.del.flujo, DescriptorDeMantenimiento.RenderMenuDelMnt)
+    sufijoIdDelTitulo: '.menu.del.flujo',
     mostrarSoloSeleccionadas: 'Solo las seleccionadas',
     mostrarTodasLasFilas: 'Todas las filas',
     Indicadores: 'indicadores',
@@ -4784,6 +4817,33 @@ const ltrCrud = {
 }
 
 
+// ids de los elementos de las plantillas de ltrHtml que se buscan desde el ts
+const ltrIdsHtml = {
+    // diálogo "¿Cómo se hace...?" del manual de una vista (ltrHtml.Modales.ComoSeHace, ApiPreguntasIa.AbrirModalComoSeHace)
+    ComoSeHace: {
+        Pregunta: 'csh-pregunta',
+        AreaRespuesta: 'csh-area-respuesta',
+        Respuesta: 'csh-respuesta',
+        Segundero: 'csh-segundero',
+        Segundos: 'csh-seg',
+        Cerrar: 'csh-btn-cerrar',
+        Preguntar: 'csh-btn-preguntar'
+    },
+    // diálogo de preguntar a la IA del robot de las tarjetas del panel de control (ltrHtml.Modales.Conteo, ApiPreguntasIa.AbrirModalConteo)
+    Conteo: {
+        Pregunta: 'gc-pregunta',
+        AreaRespuesta: 'gc-area-respuesta',
+        Respuesta: 'gc-respuesta',
+        Preguntar: 'gc-btn-preguntar',
+        Cerrar: 'gc-btn-cerrar',
+        MismaConversacion: 'gc-chk-misma-conv',
+        Segundero: 'gc-segundero',
+        Segundos: 'gc-seg',
+        Consultar: 'gc-link-consultar',
+        MostrarFiltro: 'gc-link-toggle-filtro'
+    }
+}
+
 const ltrHtml = {
     Divs: {
         PreguntasIa: `
@@ -4805,7 +4865,7 @@ const ltrHtml = {
                              <svg class="${ltrCss.flujo.iconoDeModal}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                              <h2>Editar: [titulo]</h2>
                          </span>
-                         <span id="btn-editar-texto-cerrar" class="${ltrCss.flujo.cerrarDeModal}" title="Cerrar">&times;</span>
+                         <span id="btn-editar-texto-cerrar" class="${ltrCss.flujo.cerrarDeModal}" title="Cerrar"><svg class="${ltrCss.flujo.iconoDeModal}" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></span>
                      </div>
                      <div class="${ltrCss.flujo.cuerpo}">
                          <textarea id="editar-texto-contenido" spellcheck="false"></textarea>
@@ -4846,6 +4906,49 @@ const ltrHtml = {
                      <div class="${ltrCss.crud.modal.pie}">
                          <button id="btn-nombre-de-archivo-cancelar">Cancelar</button>
                          <button id="btn-nombre-de-archivo-aceptar">Aceptar</button>
+                     </div>
+                 </div>`,
+        // Diálogo de preguntar a la IA del robot de una tarjeta del panel de control. [negocio] es el nombre del negocio (ya escapado)
+        Conteo: `
+                 <div class="${ltrCss.PanelDeControl.Conteo.Modal}">
+                     <div class="${ltrCss.PanelDeControl.Conteo.Cabecera}">
+                         <div class="${ltrCss.PanelDeControl.Conteo.Titulo}">Pregunta sobre [negocio]</div>
+                         <a id="${ltrIdsHtml.Conteo.Consultar}" class="${ltrCss.PanelDeControl.Conteo.Consultar}" href="#" style="display:none">Consultar respuesta</a>
+                     </div>
+                     <textarea id="${ltrIdsHtml.Conteo.Pregunta}" class="${ltrCss.PanelDeControl.Conteo.Pregunta}"
+                         placeholder="Escribe tu pregunta, p.ej.: ¿cuántos [negocio] hay por tipo?" rows="5"></textarea>
+                     <div id="${ltrIdsHtml.Conteo.AreaRespuesta}" style="display:none">
+                         <div class="${ltrCss.PanelDeControl.Conteo.RespuestaCabecera}">
+                             <a id="${ltrIdsHtml.Conteo.MostrarFiltro}" class="${ltrCss.PanelDeControl.Conteo.Consultar}" href="#">Mostrar filtro</a>
+                         </div>
+                         <div id="${ltrIdsHtml.Conteo.Respuesta}" class="${ltrCss.PanelDeControl.Conteo.Respuesta}"></div>
+                     </div>
+                     <div class="${ltrCss.PanelDeControl.Conteo.Botones}">
+                         <label class="${ltrCss.PanelDeControl.Conteo.MismaConversacion}">
+                             <input type="checkbox" id="${ltrIdsHtml.Conteo.MismaConversacion}" checked>
+                             Misma conversación
+                         </label>
+                         <span id="${ltrIdsHtml.Conteo.Segundero}" class="${ltrCss.PanelDeControl.Conteo.Segundero}" style="display:none">⏱ <span id="${ltrIdsHtml.Conteo.Segundos}">0</span>s</span>
+                         <button id="${ltrIdsHtml.Conteo.Cerrar}">Cerrar</button>
+                         <button id="${ltrIdsHtml.Conteo.Preguntar}">Preguntar</button>
+                     </div>
+                 </div>`,
+        // Diálogo "¿Cómo se hace...?" del manual de una vista: mismo aspecto que el de preguntar a la IA de las tarjetas del panel de
+        // control. El título se asigna desde el código (textContent) para no tener que escaparlo
+        ComoSeHace: `
+                 <div class="${ltrCss.PanelDeControl.Conteo.Modal}">
+                     <div class="${ltrCss.PanelDeControl.Conteo.Cabecera}">
+                         <div class="${ltrCss.PanelDeControl.Conteo.Titulo}"></div>
+                     </div>
+                     <textarea id="${ltrIdsHtml.ComoSeHace.Pregunta}" class="${ltrCss.PanelDeControl.Conteo.Pregunta}" rows="4"
+                         placeholder="¿Cómo se hace...? p.ej.: ¿cómo registro un cobro?"></textarea>
+                     <div id="${ltrIdsHtml.ComoSeHace.AreaRespuesta}" style="display:none">
+                         <div id="${ltrIdsHtml.ComoSeHace.Respuesta}" class="${ltrCss.PanelDeControl.Conteo.Respuesta} ${ltrCss.PanelDeControl.Conteo.RespuestaDeTexto}"></div>
+                     </div>
+                     <div class="${ltrCss.PanelDeControl.Conteo.Botones}">
+                         <span id="${ltrIdsHtml.ComoSeHace.Segundero}" class="${ltrCss.PanelDeControl.Conteo.Segundero}" style="display:none">⏱ <span id="${ltrIdsHtml.ComoSeHace.Segundos}">0</span>s</span>
+                         <button id="${ltrIdsHtml.ComoSeHace.Cerrar}">Cerrar</button>
+                         <button id="${ltrIdsHtml.ComoSeHace.Preguntar}">Preguntar</button>
                      </div>
                  </div>`,
         PreguntasIa: `

@@ -49,7 +49,7 @@ namespace ApiPreguntasIa {
         linkRespuesta?.addEventListener('click', () => {
             ApiPanel.OcultarPanel(vistaPregunta);
             ApiPanel.MostrarPanel(vistaJson);
-            linkRespuesta.style.display = 'none';
+            linkRespuesta.style.display = ltrStyle.display.none;
             const respuestaOriginal = (crud.Preguntas.find(p => p.pregunta === txtInput.value.trim()) ?? crud.UltimaPregunta)?.respuesta;
             ApiControl.MapearEnElAreaDeTextoUnJoson(txtJson, respuestaOriginal);
         });
@@ -83,9 +83,9 @@ namespace ApiPreguntasIa {
             enlazarHistorial();
         };
 
-        setTimeout(() => ApiControl.IncluirCss(modalOverlay, 'fade-in'), 10);
+        setTimeout(() => ApiControl.IncluirCss(modalOverlay, ltrCss.Modal.FadeIn), 10);
         const cerrar = () => {
-            ApiControl.ExcluirCss(modalOverlay, 'fade-in');
+            ApiControl.ExcluirCss(modalOverlay, ltrCss.Modal.FadeIn);
             setTimeout(() => modalOverlay.remove(), 300);
         };
 
@@ -148,6 +148,101 @@ namespace ApiPreguntasIa {
         return ltrHtml.Divs.PreguntasIa.replace('[PreguntasIa]', recientes.map(q => `<div class='${ltrCss.crud.modal.LineaDelhistorialIa}' title='${q.pregunta.replace(/"/g, '&quot;')}'>${q.pregunta}</div>`).join(''));
     }
 
+    // Robot verde de "preguntar a la IA" (fichas del panel de control y modal del manual de una vista)
+    export const SvgRobot = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+        stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="1.8" x2="6.2" y2="4"/>
+        <line x1="11" y1="1.8" x2="9.8" y2="4"/>
+        <circle cx="5" cy="1.6" r="0.7" fill="currentColor" stroke="none"/>
+        <circle cx="11" cy="1.6" r="0.7" fill="currentColor" stroke="none"/>
+        <rect x="2.5" y="4" width="11" height="9.5" rx="2.2"/>
+        <circle cx="6" cy="8" r="1.1" fill="currentColor" stroke="none"/>
+        <circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none"/>
+        <line x1="6" y1="11.2" x2="10" y2="11.2"/>
+    </svg>`;
+
+    // ─── ¿Cómo se hace...? sobre el manual de una vista ─────────────────────
+    // Se abre con el robot de la modal del manual (ApiDeArchivos.MostrarManualDeLaVista). Mismo diálogo que el de las fichas del
+    // panel de control (clases grafica-conteo-*), pero la pregunta va a Archivos/epComoSeHace, que le pasa a la IA del usuario el
+    // manual de la vista (lo monta el servidor con el controlador y la vista) junto con la pregunta.
+    export function AbrirModalComoSeHace(controlador: string, vista: string, titulo: string): void {
+        const css = ltrCss.PanelDeControl.Conteo;
+        const ids = ltrIdsHtml.ComoSeHace;
+        const overlay = document.createElement('div') as HTMLDivElement;
+        ApiControl.IncluirCss(overlay, css.Overlay);
+        ApiControl.IncluirCss(overlay, css.SobreModal);
+        overlay.innerHTML = ltrHtml.Modales.ComoSeHace;
+        (overlay.querySelector(`.${css.Titulo}`) as HTMLDivElement).textContent = `¿Cómo se hace...? ${titulo}`;
+        document.body.appendChild(overlay);
+        setTimeout(() => ApiControl.IncluirCss(overlay, ltrCss.Modal.FadeIn), 10);
+
+        const txtPregunta = overlay.querySelector(`#${ids.Pregunta}`) as HTMLTextAreaElement;
+        const areaRespuesta = overlay.querySelector(`#${ids.AreaRespuesta}`) as HTMLDivElement;
+        const divRespuesta = overlay.querySelector(`#${ids.Respuesta}`) as HTMLDivElement;
+        const btnPreguntar = overlay.querySelector(`#${ids.Preguntar}`) as HTMLButtonElement;
+        const btnCerrar = overlay.querySelector(`#${ids.Cerrar}`) as HTMLButtonElement;
+        const spanSegundero = overlay.querySelector(`#${ids.Segundero}`) as HTMLSpanElement;
+        const spanSeg = overlay.querySelector(`#${ids.Segundos}`) as HTMLSpanElement;
+
+        ApiControl.IncluirCss(btnCerrar, ltrCss.Modal.BotonSecundario);
+        ApiControl.IncluirCss(btnPreguntar, ltrCss.Modal.BotonPrincipal);
+
+        const cerrar = () => {
+            window.removeEventListener('keydown', alPulsarEscape, true);
+            ApiControl.ExcluirCss(overlay, ltrCss.Modal.FadeIn);
+            setTimeout(() => overlay.remove(), 280);
+        };
+        // el Escape cierra este diálogo y no la modal del manual que hay debajo: se escucha en window, que en captura va antes que document
+        const alPulsarEscape = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape') return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            cerrar();
+        };
+        window.addEventListener('keydown', alPulsarEscape, true);
+        btnCerrar.addEventListener('click', cerrar);
+
+        btnPreguntar.addEventListener('click', () => {
+            const pregunta = txtPregunta.value.trim();
+            if (!pregunta) {
+                txtPregunta.style.borderColor = 'red';
+                txtPregunta.focus();
+                return;
+            }
+            txtPregunta.style.borderColor = '';
+            btnPreguntar.disabled = true;
+            areaRespuesta.style.display = ltrStyle.display.none;
+
+            let segundos = 0;
+            spanSeg.textContent = '0';
+            spanSegundero.style.display = '';
+            const timer = setInterval(() => spanSeg.textContent = String(++segundos), 1000);
+
+            const datos = new FormData();
+            datos.append(literal.controlador, controlador);
+            datos.append(literal.vista, vista);
+            datos.append(Ajax.Param.Titulo, titulo);
+            datos.append(Ajax.Param.Pregunta, pregunta);
+            fetch(`/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.ComoSeHace}`, { method: 'POST', body: datos })
+                .then(r => r.json())
+                .then((resultado: any) => {
+                    const ok = resultado?.estado === 'Ok' || resultado?.estado === 0;
+                    divRespuesta.textContent = ok
+                        ? (resultado.datos ?? '(sin respuesta)')
+                        : `Error: ${resultado?.mensaje ?? 'respuesta desconocida'}`;
+                })
+                .catch(err => divRespuesta.textContent = `Error de red: ${err}`)
+                .finally(() => {
+                    clearInterval(timer);
+                    spanSegundero.style.display = ltrStyle.display.none;
+                    btnPreguntar.disabled = false;
+                    areaRespuesta.style.display = '';
+                });
+        });
+
+        setTimeout(() => txtPregunta.focus(), 80);
+    }
+
     export function LanzarPregunta(crud: Crud.CrudMnt, texto: string): Promise<boolean> {
         crud.Pregunta = texto;
         crud.NuevaConversacion = !(document.getElementById('chk-nueva-pregunta') as HTMLInputElement).checked;
@@ -188,8 +283,9 @@ namespace ApiPreguntasIa {
     }
 
     export function AbrirModalConteo(negocioEnum: string, negocioNombre: string, urlBase?: string): void {
-        const overlay = document.createElement('div');
-        overlay.className = 'grafica-conteo-overlay';
+        const ids = ltrIdsHtml.Conteo;
+        const overlay = document.createElement('div') as HTMLDivElement;
+        ApiControl.IncluirCss(overlay, ltrCss.PanelDeControl.Conteo.Overlay);
 
         // GUID único por instancia de modal — identifica la sesión de conversación
         const sessionGuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -202,55 +298,27 @@ namespace ApiPreguntasIa {
             ? urlBase.replace(/,\s*null\s*,/, ",'origen=paneldecontrol',")
             : null;
 
-        overlay.innerHTML = `
-            <div class="grafica-conteo-modal">
-                <div class="grafica-conteo-cabecera">
-                    <div class="grafica-conteo-titulo">Pregunta sobre ${negocioNombre}</div>
-                    <a id="gc-link-consultar" class="grafica-conteo-consultar" href="#" style="display:none">Consultar respuesta</a>
-                </div>
-                <textarea id="gc-pregunta" class="grafica-conteo-pregunta"
-                    placeholder="Escribe tu pregunta, p.ej.: ¿cuántos ${negocioNombre} hay por tipo?" rows="5"></textarea>
-                <div id="gc-area-respuesta" style="display:none">
-                    <div class="grafica-conteo-respuesta-cabecera">
-                        <a id="gc-link-toggle-filtro" class="grafica-conteo-consultar" href="#">Mostrar filtro</a>
-                    </div>
-                    <div id="gc-respuesta" class="grafica-conteo-respuesta"></div>
-                </div>
-                <div class="grafica-conteo-botones">
-                    <label class="grafica-conteo-misma-conv">
-                        <input type="checkbox" id="gc-chk-misma-conv" checked>
-                        Misma conversación
-                    </label>
-                    <span id="gc-segundero" class="grafica-conteo-segundero" style="display:none">⏱ <span id="gc-seg">0</span>s</span>
-                    <button id="gc-btn-cerrar">Cerrar</button>
-                    <button id="gc-btn-preguntar">Preguntar</button>
-                </div>
-            </div>`;
+        overlay.innerHTML = ltrHtml.Modales.Conteo.replace(/\[negocio\]/g, EscapeHtml(negocioNombre ?? ''));
 
         document.body.appendChild(overlay);
-        setTimeout(() => overlay.classList.add('fade-in'), 10);
+        setTimeout(() => ApiControl.IncluirCss(overlay, ltrCss.Modal.FadeIn), 10);
 
-        const txtPregunta     = overlay.querySelector('#gc-pregunta')           as HTMLTextAreaElement;
-        const areaRespuesta   = overlay.querySelector('#gc-area-respuesta')     as HTMLDivElement;
-        const divRespuesta    = overlay.querySelector('#gc-respuesta')           as HTMLDivElement;
-        const btnPreguntar    = overlay.querySelector('#gc-btn-preguntar')       as HTMLButtonElement;
-        const btnCerrar       = overlay.querySelector('#gc-btn-cerrar')         as HTMLButtonElement;
-        const chkMismaConv    = overlay.querySelector('#gc-chk-misma-conv')    as HTMLInputElement;
-        const spanSegundero   = overlay.querySelector('#gc-segundero')          as HTMLSpanElement;
-        const spanSeg         = overlay.querySelector('#gc-seg')                as HTMLSpanElement;
-        const linkConsultar   = overlay.querySelector('#gc-link-consultar')     as HTMLAnchorElement;
-        const linkToggleFiltro = overlay.querySelector('#gc-link-toggle-filtro') as HTMLAnchorElement;
+        const txtPregunta = overlay.querySelector(`#${ids.Pregunta}`) as HTMLTextAreaElement;
+        const areaRespuesta = overlay.querySelector(`#${ids.AreaRespuesta}`) as HTMLDivElement;
+        const divRespuesta = overlay.querySelector(`#${ids.Respuesta}`) as HTMLDivElement;
+        const btnPreguntar = overlay.querySelector(`#${ids.Preguntar}`) as HTMLButtonElement;
+        const btnCerrar = overlay.querySelector(`#${ids.Cerrar}`) as HTMLButtonElement;
+        const chkMismaConv = overlay.querySelector(`#${ids.MismaConversacion}`) as HTMLInputElement;
+        const spanSegundero = overlay.querySelector(`#${ids.Segundero}`) as HTMLSpanElement;
+        const spanSeg = overlay.querySelector(`#${ids.Segundos}`) as HTMLSpanElement;
+        const linkConsultar = overlay.querySelector(`#${ids.Consultar}`) as HTMLAnchorElement;
+        const linkToggleFiltro = overlay.querySelector(`#${ids.MostrarFiltro}`) as HTMLAnchorElement;
 
-        ApiControl.IncluirCss(btnCerrar,    'boton-modal');
-        ApiControl.IncluirCss(btnCerrar,    'btn');
-        ApiControl.IncluirCss(btnCerrar,    'btn-secondary');
-        ApiControl.IncluirCss(btnPreguntar, 'boton-modal');
-        ApiControl.IncluirCss(btnPreguntar, 'btn');
-        ApiControl.IncluirCss(btnPreguntar, 'btn-primary');
-        ApiControl.IncluirCss(btnPreguntar, 'boton-por-defecto');
+        ApiControl.IncluirCss(btnCerrar, ltrCss.Modal.BotonSecundario);
+        ApiControl.IncluirCss(btnPreguntar, ltrCss.Modal.BotonPrincipal);
 
         const cerrar = () => {
-            overlay.classList.remove('fade-in');
+            ApiControl.ExcluirCss(overlay, ltrCss.Modal.FadeIn);
             setTimeout(() => overlay.remove(), 280);
         };
 
@@ -286,7 +354,7 @@ namespace ApiPreguntasIa {
             }
             txtPregunta.style.borderColor = '';
             btnPreguntar.disabled = true;
-            areaRespuesta.style.display = 'none';
+            areaRespuesta.style.display = ltrStyle.display.none;
             divRespuesta.textContent = '';
 
             // Iniciar segundero
@@ -302,7 +370,7 @@ namespace ApiPreguntasIa {
 
             LanzarPreguntaDeConteo(negocioEnum, pregunta, sessionGuid, continuarConversacion, (respuesta, filtrosIa) => {
                 clearInterval(timer);
-                spanSegundero.style.display = 'none';
+                spanSegundero.style.display = ltrStyle.display.none;
                 btnPreguntar.disabled = false;
 
                 _textoRespuesta = respuesta;
@@ -310,7 +378,7 @@ namespace ApiPreguntasIa {
                 _mostrando = 'respuesta';
                 divRespuesta.textContent = respuesta;
                 linkToggleFiltro.textContent = 'Mostrar filtro';
-                linkToggleFiltro.style.display = filtrosIa ? '' : 'none';
+                linkToggleFiltro.style.display = filtrosIa ? '' : ltrStyle.display.none;
                 areaRespuesta.style.display = '';
 
                 // Mostrar "Consultar respuesta" si la tarjeta tiene vista y la IA devolvió filtros

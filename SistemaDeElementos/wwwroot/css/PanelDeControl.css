@@ -483,6 +483,19 @@
     color: #24292f;
 }
 
+/* respuesta de "¿Cómo se hace...?" (ltrCss.PanelDeControl.Conteo.RespuestaDeTexto): texto con párrafos, no un json */
+.grafica-conteo-respuesta.grafica-conteo-respuesta-texto {
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 13px;
+    max-height: 45vh;
+}
+
+/* el diálogo de la IA abierto encima de otra modal (la del manual, z-index 9999): ltrCss.PanelDeControl.Conteo.SobreModal */
+.grafica-conteo-overlay.grafica-conteo-sobre-modal {
+    z-index: 10000;
+}
+
 .grafica-conteo-botones {
     display: flex;
     gap: 8px;

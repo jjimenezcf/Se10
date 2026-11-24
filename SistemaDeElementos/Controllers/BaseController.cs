@@ -1527,6 +1527,36 @@ namespace MVCSistemaDeElementos.Controllers
             }
         }
 
+        /// <summary>
+        /// Manual de usuario de la vista (el ? del pie de página): el específico (wwwroot/ayuda/manuales/{módulo}/{controlador}/{vista}.md)
+        /// fusionado con el común a todas las vistas (wwwroot/ayuda/manuales/Crud*.md), convertido a html con la misma conversión y saneado
+        /// que el visor de archivos (ApiPanel.RenderizarMarkdown). El controlador es el de la ruta, así sirve cualquier controlador.
+        /// Si no hay documentos, el html va vacío y el motivo en la cabecera X-Error-Message (como hace el visor).
+        /// </summary>
+        [HttpGet]
+        public ContentResult epManualDeLaVista(string vista, string titulo)
+        {
+            try
+            {
+                var webRoot = HttpContext.RequestServices.GetService(typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment)) as Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
+                var controlador = ControllerContext.ActionDescriptor.ControllerName;
+                var markdown = MVCSistemaDeElementos.UtilidadesIu.ApiDeManuales.ManualDeLaVista(webRoot.WebRootPath, controlador, vista, titulo);
+                if (markdown == null)
+                {
+                    Response.Headers["X-Error-Message"] = "No hay manuales de ayuda";
+                    return Content(string.Empty, "text/html; charset=utf-8");
+                }
+
+                return Content(ExtensorDeHtml.SanitizeHtml(ExtensorDeMarkdown.ToHtmlDeTexto(markdown, $"Manual de {(titulo.IsNullOrEmpty() ? vista : titulo)}")), "text/html; charset=utf-8");
+            }
+            catch (Exception e)
+            {
+                // la cabecera sólo admite ASCII
+                Response.Headers["X-Error-Message"] = new string(e.Message.Select(c => c < 128 && !char.IsControl(c) ? c : ' ').ToArray());
+                return Content(string.Empty, "text/html; charset=utf-8");
+            }
+        }
+
         // Historial de conversaciones indexado por sessionGuid
         private static readonly Dictionary<string, string> _historialDeConversaciones = new();
         private static readonly object _historialLock = new();

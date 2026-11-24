@@ -1958,6 +1958,44 @@
         }
     }
 
+    // ? del pie de página (al lado de la papelera de mensajes): muestra, sólo para consultar, el manual de la vista que se está mostrando,
+    // fusionando el específico (wwwroot/ayuda/manuales/{módulo}/{controlador}/{vista}.md) con el común a todas (wwwroot/ayuda/manuales/Crud*.md).
+    // La vista se toma de la cabecera del mantenimiento de la página (DescriptorDeMantenimiento.RenderCuerpoCabecera), que lleva el
+    // controlador y la vista mvc; las cabeceras de los mantenimientos de las modales no llevan la vista, así que no se confunden.
+    // Las páginas de formulario (árboles como centros gestores o carpetas, DescriptorDeFormulario) llevan el controlador y la vista en su
+    // cabecera (cuerpo-cabecera-formulario, atributo "vista"); su título es el de la página.
+    // Páginas que no son crud ni formulario (no siguen el estándar): el panel de control (dashboard) de la página de inicio, que se
+    // reconoce por su contenedor de tarjetas (PanelDeControl.RenderCuerpo); su manual es manuales/Entorno/Home/PanelDeControl.md
+    // (función y no constante: los literales se leen al usarla, no al cargar el script, que en el bundle.js puede ir antes)
+    const paginasSinCabecera = (): { selector: string, controlador: string, vista: string, titulo: string }[] => [
+        {
+            selector: `#${ltrMantenimiento.idCuerpoDePagina} #${ltrCss.PanelDeControl.DashBoard.PanelGraficas}`,
+            controlador: ltrControladores.Comunes.Home,
+            vista: ltrVistas.Entorno.PanelDeControl,
+            titulo: 'Panel de control'
+        }
+    ];
+
+    export function MostrarManualDeLaVista(): void {
+        const cuerpo = `#${ltrMantenimiento.idCuerpoDePagina}`;
+        const cabeceraCrud = document.querySelector(`${cuerpo} .${ltrCss.crud.cabecera}[${atControl.controlador}][${atControl.vistaMvc}]`) as HTMLElement;
+        const cabeceraFormulario = cabeceraCrud ? null :
+            document.querySelector(`${cuerpo} .${ltrCss.crud.cabeceraFormulario}[${literal.controlador}][${literal.vista}]`) as HTMLElement;
+        const cabecera = cabeceraCrud ?? cabeceraFormulario;
+        const pagina = cabecera ? null : paginasSinCabecera().find(p => document.querySelector(p.selector));
+        if (!cabecera && !pagina) {
+            MensajesSe.Info('Esta página no tiene manual de ayuda');
+            return;
+        }
+        const controlador = pagina ? pagina.controlador : cabecera.getAttribute(literal.controlador);
+        const vista = pagina ? pagina.vista : cabecera.getAttribute(cabeceraCrud ? atControl.vistaMvc : literal.vista);
+        const titulo = pagina ? pagina.titulo : (cabeceraCrud
+            ? (cabecera.querySelector(`[id$="${ltrMantenimiento.sufijoIdDelTitulo}"]`)?.textContent ?? '').trim()
+            : document.title.split(' - ')[0].trim()) || vista;
+        const url = `/${controlador}/${Ajax.EndPoint.ManualDeLaVista}?vista=${encodeURIComponent(vista)}&titulo=${encodeURIComponent(titulo)}`;
+        AbrirModalDeEditarTexto(`Manual: ${titulo}`, '', true, url, { comoSeHace: { controlador: controlador, vista: vista, titulo: titulo } });
+    }
+
     // Modal para editar el texto que muestra el visor (se abre con el lápiz de su barra, ver CrudEdicion.EditarTexto).
     // Plantilla en ltrHtml.Modales.EditarTexto, con la cabecera común de las modales (icono, título y ×) y el botón Aceptar.
     // Devuelve el texto al pulsar Aceptar, o null si se cierra (× o Escape); si se ha modificado algo, pregunta antes de descartarlo.
@@ -1967,8 +2005,10 @@
     // Con opciones.nuevo se escribe un archivo nuevo (ver PulsadoEscribirArchivo): la cabecera dice "Nuevo archivo de texto".
     // Con opciones.alAceptar, al pulsar Aceptar se le pasa el texto y la modal sólo se cierra si devuelve true; si devuelve false o falla
     // sigue abierta con lo escrito (p. ej. se cancela el nombre del archivo o no se ha podido subir).
+    // Con opciones.comoSeHace (manual de una vista) se pone a la izquierda de la × el robot verde de la IA, que abre el diálogo para
+    // preguntar "¿cómo se hace...?" sobre ese manual (ApiPreguntasIa.AbrirModalComoSeHace).
     export function AbrirModalDeEditarTexto(nombreDelArchivo: string, texto: string, sinAceptar: boolean = false, urlDeMarkdown?: string,
-        opciones?: { nuevo?: boolean, alAceptar?: (texto: string) => Promise<boolean> }): Promise<string | null> {
+        opciones?: { nuevo?: boolean, alAceptar?: (texto: string) => Promise<boolean>, comoSeHace?: { controlador: string, vista: string, titulo: string } }): Promise<string | null> {
         return new Promise((resolve) => {
             const modal = document.createElement('div') as HTMLDivElement;
             ApiControl.IncluirCss(modal, ltrCss.flujo.contenedorModal);
@@ -1990,9 +2030,22 @@
                 btnAceptar.disabled = true;
                 btnAceptar.title = 'Este texto es sólo de consulta, no se guarda';
                 btnAceptar.style.display = ltrStyle.display.none;
+                // no se edita nada: el título es sólo el nombre, sin el "Editar:" de la plantilla
+                modal.querySelector('h2').textContent = nombreDelArchivo ?? '';
                 const icono = modal.querySelector('svg');
                 if (icono)
                     icono.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+            }
+
+            if (opciones?.comoSeHace) {
+                const btnIa = document.createElement('button') as HTMLButtonElement;
+                btnIa.type = 'button';
+                btnIa.title = '¿Cómo se hace...? Pregunte a la IA sobre este manual';
+                btnIa.innerHTML = ApiPreguntasIa.SvgRobot;
+                ApiControl.IncluirCss(btnIa, ltrCss.Modal.BotonIa);
+                const cs = opciones.comoSeHace;
+                btnIa.addEventListener('click', () => ApiPreguntasIa.AbrirModalComoSeHace(cs.controlador, cs.vista, cs.titulo));
+                btnCerrar.parentElement.insertBefore(btnIa, btnCerrar);
             }
 
             // el textarea devuelve los saltos de línea como \n: se compara con el original normalizado igual

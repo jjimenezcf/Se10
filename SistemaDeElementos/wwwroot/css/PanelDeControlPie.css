@@ -4,9 +4,9 @@
     grid-area: pie-mensaje;
     display: grid;
     background: #00b9ff;
-    grid-template-columns: 32px auto 32px;
+    grid-template-columns: 32px auto 32px 32px;
     grid-template-rows: 100%;
-    grid-template-areas: "pie-mensaje-contenedor-hitorial pie-mensaje-contenedor pie-mensaje-contenedor-borrado";
+    grid-template-areas: "pie-mensaje-contenedor-hitorial pie-mensaje-contenedor pie-mensaje-contenedor-borrado pie-mensaje-contenedor-ayuda";
     /*display: -webkit-inline-box;*/
 }
 
@@ -51,6 +51,21 @@
         background-color: white;
         padding-bottom: 2px;
         vertical-align: baseline;
+    }
+
+/* ? del pie: manual de la vista (ApiDeArchivos.MostrarManualDeLaVista) */
+/* el svg del ? es un círculo que ocupa todo su alto: se centra en la celda con flex (si no, queda pegado arriba) */
+.pie-mensaje-contenedor-ayuda {
+    border: ridge;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .pie-mensaje-contenedor-ayuda > img {
+        background-color: white;
+        cursor: pointer;
     }
 
 .pie-conexion {

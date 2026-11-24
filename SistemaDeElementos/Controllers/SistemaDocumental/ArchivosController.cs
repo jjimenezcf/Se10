@@ -896,6 +896,66 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         return new JsonResult(r);
     }
 
+    // "¿Cómo se hace...?": robot de la modal del manual de una vista (ApiPreguntasIa.AbrirModalComoSeHace). Se le pasa a la IA del usuario
+    // (Géminis, Mistral, Perplexity) el manual de la vista (el específico fusionado con el común, ApiDeManuales.ManualDeLaVista) y la
+    // pregunta. El manual se monta aquí a partir del controlador y la vista: no viaja desde el navegador.
+    [HttpPost]
+    public async Task<JsonResult> epComoSeHace(string controlador, string vista, string titulo, string pregunta)
+    {
+        var r = new Resultado();
+        Contexto.IniciarTraza(GetType().Name + "_" + nameof(epComoSeHace));
+        try
+        {
+            ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            if (pregunta.IsNullOrEmpty())
+                GestorDeErrores.Emitir("Indique qué quiere saber");
+
+            var webRoot = (Microsoft.AspNetCore.Hosting.IWebHostEnvironment)HttpContext.RequestServices.GetService(typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment));
+            var manual = ApiDeManuales.ManualDeLaVista(webRoot.WebRootPath, controlador, vista, titulo);
+            if (manual == null)
+                GestorDeErrores.Emitir("No hay manuales de ayuda");
+
+            var prompt = $@"Eres el asistente de ayuda de la aplicación 'Sistema de elementos'. El usuario está en la vista '{titulo}'.
+Responde en español a su pregunta usando sólo el manual que se adjunta:
+- Da los pasos concretos, con los nombres de las opciones, menús y campos tal como aparecen en pantalla (en negrita en el manual).
+- Sé breve: sin introducciones ni repetir la pregunta.
+- Si el manual no contiene la respuesta, dilo claramente y no inventes opciones ni pasos.
+- No hables de los apartados de 'Detalle técnico' (nombres de clases, ficheros o endpoints) salvo que la pregunta sea técnica.
+
+# MANUAL
+{manual}
+
+# PREGUNTA
+{pregunta}";
+
+            var iaUsada = ExtensorDeUsuarios.IaUsada(Contexto);
+            using var ia = ExtensorDeIa.CrearIa(iaUsada);
+            try
+            {
+                r.Datos = await ExtensorDeIa.Preguntar(ia, prompt);
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("API key not valid"))
+                    GestorDeErrores.Emitir(ltrIa.Mensaje_ApiKey_NoDefinida.Replace("[ia]", iaUsada.Nombre));
+                if (e.Message.Contains("Too Many Request"))
+                    GestorDeErrores.Emitir(ltrIa.Mensaje_Demasadas_Peticiones.Replace("[ia]", iaUsada.Nombre));
+                throw;
+            }
+            r.Mensaje = $"Respuesta de {iaUsada.Nombre}";
+            r.Estado = enumEstadoPeticion.Ok;
+        }
+        catch (Exception e)
+        {
+            ApiController.PrepararError(e, r, "No se ha podido obtener la respuesta de la IA.");
+        }
+        finally
+        {
+            Contexto.CerrarTraza();
+        }
+        return new JsonResult(r);
+    }
+
     // Guarda el texto editado en el visor (ApiDeArchivos.AbrirModalDeEditarTexto): anexa al elemento un archivo nuevo con ese contenido
     // y le quita el editado. El contenido llega en el cuerpo (FormData): puede ser largo para la url
     [HttpPost]

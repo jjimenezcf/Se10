@@ -1417,7 +1417,9 @@
     function IniciarArrastreDeModal(event: PointerEvent): void {
         if (event.button !== 0 || EsDispositvoMovil()) return;
         const destino = event.target as HTMLElement;
-        if (destino.closest(`.${cssCerrarDeModal}`)) return;
+        // la × y cualquier control de la cabecera (p. ej. el robot de la IA del manual) reciben su clic: si se capturase el puntero
+        // para arrastrar, el clic iría a la cabecera y el botón no haría nada
+        if (destino.closest(`.${cssCerrarDeModal}, button, a, input, select, textarea`)) return;
         const cabecera = destino.closest(`.${cssCabeceraDeModal}`) as HTMLElement;
         if (!cabecera) return;
         const caja = cabecera.closest(selectorCajaDeModal) as HTMLElement;

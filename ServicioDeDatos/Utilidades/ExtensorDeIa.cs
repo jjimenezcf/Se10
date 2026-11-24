@@ -281,6 +281,19 @@ namespace ServicioDeDatos.Utilidades
             return await ia.Resumir(contenido);
         }
 
+        /// <summary>
+        /// Envía a la IA un prompt ya montado y devuelve su respuesta en texto. Usa Resumir, que es lo que implementan todas:
+        /// Géminis sustituye [CONTENIDO] en PromptResumen por lo que recibe (por eso se deja PromptResumen = "[CONTENIDO]"),
+        /// Mistral y Perplexity envían tal cual lo que reciben.
+        /// </summary>
+        public async static Task<string> Preguntar(IIa ia, string prompt)
+        {
+            if (ApiDeEnsamblados.ImplementaInterface(ia.GetType(), typeof(IIaPromptResumen).FullName))
+                ((IIaPromptResumen)ia).PromptResumen = "[CONTENIDO]";
+
+            return await ia.Resumir(prompt);
+        }
+
 
     }
 

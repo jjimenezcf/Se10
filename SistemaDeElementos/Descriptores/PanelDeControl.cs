@@ -416,6 +416,14 @@ namespace MVCSistemaDeElementos.Descriptores
                          class='btn-menu'
                          onclick='MensajesSe.Sacar()' />
                 </div>
+                <div class='pie-mensaje-contenedor-ayuda'>
+                    <img id='id-manual-de-la-vista'
+                         src='/images/menu/ayuda.svg'
+                         style='width:32px; height:22px; '
+                         class='btn-menu'
+                         title='Manual de esta vista'
+                         onclick='ApiDeArchivos.MostrarManualDeLaVista()' />
+                </div>
             </div>
             <div class='pie-conexion'>
                 <div class='pie-conexion-datos'>
