@@ -201,7 +201,7 @@ namespace ApiControl {
 
     export function CrearLiEnUl(ul: HTMLUListElement, idLi: string, texto: string, accion: string, menuFlotante: string, metadatos: string): HTMLLIElement {
         let a: HTMLAnchorElement = CrearRef(texto, accion, false);
-        a.setAttribute(atControl.menuFlotante, menuFlotante);
+        a.setAttribute(atControl.MenuFlotante, menuFlotante);
         let li: HTMLLIElement = document.createElement("li");
         li.id = idLi;
         li.appendChild(a);

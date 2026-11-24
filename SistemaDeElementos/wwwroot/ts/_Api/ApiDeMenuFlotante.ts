@@ -56,25 +56,25 @@
     export function AplicarClienteWeb(panel: HTMLDivElement, seleccionadas: number) {
         if (NoDefinido(panel))
             return;
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idAlta, false);
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idBaja, false);
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idImprimir, false);
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idPermisos, false);
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idObservacion, false);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idAlta, false);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idBaja, false);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idImprimir, false);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idPermisos, false);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idObservacion, false);
         if (seleccionadas === 1)
-            DesbloquearOpcionDeMenu(panel, ltrMenus.OpcinesMf.enviarMail, ltrMenus.enumOrigen.crud);
+            DesbloquearOpcionDeMenu(panel, ltrMenus.OpcionesMf.enviarMail, ltrMenus.enumOrigen.crud);
         else
-            BloquearOpcionDeMenu(panel, ltrMenus.OpcinesMf.enviarMail, ltrMenus.enumOrigen.crud);
+            BloquearOpcionDeMenu(panel, ltrMenus.OpcionesMf.enviarMail, ltrMenus.enumOrigen.crud);
     }
 
     export function AplicarBaja(origen: string, panel: HTMLDivElement, estaDeBaja: boolean, permiso: ModoAcceso.enumModoDeAccesoDeDatos) {
         if (NoDefinido(panel))
             return;
-        let alta = MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idAlta, estaDeBaja);
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idBaja, !estaDeBaja);
+        let alta = MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idAlta, estaDeBaja);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idBaja, !estaDeBaja);
 
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idObservacion, !estaDeBaja);
-        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcinesMf.idArchivador, !estaDeBaja);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idObservacion, !estaDeBaja);
+        MostrarOpcionDeMenuPorId(panel, ltrMenus.IdsDeOpcionesMf.idArchivador, !estaDeBaja);
         if (!Definido(alta))
             return;
 

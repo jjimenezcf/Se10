@@ -279,7 +279,7 @@
         public get IdNegocio(): number {
             if (this.PaginaDeConsultaConGuid) {
                 const panelDeEdicion = document.getElementsByClassName(ltrCss.crud.edicionSoloConsulta)[0] as HTMLDivElement;
-                return Numero(panelDeEdicion.getAttribute(atMantenimniento.idNegocio));
+                return Numero(panelDeEdicion.getAttribute(atMantenimiento.idNegocio));
             }
             return this.CrudDeMnt.IdNegocio;
         }
@@ -288,7 +288,7 @@
         public get NombreDeNegocio(): string {
             if (this.PaginaDeConsultaConGuid) {
                 const panelDeEdicion = document.getElementsByClassName(ltrCss.crud.edicionSoloConsulta)[0] as HTMLDivElement;
-                return panelDeEdicion.getAttribute(atMantenimniento.negocio);
+                return panelDeEdicion.getAttribute(atMantenimiento.negocio);
             }
             return this.CrudDeMnt.NombreDeNegocio;
         }
@@ -727,7 +727,7 @@
         }
 
         public get GridDeArchivadores(): HTMLDivElement {
-            return ApiPanel.BuscarGridPorControlador(this.PanelDeEditar, ltrControladores.Comunes.Archivadores);
+            return ApiPanel.BuscarGridPorControlador(this.PanelDeEditar, ltrControladores.SisDoc.Archivador);
         }
 
         public get GridDeHitos(): HTMLDivElement {

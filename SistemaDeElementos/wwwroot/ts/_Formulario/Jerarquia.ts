@@ -232,7 +232,7 @@
         }
 
         public get IdVista(): number {
-            return Numero(this.PanelDelDto.getAttribute(atMantenimniento.idVista));
+            return Numero(this.PanelDelDto.getAttribute(atMantenimiento.idVista));
         }
 
         private IdEditado: number;
@@ -570,7 +570,7 @@
             let json: JSON = ApiPanel.MapearControlesDesdeElPanelAlJson(this.PanelDelDetalle, JSON.parse(`{}`));
 
             let datos: Diccionario<any> = new Diccionario();
-            datos.Agregar(Ajax.Param.operacion, Ajax.persisitencia.modificar);
+            datos.Agregar(Ajax.Param.operacion, Ajax.persistencia.modificar);
             ApiDePeticiones.PersistirNodo(this, this.Controlador, Ajax.EndPoint.PersistirNodo, this.Negocio, json, datos)
                 .then((peticion) => this.InicializarJerarquia(false))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));
@@ -580,7 +580,7 @@
             let json: JSON = ApiPanel.MapearControlesDesdeElPanelAlJson(this.PanelDelDetalle, JSON.parse(`{}`));
 
             let datos: Diccionario<any> = new Diccionario();
-            datos.Agregar(Ajax.Param.operacion, Ajax.persisitencia.eliminar);
+            datos.Agregar(Ajax.Param.operacion, Ajax.persistencia.eliminar);
             ApiDePeticiones.PersistirNodo(this, this.Controlador, Ajax.EndPoint.PersistirNodo, this.Negocio, json, datos)
                 .then((peticion) => this.InicializarJerarquia(false))
                 .catch((peticion) => ApiDePeticiones.EmitirError(peticion));

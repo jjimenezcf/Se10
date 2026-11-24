@@ -150,8 +150,8 @@
 
     export function InicializarEntreFecha(fechaDesde: HTMLInputElement): void {
         ApiControl.BlanquearFecha(fechaDesde, true);
-        let idFechaHasta: string = fechaDesde.getAttribute(atEntreFechas.idfechahasta)
-        let idHoraHasta: string = fechaDesde.getAttribute(atEntreFechas.idhorahasta)
+        let idFechaHasta: string = fechaDesde.getAttribute(atEntreFechas.idFechaHasta)
+        let idHoraHasta: string = fechaDesde.getAttribute(atEntreFechas.idHoraHasta)
         if (!IsNullOrEmpty(idFechaHasta)) {
             let fechaHasta: HTMLInputElement = document.getElementById(idFechaHasta) as HTMLInputElement;
             fechaHasta.value = "";

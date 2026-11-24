@@ -405,7 +405,7 @@ namespace ApiPreguntasIa {
         onResultado: (respuesta: string, filtrosIa: string | null) => void
     ): void {
 
-        const url = `/${Ajax.Entorno.Ia.controlador}/${Ajax.Entorno.Ia.PregutaConConteo}` +
+        const url = `/${Ajax.Entorno.Ia.controlador}/${Ajax.Entorno.Ia.PreguntaConConteo}` +
             `?${literal.negocio}=${encodeURIComponent(negocioEnum)}` +
             `&pregunta=${encodeURIComponent(pregunta)}` +
             `&sessionGuid=${encodeURIComponent(sessionGuid)}` +

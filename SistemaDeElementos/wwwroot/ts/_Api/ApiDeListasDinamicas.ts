@@ -278,7 +278,7 @@
             parametros.push(new Parametro(Ajax.Param.descriptor, Crud.crudMnt.Descriptor));
 
             const vista = ApiControl.BuscarValorDelAtributo(lista, atControl.vistaMvc)
-            parametros.push(new Parametro(Ajax.Param.Vista, Definido(vista) ? vista : Crud.crudMnt.VistaMvc));
+            parametros.push(new Parametro(Ajax.Param.VistaMvc, Definido(vista) ? vista : Crud.crudMnt.VistaMvc));
         }
         else
             parametros.push(new Parametro(Ajax.Param.creandoEnCrud, false));
@@ -396,7 +396,7 @@
             if (elemento.getAttribute(atControl.tipoModal) === enumTipoDeModal.ModalParaVincular) {
                 let idNegocio = elemento.getAttribute(atModal.idNegocio);
                 let id = elemento.getAttribute(atModal.idElemento1);
-                filtros.push(new ClausulaDeFiltrado(literal.filtro.vincularCon, atCriterio.restringido, `${idNegocio};${id}`));
+                filtros.push(new ClausulaDeFiltrado(literal.filtro.vincularCon, atCriterio.igual, `${idNegocio};${id}`));
                 break;
             }
             elemento = elemento.parentElement;

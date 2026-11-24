@@ -147,7 +147,7 @@
         }
 
         private ClausulaSegunLoEscrito(): ClausulaDeFiltrado {
-            var propiedad = this.Selector.getAttribute(atSelectorDeFiltro.popiedadBuscar);
+            var propiedad = this.Selector.getAttribute(atSelectorDeFiltro.propiedadBuscar);
             var criterio = this.Selector.getAttribute(atSelectorDeFiltro.criterioBuscar);
             var valor = this.Selector.value.trim();
             var clausula = new ClausulaDeFiltrado(propiedad, criterio, valor);

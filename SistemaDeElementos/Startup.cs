@@ -119,63 +119,10 @@ public class Startup
             services.AddWebOptimizer(pipeline =>
             {
                 var rutaJs = Path.Combine(_env.WebRootPath, "js", Path.DirectorySeparatorChar.ToString());
-                var sourceFiles = new[]
-                {
-                    $"{rutaJs}_Literales{Path.DirectorySeparatorChar}Literales.js",
-                    $"{rutaJs}Mensajes.js",
-                    $"{rutaJs}Diccionario.js",
-                    $"{rutaJs}_TiposDeDatos{Path.DirectorySeparatorChar}TiposDeDatos.js",
-                    $"{rutaJs}_TiposDeDatos{Path.DirectorySeparatorChar}ModoAcceso.js",
-                    $"{rutaJs}Utilidades.js",
-                    $"{rutaJs}InfoSelector.js",
-                    $"{rutaJs}_Api{System.IO.Path.DirectorySeparatorChar}ApiLocalStorage.js",
-                    $"{rutaJs}Registro.js",
-                    $"{rutaJs}Cookies.js",
-                    $"{rutaJs}HistorialDeNavegacion.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeAjax.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeAgenda.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeCertificados.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDePassword.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeInicializacion.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeArchivos.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDragAndDrop.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeListasDinamicas.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDePeticiones.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeMapeos.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeExpansor.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeGrid.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeControles.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiPanel.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeMenuFlotante.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeJerarquia.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}MapearAlPanel.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}MapearAlControl.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeDireccion.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiFlujo.js",
-                    $"{rutaJs}_Api{Path.DirectorySeparatorChar}ApiDeGraficos.js",
-                    $"{rutaJs}ArbolDeMenu.js",
-                    $"{rutaJs}EntornoSe.js",
-                    $"{rutaJs}PanelDeControl.js",
-                    $"{rutaJs}_Formulario{Path.DirectorySeparatorChar}FormularioBase.js",
-                    $"{rutaJs}_Formulario{Path.DirectorySeparatorChar}Jerarquia.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiDelCrud.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiVisorDeArchivos.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiConsultaDeArchivos.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ApiPreguntasIa.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}CrudBase.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}GridDeDatos.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}CrudCreacion.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}CrudEdicion.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}CrudHistorial.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ModalConGrid.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ModalParaRelacionar.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ModalParaImputar.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ModalParaConsultarRelaciones.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ModalParaSeleccionar.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}ModalDeSeleccion.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}CrudMantenimiento.js",
-                    $"{rutaJs}_Crud{Path.DirectorySeparatorChar}GestorDeEventos.js"
-                 };
+                // la lista de scripts está en ListaDeScripts.cs (la misma que usa _Layout.cshtml cuando no se usa el bundle)
+                var sourceFiles = ListaDeScripts.Comunes
+                    .Select(ruta => $"{rutaJs}{ruta.Replace('/', Path.DirectorySeparatorChar)}")
+                    .ToArray();
                 var bundle = $"{rutaJs}bundle.js";
                 pipeline.AddJavaScriptBundle(bundle, new JsSettings(), sourceFiles);
                 GenerarBundleManualmente(_env, bundle, sourceFiles);

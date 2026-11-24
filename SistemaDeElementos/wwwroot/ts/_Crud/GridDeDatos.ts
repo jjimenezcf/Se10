@@ -528,25 +528,25 @@
             return document.getElementById(`cuerpo.pie.${this.IdCuerpoCabecera}`) as HTMLDivElement;
         }
         public get IdNegocio(): number {
-            return Numero(this.CuerpoCabecera.getAttribute(atMantenimniento.idNegocio));
+            return Numero(this.CuerpoCabecera.getAttribute(atMantenimiento.idNegocio));
         }
 
         private _idVista: number = undefined;
         public get IdVista(): number {
             if (!Definido(this._idVista)) {
-                this._idVista = Numero(this.CuerpoCabecera.getAttribute(atMantenimniento.idVista));
+                this._idVista = Numero(this.CuerpoCabecera.getAttribute(atMantenimiento.idVista));
             }
             return this._idVista;
         }
 
         public get NombreDeNegocio() {
-            return this.CuerpoCabecera.getAttribute(atMantenimniento.negocio);
+            return this.CuerpoCabecera.getAttribute(atMantenimiento.negocio);
         }
         public get EnumeradoDeNegocio() {
             return ParsearEnumerado(enumNegocio, this.CuerpoCabecera.getAttribute(literal.enumNegocio));
         }
         public get Dto() {
-            return this.CuerpoCabecera.getAttribute(atMantenimniento.dto);
+            return this.CuerpoCabecera.getAttribute(atMantenimiento.dto);
         }
         private _idHtmlFiltro: string;
         public get PanelFiltro(): HTMLDivElement {
@@ -668,10 +668,10 @@
                 throw Error(`No se puede crear el Crud ${idPanelMnt} la cabecera es nula`);
             if (!Definido(this.CuerpoCabecera))
                 throw Error(`No se puede crear el Crud ${idPanelMnt} la cabecera es nula`);
-            this._controlador = this.CuerpoCabecera.getAttribute(atMantenimniento.controlador);
-            this._idGrid = this.CuerpoCabecera.getAttribute(atMantenimniento.gridDelMnt);
-            this._idHtmlZonaMenu = this.CuerpoCabecera.getAttribute(atMantenimniento.zonaMenu);
-            this._idHtmlFiltro = this.Grid.getAttribute(atMantenimniento.zonaDeFiltro);
+            this._controlador = this.CuerpoCabecera.getAttribute(atMantenimiento.controlador);
+            this._idGrid = this.CuerpoCabecera.getAttribute(atMantenimiento.gridDelMnt);
+            this._idHtmlZonaMenu = this.CuerpoCabecera.getAttribute(atMantenimiento.zonaMenu);
+            this._idHtmlFiltro = this.Grid.getAttribute(atMantenimiento.zonaDeFiltro);
 
             this.Navegador = new Navegador(this.IdGrid);
             this.Ordenacion = new Tipos.Ordenacion();
@@ -1518,7 +1518,7 @@
             parametros.push(new Parametro(Ajax.Param.orden, this.ObtenerOrdenacion()));
             parametros.push(new Parametro(Ajax.Param.ColumnasOpcionales, JSON.stringify(this.ObtenerColumnasOpcionales())));
             parametros.push(new Parametro(Ajax.Param.idVista, this.IdVista))
-            parametros.push(new Parametro(Ajax.Param.Vista, this.EsCrud ? Crud.crudMnt.VistaMvc : ''))
+            parametros.push(new Parametro(Ajax.Param.VistaMvc, this.EsCrud ? Crud.crudMnt.VistaMvc : ''))
             parametros.push(new Parametro(Ajax.Param.descriptor, this.EsCrud ? Crud.crudMnt.Descriptor : ''))
 
             if (accion === atGrid.accion.buscar) {
@@ -1558,7 +1558,7 @@
             const params2 = {
                 [Ajax.Param.idNegocio]: Encriptar(literal.ClaveDeEncriptacion, this.IdNegocio),
                 [Ajax.Param.idVista]: Encriptar(literal.ClaveDeEncriptacion, this.IdVista),
-                [Ajax.Param.peticion]: Encriptar(literal.ClaveDeEncriptacion, ltrMenus.eventosDeMf.Comun.CantidadALeeer)
+                [Ajax.Param.peticion]: Encriptar(literal.ClaveDeEncriptacion, ltrMenus.eventosDeMf.Comun.CantidadALeer)
             };
             const url2 = `/${this.Controlador}/${Ajax.EndPoint.ProcesarPeticion}?${new URLSearchParams(params2)}`;
             await fetch(url2, {
@@ -2143,11 +2143,11 @@
             var idEstadoPatron = ObtenerPropiedad(Crud.crudMnt.InfoSelector.Seleccionados[0].Registro, ltrPropiedades.Elemento.DeProceso.IdEstado);
             for (var i = 1; i < Crud.crudMnt.InfoSelector.Cantidad; i++) {
                 if (idEstadoPatron !== ObtenerPropiedad(Crud.crudMnt.InfoSelector.Seleccionados[i].Registro, ltrPropiedades.Elemento.DeProceso.IdEstado)) {
-                    ApiDeMenuFlotante.HabilitarOpcionMf(document.getElementById(ltrMenus.IdsDeOpcinesMf.idTransitar) as HTMLLIElement, false, ltrMenus.enumOrigen.crud);
+                    ApiDeMenuFlotante.HabilitarOpcionMf(document.getElementById(ltrMenus.IdsDeOpcionesMf.idTransitar) as HTMLLIElement, false, ltrMenus.enumOrigen.crud);
                     return;
                 }
             }
-            ApiDeMenuFlotante.HabilitarOpcionMf(document.getElementById(ltrMenus.IdsDeOpcinesMf.idTransitar) as HTMLLIElement, true, ltrMenus.enumOrigen.crud);
+            ApiDeMenuFlotante.HabilitarOpcionMf(document.getElementById(ltrMenus.IdsDeOpcionesMf.idTransitar) as HTMLLIElement, true, ltrMenus.enumOrigen.crud);
         }
 
         public AplicarModoAccesoAlElemento(elemento: Elemento): void {

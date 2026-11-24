@@ -203,7 +203,7 @@
     export function MostrarPanelDeCreacion() {
         let panelCabecera = (document.getElementsByClassName(ltrCss.crud.cabecera)[0]) as HTMLDivElement;
         let panelDatos = (document.getElementsByClassName(ltrCss.crud.datos)[0]) as HTMLDivElement;
-        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filto)[0]) as HTMLDivElement;
+        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filtro)[0]) as HTMLDivElement;
         let grid = (document.getElementsByClassName(ltrCss.crud.grid.grid)[0]) as HTMLDivElement;
         let panelPie = (document.getElementsByClassName(ltrCss.crud.pie)[0]) as HTMLDivElement;
 
@@ -234,7 +234,7 @@
     export function OcultarPanelDeCreacion() {
         let panelCabecera = (document.getElementsByClassName(ltrCss.crud.cabecera)[0]) as HTMLDivElement;
         let panelDatos = (document.getElementsByClassName(ltrCss.crud.datos)[0]) as HTMLDivElement;
-        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filto)[0]) as HTMLDivElement;
+        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filtro)[0]) as HTMLDivElement;
         let grid = (document.getElementsByClassName(ltrCss.crud.grid.grid)[0]) as HTMLDivElement;
         let panelPie = (document.getElementsByClassName(ltrCss.crud.pie)[0]) as HTMLDivElement;
 
@@ -257,7 +257,7 @@
     export function MostrarPanelDeEdicion() {
         let panelCabecera = (document.getElementsByClassName(ltrCss.crud.cabecera)[0]) as HTMLDivElement;
         let panelDatos = (document.getElementsByClassName(ltrCss.crud.datos)[0]) as HTMLDivElement;
-        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filto)[0]) as HTMLDivElement;
+        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filtro)[0]) as HTMLDivElement;
         let grid = (document.getElementsByClassName(ltrCss.crud.grid.grid)[0]) as HTMLDivElement;
         let panelPie = (document.getElementsByClassName(ltrCss.crud.pie)[0]) as HTMLDivElement;
 
@@ -287,7 +287,7 @@
     export function OcultarPanelDeEdicion() {
         let panelCabecera = (document.getElementsByClassName(ltrCss.crud.cabecera)[0]) as HTMLDivElement;
         let panelDatos = (document.getElementsByClassName(ltrCss.crud.datos)[0]) as HTMLDivElement;
-        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filto)[0]) as HTMLDivElement;
+        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filtro)[0]) as HTMLDivElement;
         let grid = (document.getElementsByClassName(ltrCss.crud.grid.grid)[0]) as HTMLDivElement;
         let panelPie = (document.getElementsByClassName(ltrCss.crud.pie)[0]) as HTMLDivElement;
         let panelCreacion = (document.getElementsByClassName(ltrCss.crud.creacion)[0]) as HTMLDivElement;
@@ -307,7 +307,7 @@
     export function MostrarPanelDeHistorial() {
         let panelCabecera = (document.getElementsByClassName(ltrCss.crud.cabecera)[0]) as HTMLDivElement;
         let panelDatos = (document.getElementsByClassName(ltrCss.crud.datos)[0]) as HTMLDivElement;
-        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filto)[0]) as HTMLDivElement;
+        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filtro)[0]) as HTMLDivElement;
         let grid = (document.getElementsByClassName(ltrCss.crud.grid.grid)[0]) as HTMLDivElement;
         let panelPie = (document.getElementsByClassName(ltrCss.crud.pie)[0]) as HTMLDivElement;
         let panelCreacion = (document.getElementsByClassName(ltrCss.crud.creacion)[0]) as HTMLDivElement;
@@ -327,7 +327,7 @@
     export function OcultarPanelDeHistorial() {
         let panelCabecera = (document.getElementsByClassName(ltrCss.crud.cabecera)[0]) as HTMLDivElement;
         let panelDatos = (document.getElementsByClassName(ltrCss.crud.datos)[0]) as HTMLDivElement;
-        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filto)[0]) as HTMLDivElement;
+        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filtro)[0]) as HTMLDivElement;
         let grid = (document.getElementsByClassName(ltrCss.crud.grid.grid)[0]) as HTMLDivElement;
         let panelPie = (document.getElementsByClassName(ltrCss.crud.pie)[0]) as HTMLDivElement;
         let panelCreacion = (document.getElementsByClassName(ltrCss.crud.creacion)[0]) as HTMLDivElement;
@@ -348,7 +348,7 @@
     export function CambiarPanelActivoDelCrud(modoDeTrabajo: string) {
         let panelCabecera = (document.getElementsByClassName(ltrCss.crud.cabecera)[0]) as HTMLDivElement;
         let panelDatos = (document.getElementsByClassName(ltrCss.crud.datos)[0]) as HTMLDivElement;
-        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filto)[0]) as HTMLDivElement;
+        let filtro = (document.getElementsByClassName(ltrCss.crud.grid.filtro)[0]) as HTMLDivElement;
         let grid = (document.getElementsByClassName(ltrCss.crud.grid.grid)[0]) as HTMLDivElement;
         let panelPie = (document.getElementsByClassName(ltrCss.crud.pie)[0]) as HTMLDivElement;
         let panelCreacion = (document.getElementsByClassName(ltrCss.crud.creacion)[0]) as HTMLDivElement;

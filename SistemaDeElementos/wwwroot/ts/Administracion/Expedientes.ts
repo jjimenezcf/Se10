@@ -112,7 +112,7 @@
     export class CrudEdicionExpediente extends Crud.CrudEdicion {
 
         public get ModalCrearValoraciones(): HTMLDivElement {
-            return document.getElementById(this.IdModalDeCrearDetalle(ltrEspanes.Expedientes.CrearValoracion)) as HTMLDivElement;
+            return document.getElementById(this.IdModalDeCrearDetalle(ltrEspanes.Expedientes.ppts)) as HTMLDivElement;
         }
 
         public get EsUnProcedimientoJudicial(): boolean {

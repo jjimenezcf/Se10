@@ -732,7 +732,7 @@
 
                 if (adjunto) {
 
-                    const urlDeDescarga = `${protocolo}//${dominio}${(IsNullOrEmpty(puerto) ? "" : `:${puerto}`)}/${ltrControladores.Entorno.MiCorreo}/${Ajax.Entorno.MiCorreo.DescargarAdjunto}?idMail=${adjunto.IdMail}&idAdjunto=${encodeURIComponent(adjunto.IdAdjunto)}&idParte=${adjunto.IdParte}`;
+                    const urlDeDescarga = `${protocolo}//${dominio}${(IsNullOrEmpty(puerto) ? "" : `:${puerto}`)}/${ltrControladores.Entorno.MiCorreo}/${Ajax.EndPoint.Entorno.MiCorreo.DescargarAdjunto}?idMail=${adjunto.IdMail}&idAdjunto=${encodeURIComponent(adjunto.IdAdjunto)}&idParte=${adjunto.IdParte}`;
 
                     // Reemplazar el atributo src de la imagen
                     img.setAttribute('src', urlDeDescarga);

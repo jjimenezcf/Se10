@@ -45,7 +45,7 @@
 		<Content Remove="wwwroot\ts\Grid.ts" />
 		<Content Remove="wwwroot\ts\HistorialDeNavegacion.ts" />
 		<Content Remove="wwwroot\ts\InfoSelector.ts" />
-		<Content Remove="wwwroot\ts\_Literales\literales.ts" />
+		<Content Remove="wwwroot\ts\_Literales\**\*.ts" />
 		<Content Remove="wwwroot\ts\Seguridad\ClaseDePermiso.ts" />
 		<Content Remove="wwwroot\ts\Seguridad\Menu.ts" />
 		<Content Remove="wwwroot\ts\Seguridad\Permisos.ts" />

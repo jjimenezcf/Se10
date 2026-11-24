@@ -157,7 +157,7 @@
 
 
         public get ModalCopiarPlfDeVenta(): HTMLDivElement {
-            return document.getElementById(this.IdModalDeCrearDetalle(ltrEspanes.Juridico.Contratos.CopiarPlfDeVenta)) as HTMLDivElement;
+            return document.getElementById(this.IdModalDeCrearDetalle(ltrEspanes.Juridico.Contratos.PlanificadorDeVentas)) as HTMLDivElement;
         }
 
 

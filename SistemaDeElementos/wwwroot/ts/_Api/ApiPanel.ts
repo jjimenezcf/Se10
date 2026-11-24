@@ -30,7 +30,7 @@
             return;
         const barraDeCarga = document.createElement('div');
         barraDeCarga.className = ltrCss.Espan.barra;
-        barraDeCarga.innerHTML = '<div class="' + ltrCss.Espan.animarBarrra + '"></div>';
+        barraDeCarga.innerHTML = '<div class="' + ltrCss.Espan.animarBarra + '"></div>';
         barraDeCarga.id = panel.id + '_' + 'cargando';
         panel.appendChild(barraDeCarga);
     }

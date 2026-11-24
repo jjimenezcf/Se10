@@ -118,8 +118,8 @@
         protected SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
             const siguiente = super.SiguientePropiedadDeAgrupacionDeFichas(this._propiedadDeAgrupacionDeFichas);
             if (!Definido(siguiente)) {
-                if (actual === ttrModoPresentacion.prioridad)
-                    return ttrModoPresentacion.cliente;
+                if (actual === ltrModoPresentacion.prioridad)
+                    return ltrModoPresentacion.cliente;
             }
             return siguiente;
         }

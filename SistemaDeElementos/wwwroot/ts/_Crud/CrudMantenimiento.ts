@@ -65,7 +65,7 @@
         }
 
         public get OpcionTransitar(): boolean {
-            return Definido(document.getElementById(ltrMenus.IdsDeOpcinesMf.idTransitar)) && !this.EsHistorial;
+            return Definido(document.getElementById(ltrMenus.IdsDeOpcionesMf.idTransitar)) && !this.EsHistorial;
         }
 
         public get Guid(): any {
@@ -481,7 +481,7 @@
         private _vista: string = undefined;
         public get VistaMvc(): string {
             if (!Definido(this._vista)) {
-                this._vista = this.CuerpoCabecera.getAttribute(Ajax.Param.Vista);
+                this._vista = this.CuerpoCabecera.getAttribute(Ajax.Param.VistaMvc);
             }
             return this._vista;
         }
@@ -1186,7 +1186,7 @@
         // (si UsaPrioridad) Fichas por Prioridad -> (si UsaProveedor) Fichas por Proveedor -> Tabla.
         // Los pasos entre agrupaciones de fichas no recargan del servidor, solo reagrupan la
         // misma colección ya leída.
-        protected _propiedadDeAgrupacionDeFichas: string = ttrModoPresentacion.estado;
+        protected _propiedadDeAgrupacionDeFichas: string = ltrModoPresentacion.estado;
         private _ultimosRegistrosDeFichas: any[] = null;
 
         // detalle real (LeerPorIdParaEditar) del último elemento único leído vía
@@ -1200,20 +1200,20 @@
 
         // secuencia de agrupaciones que recorre el botón de alternar vista de fichas
         private static readonly _secuenciaDeAgrupacionesDeFichas = [
-            ttrModoPresentacion.estado,
-            ttrModoPresentacion.tipo,
-            ttrModoPresentacion.prioridad,
-            ttrModoPresentacion.proveedor,
-            ttrModoPresentacion.cliente
+            ltrModoPresentacion.estado,
+            ltrModoPresentacion.tipo,
+            ltrModoPresentacion.prioridad,
+            ltrModoPresentacion.proveedor,
+            ltrModoPresentacion.cliente
         ];
 
         private get ModoDePresentacionActual(): string {
             if (!this._vistaDeFichasActiva) return enumModoDePresentacion.Grid;
             switch (this._propiedadDeAgrupacionDeFichas) {
-                case ttrModoPresentacion.tipo: return enumModoDePresentacion.FichasPorTipo;
-                case ttrModoPresentacion.prioridad: return enumModoDePresentacion.FichasPorPrioridad;
-                case ttrModoPresentacion.proveedor: return enumModoDePresentacion.FichasPorProveedor;
-                case ttrModoPresentacion.cliente: return enumModoDePresentacion.FichasPorCliente;
+                case ltrModoPresentacion.tipo: return enumModoDePresentacion.FichasPorTipo;
+                case ltrModoPresentacion.prioridad: return enumModoDePresentacion.FichasPorPrioridad;
+                case ltrModoPresentacion.proveedor: return enumModoDePresentacion.FichasPorProveedor;
+                case ltrModoPresentacion.cliente: return enumModoDePresentacion.FichasPorCliente;
                 default: return enumModoDePresentacion.FichasPorEstado;
             }
         }
@@ -1221,10 +1221,10 @@
         // devuelve la siguiente propiedad de agrupación del ciclo de fichas, o null si toca
         // volver a la tabla (fin del ciclo, o el negocio nusaproo soporta el siguiente paso)
         protected SiguientePropiedadDeAgrupacionDeFichas(actual: string): string {
-            if (actual === ttrModoPresentacion.estado)
-                return ttrModoPresentacion.tipo;
-            if (actual === ttrModoPresentacion.tipo && this._usaPrioridad)
-                return ttrModoPresentacion.prioridad;
+            if (actual === ltrModoPresentacion.estado)
+                return ltrModoPresentacion.tipo;
+            if (actual === ltrModoPresentacion.tipo && this._usaPrioridad)
+                return ltrModoPresentacion.prioridad;
             return null;
         }
 
@@ -1242,7 +1242,7 @@
                 }
             }
             else {
-                this.ActivarVistaDeFichas(ttrModoPresentacion.estado);
+                this.ActivarVistaDeFichas(ltrModoPresentacion.estado);
             }
             this.GuardarModoDePresentacion(this.ModoDePresentacionActual);
         }
@@ -1269,7 +1269,7 @@
 
         private DesactivarVistaDeFichas(): void {
             this._vistaDeFichasActiva = false;
-            this._propiedadDeAgrupacionDeFichas = ttrModoPresentacion.estado;
+            this._propiedadDeAgrupacionDeFichas = ltrModoPresentacion.estado;
             if (Definido(this.IconoVistaDeFichas)) ApiControl.ExcluirCss(this.IconoVistaDeFichas, ltrCss.crud.grid.AlternarVistaFichasPulsada);
             if (Definido(this._contenedorDeFichas)) ApiControl.IncluirCss(this._contenedorDeFichas, ltrCss.divNoVisible);
             ApiControl.ExcluirCss(this.RawContenedorDeTabla, ltrCss.divNoVisible);
@@ -1317,10 +1317,10 @@
 
         private TextoDePropiedadDeAgrupacion(propiedad: string): string {
             switch (propiedad) {
-                case ttrModoPresentacion.tipo: return 'tipo';
-                case ttrModoPresentacion.prioridad: return 'prioridad';
-                case ttrModoPresentacion.proveedor: return 'proveedor';
-                case ttrModoPresentacion.cliente: return 'cliente';
+                case ltrModoPresentacion.tipo: return 'tipo';
+                case ltrModoPresentacion.prioridad: return 'prioridad';
+                case ltrModoPresentacion.proveedor: return 'proveedor';
+                case ltrModoPresentacion.cliente: return 'cliente';
                 default: return 'estado';
             }
         }
@@ -1331,7 +1331,7 @@
 
             const siguiente = this._vistaDeFichasActiva
                 ? this.SiguientePropiedadDeAgrupacionDeFichas(this._propiedadDeAgrupacionDeFichas)
-                : ttrModoPresentacion.estado;
+                : ltrModoPresentacion.estado;
 
             const plural = this.ObtenerPluralParaTituloDeFichas();
             const titulo = Definido(siguiente)
@@ -1408,8 +1408,8 @@
             // las de orden menor quedan más a la izquierda); por Prioridad, de más a menos prioritaria;
             // en el resto de agrupaciones, alfabéticamente.
             const gruposOrdenados = [...grupos.entries()].sort((a, b) => {
-                if (propiedadDeAgrupacion === ttrModoPresentacion.prioridad) return ltrOrdenDePrioridades.indexOf(a[0]) - ltrOrdenDePrioridades.indexOf(b[0]);
-                if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) return a[0].localeCompare(b[0]);
+                if (propiedadDeAgrupacion === ltrModoPresentacion.prioridad) return ltrOrdenDePrioridades.indexOf(a[0]) - ltrOrdenDePrioridades.indexOf(b[0]);
+                if (propiedadDeAgrupacion !== ltrModoPresentacion.estado) return a[0].localeCompare(b[0]);
                 const ordenA = Numero(ObtenerPropiedad(a[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
                 const ordenB = Numero(ObtenerPropiedad(b[1][0], ltrPropiedades.Elemento.DeProceso.OrdenEstado, 0));
                 return ordenA - ordenB;
@@ -1445,7 +1445,7 @@
                     const indiceColorTipo = this.IndiceDeColorPorId(Numero(ObtenerPropiedad(t, ltrPropiedades.Elemento.ConTipo.IdTipo, 0)));
                     const clasesDeColorDePrioridad = this._usaPrioridad ? this.ClasesDeColorDePrioridad(t) : [];
 
-                    if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) {
+                    if (propiedadDeAgrupacion !== ltrModoPresentacion.estado) {
                         // el encolumnado ya agrupa por tipo/prioridad/proveedor, así que el
                         // borde siempre se colorea por el estado del registro.
                         if (indiceColorEstado > 0) ApiControl.IncluirCss(tarjeta, `${ltrCss.filaEstado}-${indiceColorEstado}`);
@@ -1468,7 +1468,7 @@
                     cg.textContent = `CG: ${ObtenerPropiedad(t, 'cg', '')}`;
                     tarjeta.append(cg);
 
-                    if (propiedadDeAgrupacion !== ttrModoPresentacion.tipo) {
+                    if (propiedadDeAgrupacion !== ltrModoPresentacion.tipo) {
                         const tipo = document.createElement('div');
                         tipo.textContent = `Tipo: ${ObtenerPropiedad(t, 'tipo', '')}`;
                         if (indiceColorTipo > 0) ApiControl.IncluirCss(tipo, `${ltrCss.textoFilaEstado}-${indiceColorTipo}`);
@@ -1477,7 +1477,7 @@
 
                     // por Estado la cabecera de columna ya identifica el estado (o no
                     // aplica); por Prioridad y por Proveedor no, así que se añade como campo propio.
-                    if (propiedadDeAgrupacion !== ttrModoPresentacion.estado) {
+                    if (propiedadDeAgrupacion !== ltrModoPresentacion.estado) {
                         const estado = document.createElement('div');
                         estado.textContent = `Estado: ${ObtenerPropiedad(t, ltrPropiedades.Elemento.DeProceso.Estado, '')}`;
                         if (indiceColorEstado > 0) ApiControl.IncluirCss(estado, `${ltrCss.textoFilaEstado}-${indiceColorEstado}`);
@@ -1490,7 +1490,7 @@
 
                     // por Prioridad ya se agrupa por prioridad en la cabecera de columna, así que
                     // no se repite; en el resto de agrupaciones se muestra bajo el nombre si aplica.
-                    if (this._usaPrioridad && propiedadDeAgrupacion !== ttrModoPresentacion.prioridad) {
+                    if (this._usaPrioridad && propiedadDeAgrupacion !== ltrModoPresentacion.prioridad) {
                         const prioridad = document.createElement('div');
                         prioridad.textContent = `Prioridad: ${ObtenerPropiedad(t, 'Prioridad', '')}`;
                         clasesDeColorDePrioridad.forEach((clase) => ApiControl.IncluirCss(prioridad, `texto-${clase}`));
@@ -2451,7 +2451,7 @@
                 return;
             if (this.Navegador.Total > 0)
                 return;
-            if (!EsTrue(this.CuerpoCabecera.getAttribute(atMantenimniento.permiteCrear)))
+            if (!EsTrue(this.CuerpoCabecera.getAttribute(atMantenimiento.permiteCrear)))
                 return;
             this.IraCrear();
         }

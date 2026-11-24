@@ -54,60 +54,11 @@
         }
         else
         {
-            <script src="~/js/_Literales/Literales.js" asp-append-version="true"></script>
-            <script src="~/js/Mensajes.js" asp-append-version="true"></script>
-            <script src="~/js/Diccionario.js" asp-append-version="true"></script>
-            <script src="~/js/_TiposDeDatos/TiposDeDatos.js" asp-append-version="true"></script>
-            <script src="~/js/_TiposDeDatos/ModoAcceso.js" asp-append-version="true"></script>
-            <script src="~/js/Utilidades.js" asp-append-version="true"></script>
-            <script src="~/js/InfoSelector.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiLocalStorage.js" asp-append-version="true"></script>
-            <script src="~/js/Registro.js" asp-append-version="true"></script>
-            <script src="~/js/Cookies.js" asp-append-version="true"></script>
-            <script src="~/js/HistorialDeNavegacion.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeAjax.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeAgenda.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeCertificados.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDePassword.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeInicializacion.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeArchivos.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDragAndDrop.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeListasDinamicas.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDePeticiones.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiFlujo.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeMapeos.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeExpansor.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeGrid.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeControles.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiPanel.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeMenuFlotante.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeJerarquia.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/MapearAlPanel.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/MapearAlControl.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeDireccion.js" asp-append-version="true"></script>
-            <script src="~/js/_Api/ApiDeGraficos.js" asp-append-version="true"></script>
-            <script src="~/js/ArbolDeMenu.js" asp-append-version="true"></script>
-            <script src="~/js/EntornoSe.js" asp-append-version="true"></script>
-            <script src="~/js/_Formulario/FormularioBase.js" asp-append-version="true"></script>
-            <script src="~/js/_Formulario/Jerarquia.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ApiDelCrud.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ApiVisorDeArchivos.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ApiConsultaDeArchivos.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ApiPreguntasIa.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/CrudBase.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/GridDeDatos.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/CrudCreacion.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/CrudEdicion.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/CrudHistorial.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ModalConGrid.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ModalParaRelacionar.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ModalParaImputar.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ModalParaConsultarRelaciones.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ModalParaSeleccionar.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/ModalDeSeleccion.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/CrudMantenimiento.js" asp-append-version="true"></script>
-            <script src="~/js/_Crud/GestorDeEventos.js" asp-append-version="true"></script>
-            <script src="~/js/PanelDeControl.js" asp-append-version="true"></script>
+            @* la lista de scripts está en ListaDeScripts.cs (la misma con la que Startup genera el bundle) *@
+            foreach (var script in MVCSistemaDeElementos.ListaDeScripts.Comunes)
+            {
+                <script src="@Url.Content($"~/js/{script}")" asp-append-version="true"></script>
+            }
         }
     }
 

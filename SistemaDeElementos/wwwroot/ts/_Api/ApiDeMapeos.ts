@@ -1186,10 +1186,10 @@ namespace MapearAlCrud {
 
         if (!restrictor.SoloFiltra) {
             //if (!EsTrue(crud.Estado.Obtener(ClaveDeEstado.soloMapearEnElFiltro))) {
-            if (EsTrue(crud.CuerpoCabecera.getAttribute(atMantenimniento.permiteCrear)))
+            if (EsTrue(crud.CuerpoCabecera.getAttribute(atMantenimiento.permiteCrear)))
                 MapearPanelDeCreacion.MapearRestrictores(crud.crudDeCreacion.PanelDeCrear, restrictor.Propiedad.toLowerCase(), restrictor.Valor, restrictor.Texto);
 
-            if (EsTrue(crud.CuerpoCabecera.getAttribute(atMantenimniento.permiteEditar)))
+            if (EsTrue(crud.CuerpoCabecera.getAttribute(atMantenimiento.permiteEditar)))
                 MapearPanelDeEdicion.MapearRestrictores(crud.crudDeEdicion.PanelDeEditar, restrictor.Propiedad.toLowerCase(), restrictor.Valor, restrictor.Texto);
             //}
         }
