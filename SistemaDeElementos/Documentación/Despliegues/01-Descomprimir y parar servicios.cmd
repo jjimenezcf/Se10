@@ -14,16 +14,21 @@ echo Ejecutando procedimientos almacenados...
 :: Configuración de SQLCMD
 set "SQLCMD=sqlcmd -S .\SQLEXPRESS -E"
 
-:: Ejecución de procedimientos en bases de datos 
+:: Si la cola está ejecutando una pasada (semáforo EJEC) no se puede bloquear: se reintenta cada ESPERA segundos hasta MAX_INTENTOS veces
+set "MAX_INTENTOS=12"
+set "ESPERA=5"
+:: Bases de datos con la cola ya bloqueada: si se aborta se desbloquean para no dejarlas paradas
+set "BLOQUEADAS="
+
+:: Ejecución de procedimientos en bases de datos
 for %%D in (SE_ACROMUR SE_TEST SE_ARKENOS SE_CAIFANTASIA SE_FEMDEK SE_SECIFY SE_FUTURINES AB_ALBERTO_MARTINEZ SE_CEOM SE_INTERIORISMO SE_JHM) do (
     echo Procesando base de datos: %%D
     rem Si un despliegue anterior fallo y dejo la cola bloqueada, se libera antes de volver a bloquearla
     %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Desbloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
     type output_%%D.txt
     findstr /i "ERROR" output_%%D.txt > nul && goto :error
-    %SQLCMD% -d %%D -Q "USE %%D; EXEC [dbo].[Bloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%%D.txt
-    type output_%%D.txt
-    findstr /i "ERROR" output_%%D.txt > nul && goto :error
+    call :BloquearCola %%D || goto :error
+    set "BLOQUEADAS=!BLOQUEADAS! %%D"
 )
 
 echo Todos los procedimientos almacenados se ejecutaron correctamente.
@@ -90,7 +95,25 @@ pause
 exit /b 0
 
 :error
-echo Se produjo un error al ejecutar el procedimiento almacenado. 
-echo Abortando el despliegue. 
+echo Se produjo un error al ejecutar el procedimiento almacenado.
+echo Abortando el despliegue.
+for %%B in (!BLOQUEADAS!) do (
+    echo Desbloqueando la cola de %%B
+    %SQLCMD% -d %%B -Q "USE %%B; EXEC [dbo].[Desbloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result"
+)
 pause
-exit /b 1
+exit /b 1
+
+:: Bloquea la cola de la BD %1; devuelve 1 si tras MAX_INTENTOS sigue sin poder
+:BloquearCola
+set /a INTENTO=0
+:ReintentarBloqueo
+set /a INTENTO+=1
+%SQLCMD% -d %1 -Q "USE %1; EXEC [dbo].[Bloquear_Cola]" | findstr /v "^$" | findstr /v /r "^-*$" | findstr /v "Result" > output_%1.txt
+type output_%1.txt
+findstr /i "ERROR" output_%1.txt > nul || exit /b 0
+if !INTENTO! geq %MAX_INTENTOS% exit /b 1
+echo La cola de %1 esta ejecutando un proceso: se reintenta en %ESPERA% segundos (intento !INTENTO! de %MAX_INTENTOS%)
+:: timeout no admite la entrada redirigida (el desplegador lanza el script con la entrada en NUL)
+powershell -NoProfile -Command "Start-Sleep -Seconds %ESPERA%"
+goto :ReintentarBloqueo
