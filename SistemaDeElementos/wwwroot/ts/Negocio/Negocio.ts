@@ -48,7 +48,7 @@
     }
 
     export function Negocio_DescargarPlantillaDeNegocio(idArchivo: number) {
-        let parametros = `idArchivo=${idArchivo}`;
+        let parametros = `${literal.idArchivo}=${idArchivo}`;
         let descargar: string = `/${ltrControladores.Negocio.PlantillasDeNegocio}/${Ajax.EndPoint.Negocio.PlantillasDeNegocio.DescargarPlantilla}?${parametros}`;
         try {
             EntornoSe.AbrirPestana(descargar);

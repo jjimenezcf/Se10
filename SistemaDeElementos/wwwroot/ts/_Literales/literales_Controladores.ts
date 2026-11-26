@@ -24,7 +24,9 @@ const ltrVistas = {
         Conectar: 'Conectar',
         // página de inicio con el dashboard (no es un crud): nombre de vista con el que se pide su manual (Entorno/Home/PanelDeControl.md)
         PanelDeControl: 'PanelDeControl',
-    }
+    },
+    // vista con la que se pide el manual de las páginas de consulta por guid (acción Consultar de EntidadController; ApiDeManuales.VistaDeConsultaPorGuid)
+    ConsultaPorGuid: 'Consultar'
 }
 
 const ltrControladores = {

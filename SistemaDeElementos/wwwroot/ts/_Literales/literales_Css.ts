@@ -124,6 +124,7 @@ const ltrCss = {
             FiltroSelectorDeArchivos: 'filtro-selector-archivos',
             ProcesarConIa: 'procesar-con-ia',
             PasarOcr: 'pasar-ocr',
+            PreguntameSobre: 'preguntame-sobre',
             ConvertirAPdf: 'convertir-a-pdf',
             EditarTexto: 'editar-texto',
             Acciones: {
@@ -167,7 +168,9 @@ const ltrCss = {
             LineaDelhistorialIa: 'item-historial-ia',
             conversandoIa: 'modal-ia-conversando',
             // modal para editar el texto mostrado en el visor (ApiDeArchivos.AbrirModalDeEditarTexto); el resto de sus clases son las comunes de ltrCss.flujo
-            editarTexto: 'modal-editar-texto'
+            editarTexto: 'modal-editar-texto',
+            // div donde se pinta el archivo en la modal de ver archivo (ApiDeArchivos.AbrirModalDeVerArchivo, ControlesDto.css)
+            contenidoVerArchivo: 'contenido-ver-archivo'
         }
     },
     formulario: {
@@ -298,6 +301,9 @@ const ltrCss = {
     bloquearArchivo: 'bloquear-archivo',
     desbloquearArchivo: 'desbloquear-archivo',
     descargarAnexado: 'descargar-anexado',
+    verArchivoEnModal: 'ver-archivo-en-modal',
+    // cuerpo de las páginas de consulta por guid (DescriptorDePaginaDeConsulta), que se abren sin usuario
+    cuerpoSoloConsulta: 'cuerpo-solo-consulta',
     eliminarSeleccionado: 'eliminar-seleccionado',
     contenedorEdicionCuerpo: 'contenedor-edicion-cuerpo',
     contenedorConMasDeUnControl: 'div-con-mas-propiedades',
@@ -336,6 +342,16 @@ const ltrCss = {
     },
     modalesDeFiltro: {
         conFiltro: 'con-filtro'
+    },
+    CriterioDeTexto: {
+        Contenedor: 'contenedor-criterio-texto',
+        Boton: 'boton-criterio-texto',
+        BotonActivo: 'boton-criterio-texto-activo',
+        Lista: 'lista-criterio-texto',
+        ListaDesplegada: 'lista-criterio-texto-desplegada',
+        Opcion: 'opcion-criterio-texto',
+        OpcionElegida: 'opcion-criterio-texto-elegida',
+        Icono: 'icono-criterio-texto'
     },
     Bloque: {
         Contenedor: 'grid-span'

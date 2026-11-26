@@ -427,7 +427,7 @@ namespace GestoresDeNegocio.Ventas
                     if (filtro.Valor.StartsWith("n:"))
                     {
                         filtro.Clausula = ltrDeUnaFacturaEmt.FiltroPorNumeroDeFactura;
-                        filtro.Valor = filtro.Valor.Substring(2);
+                        filtro.Valor = filtro.Valor.Substring(2).SinSimbolosDeCriterio();
                         return consulta.FiltroPorNumeroFactura(filtros);
                     }
                     filtro.Valor = filtro.Valor.Substring(2);
@@ -446,15 +446,17 @@ namespace GestoresDeNegocio.Ventas
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == nameof(ltrDeUnaFacturaEmt.FiltroPorExprexion).ToLower() && !x.Aplicado);
             if (filtro != null)
             {
-                var numeroDeFactura = filtro.Valor.Split("-");
+                // un número de factura 'año-serie-nº' sin más símbolos se busca como número; si no, por referencia o nombre con el estándar
+                var numeroDeFactura = filtro.Valor.Trim().Split("-");
                 if (numeroDeFactura.Length == 3 && numeroDeFactura[0].EsEntero() && numeroDeFactura[2].EsEntero())
                 {
                     filtro.Clausula = ltrDeUnaFacturaEmt.FiltroPorNumeroDeFactura;
+                    filtro.Valor = filtro.Valor.Trim();
                     return consulta.FiltroPorNumeroFactura(filtros);
                 }
                 else
                 {
-                    consulta = consulta.Where(x => x.Referencia.Contains(filtro.Valor) || x.Nombre.Contains(filtro.Valor));
+                    consulta = consulta.FiltrarPorTexto($"{nameof(FacturaEmtDtm.Referencia)}{Simbolos.separadorDePropiedades}{nameof(FacturaEmtDtm.Nombre)}", filtro.Valor);
                 }
                 filtro.Aplicado = true;
             }
@@ -621,7 +623,8 @@ namespace GestoresDeNegocio.Ventas
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnaFacturaEmt.FiltrarPorNombreCliente.ToLower() && !x.Aplicado);
             if (filtro != null)
             {
-                consulta = consulta.Where(fae => contexto.Set<ClienteDtm>().Any(cliente => cliente.Nombre.Contains(filtro.Valor) && cliente.Id == fae.IdCliente));
+                var clientes = contexto.Set<ClienteDtm>().FiltrarPorTexto(nameof(ClienteDtm.Nombre), filtro.Valor);
+                consulta = consulta.Where(fae => clientes.Any(cliente => cliente.Id == fae.IdCliente));
                 filtro.Aplicado = true;
             }
             return consulta;

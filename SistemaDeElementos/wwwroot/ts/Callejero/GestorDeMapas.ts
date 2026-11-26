@@ -522,7 +522,7 @@ namespace GestorDeMapas {
         btnFiltrar.title = 'Aplicar filtro';
         ApiControl.IncluirCss(btnFiltrar, ltrCss.Modal.BotonSecundario);
         ApiControl.IncluirCss(btnFiltrar, ltrCss.Modal.MostrarDireccion.FiltroBtnAplicar);
-        btnFiltrar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
+        btnFiltrar.innerHTML = ltrSvg.Embudo;
         btnFiltrar.onclick = () => { _aplicarFiltro(idModal); details.removeAttribute('open'); };
 
         grupoFiltro.appendChild(details);

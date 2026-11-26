@@ -25,6 +25,8 @@ namespace Utilidades
         public const string Mensaje_Bloqueado = "Las credencial para el uso de la AI '[ia]' está bloqueada";
         public const string Mensaje_ApiKey_NoDefinida = "La ApiKey para la ia '[ia]' no es válida, actualicela";
         public const string Mensaje_Demasadas_Peticiones = "Demasadas peticiones a la ia '[ia]', actualice a una versión de pago o pruebe más adelante";
+        public const string Mensaje_No_Disponible = "La ia '[ia]' no está disponible en este momento por exceso de demanda, inténtelo más tarde";
+        public const string Mensaje_Sin_Credito = "La ia '[ia]' no tiene crédito o cuota disponible con la ApiKey usada, revise su cuenta o inténtelo más tarde";
 
     }
 

@@ -13,7 +13,9 @@ Toda vista de gestión (por ejemplo "Gestión de facturas emitidas") tiene la mi
 ### ¿Cómo busco un elemento?
 
 1. Escriba en el filtro de texto de la zona de filtro (según la vista busca por nombre, referencia u otros datos: el texto de ayuda del
-   campo lo indica) y pulse Intro.
+   campo lo indica) y pulse Intro. Puede afinar la búsqueda con el botón de criterio que hay a la derecha del campo
+   (contiene, igual, distinto, no contiene, comienza, termina) o con los símbolos `=`, `|`, `%`, `_`, `;` y `!`: vea más abajo *Cómo escribir en los
+   filtros de texto*.
 2. Si necesita más criterios, abra los bloques de filtro (fechas, importes, listas de valores, relaciones con otros elementos...) y
    rellénelos.
 3. Para volver a empezar use, en el menú de filtro, **Blanquear filtros**.

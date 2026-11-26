@@ -119,7 +119,7 @@ namespace MVCSistemaDeElementos.Descriptores
             FiltroDeNombre = new EditorFiltro<TElemento>(padre: b1, etiqueta: nameof(INombre.Nombre), propiedad: ltrFiltros.Nombre, ayuda: "buscar por nombre", new Posicion { fila = usaTipo ? 1 : 0, columna = 0 });
             if (Mnt.Crud.Negocio.UsaReferencia())
             {
-                new EditorFiltro<TElemento>(padre: b1, etiqueta: nameof(IUsaReferenciaDto.Referencia), propiedad: nameof(IUsaReferenciaDto.Referencia), ayuda: $"buscar por referencia (puede buscarpor =) y concatenar usando {Simbolos.separadorDeCadenasDeFiltrado}", new Posicion { fila = usaTipo ? 1 : 0, columna = 1 });
+                new EditorFiltro<TElemento>(padre: b1, etiqueta: nameof(IUsaReferenciaDto.Referencia), propiedad: nameof(IUsaReferenciaDto.Referencia), ayuda: "buscar por referencia",new Posicion { fila = usaTipo ? 1 : 0, columna = 1 });
                 //Mnt.OrdenacionInicial = @$"{nameof(IUsaReferenciaDto.Referencia)}:{nameof(IUsaReferenciaDto.Referencia)}:{enumModoOrdenacion.descendente.Render()}";
             }
             if (NegociosDeSe.UsaBaja(negocioDelDto))
@@ -261,7 +261,7 @@ namespace MVCSistemaDeElementos.Descriptores
                   , nameof(ltrParametrosNeg.QueMostrar)
                   , new Posicion() { fila = 0, columna = 2 });
 
-            var nombreDeEstado = new FiltroConEditor<TElemento>(modal, "Estados", ltrFiltros.Estados, $@"parte del nombre de estados: xxx{Simbolos.separadorDeCadenasDeFiltrado}yyy (si empieza por {Simbolos.filtroPorDistinto} excluye)");
+            var nombreDeEstado = new FiltroConEditor<TElemento>(modal, "Estados", ltrFiltros.Estados, "buscar por nombre de estado");
 
             modal.ControlesDeFiltrado.Add(new FiltroDeListaValoresConNombre<TElemento>(modal, EtapasDeUnProceso, nombreDeEstado));
         }

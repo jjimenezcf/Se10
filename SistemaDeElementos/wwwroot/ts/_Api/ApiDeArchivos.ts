@@ -274,7 +274,7 @@
             const dominio = window.location.hostname;
             const puerto = window.location.port;
             const protocolo = window.location.protocol;
-            const urlDeDescarga = `${protocolo}//${dominio}${(IsNullOrEmpty(puerto) ? "" : `:${puerto}`)}/${ltrControladores.SisDoc.Archivos}/${Ajax.Archivos.accion.DescargaConGuid}?guid=${guid}&id=${idArchivo}`;
+            const urlDeDescarga = `${protocolo}//${dominio}${(IsNullOrEmpty(puerto) ? "" : `:${puerto}`)}/${ltrControladores.SisDoc.Archivos}/${Ajax.Archivos.accion.DescargaConGuid}?${Ajax.Param.guid}=${guid}&id=${idArchivo}`;
                         
             CopiarUrlAlPortapapeles(urlDeDescarga,''); 
 
@@ -1139,17 +1139,17 @@
 
     export function MostrarArchivoAnexado(ctdArchivosAnexados: HTMLDivElement, negocio: string, idElemento: number, archivoDto: any): HTMLDivElement {
         const idArchivo: number = ObtenerPropiedad(archivoDto, ltrPropiedades.Elemento.Id);
-        let parametros = `negocio=${negocio}`;
-        parametros = `${parametros}&idElemento=${idElemento}`;
-        parametros = `${parametros}&idArchivo=${idArchivo}`;
+        let parametros = `${literal.negocio}=${negocio}`;
+        parametros = `${parametros}&${atControl.idElemento}=${idElemento}`;
+        parametros = `${parametros}&${Ajax.Archivos.parametro.idArchivo}=${idArchivo}`;
 
         let accion = Ajax.Archivos.accion.Descargar;
         if (typeof Crud !== 'undefined' && Crud.Consultor) {
-            parametros = `${parametros}&guid=${Crud.Consultor.GuidDeConsulta}`;
+            parametros = `${parametros}&${Ajax.Param.guid}=${Crud.Consultor.GuidDeConsulta}`;
             accion = Ajax.Archivos.accion.DescargarPorGuid;
         }
         else {
-            parametros = `${parametros}&auditar=true`;
+            parametros = `${parametros}&${Ajax.Archivos.parametro.auditar}=true`;
         }
 
         const descargar: string = `/${Ajax.Archivos.controlador}/${accion}?${parametros}`;
@@ -1166,6 +1166,7 @@
             , archivoDto
             , () => ApiDeArchivos.MostrarModalDeCambioDeNombre(ctdArchivosAnexados, negocio, idElemento, idArchivo)
             , () => ApiDeArchivos.DescargarAnexado(idOpcionDescargar, descargar)
+            , () => ApiDeArchivos.AbrirModalDeVerArchivo(ObtenerPropiedad(archivoDto, ltrPropiedades.Elemento.Nombre), idArchivo, negocio, idElemento)
             , () => ApiDeArchivos.QuitarAnexado(ctdArchivosAnexados, idVisorDelArchivo, negocio, idElemento, idArchivo)
             , () => ApiDeArchivos.MostrarModalDeFirma(ctdArchivosAnexados, negocio, idElemento, idArchivo)
             , () => ApiDeArchivos.MostrarModalDeBloqueo(ctdArchivosAnexados, negocio, idElemento, idArchivo));
@@ -1940,12 +1941,12 @@
     export async function EsFicheroJson(nombreNegocio: string, idElemento: number, idArchivo: number): Promise<{ esJson: boolean, json: JSON }> {
         let url = '';
         if (idElemento === 0) {
-            let parametros = `idArchivo=${idArchivo}`;
+            let parametros = `${Ajax.Archivos.parametro.idArchivo}=${idArchivo}`;
             url = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.DescargarParaCrear}?${parametros}`;
         }
         else {
 
-            const parametros = `negocio=${nombreNegocio}&idElemento=${idElemento}&idArchivo=${idArchivo}&auditar=false`;
+            const parametros = `${literal.negocio}=${nombreNegocio}&${atControl.idElemento}=${idElemento}&${Ajax.Archivos.parametro.idArchivo}=${idArchivo}&${Ajax.Archivos.parametro.auditar}=false`;
             url = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.Descargar}?${parametros}`;
         }
         try {
@@ -1982,6 +1983,16 @@
         const cabeceraFormulario = cabeceraCrud ? null :
             document.querySelector(`${cuerpo} .${ltrCss.crud.cabeceraFormulario}[${literal.controlador}][${literal.vista}]`) as HTMLElement;
         const cabecera = cabeceraCrud ?? cabeceraFormulario;
+        // página de consulta por guid (la que reciben los clientes sin usuario): todas comparten el manual Consulta_PorGuid.md y se pide
+        // al controlador de la propia página (el de la ruta); sin el robot de la IA, que necesita un usuario
+        const esConsultaPorGuid = !cabecera && Definido(document.querySelector(`${cuerpo}.${ltrCss.cuerpoSoloConsulta}`));
+        if (esConsultaPorGuid) {
+            const controladorDeConsulta = (typeof Crud !== 'undefined' && Crud.Consultor?.Controlador) || location.pathname.split('/')[1];
+            const tituloDeConsulta = document.title.split(' - ')[0].trim() || 'Consulta';
+            const urlDeConsulta = `/${controladorDeConsulta}/${Ajax.EndPoint.ManualDeLaVista}?vista=${encodeURIComponent(ltrVistas.ConsultaPorGuid)}&titulo=${encodeURIComponent(tituloDeConsulta)}`;
+            AbrirModalDeEditarTexto(`Manual: ${tituloDeConsulta}`, '', true, urlDeConsulta);
+            return;
+        }
         const pagina = cabecera ? null : paginasSinCabecera().find(p => document.querySelector(p.selector));
         if (!cabecera && !pagina) {
             MensajesSe.Info('Esta página no tiene manual de ayuda');
@@ -2015,15 +2026,15 @@
             modal.innerHTML = ltrHtml.Modales.EditarTexto.replace('[titulo]', EscapeHtml(nombreDelArchivo ?? ''));
             if (opciones?.nuevo) {
                 modal.querySelector('h2').textContent = 'Nuevo archivo de texto';
-                (modal.querySelector('#btn-editar-texto-aceptar') as HTMLButtonElement).title = 'Pide el nombre del archivo y lo anexa como un .txt';
+                (modal.querySelector(`#${ltrIdsHtml.EditarTexto.Aceptar}`) as HTMLButtonElement).title = 'Pide el nombre del archivo y lo anexa como un .txt';
             }
             document.body.appendChild(modal);
             // .contenedor-modal está oculta por defecto en CrudModal.css
             modal.style.display = ltrStyle.display.block;
 
-            const editor = modal.querySelector('#editar-texto-contenido') as HTMLTextAreaElement;
-            const btnAceptar = modal.querySelector('#btn-editar-texto-aceptar') as HTMLButtonElement;
-            const btnCerrar = modal.querySelector('#btn-editar-texto-cerrar') as HTMLSpanElement;
+            const editor = modal.querySelector(`#${ltrIdsHtml.EditarTexto.Contenido}`) as HTMLTextAreaElement;
+            const btnAceptar = modal.querySelector(`#${ltrIdsHtml.EditarTexto.Aceptar}`) as HTMLButtonElement;
+            const btnCerrar = modal.querySelector(`#${ltrIdsHtml.EditarTexto.Cerrar}`) as HTMLSpanElement;
             ApiControl.IncluirCss(btnAceptar, ltrCss.Modal.BotonPrincipal);
             if (sinAceptar) {
                 // sólo de consulta: el botón Aceptar se oculta para no confundir y el lápiz de la cabecera pasa a ser una i de información
@@ -2034,14 +2045,14 @@
                 modal.querySelector('h2').textContent = nombreDelArchivo ?? '';
                 const icono = modal.querySelector('svg');
                 if (icono)
-                    icono.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+                    icono.innerHTML = ltrSvg.ContenidoDeInformacion;
             }
 
             if (opciones?.comoSeHace) {
                 const btnIa = document.createElement('button') as HTMLButtonElement;
                 btnIa.type = 'button';
                 btnIa.title = '¿Cómo se hace...? Pregunte a la IA sobre este manual';
-                btnIa.innerHTML = ApiPreguntasIa.SvgRobot;
+                btnIa.innerHTML = ltrSvg.Robot;
                 ApiControl.IncluirCss(btnIa, ltrCss.Modal.BotonIa);
                 const cs = opciones.comoSeHace;
                 btnIa.addEventListener('click', () => ApiPreguntasIa.AbrirModalComoSeHace(cs.controlador, cs.vista, cs.titulo));
@@ -2129,6 +2140,78 @@
             document.addEventListener('keydown', alPulsarUnaTecla, true);
             setTimeout(() => { editor.focus(); editor.setSelectionRange(0, 0); editor.scrollTop = 0; }, 50);
         });
+    }
+
+    // Muestra un archivo anexado en una modal de sólo consulta (botón del ojo de la fila del archivo, sólo en móvil, donde el visor
+    // de la página está oculto). Vale también en la página de consulta por guid (clientes sin usuario). Reutiliza el marco de
+    // ltrHtml.Modales.EditarTexto y pinta el archivo con ApiVisorDeArchivos.RenderizarBlobEnModal sobre un div propio, que se
+    // destruye con la modal: el visor de la página no se toca.
+    export async function AbrirModalDeVerArchivo(nombreDelArchivo: string, idArchivo: number, negocio: string, idElemento: number): Promise<void> {
+        const porGuid = typeof Crud !== 'undefined' && Definido(Crud.Consultor);
+        const url = (endPoint: string, accion?: string): string => {
+            const parametros = new URLSearchParams();
+            parametros.append(literal.negocio, negocio);
+            parametros.append(atControl.idElemento, idElemento.toString());
+            parametros.append(Ajax.Archivos.parametro.idArchivo, idArchivo.toString());
+            if (porGuid)
+                parametros.append(Ajax.Param.guid, Crud.Consultor.GuidDeConsulta);
+            else
+                parametros.append(Ajax.Archivos.parametro.auditar, 'false');
+            if (Definido(accion))
+                parametros.append(literal.accion, accion);
+            return `/${Ajax.Archivos.controlador}/${endPoint}?${parametros}`;
+        };
+
+        const modal = document.createElement('div') as HTMLDivElement;
+        ApiControl.IncluirCss(modal, ltrCss.flujo.contenedorModal);
+        modal.innerHTML = ltrHtml.Modales.EditarTexto.replace('[titulo]', EscapeHtml(nombreDelArchivo ?? ''));
+        modal.querySelector('h2').textContent = nombreDelArchivo ?? '';
+        const icono = modal.querySelector('svg');
+        if (icono)
+            icono.innerHTML = ltrSvg.ContenidoDeInformacion;
+        // ltrCss.flujo.pie son varias clases ("contenido-pie pie-solo-botones"): se busca por la primera
+        const pie = modal.querySelector(`.${ltrCss.flujo.pie.split(' ')[0]}`) as HTMLElement;
+        if (Definido(pie))
+            pie.style.display = ltrStyle.display.none;
+        document.body.appendChild(modal);
+        modal.style.display = ltrStyle.display.block;
+
+        const editor = modal.querySelector(`#${ltrIdsHtml.EditarTexto.Contenido}`) as HTMLTextAreaElement;
+        editor.style.display = ltrStyle.display.none;
+        const visor = document.createElement('div') as HTMLDivElement;
+        ApiControl.IncluirCss(visor, ltrCss.crud.modal.contenidoVerArchivo);
+        visor.innerHTML = 'Cargando...';
+        editor.parentElement.appendChild(visor);
+
+        const cerrar = () => {
+            document.removeEventListener('keydown', alPulsarUnaTecla, true);
+            modal.remove();
+        };
+        const alPulsarUnaTecla = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                cerrar();
+            }
+        };
+        (modal.querySelector(`#${ltrIdsHtml.EditarTexto.Cerrar}`) as HTMLSpanElement).addEventListener('click', cerrar);
+        document.addEventListener('keydown', alPulsarUnaTecla, true);
+
+        try {
+            const respuesta = await fetch(url(porGuid ? Ajax.Archivos.accion.DescargarPorGuid : Ajax.Archivos.accion.Descargar));
+            if (!respuesta.ok)
+                throw new Error(respuesta.statusText);
+            const blob = await respuesta.blob();
+            const renderizado = await ApiVisorDeArchivos.RenderizarBlobEnModal(visor, blob, (accion) =>
+                porGuid
+                    ? url(Ajax.Archivos.accion.DescargarComoHtmlPorGuid, accion)
+                    : `/${Ajax.Archivos.controlador}/${accion}?${Ajax.Archivos.parametro.idArchivo}=${idArchivo}`);
+            if (!renderizado)
+                visor.innerHTML = 'Este archivo no se puede previsualizar, descárguelo';
+        }
+        catch (error) {
+            visor.innerHTML = 'Error al cargar el archivo';
+        }
     }
 
 

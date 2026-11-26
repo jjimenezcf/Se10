@@ -72,8 +72,8 @@ namespace ltrPropiedades {
         IdElemento: atControl.idElemento,
         ModoDeAcceso: literal.ModoDeAcceso,
         EsInterventor: 'esinterventor',
-        IdArchivo: 'idArchivo',
-        Accion: 'accion',
+        IdArchivo: literal.idArchivo,
+        Accion: literal.accion,
         IdCreador: 'idCreador',
         Textos: 'textos',
         FitrarPorBaja: 'filtrarporbaja',
@@ -125,7 +125,7 @@ namespace ltrPropiedades {
             AccionJs: 'accionjs',
             IdRegistro: 'idregistro',
             IdElemento: 'idelemento',
-            Negocio: 'negocio'
+            Negocio: literal.negocio
         },
         Detalle: {
             Titulo: 'titulo'

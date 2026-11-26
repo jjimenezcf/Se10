@@ -180,14 +180,14 @@ namespace ApiVisorDeArchivos {
         MostrarBotonEditarTexto(crud, false);
         let url: string = undefined;
         if (crud.EstoyCreando) {
-            let parametros = `idArchivo=${idArchivo}`;
+            let parametros = `${literal.idArchivo}=${idArchivo}`;
             url = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.DescargarParaCrear}?${parametros}`;
         }
         else {
-            let parametros = `negocio=${crud.NombreDeNegocio}`;
-            parametros = `${parametros}&idElemento=${crud.crudDeEdicion.IdDelElementoDelVisor}`;
-            parametros = `${parametros}&idArchivo=${idArchivo}`;
-            parametros = `${parametros}&auditar=false`;
+            let parametros = `${literal.negocio}=${crud.NombreDeNegocio}`;
+            parametros = `${parametros}&${literal.idElemento}=${crud.crudDeEdicion.IdDelElementoDelVisor}`;
+            parametros = `${parametros}&${literal.idArchivo}=${idArchivo}`;
+            parametros = `${parametros}&${Ajax.Archivos.parametro.auditar}=false`;
             url = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.Descargar}?${parametros}`;
         }
 
@@ -196,7 +196,7 @@ namespace ApiVisorDeArchivos {
             const blob = await response.blob();
             if (!crud.EstoyCreando)
                 ApiControl.ExcluirCss(crud.crudDeEdicion.BotonVisor, ltrCss.crud.panelDeEdicion.Acciones.SinVisor);
-            const renderizado = await RenderizarBlobEnVisor(visor, blob, (accion) => `/${Ajax.Archivos.controlador}/${accion}?idArchivo=${idArchivo}`);
+            const renderizado = await RenderizarBlobEnVisor(visor, blob, (accion) => `/${Ajax.Archivos.controlador}/${accion}?${literal.idArchivo}=${idArchivo}`);
             if (!renderizado) {
                 if (crud.EstoyCreando) {
                     ApiControl.IncluirCss(crud.crudDeCreacion.ContenedorDeDatosMasVisor, ltrCss.crud.panelCreacion.VisorOculto);
@@ -307,6 +307,18 @@ namespace ApiVisorDeArchivos {
         return _textoEditable;
     }
 
+    // Pinta el blob en un visor que no es el de la página (la modal de ver archivo, en móvil) sin tocar el texto editable
+    // del archivo que muestra el visor de la página
+    export async function RenderizarBlobEnModal(visor: HTMLDivElement, blob: Blob, urlDeConversion: (accion: string) => string): Promise<boolean> {
+        const textoDelVisor = _textoEditable;
+        try {
+            return await RenderizarBlobEnVisor(visor, blob, urlDeConversion);
+        }
+        finally {
+            _textoEditable = textoDelVisor;
+        }
+    }
+
     // El lápiz está en la barra del visor y sólo es visible mientras lo renderizado es un texto plano (o un json o un markdown)
     function MostrarBotonEditarTexto(crud: Crud.CrudMnt, mostrar: boolean): void {
         const boton = crud.ContenedorDelVisor?.getElementsByClassName(ltrCss.crud.panelDeEdicion.EditarTexto)[0] as HTMLElement;
@@ -383,6 +395,13 @@ namespace ApiVisorDeArchivos {
             MensajesSe.Error('ProcesarRenderizar', 'Error al analizar la factura, acceda a la consola', error);
             return false;
         }
+    }
+
+    // Robot del visor: abre el diálogo para preguntarle a la IA sobre el archivo que se muestra (en creación, idElemento = 0)
+    export function PreguntarSobreElArchivoMostrado(crud: Crud.CrudMnt, idArchivo: number): void {
+        const input = crud.ContenedorDelVisor.getElementsByClassName(ltrCss.crud.panelDeEdicion.VisorDeNombreAnexados)[0] as HTMLInputElement;
+        const idElemento = crud.EstoyCreando ? 0 : crud.crudDeEdicion.IdDelElementoDelVisor;
+        ApiPreguntasIa.AbrirModalPreguntameSobre(crud.EnumeradoDeNegocio as string, idElemento, idArchivo, input?.value ?? '');
     }
 
     // ─── Funciones privadas de apoyo ─────────────────────────────────────────

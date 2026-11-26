@@ -51,6 +51,16 @@ namespace Utilidades
                 case enumCssMenuDelGrid.menuDelGrid: return "menu-del-grid";
                 case enumCssMenuDelGrid.menuDelGridRaiz: return "menu-del-grid-raiz";
                 case enumCssMenuDelGrid.menuDelGridOpcion: return "menu-del-grid-opcion";
+                case enumCssMenuDelGrid.menuDelGridDisparador: return "menu-del-grid-disparador";
+                case enumCssMenuDelGrid.menuDelGridTexto: return "menu-del-grid-texto";
+                case enumCssMenuDelGrid.iconoBuscar: return "menu-del-grid-icono-buscar";
+                case enumCssMenuDelGrid.iconoSeleccionarTodo: return "menu-del-grid-icono-seleccionar-todo";
+                case enumCssMenuDelGrid.iconoAnularSeleccion: return "menu-del-grid-icono-anular-seleccion";
+                case enumCssMenuDelGrid.iconoSoloSeleccionadas: return "menu-del-grid-icono-solo-seleccionadas";
+                case enumCssMenuDelGrid.iconoAnularOrden: return "menu-del-grid-icono-anular-orden";
+                case enumCssMenuDelGrid.iconoBlanquearFiltros: return "menu-del-grid-icono-blanquear-filtros";
+                case enumCssMenuDelGrid.iconoOrdenInicial: return "menu-del-grid-icono-orden-inicial";
+                case enumCssMenuDelGrid.iconoResetearColumnas: return "menu-del-grid-icono-resetear-columnas";
             }
             throw new Exception($"No se ha definido como renderizar el modo {modo}");
         }
@@ -332,6 +342,7 @@ namespace Utilidades
                 case enumCssControles.DescargarArchivo: return "descargar-anexado";
                 case enumCssControles.ProcesarConIa: return "procesar-con-ia";
                 case enumCssControles.PasarOcr: return "pasar-ocr";
+                case enumCssControles.PreguntameSobre: return "preguntame-sobre";
                 case enumCssControles.CompartirConWhatsApp: return "compartir-con-whatsapp";
                 case enumCssControles.ConvertirAPdf: return "convertir-a-pdf";
                 case enumCssControles.EditarTexto: return "editar-texto";

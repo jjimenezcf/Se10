@@ -189,6 +189,7 @@ namespace MVCSistemaDeElementos.Descriptores
                             <div class=""navegacion-imagenes"">
                                <img id='{idHtmlCuerpoDeCreacion}_img_ia_archivo' class='img-ia' alt=""archivo a analizar"" title=""{crud.Mnt.IaTitulo}"" onclick=""Crud.EventosDeEdicion('{crud.Mnt.IaAccion.Descripcion()}')"">
                                <img id='{idHtmlCuerpoDeCreacion}_img_ocr_archivo' class='img-ocr' alt=""archivo Ocr"" title=""Pasar OCR"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.PasarOcr.Descripcion()}')"">
+                               <button type=""button"" class=""{enumCssControles.PreguntameSobre.Render()} boton-ia-de-modal"" title=""Pregúntame sobre este archivo"" onclick=""Crud.EventosDeEdicion('{enumCssControles.PreguntameSobre.Render()}')"">{IconosIa.Robot}</button>
                              </div>
                              <input type='text' value='' readonly class='{enumCssCreacion.VisorNombreAnexado.Render()}'>
                           </div>

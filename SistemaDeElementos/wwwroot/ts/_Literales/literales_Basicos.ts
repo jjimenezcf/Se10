@@ -17,6 +17,10 @@ const ltrSimbolos = {
     ArchivoCancelado: '(_)',
     subrayado: '_',
     igual: '=',
+    distinto: '!',
+    comienzaTermina: '|',
+    separadorDeAlternativas: ';',
+    separadorDePrefijoDeCampo: ':',
     separadorDeRestrictoresFijos: '~',
     separadorDeEtapas: '|',
     separadorDentroDeUnRestrictorFijo:';'
@@ -32,6 +36,11 @@ const literal = {
     idNegocio: 'id-negocio',
     nombreNegocio: 'nombre-negocio',
     negocio: 'negocio',
+    // Nombres de parámetros y propiedades que se repiten en muchos sitios (peticiones ajax, atributos html, propiedades de los dto):
+    // se definen sólo aquí y el resto de literales los referencian, para poder seguir su pista
+    idElemento: 'idElemento',
+    idArchivo: 'idArchivo',
+    guid: 'guid',
     enumNegocio: 'enumNegocio',
     idCg: 'idcg',
     Cg: 'cg',
@@ -94,6 +103,7 @@ const ltrStyle = {
 const ltrIconos = {
     papelera: 'Papelera.png',
     descargar: 'DescargarArchivo.png',
+    verArchivo: 'verarchivo.svg',
     firmar: 'firmar.svg',
     bloquearArchivo: 'bloqueararchivo.svg',
     desbloquearArchivo: 'desbloqueararchivo.svg'

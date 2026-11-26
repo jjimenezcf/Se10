@@ -84,7 +84,7 @@ namespace Negocio {
                 return;
             }
             const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujo}`
-                + `?negocio=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&estado=${encodeURIComponent(estado)}`;
+                + `?${literal.negocio}=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&estado=${encodeURIComponent(estado)}`;
             window.open(url, '_blank');
         }
 
@@ -109,7 +109,7 @@ namespace Negocio {
             if (idEstado <= 0) return;
 
             const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.LeerEtapas}`
-                      + `?negocio=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&idEstado=${idEstado}`;
+                      + `?${literal.negocio}=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&idEstado=${idEstado}`;
             fetch(url, { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(d => {
@@ -183,7 +183,7 @@ namespace Negocio {
             }
 
             const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.GrabarEtapas}`
-                      + `?negocio=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&idEstado=${idEstado}`;
+                      + `?${literal.negocio}=${encodeURIComponent(this.CrudDeMnt.NombreDeNegocio)}&idEstado=${idEstado}`;
             // mismo formato que EjecutarPeticionPost: encodeURIComponent(JSON.stringify([{parametro, valor}]))
             const body = encodeURIComponent(JSON.stringify([{ parametro: 'etapas', valor: marcadas }]));
             let aviso: string = '';

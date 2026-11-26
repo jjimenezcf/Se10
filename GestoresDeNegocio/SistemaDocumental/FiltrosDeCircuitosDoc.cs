@@ -49,7 +49,9 @@ namespace GestoresDeNegocio.SistemaDocumental
                 }
                 else if (filtro.Valor.ToLower().StartsWith("p:"))
                 {
-                    var preasiento = contexto.Set<PreasientoDtm>().Where(p => p.Referencia.ToLower().Equals(filtro.Valor.Substring(2).Trim().ToLower())).FirstOrDefault();
+                    // la referencia del preasiento se busca exacta: se quitan los símbolos de criterio que pueda traer
+                    var referencia = filtro.Valor.Substring(2).SinSimbolosDeCriterio().ToLower();
+                    var preasiento = contexto.Set<PreasientoDtm>().Where(p => p.Referencia.ToLower().Equals(referencia)).FirstOrDefault();
                     if (preasiento == null)
                         consulta = consulta.Where(lote => false);
                     else

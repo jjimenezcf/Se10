@@ -29,7 +29,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
         public List<ControlHtml> ControlesDelPie = new List<ControlHtml>();
 
-        public bool MostrarPlegado { get; }
+        public bool MostrarPlegado { get; set; }
 
         private bool _renderCabecera = true;
         private bool _renderPie = true;

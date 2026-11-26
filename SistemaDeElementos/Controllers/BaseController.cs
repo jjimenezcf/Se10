@@ -1534,10 +1534,19 @@ namespace MVCSistemaDeElementos.Controllers
         /// Si no hay documentos, el html va vacío y el motivo en la cabecera X-Error-Message (como hace el visor).
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public ContentResult epManualDeLaVista(string vista, string titulo)
         {
             try
             {
+                // Sin usuario sólo se sirve el manual de las páginas de consulta por guid (las que reciben los clientes): los de las demás
+                // vistas son para quien está validado
+                if (User?.Identity?.IsAuthenticated != true && !MVCSistemaDeElementos.UtilidadesIu.ApiDeManuales.EsLaVistaDeConsultaPorGuid(vista))
+                {
+                    Response.Headers["X-Error-Message"] = "Debe iniciar sesion para ver el manual";
+                    return Content(string.Empty, "text/html; charset=utf-8");
+                }
+
                 var webRoot = HttpContext.RequestServices.GetService(typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment)) as Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
                 var controlador = ControllerContext.ActionDescriptor.ControllerName;
                 var markdown = MVCSistemaDeElementos.UtilidadesIu.ApiDeManuales.ManualDeLaVista(webRoot.WebRootPath, controlador, vista, titulo);

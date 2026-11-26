@@ -392,17 +392,24 @@
         color: #fff;
     }
 
+        /* una sola línea: si el título (p. ej. el nombre de un archivo) no cabe, se corta con ... (el título completo va en el tooltip) */
         .grafica-conteo-modal > .grafica-conteo-cabecera .grafica-conteo-titulo {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5em;
+            display: block;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             color: #fff;
-            font-size: 1.15em;
+            font-size: 1em;
             letter-spacing: 0.02em;
         }
 
             .grafica-conteo-modal > .grafica-conteo-cabecera .grafica-conteo-titulo::before {
                 content: '';
+                display: inline-block;
+                vertical-align: middle;
+                margin-right: 0.5em;
                 width: 1.1em;
                 height: 1.1em;
                 opacity: 0.9;

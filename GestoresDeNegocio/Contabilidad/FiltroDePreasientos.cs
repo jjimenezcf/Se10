@@ -1,4 +1,5 @@
 ﻿using GestorDeElementos;
+using GestorDeElementos;
 using GestorDeElementos.Extensores;
 using ModeloDeDto;
 using ServicioDeDatos;
@@ -67,22 +68,24 @@ namespace GestoresDeNegocio.Contabilidad
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPreasiento.NombreCuentaApunte.ToLower() && !x.Aplicado);
             if (filtro != null)
             {
+                // el texto tras el prefijo sigue el estándar de filtrado (símbolos y botón de criterio)
+                var texto = filtro.Valor.Length > 2 ? filtro.Valor.Substring(2).Trim() : "";
                 if (filtro.Valor.ToLower().StartsWith("p:"))
-                    consulta = consulta.Where(f => f.Nombre.ToLower().Contains(filtro.Valor.Substring(2).Trim().ToLower()));
+                    consulta = consulta.FiltrarPorTexto(nameof(PreasientoDtm.Nombre), texto);
                 else if (filtro.Valor.ToLower().StartsWith("c:"))
                 {
-                    var apuntes = contexto.Set<ApunteDeUnPreasientoDtm>().Where(apunte => apunte.Cuenta.Contains(filtro.Valor.Substring(2).Trim()));
+                    var apuntes = contexto.Set<ApunteDeUnPreasientoDtm>().FiltrarPorTexto(nameof(ApunteDeUnPreasientoDtm.Cuenta), texto);
                     consulta = consulta.Where(p => apuntes.Any(apunte => apunte.IdElemento == p.Id));
                 }
                 else if (filtro.Valor.ToLower().StartsWith("r:"))
-                    consulta = consulta.Where(f => f.Referencia.ToLower().Contains(filtro.Valor.Substring(2).Trim().ToLower()));
+                    consulta = consulta.FiltrarPorTexto(nameof(PreasientoDtm.Referencia), texto);
                 else if (filtro.Valor.ToLower().StartsWith("a:"))
                 {
-                    var apuntes = contexto.Set<ApunteDeUnPreasientoDtm>().Where(apunte => apunte.Concepto.ToLower().Contains(filtro.Valor.Substring(2).ToLower().Trim()));
+                    var apuntes = contexto.Set<ApunteDeUnPreasientoDtm>().FiltrarPorTexto(nameof(ApunteDeUnPreasientoDtm.Concepto), texto);
                     consulta = consulta.Where(p => apuntes.Any(apunte => apunte.IdElemento == p.Id));
                 }
                 else
-                    consulta = consulta.Where(f => f.Nombre.ToLower().Contains(filtro.Valor.Substring(2).Trim().ToLower()));
+                    consulta = consulta.FiltrarPorTexto(nameof(PreasientoDtm.Nombre), filtro.Valor.Trim());
                 filtro.Aplicado = true;
             }
 

@@ -8,7 +8,7 @@ const atMenu = {
 };
 
 const atControl = {
-    Guid: 'guid',
+    Guid: literal.guid,
     propiedad: 'propiedad',
     metadatos: 'metadatos',
     mascara: 'pattern',
@@ -22,10 +22,12 @@ const atControl = {
     name: 'name',
     class: 'class',
     criterio: 'criterio-de-filtro',
+    selectorDeCriterio: 'selector-de-criterio',
+    criterioElegido: 'criterio-elegido',
     filtro: 'control-de-filtro',
     tablaDeDatos: 'tabla-de-datos',
     id: literal.id,
-    idElemento: 'idElemento',
+    idElemento: literal.idElemento,
     idVinculado: 'idVinculado',
     crudModal: 'crud-modal',
     propiedadRestrictora: 'propiedad-restrictora',
@@ -356,7 +358,9 @@ const atModalParaImputar = {
 
 const atCriterio = {
     contiene: 'contiene',
+    noContiene: 'noContiene',
     comienza: 'comienza',
+    termina: 'termina',
     igual: literal.filtro.criterio.igual,
     noEstaRelacionado: 'noEstaRelacionado',
     esAlgunoDe: 'esAlgunoDe',

@@ -1354,6 +1354,7 @@ select.form-control:focus::-ms-value {
 }
 
 .descargar-anexado,
+.ver-archivo-en-modal,
 .compartir-con-whatsapp,
 .convertir-a-pdf,
 .editar-texto,
@@ -1364,6 +1365,30 @@ select.form-control:focus::-ms-value {
 .pasar-ocr {
     background: none;
     border: none;
+}
+
+/* Ver el archivo en una modal (ApiDeArchivos.AbrirModalDeVerArchivo): sólo en móvil, donde el visor está oculto */
+/* con la especificidad de ".contenedor-de-opcion > button" (display:flex), que si no gana */
+.contenedor-de-opcion > button.ver-archivo-en-modal {
+    display: none;
+}
+
+@media (max-width: 47.94em) {
+    .contenedor-de-opcion > button.ver-archivo-en-modal {
+        display: flex;
+    }
+}
+
+.ver-archivo-en-modal img {
+    width: 22px;
+    height: 22px;
+}
+
+.contenido-ver-archivo {
+    flex: 1;
+    min-height: 60vh;
+    width: 100%;
+    overflow: auto;
 }
 
 .compartir-con-whatsapp,
@@ -2060,6 +2085,12 @@ a.deshabilitado {
     overflow: visible !important;
 }
 
+/* Fuera del móvil el contenedor del grupo no cuenta: sus controles quedan directamente en la celda, como si no estuviera (si no, el grupo
+   sería un solo hijo de .div-con-mas-propiedades y sus controles se apilarían en vez de ir en la misma fila: año, serie y número) */
+.grupo-en-fila-movil {
+    display: contents;
+}
+
 /* Agrupa en fila horizontal en móvil los controles marcados con AgruparEnFilaEnMovil */
 @media (max-width: 47.94em) {
     .grupo-en-fila-movil {
@@ -2115,4 +2146,82 @@ a.deshabilitado {
         .div-tr.dto-tr:has(> .td-en-fila-movil) > .td-en-fila-movil {
             flex: 1 1 30%;
         }
+}
+
+/* botón de criterio de los editores de texto del filtro (ApiDeCriterioDeTexto.ts) */
+.contenedor-criterio-texto {
+    position: relative;
+}
+
+    .contenedor-criterio-texto > input {
+        padding-right: 2.2em;
+    }
+
+.boton-criterio-texto {
+    position: absolute;
+    right: calc(0.7em + 1px);
+    top: 1px;
+    bottom: 1px;
+    min-width: 1.9em;
+    padding: 0 0.3em;
+    border: none;
+    border-left: 1px solid #dee2e6;
+    border-radius: 0 0.25rem 0.25rem 0;
+    background: #f8f9fa;
+    color: #6c757d;
+    font-size: 0.85em;
+    line-height: 1;
+    cursor: pointer;
+}
+
+    .boton-criterio-texto:hover {
+        background: #e9ecef;
+        color: #212529;
+    }
+
+.boton-criterio-texto-activo {
+    background: #e7f1ff;
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.lista-criterio-texto {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    min-width: 11em;
+    padding: 0.25em 0;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 0.9em;
+}
+
+.lista-criterio-texto-desplegada {
+    display: block;
+}
+
+.opcion-criterio-texto {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.35em 0.8em;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+    .opcion-criterio-texto:hover {
+        background: #e9ecef;
+    }
+
+.opcion-criterio-texto-elegida {
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+.icono-criterio-texto {
+    display: inline-block;
+    min-width: 1.6em;
+    text-align: center;
 }

@@ -77,45 +77,7 @@ namespace PanelDeControl {
 
     const MODOS_DISPONIBLES: ModoVista[] = ['matriz', 'tartas', 'barras'];
 
-    // ─── Iconos SVG ───────────────────────────────────────────────────────────
-
-    const SVG_TARTA = `<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor">
-        <circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M7,7 L7,1 A6,6 0,0,1 13,7 Z" opacity="0.85"/>
-        <path d="M7,7 L13,7 A6,6 0,0,1 3.5,12.2 Z" opacity="0.55"/>
-        <path d="M7,7 L3.5,12.2 A6,6 0,0,1 1,7 Z" opacity="0.35"/>
-    </svg>`;
-
-    const SVG_BARRAS = `<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor">
-        <rect x="1"   y="7"  width="3" height="6"/>
-        <rect x="5.5" y="4"  width="3" height="9"/>
-        <rect x="10"  y="1"  width="3" height="12"/>
-        <line x1="1" y1="13" x2="13" y2="13" stroke="currentColor" stroke-width="1"/>
-    </svg>`;
-
-    const SVG_MATRIZ = `<svg width="13" height="13" viewBox="0 0 15 15" fill="currentColor">
-        <rect x="1" y="1" width="4" height="4" opacity="0.9"/>
-        <rect x="6" y="1" width="4" height="4" opacity="0.5"/>
-        <rect x="1" y="6" width="4" height="4" opacity="0.5"/>
-        <rect x="6" y="6" width="4" height="4" opacity="0.9"/>
-        <rect x="11" y="1" width="3" height="12" opacity="0.25"/>
-        <rect x="1" y="11" width="12" height="3" opacity="0.25"/>
-    </svg>`;
-
-    // robot con antenas: pregunta a la IA (el ? queda para la ayuda del proceso)
-    // (definido en ApiPreguntasIa para usarlo también en la modal del manual de una vista). Se lee al pintar las tarjetas, no al cargar
-    // el script: en el bundle.js publicado PanelDeControl va antes que ApiPreguntasIa y leerlo aquí rompía la carga de toda la aplicación
-    const SvgRobot = (): string => ApiPreguntasIa.SvgRobot;
-
-    const SVG_FLECHA_DER = `<svg width="10" height="10" viewBox="0 0 10 10"
-        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="3,1 7,5 3,9"/>
-    </svg>`;
-
-    const SVG_FLECHA_IZQ = `<svg width="10" height="10" viewBox="0 0 10 10"
-        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="7,1 3,5 7,9"/>
-    </svg>`;
+    // Los iconos SVG están en ltrSvg (_Literales/literales_Svg.ts)
 
     // ─── Entrada pública ──────────────────────────────────────────────────────
 
@@ -195,21 +157,21 @@ namespace PanelDeControl {
             const btnPregunta = document.createElement('button');
             btnPregunta.className = css.GraficaPreguntar;
             btnPregunta.title = 'Hacer una pregunta';
-            btnPregunta.innerHTML = SvgRobot();
+            btnPregunta.innerHTML = ltrSvg.Robot;
             ApiPreguntasIa.InyectarConteoIA(negocio.enumerado, negocio.nombre, btnPregunta, negocio.url);
 
             // ── → Mover derecha ──
             const btnDer = document.createElement('button');
             btnDer.className = `${css.GraficaMover} ${css.GraficaMoverDer}`;
             btnDer.title = 'Mover a la derecha';
-            btnDer.innerHTML = SVG_FLECHA_DER;
+            btnDer.innerHTML = ltrSvg.FlechaDerecha;
             btnDer.addEventListener('click', () => MoverTarjeta(tarjeta, 'derecha'));
 
             // ── ← Mover izquierda ──
             const btnIzq = document.createElement('button');
             btnIzq.className = `${css.GraficaMover} ${css.GraficaMoverIzq}`;
             btnIzq.title = 'Mover a la izquierda';
-            btnIzq.innerHTML = SVG_FLECHA_IZQ;
+            btnIzq.innerHTML = ltrSvg.FlechaIzquierda;
             btnIzq.addEventListener('click', () => MoverTarjeta(tarjeta, 'izquierda'));
 
             // ── Título (enlace si hay url, texto plano si no) ──
@@ -266,7 +228,7 @@ namespace PanelDeControl {
     // Abre la modal de edición de texto mostrando, ya renderizados como html (igual que el visor de archivos), los documentos de ayuda
     // (wwwroot/ayuda/procesos/{negocio}) fusionados en uno. Aceptar queda deshabilitado: es sólo para consultar, no se graba nada.
     function MostrarAyudaDelNegocio(negocio: DatosDeNegocio): void {
-        const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelNegocio}?negocio=${encodeURIComponent(negocio.enumerado)}`;
+        const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelNegocio}?${literal.negocio}=${encodeURIComponent(negocio.enumerado)}`;
         ApiDeArchivos.AbrirModalDeEditarTexto(`Ayuda de ${negocio.nombre}`, '', true, url);
     }
 
@@ -312,17 +274,17 @@ namespace PanelDeControl {
     function ponerIconoModo(btn: HTMLButtonElement, modoActual: ModoVista) {
         switch (modoActual) {
             case 'matriz':
-                btn.innerHTML = SVG_TARTA;
+                btn.innerHTML = ltrSvg.Tarta;
                 btn.title = 'Ver diagramas de tarta';
                 btn.dataset.siguienteModo = 'tartas';
                 break;
             case 'tartas':
-                btn.innerHTML = SVG_BARRAS;
+                btn.innerHTML = ltrSvg.Barras;
                 btn.title = 'Ver gráficas de barras';
                 btn.dataset.siguienteModo = 'barras';
                 break;
             case 'barras':
-                btn.innerHTML = SVG_MATRIZ;
+                btn.innerHTML = ltrSvg.Matriz;
                 btn.title = 'Ver como matriz';
                 btn.dataset.siguienteModo = 'matriz';
                 break;

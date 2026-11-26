@@ -19,6 +19,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Tipo = enumTipoControl.Editor;
             Criterio = enumCriteriosDeFiltrado.contiene;
+            ConSelectorDeCriterio = true;
 
             if (padre is BloqueDeFitro<TElemento>)
             {

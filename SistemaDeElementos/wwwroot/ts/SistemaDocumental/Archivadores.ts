@@ -241,7 +241,7 @@
 
         protected async LeerVinculosAl(idArchivo: number) {
             super.LeerVinculosAl(idArchivo);
-            let parametros = `idArchivo=${idArchivo}`;
+            let parametros = `${literal.idArchivo}=${idArchivo}`;
             const url = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.LeerVinculosAl}?${parametros}`;
 
             try {
@@ -337,7 +337,7 @@
                 else MensajesSe.Error('NavegarAFacturas', 'No se ha localizado la factura asociada');
             }
             else {
-                urlDestino = urlDestino + `?${ltrClaveDeEstado.paraqueNavegar}=${enumParaQueNavegar.crear}&idArchivo=${this.IdDelUltimoArchivoRenderizado}`;
+                urlDestino = urlDestino + `?${ltrClaveDeEstado.paraqueNavegar}=${enumParaQueNavegar.crear}&${literal.idArchivo}=${this.IdDelUltimoArchivoRenderizado}`;
             }
             EntornoSe.AbrirPestana(urlDestino);
         }

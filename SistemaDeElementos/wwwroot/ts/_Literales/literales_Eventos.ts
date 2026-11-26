@@ -190,6 +190,7 @@ const ltrEventos = {
         ConsultarConGuid: 'consultar-con-guid',
         ResumirArchivo: 'resumir-archivo',
         PasarOcr: ltrCss.crud.panelDeEdicion.PasarOcr,
+        PreguntameSobre: ltrCss.crud.panelDeEdicion.PreguntameSobre,
         FacturasRec: {
             Analizar: 'analizar-factura',
         }
@@ -253,6 +254,7 @@ const ltrEventos = {
     },
     Archivo: {
         Descargar: 'boton-descargar',
+        Ver: 'boton-ver',
         Eliminar: 'boton-eliminar',
         Firmar: 'boton-firmar',
         Bloquear: 'boton-bloquear',

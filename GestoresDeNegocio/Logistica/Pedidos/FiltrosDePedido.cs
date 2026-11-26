@@ -283,15 +283,19 @@ namespace GestoresDeNegocio.Logistica
             var filtro = filtros.FirstOrDefault(x => x.Clausula.ToLower() == ltrDeUnPedido.FiltroPorPedidoReferencia.ToLower() && !x.Aplicado);
             if (filtro != null)
             {
+                // el texto tras el prefijo sigue el estándar de filtrado (símbolos y botón de criterio)
+                var texto = filtro.Valor.Length > 2 ? filtro.Valor.Substring(2).Trim() : "";
                 if (filtro.Valor.ToLower().StartsWith("n:"))
-                    consulta = consulta.Where(p => p.Nombre.ToLower().Contains(filtro.Valor.Substring(2).Trim().ToLower()));
+                    consulta = consulta.FiltrarPorTexto(nameof(PedidoDtm.Nombre), texto);
                 else if (filtro.Valor.ToLower().StartsWith("r:"))
-                    consulta = consulta.Where(p => p.Referencia.ToLower().Contains(filtro.Valor.Substring(2).Trim().ToLower()));
+                    consulta = consulta.FiltrarPorTexto(nameof(PedidoDtm.Referencia), texto);
                 else if (filtro.Valor.ToLower().StartsWith("p:"))
-                    consulta = consulta.Where(p => contexto.Set<ProveedorDtm>().Any(prv => prv.Nombre.ToLower().Contains(filtro.Valor.Substring(2).Trim().ToLower()) && p.IdProveedor == prv.Id));
+                {
+                    var proveedores = contexto.Set<ProveedorDtm>().FiltrarPorTexto(nameof(ProveedorDtm.Nombre), texto);
+                    consulta = consulta.Where(p => proveedores.Any(prv => p.IdProveedor == prv.Id));
+                }
                 else
-                    consulta = consulta.Where(p => p.Nombre.ToLower().Contains(filtro.Valor.ToLower())
-                     || p.Referencia.ToLower().Contains(filtro.Valor.ToLower()));
+                    consulta = consulta.FiltrarPorTexto($"{nameof(PedidoDtm.Nombre)}{Simbolos.separadorDePropiedades}{nameof(PedidoDtm.Referencia)}", filtro.Valor.Trim());
                 filtro.Aplicado = true;
             }
 

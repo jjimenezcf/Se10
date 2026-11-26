@@ -148,31 +148,41 @@ namespace ApiPreguntasIa {
         return ltrHtml.Divs.PreguntasIa.replace('[PreguntasIa]', recientes.map(q => `<div class='${ltrCss.crud.modal.LineaDelhistorialIa}' title='${q.pregunta.replace(/"/g, '&quot;')}'>${q.pregunta}</div>`).join(''));
     }
 
-    // Robot verde de "preguntar a la IA" (fichas del panel de control y modal del manual de una vista)
-    export const SvgRobot = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-        stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" y1="1.8" x2="6.2" y2="4"/>
-        <line x1="11" y1="1.8" x2="9.8" y2="4"/>
-        <circle cx="5" cy="1.6" r="0.7" fill="currentColor" stroke="none"/>
-        <circle cx="11" cy="1.6" r="0.7" fill="currentColor" stroke="none"/>
-        <rect x="2.5" y="4" width="11" height="9.5" rx="2.2"/>
-        <circle cx="6" cy="8" r="1.1" fill="currentColor" stroke="none"/>
-        <circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none"/>
-        <line x1="6" y1="11.2" x2="10" y2="11.2"/>
-    </svg>`;
-
     // ─── ¿Cómo se hace...? sobre el manual de una vista ─────────────────────
     // Se abre con el robot de la modal del manual (ApiDeArchivos.MostrarManualDeLaVista). Mismo diálogo que el de las fichas del
     // panel de control (clases grafica-conteo-*), pero la pregunta va a Archivos/epComoSeHace, que le pasa a la IA del usuario el
     // manual de la vista (lo monta el servidor con el controlador y la vista) junto con la pregunta.
     export function AbrirModalComoSeHace(controlador: string, vista: string, titulo: string): void {
+        AbrirModalDePregunta(`¿Cómo se hace...? ${titulo}`, '¿Cómo se hace...? p.ej.: ¿cómo registro un cobro?', Ajax.Archivos.accion.ComoSeHace, [
+            [literal.controlador, controlador],
+            [literal.vista, vista],
+            [Ajax.Param.Titulo, titulo]
+        ]);
+    }
+
+    // ─── Pregúntame sobre el archivo mostrado en el visor ───────────────────
+    // Se abre con el robot que hay junto al OCR del visor (CrudEdicion/CrudCreacion.PreguntameSobre). Mismo diálogo que "¿Cómo se hace...?",
+    // pero la pregunta va a Archivos/epPreguntameSobre, que le pasa a la IA del usuario el texto del archivo (idArchivo) y la pregunta.
+    // Con idElemento = 0 el archivo es uno suelto del usuario (se está creando el elemento).
+    export function AbrirModalPreguntameSobre(negocio: string, idElemento: number, idArchivo: number, nombreDelArchivo: string): void {
+        AbrirModalDePregunta(`Pregúntame sobre ${nombreDelArchivo}`, 'Pregunte sobre el archivo, p.ej.: ¿cuál es el importe total?', Ajax.Archivos.accion.PreguntameSobre, [
+            [literal.negocio, negocio],
+            [atControl.idElemento, idElemento.toString()],
+            [Ajax.Archivos.parametro.idArchivo, idArchivo.toString()]
+        ]);
+    }
+
+    function AbrirModalDePregunta(titulo: string, placeholder: string, accion: string, campos: Array<[string, string]>): void {
         const css = ltrCss.PanelDeControl.Conteo;
         const ids = ltrIdsHtml.ComoSeHace;
         const overlay = document.createElement('div') as HTMLDivElement;
         ApiControl.IncluirCss(overlay, css.Overlay);
         ApiControl.IncluirCss(overlay, css.SobreModal);
         overlay.innerHTML = ltrHtml.Modales.ComoSeHace;
-        (overlay.querySelector(`.${css.Titulo}`) as HTMLDivElement).textContent = `¿Cómo se hace...? ${titulo}`;
+        const divTitulo = overlay.querySelector(`.${css.Titulo}`) as HTMLDivElement;
+        divTitulo.textContent = titulo;
+        divTitulo.title = titulo;
+        (overlay.querySelector(`#${ids.Pregunta}`) as HTMLTextAreaElement).placeholder = placeholder;
         document.body.appendChild(overlay);
         setTimeout(() => ApiControl.IncluirCss(overlay, ltrCss.Modal.FadeIn), 10);
 
@@ -219,17 +229,16 @@ namespace ApiPreguntasIa {
             const timer = setInterval(() => spanSeg.textContent = String(++segundos), 1000);
 
             const datos = new FormData();
-            datos.append(literal.controlador, controlador);
-            datos.append(literal.vista, vista);
-            datos.append(Ajax.Param.Titulo, titulo);
+            campos.forEach(([nombre, valor]) => datos.append(nombre, valor));
             datos.append(Ajax.Param.Pregunta, pregunta);
-            fetch(`/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.ComoSeHace}`, { method: 'POST', body: datos })
+            fetch(`/${Ajax.Archivos.controlador}/${accion}`, { method: 'POST', body: datos })
                 .then(r => r.json())
                 .then((resultado: any) => {
-                    const ok = resultado?.estado === 'Ok' || resultado?.estado === 0;
+                    const estado = ObtenerPropiedad(resultado, ltrResultado.estado);
+                    const ok = estado === 'Ok' || estado === 0;
                     divRespuesta.textContent = ok
-                        ? (resultado.datos ?? '(sin respuesta)')
-                        : `Error: ${resultado?.mensaje ?? 'respuesta desconocida'}`;
+                        ? (ObtenerPropiedad(resultado, ltrResultado.datos) ?? '(sin respuesta)')
+                        : `Error: ${ObtenerPropiedad(resultado, ltrResultado.mensaje) ?? 'respuesta desconocida'}`;
                 })
                 .catch(err => divRespuesta.textContent = `Error de red: ${err}`)
                 .finally(() => {
@@ -419,13 +428,14 @@ namespace ApiPreguntasIa {
         })
         .then(r => r.json())
         .then((resultado: any) => {
-            if (resultado?.estado === 'Ok' || resultado?.estado === 0) {
-                const datos = resultado.datos;
+            const estado = ObtenerPropiedad(resultado, ltrResultado.estado);
+            if (estado === 'Ok' || estado === 0) {
+                const datos = ObtenerPropiedad(resultado, ltrResultado.datos);
                 const texto    = datos?.texto   ?? datos ?? '(sin respuesta)';
                 const filtros  = datos?.filtrosIa ?? null;
                 onResultado(texto, filtros);
             } else {
-                onResultado(`Error: ${resultado?.mensaje ?? 'respuesta desconocida'}`, null);
+                onResultado(`Error: ${ObtenerPropiedad(resultado, ltrResultado.mensaje) ?? 'respuesta desconocida'}`, null);
             }
         })
         .catch(err => onResultado(`Error de red: ${err}`, null));

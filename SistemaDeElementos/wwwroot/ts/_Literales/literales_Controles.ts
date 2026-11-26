@@ -313,3 +313,14 @@ const ltrCrud = {
         }
     }
 }
+
+// Opciones del botón de criterio de los editores de texto del filtro (ApiDeCriterioDeTexto), en el orden en que se muestran.
+// El primero es el criterio por defecto: con él el valor se envía tal cual
+const ltrCriteriosDeTexto = [
+    { criterio: atCriterio.contiene, icono: '⊃', titulo: 'Contiene' },
+    { criterio: atCriterio.igual, icono: '=', titulo: 'Igual a' },
+    { criterio: atCriterio.diferente, icono: '≠', titulo: 'Distinto de' },
+    { criterio: atCriterio.noContiene, icono: '⊅', titulo: 'No contiene' },
+    { criterio: atCriterio.comienza, icono: 'a…', titulo: 'Comienza por' },
+    { criterio: atCriterio.termina, icono: '…z', titulo: 'Termina en' }
+];

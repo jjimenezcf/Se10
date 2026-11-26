@@ -74,7 +74,7 @@ namespace ltrPropiedades {
             }
         },
         Archivo: {
-            idArchivo: 'idArchivo',
+            idArchivo: literal.idArchivo,
             idOriginal: 'idoriginal',
             EstaBloqueado: 'EstaBloqueado',
             EsDeUnArchivadorVinculado: 'EsDeUnArchivadorVinculado',
@@ -99,7 +99,7 @@ namespace ltrPropiedades {
             Archivador: 'archivador'
         },
         Bloqueo: {
-            idArchivo: 'idArchivo',
+            idArchivo: literal.idArchivo,
             Motivo: 'Motivo',
             Auditoria: 'Auditoria'
         }

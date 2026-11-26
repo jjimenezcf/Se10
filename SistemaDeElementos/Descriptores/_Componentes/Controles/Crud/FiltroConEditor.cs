@@ -19,6 +19,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             Tipo = enumTipoControl.FiltroConEditor;
             Criterio = enumCriteriosDeFiltrado.contiene;
+            ConSelectorDeCriterio = true;
             BuscarPor = propiedad;
             MostrarEtiqueta = renderEtiqueta;
 
@@ -71,7 +72,7 @@ namespace MVCSistemaDeElementos.Descriptores
 
             var htmlEditorTexto = PlantillasHtml.Render(PlantillasHtml.editorFlt, valores);
 
-            htmlEditorTexto = htmlEditorTexto.Replace("[onBlur]", "");
+            htmlEditorTexto = htmlEditorTexto.Replace("[onBlur]", AtributoDelSelectorDeCriterio);
             htmlEditorTexto = htmlEditorTexto.Replace($"style = '[Estilos]'", "");
             htmlEditorTexto = htmlEditorTexto.Replace($"valor-de-defecto='[ValorPorDefecto]'", ValorPorDefecto.IsNullOrEmpty() ? "" : $"valor-de-defecto='{ValorPorDefecto}'");
             htmlEditorTexto = htmlEditorTexto.Replace($"[{nameof(IUPropiedadAttribute.Formato)}]", "");

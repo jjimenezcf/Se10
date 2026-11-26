@@ -1446,7 +1446,19 @@ namespace Utilidades
     {
         menuDelGrid,
         menuDelGridRaiz,
-        menuDelGridOpcion
+        menuDelGridOpcion,
+        // disparador del menú (icono de menú + texto "Opciones", que se oculta si no cabe) y su texto
+        menuDelGridDisparador,
+        menuDelGridTexto,
+        // icono de cada opción (Grid.css)
+        iconoBuscar,
+        iconoSeleccionarTodo,
+        iconoAnularSeleccion,
+        iconoSoloSeleccionadas,
+        iconoAnularOrden,
+        iconoBlanquearFiltros,
+        iconoOrdenInicial,
+        iconoResetearColumnas
     }
 
 
@@ -1543,6 +1555,7 @@ namespace Utilidades
         DescargarArchivo,
         ProcesarConIa,
         PasarOcr,
+        PreguntameSobre,
         CompartirConWhatsApp,
         ConvertirAPdf,
         EditarTexto,

@@ -1156,6 +1156,7 @@
             ApiDeInicializacion.Checkes(div);
             ApiDeInicializacion.ListasDeValores(div, false);
             this.InicializarSelectores(div);
+            ApiDeCriterioDeTexto.Inicializar(div);
         }
 
         protected EditarRegistro() {

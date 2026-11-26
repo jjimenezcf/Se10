@@ -1017,6 +1017,7 @@ namespace MapearAlDiccionario {
             let tipo = controles[i].getAttribute(atControl.tipo);
             switch (tipo) {
                 case ltrTipoControl.Editor: guardarEditor(control as HTMLInputElement, filtrosDeIu); break;
+                case ltrTipoControl.ConEditor: guardarEditor(control as HTMLInputElement, filtrosDeIu); break;
                 case ltrTipoControl.Check: guardarCheck(control as HTMLInputElement, filtrosDeIu); break;
                 case ltrTipoControl.ListaDinamica: guardarListaDinamica(control as HTMLInputElement, filtrosDeIu); break;
                 case ltrTipoControl.ListaDeElementos: guardarListaDeElementos(control as HTMLSelectElement, filtrosDeIu); break;
@@ -1042,7 +1043,8 @@ namespace MapearAlDiccionario {
         if (IsNullOrEmpty(control.value))
             return;
         let filtro = new Tipos.Filtro(control.id, ltrTipoControl.Editor);
-        filtro.Atributos.Agregar(atControl.valorInput, control.value);
+        // se guarda con los símbolos del criterio elegido; al restaurarlo, ApiDeCriterioDeTexto.MapearValor los quita y fija el botón
+        filtro.Atributos.Agregar(atControl.valorInput, ApiDeCriterioDeTexto.ValorConCriterio(control));
         filtros.push(filtro);
     }
     function guardarCheck(control: HTMLInputElement, filtros: Array<Tipos.Filtro>): void {

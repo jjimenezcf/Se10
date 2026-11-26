@@ -546,10 +546,7 @@ public class ArchivosController : EntidadController<ContextoSe, ArchivoDtm, Arch
         }
         catch (Exception e)
         {
-            if (e.Message.Contains("API key not valid"))
-                GestorDeErrores.Emitir(ltrIa.Mensaje_ApiKey_NoDefinida.Replace("[ia]", iaUsada.Nombre));
-            if (e.Message.Contains("Too Many Request"))
-                GestorDeErrores.Emitir(ltrIa.Mensaje_Demasadas_Peticiones.Replace("[ia]", iaUsada.Nombre)); 
+            ExtensorDeIa.EmitirSiEsUnErrorConocido(e, iaUsada.Nombre);
             throw;
         }
 
@@ -936,10 +933,76 @@ Responde en español a su pregunta usando sólo el manual que se adjunta:
             }
             catch (Exception e)
             {
-                if (e.Message.Contains("API key not valid"))
-                    GestorDeErrores.Emitir(ltrIa.Mensaje_ApiKey_NoDefinida.Replace("[ia]", iaUsada.Nombre));
-                if (e.Message.Contains("Too Many Request"))
-                    GestorDeErrores.Emitir(ltrIa.Mensaje_Demasadas_Peticiones.Replace("[ia]", iaUsada.Nombre));
+                ExtensorDeIa.EmitirSiEsUnErrorConocido(e, iaUsada.Nombre);
+                throw;
+            }
+            r.Mensaje = $"Respuesta de {iaUsada.Nombre}";
+            r.Estado = enumEstadoPeticion.Ok;
+        }
+        catch (Exception e)
+        {
+            ApiController.PrepararError(e, r, "No se ha podido obtener la respuesta de la IA.");
+        }
+        finally
+        {
+            Contexto.CerrarTraza();
+        }
+        return new JsonResult(r);
+    }
+
+    // Máximo de caracteres del documento que se le pasan a la IA en "Pregúntame sobre" (los documentos muy largos se recortan)
+    private const int MaximoDeCaracteresParaPreguntar = 100000;
+
+    // "Pregúntame sobre...": robot del visor de archivos (ApiPreguntasIa.AbrirModalPreguntameSobre). Se le pasa a la IA del usuario
+    // el texto del archivo que se muestra en el visor (el mismo que se usa para resumir) y la pregunta. Con idElemento = 0 el archivo
+    // ha de ser uno suelto del usuario (se está creando el elemento), igual que en epProcesarAccion.
+    [HttpPost]
+    public async Task<JsonResult> epPreguntameSobre(enumNegocio negocio, int idElemento, int idArchivo, string pregunta)
+    {
+        var r = new Resultado();
+        var pendienteDeBorrar = new Ficheros(HttpContext);
+        Contexto.IniciarTraza(GetType().Name + "_" + nameof(epPreguntameSobre));
+        try
+        {
+            ApiController.CumplimentarDatosDeUsuarioDeConexion(_GestorDeElementos.Contexto, _GestorDeElementos.Mapeador, HttpContext);
+            if (pregunta.IsNullOrEmpty())
+                GestorDeErrores.Emitir("Indique qué quiere saber");
+
+            if (idElemento > 0)
+                ValidarAccesoAlArchivo(negocio, idElemento, idArchivo);
+            else if (!((GestorDeArchivos)_GestorDeElementos).EsUnArchivoSueltoDelUsuario(idArchivo))
+                GestorDeErrores.Emitir("Sólo se puede preguntar sobre un archivo que ha subido y que no está anexado a ningún elemento");
+
+            var archivo = _GestorDeElementos.LeerRegistroPorId(idArchivo, false, false, false, false);
+            var rutaArchivo = ApiDeArchivos.ObtenerRutaArchivo(archivo);
+            pendienteDeBorrar.Add(rutaArchivo);
+
+            var contenido = ApiDeArchivos.ExtraerTextoPlano(rutaArchivo);
+            if (contenido.IsNullOrEmpty())
+                GestorDeErrores.Emitir($"No se ha podido extraer texto del archivo '{archivo.Nombre}'");
+            if (contenido.Length > MaximoDeCaracteresParaPreguntar)
+                contenido = contenido.Substring(0, MaximoDeCaracteresParaPreguntar);
+
+            var prompt = $@"Eres un asistente que responde preguntas sobre un documento. El usuario está viendo el archivo '{archivo.Nombre}'.
+Responde en español a su pregunta usando sólo el documento que se adjunta:
+- Sé breve y concreto: sin introducciones ni repetir la pregunta.
+- Si el documento no contiene la respuesta, dilo claramente y no inventes datos.
+
+# DOCUMENTO
+{contenido}
+
+# PREGUNTA
+{pregunta}";
+
+            var iaUsada = ExtensorDeUsuarios.IaUsada(Contexto);
+            using var ia = ExtensorDeIa.CrearIa(iaUsada);
+            try
+            {
+                r.Datos = await ExtensorDeIa.Preguntar(ia, prompt);
+            }
+            catch (Exception e)
+            {
+                ExtensorDeIa.EmitirSiEsUnErrorConocido(e, iaUsada.Nombre);
                 throw;
             }
             r.Mensaje = $"Respuesta de {iaUsada.Nombre}";

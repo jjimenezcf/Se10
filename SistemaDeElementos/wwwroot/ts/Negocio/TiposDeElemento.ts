@@ -101,11 +101,11 @@
     }
 
     export function Negocio_DescargarPlantillaPorTipo(idArchivo: number) {
-        let parametros = `negocio=${JerarquiaDeTipos.Negocio}`;
+        let parametros = `${literal.negocio}=${JerarquiaDeTipos.Negocio}`;
         let idModal = ApiDeExpansor.IdDeModalEditarRelacion(ltrModalDeEditarRelacion.Negocio.TipoDeElemento.Plantillas);
         let objeto = Negocio.JerarquiaDeTipos.ObjetoDeExpansor(idModal);
         parametros = `${parametros}&idPlantilla=${ObtenerPropiedad(objeto, ltrPropiedades.Negocio.PlantillaPorTipo.Id)}`;
-        parametros = `${parametros}&idArchivo=${idArchivo}`;
+        parametros = `${parametros}&${literal.idArchivo}=${idArchivo}`;
         let descargar: string = `/${ltrControladores.Negocio.TiposDeElemento}/${Ajax.EndPoint.Negocio.TiposDeElemento.DescargarPlantilla}?${parametros}`;
         EntornoSe.AbrirPestana(descargar);
     }

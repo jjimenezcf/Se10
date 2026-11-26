@@ -34,6 +34,8 @@ namespace Utilidades
 
         public const string Igual = "=";
 
+        public const string Distinto = "!";
+
         public const string PuntoComa = ";";
 
         public const string DosPuntos = ":";
@@ -74,8 +76,6 @@ namespace Utilidades
 
         public const string directorioActual = @".\";
         public const string directorioPadre = @"..\";
-
-        public const string filtroPorDistinto = "!";
 
     }
 

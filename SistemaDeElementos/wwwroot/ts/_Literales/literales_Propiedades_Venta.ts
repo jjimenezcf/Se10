@@ -47,7 +47,7 @@ namespace ltrPropiedades {
             }
         },
         RenombraPpt: {
-            IdElemento: 'idElemento',
+            IdElemento: literal.idElemento,
             Nombre: literal.nombre
         },
         PlfDeVenta: {

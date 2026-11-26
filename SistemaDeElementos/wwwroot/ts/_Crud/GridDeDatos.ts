@@ -1066,7 +1066,8 @@
             ////por ejemplo al pasar navegar de CPs a Municipio se restringe por IdCP pero se visualiza un CP
             //let restrictor: string = editor.disabled ? editor.getAttribute(atControl.restrictor) : ""; Numero(restrictor) > 0 ? restrictor :
 
-            let valor: string = editor.value;
+            // si el editor tiene botón de criterio, el criterio elegido viaja como símbolos del estándar de filtrado dentro del valor
+            let valor: string = ApiDeCriterioDeTexto.ValorConCriterio(editor);
             var clausula = null;
             if (!IsNullOrEmpty(valor))
                 //clausula = { propiedad: `${propiedad}`, criterio: `${criterio}`, valor: `${valor}` };

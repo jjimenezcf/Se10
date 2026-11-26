@@ -758,6 +758,13 @@
             return false;
         }
 
+        public PreguntameSobre(): void {
+            if (!Definido(this.IdArchivoMostrado) || this.IdArchivoMostrado === 0)
+                return;
+
+            ApiVisorDeArchivos.PreguntarSobreElArchivoMostrado(this.CrudDeMnt, this.IdArchivoMostrado);
+        }
+
         public MapearDatosJsonDesdeElVisor(json: object): boolean {
             ApiPanel.QuitarClaseDeMapeadoPoIa(this.PanelDeCrear);
             return true;

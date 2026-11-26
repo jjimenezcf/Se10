@@ -72,6 +72,10 @@ El filtro de texto se llama **Varios** y admite prefijos:
 - `c:texto` → por concepto.
 - `d:texto` → por nombre del cliente.
 - `n:año-serie-nº` → por número de factura.
+- Sin prefijo → por referencia o concepto; si escribe un número de factura (`2026-A-15`) se busca ese número.
+
+El botón de criterio y los símbolos se aplican al texto que va detrás del prefijo (`d:!garcia`: facturas de clientes que no se
+llaman García). En `n:` no se aplican: se busca siempre ese número exacto.
 
 Además, en los bloques de filtro:
 

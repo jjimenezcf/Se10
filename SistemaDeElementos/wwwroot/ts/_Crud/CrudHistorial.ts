@@ -351,10 +351,10 @@
         else if (accion === ltrValores.Elemento.Historial.Descargar) {
             let idElemento = Numero(ObtenerPropiedad(crudMnt.crudHistorial.DatosDelGrid.ObtenerPorId(id).Registro, ltrPropiedades.Elemento.Historial.IdElemento));
             let negocio = ObtenerPropiedad(crudMnt.crudHistorial.DatosDelGrid.ObtenerPorId(id).Registro, ltrPropiedades.Elemento.Historial.Negocio);
-            let parametros = `negocio=${negocio}`;
-            parametros = `${parametros}&idElemento=${idElemento}`;
-            parametros = `${parametros}&idArchivo=${idRegistro}`;
-            parametros = `${parametros}&auditar=true`;
+            let parametros = `${literal.negocio}=${negocio}`;
+            parametros = `${parametros}&${literal.idElemento}=${idElemento}`;
+            parametros = `${parametros}&${literal.idArchivo}=${idRegistro}`;
+            parametros = `${parametros}&${Ajax.Archivos.parametro.auditar}=true`;
 
             let descargar: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.Descargar}?${parametros}`;
             try {

@@ -74,13 +74,13 @@ namespace ltrPropiedades {
         EnviarCorreoExterno: {
             eMail: 'eMail',
             Para: 'Para',
-            IdElemento: 'idElemento'
+            IdElemento: literal.idElemento
         },
         EnviarMensajeWeb: {
             Telefono: 'Telefono',
             Para: 'Para',
             Mensaje: 'Mensaje',
-            IdElemento: 'idElemento',
+            IdElemento: literal.idElemento,
             // respuestas de epLeerConfiguracionDeMensajesWeb y epEnviarMensajeWeb
             Canal: 'Canal',
             Modo: 'Modo',

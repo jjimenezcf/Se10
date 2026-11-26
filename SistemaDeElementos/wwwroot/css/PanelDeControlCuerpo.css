@@ -151,12 +151,33 @@
 }
 
 
+/* Escritorio: si la columna del menú de opciones es estrecha, el menú queda sólo con el icono (se oculta el texto "Opciones") */
+@media (min-width: 701px) {
+    .cuerpo-pie-opciones {
+        container-type: inline-size;
+    }
+}
+
+@container (max-width: 6.5em) {
+    .menu-del-grid-texto {
+        display: none;
+    }
+}
 @media (max-width: 700px) {
     .cuerpo-pie-mensaje  {
         display: none !important;
     }
     .cuerpo-pie-info {
         display: none !important;
+    }
+
+    .cuerpo-pie {
+        grid-template-columns: 1fr auto;
+        grid-template-areas: "cuerpo-pie-navegador cuerpo-pie-opciones";
+    }
+
+    .cuerpo-pie-opciones {
+        text-align: right;
     }
 }
 

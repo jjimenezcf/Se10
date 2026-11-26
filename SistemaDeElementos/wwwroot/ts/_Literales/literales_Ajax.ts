@@ -77,6 +77,7 @@ const Ajax = {
             ConvertirAPdf: 'epConvertirAPdf',
             GuardarTextoEditado: 'epGuardarTextoEditado',
             ComoSeHace: 'epComoSeHace',
+            PreguntameSobre: 'epPreguntameSobre',
             LeerAnexados: 'epLeerAnexados',
             LeerAnexadosDirectos: 'epLeerAnexadosDirectos',
             LeerAnexadosPorGuid: 'epLeerAnexadosPorGuid',
@@ -106,7 +107,9 @@ const Ajax = {
             LeerVinculosAl: 'epLeerVinculosAl'
         },
         parametro: {
-            idArchivo: 'idArchivo',
+            idArchivo: literal.idArchivo,
+            // si es 'true' la descarga queda auditada; 'false' al mostrar el archivo sin descargarlo
+            auditar: 'auditar',
             Cantidad: '5'
         },
     },
@@ -442,7 +445,7 @@ const Ajax = {
         SoloEnAlta: 'SoloEnAlta',
         idTransicion: 'idTransicion',
         fitrarPara: 'filtrarpara',
-        guid: 'guid',
+        guid: literal.guid,
         idDondeImputar: 'idDondeImputar',
         idPlantilla: 'idPlantilla',
         idAdjunto: 'idAdjunto',
@@ -579,6 +582,13 @@ const ltrParametrosNeg = {
     }
 };
 
+// Propiedades del Resultado que devuelven los endpoints (Resultado.cs). Se leen con ObtenerPropiedad, que no distingue mayúsculas
+const ltrResultado = {
+    estado: 'estado',
+    datos: 'datos',
+    mensaje: 'mensaje'
+};
+
 const ltrOperacion = {
     nameOf: 'ltrOperacion',
     CargarDatos: 'CargarDatos',
@@ -598,7 +608,7 @@ const ltrClaveDeEstado = {
     idSeleccionado: 'idSeleccionado',
     paginaDestino: 'pagina-destino',
     paginaActual: 'pagina-actual',
-    guid: 'guid',
+    guid: literal.guid,
     paginaOrigen: 'pagina-origen',
     urlActual: 'url-actual',
     //soloMapearEnElFiltro: 'solo-mapear-en-el-filtro',
@@ -623,7 +633,7 @@ const ltrParametrosUrl = {
     idEstado: 'filtroorporiddeestado',
     idAgenda: 'idAgenda',
     fecha: 'fecha',
-    guid: 'guid',
+    guid: literal.guid,
     miFiltro: 'MiFiltro',
     SisDoc: {
         IdArchivador: 'idarchivador'

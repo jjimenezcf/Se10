@@ -145,6 +145,22 @@ Se10/
 └── Ayudas/Extensiones/        # Utilidades compartidas
 ```
 
+## Ayuda en la aplicación (manuales de las vistas)
+
+Cada vista tiene un manual de uso en Markdown que se muestra desde el `?` del pie de página y que la IA usa para contestar a
+"¿Cómo se hace...?". Se guardan en [`SistemaDeElementos/wwwroot/ayuda/manuales`](SistemaDeElementos/wwwroot/ayuda/manuales):
+
+| Manual | Contenido |
+|--------|-----------|
+| [`Crud_1_Mantenimiento.md`](SistemaDeElementos/wwwroot/ayuda/manuales/Crud_1_Mantenimiento.md) | Común a todas las vistas: el grid, los filtros y los menús |
+| [`Crud_2_Creacion.md`](SistemaDeElementos/wwwroot/ayuda/manuales/Crud_2_Creacion.md) | Común: la creación de un elemento, plantillas y preguntas a la IA sobre un archivo |
+| [`Crud_3_Edicion.md`](SistemaDeElementos/wwwroot/ayuda/manuales/Crud_3_Edicion.md) | Común: la edición, las ampliaciones y el visor de archivos (OCR, resumir y preguntar a la IA) |
+| [`Crud_4_Filtro.md`](SistemaDeElementos/wwwroot/ayuda/manuales/Crud_4_Filtro.md) | Común: cómo escribir en los filtros de texto |
+| [`Consulta_PorGuid.md`](SistemaDeElementos/wwwroot/ayuda/manuales/Consulta_PorGuid.md) | Páginas de consulta por enlace (guid) que se envían a clientes sin usuario |
+| `{módulo}/{controlador}/{vista}.md` | Manual propio de cada vista |
+
+Para saber cómo se organizan y cómo escribirlos, consulta [`LEEME.md`](SistemaDeElementos/wwwroot/ayuda/manuales/LEEME.md).
+
 ## Notas adicionales
 
 - El proyecto usa **TypeScript** compilado a `wwwroot/js`. Revisa `tsconfig.json` si modificas los fuentes `.ts`.

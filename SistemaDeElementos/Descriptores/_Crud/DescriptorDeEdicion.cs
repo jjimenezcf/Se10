@@ -426,7 +426,8 @@ namespace MVCSistemaDeElementos.Descriptores
                                          <img src=""/images/paginaSiguiente.png"" alt=""archivo siguiente"" title=""archivo siguiente"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.Siguiente.Descripcion()}')"">
                                           {(crud == null ? "" : $@"
                                          <button class=""{enumCssControles.ProcesarConIa.Render()}"" title=""{crud.Mnt.IaTitulo}"" onclick=""Crud.EventosDeEdicion('{crud.Mnt.IaAccion.Descripcion()}')""></button>
-                                         <button class=""{enumCssControles.PasarOcr.Render()}"" title=""Pasar OCR"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.PasarOcr.Descripcion()}')""></button>"
+                                         <button class=""{enumCssControles.PasarOcr.Render()}"" title=""Pasar OCR"" onclick=""Crud.EventosDeEdicion('{enumAccionVisorArchivo.PasarOcr.Descripcion()}')""></button>
+                                         <button type=""button"" class=""{enumCssControles.PreguntameSobre.Render()} boton-ia-de-modal"" title=""Pregúntame sobre este archivo"" onclick=""Crud.EventosDeEdicion('{enumCssControles.PreguntameSobre.Render()}')"">{IconosIa.Robot}</button>"
                                           )}
                                       </div>
                                       <input type=""text"" value="""" readonly class='{enumCssEdicion.VisorNombreAnexado.Render()}'>

@@ -10,6 +10,8 @@ wwwroot/ayuda/manuales/
 ├── Crud_1_Mantenimiento.md          ← común a todas las vistas: el grid, filtros, menús (Crud.CrudMnt)
 ├── Crud_2_Creacion.md               ← común: la modal/página de creación (Crud.CrudCreacion)
 ├── Crud_3_Edicion.md                ← común: la edición, ampliaciones, visor de archivos (Crud.CrudEdicion)
+├── Consulta_PorGuid.md              ← páginas de consulta por guid (enlaces a clientes sin usuario): un manual para todas (ver más abajo)
+├── Crud_4_Filtro.md                 ← común: cómo escribir en los filtros de texto (botón de criterio y símbolos =, |, %, _, ;, !), reglas de Filtrar.cs
 ├── {módulo funcional}/{controlador}/{vista}.md
 │   p. ej. Venta/FacturasEmt/CrudFacturasEmt.md
 └── Entorno/Home/PanelDeControl.md   ← página que no sigue el estándar: el panel de control (ver más abajo)
@@ -39,6 +41,10 @@ de `ApiDeArchivos.AbrirModalDeEditarTexto`. Si la vista no tiene manual propio s
 En la cabecera de la modal, el **robot de la IA** abre "¿Cómo se hace...?" (`ApiPreguntasIa.AbrirModalComoSeHace`): la pregunta va a
 `Archivos/epComoSeHace`, que monta en el servidor el mismo manual fusionado y se lo pasa, con la pregunta, a la IA del usuario.
 
+Otro robot, junto al icono del OCR en la barra del visor de archivos (edición y creación), abre "Pregúntame sobre" el archivo mostrado
+(`ApiPreguntasIa.AbrirModalPreguntameSobre`, mismo diálogo): la pregunta va a `Archivos/epPreguntameSobre`, que extrae el texto del
+archivo y se lo pasa, con la pregunta, a la IA del usuario. Se describe en `Crud_3_Edicion.md` y `Crud_2_Creacion.md`.
+
 De dónde se saca la vista según el tipo de página:
 
 | Página | Dónde están controlador y vista |
@@ -54,6 +60,15 @@ Hoy sólo el **panel de control** (el dashboard que se ve al entrar, `PanelDeCon
 - se reconoce por su contenedor de tarjetas `#panel-graficas`;
 - se le pide el manual a `Home` con la vista `PanelDeControl`, así que su manual es `Entorno/Home/PanelDeControl.md`;
 - **no se le añaden los comunes**: `ApiDeManuales.ManualDeLaVista` sólo fusiona los `Crud*.md` en las vistas cuyo nombre empieza por `Crud`.
+
+### Páginas de consulta por guid
+
+Las que reciben los clientes por enlace (`/{controlador}/Consultar?guid=...&id=...`, acción `Consultar` de `EntidadController`) se
+abren **sin usuario**. Se reconocen por el cuerpo `#cuerpo-de-pagina.cuerpo-solo-consulta`; el `?` pide al controlador de la página
+`epManualDeLaVista?vista=Consultar` (`ApiDeManuales.VistaDeConsultaPorGuid`) y todas muestran el mismo manual, `Consulta_PorGuid.md`
+(no empieza por `Crud`, así no se mezcla con los comunes de los crud). Si un negocio necesita uno propio, se crea
+`{módulo}/{controlador}/Consultar.md` y se muestra delante. `epManualDeLaVista` admite llamadas sin usuario sólo para esa vista, y en
+estas páginas no se ofrece el robot de la IA.
 
 Para añadir otra página así: una entrada más en `paginasSinCabecera` (con un selector que sólo exista en esa página, un controlador que
 herede de `BaseController` y un nombre de vista que **no** empiece por `Crud`) y su `.md` en `{módulo}/{controlador}/{vista}.md`. Su manual

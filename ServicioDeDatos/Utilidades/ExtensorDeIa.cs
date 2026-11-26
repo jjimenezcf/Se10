@@ -14,6 +14,27 @@ namespace ServicioDeDatos.Utilidades
 
     public static class ExtensorDeIa
     {
+        /// <summary>
+        /// Si el error es uno de los conocidos de las IAs (ApiKey no válida, servicio no disponible, sin crédito o cuota, demasiadas
+        /// peticiones) lanza un error con un mensaje para el usuario. Si no lo reconoce no hace nada: quien llama debe relanzarlo.
+        /// El texto del error de las IAs viene en el mensaje (p. ej. el json de Gemini con "UNAVAILABLE" o "RESOURCE_EXHAUSTED").
+        /// </summary>
+        public static void EmitirSiEsUnErrorConocido(Exception e, string nombreDeLaIa)
+        {
+            var texto = "";
+            for (var ex = e; ex != null; ex = ex.InnerException)
+                texto += ex.Message + Environment.NewLine;
+            bool Contiene(params string[] claves) => claves.Any(c => texto.Contains(c, StringComparison.OrdinalIgnoreCase));
+
+            if (Contiene("API key not valid"))
+                GestorDeErrores.Emitir(ltrIa.Mensaje_ApiKey_NoDefinida.Replace("[ia]", nombreDeLaIa));
+            if (Contiene("UNAVAILABLE", "high demand", "Service Unavailable", "overloaded"))
+                GestorDeErrores.Emitir(ltrIa.Mensaje_No_Disponible.Replace("[ia]", nombreDeLaIa));
+            if (Contiene("quota", "billing", "credit", "Payment Required", "insufficient_funds"))
+                GestorDeErrores.Emitir(ltrIa.Mensaje_Sin_Credito.Replace("[ia]", nombreDeLaIa));
+            if (Contiene("Too Many Request", "RESOURCE_EXHAUSTED", "rate limit"))
+                GestorDeErrores.Emitir(ltrIa.Mensaje_Demasadas_Peticiones.Replace("[ia]", nombreDeLaIa));
+        }
 
         public static IIa CrearIa(IaDeEntorno ia)
         {

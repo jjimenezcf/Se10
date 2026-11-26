@@ -274,11 +274,11 @@ namespace ApiDePeticiones {
             const accion = (typeof Crud !== 'undefined' && Crud.Consultor) ? Ajax.Archivos.accion.LeerAnexadosPorGuid : Ajax.Archivos.accion.LeerAnexados;
 
             let url: string = `/${Ajax.Archivos.controlador}/${accion}` + '?'
-                + `negocio=${negocio}&`
-                + `idElemento=${idElemento}&`
+                + `${literal.negocio}=${negocio}&`
+                + `${literal.idElemento}=${idElemento}&`
                 + `posicion=${posicion}&`
                 + `cantidad=${cantidad}&`
-                + `guid=${guid}`;
+                + `${literal.guid}=${guid}`;
 
             let datosDeEntrada: any = {
                 "idElemento": idElemento
@@ -309,9 +309,9 @@ namespace ApiDePeticiones {
         return new Promise((resolve, reject) => {
 
             let url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.QuitarAnexado}` + '?'
-                + `negocio=${negocio}&`
-                + `idElemento=${idElemento}&`
-                + `idArchivo=${idArchivo}`;
+                + `${literal.negocio}=${negocio}&`
+                + `${literal.idElemento}=${idElemento}&`
+                + `${literal.idArchivo}=${idArchivo}`;
 
             let datosDeEntrada: any = {
                 "idElemento": idElemento
@@ -383,7 +383,7 @@ namespace ApiDePeticiones {
 
             let url: string = `/${Ajax.Usuarios.controlador}/${Ajax.Usuarios.accion.CambiarMisDatos}` + '?'
                 + `idUsuario=${idUsuario}&`
-                + `idArchivo=${idArchivo}&`
+                + `${literal.idArchivo}=${idArchivo}&`
                 + `email=${email}`;
 
             let datosDeEntrada: any = {
@@ -417,7 +417,7 @@ namespace ApiDePeticiones {
 
             let url: string = `/${Ajax.Usuarios.controlador}/${Ajax.Usuarios.accion.SubirMiCertificado}` + '?'
                 + `idUsuario=${idUsuario}&`
-                + `idArchivo=${idArchivo}&`
+                + `${literal.idArchivo}=${idArchivo}&`
                 + `password=${password}`;
 
             let datosDeEntrada: any = {
@@ -519,8 +519,8 @@ namespace ApiDePeticiones {
 
             let url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.FirmarArchivo}` + '?'
                 + `idNegocio=${idNegocio}&`
-                + `idElemento=${idElemento}&`
-                + `idArchivo=${idArchivo}&`
+                + `${literal.idElemento}=${idElemento}&`
+                + `${literal.idArchivo}=${idArchivo}&`
                 + `idCertificado=${idCertificado}&`
                 + `password=${password}`;
 
@@ -554,8 +554,8 @@ namespace ApiDePeticiones {
 
             let url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.AnularFirma}` + '?'
                 + `idNegocio=${idNegocio}&`
-                + `idElemento=${idElemento}&`
-                + `idArchivo=${idArchivo}`;
+                + `${literal.idElemento}=${idElemento}&`
+                + `${literal.idArchivo}=${idArchivo}`;
 
             let datosDeEntrada: any = {
                 "idNegocio": idNegocio,
@@ -622,9 +622,9 @@ namespace ApiDePeticiones {
         return new Promise((resolve, reject) => {
 
             let url: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.ConvertirAPdf}` + '?'
-                + `negocio=${negocio}&`
-                + `idElemento=${idElemento}&`
-                + `idArchivo=${idArchivo}`
+                + `${literal.negocio}=${negocio}&`
+                + `${literal.idElemento}=${idElemento}&`
+                + `${literal.idArchivo}=${idArchivo}`
                 + (Definido(opciones) ? `&parametrosJson=${encodeURIComponent(JSON.stringify(opciones))}` : '');
 
             let datosDeEntrada: any = {
@@ -658,8 +658,8 @@ namespace ApiDePeticiones {
 
             let url: string = `/${Ajax.Archivos.controlador}/${accion}` + '?'
                 + `idNegocio=${idNegocio}&`
-                + `idElemento=${idElemento}&`
-                + `idArchivo=${idArchivo}&`
+                + `${literal.idElemento}=${idElemento}&`
+                + `${literal.idArchivo}=${idArchivo}&`
                 + `motivo=${motivo}`;
 
             let datosDeEntrada: any = {

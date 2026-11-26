@@ -949,6 +949,15 @@
                             this.PasarOcr();
                         break;
                     }
+                    case ltrEventos.Edicion.PreguntameSobre: {
+                        if (this.CrudDeMnt.EstoyCreando) {
+                            this.CrudDeMnt.crudDeCreacion.PreguntameSobre();
+                            return;
+                        }
+                        else
+                            this.PreguntameSobre();
+                        break;
+                    }
                     case ltrEventos.Edicion.DescargarArchivo: {
                         this.DescargarArchivo();
                         break;
@@ -2771,6 +2780,13 @@
             ApiVisorDeArchivos.ProcesarRenderizar(this.CrudDeMnt, this.IdArchivoMostrado, ltrEventos.Edicion.PasarOcr);
         }
 
+        public PreguntameSobre(): void {
+            if (!Definido(this.IdArchivoMostrado))
+                return;
+
+            ApiVisorDeArchivos.PreguntarSobreElArchivoMostrado(this.CrudDeMnt, this.IdArchivoMostrado);
+        }
+
         public CompartirConWhatsApp(): void {
             if (!Definido(this.IdArchivoMostrado))
                 return;
@@ -2929,7 +2945,7 @@
                 const dominio = window.location.hostname;
                 const puerto = window.location.port;
                 const protocolo = window.location.protocol;
-                const urlDeDescarga = `${protocolo}//${dominio}${(IsNullOrEmpty(puerto) ? "" : `:${puerto}`)}/${ltrControladores.SisDoc.Archivos}/${Ajax.Archivos.accion.DescargaConGuid}?guid=${guid}&id=${idArchivo}`;
+                const urlDeDescarga = `${protocolo}//${dominio}${(IsNullOrEmpty(puerto) ? "" : `:${puerto}`)}/${ltrControladores.SisDoc.Archivos}/${Ajax.Archivos.accion.DescargaConGuid}?${literal.guid}=${guid}&id=${idArchivo}`;
                 if (!compartirConGuid) {
                     var url = "https://wa.me/?text=" + encodeURIComponent(urlDeDescarga);
                     EntornoSe.AbrirPestana(url);
@@ -2959,10 +2975,10 @@
                 return;
 
             let idArchivo: number = this.IdArchivoMostrado;
-            let parametros = `negocio=${this.CrudDeMnt.NombreDeNegocio}`;
-            parametros = `${parametros}&idElemento=${this.IdDelElementoDelVisor}`;
-            parametros = `${parametros}&idArchivo=${idArchivo}`;
-            parametros = `${parametros}&auditar=true`;
+            let parametros = `${literal.negocio}=${this.CrudDeMnt.NombreDeNegocio}`;
+            parametros = `${parametros}&${literal.idElemento}=${this.IdDelElementoDelVisor}`;
+            parametros = `${parametros}&${literal.idArchivo}=${idArchivo}`;
+            parametros = `${parametros}&${Ajax.Archivos.parametro.auditar}=true`;
 
             let descargar: string = `/${Ajax.Archivos.controlador}/${Ajax.Archivos.accion.Descargar}?${parametros}`;
             let idOpcionDescargar = `${ltrEventos.Archivo.Descargar}-${idArchivo}`

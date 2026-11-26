@@ -11,7 +11,7 @@
             const negocio = urlObj.searchParams.get('negocio');
             const idElemento = urlObj.searchParams.get('idElemento');
             const idArchivo = urlObj.searchParams.get('idArchivo');
-            url = `/${ltrControladores.SisDoc.Archivos}/${Ajax.Archivos.accion.DescargarPorGuid}?negocio=${encodeURIComponent(negocio)}&idElemento=${idElemento}&idArchivo=${idArchivo}&guid=${Crud.Consultor.GuidDeConsulta}`;
+            url = `/${ltrControladores.SisDoc.Archivos}/${Ajax.Archivos.accion.DescargarPorGuid}?${literal.negocio}=${encodeURIComponent(negocio)}&${literal.idElemento}=${idElemento}&${literal.idArchivo}=${idArchivo}&${literal.guid}=${Crud.Consultor.GuidDeConsulta}`;
         }
 
         MapearAlControl.MapearUrlALaImagenYCambas(visor, url);
@@ -726,10 +726,10 @@
                     if (!Definido(negocio) || negocio === enumNegocio.No_Definido)
                         negocio = a.getAttribute(literal.negocio);
                     if (Definido(negocio) && negocio !== enumNegocio.No_Definido)
-                        parametros = `${parametros}negocio=${negocio}`;
+                        parametros = `${parametros}${literal.negocio}=${negocio}`;
                     else {
                         negocio = ObtenerParametroUrl(ltrPropiedades.Negocio.propiedad, enumNegocio.No_Definido, false);
-                        if (Definido(negocio)) parametros = `${parametros}negocio=${negocio}`;
+                        if (Definido(negocio)) parametros = `${parametros}${literal.negocio}=${negocio}`;
                     }
 
                     var parametrosParaNavegar = input.getAttribute(atControl.parametrosParaNavegador);
@@ -756,7 +756,7 @@
                     a.href = url;
                     var negocio = ObtenerParametroUrl(ltrPropiedades.Negocio.propiedad, '', false);
                     if (!IsNullOrEmpty(negocio)) {
-                        a.href = a.href.indexOf('?') > 0 ? `${a.href}&negocio=${negocio}` : `${a.href}?negocio=${negocio}`;
+                        a.href = a.href.indexOf('?') > 0 ? `${a.href}&${literal.negocio}=${negocio}` : `${a.href}?${literal.negocio}=${negocio}`;
                     }
                 }
             }
@@ -776,7 +776,7 @@
                         ref.href = url;
                         var negocio = ObtenerParametroUrl(ltrPropiedades.Negocio.propiedad, '', false);
                         if (!IsNullOrEmpty(negocio)) {
-                            ref.href = ref.href.indexOf('?') > 0 ? `${ref.href}&negocio=${negocio}` : `${ref.href}?negocio=${negocio}`;
+                            ref.href = ref.href.indexOf('?') > 0 ? `${ref.href}&${literal.negocio}=${negocio}` : `${ref.href}?${literal.negocio}=${negocio}`;
                         }
                     }
                 }

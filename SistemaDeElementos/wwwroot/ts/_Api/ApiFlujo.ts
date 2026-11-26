@@ -26,7 +26,7 @@ namespace Flujo {
     // ── Helpers de fetch directo (los ep usan negocio en query-string, no en parametrosJson) ──
 
     function _leerPosicionesGuardadas(negocio: string): Promise<Array<TPosicionGuardada>> {
-        const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.LeerPosiciones}?negocio=${encodeURIComponent(negocio)}`;
+        const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.LeerPosiciones}?${literal.negocio}=${encodeURIComponent(negocio)}`;
         return fetch(url, { credentials: 'same-origin' })
             .then(r => r.json())
             .then(d => (d.datos || []) as Array<TPosicionGuardada>)
@@ -37,7 +37,7 @@ namespace Flujo {
         negocio:   string,
         posiciones: Array<{ idEstado: number, posX: number, posY: number }>
     ): Promise<void> {
-        const url  = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.GrabarDisposicion}?negocio=${encodeURIComponent(negocio)}`;
+        const url  = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.GrabarDisposicion}?${literal.negocio}=${encodeURIComponent(negocio)}`;
         // El cuerpo sigue el mismo patrón que EjecutarPeticionPost:
         // encodeURIComponent(JSON.stringify([{parametro, valor}]))
         const body = encodeURIComponent(JSON.stringify([
@@ -109,7 +109,7 @@ namespace Flujo {
         }
         const negocio = boton.getAttribute('negocio') || '';
         const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujoHtml}`
-            + `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
+            + `?${literal.negocio}=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
         ApiDeArchivos.AbrirModalDeEditarTexto(`Ayuda del flujo: ${estado}`, '', true, url);
         return false;
     }
@@ -127,7 +127,7 @@ namespace Flujo {
         retroceder: string
     ): void {
         const base = `/${ltrControladores.Negocio.Estados}`;
-        const parametros = `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
+        const parametros = `?${literal.negocio}=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
         const descargar = () => { window.location.href = `${base}/${Ajax.EndPoint.Negocio.Estados.DescargarAyudaDelFlujo}${parametros}`; };
 
         if (IsNullOrEmpty(avanzar) && IsNullOrEmpty(retroceder)) {
@@ -160,7 +160,7 @@ namespace Flujo {
     // ─────────────────────────────────────────────────────────────────────────
     export function MostrarAyudaDeUnaTransicion(negocio: string, estado: string, transicion: string): void {
         const base = `/${ltrControladores.Negocio.Estados}`;
-        const parametros = `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
+        const parametros = `?${literal.negocio}=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(estado)}`;
 
         fetch(`${base}/${Ajax.EndPoint.Negocio.Estados.ExplicarTransiciones}${parametros}&avanzar=${encodeURIComponent(transicion)}&retroceder=`,
             { credentials: 'same-origin' })
@@ -337,7 +337,7 @@ namespace Flujo {
         btnAyuda.textContent = '?';
         btnAyuda.addEventListener('click', () => {
             const url = `/${ltrControladores.Negocio.Estados}/${Ajax.EndPoint.Negocio.Estados.AyudaDelFlujoHtml}`
-                + `?negocio=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(nombreEstado)}`;
+                + `?${literal.negocio}=${encodeURIComponent(negocio)}&estado=${encodeURIComponent(nombreEstado)}`;
             // se oculta la modal del flujo mientras se lee la ayuda; al cerrarla vuelve a mostrarse
             modal.style.display = ltrStyle.display.none;
             ApiDeArchivos.AbrirModalDeEditarTexto(`Ayuda del flujo: ${nombreEstado}`, '', true, url)

@@ -14,6 +14,19 @@ namespace MVCSistemaDeElementos.Descriptores
         // ancho css de la columna del bloque de filtro que ocupa el control (p.e. "250px"); sin indicar, la columna se reparte (1fr) con las demás
         public string AnchoDeColumna { get; set; }
 
+        // atributo que marca un editor de texto del filtro para que el CrudMnt le ponga a la derecha el botón con el que el usuario
+        // elige el criterio (contiene, igual, distinto, no contiene, comienza, termina); ver ApiDeCriterioDeTexto.ts
+        public const string AtributoSelectorDeCriterio = "selector-de-criterio";
+
+        // sólo lo activan los editores de texto (EditorFiltro y FiltroConEditor); se desactiva en los filtros de texto que no siguen el
+        // estándar de Filtrar.FiltrarPorTexto (p.e. el de estados)
+        public bool ConSelectorDeCriterio { get; set; } = false;
+
+        protected bool RenderizarSelectorDeCriterio =>
+            ConSelectorDeCriterio && (Criterio == enumCriteriosDeFiltrado.contiene || Criterio == enumCriteriosDeFiltrado.porReferencia);
+
+        protected string AtributoDelSelectorDeCriterio => RenderizarSelectorDeCriterio ? $"{AtributoSelectorDeCriterio}='S' " : "";
+
         public ControlFiltroHtml(IControlHtml padre, string id, string etiqueta, string propiedad, string ayuda, Posicion posicion)
         : base(padre, id, etiqueta, propiedad, ayuda, posicion)
         {
@@ -28,7 +41,7 @@ namespace MVCSistemaDeElementos.Descriptores
         {
             atributos = base.RenderAtributos(atributos);
             atributos += $@"control-de-filtro='S'
-                            criterio-de-filtro='{Criterio}' ";
+                            criterio-de-filtro='{Criterio}' {AtributoDelSelectorDeCriterio}";
             return atributos;
         }
 

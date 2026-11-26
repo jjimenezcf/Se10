@@ -291,17 +291,9 @@ namespace GestorDeElementos.Extensores
             {
                 if (!filtro.Valor.IsNullOrEmpty())
                 {
-                    var filtrarPorDistinto = false;
-                    if (filtro.Valor.StartsWith(Simbolos.filtroPorDistinto))
-                    {
-                        filtro.Valor = filtro.Valor.Substring(1);
-                        filtrarPorDistinto = true;
-                    }
-                    var listaDeEstados = filtro.Valor.ToLista<string>(Simbolos.separadorDeCadenasDeFiltrado);
-                    var estados = contexto.Estados(negocio).Where(e => listaDeEstados.Any(estado => e.Nombre.Contains(estado)));
-                    consulta = filtrarPorDistinto
-                        ? consulta.Where(x => !estados.Any(e => e.Id == ((IElementoDeProcesoDtm)x).IdEstado))
-                        : consulta.Where(x => estados.Any(e => e.Id == ((IElementoDeProcesoDtm)x).IdEstado));
+                    // el nombre del estado se filtra con el estándar de texto (criterio del botón, !, =, |, %, ;)
+                    var estados = contexto.Estados(negocio).FiltrarPorTexto(nameof(EstadoDtm.Nombre), filtro.Valor);
+                    consulta = consulta.Where(x => estados.Any(e => e.Id == ((IElementoDeProcesoDtm)x).IdEstado));
                 }
                 filtro.Aplicado = true;
             }

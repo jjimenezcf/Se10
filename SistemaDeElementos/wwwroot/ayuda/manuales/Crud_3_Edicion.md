@@ -35,7 +35,25 @@ En el visor de archivos:
 - Escribir un texto y anexarlo como archivo.
 - Ver el archivo, pasar al anterior o al siguiente, descargarlo, convertirlo a pdf, compartirlo o crear un enlace en el portapapeles.
 - Editar el texto mostrado (lápiz) y anexarlo como un archivo nuevo.
-- Resumir o preguntar a la IA sobre el archivo.
+- En el móvil, donde el visor está oculto, cada archivo de la lista tiene un **ojo** (*ver archivo*), junto al de descargar, que lo
+  abre en una ventana de consulta. También está en la página de consulta por enlace.
+- Resumir con la IA, pasar el **OCR** al archivo o preguntar a la IA sobre él (el robot verde, junto al icono del OCR).
+
+### ¿Cómo le pregunto a la IA sobre un archivo?
+
+1. Seleccione en el visor el archivo sobre el que quiere preguntar.
+2. Pulse el **robot verde** (*Pregúntame sobre este archivo*), a la derecha del icono del OCR en la barra del visor.
+3. Escriba su pregunta, p. ej. *¿cuál es el importe total?*, y pulse **Preguntar**. Mientras la IA responde se muestra un segundero.
+4. La respuesta aparece debajo de la pregunta. Puede hacer otra pregunta sobre el mismo archivo o pulsar **Cerrar** (o Escape).
+
+Tenga en cuenta que:
+
+- La respuesta sale sólo del contenido del archivo: si no está en él, la IA lo dice y no inventa datos.
+- Sirve con pdf, documentos de Word, rtf, html y archivos de texto. Con imágenes no está disponible: pásele antes el **OCR** y
+  pregunte sobre el texto obtenido.
+- En los pdf el texto se extrae con OCR en cada pregunta, así que la primera respuesta puede tardar un poco más.
+- En documentos muy largos sólo se tiene en cuenta el principio (unos 100.000 caracteres).
+- Se usa la IA que tiene configurada su usuario.
 
 ### ¿Cómo comparto un elemento?
 
@@ -55,5 +73,11 @@ evento o archivador, dar de alta / de baja y transitar.
   `Editor.IncluirMfIndividual(...)` y las ampliaciones con los descriptores de ampliación que define cada vista.
 - Cliente: `Crud.CrudEdicion` (ts/_Crud/CrudEdicion.ts), con los eventos de `eventosDeEdicion` (modificar, firmar, cancelar, plegar,
   desplegar, mostrar u ocultar el visor, avanzar, retroceder). La concurrencia se controla con la versión del elemento (RowVersion).
+- Pregúntame sobre el archivo: el botón (`enumCssControles.PreguntameSobre`, clases `preguntame-sobre boton-ia-de-modal`) lo pinta
+  `DescriptorDeEdicion.RenderVisorDeArchivos` junto al del OCR y lanza el evento `preguntame-sobre`, que atiende
+  `CrudEdicion.PreguntameSobre` → `ApiVisorDeArchivos.PreguntarSobreElArchivoMostrado` → `ApiPreguntasIa.AbrirModalPreguntameSobre`
+  (el mismo diálogo que "¿Cómo se hace...?"). La pregunta va a `Archivos/epPreguntameSobre` (negocio, idElemento, idArchivo,
+  pregunta), que valida el acceso al archivo, extrae su texto con `ApiDeArchivos.ExtraerTextoPlano` y se lo pasa, con la pregunta, a la
+  IA del usuario.
 - Cada vista puede heredar `Crud.CrudEdicion` para bloquear o desbloquear campos y opciones según el elemento leído, recalcular datos
   o tratar sus opciones de menú.

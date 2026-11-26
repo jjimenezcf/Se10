@@ -289,6 +289,7 @@ namespace ApiControl {
     export function CrearVisor(ctdArchivosAnexados: HTMLDivElement, idVisorDelArchivo: string, idCtdDelArchivo: string, divCss: string,
         imagenCss, archivoDto: any, accionDeMostrar: Function,
         accionDeDescarga: Function,
+        accionDeVer: Function,
         accionDeBorrado: Function,
         accionDeFirmar: Function,
         accionDeBloquear: Function): [visor: HTMLDivElement, imagen: HTMLImageElement] {
@@ -316,6 +317,10 @@ namespace ApiControl {
         }
 
         let boton_descarga = CrearBoton(divOpciones, `${ltrEventos.Archivo.Descargar}-${idArchivo}`, accionDeDescarga, ltrIconos.descargar, 'descargar archivo', ltrCss.descargarAnexado);
+        // sólo se ofrece en móvil (css) y si el archivo se sabe previsualizar
+        let boton_ver = CrearBoton(divOpciones, `${ltrEventos.Archivo.Ver}-${idArchivo}`, accionDeVer, ltrIconos.verArchivo, 'ver archivo', ltrCss.verArchivoEnModal);
+        if (!EsRenderizable(nombre))
+            boton_ver.style.display = ltrStyle.display.none;
         let boton_borrado = CrearBoton(divOpciones, `${ltrEventos.Archivo.Eliminar}-${idArchivo}`, accionDeBorrado, ltrIconos.papelera, 'Eliminar archivo', ltrCss.borrarAnexado);
         let boton_firma = CrearBoton(divOpciones, `${ltrEventos.Archivo.Firmar}-${idArchivo}`, accionDeFirmar, ltrIconos.firmar, 'firmar archivo', ltrCss.firmarArchivo);
         let boton_bloquear = CrearBoton(divOpciones, `${ltrEventos.Archivo.Bloquear}-${idArchivo}`, accionDeBloquear, ltrIconos.bloquearArchivo, 'bloquear archivo', ltrCss.bloquearArchivo);
@@ -1991,6 +1996,7 @@ namespace ApiDeFiltro {
             let tipo = control.getAttribute(atControl.tipo);
             switch (tipo) {
                 case ltrTipoControl.Editor: mapearFiltroEnEditor(filtroDeIu, control as HTMLInputElement); break;
+                case ltrTipoControl.ConEditor: mapearFiltroEnEditor(filtroDeIu, control as HTMLInputElement); break;
                 case ltrTipoControl.Check: mapearFiltroEnCheck(filtroDeIu, control as HTMLInputElement); break;
                 case ltrTipoControl.ListaDinamica: mapearFiltroEnListaDinamica(filtroDeIu, control as HTMLInputElement); break;
                 case ltrTipoControl.ListaDeElementos: mapearFiltroEnListaDeValores(filtroDeIu, control as HTMLSelectElement); break;
@@ -2027,9 +2033,9 @@ namespace ApiDeFiltro {
         let valor = filtro.Atributos.Obtener(atControl.valorInput);
         if (IsNullOrEmpty(valor))
             return;
-        if (control.value === valor)
+        if (ApiDeCriterioDeTexto.ValorConCriterio(control) === valor)
             return;
-        control.value = valor;
+        ApiDeCriterioDeTexto.MapearValor(control, valor);
     }
     function mapearFiltroEnCheck(filtro: Tipos.Filtro, control: HTMLInputElement) {
         let valor = filtro.Atributos.Obtener(atCheck.chequeado);

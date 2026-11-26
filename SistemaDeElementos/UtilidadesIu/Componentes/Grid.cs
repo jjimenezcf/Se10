@@ -450,33 +450,33 @@ namespace UtilidadesParaIu
             <nav class='{enumCssMenuDelGrid.menuDelGrid.Render()}'>
                 <ul>
                     <li class='{enumCssMenuDelGrid.menuDelGridRaiz.Render()}'>
-                        <a href='#'>Opciones</a>
+                        <a href='#' class='{enumCssMenuDelGrid.menuDelGridDisparador.Render()}' title='Opciones'><span class='{enumCssMenuDelGrid.menuDelGridTexto.Render()}'>Opciones</span></a>
                         <ul>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' >
-                                <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.RecargarGrid}', '{IdHtmlModal}');¨>Buscar</a>
+                                <a class='{enumCssMenuDelGrid.iconoBuscar.Render()}' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.RecargarGrid}', '{IdHtmlModal}');¨>Buscar</a>
                             </li>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' >
-                                <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.SeleccionarTodo}', '{IdHtmlModal}');¨>seleccionar todo</a>
+                                <a class='{enumCssMenuDelGrid.iconoSeleccionarTodo.Render()}' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.SeleccionarTodo}', '{IdHtmlModal}');¨>seleccionar todo</a>
                             </li>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' >
-                                 <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AnularSeleccion}', '{IdHtmlModal}');¨>anular selección</a>
+                                 <a class='{enumCssMenuDelGrid.iconoAnularSeleccion.Render()}' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AnularSeleccion}', '{IdHtmlModal}');¨>anular selección</a>
                             </li>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}'>
-                                 <a id='div.seleccion.{IdHtmlGrid}.ref' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.MostrarSoloSeleccionadas}', '{IdHtmlModal}');¨>Solo las seleccionadas</a>
+                                 <a id='div.seleccion.{IdHtmlGrid}.ref' class='{enumCssMenuDelGrid.iconoSoloSeleccionadas.Render()}' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.MostrarSoloSeleccionadas}', '{IdHtmlModal}');¨>Solo las seleccionadas</a>
                                  <input id=¨div.seleccion.{IdHtmlGrid}.input¨ type=¨hidden¨ value=¨0¨ > 
                             </li>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' >
-                                 <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AnularOrden}', '{IdHtmlModal}');¨>anular orden</a>
+                                 <a class='{enumCssMenuDelGrid.iconoAnularOrden.Render()}' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AnularOrden}', '{IdHtmlModal}');¨>anular orden</a>
                             </li>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' >
-                                 <a href=¨javascript:ApiDelCrud.BlanquearFiltros();¨>Blanquear filtros</a>
+                                 <a class='{enumCssMenuDelGrid.iconoBlanquearFiltros.Render()}' href=¨javascript:ApiDelCrud.BlanquearFiltros();¨>Blanquear filtros</a>
                             </li>
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' {(!conReseteo ? "style = 'padding-bottom: 3px;'" : "")} >
-                                 <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AplicarOrdenInicial}', '{IdHtmlModal}');¨>orden inicial</a>
+                                 <a class='{enumCssMenuDelGrid.iconoOrdenInicial.Render()}' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{eventosDeAccionDeGrid.AplicarOrdenInicial}', '{IdHtmlModal}');¨>orden inicial</a>
                             </li>
                             {(conReseteo ? $@"
                             <li class='{enumCssMenuDelGrid.menuDelGridOpcion.Render()}' style='padding-bottom: 3px;' >
-                                 <a href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{EventosModal.ResetearVista}', '{IdHtmlModal}');¨>Resetar columnas</a>
+                                 <a class='{enumCssMenuDelGrid.iconoResetearColumnas.Render()}' href=¨javascript:Crud.{enumGestorDeEventos.EventosMenuDelGrid}('{EventosModal.ResetearVista}', '{IdHtmlModal}');¨>Resetar columnas</a>
                             </li>" : "")}
                         </ul>
                     </li>

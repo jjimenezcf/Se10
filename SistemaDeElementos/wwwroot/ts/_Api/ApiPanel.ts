@@ -235,7 +235,7 @@
 
 
     export async function RenderizarToHtml(panel: HTMLDivElement, idArchivo: number, accion: string) {
-        let parametros = `idArchivo=${idArchivo}`;
+        let parametros = `${literal.idArchivo}=${idArchivo}`;
         var url = `/${Ajax.Archivos.controlador}/${accion}?${parametros}`;
         await RenderizarUrlToHtml(panel, url);
     }

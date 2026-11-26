@@ -59,7 +59,6 @@ namespace MVCSistemaDeElementos.Descriptores
             var expanDeAnexados = new DescriptorDeExpansor(Pagina, $"{Pagina.Id}-archivos", "Archivos", true, "Archivos anexados");
             Expanes.Add(expanDeAnexados);
             expanDeAnexados.CuerpoDelExpansor = new ContenedorDeArchivos(expanDeAnexados, Negocio);
-
         }
 
 
@@ -68,6 +67,12 @@ namespace MVCSistemaDeElementos.Descriptores
             try
             {
                 var render = Pagina.RenderControl();
+
+                // Quien recibe el enlace no sabe que los apartados se despliegan pulsando en ellos: en la consulta por guid se muestran
+                // siempre abiertos (observaciones, archivos...). Se hace al pintar, y no en el constructor, porque los descriptores
+                // de cada negocio añaden los suyos después de construir éste.
+                foreach (var expansor in Expanes)
+                    expansor.MostrarPlegado = false;
 
                 render = $"{render}{Environment.NewLine}{Expanes.Render(ampliaciones: null, ampliacionDetrasDe: null)}";
 

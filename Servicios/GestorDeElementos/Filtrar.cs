@@ -198,7 +198,9 @@ namespace GestorDeElementos
             // Detectamos si el usuario está usando sintaxis especial
             bool tieneSimbolos = filtro.Valor.Contains(Simbolos.separadorDeCadenasDeFiltrado) ||
                                  filtro.Valor.Contains(Simbolos.Porcentaje) ||
-                                 filtro.Valor.Contains(Simbolos.Pipe);
+                                 filtro.Valor.Contains(Simbolos.Pipe) ||
+                                 filtro.Valor.StartsWith(Simbolos.Distinto) ||
+                                 filtro.Valor.StartsWith(Simbolos.Igual);
 
             if (tieneSimbolos)
             {
@@ -208,7 +210,7 @@ namespace GestorDeElementos
 
                 if (!string.IsNullOrEmpty(rutaPropiedad))
                 {
-                    string expresionDinamica = ComponerFiltro(rutaPropiedad, filtro.Valor, porIgual: false);
+                    string expresionDinamica = ComponerExpresionDeTexto(rutaPropiedad, filtro.Valor, porIgual: false, negar: false);
 
                     // Primero creamos un config temporal para el provider
                     var configTemp = new ParsingConfig();
@@ -708,18 +710,16 @@ namespace GestorDeElementos
         // Estándar del sistema para filtrar por una cadena (lo usa AplicarFiltroDeCadena para todos sus criterios sobre texto y puede usarse
         // directamente sobre cualquier consulta). La propiedad admite rutas, p.e. "Unitario.Referencia". Sintaxis del valor: ';' separa
         // alternativas, '%' es cualquier cadena, '_' un carácter, '=' al inicio igualdad exacta y '|' al inicio o al fin empieza o termina por.
+        // '!' al inicio del valor (no de cada alternativa) invierte la búsqueda: devuelve lo que no cumple ninguna de las alternativas,
+        // incluidos los que tienen la propiedad vacía; se combina con el resto ('!=x', '!|x', '!x|', '!a;b') y sobre un criterio que
+        // ya niega (no contiene, diferente) se anulan.
         // porIgual/porComienzo/porFin fijan el modo por defecto de las cadenas que no llevan '=' o '|', y negar devuelve lo que no cumple
-        // ninguna de las alternativas. Sin valor devuelve la consulta tal cual
+        // ninguna de las alternativas (también los vacíos). Sin valor devuelve la consulta tal cual
         public static IQueryable<TRegistro> FiltrarPorTexto<TRegistro>(this IQueryable<TRegistro> consulta, string propiedad, string valor, bool porIgual = false, bool negar = false, bool porComienzo = false, bool porFin = false)
         {
             if (valor.IsNullOrEmpty()) return consulta;
-            var expresion = ComponerFiltro(propiedad, valor, porIgual, porComienzo, porFin);
+            var expresion = ComponerExpresionDeTexto(propiedad, valor, porIgual, negar, porComienzo, porFin);
             if (expresion.IsNullOrEmpty()) return consulta;
-            if (negar)
-            {
-                const string prefijo = "x => ";
-                expresion = $"{prefijo}!({expresion.Substring(prefijo.Length)})";
-            }
 
             var configTemp = new ParsingConfig();
             var config = new ParsingConfig
@@ -730,7 +730,44 @@ namespace GestorDeElementos
             return consulta.Where(DynamicExpressionParser.ParseLambda<TRegistro, bool>(config, false, expresion));
         }
 
-        private static string ComponerFiltro(string filtrarPor, string valor, bool porIgual, bool porComienzo = false, bool porFin = false)
+        // Quita los símbolos de criterio del estándar ('!' inicial y '=' o '|' de cada alternativa) para los filtros que buscan un valor
+        // exacto con su propio formato (p.e. un número de factura 'año-serie-nº') y no admiten esos criterios
+        public static string SinSimbolosDeCriterio(this string valor)
+        {
+            if (valor.IsNullOrEmpty()) return valor;
+            var texto = valor.Trim();
+            if (texto.StartsWith(Simbolos.Distinto))
+                texto = texto.Substring(Simbolos.Distinto.Length).TrimStart();
+
+            var alternativas = texto.Split(Simbolos.separadorDeCadenasDeFiltrado)
+                .Select(a => a.Trim())
+                .Select(a => a.StartsWith(Simbolos.Igual) ? a.Substring(Simbolos.Igual.Length)
+                           : a.StartsWith(Simbolos.Pipe) ? a.Substring(Simbolos.Pipe.Length)
+                           : a.EndsWith(Simbolos.Pipe) ? a.Substring(0, a.Length - Simbolos.Pipe.Length)
+                           : a)
+                .Select(a => a.Trim());
+            return string.Join(Simbolos.separadorDeCadenasDeFiltrado, alternativas);
+        }
+
+        // Expresión completa "x => ..." del estándar de filtrado por cadena: trata el '!' inicial (invierte negar) y, al negar, compara
+        // las propiedades vacías como "" para que el NOT(...) las devuelva (en SQL un NULL no cumple ni el LIKE ni su negación)
+        private static string ComponerExpresionDeTexto(string filtrarPor, string valor, bool porIgual, bool negar, bool porComienzo = false, bool porFin = false)
+        {
+            if (valor.StartsWith(Simbolos.Distinto))
+            {
+                valor = valor.Substring(Simbolos.Distinto.Length).TrimStart();
+                negar = !negar;
+            }
+
+            var expresion = ComponerFiltro(filtrarPor, valor, porIgual, porComienzo, porFin, vaciosComoCadena: negar);
+            if (expresion.IsNullOrEmpty() || !negar)
+                return expresion;
+
+            const string prefijo = "x => ";
+            return $"{prefijo}!({expresion.Substring(prefijo.Length)})";
+        }
+
+        private static string ComponerFiltro(string filtrarPor, string valor, bool porIgual, bool porComienzo = false, bool porFin = false, bool vaciosComoCadena = false)
         {
             var filtro = "";
             foreach (var propiedad in filtrarPor.Split(Simbolos.separadorDePropiedades))
@@ -738,14 +775,15 @@ namespace GestorDeElementos
                 foreach (var item in valor.Split(Simbolos.separadorDeCadenasDeFiltrado))
                 {
                     if (item.Length > 0)
-                        filtro = FiltrarPorUnaDeLasCadena(propiedad, filtro, item, porIgual, porComienzo, porFin);
+                        filtro = FiltrarPorUnaDeLasCadena(propiedad, filtro, item, porIgual, porComienzo, porFin, vaciosComoCadena);
                 }
             }
             return filtro;
         }
 
-        private static string FiltrarPorUnaDeLasCadena(string propiedad, string filtro, string item, bool porIgual, bool porComienzoPorDefecto = false, bool porFinPorDefecto = false)
+        private static string FiltrarPorUnaDeLasCadena(string propiedad, string filtro, string item, bool porIgual, bool porComienzoPorDefecto = false, bool porFinPorDefecto = false, bool vaciosComoCadena = false)
         {
+            var campo = vaciosComoCadena ? $"(x.{propiedad} ?? \"\")" : $"x.{propiedad}";
             var porComienzo = porComienzoPorDefecto;
             var porFin = porFinPorDefecto;
 
@@ -780,17 +818,17 @@ namespace GestorDeElementos
                            + string.Join("%", partes)
                            + (porFin ? "" : "%");
 
-                expresionItem = $"{prefijo} EF.Functions.Like(x.{propiedad}, \"{patron}\")";
+                expresionItem = $"{prefijo} EF.Functions.Like({campo}, \"{patron}\")";
             }
             else
             {
                 expresionItem = porIgual
-                    ? $"{prefijo} x.{propiedad}.Equals(\"{item.Trim()}\")"
+                    ? $"{prefijo} {campo}.Equals(\"{item.Trim()}\")"
                     : porComienzo
-                    ? $"{prefijo} x.{propiedad}.StartsWith(\"{item.Trim()}\")"
+                    ? $"{prefijo} {campo}.StartsWith(\"{item.Trim()}\")"
                     : porFin
-                    ? $"{prefijo} x.{propiedad}.EndsWith(\"{item.Trim()}\")"
-                    : $"{prefijo} x.{propiedad}.Contains(\"{item.Trim()}\")";
+                    ? $"{prefijo} {campo}.EndsWith(\"{item.Trim()}\")"
+                    : $"{prefijo} {campo}.Contains(\"{item.Trim()}\")";
             }
 
             filtro = filtro.IsNullOrEmpty()

@@ -22,6 +22,15 @@ namespace MVCSistemaDeElementos.UtilidadesIu
         public const string CarpetaDeManuales = "manuales";
         public const string PrefijoDeLosComunes = "Crud";
 
+        /// <summary>
+        /// Vista con la que se pide el manual de las páginas de consulta por guid (acción Consultar de EntidadController), que se abren
+        /// sin usuario. Todas comparten el manual Consulta_PorGuid.md (no empieza por Crud, así no se mezcla con los de los crud).
+        /// </summary>
+        public const string VistaDeConsultaPorGuid = "Consultar";
+        public const string ManualDeConsultaPorGuid = "Consulta_PorGuid.md";
+
+        public static bool EsLaVistaDeConsultaPorGuid(string vista) => string.Equals(vista, VistaDeConsultaPorGuid, StringComparison.OrdinalIgnoreCase);
+
         public static string RutaDeManuales(string webRootPath) => Path.Combine(webRootPath, CarpetaDeAyuda, CarpetaDeManuales);
 
         /// <summary>Ficheros del manual específico de la vista (vacío si aún no tiene)</summary>
@@ -74,20 +83,28 @@ namespace MVCSistemaDeElementos.UtilidadesIu
         {
             var especificos = FicherosEspecificos(webRootPath, controlador, vista);
             var esUnCrud = (vista ?? "").StartsWith(PrefijoDeLosComunes, StringComparison.OrdinalIgnoreCase);
+            var esConsultaPorGuid = EsLaVistaDeConsultaPorGuid(vista);
             var comunes = esUnCrud ? FicherosComunes(webRootPath) : new List<string>();
+            if (esConsultaPorGuid)
+            {
+                var deConsulta = Path.Combine(RutaDeManuales(webRootPath), ManualDeConsultaPorGuid);
+                if (File.Exists(deConsulta))
+                    comunes.Add(deConsulta);
+            }
             if (especificos.Count == 0 && comunes.Count == 0)
                 return null;
 
             var partes = new List<string>();
             if (especificos.Count > 0)
                 partes.AddRange(especificos.Select(f => File.ReadAllText(f).Trim()));
-            else
+            else if (!esConsultaPorGuid)
                 partes.Add($"# {(string.IsNullOrWhiteSpace(titulo) ? vista : titulo)}\n\n> Esta vista aún no tiene manual propio " +
                            $"(ayuda/manuales/[módulo]/{controlador}/{vista}.md). A continuación se describe el funcionamiento común a todas las vistas.");
 
             if (comunes.Count > 0)
             {
-                partes.Add("# Funcionamiento común de las vistas");
+                if (!esConsultaPorGuid)
+                    partes.Add("# Funcionamiento común de las vistas");
                 partes.AddRange(comunes.Select(f => File.ReadAllText(f).Trim()));
             }
 
