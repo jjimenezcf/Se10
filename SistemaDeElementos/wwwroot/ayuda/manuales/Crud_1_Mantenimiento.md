@@ -42,6 +42,22 @@ la próxima vez. Si no hay orden guardado, se ordena por fecha de creación desc
 - En el pie del grid se puede ver sólo lo seleccionado, seleccionar todo o anular la selección.
 - En el móvil, las fichas: un toque selecciona y un doble toque abre la edición.
 
+### ¿Qué hace cada opción del menú *Opciones* del pie del grid?
+
+Debajo del grid, junto al navegador de páginas, está el menú **Opciones** (en el móvil sólo se ve su icono de tres rayas, a la
+derecha). Al pulsarlo se despliega esta lista; cada opción tiene su icono:
+
+| Icono | Opción | Para qué sirve |
+|---|---|---|
+| Lupa | **Buscar** | Vuelve a leer el grid con los filtros que hay escritos. |
+| Casilla con marca | **Seleccionar todo** | Selecciona todas las filas que se ven en el grid (las de la página actual). |
+| Casilla con aspa | **Anular selección** | Quita la selección de todas las filas. |
+| Embudo | **Solo las seleccionadas** | Muestra únicamente las filas seleccionadas; púlsela otra vez para volver a ver todas. |
+| Flechas de orden tachadas | **Anular orden** | Quita el orden de las columnas, para ver las filas tal como las devuelve la base de datos. |
+| Círculo con aspa | **Blanquear filtros** | Vacía todos los criterios de la zona de filtro. |
+| Flechas circulares | **Orden inicial** | Vuelve al orden con el que se abre la vista (el guardado para su usuario o, si no hay, el de la vista). |
+| Libro abierto | **Resetar columnas** | Deja las columnas visibles y su anchura como vienen de origen. Sólo sale en los grids que permiten personalizar las columnas. |
+
 ### ¿Cómo paso de página?
 
 Con el navegador del pie del grid (primera, anterior, siguiente, última) o escribiendo el número de página. También se puede indicar
