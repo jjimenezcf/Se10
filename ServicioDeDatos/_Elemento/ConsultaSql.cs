@@ -4,7 +4,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using ServicioDeDatos.Utilidades;
 using Utilidades;
@@ -32,7 +32,7 @@ namespace ServicioDeDatos.Elemento
                 if (_contextoSe != null)
                     return _contextoSe.Database.GetDbConnection();
 
-                return new SqlConnection(CadenaDeConexion);
+                return ProveedorDeBd.CrearConexion(CadenaDeConexion);
             }
         }
 
@@ -55,7 +55,7 @@ namespace ServicioDeDatos.Elemento
                 while (_sentencia.IndexOf($"{Environment.NewLine}{Environment.NewLine}") > -1)
                     _sentencia = _sentencia.Replace($"{Environment.NewLine}{Environment.NewLine}", $"{Environment.NewLine}");
 
-                return _sentencia;
+                return ProveedorDeBd.EsPostgresActual ? ProveedorDeBd.TraducirSql(_sentencia) : _sentencia;
             }
             private set
             {
@@ -101,7 +101,7 @@ namespace ServicioDeDatos.Elemento
         {
             if (_contextoSe == null)
             {
-                using (IDbConnection db = new SqlConnection(CadenaDeConexion))
+                using (IDbConnection db = ProveedorDeBd.CrearConexion(CadenaDeConexion))
                 {
                     try
                     {
@@ -143,16 +143,25 @@ namespace ServicioDeDatos.Elemento
             return resultado;
         }
 
+        // Copia los parámetros de Dapper a una colección de ADO.NET del proveedor activo (SQL Server o PostgreSQL), solo para la traza
+        private static DbParameterCollection CrearParametrosParaTraza(IDbConnection conexion, DynamicParameters parametros)
+        {
+            var comando = (DbCommand)conexion.CreateCommand();
+            foreach (var nombre in parametros.ParameterNames)
+            {
+                var p = comando.CreateParameter();
+                p.ParameterName = nombre;
+                p.Value = parametros.Get<object>(nombre) ?? DBNull.Value;
+                comando.Parameters.Add(p);
+            }
+            return comando.Parameters;
+        }
+
         private List<T> Lanzar(IDbConnection conexion, IDbTransaction transaccion, DynamicParameters parametros = null)
         {
             if (parametros is null)
                 parametros = new DynamicParameters();
-            SqlParameterCollection spc = new SqlCommand().Parameters;
-            foreach (var nombre in parametros.ParameterNames)
-            {
-                var valor = parametros.Get<object>(nombre);
-                spc.AddWithValue(nombre, valor);
-            }
+            var spc = CrearParametrosParaTraza(conexion, parametros);
 
             var cronometro = new Stopwatch();
 
@@ -188,7 +197,7 @@ namespace ServicioDeDatos.Elemento
             if (_contextoSe != null)
                 return EjecutarSentencia(_conexion, _transaccion, parametros);
 
-            using (IDbConnection conexion = new SqlConnection(CadenaDeConexion))
+            using (IDbConnection conexion = ProveedorDeBd.CrearConexion(CadenaDeConexion))
             {
                 conexion.Open();
                 return EjecutarSentencia(conexion, _transaccion, parametros);
@@ -214,12 +223,7 @@ namespace ServicioDeDatos.Elemento
             if (parametros is null)
                 parametros = new DynamicParameters();
 
-            SqlParameterCollection spc = new SqlCommand().Parameters;
-            foreach (var nombre in parametros.ParameterNames)
-            {
-                var valor = parametros.Get<object>(nombre);
-                spc.AddWithValue(nombre, valor);
-            }
+            var spc = CrearParametrosParaTraza(conexion, parametros);
 
             var cronometro = new Stopwatch();
             int resultado;

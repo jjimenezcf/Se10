@@ -270,12 +270,17 @@ namespace GestorDeElementos
         }
 
 
-        // 2601: fila duplicada en un índice único; 2627: violación de una restricción UNIQUE o de la clave primaria
-        private static SqlException ExcepcionDeClaveDuplicada(Exception e)
+        // SQL Server -> 2601: fila duplicada en un índice único; 2627: violación de una restricción UNIQUE o de la clave primaria
+        // PostgreSQL -> SqlState 23505 (unique_violation)
+        private static Exception ExcepcionDeClaveDuplicada(Exception e)
         {
             for (var actual = e; actual != null; actual = actual.InnerException)
+            {
                 if (actual is SqlException sql && (sql.Number == 2601 || sql.Number == 2627))
                     return sql;
+                if (actual is Npgsql.PostgresException pg && pg.SqlState == Npgsql.PostgresErrorCodes.UniqueViolation)
+                    return pg;
+            }
             return null;
         }
 

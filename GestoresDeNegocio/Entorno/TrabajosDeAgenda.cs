@@ -117,8 +117,17 @@ namespace GestoresDeNegocio.Entorno
             //    .ToList();
 
 
-          var eventos = contexto.Set<EventoDeAgendaDtm>()
-          .FromSqlRaw($@"
+          var sentenciaDeEventos = contexto.EsPostgres()
+          ? @"
+                SELECT * FROM ENTORNO.AGENDA_EVENTO
+                WHERE Notificado = false
+                AND Inicio - (
+                      CASE
+                        WHEN MEDIDO_EN = 'Dias'  THEN AVISO * interval '1 day'
+                        WHEN MEDIDO_EN = 'Horas' THEN AVISO * interval '1 hour'
+                        ELSE AVISO * interval '1 minute'
+                      END) < @fechaActual"
+          : $@"
                 SELECT * FROM ENTORNO.AGENDA_EVENTO 
                 WHERE Notificado = 0 
                 AND CAST(Inicio AS datetime) - DATEADD(MINUTE,  
@@ -127,8 +136,10 @@ namespace GestoresDeNegocio.Entorno
                         WHEN MEDIDO_EN = 'Horas' THEN AVISO * 60  
                         ELSE AVISO 
                 	  END,
-                	CAST('1900-01-01' AS DATETIME)) <  @fechaActual",
-                new SqlParameter("@fechaActual", fechaActual))
+                	CAST('1900-01-01' AS DATETIME)) <  @fechaActual";
+
+          var eventos = contexto.Set<EventoDeAgendaDtm>()
+               .FromSqlRaw(sentenciaDeEventos, contexto.CrearParametro("fechaActual", fechaActual))
                .ToList();
 
             var ejecutor = contexto.SeleccionarPorId<UsuarioDtm>(contexto.DatosDeConexion.IdUsuario);

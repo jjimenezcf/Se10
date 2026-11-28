@@ -77,7 +77,7 @@ namespace ServicioDeDatos
             var datosDeConexion = ContextoSe.ObtenerDatosDeConexion();
 
             var opciones = new DbContextOptionsBuilder<ContextoSe>();
-            opciones.UseSqlServer(datosDeConexion.CadenaConexion);
+            opciones.Usar(datosDeConexion.CadenaConexion);
             object[] parametros = { opciones.Options, datosDeConexion.Configuracion };
 
             return (ContextoSe)Activator.CreateInstance(typeof(ContextoSe), parametros);
@@ -377,6 +377,21 @@ namespace ServicioDeDatos
 
         public void BorrarBd()
         {
+            if (this.EsPostgres())
+            {
+                // En PostgreSQL no se puede borrar la BD a la que se está conectado: se hace desde la BD "postgres"
+                var cb = new Npgsql.NpgsqlConnectionStringBuilder(Database.GetConnectionString());
+                var bd = cb.Database;
+                cb.Database = "postgres";
+                cb.Pooling = false;
+                using var cx = new Npgsql.NpgsqlConnection(cb.ConnectionString);
+                cx.Open();
+                using var cmd = cx.CreateCommand();
+                cmd.CommandText = $@"DROP DATABASE IF EXISTS ""{bd}"" WITH (FORCE)";
+                cmd.ExecuteNonQuery();
+                return;
+            }
+
             string borrar = $@"
 begin
   EXEC msdb.dbo.sp_delete_database_backuphistory @database_name = N'{DatosDeConexion.Bd}'
@@ -400,11 +415,7 @@ end";
             var enableSensitiveDataLogging = OpcionesDeEF != null ? OpcionesDeEF[ltrAppSetting.OpcionesDeEF.EnableSensitiveDataLogging].EsTrue() : false;
             var enableDetailedErrors = OpcionesDeEF != null ? OpcionesDeEF[ltrAppSetting.OpcionesDeEF.EnableDetailedErrors].EsTrue() : false;
 
-            options.UseSqlServer(conexion, x =>
-            {
-                x.MigrationsHistoryTable("__Migraciones", "ENTORNO");
-                x.MigrationsAssembly("Migraciones");
-            });
+            options.Usar(conexion, conMigraciones: true);
 
             if (enableSensitiveDataLogging) options.EnableSensitiveDataLogging();
             if (enableDetailedErrors) options.EnableDetailedErrors();
@@ -445,7 +456,9 @@ end";
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
-            configurationBuilder.Conventions.Add(_ => new BlankTriggerAddingConvention());
+            // Los triggers en blanco solo hacen falta en SQL Server (OUTPUT de EF y triggers); PostgreSQL usa RETURNING
+            if (!this.EsPostgres())
+                configurationBuilder.Conventions.Add(_ => new BlankTriggerAddingConvention());
         }
 
         public void InicializarDatosDeConexion()

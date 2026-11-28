@@ -89,7 +89,7 @@ namespace ServicioDeDatos.Entorno
             public static string PorVista = $"{nameof(MenuDtm.IdVistaMvc)}".ToLower();
             public static string PorNombre = $"{nameof(MenuDtm.Nombre)}".ToLower();
         }
-        private static string _noActivo = $@"AND T1.{ICampos.ACTIVO} = 0";
+        private static string _noActivo => $@"AND T1.{ICampos.ACTIVO} = {(ProveedorDeBd.EsPostgresActual ? "false" : "0")}";
         private static string _filtroPorNombre = $"AND (T1.{ICampos.NOMBRE} LIKE '%'+@{Parametros.NOMBRE}+'%' or T2.{ICampos.NOMBRE} LIKE '%'+@{Parametros.NOMBRE}+'%')";
         private static string _filtroPorUsuario = $@"
         and exists (

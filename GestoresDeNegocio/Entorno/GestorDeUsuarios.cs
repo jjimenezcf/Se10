@@ -488,7 +488,7 @@ namespace GestoresDeNegocio.Entorno
                 $@"SELECT 
                     {ICampos.ID} as {nameof(CredencialesDeConexion.Id)}
                   , {ICampos.LOGIN} as {nameof(CredencialesDeConexion.Login)}
-                  , CONVERT(VARCHAR , DECRYPTBYPASSPHRASE('sistemaSe',  {ICampos.PASSWORD})) as {nameof(CredencialesDeConexion.Password)}
+                  , {ProveedorDeBd.SqlDescifrar(ICampos.PASSWORD)} as {nameof(CredencialesDeConexion.Password)}
                   FROM {Esquemas.ENTORNO}.{Tablas.USUARIO}
                   where {ICampos.LOGIN} like '{login}'");
 
@@ -501,7 +501,7 @@ namespace GestoresDeNegocio.Entorno
 
         public static string Generar(string login)
         {
-            var consulta = new ConsultaSql<CredencialesDeConexion>($@"SELECT '{login}' as Login,  CONVERT(VARCHAR , ENCRYPTBYPASSPHRASE('sistemaSe', '{VariableDeUsuario.PasswordPorDefecto()}')) as Password");
+            var consulta = new ConsultaSql<CredencialesDeConexion>($@"SELECT '{login}' as Login,  {ProveedorDeBd.SqlCifradoComoTexto($"'{VariableDeUsuario.PasswordPorDefecto()}'")} as Password");
             var credenciales = consulta.LanzarConsulta();
             return credenciales[0].Password;
         }
@@ -509,13 +509,13 @@ namespace GestoresDeNegocio.Entorno
         internal static void RegistraPassworDeConexion(ContextoSe contexto, int id, string password)
         {
             ValidarCriteriosDePassword(password);
-            var consulta = new ConsultaSql<CredencialesDeConexion>(contexto, $"update {Esquemas.ENTORNO}.{Tablas.USUARIO} set {ICampos.PASSWORD} = ENCRYPTBYPASSPHRASE('sistemaSe','{password}') where {ICampos.ID} = {id}");
+            var consulta = new ConsultaSql<CredencialesDeConexion>(contexto, $"update {Esquemas.ENTORNO}.{Tablas.USUARIO} set {ICampos.PASSWORD} = {ProveedorDeBd.SqlCifrar($"'{password}'")} where {ICampos.ID} = {id}");
             consulta.EjecutarSentencia();
         }
 
         internal static void RegistrarPasswordDeCertificado(ContextoSe contexto, int id, string password)
         {
-            var consulta = new ConsultaSql<CredencialesDeCertificado>(contexto, $"update {Esquemas.ENTORNO}.{Tablas.CERTIFICADO} set {ICampos.PASSWORD} = ENCRYPTBYPASSPHRASE('sistemaSe','{password}') where {ICampos.ID} = {id}");
+            var consulta = new ConsultaSql<CredencialesDeCertificado>(contexto, $"update {Esquemas.ENTORNO}.{Tablas.CERTIFICADO} set {ICampos.PASSWORD} = {ProveedorDeBd.SqlCifrar($"'{password}'")} where {ICampos.ID} = {id}");
             consulta.EjecutarSentencia();
         }
 

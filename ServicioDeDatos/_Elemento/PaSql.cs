@@ -29,7 +29,13 @@ namespace ServicioDeDatos.Elemento
                 {
                     command.Transaction = transaction.GetDbTransaction();
                 }
-                command.CommandText = @$"SELECT COUNT(*)
+                command.CommandText = contexto.EsPostgres()
+                    ? @"SELECT COUNT(*)
+                         FROM information_schema.routines t1
+                         where t1.routine_type in ('PROCEDURE', 'FUNCTION')
+                           and t1.specific_schema ilike @esquema
+                           and t1.routine_name ilike @pa"
+                    : @$"SELECT COUNT(*)
                          FROM INFORMATION_SCHEMA.ROUTINES t1 with(nolock)
                          inner join sysobjects t2 with(nolock) on t2.name = t1.specific_name
                          where t1.ROUTINE_TYPE = 'PROCEDURE' 
@@ -38,12 +44,12 @@ namespace ServicioDeDatos.Elemento
                            and t1.specific_name like @pa";
 
                 var parameter = command.CreateParameter();
-                parameter.ParameterName = "@esquema";
+                parameter.ParameterName = contexto.EsPostgres() ? "esquema" : "@esquema";
                 parameter.Value = $"{esquema}";
                 command.Parameters.Add(parameter);
 
                 parameter = command.CreateParameter();
-                parameter.ParameterName = "@pa";
+                parameter.ParameterName = contexto.EsPostgres() ? "pa" : "@pa";
                 parameter.Value = $"{nombre}";
                 command.Parameters.Add(parameter);
 
@@ -58,6 +64,9 @@ namespace ServicioDeDatos.Elemento
         {
             if (ExistePa(contexto, esquema, nombre))
                 GestorDeErrores.Emitir($" El PA: '{esquema}.{nombre}' ya existe");
+
+            if (contexto.EsPostgres())
+                GestorDeErrores.Emitir("Pendiente de portar a PostgreSQL: los PA de plantillas devuelven varios conjuntos de resultados y en PostgreSQL requieren refcursor. Ver ModeloDeDatos/Postgres/PORTADO_A_POSTGRES.md");
 
             string sentencia = $@"
 CREATE PROCEDURE {esquema}.{nombre}
@@ -116,7 +125,9 @@ END";
             if (ExistePa(contexto, esquema, nombre))
                 GestorDeErrores.Emitir($"No se puede renombrar el '{esquema}.{anterior}' con '{esquema}.{nombre}' ya que existe '{esquema}.{nombre}'");
 
-            string sentencia = $@"EXEC sp_rename '{esquema}.{anterior}', '{nombre}'";
+            string sentencia = contexto.EsPostgres()
+                ? $@"ALTER ROUTINE ""{esquema}"".""{anterior}"" RENAME TO ""{nombre}"""
+                : $@"EXEC sp_rename '{esquema}.{anterior}', '{nombre}'";
             contexto.Database.ExecuteSqlRaw(sentencia);
         }
 
@@ -124,7 +135,9 @@ END";
         {
             if (ExistePa(contexto, esquema, nombre))
             {
-                string sentencia = $@"DROP PROCEDURE IF EXISTS {esquema}.{nombre}";
+                string sentencia = contexto.EsPostgres()
+                    ? $@"DROP ROUTINE IF EXISTS ""{esquema}"".""{nombre}"""
+                    : $@"DROP PROCEDURE IF EXISTS {esquema}.{nombre}";
                 contexto.Database.ExecuteSqlRaw(sentencia);
             }
         }
@@ -132,6 +145,9 @@ END";
         public static DataSet EjecutarPa(this ContextoSe contexto, string esquema, string nombrePa, int idNegocio, int idFactura)
         {
             contexto.ValidarExistePa(esquema, nombrePa);
+
+            if (contexto.EsPostgres())
+                throw new NotSupportedException("EjecutarPa pendiente de portar a PostgreSQL (varios conjuntos de resultados => refcursor). Ver ModeloDeDatos/Postgres/PORTADO_A_POSTGRES.md");
 
             using (var command = contexto.Database.GetDbConnection().CreateCommand())
             {

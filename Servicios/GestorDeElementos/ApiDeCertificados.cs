@@ -483,7 +483,7 @@ namespace GestorDeElementos
             var consulta = new ConsultaSql<CredencialesDeCertificado>(
                 $@"SELECT 
                      {ICampos.ID} as {nameof(CredencialesDeCertificado.Id)}
-                   , CONVERT(VARCHAR , DECRYPTBYPASSPHRASE('sistemaSe',  {ICampos.PASSWORD})) as {nameof(CredencialesDeCertificado.Password)}
+                   , {ProveedorDeBd.SqlDescifrar(ICampos.PASSWORD)} as {nameof(CredencialesDeCertificado.Password)}
                    FROM {Esquemas.ENTORNO}.{Tablas.CERTIFICADO}
                    where {ICampos.ID} = {idCertificado}");
 

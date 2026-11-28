@@ -43,7 +43,13 @@ namespace ValidacionesBase
         public static (string servidor, string baseDeDatos) Conexion()
         {
             var configuracion = Host.Services.GetRequiredService<IConfiguration>();
-            var cadena = new SqlConnectionStringBuilder(configuracion.GetConnectionString(Literal.CadenaDeConexion));
+            var texto = configuracion.GetConnectionString(Literal.CadenaDeConexion);
+            if (ServicioDeDatos.ProveedorDeBd.EsPostgres(texto))
+            {
+                var pg = new Npgsql.NpgsqlConnectionStringBuilder(texto);
+                return (pg.Host, pg.Database);
+            }
+            var cadena = new SqlConnectionStringBuilder(texto);
             return (cadena.DataSource, cadena.InitialCatalog);
         }
 

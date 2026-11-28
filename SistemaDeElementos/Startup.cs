@@ -57,7 +57,7 @@ public class Startup
         var cadenaDeConexion = Configuracion.GetConnectionString(Literal.CadenaDeConexion);
         services.AddDbContext<ContextoSe>((serviceProvider, options) =>
         {
-            options.UseSqlServer(cadenaDeConexion);
+            options.Usar(cadenaDeConexion);
         }, ServiceLifetime.Scoped);
 
         services.AddSingleton<IConfiguration>(Configuracion);

@@ -267,7 +267,9 @@ namespace GestoresDeNegocio.Entorno
 
             var sentenciaSql = mostrarJerarquia || MenuSql.HayFiltrosConSoloPermisos(filtros)
                 ? MenuSql.JerarquiaDeMenus.Replace("[Padre]", "")
-                : MenuSql.JerarquiaDeMenus.Replace("[Padre]", $"iif(T2.{ICampos.NOMBRE} is NULL,'', T2.{ICampos.NOMBRE} + '.') +");
+                : MenuSql.JerarquiaDeMenus.Replace("[Padre]", ProveedorDeBd.EsPostgresActual
+                    ? $"CASE WHEN T2.{ICampos.NOMBRE} is NULL THEN '' ELSE T2.{ICampos.NOMBRE} || '.' END ||"
+                    : $"iif(T2.{ICampos.NOMBRE} is NULL,'', T2.{ICampos.NOMBRE} + '.') +");
 
             sentenciaSql = MenuSql.AplicarFiltros(sentenciaSql, idPadre, filtros, parametrosSql);
 
@@ -347,7 +349,7 @@ namespace GestoresDeNegocio.Entorno
                                                       t1.ID
                                                     , case
                                                          WHEN t2.Nombre is null THEN t1.nombre
-                                                         ELSE t2.nombre+'.'+t1.nombre
+                                                         ELSE CONCAT(t2.nombre,'.',t1.nombre)
                                                       END as NOMBRE
                                                     , t1.DESCRIPCION
                                                     , t1.icono

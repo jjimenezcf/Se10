@@ -770,6 +770,9 @@ namespace ServicioDeDatos
             ModeloDeRemesaPag.Historia(modelBuilder);
             ModeloDeRemesaPag.Archivadores(modelBuilder);
             ModeloDeRemesaPag.PagosDeUnaRemesa(modelBuilder);
+
+            if (this.EsPostgres())
+                ProveedorDeBd.AdaptarModeloAPostgres(modelBuilder);
         }
 
         private static void DefinirTablasDeGuarderias(ModelBuilder modelBuilder)

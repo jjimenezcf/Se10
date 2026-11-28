@@ -39,6 +39,15 @@ namespace ServicioDeDatos
              and t1.specific_schema like '[Esquema]'
              and t1.specific_name like '[Pa]'";
 
+        private string existePaPostgres = @"
+           SELECT 1 as Id
+                , r.routine_schema as Esquema
+                , r.routine_name as Nombre
+           FROM information_schema.routines r
+           where r.routine_type in ('PROCEDURE', 'FUNCTION')
+             and r.routine_schema ilike '[Esquema]'
+             and r.routine_name ilike '[Pa]'";
+
         private class ResultadoBoleano : IRegistro
         {
             public int Id { get; set; }
@@ -49,7 +58,7 @@ namespace ServicioDeDatos
 
         private GestorDeMetadatos(string esquema, string objeto, bool esTabla)
         {
-            var consultaParaEjecutar = esTabla ? existeTablaSql.Replace("[Esquema]", esquema).Replace("[Tabla]", objeto) : existePaSql.Replace("[Esquema]", esquema).Replace("[Pa]", objeto);
+            var consultaParaEjecutar = esTabla ? existeTablaSql.Replace("[Esquema]", esquema).Replace("[Tabla]", objeto) : (ProveedorDeBd.EsPostgresActual ? existePaPostgres : existePaSql).Replace("[Esquema]", esquema).Replace("[Pa]", objeto);
             Consulta = new ConsultaSql<ResultadoBoleano>(consultaParaEjecutar, false, fichero: $"Existe_{(esTabla ? "Tabla" : "Pa")}_{esquema}_{objeto}");
         }
 
@@ -93,6 +102,10 @@ namespace ServicioDeDatos
 
         public static void ValidarSql(string sql)
         {
+            // El analizador sintáctico (ScriptDom) es solo de T-SQL. En PostgreSQL la validez
+            // la comprueba el propio servidor al ejecutar la sentencia.
+            if (ProveedorDeBd.EsPostgresActual) return;
+
             var p = new TSql110Parser(true);
             IList<ParseError> errors;
             p.Parse(new StringReader(sql), out errors);
@@ -110,7 +123,23 @@ namespace ServicioDeDatos
             var i = $"{esquema}.{tabla}";
             if (!cache.ContainsKey(i))
             {
-                string query = @$"
+                string query = ProveedorDeBd.EsPostgresActual
+                ? @$"
+                SELECT 
+                    CAST(ROW_NUMBER() OVER (ORDER BY kcu.table_schema, kcu.table_name, kcu.column_name) AS int) AS ""{nameof(ReferenciaFk.Id)}"",
+                    kcu.table_schema AS ""{nameof(ReferenciaFk.Esquema)}"",
+                    kcu.table_name   AS ""{nameof(ReferenciaFk.Tabla)}"",
+                    kcu.column_name  AS ""{nameof(ReferenciaFk.Campo)}""
+                FROM information_schema.referential_constraints rc
+                JOIN information_schema.key_column_usage kcu
+                  ON kcu.constraint_schema = rc.constraint_schema AND kcu.constraint_name = rc.constraint_name
+                JOIN information_schema.key_column_usage rkcu
+                  ON rkcu.constraint_schema = rc.unique_constraint_schema AND rkcu.constraint_name = rc.unique_constraint_name
+                 AND rkcu.ordinal_position = kcu.position_in_unique_constraint
+                WHERE rkcu.table_schema = 'SISDOC'
+                  AND rkcu.table_name = 'ARCHIVO'
+                  AND rkcu.column_name = 'ID'"
+                : @$"
                 SELECT 
                     ROW_NUMBER() OVER (ORDER BY s_ref.name, t.name, c.name) AS {nameof(ReferenciaFk.Id)},
                     s_ref.name AS {nameof(ReferenciaFk.Esquema)},
